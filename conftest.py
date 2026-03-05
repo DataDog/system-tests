@@ -11,7 +11,7 @@ import time
 import types
 import xml.etree.ElementTree as ET
 from collections.abc import Generator, Sequence
-from typing import Any
+from typing import Any, Literal
 
 import pytest
 from _pytest.junitxml import xml_key
@@ -34,6 +34,8 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG00
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items: list[pytest.Item] = []
 setup_properties = SetupProperties()
+
+PytestOutcome = Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"]
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -118,7 +120,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
+        choices=["cpp", "golang", "dotnet", "java", "java_lambda", "nodejs", "php", "python", "ruby", "rust"],
     )
     parser.addoption(
         "--github-token-file",
@@ -362,6 +364,9 @@ def _item_must_pass(item: pytest.Item) -> bool:
     if any(item.iter_markers("xfail")):
         return False
 
+    if any(item.iter_markers("auxiliary_test")):
+        return False
+
     for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)
         if all(marker.args[0]):
             return False
@@ -394,7 +399,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     last_item_file = ""
     for item in session.items:
         if _item_is_skipped(item):
-            item.user_properties.append(("dd_tags[systest.case.outcome]", "skipped"))
+            _set_outcome_properties("skipped", item.user_properties)
             continue
 
         if not item.instance:  # item is a method bounded to a class
@@ -455,9 +460,9 @@ def pytest_fixture_setup(
         (yield).get_result()
     except BaseException:
         xfails = [*request.node.iter_markers("xfail")]
-        outcome = "xfailed" if len(xfails) != 0 else "error"
+        outcome: PytestOutcome = "xfailed" if len(xfails) != 0 else "error"
 
-        request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+        _set_outcome_properties(outcome, request.node.user_properties)
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -477,7 +482,21 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Gener
             elif rep.outcome == "passed":
                 value = "xpassed"
 
-        item.user_properties.append(("dd_tags[systest.case.outcome]", value))
+        _set_outcome_properties(value, item.user_properties)
+
+
+def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]) -> None:
+    if outcome in ("passed", "xpassed"):
+        final_status = "pass"
+    elif outcome in ("failed", "error"):
+        final_status = "fail"
+    elif outcome in ("skipped", "xfailed"):
+        final_status = "skip"
+    else:
+        raise ValueError(f"Can't translate `{outcome}` into test optim final status")
+
+    user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+    user_properties.append(("dd_tags[test.final_status]", final_status))
 
 
 @pytest.hookimpl(optionalhook=True)

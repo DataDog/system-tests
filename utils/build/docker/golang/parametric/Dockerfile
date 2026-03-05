@@ -1,5 +1,5 @@
 
-FROM golang:1.24
+FROM golang:1.25
 
 # install jq
 RUN apt-get update && apt-get -y install jq

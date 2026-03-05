@@ -4,10 +4,8 @@
 
 from utils import (
     weblog,
-    bug,
     context,
     interfaces,
-    irrelevant,
     rfc,
     missing_feature,
     scenarios,
@@ -15,6 +13,7 @@ from utils import (
 )
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogLibrarySpan
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
@@ -40,7 +39,7 @@ class Test_RetainTraces:
         _sampling_priority_v1 tags
         """
 
-        def validate_appsec_event_span_tags(span: dict):
+        def validate_appsec_event_span_tags(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -98,12 +97,6 @@ class Test_AppSecEventSpanTags:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
-    @bug(
-        context.library < "nodejs@5.57.0",
-        weblog_variant="fastify",
-        reason="APPSEC-57432",  # Response headers collection not supported yet
-    )
-    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.
@@ -161,17 +154,13 @@ class Test_AppSecObfuscator:
             params={"pwd": f"{self.SECRET_VALUE_WITH_SENSITIVE_KEY} select pg_sleep"},
         )
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
     def test_appsec_obfuscator_key(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -213,17 +202,13 @@ class Test_AppSecObfuscator:
             params={"payload": sensitive_raw_payload},
         )
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain VALUE_WITH_SECRET value.
         # The following payload will be sent as a raw encoded string via the request params
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -239,9 +224,6 @@ class Test_AppSecObfuscator:
             params={"pwd": f'{self.SECRET_VALUE_WITH_SENSITIVE_KEY} o:3:"d":3:{{}}'},
         )
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
-    )
     @scenarios.appsec_custom_rules
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
@@ -249,7 +231,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -266,9 +248,6 @@ class Test_AppSecObfuscator:
         self.r_cookies_custom = weblog.get("/waf/", cookies=cookies)
 
     @scenarios.appsec_custom_rules
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
-    )
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.
@@ -277,7 +256,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True), (
                 "Sensitive cookie is not obfuscated"
             )
@@ -305,11 +284,11 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     def test_header_collection(self):
-        def assert_header_in_span_meta(span: dict, header: str):
+        def assert_header_in_span_meta(span: DataDogLibrarySpan, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_response_headers(span: dict):
+        def validate_response_headers(span: DataDogLibrarySpan):
             for header in ["content-type", "content-length", "content-language"]:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
@@ -374,11 +353,11 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assert_header_in_span_meta(span: dict, header: str):
+        def assert_header_in_span_meta(span: DataDogLibrarySpan, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_request_headers(span: dict):
+        def validate_request_headers(span: DataDogLibrarySpan):
             for header in [
                 "x-amzn-trace-id",
                 "cloudfront-viewer-ja3-fingerprint",

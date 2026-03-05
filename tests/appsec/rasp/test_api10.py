@@ -5,7 +5,8 @@
 import json
 import urllib.parse
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils.dd_types import DataDogLibrarySpan
 
 from tests.appsec.rasp.utils import (
     find_series,
@@ -27,7 +28,7 @@ class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
     TAGS_EXPECTED_METRIC: list[tuple[str, str]] = []
 
-    def validate(self, span: dict):
+    def validate(self, span: DataDogLibrarySpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -43,7 +44,7 @@ class API10:
 
         return True
 
-    def validate_metric(self, span: dict):
+    def validate_metric(self, span: DataDogLibrarySpan):
         for tag, expected in self.TAGS_EXPECTED_METRIC:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
@@ -91,7 +92,8 @@ class Test_API10_request_method(API10):
     TAGS_EXPECTED = [("_dd.appsec.trace.req_method", "TAG_API10_REQ_METHOD")]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -241,7 +243,8 @@ class Test_API10_downstream_request_tag(API10):
     ]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -288,7 +291,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogLibrarySpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -319,7 +322,7 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogLibrarySpan):
         if span.get("parent_id") not in (0, None):
             return None
 

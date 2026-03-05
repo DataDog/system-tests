@@ -62,15 +62,16 @@ manifest:
         alb: v8.121.0  # Modified by easy win activation script
         alb-multi: v8.121.0  # Modified by easy win activation script
         function-url: v8.121.0  # Modified by easy win activation script
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v8.117.0.dev
@@ -197,6 +198,16 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking:
+    - weblog_declaration:
+        alb: irrelevant (function-url event type does not support path params)
+        alb-multi: irrelevant (function-url event type does not support path params)
+        function-url: irrelevant (function-url event type does not support path params)
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before:
+    - weblog_declaration:
+        alb: irrelevant (function-url event type does not support path params)
+        alb-multi: irrelevant (function-url event type does not support path params)
+        function-url: irrelevant (function-url event type does not support path params)
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v8.113.0
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:
@@ -235,6 +246,9 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers:
     - weblog_declaration:
         "*": v8.113.0
@@ -243,6 +257,57 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
+  tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
+  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_v1_payloads.py: missing_feature

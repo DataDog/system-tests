@@ -61,6 +61,7 @@ Rails.application.routes.draw do
   end
 
   match '/external_request' => 'rasp#external_request', via: %i[get post put trace]
+  get '/external_request/redirect' => 'rasp#external_request_redirect'
 
   get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
   get '/api_security_sampling/:i' => 'api_security#sampling_by_path'

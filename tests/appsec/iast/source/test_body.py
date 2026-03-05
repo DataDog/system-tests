@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
+from utils import features
 from tests.appsec.iast.utils import BaseSourceTest
 
 
@@ -16,20 +16,11 @@ class TestRequestBody(BaseSourceTest):
     source_names = None
     source_value = None
 
-    @bug(weblog_variant="jersey-grizzly2", reason="APPSEC-56007")
     def test_source_reported(self):
         super().test_source_reported()
 
-    @missing_feature(
-        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(
-        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

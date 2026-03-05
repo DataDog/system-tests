@@ -49,6 +49,8 @@ def test_tracer_release():
         scenarios.k8s_lib_injection_no_ac_uds,
         scenarios.k8s_lib_injection_no_ac,
         scenarios.k8s_lib_injection_operator,
+        scenarios.k8s_lib_injection_appsec_disabled,
+        scenarios.k8s_lib_injection_appsec_enabled,
         scenarios.k8s_lib_injection_profiling_disabled,
         scenarios.k8s_lib_injection_profiling_enabled,
         scenarios.k8s_lib_injection_profiling_override,

@@ -47,12 +47,13 @@ public class MyResource {
     private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     @GET
-    public String hello() {
+    public Response hello() {
         var tracer = GlobalTracer.get();
         Span span = tracer.buildSpan("test-span").start();
         span.setTag("test-tag", "my value");
         try {
-            return "Hello World!";
+            return Response.ok("Hello world!\n")
+                .build();
         } finally {
             span.finish();
         }

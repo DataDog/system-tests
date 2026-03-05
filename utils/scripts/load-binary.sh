@@ -16,6 +16,7 @@
 # * Golang:        github.com/DataDog/dd-trace-go/v2@main
 # * .NET:          ghcr.io/datadog/dd-trace-dotnet
 # * Java:          S3
+# * Java Lambda:   S3 (same binary as Java)
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
 # * C++:           Direct from github source
@@ -193,7 +194,7 @@ echo "Load $VERSION binary for $TARGET"
 
 cd binaries/
 
-if [ "$TARGET" = "java" ]; then
+if [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
@@ -305,6 +306,20 @@ elif [ "$TARGET" = "cpp" ]; then
 elif [ "$TARGET" = "cpp_httpd" ]; then
     assert_version_is_dev
     get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog_artifact" "mod_datadog.so"
+
+elif [ "$TARGET" = "cpp_kong" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
+    RELEASE=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" \
+        "https://api.github.com/repos/DataDog/kong-plugin-ddtrace/releases/tags/tip")
+    ASSET_NAME=$(echo "$RELEASE" | jq -r '.assets[] | select(.name | test("kong-plugin-ddtrace.*\\.rock")) | .name')
+    ASSET_URL=$(echo "$RELEASE" | jq -r '.assets[] | select(.name | test("kong-plugin-ddtrace.*\\.rock")) | .url')
+    echo "Downloading $ASSET_NAME from kong-plugin-ddtrace tip release"
+    curl --silent --fail --show-error -L \
+        -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Accept: application/octet-stream" \
+        --output "$ASSET_NAME" \
+        "$ASSET_URL"
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev

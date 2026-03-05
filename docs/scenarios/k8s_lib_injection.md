@@ -243,6 +243,8 @@ Available scenarios:
 - **K8S_LIB_INJECTION_PROFILING_DISABLED:** Scenario that validates the profiling is not performing if it's not activated.
 - **K8S_LIB_INJECTION_PROFILING_ENABLED:** Test profiling feature activation inside of Kubernetes cluster.
 - **K8S_LIB_INJECTION_PROFILING_OVERRIDE:** Test profiling feature activation overriding the cluster configuration.
+- **K8S_LIB_INJECTION_APPSEC_DISABLED:** Scenario that validates appsec is not performing if it's not activated.
+- **K8S_LIB_INJECTION_APPSEC_ENABLED:** Test appsec feature activation inside of Kubernetes cluster.
 - **K8S_LIB_INJECTION_SPARK_DJM:** Allow us to verify the k8s injection works for Data Jobs Monitoring as new Java tracer, new auto_inject, and new cluster_agent are being released.
 - **K8S_LIB_INJECTION_OPERATOR:** Tests using the Datadog Operator for library injection.
 

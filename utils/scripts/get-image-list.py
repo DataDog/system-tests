@@ -43,6 +43,7 @@ if __name__ == "__main__":
         choices=[
             "cpp",
             "cpp_httpd",
+            "cpp_kong",
             "cpp_nginx",
             "dotnet",
             "python",
@@ -56,6 +57,7 @@ if __name__ == "__main__":
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "java_lambda",
             "rust",
             "envoy",
             "haproxy",

@@ -13,7 +13,7 @@
             "value": "5"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           }
         },
@@ -24,31 +24,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -71,12 +71,12 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursion",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {
@@ -103,7 +103,7 @@
             "value": "0"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           },
           "originalDepth": {
@@ -118,31 +118,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -165,36 +165,36 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursionHelper",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 25
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {
@@ -221,7 +221,7 @@
             "value": "1"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           },
           "originalDepth": {
@@ -236,31 +236,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -283,32 +283,32 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursionHelper",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 25
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {
@@ -335,7 +335,7 @@
             "value": "2"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           },
           "originalDepth": {
@@ -350,31 +350,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -397,28 +397,28 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursionHelper",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 25
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {
@@ -445,7 +445,7 @@
             "value": "3"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           },
           "originalDepth": {
@@ -460,31 +460,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -507,24 +507,24 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursionHelper",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 25
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {
@@ -551,7 +551,7 @@
             "value": "4"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           },
           "originalDepth": {
@@ -566,31 +566,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -613,20 +613,20 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursionHelper",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 25
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 23
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {
@@ -653,7 +653,7 @@
             "value": "5"
           },
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           },
           "originalDepth": {
@@ -668,31 +668,31 @@
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 5\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 25
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 23
             },
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
               "lineNumber": 18
             },
             {
@@ -715,16 +715,16 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayRecursionHelper",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursionHelper",
         "lineNumber": 25
       },
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRecursion",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayRecursion",
         "lineNumber": 18
       },
       {

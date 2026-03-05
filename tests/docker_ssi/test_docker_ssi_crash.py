@@ -2,7 +2,6 @@ from urllib.parse import urlparse
 
 from utils import (
     irrelevant,
-    missing_feature,
     scenarios,
     features,
     context,
@@ -36,7 +35,6 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
-    @missing_feature(condition=context.library in ("java", "php"), reason="No implemented the endpoint /crashme")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
@@ -54,5 +52,6 @@ class TestDockerSSICrash:
 
         # Crash report should have been generated
         crash_reports = interfaces.test_agent.get_crash_reports()
+
         assert crash_reports, "No crash report found"
         assert len(crash_reports) == 1, "More than one crash report found"
