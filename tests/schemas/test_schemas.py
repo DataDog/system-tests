@@ -104,6 +104,13 @@ class Test_DdtraceSchemas:
                 condition=context.library >= "python@4.3.0-rc1" and context.scenario is scenarios.profiling,
                 ticket="APMSP-2590",
             ),
+            SchemaBug(
+                endpoint="/v0.7/config",
+                data_path="$.client.client_tracer",
+                condition=context.library in ("haproxy", "envoy")
+                and context.scenario in (scenarios.go_proxies_appsec_blocking, scenarios.go_proxies_default),
+                ticket="APMSP-2590",
+            ),
         ]
 
         assert_no_schema_error(interfaces.library, known_bugs)

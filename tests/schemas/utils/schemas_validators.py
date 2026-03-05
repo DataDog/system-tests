@@ -217,14 +217,13 @@ def assert_no_schema_error(interface: ProxyBasedInterfaceValidator, known_bugs: 
     validator = SchemaValidator(interface.name)
 
     for data in interface.get_data():
-        schema_errors.extend(validator.get_errors(data))
-
-    for error in schema_errors:
-        if (error.endpoint, error.data_path) not in excluded_points and (
-            error.endpoint,
-            None,
-        ) not in excluded_points:
-            logger.error(f"* {error.message}")
+        for error in validator.get_errors(data):
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
+                logger.error(f"* {error.message}")
+                schema_errors.append(error)
 
     assert len(schema_errors) == 0, f"{interface.name} has schema error, please check logs"
 
