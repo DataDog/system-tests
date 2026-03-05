@@ -101,6 +101,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      library_branch:
+        description: "Whether the library under test is from a dev or prod branch (dev/prod)"
+        default: ""
+        required: false
+        type: string
 
 jobs:
   main:
@@ -524,3 +529,4 @@ jobs:
       with:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
+        library_branch: ${{ inputs.library_branch }}

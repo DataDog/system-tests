@@ -6,6 +6,9 @@ inputs:
     default: datadoghq.com
   datadog_api_key:
     description: "A valid DD_API_KEY"
+  library_branch:
+    description: "Whether the library under test is from a dev or prod branch (dev/prod)"
+    default: ""
 
 runs:
   using: composite
@@ -41,3 +44,4 @@ runs:
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY:  ${{ inputs.datadog_api_key }}
+        DD_TAGS: ${{ inputs.library_branch != '' && format('test.configuration.library_branch:{0}', inputs.library_branch) || '' }}
