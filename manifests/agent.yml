@@ -3,7 +3,10 @@
 manifest:
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
     - declaration: missing_feature (Single Spans is not available in agents pre 7.40)
-      component_version: '<7.40.0'
+      component_version: "<7.40.0"
+  tests/appsec/test_agent_level_smoke_tests.py::TestAppSecAPMStandalone:
+    - component_version: "<7.77.0-0"
+      declaration: irrelevant (APM Standalone option was added in 7.77.0)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_exception_event:
     - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)
@@ -36,11 +39,11 @@ manifest:
   tests/test_telemetry.py::Test_APMOnboardingInstallID: v7.50.0
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
     - declaration: bug (APMAPI-926)
-      component_version: '>7.53.0'
+      component_version: ">7.53.0"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
     - declaration: bug (APMRP-360)
-      component_version: '>=7.36.0 <7.37.0'
+      component_version: ">=7.36.0 <7.37.0"
     - declaration: bug (APMAPI-926)
-      component_version: '>7.53.0'
+      component_version: ">7.53.0"
   tests/test_v1_payloads.py::Test_V1PayloadByDefault: v7.77.0-devel
   tests/test_v1_payloads.py::Test_V1Payloads: v7.73.0-devel

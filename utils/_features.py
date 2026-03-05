@@ -2782,5 +2782,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=543, owner=_Owner.ml_observability)
 
+    @staticmethod
+    def appsec_apm_standalone(test_object):
+        """Ensure that AppSec works correctly with the infra product disabled
+
+        https://feature-parity.us1.prod.dog/#/?feature=543
+        """
+        return _mark_test_object(test_object, feature_id=546, owner=_Owner.asm)
+
 
 features = _Features()
