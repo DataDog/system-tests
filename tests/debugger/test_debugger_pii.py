@@ -146,6 +146,12 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         excluded_identifiers = excluded_identifiers if excluded_identifiers else []
 
         for probe_id in self.probe_ids:
+            if probe_id not in self.probe_snapshots:
+                raise KeyError(
+                    f"Probe id {probe_id!r} not found in probe_snapshots. "
+                    f"Snapshot keys received: {list(self.probe_snapshots.keys())!r}. "
+                    "Snapshots may be in multipart format that was not unwrapped, or the tracer may echo a different probe id."
+                )
             base = self.probe_snapshots[probe_id][0]
             snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
@@ -194,6 +200,11 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         not_redacted = []
 
         for probe_id in self.probe_ids:
+            if probe_id not in self.probe_snapshots:
+                raise KeyError(
+                    f"Probe id {probe_id!r} not found in probe_snapshots. "
+                    f"Snapshot keys received: {list(self.probe_snapshots.keys())!r}."
+                )
             base = self.probe_snapshots[probe_id][0]
             snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
