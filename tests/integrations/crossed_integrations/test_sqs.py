@@ -1,7 +1,7 @@
 import json
 
 from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, features, context, irrelevant, logger
+from utils import interfaces, scenarios, weblog, features, context, logger
 from utils.dd_types import DataDogLibrarySpan
 
 
@@ -233,7 +233,6 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-@irrelevant(condition=True, reason="Localstack SQS does not support AWS Xray Header parsing")
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy

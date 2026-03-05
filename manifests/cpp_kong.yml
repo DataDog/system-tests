@@ -34,4 +34,5 @@ manifest:
   tests/test_span_events.py: missing_feature
   tests/test_standard_tags.py: irrelevant
   tests/test_telemetry.py: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_v1_payloads.py: missing_feature

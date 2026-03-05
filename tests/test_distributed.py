@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context
+from utils import features, interfaces, scenarios, slow, weblog
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
 
@@ -30,11 +30,7 @@ class Test_DistributedHttp:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_From_Conflicting_Contexts:
     """Verify headers containing conflicting trace context information are added as span links"""
 
@@ -131,11 +127,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts have the correct flags set"""
 
@@ -172,11 +164,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts properly omit the tracestate when conflicting propagator is not W3C"""
 
