@@ -697,6 +697,7 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
     - weblog_declaration:
         "*": v0.1  # version unknown
+    - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, .NET will not extract from XRay headers)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:

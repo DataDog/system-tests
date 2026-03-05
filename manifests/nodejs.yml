@@ -1631,6 +1631,7 @@ manifest:
         express4: v0.1  # real version not known
         express5: v0.1  # real version not known
         fastify: v0.1  # real version not known
+    - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume: "missing_feature (\"Expected to fail, Node.js will not create a response span propagating context since it cannot extract AWSTracerHeader context that Java injects\")"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, Node.js does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
