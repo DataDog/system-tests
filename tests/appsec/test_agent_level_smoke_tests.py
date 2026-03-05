@@ -4,7 +4,7 @@
 
 """AppSec smoke tests for the appsec_apm_standalone scenario."""
 
-from utils import features, interfaces, remote_config as rc, rfc, scenario_groups, weblog
+from utils import features, interfaces, remote_config as rc, weblog, scenarios
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
 SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
@@ -42,14 +42,11 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 )
 
 
-@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3nydvvu7sn93")
-@scenario_groups.appsec_smoke_tests
-@features.rasp_local_file_inclusion
-class Test_Lfi_UrlQuery:
-    def setup_lfi_get(self) -> None:
+class AgentLevelSmokeTests:
+    def setup_lfi_smoke(self) -> None:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-    def test_lfi_get(self) -> None:
+    def test_lfi_smoke(self) -> None:
         assert self.r.status_code == 200
 
         interfaces.agent.assert_rasp_attack(
@@ -61,11 +58,6 @@ class Test_Lfi_UrlQuery:
             },
         )
 
-
-@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
-@scenario_groups.appsec_smoke_tests
-@features.api_security_schemas
-class Test_Smoke_API_Security:
     def setup_api_security_smoke(self) -> None:
         self.r = weblog.get("/waf")
 
@@ -74,11 +66,6 @@ class Test_Smoke_API_Security:
             any(key.startswith("_dd.appsec.s.") for key in span.meta) for _, span in interfaces.agent.get_spans(self.r)
         )
 
-
-@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
-@scenario_groups.appsec_smoke_tests
-@features.waf_telemetry
-class Test_Smoke_Telemetry:
     def setup_telemetry_smoke(self) -> None:
         weblog.get("/")
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
@@ -113,11 +100,6 @@ class Test_Smoke_Telemetry:
         assert found_metrics
         assert found_waf_metric
 
-
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo")
-@scenario_groups.appsec_smoke_tests
-@features.changing_rules_using_rc
-class Test_Smoke_Remote_Config:
     def setup_remote_config_smoke(self) -> None:
         self.config_state = rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply().state
         self.r = weblog.get("/waf", headers={"X-Smoke-Test": "rc-smoke"})
@@ -135,10 +117,6 @@ class Test_Smoke_Remote_Config:
             for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r)
         ), "Agent should forward AppSec events for the RC-updated rule"
 
-
-@scenario_groups.appsec_smoke_tests
-@features.security_events_metadata
-class Test_Smoke_Basic_Attack_Detection:
     def setup_attack_detection_smoke(self) -> None:
         rc.tracer_rc_state.reset().apply()
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
@@ -165,3 +143,10 @@ class Test_Smoke_Basic_Attack_Detection:
         assert found_attack, "Agent should forward detected attacks in span metadata"
         assert has_waf_version, "Agent spans should include WAF version metadata"
         assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class TestAppSecAPMStandalone(AgentLevelSmokeTests):
+    pass

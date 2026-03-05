@@ -19,7 +19,6 @@ from utils._weblog import HttpResponse
 from utils.dd_types import AgentTraceFormat, DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils.tools import get_rid_from_span
 
 
 class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -146,6 +145,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                 return
 
         raise ValueError("No data validate this test")
+
     def get_telemetry_data(self, *, flatten_message_batches: bool = True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
         if flatten_message_batches:

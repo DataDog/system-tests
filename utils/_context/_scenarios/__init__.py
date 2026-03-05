@@ -431,16 +431,10 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
         },
         agent_env={
-            # "DD_CORE_AGENT_ENABLED": "false",
-            # "DD_ENABLE_PAYLOADS_EVENTS": "false",
-            # "DD_ENABLE_PAYLOADS_SERIES": "false",
-            # "DD_ENABLE_PAYLOADS_SERVICE_CHECKS": "false",
-            # "DD_ENABLE_PAYLOADS_SKETCHES": "false",
-            # "DD_ECS_COLLECT_RESOURCE_TAGS_EC2": "false",
             "DD_INFRASTRUCTURE_MODE": "none",
         },
         doc="Appsec with APM Standalone (infra opt out)",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_smoke_tests],
+        scenario_groups=[scenario_groups.appsec],
     )
 
     appsec_standalone_apm_standalone = EndToEndScenario(
@@ -454,15 +448,10 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
         },
         agent_env={
-            "DD_CORE_AGENT_ENABLED": "false",
-            "DD_ENABLE_PAYLOADS_EVENTS": "false",
-            "DD_ENABLE_PAYLOADS_SERIES": "false",
-            "DD_ENABLE_PAYLOADS_SERVICE_CHECKS": "false",
-            "DD_ENABLE_PAYLOADS_SKETCHES": "false",
-            "DD_ECS_COLLECT_RESOURCE_TAGS_EC2": "false",
+            "DD_INFRASTRUCTURE_MODE": "none",
         },
         doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_smoke_tests],
+        scenario_groups=[scenario_groups.appsec],
     )
 
     # Combined scenario for API Security in standalone mode
