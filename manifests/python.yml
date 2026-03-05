@@ -22,7 +22,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": v4.6.0rc1
+        "flask-poc": v4.6.0rc2
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
