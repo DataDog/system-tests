@@ -20,7 +20,7 @@ class DebuggerScenario(EndToEndScenario):
             doc=doc,
             rc_api_enabled=True,
             rc_backend_enabled=True,
-            library_interface_timeout=5,
+            library_interface_timeout=15,  # 15s: debugger snapshots can be slow (reduced flakes)
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
         )
