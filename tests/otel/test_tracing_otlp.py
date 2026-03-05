@@ -7,29 +7,6 @@ from typing import Any
 from collections.abc import Iterator
 
 
-# Assert that the histogram has only one recorded data point matching the overall duration
-def assert_single_histogram_data_point(duration: int, bucket_counts: list[int], explicit_bounds: list[float]):
-    for i in range(len(explicit_bounds)):
-        is_first_index = i == 0
-        is_last_index = i == len(explicit_bounds) - 1
-
-        if is_first_index and is_last_index:
-            assert bucket_counts[i] == 1
-            assert duration <= explicit_bounds[i]
-            break
-
-        if int(bucket_counts[i]) == 1:
-            lower_bound = float("-inf") if is_first_index else explicit_bounds[i - 1]
-            upper_bound = float("inf") if is_last_index else explicit_bounds[i]
-
-            if is_last_index:
-                assert duration > lower_bound
-                assert duration < upper_bound
-            else:
-                assert duration > lower_bound
-                assert duration <= upper_bound
-
-
 def get_keyvalue_generator(attributes: list[dict]) -> Iterator[tuple[str, Any]]:
     for key_value in attributes:
         if key_value["value"].get("string_value"):

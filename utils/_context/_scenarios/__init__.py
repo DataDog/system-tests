@@ -571,12 +571,9 @@ class _Scenarios:
     apm_tracing_otlp = EndToEndScenario(
         "APM_TRACING_OTLP",
         weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "OTEL_TRACES_EXPORTER": "otlp",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
-            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-otlp-path=agent",
         },
         backend_interface_timeout=5,
         require_api_key=True,
