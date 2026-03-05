@@ -10,7 +10,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import scenarios, features, context, irrelevant, missing_feature, logger
+from utils import features, logger, scenarios, slow
 from utils.dd_types import DataDogAgentSpan, AgentTraceFormat
 
 
@@ -56,10 +56,7 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@slow
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: list[dict] = []
     spans: dict = {}
@@ -561,7 +558,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 
-    @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
     def test_exception_replay_recursion_inlined(self):
         self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
         self._validate_recursion_snapshots(self.snapshots, 4)
@@ -633,7 +629,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_outofmemory(self):
         self._setup_no_capture_exception("outofmemory")
 
-    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @slow
     def test_exception_replay_outofmemory(self):
         self._test_no_capture_exception("outofmemory", "NonSupportedExceptionType")
 
@@ -641,7 +637,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_stackoverflow(self):
         self._setup_no_capture_exception("stackoverflow")
 
-    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @slow
     def test_exception_replay_stackoverflow(self):
         self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
 
@@ -649,6 +645,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_firsthit(self):
         self._setup_no_capture_exception("firsthit")
 
-    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @slow
     def test_exception_replay_firsthit(self):
         self._test_no_capture_exception("firsthit", "FirstOccurrence")

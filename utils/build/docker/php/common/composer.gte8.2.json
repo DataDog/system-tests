@@ -1,0 +1,19 @@
+{
+    "name": "php/weblog",
+    "type": "project",
+    "require": {
+        "weblog/acme": "*",
+        "monolog/monolog": "*",
+        "openai-php/client": "*",
+        "guzzlehttp/guzzle": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./Acme",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
+}

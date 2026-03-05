@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, missing_feature, context
+from utils import context, features, missing_feature, scenarios, slow
 
 
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
@@ -91,7 +91,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
 @features.debugger_method_probe
 @scenarios.debugger_probes_status
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@slow
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
@@ -109,7 +109,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_metric_status(self):
         self._setup("probe_status_metric", probe_type="metric")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_metric_status(self):
         self._assert()
 
@@ -117,7 +117,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_method_status(self):
         self._setup("probe_status_span", probe_type="span")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_method_status(self):
         self._assert()
 
@@ -125,7 +125,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_method_status(self):
         self._setup("probe_status_spandecoration", probe_type="decor")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_method_status(self):
         self._assert()
 
@@ -139,7 +139,7 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_log_line_status(self):
         self._setup("probe_status_log_line", probe_type="log")
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_log_line_status(self):
         self._assert()
 
@@ -199,8 +199,7 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_metric_line_status(self):
         self._setup("probe_status_metric_line", probe_type="metric")
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_metric_line_status(self):
         self._assert()
 
@@ -208,7 +207,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_line_status(self):
         self._setup("probe_status_spandecoration_line", probe_type="decor")
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_line_status(self):
         self._assert()

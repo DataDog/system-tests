@@ -9,10 +9,23 @@
 # use `>1.0.0` to indicate that requirement.
 # NOTE: only parametric tests are run for cpp, there is no need to mark other tests as "missing_feature" here.
 manifest:
+  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -28,6 +41,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -39,6 +53,9 @@ manifest:
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: missing_feature (propagation style not supported)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+    - declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: ">1.0.0"
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_Tags: ">=2.0.0"  # auto activation: might not be the earliest working version
@@ -147,12 +164,15 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (cpp has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: missing_feature
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_logs.py: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
@@ -242,8 +262,6 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019:
     - declaration: bug (APMAPI-1545)
       component_version: <=1.0.0
-  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: incomplete_test_app (Not currently testable)
-  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: incomplete_test_app (Not currently testable)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
@@ -266,6 +284,7 @@ manifest:
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes: missing_feature (metrics cannot be set manually)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
@@ -283,7 +302,9 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Restart::test_single_tracecontext: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First::test_multiple_tracecontexts: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First::test_single_tracecontext: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_required_headers: missing_feature

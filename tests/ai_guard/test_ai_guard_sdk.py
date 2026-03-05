@@ -1,7 +1,7 @@
 import json
 
 from utils import context, interfaces, scenarios, weblog, features
-from utils.dd_constants import SamplingPriority
+from utils.dd_constants import SamplingMechanism, SamplingPriority
 from utils.dd_types import DataDogLibrarySpan
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
@@ -200,6 +200,9 @@ class Test_RootSpanUserKeep:
         for root_span in root_spans:
             assert root_span.get("metrics", {}).get("_sampling_priority_v1") == SamplingPriority.USER_KEEP, (
                 "Root span should be kept when an ai_guard span exists"
+            )
+            assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
+                "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism"
             )
 
 

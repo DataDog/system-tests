@@ -309,6 +309,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "dotnet",
         "golang",
         "java",
+        "java_lambda",
         "java_otel",
         "nodejs",
         "nodejs_otel",
