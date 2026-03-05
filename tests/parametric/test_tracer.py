@@ -216,7 +216,7 @@ class Test_TracerServiceNameSource:
         root_span = find_root_span(trace)
         assert root_span is not None, "Root span not found"
         assert root_span["service"] == "my-service"
-        assert root_span["meta"]["_dd.srv.src"] == "m"
+        assert root_span["meta"]["_dd.svc_src"] == "m"
 
     def test_tracer_no_srv_src_when_service_not_manually_set(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
@@ -232,7 +232,7 @@ class Test_TracerServiceNameSource:
 
         root_span = find_root_span(trace)
         assert root_span is not None, "Root span not found"
-        assert "_dd.srv.src" not in root_span.get("meta", {})
+        assert "_dd.svc_src" not in root_span.get("meta", {})
 
 
 @scenarios.parametric
