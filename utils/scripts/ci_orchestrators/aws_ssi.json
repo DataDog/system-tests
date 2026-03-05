@@ -625,6 +625,7 @@
                     "oracle_linux",
                     "alma_linux",
                     "fedora",
+                    "fedora41",
                     "debian",
                     "rhel_7_amd64",
                     "windows"
@@ -645,6 +646,7 @@
                 "name": "test-app-ruby-container",
                 "excluded_os_branches": [
                     "fedora",
+                    "fedora41",
                     "windows"
                 ]
             },

@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/test_alpha.py: v1.72.0
   tests/appsec/test_blocking_addresses.py: v1.72.0
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
@@ -25,6 +26,7 @@ manifest:
   tests/appsec/test_reports.py: v1.72.0
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.72.0
   tests/appsec/test_traces.py: v1.72.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_versions.py::Test_Events: v1.72.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant

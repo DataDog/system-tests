@@ -105,6 +105,7 @@ class SamplingMechanism(IntEnum):
     RESERVED_10 = 10
     REMOTE_USER_RULE = 11
     REMOTE_DYNAMIC_RULE = 12
+    AI_GUARD = 13
 
 
 class SpanKind(IntEnum):

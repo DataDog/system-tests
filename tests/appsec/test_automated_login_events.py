@@ -6,7 +6,6 @@ from collections.abc import Callable
 from utils import context
 from utils import features
 from utils import interfaces
-from utils import missing_feature
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
@@ -138,7 +137,6 @@ class Test_Login_Events:
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -158,7 +156,6 @@ class Test_Login_Events:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -176,7 +173,6 @@ class Test_Login_Events:
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -196,7 +192,6 @@ class Test_Login_Events:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -249,7 +244,6 @@ class Test_Login_Events:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -267,7 +261,6 @@ class Test_Login_Events:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -348,7 +341,6 @@ class Test_Login_Events_Extended:
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -378,7 +370,6 @@ class Test_Login_Events_Extended:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -406,7 +397,6 @@ class Test_Login_Events_Extended:
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -431,7 +421,6 @@ class Test_Login_Events_Extended:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -489,7 +478,6 @@ class Test_Login_Events_Extended:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -507,7 +495,6 @@ class Test_Login_Events_Extended:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
