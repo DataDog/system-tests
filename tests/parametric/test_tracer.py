@@ -198,6 +198,11 @@ class Test_TracerUniversalServiceTagging:
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
 
+
+@scenarios.parametric
+@features.service_override_source
+@rfc("https://docs.google.com/document/d/11OnbVYMDK-c5D-_V4QfOvL0Pc0z5oFQFGY3xSI-W7xk")
+class Test_TracerServiceNameSource:
     def test_tracer_manual_service_name_sets_srv_src(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """When a span is created with a manually set service name
         The span should have meta._dd.srv.src set to "m" (manual)
