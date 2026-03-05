@@ -38,8 +38,8 @@ class Test_SamplingRateCappedIncrease:
     gradually (e.g. 0.1 -> 0.2 -> 0.4 -> 0.8 -> 1.0).
     """
 
-    NUM_LOW_RATE_RESPONSES = 12
-    NUM_HIGH_RATE_RESPONSES = 20
+    NUM_LOW_RATE_RESPONSES = 3
+    NUM_HIGH_RATE_RESPONSES = 30
 
     def setup_sampling_rate_capped_increase(self):
         low_rate_response = {"rate_by_service": {"service:,env:": LOW_RATE}}
@@ -70,34 +70,44 @@ class Test_SamplingRateCappedIncrease:
 
         interfaces.library.wait_for(wait_for_low_rate, timeout=30)
 
+        # Record how many spans exist before the ramp-up phase
+        self._spans_before_ramp = sum(1 for _ in interfaces.library.get_root_spans())
+
         # Generate traffic in bursts to trigger multiple flush cycles during ramp-up
+        # Each burst sends requests, then sleeps to allow the tracer to flush and receive
+        # the next mocked response, which should trigger a capped rate increase.
         request_idx = 100
-        for _ in range(6):
+        for _ in range(10):
             for _j in range(20):
                 weblog.get(f"/sample_rate_route/{request_idx}")
                 request_idx += 1
-            time.sleep(1.5)
+            time.sleep(2)
 
-        # Wait for the tracer to ramp up to the high rate
-        def wait_for_high_rate(_data: dict) -> bool:
-            for _, span in interfaces.library.get_root_spans():
+        # Wait for a span with the high rate that appeared AFTER the low-rate phase
+        def wait_for_high_rate_after_ramp(_data: dict) -> bool:
+            for idx, (_, span) in enumerate(interfaces.library.get_root_spans()):
+                if idx < self._spans_before_ramp:
+                    continue
                 agent_psr = span.get("metrics", {}).get("_dd.agent_psr")
                 if agent_psr is not None and abs(agent_psr - HIGH_RATE) < 0.01:
                     return True
             return False
 
-        interfaces.library.wait_for(wait_for_high_rate, timeout=30)
+        interfaces.library.wait_for(wait_for_high_rate_after_ramp, timeout=40)
 
     def test_sampling_rate_capped_increase(self):
         """Verify that the tracer ramps up sampling rate gradually instead of jumping directly."""
+        # Only look at spans from AFTER the low-rate phase to avoid the default 1.0 at startup
         agent_psr_values = set()
 
-        for _, span in interfaces.library.get_root_spans():
+        for idx, (_, span) in enumerate(interfaces.library.get_root_spans()):
+            if idx < self._spans_before_ramp:
+                continue
             agent_psr = span.get("metrics", {}).get("_dd.agent_psr")
             if agent_psr is not None:
                 agent_psr_values.add(round(agent_psr, 4))
 
-        logger.info(f"Observed _dd.agent_psr values: {sorted(agent_psr_values)}")
+        logger.info(f"Observed _dd.agent_psr values (ramp phase): {sorted(agent_psr_values)}")
 
         assert any(abs(v - LOW_RATE) < 0.01 for v in agent_psr_values), (
             f"Expected to see the low rate ({LOW_RATE}) in _dd.agent_psr values: {sorted(agent_psr_values)}"
