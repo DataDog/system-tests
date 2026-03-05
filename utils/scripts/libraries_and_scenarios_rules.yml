@@ -285,8 +285,6 @@ patterns:
         scenario_groups: docker_ssi
     utils/_features.py:
         scenarios: DEFAULT
-    utils/interfaces/schemas*:
-        scenario_groups: end_to_end
     utils/k8s_lib_injection*:
         scenario_groups: lib_injection
     utils/manifest/_internal/format.py:

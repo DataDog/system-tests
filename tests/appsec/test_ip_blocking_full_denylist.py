@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, rfc, scenarios, missing_feature, features
+from utils import weblog, interfaces, rfc, scenarios, features
 
 from .utils import BaseFullDenyListTest
 
@@ -22,7 +22,6 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": not_blocked_ip})
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in self.blocked_ips]
 
-    @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     def test_blocked_ips(self):
         """Test blocked ips are enforced"""
 
