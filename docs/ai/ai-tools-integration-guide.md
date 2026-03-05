@@ -97,7 +97,7 @@ The system-tests repository provides native support for **Claude CLI** (Anthropi
 ```
 
 * **`.claude/CLAUDE.md`**: Contains Claude-specific instructions and points to the shared rules in `.cursor/rules/`
-* **`.claude/settings.json`**: Configures Claude CLI behavior, including default permission mode, environment variables, and MCP server enablement (e.g., the Datadog MCP server)
+* **`.claude/settings.json`**: Configures Claude CLI behavior, including default permission mode, environment variables, MCP server enablement (e.g., the Datadog MCP server), and the [`DataDog/claude-marketplace`](https://github.com/DataDog/claude-marketplace) plugins which provide Datadog-specific `dd:*` skills (CI debugging, PR feedback, Jira automation, and more)
 * **`.claude/settings.local.json`**: Personal overrides for local development (not shared via git)
 * **`.mcp.json`**: Defines MCP server connections at the repository root. Claude CLI automatically discovers this file and makes the configured servers available. Currently includes the Datadog MCP server for CI Visibility integration
 

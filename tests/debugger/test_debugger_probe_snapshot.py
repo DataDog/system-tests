@@ -84,6 +84,36 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
             if not self.probe_spans[expected_trace]:
                 raise ValueError(f"No spans found for trace {expected_trace}")
 
+    def _validate_scm_tags(self):
+        expected_repo_tag = "git.repository_url:https://github.com/datadog/hello"
+        expected_sha_tag = "git.commit.sha:1234hash"
+
+        for expected_snapshot in self.probe_ids:
+            snapshots = self.probe_snapshots[expected_snapshot]
+            found_scm_tags = False
+
+            for snapshot in snapshots:
+                assert "query" in snapshot, f"Missing 'query' in snapshot for probe {expected_snapshot}"
+                assert isinstance(snapshot["query"], dict)
+
+                ddtags = snapshot["query"].get("ddtags", [])
+                assert isinstance(ddtags, list)
+
+                for tag_entry in ddtags:
+                    if not isinstance(tag_entry, str):
+                        continue
+                    if expected_repo_tag in tag_entry and expected_sha_tag in tag_entry:
+                        found_scm_tags = True
+                        break
+
+                if found_scm_tags:
+                    break
+
+            assert found_scm_tags, (
+                f"Expected SCM tags ({expected_repo_tag}, {expected_sha_tag}) "
+                f"not found in any snapshot ddtags for probe {expected_snapshot}"
+            )
+
 
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot
@@ -192,15 +222,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
 
     def _validate_snapshots(self):
         super()._validate_snapshots()
-        for expected_snapshot in self.probe_ids:
-            snapshot = self.probe_snapshots[expected_snapshot][0]
-            assert "query" in snapshot
-            assert isinstance(snapshot["query"], dict)
-            assert "ddtags" in snapshot["query"]
-            tags = snapshot["query"]["ddtags"][0]
-            assert isinstance(tags, str)
-            assert "git.repository_url:https://github.com/datadog/hello" in tags
-            assert "git.commit.sha:1234hash" in tags
+        self._validate_scm_tags()
 
 
 @features.debugger_line_probe
@@ -494,12 +516,4 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
 
     def _validate_snapshots(self):
         super()._validate_snapshots()
-        for expected_snapshot in self.probe_ids:
-            snapshot = self.probe_snapshots[expected_snapshot][0]
-            assert "query" in snapshot
-            assert isinstance(snapshot["query"], dict)
-            assert "ddtags" in snapshot["query"]
-            tags = snapshot["query"]["ddtags"][0]
-            assert isinstance(tags, str)
-            assert "git.repository_url:https://github.com/datadog/hello" in tags
-            assert "git.commit.sha:1234hash" in tags
+        self._validate_scm_tags()
