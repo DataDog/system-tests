@@ -364,6 +364,9 @@ def _item_must_pass(item: pytest.Item) -> bool:
     if any(item.iter_markers("xfail")):
         return False
 
+    if any(item.iter_markers("auxiliary_test")):
+        return False
+
     for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)
         if all(marker.args[0]):
             return False

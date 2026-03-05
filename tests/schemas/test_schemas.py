@@ -1,4 +1,4 @@
-from utils import scenario_groups, features, context, interfaces, scenarios
+from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test
 
 
 from .utils.schemas_validators import SchemaBug, assert_no_schema_error
@@ -6,6 +6,7 @@ from .utils.schemas_validators import SchemaBug, assert_no_schema_error
 
 @features.not_reported
 @scenario_groups.end_to_end
+@auxiliary_test
 class Test_DdtraceSchemas:
     def test_library(self):
         known_bugs = [
@@ -183,6 +184,7 @@ class Test_DdtraceSchemas:
 @features.not_reported
 @scenarios.otel_collector
 @scenarios.otel_collector_e2e
+@auxiliary_test
 class Test_OtelSchemas:
     def test_main(self):
         assert_no_schema_error(interfaces.otel_collector, [])

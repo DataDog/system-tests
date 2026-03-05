@@ -32,7 +32,8 @@ markers =[
     "features: declare the feature id",
     "owners: declare the owner of the test",
     "declaration: declare the expected outcome of a test",
-    "skip_if_xfail: skip the test if it is marked as xfail"
+    "skip_if_xfail: skip the test if it is marked as xfail",
+    "auxiliary_test: Do not count this test to determine if the scenario should run with the SYSTEM_TESTS_SKIP_EMPTY_SCENARIO option"
 ]
 
 python_files = "test_*.py *utils.py"
