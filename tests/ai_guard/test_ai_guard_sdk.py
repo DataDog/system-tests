@@ -1,6 +1,8 @@
 import json
 
 from utils import context, interfaces, scenarios, weblog, features
+from utils.dd_constants import SamplingMechanism, SamplingPriority
+from utils.dd_types import DataDogLibrarySpan
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -43,6 +45,12 @@ MESSAGES: dict = {
             ],
         }
     ],
+    "SENSITIVE_DATA": [
+        {
+            "role": "user",
+            "content": "My name is John Smith, my email is john.smith@acmebank.com and my SSN is 456-78-9012. Can you look up my account?",
+        },
+    ],
 }
 
 
@@ -58,7 +66,7 @@ def _assert_key(values: dict, key: str, value: object | None = None):
 @scenarios.ai_guard
 class Test_Evaluation:
     def _assert_span(self, action: str, messages: list, *, blocking: str):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             if span["resource"] != "ai_guard":
                 return False
 
@@ -174,9 +182,35 @@ class Test_Evaluation:
 
 @features.ai_guard
 @scenarios.ai_guard
+class Test_RootSpanUserKeep:
+    def setup_root_span_user_keep(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: "false"}, json=self.messages)
+
+    def test_root_span_user_keep(self):
+        """Any trace with an ai_guard span must keep its root span."""
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        root_spans = [span for span in spans if span.get("parent_id") in (0, None)]
+        assert root_spans, "No root span found in the trace"
+
+        for root_span in root_spans:
+            assert root_span.get("metrics", {}).get("_sampling_priority_v1") == SamplingPriority.USER_KEEP, (
+                "Root span should be kept when an ai_guard span exists"
+            )
+            assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
+                "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism"
+            )
+
+
+@features.ai_guard
+@scenarios.ai_guard
 class Test_Full_Response_And_Tags:
     def _assert_span(self, response: dict, action: str):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             if span["resource"] != "ai_guard":
                 return False
 
@@ -217,7 +251,7 @@ class Test_Full_Response_And_Tags:
 @features.ai_guard
 @scenarios.default
 class Test_SDK_Disabled:
-    def _validate_no_ai_guard_span(self, span: dict):
+    def _validate_no_ai_guard_span(self, span: DataDogLibrarySpan):
         assert span["resource"] != "ai_guard"
         return True
 
@@ -243,7 +277,7 @@ class Test_ContentParts:
     """Test AI Guard with multi-modal content parts (text + image_url)."""
 
     def _assert_span_with_content_parts(self, messages: list):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             if span["resource"] != "ai_guard":
                 return False
 
@@ -299,3 +333,39 @@ class Test_ContentParts:
         interfaces.library.validate_one_span(
             self.r, validator=self._assert_span_with_content_parts(self.messages), full_trace=True
         )
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_SensitiveDataScanning:
+    def _assert_span_with_sensitive_data(self):
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            meta_struct = span["meta_struct"]
+            ai_guard = _assert_key(meta_struct, "ai_guard")
+            sds = _assert_key(ai_guard, "sds")
+            assert len(sds) > 0, f"No 'sds' found in metastruct {ai_guard}"
+            for sd in sds:
+                assert _assert_key(sd, "rule_display_name")
+                assert _assert_key(sd, "rule_tag")
+                assert _assert_key(sd, "category")
+                assert _assert_key(sd, "matched_text")
+                location = _assert_key(sd, "location")
+                assert _assert_key(location, "start_index") is not None
+                assert _assert_key(location, "end_index_exclusive") is not None
+                assert _assert_key(location, "path")
+            return True
+
+        return validate
+
+    def setup_sensitive_data(self):
+        self.r = weblog.post("/ai_guard/evaluate", json=MESSAGES["SENSITIVE_DATA"])
+
+    def test_sensitive_data(self):
+        """Test sensitive data scanning.
+        Verifies the response contains sensitive data scanning results.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(self.r, validator=self._assert_span_with_sensitive_data(), full_trace=True)

@@ -1,6 +1,6 @@
 flask[async]==2.2.4
 flask-login==0.6.3
-uWSGI==2.0.26
+uWSGI==2.0.31
 gevent==24.2.1
 requests==2.32.3
 pycryptodome==3.20.0

@@ -28,10 +28,12 @@ scenario_names = {scenario.name for scenario in get_all_scenarios()}
 LIBRARIES = {
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "golang",
     "java",
+    "java_lambda",
     "nodejs",
     "otel_collector",
     "php",
@@ -43,7 +45,7 @@ LIBRARIES = {
     "haproxy",
 }
 
-LAMBDA_LIBRARIES = {"python_lambda"}
+LAMBDA_LIBRARIES = {"python_lambda", "java_lambda"}
 OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
 
 ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
@@ -250,18 +252,18 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self._append_scenarios_from_test_files(scenario_names)
 
-    def _append_scenarios_from_test_files(self, scenarios: set[str]) -> None:
+    def _append_scenarios_from_test_files(self, scenario_names: set[str]) -> None:
         """When a test file is modified, we want to add all scenarios executed in this file
         But some libraries are not activated by default. If ever we modify such a test file, we store the corresponding
         libraries to ensure they are activated later.
         """
 
-        self.scenarios |= scenarios
+        self.scenarios |= scenario_names
 
         # some libraries are not activated by default. If ever we modify a file that explicitly
         # mention a scenario, we want to activate the corresponding libraries too
-        for scenario_name in scenarios:
-            scenario: Scenario = next(s for s in get_all_scenarios() if s.name == scenario_name)
+        for scenario_name in scenario_names:
+            scenario: Scenario = getattr(scenarios, scenario_name.lower())
             libraries = scenario.get_libraries()
 
             if libraries is not None:

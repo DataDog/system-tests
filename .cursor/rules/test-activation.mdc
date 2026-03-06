@@ -132,7 +132,8 @@ tests/path/test.py::TestClass:
 | "Bug for scenario X" | **Decorator** | `@bug(context.scenario == ...)` |
 | "Bug on specific VM" | **Decorator** | `@bug(context.vm_name == ...)` |
 | "Bug for agent + library combo" | **Decorator** | Complex condition |
-| "Skip test completely" | **Decorator** | With `force_skip=True` |
+| "Test is slow and known to fail" | **Manifest + Decorator** | Manifest declaration + `@slow` on the test |
+| "Test crashes the scenario" | **Manifest + Decorator** | Manifest declaration + `@scenario_crash` on the test |
 
 ---
 

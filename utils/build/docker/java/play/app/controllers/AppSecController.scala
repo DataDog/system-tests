@@ -35,7 +35,8 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val span = tracer.buildSpan("test-span").start
     span.setTag("test-tag", "my value")
     withSpan(span) {
-      Results.Ok("Hello world!")
+      Results.Ok("Hello world!\n")
+        .as("text/plain; charset=UTF-8")
     }
   }
 

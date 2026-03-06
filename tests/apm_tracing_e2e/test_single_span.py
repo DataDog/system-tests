@@ -1,17 +1,15 @@
-from utils import context, weblog, interfaces, rfc, scenarios, missing_feature, features
+from utils import weblog, interfaces, rfc, scenarios, features
 from utils.dd_constants import (
     SAMPLING_PRIORITY_KEY,
     SINGLE_SPAN_SAMPLING_MECHANISM,
     SINGLE_SPAN_SAMPLING_MECHANISM_VALUE,
     SINGLE_SPAN_SAMPLING_RATE,
     SINGLE_SPAN_SAMPLING_MAX_PER_SEC,
-    TraceAgentPayloadFormat,
 )
+from utils.dd_types import DataDogAgentSpan
 
 
 @rfc("ATI-2419")
-@missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
-@missing_feature(context.library in ["java", "golang"], reason="todo: review the tests for java and golang")
 @scenarios.apm_tracing_e2e_single_span
 @features.single_span_ingestion_control
 class Test_SingleSpan:
@@ -34,12 +32,12 @@ class Test_SingleSpan:
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
-        span, span_format = spans[0]
-        assert interfaces.agent.get_span_name(span, span_format) == "parent.span.single_span_submitted"
+        span = spans[0]
+        assert span.get_span_name() == "parent.span.single_span_submitted"
         assert span.get("parentID") is None
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
+        metrics = interfaces.agent.get_span_metrics(span)
         assert metrics["_dd.top_level"] == 1.0
-        _assert_single_span_metrics(span, span_format)
+        _assert_single_span_metrics(span)
 
         # Assert the spans received from the backend!
         backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
@@ -58,10 +56,10 @@ class Test_SingleSpan:
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
-        span, span_format = spans[0]
-        assert interfaces.agent.get_span_name(span, span_format) == "child.span.single_span_submitted"
+        span = spans[0]
+        assert span.get_span_name() == "child.span.single_span_submitted"
         assert span.get("parentID") is not None
-        _assert_single_span_metrics(span, span_format)
+        _assert_single_span_metrics(span)
 
         # Assert the spans received from the backend!
         backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
@@ -81,8 +79,8 @@ def _assert_single_span_event(event: dict, name: str, *, is_root: bool):
         assert len(parent_id) > 0, f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
-def _assert_single_span_metrics(span: dict, span_format: TraceAgentPayloadFormat):
-    metrics = interfaces.agent.get_span_metrics(span, span_format)
+def _assert_single_span_metrics(span: DataDogAgentSpan):
+    metrics = interfaces.agent.get_span_metrics(span)
     assert metrics[SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
     assert metrics[SINGLE_SPAN_SAMPLING_RATE] == 1.0
     assert metrics[SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE

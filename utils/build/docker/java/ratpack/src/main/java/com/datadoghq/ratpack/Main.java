@@ -108,7 +108,8 @@ public class Main {
                                 Span span = tracer.buildSpan("test-span").start();
                                 span.setTag("test-tag", "my value");
                                 try {
-                                    ctx.getResponse().send("text/plain", "Hello World!");
+                                    ctx.getResponse().getHeaders().set("Content-Length", "13");
+                                    ctx.getResponse().send("text/plain", "Hello world!\n");
                                 } finally {
                                     span.finish();
                                 }

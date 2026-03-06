@@ -17,7 +17,14 @@ All these endpoints must respond `200` unless noted otherwise. If content is not
 
 ### \[GET, POST\] /
 
-The following text may be written to the body of the response:
+The response must include the following headers:
+
+```
+content-type: text/plain
+content-length: 13
+```
+
+The following text must be written to the body of the response:
 
 ```
 Hello world!\n
@@ -1255,6 +1262,33 @@ This endpoint acts as a webhook receiver of events sent by the Stripe backend.
 It takes a raw (unparsed) request body, and a signature located in header `Stripe-Signature`, that must be passed directly, along the secret key `whsec_FAKE`, to the Stripe SDK method that parses webhook events (`stripe.webhooks.constructEvent()` or equivalent).
 The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
 If an error happens, the endpoint must respond with a 403 error code.
+
+### GET /llm
+
+This endpoint is implemented by Python, Node.js, and PHP (using openai-php/client).
+
+This endpoint collects interactions with LLMs. The request will have the following query parameters
+- `model`:  Identifies the LLM model invoked. Examples are: `gpt-4.1`, `gpt-4o-mini`, `text-davinci-003`.
+- `operation`: Instead of having one each point for each function wrapped, this parameter will be used to decide what method to trigger. The following table maps all operation values to wrapped method:
+| Value | Python mapped method | Node.js mapped method | PHP mapped method |
+| --- | --- | --- | --- |
+| `openai-latest-responses.create` | `OpenAI().responses.create(...)` | `client.responses.create` | `$client->responses()->create(...)` |
+| `openai-latest-chat.completions.create` | `OpenAI().chat.completions.create(...)` | `client.chat.completions.create` | `$client->chat()->create(...)` |
+| `openai-latest-completions.create` | `OpenAI().completions.create(...)` | `client.completions.create` | `$client->completions()->create(...)` |
+| `openai-legacy-chat.completions.create` | `openai.ChatCompletion.create` | `openai.createChatCompletion` | `$client->chat()->create(...)` |
+| `openai-legacy-completions.create` | `openai.Completion.create` | `openai.createCompletion` | `$client->completions()->create(...)` |
+| `openai-async-responses.create` | `AsyncOpenAI().responses.create(...)` | not implemented | `$client->responses()->create(...)` |
+| `openai-async-chat.completions.create` | `AsyncOpenAI().chat.completions.create(...)` | not implemented | `$client->chat()->create(...)` |
+| `openai-async-completions.create` | `AsyncOpenAI().completions.create(...)` | not implemented | `$client->completions()->create(...)` |
+
+For example a call to `/llm?model=gpt-4.1&operation=openai-latest-responses.create` (URL-encoded) will require that Python does the following call
+```
+OpenAI().responses.create(model="gpt-4.1", ...)
+```
+
+This approach makes the endpoint ready to be expanded in the future.
+
+In scenarios that use this endpoint, `OPENAI_BASE_URL` is set to the system-tests internal server, which mocks the OpenAI API responses.
 
 ## Weblog specification
 
