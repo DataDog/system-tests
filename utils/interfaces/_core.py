@@ -16,7 +16,6 @@ from typing import Any
 import pytest
 
 from utils._logger import logger
-from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
 
 class InterfaceValidator:
@@ -61,7 +60,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._lock = threading.RLock()
         self._data_list: list[dict] = []
         self._ingested_files: set[str] = set()
-        self._schema_errors: list[SchemaError] | None = None
 
     def configure(self, host_log_folder: str, *, replay: bool):
         super().configure(host_log_folder, replay=replay)
@@ -198,7 +196,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         if not allow_no_data and data_is_missing:
             raise ValueError(f"No data has been observed on {path_filters}")
 
-    def wait_for(self, wait_for_function: Callable, timeout: int):
+    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> None:
         if self.replay:
             return
 
@@ -220,16 +218,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
-
-    def get_schemas_errors(self) -> list[SchemaError]:
-        if self._schema_errors is None:
-            self._schema_errors: list[SchemaError] = []
-            validator = SchemaValidator(self.name)
-
-            for data in self.get_data():
-                self._schema_errors.extend(validator.get_errors(data))
-
-        return self._schema_errors
 
     def assert_response_header(
         self, path_filters: list[str] | str, header_name_pattern: str, header_value_pattern: str

@@ -14,3 +14,7 @@ You will find different template or example:
 * [github actions](./github-actions.md)
 * [gitlab CI](./gitlab-ci.md): TODO
 * [azure](https://github.com/DataDog/dd-trace-dotnet/blob/master/.azure-pipelines/ultimate-pipeline.yml) (look for `stage: system_tests`)
+
+For the system-tests own CI, see also:
+
+* [CI test selection](./ci-test-selection.md): how the CI decides which libraries and scenarios to run based on modified files
