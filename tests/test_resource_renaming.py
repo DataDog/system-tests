@@ -89,7 +89,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         for point in stats_points:
             method = point.get("HTTPMethod", "")
             endpoint = point.get("HTTPEndpoint", "")
-            hits = point.get("Hits", 0)
+            hits = point.get("TopLevelHits", 0)
 
             if (method, endpoint) in expected_hits:
                 actual_hits[(method, endpoint)] = actual_hits.get((method, endpoint), 0) + hits
