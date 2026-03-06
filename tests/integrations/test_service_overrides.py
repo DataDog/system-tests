@@ -7,13 +7,13 @@ from utils import weblog, interfaces, scenarios, features
 
 @features.service_override_source
 @scenarios.integrations
-class Test_MongoServiceNameSource:
-    """Verify that _dd.svc_src is set on mongo spans when the integration overrides the service name"""
+class Test_SqlServiceNameSource:
+    """Verify that _dd.svc_src is set on SQL spans when the integration overrides the service name"""
 
-    def setup_mongo_srv_src(self):
-        self.r = weblog.get("/trace/mongo")
+    def setup_sql_srv_src(self):
+        self.r = weblog.get("/rasp/sqli?user_id=1")
 
-    def test_mongo_srv_src(self):
+    def test_sql_srv_src(self):
         assert self.r.status_code == 200
 
         srv_src_found = False
@@ -22,4 +22,4 @@ class Test_MongoServiceNameSource:
                 srv_src_found = True
                 break
 
-        assert srv_src_found, "Expected at least one mongo span to have _dd.svc_src set"
+        assert srv_src_found, "Expected at least one SQL span to have _dd.svc_src set"

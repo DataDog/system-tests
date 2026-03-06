@@ -28,7 +28,7 @@ manifest:
   tests/integrations/test_open_telemetry.py::Test_MySql::test_properties: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-2778)
-  tests/integrations/test_service_overrides.py::Test_MongoServiceNameSource: irrelevant (Only implemented for Java)
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
