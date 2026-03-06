@@ -28,10 +28,11 @@ class AiGuardController < ApplicationController
       action: result.action,
       reason: result.reason,
       tags: result.tags,
+      sds: result.sds,
       is_blocking_enabled: result.blocking_enabled?
     }
   rescue Datadog::AIGuard::AIGuardAbortError => e
-    render json: { action: e.action, reason: e.reason, tags: e.tags }, status: 403
+    render json: { action: e.action, reason: e.reason, tags: e.tags, sds: e.sds }, status: 403
   rescue => e
     render json: {error: e.to_s, type: e.class.name}, status: 500
   end
