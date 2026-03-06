@@ -2194,7 +2194,12 @@ def ai_guard_evaluate():
     except Exception as e:
         if isinstance(e, AIGuardAbortError):
             return jsonify(
-                {"action": getattr(e, "action", ""), "reason": getattr(e, "reason", ""), "tags": getattr(e, "tags", []), "sds": getattr(e, "sds", [])}
+                {
+                    "action": getattr(e, "action", ""),
+                    "reason": getattr(e, "reason", ""),
+                    "tags": getattr(e, "tags", []),
+                    "sds": getattr(e, "sds", []),
+                }
             ), 403
         else:
             return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
