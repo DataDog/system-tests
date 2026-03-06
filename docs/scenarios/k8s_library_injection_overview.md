@@ -61,3 +61,10 @@ The system-tests repository includes multiple scenarios for testing K8s library 
 
 - **[K8s Library Injection](k8s_lib_injection.md)**: Complete testing suite for K8s library injection with detailed setup instructions, test execution, and development guidelines.
 - **[K8s Injector Dev](k8s_injector_dev.md)**: Development and testing scenarios for the K8s based on the internal testing tool injector-dev.
+
+
+## K8s library injection: Operational Maintenance (Pipelines & Upgrades)
+
+Ongoing CI pipeline upkeep for Kubernetes library injection tests, including dependency/component updates and ensuring runs stay stable and up to date.
+
+- **[K8s Library Injection Tests: Basic Operations](k8s_lib_injection_operations.md)**: Job matrix definition, weekly auto-update workflow, nightly validation, and working processes for maintaining the component version matrix.
