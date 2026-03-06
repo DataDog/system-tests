@@ -2,9 +2,8 @@ name: Nightly
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron:  '00 03 * * 1-5'
-  pull_request:
+  # schedule:
+  #   - cron:  '00 03 * * 1-5'
 
 
 jobs:
@@ -12,22 +11,22 @@ jobs:
     strategy:
       matrix:
         library:
-          # - cpp
-          # - cpp_httpd
-          # - dotnet
-          # - golang
-          # - java
-          # - nodejs
-          # - php
+          - cpp
+          - cpp_httpd
+          - dotnet
+          - golang
+          - java
+          - nodejs
+          - php
           - python
-          # - python_lambda
-          # - ruby
-          # - cpp_nginx
+          - python_lambda
+          - ruby
+          - cpp_nginx
         version:
           - prod
-        # include:
-        #   - library: rust
-        #     version: dev
+        include:
+          - library: rust
+            version: dev
       fail-fast: false
     uses:  DataDog/system-tests/.github/workflows/system-tests.yml@main
     secrets:
@@ -45,11 +44,11 @@ jobs:
       contents: read
       packages: write
     with:
-      # scenarios_groups: end-to-end,lib-injection,docker-ssi,go_proxies,integration_frameworks
-      scenarios: DEFAULT
+      scenarios_groups: tracer_release
       library: ${{ matrix.library }}
       parametric_job_count: 8
-      # desired_execution_time: 3600  # 30 minutes
+      _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
+      push_to_test_optimization: true
 
   create_test_report:
     name: Create test report
