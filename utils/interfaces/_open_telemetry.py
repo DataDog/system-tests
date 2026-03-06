@@ -51,9 +51,8 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Try to find traces related to request {rid}")
 
         for data in self.get_data(path_filters=paths):
-            resource_spans = data.get("request").get("content").get("resource_spans") or data.get("request").get(
-                "content"
-            ).get("resourceSpans")
+            content = data.get("request").get("content")
+            resource_spans = content.get("resource_spans") or content.get("resourceSpans")
             for resource_span in resource_spans:
                 scope_spans = resource_span.get("scope_spans") or resource_span.get("scopeSpans")
                 for scope_span in scope_spans:
@@ -66,5 +65,5 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                             if (attr_key == "http.request.headers.user-agent" and rid in attr_val) or (
                                 attr_key == "http.useragent" and rid in attr_val
                             ):
-                                yield resource_span, span
+                                yield data.get("request"), content, span
                                 break  # Skip to next span
