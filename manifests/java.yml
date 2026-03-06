@@ -24,7 +24,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": missing_feature
+        "spring-boot": v1.61.0-SNAPSHOT
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": v0.2.0  # real version not known
@@ -984,6 +984,8 @@ manifest:
   tests/appsec/iast/source/test_header_value.py::TestHeaderValue::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.16.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
   tests/appsec/iast/source/test_header_value.py::TestHeaderValue::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.9.0
@@ -1050,11 +1052,15 @@ manifest:
       component_version: <1.16.0
     - declaration: missing_feature (Metrics not implemented)
       weblog: [akka-http, jersey-grizzly2, resteasy-netty3, vertx4]
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.16.0
     - declaration: missing_feature (Metrics not implemented)
       weblog: [akka-http, jersey-grizzly2, resteasy-netty3, vertx4]
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue:
     - weblog_declaration:
         "*": v1.1.0
@@ -1073,12 +1079,17 @@ manifest:
     - weblog_declaration:
         play: bug (APPSEC-58349)
         resteasy-netty3: flaky (APPSEC-56007)
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Not implemented)
       component_version: <1.11.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Not implemented)
       component_version: <1.9.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
   tests/appsec/iast/source/test_path.py::TestPath:
     - weblog_declaration:
         "*": v1.22.0
@@ -2230,6 +2241,9 @@ manifest:
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist::test_blocked_ips:  # Easy win for akka-http, jersey-grizzly2, play, ratpack, resteasy-netty3, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.58.2+06122213c8
     - declaration: bug (APMRP-360)
       component_version: '>=1.22.0'
+    - declaration: missing_feature
+      component_version: '<0.111.0'
+      weblog: [spring-boot]
   tests/appsec/test_logs.py::Test_Standardization:
     - weblog_declaration:
         akka-http: v1.22.0
@@ -2353,17 +2367,11 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_blank_2nd_argument: bug (APPSEC-55672)
   tests/appsec/test_span_tags_headers.py:
     - weblog_declaration:
-        "*": v1.60.0-SNAPSHOT
-        akka-http: bug (APPSEC-61447)
-        play: bug (APPSEC-61447)
-        ratpack: bug (APPSEC-61447)
-        resteasy-netty3: bug (APPSEC-61447)
+        "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-jetty: bug (APPSEC-61447)
-        spring-boot-undertow: bug (APPSEC-61447)
-        spring-boot-wildfly: bug (APPSEC-61447)
-        vertx3: bug (APPSEC-61447)
-        vertx4: bug (APPSEC-61447)
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking::test_content_type_event_blocking:
+    - weblog_declaration:
+        spring-boot-jetty: bug (APPSEC-61560)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking:
     - weblog_declaration:
         "*": v1.39.0
@@ -2758,6 +2766,8 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+    - declaration: missing_feature (DEBUG-4929)
+      component_version: '<1.59.0'
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
@@ -2768,6 +2778,8 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+    - declaration: missing_feature (Not yet implemented)
+      component_version: '<=1.54.0'
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -2778,6 +2790,10 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present:
+    - weblog_declaration:
+        "*": missing_feature (Implemented for spring-mvc)
+        spring-boot: v0.0.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
@@ -2790,6 +2806,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_async:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -2807,6 +2824,7 @@ manifest:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -2833,6 +2851,7 @@ manifest:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_rockpaperscissors:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -2849,6 +2868,7 @@ manifest:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
@@ -2869,6 +2889,7 @@ manifest:
         spring-boot-undertow: v1.48.0
         spring-boot-wildfly: v1.48.0
         uds-spring-boot: v1.48.0
+    - declaration: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
@@ -2889,6 +2910,8 @@ manifest:
         spring-boot-undertow: bug (DEBUG-5131)
         spring-boot-wildfly: bug (DEBUG-5131)
         uds-spring-boot: bug (DEBUG-5131)
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
+  : bug (DEBUG-4736)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
@@ -2933,6 +2956,12 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
@@ -3028,6 +3057,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -3054,6 +3084,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v0.2.0  # real version not known
+    - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": irrelevant
@@ -3361,6 +3392,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.13.0
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq: bug (APMAPI-840)
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
     - weblog_declaration:
         "*": irrelevant
@@ -3429,6 +3461,7 @@ manifest:
     - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: irrelevant (default hostname is resolved config-processing)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v1.41.1
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: flaky (APMAPI-908)
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v1.48.0
@@ -3513,12 +3546,15 @@ manifest:
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'
       component_version: <1.58.2+06122213c8
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
   tests/parametric/test_otel_logs.py: '>=1.58.2+06122213c8'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
@@ -3686,6 +3722,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v1.30.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v1.26.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v1.25.1
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content:
     - declaration: missing_feature (tracer log in flare has been implemented at version 1.38.0)
@@ -3930,9 +3967,22 @@ manifest:
         play: '>=1.58.2+06122213c8'
         uds-spring-boot: '>=1.58.2+06122213c8'
         spring-boot-payara: '>=1.58.2+06122213c8'
-  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v1.43.0
-  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts:
+    - declaration: missing_feature (implementation specs have not been determined)
+    - declaration: bug (APMAPI-928)
+      component_version: '<1.44.0'
+      weblog: [spring-boot-3-native]
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts:
+    - weblog_declaration:
+        "*": v1.43.0
+    - declaration: bug (APMAPI-928)
+      component_version: '<1.44.0'
+      weblog: [spring-boot-3-native]
+  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
+    - declaration: missing_feature (implementation specs have not been determined)
+    - declaration: bug (APMAPI-928)
+      component_version: '<1.44.0'
+      weblog: [spring-boot-3-native]
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature
@@ -4024,6 +4074,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Long: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v0.102.0
@@ -4236,6 +4287,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_data_size:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
