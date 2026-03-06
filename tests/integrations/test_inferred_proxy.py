@@ -175,17 +175,19 @@ def assert_api_gateway_span(
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
     assert span["meta"]["http.method"] == "GET", "Inferred AWS API Gateway span meta expected HTTP method to be 'GET'"
 
-    # Skip http.url and http.status_code assertions for Java (language='jvm') - these fields are not properly set
+    # http.url expected value in this test lacks the https:// scheme that Java correctly sets;
+    # the v2 tests (mandatory_tags_validator_factory) validate the full URL for all languages.
     is_java = span["meta"].get("language") == "jvm" or span["meta"].get("language") == "java"
     if not is_java:
-        assert "http.url" in span["meta"], "Inferred AWS API Gateway span eta should contain 'http.url'"
+        assert "http.url" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.url'"
         assert span["meta"]["http.url"] == "system-tests-api-gateway.com" + path, (
             f"Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com{path}'"
         )
-        assert "http.status_code" in span["meta"], "Inferred AWS API Gateway span eta should contain 'http.status_code'"
-        assert span["meta"]["http.status_code"] == status_code, (
-            f"Inferred AWS API Gateway span meta expected HTTP Status Code of '{status_code}'"
-        )
+
+    assert "http.status_code" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.status_code'"
+    assert span["meta"]["http.status_code"] == status_code, (
+        f"Inferred AWS API Gateway span meta expected HTTP Status Code of '{status_code}'"
+    )
 
     if not interfaces.library.replay:
         # round the start time since we get some inconsistent errors due to how the agent rounds start times.
@@ -198,7 +200,7 @@ def assert_api_gateway_span(
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
         assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
 
-    if is_error and not is_java:
+    if is_error:
         assert span["error"] == 1
         assert span["meta"]["http.status_code"] == "500"
 
@@ -269,13 +271,9 @@ def mandatory_tags_validator_factory(
                 f"Expected http.url to be 'https://system-tests-api-gateway.com/api/data/v2', found '{url}'"
             )
 
-        # Skip http.status_code assertions for Java - this field is not set on inferred proxy spans
-        # because the span is created before the request completes
-        is_java = meta.get("language") == "jvm" or meta.get("language") == "java"
-        if not is_java:
-            status_code = meta.get("http.status_code")
-            if status_code != expected_status_code:
-                raise ValueError(f"Expected http.status_code to be '{expected_status_code}', found '{status_code}'")
+        status_code = meta.get("http.status_code")
+        if status_code != expected_status_code:
+            raise ValueError(f"Expected http.status_code to be '{expected_status_code}', found '{status_code}'")
 
         if distributed:
             trace_id = span.get("trace_id")
@@ -288,9 +286,7 @@ def mandatory_tags_validator_factory(
             if sampling_priority != DISTRIBUTED_SAMPLING_PRIORITY:
                 raise ValueError(f"Expected sampling_id to be '{DISTRIBUTED_PARENT_ID}', found '{span['parent_id']}'")
 
-        # Skip error field assertions for Java - this field is not set on inferred proxy spans
-        # because the span is created before the request completes
-        if error and not is_java:
+        if error:
             span_error = span.get("error")
             if span_error != 1:
                 raise ValueError("Expected error to be reported on inferred span")
