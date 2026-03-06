@@ -5565,6 +5565,10 @@
   "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationSemVer::test_semantic_versioning": [
     "APPSEC_AND_RC_ENABLED"
   ],
+  "tests/schemas/test_schemas.py::Test_DdtraceSchemas::test_library": [
+    "DEFAULT",
+    "TRACE_STATS_COMPUTATION"
+  ],
   "tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject::test_main": [
     "DEFAULT"
   ],

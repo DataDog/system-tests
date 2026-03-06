@@ -6,13 +6,12 @@ from collections.abc import Callable
 from utils import context
 from utils import features
 from utils import interfaces
-from utils import missing_feature
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 def login_data(username: str, password: str):
@@ -138,7 +137,6 @@ class Test_Login_Events:
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -158,7 +156,6 @@ class Test_Login_Events:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -176,7 +173,6 @@ class Test_Login_Events:
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -196,7 +192,6 @@ class Test_Login_Events:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -249,7 +244,6 @@ class Test_Login_Events:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -267,7 +261,6 @@ class Test_Login_Events:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -348,7 +341,6 @@ class Test_Login_Events_Extended:
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -378,7 +370,6 @@ class Test_Login_Events_Extended:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -406,7 +397,6 @@ class Test_Login_Events_Extended:
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -431,7 +421,6 @@ class Test_Login_Events_Extended:
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -489,7 +478,6 @@ class Test_Login_Events_Extended:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -507,7 +495,6 @@ class Test_Login_Events_Extended:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
@@ -529,7 +516,7 @@ class Test_Login_Events_Extended:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: DataDogSpan):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -549,7 +536,7 @@ class Test_Login_Events_Extended:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: DataDogSpan):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1023,7 +1010,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: DataDogSpan):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1043,7 +1030,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: DataDogSpan):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1054,7 +1041,7 @@ class Test_V2_Login_Events_Anon:
         interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
-def assert_priority(span: DataDogSpan, trace: list[DataDogSpan]):
+def assert_priority(span: DataDogLibrarySpan, trace: list[DataDogLibrarySpan]):
     if "_sampling_priority_v1" not in span["metrics"]:
         # some tracers like java only send the priority in the first and last span of the trace
         assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
@@ -1457,7 +1444,7 @@ class Test_V3_Login_Events:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: DataDogSpan):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1477,7 +1464,7 @@ class Test_V3_Login_Events:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: DataDogSpan):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 

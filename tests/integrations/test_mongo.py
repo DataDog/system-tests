@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, missing_feature, scenarios, features
+from utils import weblog, interfaces, scenarios, features
 
 
 @features.mongo_support
-@missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
 @scenarios.integrations
 class Test_Mongo:
     """Verify that a mongodb span is created"""

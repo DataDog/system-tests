@@ -22,11 +22,15 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": missing_feature
+        "flask-poc": v4.6.0rc2
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.0.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.6.0-rc1
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
@@ -67,6 +71,15 @@ manifest:
         fastapi: v3.13.0.dev
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_type: irrelevant
   tests/appsec/api_security/test_endpoint_fallback.py: irrelevant (python weblogs always have http.route)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_responses_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0
@@ -309,6 +322,7 @@ manifest:
         fastapi: v2.13.0
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_post_reported:
     - declaration: irrelevant (Flask and Django need a header; otherwise, they return a 415 status code. TODO When FastAPI implements POST body source, verify if it does too.)
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/iast/source/test_path.py::TestPath:
     - weblog_declaration:
         "*": v2.9.0
@@ -939,6 +953,10 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.4.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
@@ -948,6 +966,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
+    - declaration: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
@@ -983,6 +1002,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Python emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
@@ -1062,6 +1082,7 @@ manifest:
   tests/ffe/test_exposures.py: v4.2.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result: bug (MLOB-1234)
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: v3.11.0
@@ -1101,11 +1122,13 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v0.1  # actual version unknown
+    - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, Python does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v2.6.0
+  tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql:
     - weblog_declaration:
         "*": missing_feature
@@ -1120,6 +1143,7 @@ manifest:
     - weblog_declaration:
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - declaration: missing_feature (Apply only java)
     - weblog_declaration:
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
@@ -1159,6 +1183,10 @@ manifest:
     - declaration: missing_feature (not implemented yet)
     - weblog_declaration:
         uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_sql_success:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
@@ -1176,6 +1204,7 @@ manifest:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - declaration: missing_feature (Apply only java)
     - weblog_declaration:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
@@ -1228,6 +1257,7 @@ manifest:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - declaration: missing_feature (Apply only java)
     - weblog_declaration:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
@@ -1259,6 +1289,7 @@ manifest:
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_operation: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_row_count: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_sql_table: missing_feature (not implemented yet)
@@ -1271,59 +1302,113 @@ manifest:
         flask-poc: v0.1
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm::test_trace_payload_full:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
+  tests/integrations/test_dbm.py::_BaseDbmComment::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -1337,6 +1422,11 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v2.16.0
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
     - weblog_declaration:
         "*": irrelevant
@@ -1346,6 +1436,7 @@ manifest:
         "*": irrelevant
         flask-poc: v2.6.0
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq: flaky (APMAPI-724)
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
     - weblog_declaration:
         "*": irrelevant
@@ -1388,7 +1479,9 @@ manifest:
         flask-poc: v4.2.0
         uwsgi-poc: v4.2.0
         uds-flask: v4.2.0
+  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.15.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.15.0
   ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
@@ -1404,8 +1497,16 @@ manifest:
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v2.0.0
@@ -1530,6 +1631,8 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_links_add: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
@@ -1563,6 +1666,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:
     - declaration: missing_feature (Not implemented)
       component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 2.9.0)
       component_version: <2.9.0
@@ -1680,9 +1784,11 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v2.9.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging: v0.36.0
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v3.12.0.dev
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices:
     - weblog_declaration:
@@ -1727,17 +1833,9 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
-        *django: bug (APMSP-1375)
-    - # Added by easy win activation script
-      weblog_declaration:
-        tornado: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
         "*": v2.8.0
-        *django: bug (APMSP-1375)
-    - # Added by easy win activation script
-      weblog_declaration:
-        tornado: missing_feature
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -1868,6 +1966,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v2.8.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.2.1
   tests/test_library_conf.py::Test_HeaderTags_Short: v3.15.0+dev36.gb57f15308
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v3.15.0+dev36.gb57f15308
@@ -1876,6 +1975,9 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: v3.15.0+dev36.gb57f15308
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
@@ -1886,7 +1988,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: bug (APMSP-2359)
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: v4.5.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
@@ -2088,6 +2190,7 @@ manifest:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
     - declaration: bug (APMAPI-1858)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant

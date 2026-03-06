@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [python_lambda]
+  - &lambda_libraries [java_lambda, python_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
@@ -76,8 +76,12 @@ patterns:
 # rule from this section to the default section at the end of the file.
 ################################################################################
 
+    .claude/*:
+        scenario_groups: null
+        libraries: null
     .cursor/*:
         scenario_groups: null
+        libraries: null
     .circleci/*:
         scenario_groups: null
     .vscode/*:
@@ -281,8 +285,6 @@ patterns:
         scenario_groups: docker_ssi
     utils/_features.py:
         scenarios: DEFAULT
-    utils/interfaces/schemas*:
-        scenario_groups: end_to_end
     utils/k8s_lib_injection*:
         scenario_groups: lib_injection
     utils/manifest/_internal/format.py:
@@ -350,6 +352,13 @@ patterns:
     utils/build/build_cpp_base_images.sh:
         libraries: cpp
 
+    manifests/cpp_kong.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_kong
+    utils/build/docker/cpp_kong/*:
+        libraries: cpp_kong
+        scenario_groups: [ end_to_end, ]
+
     manifests/cpp_httpd.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: cpp_httpd
@@ -411,6 +420,13 @@ patterns:
         libraries: java
     utils/build/build_java_base_images.sh:
         libraries: java
+
+    manifests/java_lambda.yml:
+      scenario_groups: null  # already handled by the manifest comparison
+      libraries: java_lambda
+    utils/build/docker/java_lambda/*:
+      scenario_groups: appsec_lambda
+      libraries: java_lambda
 
     manifests/nodejs.yml:
         scenario_groups: null  # already handled by the manifest comparison

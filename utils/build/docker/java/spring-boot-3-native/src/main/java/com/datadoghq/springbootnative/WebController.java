@@ -38,8 +38,11 @@ public class WebController {
   private static final Logger logger = LoggerFactory.getLogger(App.class);
 
   @RequestMapping("/")
-  String home() {
-    return "Hello world!\n";
+  ResponseEntity<String> home() {
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_PLAIN)
+        .contentLength(13)
+        .body("Hello world!\n");
   }
 
   @RequestMapping("/healthcheck")

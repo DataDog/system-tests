@@ -90,6 +90,7 @@ def _expected_to_fail(
         if library not in (
             "cpp",
             "cpp_httpd",
+            "cpp_kong",
             "cpp_nginx",
             "dotnet",
             "golang",
@@ -102,6 +103,7 @@ def _expected_to_fail(
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "java_lambda",
             "rust",
         ):
             raise ValueError(f"Unknown library: {library}")
@@ -238,4 +240,12 @@ Such tests are only executed if they were not deactivated
 scenario_crash = pytest.mark.skip_if_xfail
 """Decorator, marks a test function/class as making its scenario crash when failing.
 Such tests are only executed if they were not deactivated
+"""
+
+auxiliary_test = pytest.mark.auxiliary_test
+"""Mark a test as auxiliary to other tests.
+
+Auxiliary tests are meaningful only when primary tests are present in the
+session. When SYSTEM_TESTS_SKIP_EMPTY_SCENARIO is enabled, auxiliary tests
+alone will not cause the scenario to run.
 """
