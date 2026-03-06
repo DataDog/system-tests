@@ -6,7 +6,7 @@ from datetime import timedelta
 from http import HTTPStatus
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 
@@ -112,7 +112,6 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(

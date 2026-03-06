@@ -5,12 +5,12 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, bug, context
+from utils import slow, scenarios, features, bug, context
 
 
 @features.debugger_probe_budgets
 @scenarios.debugger_probes_snapshot
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@slow
 class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
     def _setup(
         self,
@@ -70,8 +70,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
         )
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_log_line_budgets(self):
         self._assert()
         self._validate_snapshots()
