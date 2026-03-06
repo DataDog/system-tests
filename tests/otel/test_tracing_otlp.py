@@ -109,24 +109,21 @@ class Test_Otel_Tracing_OTLP:
             for key_value in resource_span.get("resource").get("attributes")
         }
 
-        # Assert that the resource attributes contain the service-level attributes that were configured for weblog
+        # Assert that the resource attributes contain the service-level attributes and tracer-level attributes we expect
+        # TODO: Assert the following attributes: runtime-id, git.commit.sha, git.repository_url
         assert attributes.get("service.name") == "weblog"
         assert attributes.get("service.version") == "1.0.0"
         assert (
             attributes.get("deployment.environment.name") == "system-tests"
             or attributes.get("deployment.environment") == "system-tests"
         )
-
-        # Assert that the resource attributes contain the tracer-level attributes we expect
-        # assert attributes.get("telemetry.sdk.name") == "datadog"
+        assert attributes.get("telemetry.sdk.name") == "datadog"
         assert "telemetry.sdk.language" in attributes
         assert "telemetry.sdk.version" in attributes
-        assert "runtime-id" in attributes
-        # assert "git.commit.sha" in attributes
-        # assert "git.repository_url" in attributes
 
         # Assert that the `traceId` and `spanId` JSON fields are valid case-insensitive hexadecimal strings, not base64-encoded strings as defined in the standard Protobuf JSON Mapping.
         # See https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
+        # TODO: Assert against trace_id and span_id fields in the protobuf encoding as well
         if is_json:
             assert re.match(r"^[0-9a-fA-F]{32}$", span.get("traceId")), (
                 f"traceId is not a valid case-insensitive hexadecimal string, got {span.get('traceId')}"
@@ -158,4 +155,3 @@ class Test_Otel_Tracing_OTLP:
         assert method == "GET", f"HTTP method is not GET, got {method}"
         assert status_code is not None
         assert int(status_code) == 200, f"HTTP status code is not 200, got {int(status_code)}"
-        # assert span_attributes.get("http.url") == "http://localhost:7777/"
