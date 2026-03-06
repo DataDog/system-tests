@@ -19,7 +19,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
     implementation 'org.json:json:20230227'
     implementation 'org.slf4j:slf4j-simple:2.0.3'
-    implementation 'com.openai:openai-java:3.0.0'
+    implementation 'com.openai:openai-java:3.0.1'
     implementation 'com.anthropic:anthropic-java:2.4.0'
 
     implementation files('/dd-tracer/dd-java-agent.jar')

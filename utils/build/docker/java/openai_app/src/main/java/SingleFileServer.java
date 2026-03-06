@@ -140,6 +140,7 @@ public class SingleFileServer {
 
     JSONObject parameters = payload.optJSONObject("parameters");
     boolean stream = parameters.optBoolean("stream");
+    String toolChoice = parameters.optString("tool_choice");
     JSONArray tools = parameters.optJSONArray("tools");
 
     var builder = ChatCompletionCreateParams.builder();
@@ -183,7 +184,9 @@ public class SingleFileServer {
          builder.addTool(toolObject);
       }
 
-      builder.toolChoice(JsonValue.from("auto"));
+      if (toolChoice != null) {
+          builder.toolChoice(ChatCompletionToolChoiceOption.Auto.of(toolChoice));
+      }
     }
 
     if (stream) {
@@ -221,21 +224,32 @@ public class SingleFileServer {
     String requestBody = ctx.body();
     JSONObject payload = new JSONObject(requestBody);
 
-    String model = payload.getString("model");
-    var input = payload.get("input"); // string or JSONArray<JSONObject>
+    String model = payload.optString("model", null);
+    Object input = payload.opt("input"); // string or JSONArray<JSONObject>
     JSONObject parameters = payload.optJSONObject("parameters");
-    JSONArray tools = payload.optJSONArray("tools");
+    if (parameters == null) {
+      parameters = new JSONObject();
+    }
+    JSONArray tools = parameters.optJSONArray("tools");
+    if (tools == null) {
+      tools = payload.optJSONArray("tools");
+    }
+    JSONObject prompt = parameters.optJSONObject("prompt");
 
     boolean stream = parameters.optBoolean("stream");
 
     ResponseCreateParams.Builder builder = ResponseCreateParams.builder();
 
-    builder.model(model);
-    if (input instanceof String) {
-      builder.input(JsonValue.from(input));
-    } else {
-      List<Object> inputList = (List<Object>) deepConvertJsonToJava(input);
-      builder.input(JsonValue.from(inputList));
+    if (model != null && !model.isEmpty()) {
+      builder.model(model);
+    }
+    if (input != null && input != JSONObject.NULL) {
+      if (input instanceof String) {
+        builder.input(JsonValue.from(input));
+      } else {
+        List<Object> inputList = (List<Object>) deepConvertJsonToJava(input);
+        builder.input(JsonValue.from(inputList));
+      }
     }
 
     if (!Double.isNaN(parameters.optDouble("max_output_tokens"))) {
@@ -255,11 +269,45 @@ public class SingleFileServer {
       builder.reasoning(JsonValue.from(reasoning.toMap()));
     }
 
+    if (parameters.has("stream")) {
+      builder.putAdditionalBodyProperty("stream", JsonValue.from(stream));
+    }
+
+    JSONArray include = parameters.optJSONArray("include");
+    if (include != null) {
+      List<Object> includeList = (List<Object>) deepConvertJsonToJava(include);
+      builder.putAdditionalBodyProperty("include", JsonValue.from(includeList));
+    }
+
+    if (prompt != null) {
+      ResponsePrompt.Builder promptBuilder = ResponsePrompt.builder();
+
+      String promptId = prompt.optString("id", null);
+      if (promptId != null && !promptId.isEmpty()) {
+        promptBuilder.id(promptId);
+      }
+
+      String promptVersion = prompt.optString("version", null);
+      if (promptVersion != null && !promptVersion.isEmpty()) {
+        promptBuilder.version(promptVersion);
+      }
+
+      JSONObject variables = prompt.optJSONObject("variables");
+      if (variables != null) {
+        ResponsePrompt.Variables.Builder varsBuilder = ResponsePrompt.Variables.builder();
+        for (String key : variables.keySet()) {
+          Object rawValue = variables.get(key);
+          Object convertedValue = deepConvertJsonToJava(rawValue);
+          varsBuilder.putAdditionalProperty(key, JsonValue.from(convertedValue));
+        }
+        promptBuilder.variables(varsBuilder.build());
+      }
+
+      builder.prompt(promptBuilder.build());
+    }
     if (tools != null) {
       List<Object> toolsList = (List<Object>) deepConvertJsonToJava(tools);
-
       builder.tools(JsonValue.from(toolsList));
-      builder.toolChoice(JsonValue.from("auto"));
     }
 
     if (stream) {
