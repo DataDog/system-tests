@@ -40,7 +40,7 @@ on:
         required: false
         type: string
       ci_environment:
-        description: "CI environment running the tests (dev/prod), also used for Test Optimization tagging"
+        description: "**DEPRECATED**"
         default: 'custom'
         required: false
         type: string
