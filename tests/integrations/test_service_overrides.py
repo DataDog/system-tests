@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, features
+from utils import context, weblog, interfaces, scenarios, features, irrelevant
 
 
 @features.service_override_source
 @scenarios.integrations
+@irrelevant(context.weblog_variant == "spring-boot-3-native", reason="/rasp/sqli endpoint is not available")
 class Test_SqlServiceNameSource:
     """Verify that _dd.svc_src is set on SQL spans when the integration overrides the service name"""
 
