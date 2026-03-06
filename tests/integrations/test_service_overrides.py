@@ -18,7 +18,7 @@ class Test_SqlServiceNameSource:
 
         srv_src_found = False
         for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("meta", {}).get("_dd.svc_src"):
+            if span.get("type") == "sql" and span.get("meta", {}).get("_dd.svc_src"):
                 srv_src_found = True
                 break
 
