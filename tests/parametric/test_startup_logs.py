@@ -39,7 +39,6 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
     """Get startup logs from container, handling language-specific differences.
 
     - .NET: Reads from dotnet-tracer-managed* file
-    - Node.js/Ruby: Reads from stdout
     - Other libraries: Reads from stderr
 
     Args:
@@ -52,13 +51,6 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
     """
     if context.library == "dotnet":
         return _get_dotnet_startup_logs(test_library, required=required)
-    elif context.library in ("nodejs", "ruby"):
-        try:
-            logs = test_library.container.logs(stderr=True, stdout=True).decode("utf-8")
-        except Exception as e:
-            if required:
-                pytest.fail(f"Failed to retrieve container logs: {e}")
-            return None
     else:
         try:
             logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")

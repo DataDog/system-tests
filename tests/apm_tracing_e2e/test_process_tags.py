@@ -17,7 +17,7 @@ class Test_Process_Tags:
     def check_tracing_process_tags(self, validate_process_tags_func: Callable):
         # Get all the spans from the agent
         found = False
-        for data, _, _ in interfaces.agent.get_traces(self.req):
+        for data, _ in interfaces.agent.get_traces(self.req):
             # Check that the agent managed to extract the process tags from the first chunk
             if "idxTracerPayloads" in data["request"]["content"]:
                 for payload in data["request"]["content"]["idxTracerPayloads"]:

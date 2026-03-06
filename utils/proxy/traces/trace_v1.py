@@ -1,8 +1,11 @@
 import base64
 import contextlib
 from enum import IntEnum
+import gzip
 import json
 from typing import Any
+import warnings
+
 import msgpack
 
 
@@ -94,6 +97,46 @@ _span_key_strings = [
 ]
 
 
+def decode_appsec_s_value(
+    value: str | bytes,
+) -> list[object] | dict[str, object] | str | int | float | bool | None:
+    """Decode _dd.appsec.s.* meta values: either JSON or base64(gzip(JSON)).
+
+    Accepts str or bytes (e.g. MessagePack bin-typed strings from v0.4/v0.5
+    traces, where _deserialized_nested_json_from_trace_payloads runs before
+    _convert_bytes_values). If the value starts with '[' it is treated as raw
+    JSON. Otherwise it is treated as base64-encoded gzip-compressed JSON.
+    Raises ValueError if decoding (utf-8, json, base64, or gzip) fails.
+    """
+    if isinstance(value, bytes):
+        try:
+            value = value.decode("utf-8")
+        except UnicodeDecodeError as e:
+            raise ValueError(f"Invalid UTF-8 for _dd.appsec.s.* value: {e}") from e
+    if not value:
+        raise ValueError("_dd.appsec.s.* value cannot be empty")
+    s = value.strip()
+    if s.startswith("["):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON for _dd.appsec.s.* value: {e}") from e
+    try:
+        decoded = base64.b64decode(value, validate=True)
+    except Exception as e:
+        raise ValueError(f"Invalid base64 for _dd.appsec.s.* value: {e}") from e
+    try:
+        decompressed = gzip.decompress(decoded)
+    except Exception as e:
+        raise ValueError(f"Invalid gzip for _dd.appsec.s.* value: {e}") from e
+    try:
+        return json.loads(decompressed.decode("utf-8"))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in gzip payload for _dd.appsec.s.*: {e}") from e
+    except UnicodeDecodeError as e:
+        raise ValueError(f"Invalid UTF-8 in gzip payload for _dd.appsec.s.*: {e}") from e
+
+
 def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
     uncompressed_payload = {}
     for k, v in trace_payload.items():
@@ -172,22 +215,54 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             if isinstance(v, int):
                 v = strings[v]
         elif v_type == V1AnyValueKeys.array:
-            attrs_dict[f"___{k}___system-tests-warning___"] = "The deserialization of {k} is weird"
-            # v[0] is the numrical id of k??
-            # v[1] is the value type ??
-            v = v[2:]
+            v = _uncompress_array(v, strings)
 
         attrs_dict[k] = v
 
     for key in list(attrs_dict):
         if key.startswith("_dd.appsec.s."):
-            attrs_dict[key] = json.loads(attrs_dict[key])
+            attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
         elif key in ("appsec", "_dd.stack"):
             attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
         elif key in ("_dd.span_links", "_dd.appsec.json"):
             attrs_dict[key] = json.loads(attrs_dict[key])
 
     return attrs_dict
+
+
+def _uncompress_array(array: list, strings: list[str]) -> list:
+    # Array is a list where each element is a tuple of (value type, value)
+    # The value type is an integer that corresponds to the V1AnyValueKeys enum
+    if len(array) % 2 != 0:
+        raise ValueError(f"Array must have an even number of elements (type, value pairs): {array}")
+    result: list[Any] = []
+    for i in range(0, len(array), 2):
+        v_type_int = array[i]
+        v = array[i + 1]
+        try:
+            v_type = V1AnyValueKeys(v_type_int)
+        except ValueError as e:
+            raise ValueError(f"Unknown V1AnyValueKeys in array: {v_type_int}") from e
+        if v_type == V1AnyValueKeys.string:
+            if isinstance(v, int):
+                v = strings[v]
+        elif v_type in {
+            V1AnyValueKeys.bool_value,
+            V1AnyValueKeys.double,
+            V1AnyValueKeys.int_value,
+            V1AnyValueKeys.bytes_value,
+        }:
+            pass  # keep as-is
+        elif v_type == V1AnyValueKeys.array:
+            v = _uncompress_array(v, strings)
+        elif v_type == V1AnyValueKeys.key_value_list:
+            warnings.warn(
+                "key_value_list inside array is left as-is (not yet uncompressed)",
+                UserWarning,
+                stacklevel=2,
+            )
+        result.append(v)
+    return result
 
 
 def _uncompress_chunks(chunks: list, strings: list[str]) -> list:
@@ -258,7 +333,6 @@ def _uncompress_spans(spans: list[dict], strings: list[str]) -> list:
                 # Handle span_events specially - they need to be uncompressed
                 elif key_name == "span_events":
                     if value is not None:
-                        # Debug: Uncompressing span events
                         value = _uncompress_span_events_list(value, strings)
                 uncompressed_span[key_name] = value
             except ValueError as e:
