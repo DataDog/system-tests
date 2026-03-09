@@ -61,6 +61,11 @@ curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin
 cd /var/www/html
 composer install --prefer-dist
 
+# Install OTel API for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
+if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
+    composer require "open-telemetry/api" --prefer-dist --no-interaction
+fi
+
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;
