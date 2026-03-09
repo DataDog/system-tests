@@ -75,9 +75,10 @@ class Test_Proxy_Inferred_Span_Tags:
 
     def test_proxy_inferred_span(self) -> None:
         service_entry_span_appsec_data = None
-        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
+        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r, full_trace=True):
             if span.get("service") == "weblog":
                 service_entry_span_appsec_data = appsec_data
+                break
 
         assert service_entry_span_appsec_data, "Expected non empty appsec data on the weblog entry span"
 
@@ -97,7 +98,14 @@ class Test_Proxy_Inferred_Span_Tags:
             inferred_payload = (
                 json.loads(inferred_span_payload) if isinstance(inferred_span_payload, str) else inferred_span_payload
             )
-            assert inferred_payload == service_entry_span_appsec_data, "AppSec Data must match the service-entry span"
+            # Normalize service_entry_span_appsec_data: some tracers yield a parsed dict
+            # (from meta_struct.appsec) while others yield a raw JSON string (from meta._dd.appsec.json)
+            expected_appsec = (
+                json.loads(service_entry_span_appsec_data)
+                if isinstance(service_entry_span_appsec_data, str)
+                else service_entry_span_appsec_data
+            )
+            assert inferred_payload == expected_appsec, "AppSec Data must match the service-entry span"
 
             return True
 
