@@ -496,9 +496,11 @@ class ManifestEditor:
                     raw_data[-1]["weblog"] = CommentedSeq(weblogs.copy())
                     raw_data[-1]["weblog"].fa.set_flow_style()
 
-    def write(self, output_dir: Path = Path("manifests/")) -> None:
+    def write(self, output_dir: Path = Path("manifests/"), dry_run: bool = False) -> None:
         self.write_new_rules()
         self.write_poke()
+        if dry_run:
+            return
         for component, data in self.raw_data.items():
             file = output_dir.joinpath(f"{component}.yml")
             self.round_trip_parser.dump(data, file)
