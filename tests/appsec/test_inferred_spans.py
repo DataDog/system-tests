@@ -109,4 +109,4 @@ class Test_Proxy_Inferred_Span_Tags:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_inferred_span, full_trace=True)
+        interfaces.library.validate_one_span(self.r, validator=validate_inferred_span)
