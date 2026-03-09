@@ -79,7 +79,7 @@ class Test_Proxy_Inferred_Span_Tags:
             if span.get("service") == "weblog":
                 service_entry_span_appsec_data = appsec_data
 
-        assert service_entry_span_appsec_data, "Expected non empty appsec data on span with service=weblog"
+        assert service_entry_span_appsec_data, "Expected non empty appsec data on the weblog entry span"
 
         def validate_inferred_span(span: DataDogLibrarySpan) -> bool:
             if span.get("name") != "aws.apigateway":
