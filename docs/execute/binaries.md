@@ -168,11 +168,11 @@ For fast local development (for `PARAMETRIC`, `INTEGRATION_FRAMEWORKS`, otel and
 - **Prerequisites (for most use cases, a one-time setup)**: Make sure the native extensions are built for the Python version being used by the scenario you are running. For example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the `python:3.11-slim` image.
   - If they are not available (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` does not exist), you will need to build them.
   - Ensure Docker is running. In `dd-trace-py`, run `scripts/ddtest` to start up a shell which is based off of the `testrunner` image.
-  - Run `pyenv local 3.11.14 && pip install -e .` to install the dd-trace-py package in development mode, which will build the native extensions.
+  - Run `pyenv local [PYTHON_VERSION] && pip install -e .` to install the dd-trace-py package in development mode, which will build the native extensions. You need to replace `[PYTHON_VERSION]` with the appropriate version for the weblog you want to run (for example `3.11` for flask-poc). The required version can be found in the base image docker file of the weblog.
   - Verify the native extensions are built by checking for the existence of `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so`.
   - For any of these steps, swap out the Python version used/checked and the architecture (e.g. `aarch64-linux-gnu` or `x86_64-linux-gnu`) as needed.
 - Add a `python-load-from-local` file in `binaries`, with its contents being the relative path to the dd-trace-py repo on your machine
-- Run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
+- Build and run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
 
 
 ## Ruby library
