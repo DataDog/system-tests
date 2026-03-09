@@ -401,6 +401,7 @@ class ManifestEditor:
                 manifest = self.raw_data[condition["component"]]["manifest"]
                 manifest_entry = self.manifest.data.get(rule, [])
                 manifest[rule] = ManifestEditor.build_manifest_entry(rule, condition, manifest, manifest_entry)
+                self.manifest.data[rule].append(condition)
 
     def write_poke(self) -> None:
         for view, contexts in self.poked_views.items():
