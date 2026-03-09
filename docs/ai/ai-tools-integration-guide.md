@@ -1,5 +1,21 @@
 # AI Tools Integration Guide
 
+## Table of Contents
+
+- [Overview](#overview)
+- [The AI tools](#the-ai-tools)
+  - [Github Copilot support](#github-copilot-support)
+  - [Cursor](#cursor)
+    - [Complete Cursor AI Documentation Suite](#-complete-cursor-ai-documentation-suite)
+  - [MCP Servers Integration (Beta)](#mcp-servers-integration-beta)
+  - [Claude CLI](#claude-cli)
+    - [Configuration Files](#configuration-files)
+    - [Setting up Claude CLI](#setting-up-claude-cli)
+    - [Running Promptfoo Evaluations](#running-promptfoo-evaluations)
+  - [GitHub CLI (gh)](#github-cli-gh)
+  - [GitLab CLI (glab)](#gitlab-cli-glab)
+  - [Supported AI Tools via AGENTS.md](#supported-ai-tools-via-agentsmd)
+
 ## Overview
 
 The `system-tests` repository includes built-in AI integration capabilities designed to enhance developer productivity when implementing new tests, troubleshooting issues, and working with complex testing scenarios. These tools leverage comprehensive context about the repository structure, testing patterns, and best practices to provide intelligent assistance.
@@ -66,18 +82,15 @@ Cursor AI documentation suite:
 
 **📖 New to AI in system-tests?** Start with the [Cursor AI Comprehensive Guide](cursor-ai-comprehensive-guide.md) for a complete introduction.
 
-#### MCP Servers Integration (Beta)
+### MCP Servers Integration (Beta)
 
-Cursor supports Model Context Protocol (MCP) servers that extend AI capabilities with specialized tools and integrations. The system-tests repository provides several MCP server configurations to enhance your development workflow:
+Model Context Protocol (MCP) servers extend AI capabilities with specialized tools and integrations. The system-tests repository provides several MCP server configurations to enhance your development workflow. MCP servers can be used with any compatible AI tool, including Cursor and Claude CLI.
 
 **Available MCP Servers:**
 
-- **GitHub MCP Server**: Provides comprehensive GitHub integration including repository management, pull requests, issues, and CI/CD operations. See [GitHub MCP Server Setup](ai-github-mcp-server.md) for detailed installation and configuration instructions.
+- **Datadog MCP Server**: Provides CI Visibility integration including pipeline event search and aggregation, test event analysis, flaky test detection, code coverage summaries, and PR insights. Pre-configured in the repository via `.cursor/mcp.json` (for Cursor) and `.mcp.json` (for Claude CLI and other compatible tools). See [Datadog MCP Server Setup](datadog-mcp-server.md) for detailed setup and usage instructions.
 
-**Future MCP Servers:**
-Additional MCP servers are planned to further enhance the development experience. These may include integrations for cloud services, testing frameworks, and other development tools commonly used with system-tests.
-
-To set up MCP servers, follow the specific setup guides for each server. All MCP servers integrate seamlessly with Cursor's AI assistant, providing enhanced context and capabilities for working with the system-tests repository.
+To set up MCP servers, follow the specific setup guides for each server. All MCP servers integrate seamlessly with compatible AI tools, providing enhanced context and capabilities for working with the system-tests repository.
 
 ### Claude CLI
 
@@ -87,12 +100,17 @@ The system-tests repository provides native support for **Claude CLI** (Anthropi
 
 ```
 .claude/
-├── CLAUDE.md      # Claude-specific instructions and rules pointer
-└── settings.json  # Claude CLI settings (permissions, environment)
+├── CLAUDE.md           # Claude-specific instructions and rules pointer
+├── settings.json       # Claude CLI settings (permissions, environment, MCP enablement)
+└── settings.local.json # Local settings (personal overrides, not committed)
+
+.mcp.json               # MCP server configuration (shared across AI tools)
 ```
 
 * **`.claude/CLAUDE.md`**: Contains Claude-specific instructions and points to the shared rules in `.cursor/rules/`
-* **`.claude/settings.json`**: Configures Claude CLI behavior, including default permission mode and environment variables
+* **`.claude/settings.json`**: Configures Claude CLI behavior, including default permission mode, environment variables, MCP server enablement (e.g., the Datadog MCP server), and the [`DataDog/claude-marketplace`](https://github.com/DataDog/claude-marketplace) plugins which provide Datadog-specific `dd:*` skills (CI debugging, PR feedback, Jira automation, and more)
+* **`.claude/settings.local.json`**: Personal overrides for local development (not shared via git)
+* **`.mcp.json`**: Defines MCP server connections at the repository root. Claude CLI automatically discovers this file and makes the configured servers available. Currently includes the Datadog MCP server for CI Visibility integration
 
 #### Setting up Claude CLI
 
@@ -127,6 +145,54 @@ The wizard guides you through:
 3. Automatically executing the evaluation
 
 See [Prompt validation](ai-tools-prompt-validation.md) for more details on the evaluation process.
+
+### GitHub CLI (gh)
+
+The AI tools are configured to use the **GitHub CLI** (`gh`) for all interactions with GitHub (github.com), including repository management, pull requests, issues, and CI/CD operations. The AI assistant will automatically use `gh` commands when performing GitHub-related tasks.
+
+#### Installation
+
+```bash
+brew install gh
+```
+
+#### Authentication
+
+```bash
+gh auth login
+```
+
+To verify your authentication status:
+
+```bash
+gh auth status
+```
+
+### GitLab CLI (glab)
+
+The AI tools are configured to use the **GitLab CLI** (`glab`) for all interactions with GitLab (gitlab.ddbuild.io), including pipeline management, merge requests, and CI/CD operations. The AI assistant will automatically use `glab` commands when performing GitLab-related tasks.
+
+#### Installation
+
+```bash
+brew install glab
+```
+
+#### Authentication
+
+You will need a **personal access token** to authenticate with GitLab. You can create one from your GitLab profile at **Settings > Access Tokens** on `gitlab.ddbuild.io`.
+
+Once you have your token, authenticate:
+
+```bash
+glab auth login --hostname gitlab.ddbuild.io
+```
+
+To set the default host:
+
+```bash
+glab config set host gitlab.ddbuild.io
+```
 
 ### Supported AI Tools via AGENTS.md
 

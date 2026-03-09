@@ -4,3 +4,4 @@ manifest:
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: v7.57.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: v7.57.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault: v7.57.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant

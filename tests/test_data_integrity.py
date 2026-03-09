@@ -5,9 +5,9 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
-from utils.dd_types import DataDogTrace, TraceLibraryPayloadFormat
+from utils import weblog, interfaces, rfc, features, scenarios, logger
+from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogLibraryTrace, LibraryTraceFormat, AgentTraceFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -72,17 +72,6 @@ class Test_TraceHeaders:
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-    @missing_feature(
-        context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
-    )
-    @missing_feature(
-        context.library == "java" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
-    )
-    @missing_feature(
-        context.library == "nodejs" and context.weblog_variant not in ["express4", "express5"],
-        reason="Missing endpoint",
-    )
-    @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
@@ -215,7 +204,7 @@ class Test_LibraryHeaders:
             assert isinstance(trace_id, int)
             assert trace_id > 0
 
-            if trace.format in (TraceLibraryPayloadFormat.v04, TraceLibraryPayloadFormat.v05):
+            if trace.format in (LibraryTraceFormat.v04, LibraryTraceFormat.v05):
                 for span in trace:
                     assert span.raw_span["trace_id"] == trace_id
 
@@ -229,19 +218,17 @@ class Test_Agent:
 
         # get list of trace ids reported by the agent
         trace_ids_reported_by_agent = set[int]()
-        for _, chunk, chunk_format in interfaces.agent.get_traces():
-            if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        for _, chunk in interfaces.agent.get_traces():
+            if chunk.format == AgentTraceFormat.efficient_trace_payload_format:
                 # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
                 # We need to convert it to an integer taking only the lower 64 bits
                 # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
-                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+                trace_id = chunk.trace_id_as_int
                 trace_ids_reported_by_agent.add(trace_id)
-            elif chunk_format == TraceAgentPayloadFormat.legacy:
-                for span in chunk["spans"]:
-                    trace_ids_reported_by_agent.add(int(span["traceID"]))
-                    break
+            elif chunk.format == AgentTraceFormat.legacy:
+                trace_ids_reported_by_agent.add(chunk.trace_id_as_int)
 
-        def get_span_with_sampling_data(trace: DataDogTrace):
+        def get_span_with_sampling_data(trace: DataDogLibraryTrace):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.

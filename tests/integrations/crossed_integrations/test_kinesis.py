@@ -2,7 +2,7 @@ import json
 
 from utils.buddies import python_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, context, logger
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseKinesis:
@@ -17,7 +17,7 @@ class _BaseKinesis:
     @classmethod
     def get_span(
         cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], stream: str, operation: str
-    ) -> DataDogSpan | None:
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and stream: {stream} in {interface}")
 
         for data, trace in interface.get_traces():

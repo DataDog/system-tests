@@ -3,6 +3,7 @@ import json
 import re
 import yaml
 
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, DockerScenario
 from utils._context.docker import get_docker_client
 
@@ -40,27 +41,7 @@ if __name__ == "__main__":
         type=str,
         default="",
         help="One of the supported Datadog library",
-        choices=[
-            "cpp",
-            "cpp_httpd",
-            "cpp_nginx",
-            "dotnet",
-            "python",
-            "ruby",
-            "golang",
-            "java",
-            "nodejs",
-            "otel_collector",
-            "php",
-            "java_otel",
-            "python_otel",
-            "nodejs_otel",
-            "python_lambda",
-            "rust",
-            "envoy",
-            "haproxy",
-            "",
-        ],
+        choices=[*sorted(COMPONENT_GROUPS.all), ""],
     )
 
     parser.add_argument("--weblog", "-w", type=str, help="End-to-end weblog", default="")

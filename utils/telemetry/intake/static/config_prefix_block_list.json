@@ -1,4 +1,5 @@
 [
+    "_",
     "DD_API_KEY",
     "DD_APPLICATION_KEY",
     "DD_AdoNet_",
@@ -119,8 +120,6 @@
     "DD_WinHttpHandler_",
     "DD_XUnit_",
     "N/A",
-    "_dd_cover_session",
-    "_dd_pytest_use_legacy_plugin",
     "api-key",
     "apiKey",
     "api_key",

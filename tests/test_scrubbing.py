@@ -5,8 +5,8 @@
 from collections.abc import Callable
 import re
 
-from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
-from utils.dd_types import DataDogTrace
+from utils import interfaces, rfc, weblog, features, scenarios, logger
+from utils.dd_types import DataDogLibraryTrace
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
@@ -74,14 +74,11 @@ class Test_UrlField:
         url = "http://leak-name-url:leak-password-url@agent:8127/"
         self.r = weblog.get("/make_distant_call", params={"url": url})
 
-    @missing_feature(
-        context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint"
-    )
     def test_main(self):
         """Check that not data is leaked"""
         assert self.r.status_code == 200
 
-        def validate_report(trace: DataDogTrace):
+        def validate_report(trace: DataDogLibraryTrace):
             for span in trace:
                 if span.get("type") == "http":
                     logger.info(f"span found: {span}")

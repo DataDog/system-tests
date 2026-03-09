@@ -35,7 +35,6 @@ class MyTestClass:
 ### Data Retrieval Methods
 - `get_spans(request=None)` - Get spans submitted to backend, optionally filtered by request
 - `get_spans_list(request)` - Get spans for a specific request as a list
-- `get_appsec_data(request)` - Get AppSec data from spans for a specific request
 - `get_telemetry_data(*, flatten_message_batches=True)` - Get telemetry data sent to backend
 - `get_profiling_data()` - Get profiling data from `/api/v2/profile` endpoint
 - `get_metrics()` - Get metrics submitted to `/api/v2/series` endpoint

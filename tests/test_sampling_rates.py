@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
-from utils.dd_types import DataDogSpan, DataDogTrace
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 
 """Those are the constants used by the sampling algorithm in all the tracers
 
@@ -22,7 +22,7 @@ SAMPLING_KNUTH_FACTOR = 1111111111111111111
 MAX_UINT64 = 2**64 - 1
 
 
-def get_trace_request_path(root_span: DataDogSpan) -> str | None:
+def get_trace_request_path(root_span: DataDogLibrarySpan) -> str | None:
     if root_span.get("type") != "web":
         return None
 
@@ -150,7 +150,7 @@ class Test_SamplingDecisions:
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        def validator(trace: DataDogTrace, root_span: DataDogSpan):
+        def validator(trace: DataDogLibraryTrace, root_span: DataDogLibrarySpan):
             sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
             if sampling_priority is None:
                 raise ValueError(

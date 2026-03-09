@@ -17,7 +17,16 @@ from typing import Any
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
-from utils._logger import logger
+from utils import logger
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+
+
+@dataclass
+class SchemaBug:
+    endpoint: str
+    data_path: str | None  # None means that all data_path will be considered as bug
+    condition: bool
+    ticket: str
 
 
 def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
@@ -30,10 +39,10 @@ _ApiObjectValidator = extend(Draft7Validator, type_checker=_type_checker)
 
 def _get_schemas_filenames():
     for schema_dir in (
-        "utils/interfaces/schemas/library/",
-        "utils/interfaces/schemas/agent/",
-        "utils/interfaces/schemas/miscs/",
-        "utils/interfaces/schemas/otel_collector/",
+        "tests/schemas/utils/library/",
+        "tests/schemas/utils/agent/",
+        "tests/schemas/utils/miscs/",
+        "tests/schemas/utils/otel_collector/",
     ):
         for root, _, files in os.walk(schema_dir):
             for f in files:
@@ -52,7 +61,7 @@ def _get_schemas_store():
             schema = json.load(f)
 
         assert "$id" in schema, filename
-        assert schema["$id"] == filename[len("utils/interfaces/schemas") :], filename
+        assert schema["$id"] == filename[len("tests/schemas/utils") :], filename
 
         Draft7Validator.check_schema(schema)
 
@@ -62,7 +71,7 @@ def _get_schemas_store():
 
 
 @functools.lru_cache
-def _get_schema_validator(schema_id: str):
+def _get_schema_validator(schema_id: str) -> Draft7Validator:
     store = _get_schemas_store()
 
     if schema_id not in store:
@@ -81,11 +90,11 @@ class SchemaError:
     data: dict
 
     @property
-    def message(self):
+    def message(self) -> str:
         return f"{self.data['log_filename']}: {self.error.message} on instance {self.error.json_path}"
 
     @property
-    def data_path(self):
+    def data_path(self) -> str:
         return re.sub(r"\[\d+\]", "[]", self.error.json_path)
 
 
@@ -199,6 +208,24 @@ def _main():
                 if "request" in data and data["request"]["length"] != 0:
                     for error in validator.get_errors(data):
                         print(error.message)  # noqa: T201
+
+
+def assert_no_schema_error(interface: ProxyBasedInterfaceValidator, known_bugs: list[SchemaBug]) -> None:
+    excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+
+    schema_errors: list[SchemaError] = []
+    validator = SchemaValidator(interface.name)
+
+    for data in interface.get_data():
+        for error in validator.get_errors(data):
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
+                logger.error(f"* {error.message}")
+                schema_errors.append(error)
+
+    assert len(schema_errors) == 0, f"{interface.name} has schema error, please check logs"
 
 
 if __name__ == "__main__":

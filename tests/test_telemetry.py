@@ -6,7 +6,7 @@ from datetime import timedelta
 from http import HTTPStatus
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 
@@ -97,8 +97,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @bug(context.agent_version >= "7.36.0" and context.agent_version < "7.37.0", reason="APMRP-360")
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -114,7 +112,6 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -247,7 +244,6 @@ class Test_Telemetry:
                 return
         raise ValueError("app-started message not found")
 
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
@@ -661,9 +657,9 @@ class Test_APMOnboardingInstallID:
         """Assert that at least one trace carries APM onboarding info"""
 
         def validate_at_least_one_span_with_tag(tag: str):
-            for _, chunk, chunk_format in interfaces.agent.get_traces():
-                for span in chunk.get("spans", []):
-                    span_meta = interfaces.agent.get_span_meta(span, chunk_format)
+            for _, chunk in interfaces.agent.get_traces():
+                for span in chunk.spans:
+                    span_meta = span.meta
                     if tag in span_meta:
                         return
             raise Exception(f"Did not find tag {tag} in any spans")

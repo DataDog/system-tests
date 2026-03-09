@@ -1,8 +1,8 @@
 import json
 
 from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, features, context, irrelevant, logger
-from utils.dd_types import DataDogSpan
+from utils import interfaces, scenarios, weblog, features, context, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseSQS:
@@ -17,7 +17,7 @@ class _BaseSQS:
     @classmethod
     def get_span(
         cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], queue: str, operation: str
-    ) -> DataDogSpan | None:
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -67,7 +67,7 @@ class _BaseSQS:
         return None
 
     @staticmethod
-    def get_queue(span: DataDogSpan) -> str | None:
+    def get_queue(span: DataDogLibrarySpan) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
@@ -233,7 +233,6 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-@irrelevant(condition=True, reason="Localstack SQS does not support AWS Xray Header parsing")
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy

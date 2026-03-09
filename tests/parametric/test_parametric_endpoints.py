@@ -12,7 +12,7 @@ import time
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 
-from utils import incomplete_test_app, scenarios, features, context
+from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_span_in_traces
@@ -750,10 +750,6 @@ class Test_Parametric_Otel_Trace_Flush:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Write_Log:
-    @incomplete_test_app(
-        context.library not in ["python", "nodejs"],
-        reason="Logs endpoint is only implemented in python and node.js app",
-    )
     def test_write_log(self, test_library: APMLibrary):
         """Validates that /otel/logger/write creates a log message with the specified parameters.
 
@@ -772,10 +768,6 @@ class Test_Parametric_Write_Log:
             result = test_library.write_log("test_logger", LogLevel.INFO, "Test message", span_id=span.span_id)
             assert result is True
 
-    @incomplete_test_app(
-        context.library not in ["python", "nodejs"],
-        reason="Logs endpoint is only implemented in python and node.js app",
-    )
     def test_create_logger(self, test_library: APMLibrary):
         """Validates that /otel/logger/create creates a logger with the specified parameters.
 
