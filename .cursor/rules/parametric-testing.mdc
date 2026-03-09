@@ -8,21 +8,34 @@ alwaysApply: true
 * To run parametric tests use the document [parametric scenario](mdc:docs/scenarios/parametric.md). The scenario runs shared tests against all APM libraries via a common HTTP interface.
 * Parametric tests live under `tests/parametric/`. The parametric library server per language is in `utils/build/docker/<lang>/parametric/`.
 
-## Re-running parametric tests multiple times
+## Running a subset of tests
 
-When you plan to re-run parametric tests multiple times (e.g. iterating on a test or debugging), **always** use these options so runs are faster:
+Always pass a nodeid (file, class, or specific test) to `run.sh` to avoid running the entire parametric suite. This is the most effective way to reduce run time when iterating on a specific test.
 
-1. **`+1`** – Use a single pytest worker (no xdist). This enables:
-   - One shared test agent and Docker network for the whole session (no per-test agent startup).
-   - Library container reuse: tests with the same `library_env` share one library container (no JVM/process restart per test).
-2. **`--skip-parametric-build`** (or `SKIP_PARAMETRIC_BUILD=1`) – Skip building the parametric library image when it already exists. Use this when only test code or docs change. Omit it when you change `utils/build/docker/<lang>/parametric/` (Dockerfile or app code).
+```sh
+# Run a single test
+TEST_LIBRARY=nodejs ./run.sh PARAMETRIC tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes
 
-**Example (fast re-runs):**
+# Run a whole file
+TEST_LIBRARY=nodejs ./run.sh PARAMETRIC tests/parametric/test_tracer.py
+
+# Run with -k filter
+TEST_LIBRARY=nodejs ./run.sh PARAMETRIC -k test_tracer_span
+```
+
+## Re-running a single test repeatedly
+
+When re-running a **single test** many times (e.g. iterating on a fix), add `+1 --skip-parametric-build` to make each re-run ~1.8× faster:
+
+1. **`+1`** – Single pytest worker (no xdist). Avoids spawning 10 xdist workers for one test.
+2. **`--skip-parametric-build`** (or `SKIP_PARAMETRIC_BUILD=1`) – Skip rebuilding the parametric library image. Saves ~3–4s per run. Only safe when `utils/build/docker/<lang>/parametric/` has not changed.
+
+**Example:**
 
 ```sh
 TEST_LIBRARY=java ./run.sh PARAMETRIC +1 --skip-parametric-build tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled
 ```
 
-Without `+1`, the run script adds `-n auto` and each test gets a new agent and library container; with `+1`, one agent and one library container (per `library_env`) are reused across tests.
+> **Warning:** Do not use `+1` when running multiple tests. It forces sequential execution (slower than parallel xdist) and enables library container reuse, which can cause test pollution failures.
 
 * Full details: see the "Making parametric runs faster" section in [parametric scenario](mdc:docs/scenarios/parametric.md).
