@@ -1,7 +1,5 @@
 """Test feature flag evaluation metrics via OTel Metrics API."""
 
-import time
-
 from utils import (
     weblog,
     interfaces,
@@ -13,10 +11,6 @@ from utils import (
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-
-# Wait time in seconds for OTLP metrics pipeline:
-# OTel SDK export interval (10s) + Agent metric flush (10s) + buffer
-METRICS_PIPELINE_WAIT = 25
 
 
 def make_ufc_fixture(flag_key, variant_key="on", variation_type="STRING", enabled=True):
@@ -105,8 +99,7 @@ class Test_FFE_Eval_Metric_Basic:
             },
         )
 
-        # Wait for OTLP metrics pipeline
-        time.sleep(METRICS_PIPELINE_WAIT)
+
 
     def test_ffe_eval_metric_basic(self):
         """Test that flag evaluation produces a metric with correct tags."""
@@ -160,7 +153,7 @@ class Test_FFE_Eval_Metric_Count:
             )
             self.responses.append(r)
 
-        time.sleep(METRICS_PIPELINE_WAIT)
+
 
     def test_ffe_eval_metric_count(self):
         """Test that N evaluations produce metric count = N."""
@@ -266,7 +259,7 @@ class Test_FFE_Eval_Metric_Different_Flags:
             },
         )
 
-        time.sleep(METRICS_PIPELINE_WAIT)
+
 
     def test_ffe_eval_metric_different_flags(self):
         """Test that each flag key gets its own metric series."""
@@ -310,7 +303,7 @@ class Test_FFE_Eval_Metric_Error:
             },
         )
 
-        time.sleep(METRICS_PIPELINE_WAIT)
+
 
     def test_ffe_eval_metric_error(self):
         """Test that error evaluations produce metric with error.type tag."""
@@ -366,7 +359,7 @@ class Test_FFE_Eval_Metric_Type_Mismatch:
             },
         )
 
-        time.sleep(METRICS_PIPELINE_WAIT)
+
 
     def test_ffe_eval_metric_type_mismatch(self):
         """Test that type conversion errors produce metric with error.type:type_mismatch."""
