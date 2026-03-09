@@ -82,6 +82,7 @@ refs:
   - &ref_5_81_0 '>=5.81.0'
   - &ref_5_83_0 '>=5.83.0'
   - &ref_5_87_0 '>=5.87.0'  # Debugger: Capture expressions support
+  - &ref_5_89_0 '>=5.89.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
@@ -106,7 +107,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        express4: missing_feature
+        express4: *ref_5_89_0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
