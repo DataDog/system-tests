@@ -1,7 +1,7 @@
 import json
 import time
 
-from utils import weblog, interfaces, scenarios, features, context
+from utils import weblog, interfaces, scenarios, features
 from utils.dd_types import DataDogLibrarySpan
 
 INFERRED_SPAN_NAMES = {"aws.apigateway", "aws.httpapi"}
