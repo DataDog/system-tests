@@ -183,7 +183,6 @@ def assert_api_gateway_span(
         assert span["meta"]["http.url"] == "system-tests-api-gateway.com" + path, (
             f"Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com{path}'"
         )
-
     assert "http.status_code" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.status_code'"
     assert span["meta"]["http.status_code"] == status_code, (
         f"Inferred AWS API Gateway span meta expected HTTP Status Code of '{status_code}'"
@@ -362,7 +361,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 "aws.apigateway",
                 expected_status_code="200",
                 expected_start_time_ns=self.start_time_ns,
-            )
+            ),
         )
 
     def setup_api_gateway_http_inferred_span_creation(self):
@@ -386,7 +385,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 "aws.httpapi",
                 expected_status_code="200",
                 expected_start_time_ns=self.start_time_ns,
-            )
+            ),
         )
 
     def setup_api_gateway_inferred_span_creation_with_distributed_context(self):
@@ -416,7 +415,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 "200",
                 self.start_time_ns,
                 distributed=True,
-            )
+            ),
         )
 
     def setup_api_gateway_rest_inferred_span_creation_with_error(self):
@@ -441,7 +440,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 "500",
                 self.start_time_ns,
                 error=True,
-            )
+            ),
         )
 
     def setup_api_gateway_rest_inferred_span_creation_optional_tags(self):
@@ -471,11 +470,8 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 "200",
                 self.start_time_ns,
             ),
-            full_trace=True,
         )
-        interfaces.library.validate_one_span(
-            self.r, validator=optional_tags_validator_factory("aws.apigateway")
-        )
+        interfaces.library.validate_one_span(self.r, validator=optional_tags_validator_factory("aws.apigateway"))
 
     def setup_api_gateway_http_inferred_span_creation_optional_tags(self):
         headers = {
@@ -503,8 +499,6 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 "aws.httpapi",
                 "200",
                 self.start_time_ns,
-            )
+            ),
         )
-        interfaces.library.validate_one_span(
-            self.r, validator=optional_tags_validator_factory("aws.httpapi")
-        )
+        interfaces.library.validate_one_span(self.r, validator=optional_tags_validator_factory("aws.httpapi"))
