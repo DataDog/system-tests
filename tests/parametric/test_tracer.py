@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, rfc, scenarios, features
+from utils import rfc, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -160,7 +160,6 @@ class Test_TracerSCITagging:
 @scenarios.parametric
 @features.dd_service_mapping
 class Test_TracerUniversalServiceTagging:
-    @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
     def test_tracer_service_name_environment_variable(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
@@ -197,6 +196,42 @@ class Test_TracerUniversalServiceTagging:
         assert span is not None, "Root span not found"
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
+
+
+@scenarios.parametric
+@features.service_override_source
+@rfc("https://docs.google.com/document/d/11OnbVYMDK-c5D-_V4QfOvL0Pc0z5oFQFGY3xSI-W7xk")
+class Test_TracerServiceNameSource:
+    def test_tracer_manual_service_name_sets_srv_src(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a span is created with a manually set service name
+        The span should have meta._dd.srv.src set to "m" (manual)
+        """
+        with test_library, test_library.dd_start_span("operation", service="my-service") as span:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None, "Root span not found"
+        assert root_span["service"] == "my-service"
+        assert root_span["meta"]["_dd.svc_src"] == "m"
+
+    def test_tracer_no_srv_src_when_service_not_manually_set(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """When a span is created without a manually set service name
+        The span should not have meta._dd.srv.src set
+        """
+        with test_library, test_library.dd_start_span("operation") as span:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None, "Root span not found"
+        assert "_dd.svc_src" not in root_span.get("meta", {})
 
 
 @scenarios.parametric

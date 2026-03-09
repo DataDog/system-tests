@@ -9,7 +9,6 @@ from utils import (
     features,
     context,
     rfc,
-    incomplete_test_app,
     logger,
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
@@ -353,9 +352,6 @@ class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
     )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
-    @incomplete_test_app(
-        reason="PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer"
-    )
     def test_dogstatsd_default(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()

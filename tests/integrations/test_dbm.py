@@ -168,7 +168,7 @@ class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
 
@@ -179,7 +179,7 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
     def test_dbm_comment(self):
@@ -193,7 +193,7 @@ class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
 
@@ -207,7 +207,7 @@ class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
@@ -218,7 +218,7 @@ class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
@@ -229,7 +229,7 @@ class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
@@ -240,7 +240,7 @@ class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
@@ -251,7 +251,7 @@ class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
@@ -265,7 +265,7 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
@@ -279,7 +279,7 @@ class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
@@ -293,7 +293,7 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
@@ -307,7 +307,7 @@ class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "weblog-mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
@@ -321,7 +321,7 @@ class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "weblog-postgres"  # db name
     ddh = "postgres"  # container name
 
 

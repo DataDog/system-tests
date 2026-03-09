@@ -21,6 +21,7 @@ from pytest_jsonreport.plugin import JSONReport
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
 from utils._context.component_version import ComponentVersion, Version
+from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
@@ -120,7 +121,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
+        choices=sorted(COMPONENT_GROUPS.parametric),
     )
     parser.addoption(
         "--github-token-file",
@@ -362,6 +363,9 @@ def _item_must_pass(item: pytest.Item) -> bool:
         return False
 
     if any(item.iter_markers("xfail")):
+        return False
+
+    if any(item.iter_markers("auxiliary_test")):
         return False
 
     for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)

@@ -1626,6 +1626,7 @@ class ExternalProcessingContainer(TestedContainer):
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
@@ -1702,6 +1703,7 @@ class StreamProcessingOffloadContainer(TestedContainer):
 
         environment: dict[str, str | None] = {
             "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
         }
