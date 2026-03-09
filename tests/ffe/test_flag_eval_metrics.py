@@ -124,6 +124,9 @@ class Test_FFE_Eval_Metric_Basic:
         assert get_tag_value(tags, "feature_flag.result.reason") == "targeting_match", (
             f"Expected tag feature_flag.result.reason:targeting_match, got tags: {tags}"
         )
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "default-allocation", (
+            f"Expected tag feature_flag.result.allocation_key:default-allocation, got tags: {tags}"
+        )
 
 
 @scenarios.feature_flagging_and_experimentation
