@@ -9,12 +9,19 @@ except ModuleNotFoundError:
 class ComponentGroups(ConstGroups):
     # There is an "all" group containing all the items by default
     buildable = ConstGroup()
+    """All libraries that support end to end testing (valid arguments for ./build.sh)"""
     easy_win = ConstGroup()
+    """All components for which easy win auto activation is enabled"""
     ssi = ConstGroup()
+    """SSI components"""
     lib_injection = ConstGroup()
+    """Lib injection components"""
     parametric = ConstGroup()
+    """Libraries supporting the parametric scenario"""
     otel = ConstGroup()
+    """Otel libraries"""
     lambda_lib = ConstGroup()
+    """Lambda libraries"""
 
     def _items(self) -> dict[str, list[ConstGroup]]:
         return {
