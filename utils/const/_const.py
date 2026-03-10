@@ -19,7 +19,7 @@ class ComponentGroups(ConstGroups):
     parametric = ConstGroup()
     """Libraries supporting the parametric scenario"""
     otel = ConstGroup()
-    """Otel libraries"""
+    """OpenTelemetry libraries, supporting the OTEL_INTEGRATIONS scenario"""
     lambda_lib = ConstGroup()
     """Lambda libraries"""
 
