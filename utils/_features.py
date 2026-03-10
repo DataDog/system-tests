@@ -2223,6 +2223,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=393, owner=_Owner.debugger)
 
     @staticmethod
+    def debugger_circuit_breaker(test_object):
+        """Circuit Breaker - Automatically disable probes that consume too much CPU time
+
+        Tests that probes are automatically disabled when they exceed max_processing_time threshold
+        """
+        return _mark_test_object(test_object, feature_id=None, owner=_Owner.debugger)
+
+    @staticmethod
     def debugger_symdb(test_object):
         """Probe Budgets
 
