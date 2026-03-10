@@ -536,7 +536,19 @@ class _Scenarios:
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
         },
-        doc="",
+        doc="FFE tests using tracer-based RC path (JSON via /v0.7/config)",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_and_experimentation_backend = EndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_BACKEND",
+        rc_api_enabled=True,
+        rc_backend_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+        },
+        doc="FFE tests using backend-based RC path (protobuf via /api/v0.1/configurations)",
         scenario_groups=[scenario_groups.ffe],
     )
 
