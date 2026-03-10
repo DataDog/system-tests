@@ -17,6 +17,8 @@ from utils._context.containers import (
     AgentContainer,
     ProxyContainer,
     BuddyContainer,
+    ExternalProcessingContainer,
+    StreamProcessingOffloadContainer,
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
@@ -29,7 +31,7 @@ from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_group
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
-    _network: Network = None
+    _network: Network | None = None
 
     def __init__(
         self,
@@ -88,7 +90,9 @@ class DockerScenario(Scenario):
     def configure(self, config: pytest.Config):  # noqa: ARG002
         if not self.replay:
             docker_info = get_docker_client().info()
-            self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            cgroup_version = docker_info.get("CgroupVersion")
+            if cgroup_version is not None:
+                self.components["docker.Cgroup"] = cgroup_version
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
 
@@ -100,7 +104,7 @@ class DockerScenario(Scenario):
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._containers:
-            if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
+            if getattr(container, "dd_integration_service", None) == name:
                 return container
         return None
 
@@ -155,6 +159,7 @@ class DockerScenario(Scenario):
     def _start_containers(self):
         logger.stdout("Starting containers...")
         threads = []
+        assert self._network is not None, "Docker network is not initialized"
 
         for container in self._containers:
             threads.append(container.async_start(self._network))
@@ -248,7 +253,6 @@ class EndToEndScenario(DockerScenario):
             volumes=weblog_volumes,
             other_containers=other_weblog_containers,
         )
-        self._containers += self.weblog_infra.get_containers()
 
         # buddies are a set of weblog app that are not directly the test target
         # but are used only to test feature that invlove another app with a datadog tracer
@@ -284,11 +288,17 @@ class EndToEndScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self._library_interface_timeout = library_interface_timeout
 
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        return list(
+            dict.fromkeys(super().get_image_list(library, weblog) + self.weblog_infra.get_image_list(library, weblog))
+        )
+
     def configure(self, config: pytest.Config):
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
-        self.weblog_infra.configure(config)
+        self.weblog_infra.configure(config, self.host_log_folder)
+        self._containers += self.weblog_infra.get_containers()
         self._set_containers_dependancies()
 
         super().configure(config)
@@ -307,7 +317,7 @@ class EndToEndScenario(DockerScenario):
         if self._library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
-            elif library in ("golang",):
+            elif library in ("golang", "envoy", "haproxy"):
                 self.library_interface_timeout = 10
             elif library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
@@ -343,7 +353,7 @@ class EndToEndScenario(DockerScenario):
 
     def _get_weblog_system_info(self):
         try:
-            code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
+            code, (stdout, stderr) = self.weblog_infra.library_container.exec_run("uname -a", demux=True)
             if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
@@ -353,7 +363,7 @@ class EndToEndScenario(DockerScenario):
         else:
             logger.stdout(f"Weblog system: {message.strip()}")
 
-        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
+        if self.weblog_infra.library_container.environment.get("DD_TRACE_DEBUG") == "true":
             logger.stdout("\t/!\\ Debug logs are activated in weblog")
 
         logger.stdout("")
@@ -365,7 +375,8 @@ class EndToEndScenario(DockerScenario):
 
     def _set_weblog_domain(self):
         if self.enable_ipv6:
-            self.weblog_container.set_weblog_domain_for_ipv6(self._network)
+            assert self._network is not None, "Docker network is not initialized"
+            self.weblog_infra.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
@@ -451,8 +462,8 @@ class EndToEndScenario(DockerScenario):
         interface.wait(timeout)
 
     @property
-    def weblog_container(self) -> WeblogContainer:
-        return self.weblog_infra.http_container
+    def weblog_container(self) -> WeblogContainer | ExternalProcessingContainer | StreamProcessingOffloadContainer:
+        return self.weblog_infra.library_container
 
     @property
     def dd_site(self):
@@ -460,7 +471,7 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def library(self):
-        return self.weblog_container.library
+        return self.weblog_infra.library
 
     @property
     def agent_version(self):
@@ -468,35 +479,35 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return self.weblog_container.weblog_variant
+        return self.weblog_infra.weblog_variant
 
     @property
     def tracer_sampling_rate(self):
-        return self.weblog_container.tracer_sampling_rate
+        return self.weblog_infra.tracer_sampling_rate
 
     @property
     def appsec_rules_file(self):
-        return self.weblog_container.appsec_rules_file
+        return self.weblog_infra.appsec_rules_file
 
     @property
     def uds_socket(self):
-        return self.weblog_container.uds_socket
+        return self.weblog_infra.uds_socket
 
     @property
     def uds_mode(self):
-        return self.weblog_container.uds_mode
+        return self.weblog_infra.uds_mode
 
     @property
     def telemetry_heartbeat_interval(self):
-        return self.weblog_container.telemetry_heartbeat_interval
+        return self.weblog_infra.telemetry_heartbeat_interval
 
     def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.agent]"] = self.agent_version
+        result["dd_tags[systest.suite.context.agent]"] = str(self.agent_version)
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.library.version]"] = str(self.library.version)
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.appsec_rules_file or ""
 
         return result
