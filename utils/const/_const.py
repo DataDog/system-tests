@@ -13,7 +13,7 @@ class ComponentGroups(ConstGroups):
     easy_win = ConstGroup()
     """All components for which easy win auto activation is enabled"""
     ssi = ConstGroup()
-    """SSI components"""
+    """Single Step Instrumentation (SSI) components. Host and Container auto instrumentation.  """
     lib_injection = ConstGroup()
     """K8s Single Step Instrumentation (formerly Lib injection) components"""
     parametric = ConstGroup()
