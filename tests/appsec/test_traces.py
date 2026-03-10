@@ -7,7 +7,6 @@ from utils import (
     context,
     interfaces,
     rfc,
-    missing_feature,
     scenarios,
     features,
 )
@@ -20,7 +19,6 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
@@ -63,7 +61,6 @@ class Test_RetainTraces:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
@@ -134,7 +131,6 @@ class Test_AppSecEventSpanTags:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
@@ -270,7 +266,6 @@ class Test_AppSecObfuscator:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
@@ -279,10 +274,6 @@ class Test_CollectRespondHeaders:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_default,
-        reason="The endpoint /headers is not implemented in the weblog",
-    )
     def test_header_collection(self):
         def assert_header_in_span_meta(span: DataDogLibrarySpan, header: str):
             if header not in span["meta"]:
@@ -298,7 +289,6 @@ class Test_CollectRespondHeaders:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
@@ -331,7 +321,6 @@ class Test_CollectDefaultRequestHeader:
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:

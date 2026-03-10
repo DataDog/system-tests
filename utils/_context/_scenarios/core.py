@@ -58,7 +58,6 @@ class _ScenarioGroups:
     simple_onboarding_appsec = ScenarioGroup()
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
-    go_proxies = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()

@@ -20,7 +20,6 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
@@ -1104,21 +1103,6 @@ class _Scenarios:
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[scenario_groups.integrations],
-    )
-
-    go_proxies_default = GoProxiesScenario(
-        name="GO_PROXIES_DEFAULT",
-        doc="Default tests for proxies using the security processor.",
-        rc_api_enabled=True,
-        scenario_groups=[],
-    )
-
-    go_proxies_appsec_blocking = GoProxiesScenario(
-        name="GO_PROXIES_APPSEC_BLOCKING",
-        doc="Default tests for proxies using the security processor with appsec blocking rule file",
-        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")

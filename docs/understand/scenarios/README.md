@@ -66,26 +66,6 @@ Please note that it requires the docker daemon to support IPv6. It should be ok 
 
 A user has seen his network function altered after running it on a linux laptop (to be investigated). If it happen, `docker network prune` may solve the issue.
 
-### Go proxies (Envoy and HAProxy) scenario
-
-```mermaid
-flowchart LR
-%% Nodes
-    A("Test runner")
-    B("Proxy (Envoy or HAProxy)")
-    C("Go security processor")
-    D("HTTP app")
-    E("Proxy")
-    F("Agent")
-    G("Backend")
-
-%% Edge connections between nodes
-    A --> B --> D
-    B --> C --> B
-    C --> E --> F --> G
-    %% D -- Mermaid js --> I --> J
-```
-
 ## Scenario lifecycle
 
 System tests spawn several services before starting. Here is the lifecycle:
