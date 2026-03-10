@@ -15,7 +15,7 @@ class ComponentGroups(ConstGroups):
     ssi = ConstGroup()
     """SSI components"""
     lib_injection = ConstGroup()
-    """Lib injection components"""
+    """K8s Single Step Instrumentation (formerly Lib injection) components"""
     parametric = ConstGroup()
     """Libraries supporting the parametric scenario"""
     otel = ConstGroup()
