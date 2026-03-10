@@ -4,8 +4,8 @@
 
 import time
 import re
-from enum import Enum
 from utils import weblog, interfaces, scenarios, features
+from utils.dd_constants import SpanKind, StatusCode
 from typing import Any
 from collections.abc import Iterator
 
@@ -23,23 +23,6 @@ def get_otlp_key(d: dict[str, Any] | None, snake_case_key: str, *, is_json: bool
         return default
     key = _snake_to_camel(snake_case_key) if is_json else snake_case_key
     return d.get(key, default)
-
-
-# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L153
-class SpanKind(Enum):
-    UNSPECIFIED = 0
-    INTERNAL = 1
-    SERVER = 2
-    CLIENT = 3
-    PRODUCER = 4
-    CONSUMER = 5
-
-
-# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L316
-class StatusCode(Enum):
-    STATUS_CODE_UNSET = 0
-    STATUS_CODE_OK = 1
-    STATUS_CODE_ERROR = 2
 
 
 def get_keyvalue_generator(attributes: list[dict]) -> Iterator[tuple[str, Any]]:
