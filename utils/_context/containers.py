@@ -1689,6 +1689,13 @@ class ExternalProcessingContainer(TestedContainer):
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
 
+    @property
+    def trace_agent_port(self):
+        return ProxyPorts.weblog
+
+    def warmup_request(self, timeout: int = 10):
+        weblog.get("/", timeout=timeout)
+
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
@@ -1765,3 +1772,10 @@ class StreamProcessingOffloadContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
+
+    @property
+    def trace_agent_port(self):
+        return ProxyPorts.weblog
+
+    def warmup_request(self, timeout: int = 10):
+        weblog.get("/", timeout=timeout)
