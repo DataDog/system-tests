@@ -11,7 +11,7 @@ Key principles:
 
 ## Quick start
 
-You need **bash**, **Docker** (20.10+), and **Python 3.12** ([installation guide](#python-312-installation)).
+You need **bash**, **Docker** (20.10+), and **Python 3.12**.
 
 ```bash
 # 1. Set up the Python environment
@@ -115,13 +115,9 @@ For testing against unmerged tracer changes, see [enable-test.md](docs/edit/enab
 
 ## Ownership
 
-* Inside `/tests/`
-    * Check `.github/CODEOWNERS` first.
-    * The `@features(...)` decorator on a test class/method names the precise owner.
-* Inside `/utils/build/docker/<lang>/`
-    * Owned by the corresponding `<lang>` guild.
-* Everything else
-    * Owned by `@DataDog/system-tests-core`.
+For file ownership see `.github/CODEOWNERS`.
+
+Test ownership is defined using the `@features` decorator (see [the feature doc](docs/edit/features.md) and [utils/_features.py](utils/_features.py)).
 
 ## Need help?
 
