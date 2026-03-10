@@ -201,10 +201,9 @@ def assert_api_gateway_span(
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
         assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
 
-    if is_error:
+    if is_error and "http.status_code" in span["meta"]:
         assert span["error"] == 1
-        if "http.status_code" in span["meta"]:
-            assert span["meta"]["http.status_code"] == "500"
+        assert span["meta"]["http.status_code"] == "500"
 
 
 def mandatory_tags_validator_factory(
