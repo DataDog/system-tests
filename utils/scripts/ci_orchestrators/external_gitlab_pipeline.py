@@ -1,6 +1,8 @@
 import yaml
 import os
 
+from utils.const import COMPONENT_GROUPS
+
 # List of allowed variables
 ALLOWED_VARIABLES = [
     "SYSTEM_TESTS_SCENARIOS",
@@ -13,7 +15,7 @@ ALLOWED_VARIABLES = [
     "DD_INSTALL_SCRIPT_VERSION",
 ]
 
-LANG_STAGES = ["java", "python", "nodejs", "dotnet", "ruby", "php"]
+LANG_STAGES = sorted(COMPONENT_GROUPS.ssi)
 
 
 def main(language: str | None = None) -> None:
@@ -31,7 +33,7 @@ def main(language: str | None = None) -> None:
     # Ensure 'variables' section exists and update with new values
     data.setdefault("variables", {}).update(new_variables)
 
-    if language in LANG_STAGES:
+    if language and language in LANG_STAGES:
         data = filter_yaml(data, language)
 
     handle_parallelism(data)

@@ -26,6 +26,17 @@
         "withenablementmode": "appsec_enablement_mode"
     },
     "prefix_block_list": [
+        "DD_AGENTLESS",
+        "DD_BLOCK_",
+        "DD_CPU_",
+        "DD_DELTA_PROFILES",
+        "DD_FLUSH_ON_EXIT",
+        "DD_MAX_GOROUTINES_WAIT",
+        "DD_MUTEX_PROFILE_FRACTION",
+        "DD_NUM_CUSTOM_PROFILER_LABEL_KEYS",
+        "DD_OSINFO_LIBDL_PATH",
+        "DD_PROFILE_PERIOD",
+        "DD_UPLOAD_TIMEOUT",
         "agentless",
         "block_",
         "cpu_",
@@ -36,8 +47,6 @@
         "num_custom_profiler_label_keys",
         "osinfo_libdl_path",
         "profile_period",
-        "profile_period",
-        "upload_timeout",
         "upload_timeout"
     ],
     "redaction_list": [],
