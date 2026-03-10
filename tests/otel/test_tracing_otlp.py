@@ -86,6 +86,7 @@ class Test_Otel_Tracing_OTLP:
         self.end_time_ns = time.time_ns()
 
     def test_single_server_trace(self):
+        """Validates the required elements of the OTLP payload for a single trace"""
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
 
         # Assert that there is only one OTLP request containing the desired server span
@@ -155,3 +156,13 @@ class Test_Otel_Tracing_OTLP:
         assert method == "GET", f"HTTP method is not GET, got {method}"
         assert status_code is not None
         assert int(status_code) == 200, f"HTTP status code is not 200, got {int(status_code)}"
+
+    def setup_unsampled_trace(self):
+        self.req = weblog.get("/", headers={"traceparent": "00-11111111111111110000000000000001-0000000000000001-00"})
+
+    def test_unsampled_trace(self):
+        """Validates that the spans from a non-sampled trace are not exported."""
+        data = list(interfaces.open_telemetry.get_otel_spans(self.req))
+
+        # Assert that the span from this test case was not exported
+        assert len(data) == 0, f"Expected no weblog spans in the OTLP trace payload, got {data}"
