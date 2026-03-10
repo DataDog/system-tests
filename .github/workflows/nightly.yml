@@ -193,7 +193,7 @@ jobs:
         id: octo-sts
         with:
           scope: DataDog/system-tests
-          policy: self.test-activation
+          policy: self.test-activation-github
 
       - name: Check for changes
         id: check_changes
