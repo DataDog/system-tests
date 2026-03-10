@@ -746,6 +746,7 @@ manifest:
     - weblog_declaration:
         "*": v2.30.0-dev
         graphql23: irrelevant
+        rails42: missing_feature  # Old Rack does not support to_ary for content-length computation
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.22.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.22.0-dev
