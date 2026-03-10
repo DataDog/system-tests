@@ -1,213 +1,128 @@
 ## What is system-tests?
 
-🛟 Slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X) 🛟
+Having trouble? Reach out on slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
 
-A workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance) against our suite of dd-trace libraries.
+System-tests is a black-box testing workbench for Datadog tracer libraries. It runs the **same tests** against every tracer implementation -- Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust -- so shared features stay consistent across languages.
 
-System tests is a test workbench that allows any kind of functional testing over libraries (AKA tracers) and agents. It's built with several key principles:
+Key principles:
 
-* *Black box testing*: only components' interfaces are checked. As those interfaces are very stable, our tests can make assertions without any assumptions regarding underlying implementations. "Check that the car moves, regardless of the engine"
-* Tests multiple tracer library implementations in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust
-* Uses pytest to implement tests that are valid across ALL tracer library implementations
+* **Black-box testing** -- only component interfaces are checked, no assumptions about internals. "Check that the car moves, regardless of the engine."
+* **Cross-language** -- one test validates all tracer libraries.
 
-## Repository Structure
+## Quick start
 
-```
-system-tests/
-|-- binaries/           # Folder to store binary tracer files for testing specific versions of libraries
-|-- docs/               # Documentation files
-|-- lib-injection/      # Weblogs for testing library injection
-|-- manifests/          # YAML config files for tests activation (ie. a test will be activated after specific version of the tracer).
-|-- tests/              # Test implementations
-|-- utils/              # Utility code and shared libraries
-|   |-- _context/       # Test context and scenario definitions
-|   |   |-- _scenarios/ # Scenario implementations
-|   |   |   |-- appsec_low_waf_timeout.py # AppSec WAF timeout scenario
-|   |   |   |-- auto_injection.py # Auto-injection scenario
-|   |   |   |-- default.py       # Default scenario implementation
-|   |   |   |-- docker_ssi.py    # Docker SSI scenario
-|   |   |   |-- endtoend.py      # End to end testing framework
-|   |   |   |-- parametric.py    # Parametric scenario
-|   |   |   |-- k8s_lib_injection.py # K8s lib injection scenario
-|   |-- assets/         # Images and other static assets
-|   |-- build/          # Build utilities and scripts
-|   |   |-- docker/     # Docker templates for weblogs used on end to end testing.
-|   |   |-- ssi/        # Docker SSI build utilities (includes weblogs)
-|   |   |-- virtual_machine/ # AWS SSI scenarios and weblog provisions
-|   |   |   |-- provisions/ # AWS SSI scenarios provision definitions
-|   |   |   |-- weblogs/    # AWS SSI weblog provision
-|   |-- docker_ssi/     # Docker SSI utilities
-|   |-- grpc/           # gRPC related utilities
-|   |-- interfaces/     # Interface definitions for components
-|   |-- k8s_lib_injection/ # Kubernetes lib injection utilities
-|   |-- onboarding/     # AWS SSI/Onboarding utilities
-|   |-- parametric/     # Parametric testing utilities
-|   |-- proxy/          # Proxy server implementation
-|   |-- scripts/        # Helper and utility scripts
-|   |   |-- ci_orchestrators/ # CI pipeline scripts
-|   |   |-- parametric/ # Scripts for parametric tests
-|   |   |-- slack/      # Slack notification utilities
-|   |   |-- ssi_wizards/ # SSI wizard scripts
-|   |-- telemetry/      # Telemetry utilities
-|   |-- virtual_machine/ # VM configuration and management
-|
-|-- build.sh            # Script to build test environment
-|-- run.sh              # Script to run tests and scenarios
-```
-
-## Technologies Powering System-Tests
-
-System-tests leverages a variety of tools and frameworks to create a comprehensive testing environment:
-
-- **Python**: Our primary programming language for test implementation and orchestration
-- **pytest**: The core testing framework that provides structure, fixtures, and assertions
-- **Docker & Docker API**: Used to create isolated environments for reproducible tests across different language tracers
-- **Kubernetes API**: For testing library injection in containerized environments
-- **Kind/Minikube**: Local Kubernetes clusters for K8s library injection tests
-- **Pulumi**: Infrastructure as Code tool used for AWS-based SSI tests
-- **AWS API**: For tests that require cloud infrastructure (primarily used in SSI tests)
-
-These technologies work together to enable testing across different deployment patterns, languages, and infrastructure configurations.
-
-## Minimal Requirements (End-to-End Testing)
-
-To run system-tests, you'll need the following core components:
-
-- **`bash`** - For running scripts and commands
-- **`docker`** - For containerization (version 20.10+ recommended)
-- **`python3.12`** - For test implementation and orchestration
-
-### Python 3.12 Installation
-
-We strongly recommend installing Python 3.12 via [pyenv](https://github.com/pyenv/pyenv#getting-pyenv), a tool that manages multiple Python versions while keeping system-tests dependencies isolated in their virtual environment.
-
-If you prefer not to use pyenv, here are platform-specific installation instructions:
-
-#### Ubuntu/Debian
+You need **bash**, **Docker** (20.10+), and **Python 3.12** ([installation guide](#python-312-installation)).
 
 ```bash
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.12 python3.12-distutils python3.12-venv python3.12-dev
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python3.12 get-pip.py
+# 1. Set up the Python environment
 ./build.sh -i runner
+source venv/bin/activate
+
+# 2. Build images for the language you want to test
+./build.sh python          # or: java, nodejs, ruby, php, dotnet, cpp, golang
+
+# 3. Run the tests
+./run.sh                   # run all default tests
+./run.sh SCENARIO_NAME     # run a specific scenario
+./run.sh tests/test_smoke.py::Test_Class::test_method   # run a single test
 ```
 
-#### macOS
+Having trouble? Check the [troubleshooting page](docs/execute/troubleshooting.md).
 
-For Homebrew users:
+To understand the test output, see [test outcomes](docs/execute/test-outcomes.md) and the [glossary](docs/glossary.md).
 
-```bash
-brew install python@3.12
-```
+## Documentation
 
-#### Windows
+All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here is a guided reading order:
 
-Support coming soon.
+### Understand system-tests
 
-### Additional Requirements
+| Topic | Description |
+|-------|-------------|
+| [Architecture overview](docs/understand/architecture.md) | Components, containers, data flow |
+| [Scenarios](docs/understand/scenarios/README.md) | End-to-end, parametric, SSI, K8s -- what each one tests |
+| [Weblogs](docs/understand/weblogs/README.md) | The test applications instrumented by tracers |
+| [Glossary](docs/glossary.md) | Definitions of pass, fail, xpass, xfail, etc. |
+
+### Run tests
+
+| Topic | Description |
+|-------|-------------|
+| [Build](docs/execute/build.md) | Build options, weblog variants, image names |
+| [Run](docs/execute/run.md) | Run options, selecting tests, scenarios, timeouts |
+| [Logs](docs/execute/logs.md) | Understanding the logs folder structure |
+| [Test outcomes](docs/execute/test-outcomes.md) | Reading test results |
+| [Replay mode](docs/execute/replay.md) | Re-run tests without starting the containers |
+| [Custom tracer versions](docs/execute/binaries.md) | Testing with local tracer builds |
+| [Troubleshooting](docs/execute/troubleshooting.md) | Common issues and how to fix them |
+
+### Write and edit tests
+
+| Topic | Description |
+|-------|-------------|
+| [Add a new test](docs/edit/add-new-test.md) | Step-by-step guide to adding tests |
+| [Add a new scenario](docs/edit/scenarios.md) | Creating new test scenarios |
+| [Enable / disable tests](docs/edit/enable-test.md) | Activating tests for a library version |
+| [Manifests](docs/edit/manifest.md) | How test activation is declared per library |
+| [Skip tests](docs/edit/skip-tests.md) | Decorators for conditional skipping |
+| [Features](docs/edit/features.md) | Linking tests to the feature parity dashboard |
+| [Formatting](docs/edit/format.md) | Linter and code style |
+| [Troubleshooting](docs/execute/troubleshooting.md) | Debugging tips for test development |
+
+### CI integration
+
+| Topic | Description |
+|-------|-------------|
+| [CI overview](docs/CI/README.md) | Adding system-tests to your CI pipeline |
+| [GitHub Actions](docs/CI/github-actions.md) | GitHub Actions workflow details |
+| [System-tests CI](docs/CI/system-tests-ci.md) | How the system-tests own CI works |
+
+### Internals
+
+| Topic | Description |
+|-------|-------------|
+| [Internals overview](docs/internals/README.md) | Deep-dive index for maintainers |
+| [End-to-end lifecycle](docs/internals/end-to-end-life-cycle.md) | How e2e scenarios execute step by step |
+| [Parametric lifecycle](docs/understand/scenarios/parametric.md#parametric-lifecycle) | How parametric scenarios execute |
+| [Interface validation](docs/edit/library-interface-validation-methods.md) | API reference for validating intercepted traces |
+
+### AI tooling
+
+| Topic | Description |
+|-------|-------------|
+| [AI integration guide](docs/ai/ai-tools-integration-guide.md) | Built-in rules for AI-assisted development |
+
+## Additional requirements
 
 Specific scenarios may require additional tools:
 
-- **Kubernetes Tests**: require Kind/Minikube for local K8s clusters
-- **AWS SSI Tests**: require AWS credentials and Pulumi setup
+- **Kubernetes tests** -- require Kind/Minikube for local K8s clusters. See [K8s docs](docs/understand/scenarios/k8s_library_injection_overview.md).
+- **AWS SSI tests** -- require AWS credentials and Pulumi setup. See [AWS SSI docs](docs/understand/scenarios/onboarding.md).
 
-## Getting started
+## Contributing
 
-### Run a test/scenario
+Before submitting a PR, always run the [linter](docs/edit/format.md) (`./format.sh`). Here are the most common types of contributions, ordered by frequency:
 
-Running system-tests involves a few key steps:
+| What you want to do | Guide |
+|----------------------|-------|
+| Activate or deactivate a test for a library | [Manifests](docs/edit/manifest.md), [enable a test](docs/edit/enable-test.md), [skip tests](docs/edit/skip-tests.md) |
+| Add or edit a test | [Add a new test](docs/edit/add-new-test.md), [editing overview](docs/edit/README.md) |
+| Add or edit a scenario | [Scenarios guide](docs/edit/scenarios.md), [scenarios overview](docs/understand/scenarios/README.md) |
+| Add or edit a weblog | [Weblog spec](docs/understand/weblogs/end-to-end_weblog.md), [build options](docs/execute/build.md) |
+| Other changes | [Full editing docs](docs/edit/README.md), [internals](docs/internals/README.md) |
 
-1. **Set up the Python environment**:
+For testing against unmerged tracer changes, see [enable-test.md](docs/edit/enable-test.md) and [binaries](docs/execute/binaries.md).
 
-   ```bash
-   # Install Python requirements and create a virtual environment
-   ./build.sh -i runner
+## Ownership
 
-   # Activate the virtual environment
-   source venv/bin/activate
-   ```
-> **macOs note** If the `build.sh` script fails due to a missing `timeout` command, it likely means you did not run the Datadog laptop setup [script](https://datadoghq.atlassian.net/wiki/spaces/EE1/pages/3334374707/Laptop+Setup+Script)
->
-> Quick fix:
-> ```bash
-> brew install coreutils
-> ```
-> Update your command-line settings with:
-> ```bash
-> # Prefer GNU binaries to Macintosh binaries.
-> export PATH="{{ homebrew_dir }}/opt/coreutils/libexec/gnubin:$PATH"
-> ```
+* Inside `/tests/`
+    * Check `.github/CODEOWNERS` first.
+    * The `@features(...)` decorator on a test class/method names the precise owner.
+* Inside `/utils/build/docker/<lang>/`
+    * Owned by the corresponding `<lang>` guild.
+* Everything else
+    * Owned by `@DataDog/system-tests-core`.
 
-2. **Build necessary images** for the language you want to test:
+## Need help?
 
-   ```bash
-   # Replace <library_name> with: java, nodejs, python, ruby, php, dotnet, cpp, or golang
-   ./build.sh <library_name>
-
-   # Example for testing Python tracer
-   ./build.sh python
-   ```
-3. **Run the tests** using one of these approaches:
-
-   ```bash
-   # Run all default tests
-   ./run.sh
-
-   # Run a specific scenario
-   ./run.sh <SCENARIO_NAME>
-
-   # Run a specific test file
-   ./run.sh tests/test_smoke.py
-
-   # Run a specific test class or method
-   ./run.sh tests/parametric/test_waf.py::Test_WAFAddresses::test_post_json_value
-
-   # Run with timeout applied to each test
-   ./run.sh -v --timeout=<SECONDS> <SCENARIO NAME>
-   ```
-
-For more advanced options:
-
-- See the [run documentation](docs/execute/run.md) for test selection details
-- Check the [build documentation](docs/execute/build.md) for customizing images and weblog variants
-- Learn how disabled tests are managed in [skip-tests.md](docs/edit/skip-tests.md) and [enable-test.md](docs/edit/enable-test.md)
-- Force execution of disabled tests using options in the [force-execute documentation](docs/execute/force-execute.md)
-
-![Output on success](./utils/assets/output.png?raw=true)
-
-### Edit a test
-
-Refer to the [edit docs](docs/edit/README.md).
-
-### Understand the tests
-
-**[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
-
-System-tests supports various scenarios for running tests; read more about the different kinds of tests that this repo covers in [scenarios/README.md](docs/scenarios/README.md).
-
-Understand the test architecture at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
-
-```mermaid
-flowchart TD
-    BUILDNODE[./build.sh nodejs] --> BUILT
-    BUILDDOTNET[./build.sh dotnet] --> BUILT
-    BUILDJAVA[./build.sh java] --> BUILT
-    BUILDGO[./build.sh golang] --> BUILT
-    BUILDPHP[./build.sh php] --> BUILT
-    BUILDPY[./build.sh python] --> BUILT
-    BUILDRUBY[./build.sh ruby] --> BUILT
-    BUILT[Build complete] --> RUNDEFAULT
-    RUNDEFAULT[./run.sh] -->|wait| FINISH
-    FINISH[Tests complete] --> LOGS
-    FINISH[Tests complete] --> OUTPUT
-    OUTPUT[Test output in bash]
-    LOGS[Logs directory per scenario]
-```
-
-## AI Integration Guidelines: Supported Tools and Implementation Guide
-
-The `system-tests` repository includes built-in rules designed to enhance developer productivity when implementing new tests and troubleshooting issues. These default rules streamline workflows, minimize common pitfalls, and leverage best practices, helping you achieve faster, more reliable testing outcomes.
-
-Explore the full capabilities and learn how to maximize the potential of these tools by visiting [AI Tools Integration Guide](docs/ai/ai-tools-integration-guide.md)
+Drop a message in [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X) -- we're happy to help!
