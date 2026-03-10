@@ -145,6 +145,14 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+                # Homebrew/Python upgrades can invalidate an existing venv.
+                # If the interpreter is broken, recreate the venv automatically.
+                if [ -d "venv/" ] && ! venv/bin/python -V >/dev/null 2>&1
+                then
+                    echo "Existing venv is broken. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
