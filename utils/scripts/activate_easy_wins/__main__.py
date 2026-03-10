@@ -83,8 +83,7 @@ def main() -> None:
     total_modified_rules = sum(modified_rules_by_level.values())
     has_updates = total_modified_rules > 0 or created_rules_count > 0
 
-    if not args.dry_run:
-        manifest_editor.write()
+    manifest_editor.write(dry_run=args.dry_run)
 
     # Exit with status 1 if no updates were made
     if not has_updates:

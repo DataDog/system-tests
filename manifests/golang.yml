@@ -974,6 +974,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
@@ -1191,6 +1192,8 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.48.0
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.5.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script

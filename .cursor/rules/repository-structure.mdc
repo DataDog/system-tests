@@ -19,12 +19,10 @@ system-tests/
 |   |-- scenarios/      # Documentation about test scenarios
 |   |   |-- README.md           # Overview of the main types of scenarios
 |   |   |-- docker_ssi.md       # Docker SSI scenario documentation
-|   |   |-- IPv6.md             # End-to-End IPv6 scenario documentation
 |   |   |-- k8s_lib_injection.md # Kubernetes library injection tests details
-|   |   |-- lifecycle.md        # Scenario lifecycle documentation
 |   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation. You can find here the details about the onboarding tests and how to operate with them. i.e., how to run the tests, how to create a new virtual machine, a new weblog, create provisions...
 |   |   |-- parametric.md       # Parametric scenarios documentation
-|   |   |-- go_proxies_envoy_haproxy.md # Go proxies (Envoy and HAProxy) documentation
+|   |   |-- README.md # Overview of scenarios (includes IPv6, Go proxies, lifecycle)
 |   |-- weblog/         # Weblog service documentation
 |
 |-- lib-injection/      # Weblog applications used for all SSI tests: AWS SSI, Docker SSI, K8s lib injection
