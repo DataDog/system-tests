@@ -445,6 +445,23 @@ public class MyResource {
     }
 
     @GET
+    @Path("/inferred-proxy/span-creation")
+    public Response inferredProxySpanCreation(@QueryParam("status_code") String statusCodeParam, @Context HttpHeaders headers) {
+        int statusCode = 200;
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400;
+            }
+        }
+        System.out.println("Received an API Gateway request:");
+        headers.getRequestHeaders().forEach((name, values) ->
+            values.forEach(value -> System.out.println(name + ": " + value)));
+        return Response.status(statusCode).entity("ok").build();
+    }
+
+    @GET
     @Path("/make_distant_call")
     public DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
         URL urlObject = new URL(url);

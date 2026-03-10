@@ -3439,8 +3439,8 @@ manifest:
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
     - weblog_declaration:
-        "*": irrelevant
-        spring-boot: v1.61.0-SNAPSHOT
+        "*": v1.61.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
