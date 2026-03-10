@@ -21,7 +21,7 @@ class ComponentGroups(ConstGroups):
     otel = ConstGroup()
     """OpenTelemetry libraries, supporting the OTEL_INTEGRATIONS scenario"""
     lambda_lib = ConstGroup()
-    """Lambda libraries"""
+    """Lambda libraries, supporting all scenarios created from `LambdaScenario` class"""
 
     def _items(self) -> dict[str, list[ConstGroup]]:
         return {
