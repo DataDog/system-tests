@@ -1,6 +1,6 @@
 # Lambda Testing scenario
 
-The Lambda scenario is a variation on the [classical architecture](../architecture/overview.md#what-are-the-components-of-a-running-test) of the system-tests tailored to evaluate the `AWS Lambda` variants of the tracers when used to serve HTTP requests.
+The Lambda scenario is a variation on the [classical architecture](../architecture.md#what-are-the-components-of-a-running-test) of the system-tests tailored to evaluate the `AWS Lambda` variants of the tracers when used to serve HTTP requests.
 
 To achieve this we simulate the following AWS deployment architecture inside the system-tests using AWS provided tools :
 
@@ -28,7 +28,7 @@ To replace the **AWS Managed Load Balancer**, we run a dedicated container in fr
 The **Lambda Function** runs inside the **Weblog Container** thanks to the *AWS Lambda Runtime Interface Emumlator*.
 
 
-There is no **Agent Container**, the **Datadog Extension** (equivalent to the  **Datadog Agent** in the context of lambda) needs to run inside the **Weblog Container**, the [**Application Proxy Container**](../architecture/overview.md#application-proxy-container) therefore needs to send traces back to the **Weblog Container**.
+There is no **Agent Container**, the **Datadog Extension** (equivalent to the  **Datadog Agent** in the context of lambda) needs to run inside the **Weblog Container**, the [**Application Proxy Container**](../architecture.md#application-proxy-container) therefore needs to send traces back to the **Weblog Container**.
 
 
 ```mermaid
@@ -51,7 +51,7 @@ flowchart TD
 
 ## Specific considerations for the weblogs
 
-On top of responding to the regular [`/healthcheck`](../weblog/README.md#get-healthcheck) endpoint.
+On top of responding to the regular [`/healthcheck`](../weblogs/README.md#get-healthcheck) endpoint.
 
 Lambda Weblogs should respond the same JSON dict response to the non HTTP event:
 ```json

@@ -110,7 +110,7 @@ Executing: ./run.sh DOCKER_SSI --ssi-weblog jetty-app --ssi-library java --ssi-b
 To develop a new test case in the Docker SSI Library injection tests, you need to know about the project folder structure.
 The following picture shows the main directories for the Docker SSI tests:
 
-![Folder structure](../lib-injection/docker_ssi_lib_injections_folders.png "Folder structure")
+![Folder structure](../images/docker_ssi_lib_injections_folders.png "Folder structure")
 
 * **tests/docker_ssi:** All tests cases are stored on this folder.
 * **utils/_context/scenarios/**: In this folder you can find the Docker SSI Lib injection scenario definition.
