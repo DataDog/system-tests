@@ -12,7 +12,6 @@
 #
 # * Agent:         Docker hub datadog/agent-dev:master-py3
 # * cpp_httpd:     Github action artifact
-# * cpp_nginx:     From circle ci
 # * Golang:        github.com/DataDog/dd-trace-go/v2@main
 # * .NET:          ghcr.io/datadog/dd-trace-dotnet
 # * Java:          S3
@@ -296,7 +295,6 @@ elif [ "$TARGET" = "haproxy" ]; then
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
-    # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
