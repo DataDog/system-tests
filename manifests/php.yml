@@ -800,8 +800,7 @@ manifest:
   ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext
   : '>=1.16.0'
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_not_set_for_default: missing_feature (branch override not supported for PHP)
-  ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_overwritten_by_local_sampling
-  : missing_feature (branch override not supported for PHP)
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_propagated_from_upstream: missing_feature (branch override not supported for PHP)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
