@@ -102,10 +102,6 @@ class GoProxiesEndToEndInfra(EndToEndInfra):
         if config.option.force_dd_trace_debug:
             self._library_container.environment["DD_TRACE_DEBUG"] = "true"
 
-        if config.option.force_dd_iast_debug:
-            self._library_container.environment["_DD_IAST_DEBUG"] = "true"
-            self._library_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
-
     def stop(self) -> None:
         self._dummy_server.stop()
         self._http_container.stop()

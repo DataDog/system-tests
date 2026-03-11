@@ -204,7 +204,6 @@ class Test_StandardTagsRoute:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsNetworkClientIp:
     """Tests to verify that libraries annotate spans with correct network.client.ip tags.
