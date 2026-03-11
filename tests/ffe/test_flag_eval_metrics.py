@@ -13,7 +13,7 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 
 
-def make_ufc_fixture(flag_key, variant_key="on", variation_type="STRING", enabled=True):
+def make_ufc_fixture(flag_key: str, variant_key: str = "on", variation_type: str = "STRING", *, enabled: bool = True):
     """Create a UFC fixture with the given flag configuration."""
     values: dict[str, dict[str, str | bool]] = {
         "STRING": {"on": "on-value", "off": "off-value"},
@@ -47,7 +47,7 @@ def make_ufc_fixture(flag_key, variant_key="on", variation_type="STRING", enable
     }
 
 
-def find_eval_metrics(flag_key=None):
+def find_eval_metrics(flag_key: str | None = None):
     """Find feature_flag.evaluations metrics in agent data.
 
     Returns a list of metric points matching the metric name, optionally filtered by flag key tag.
@@ -67,7 +67,7 @@ def find_eval_metrics(flag_key=None):
     return results
 
 
-def get_tag_value(tags, key):
+def get_tag_value(tags: list[str], key: str):
     """Extract a tag value from a list of 'key:value' strings."""
     prefix = f"{key}:"
     for tag in tags:
@@ -99,8 +99,6 @@ class Test_FFE_Eval_Metric_Basic:
             },
         )
 
-
-
     def test_ffe_eval_metric_basic(self):
         """Test that flag evaluation produces a metric with correct tags."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
@@ -121,8 +119,8 @@ class Test_FFE_Eval_Metric_Basic:
         assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
             f"Expected tag feature_flag.result.variant:on, got tags: {tags}"
         )
-        assert get_tag_value(tags, "feature_flag.result.reason") == "targeting_match", (
-            f"Expected tag feature_flag.result.reason:targeting_match, got tags: {tags}"
+        assert get_tag_value(tags, "feature_flag.result.reason") == "static", (
+            f"Expected tag feature_flag.result.reason:static, got tags: {tags}"
         )
         assert get_tag_value(tags, "feature_flag.result.allocation_key") == "default-allocation", (
             f"Expected tag feature_flag.result.allocation_key:default-allocation, got tags: {tags}"
@@ -156,8 +154,6 @@ class Test_FFE_Eval_Metric_Count:
             )
             self.responses.append(r)
 
-
-
     def test_ffe_eval_metric_count(self):
         """Test that N evaluations produce metric count = N."""
         for i, r in enumerate(self.responses):
@@ -165,8 +161,7 @@ class Test_FFE_Eval_Metric_Count:
 
         metrics = find_eval_metrics(self.flag_key)
         assert len(metrics) > 0, (
-            f"Expected at least one feature_flag.evaluations metric for flag '{self.flag_key}', "
-            f"but found none."
+            f"Expected at least one feature_flag.evaluations metric for flag '{self.flag_key}', but found none."
         )
 
         # Sum all data points for this flag (agent may split across multiple series entries)
@@ -180,9 +175,7 @@ class Test_FFE_Eval_Metric_Count:
                 elif isinstance(p, list) and len(p) >= 2:
                     total_count += p[1]
 
-        assert total_count >= self.eval_count, (
-            f"Expected metric count >= {self.eval_count}, got {total_count}"
-        )
+        assert total_count >= self.eval_count, f"Expected metric count >= {self.eval_count}, got {total_count}"
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -262,8 +255,6 @@ class Test_FFE_Eval_Metric_Different_Flags:
             },
         )
 
-
-
     def test_ffe_eval_metric_different_flags(self):
         """Test that each flag key gets its own metric series."""
         assert self.r_a.status_code == 200, f"Flag A evaluation failed: {self.r_a.text}"
@@ -272,12 +263,8 @@ class Test_FFE_Eval_Metric_Different_Flags:
         metrics_a = find_eval_metrics(self.flag_a)
         metrics_b = find_eval_metrics(self.flag_b)
 
-        assert len(metrics_a) > 0, (
-            f"Expected metric for flag '{self.flag_a}', found none. All: {find_eval_metrics()}"
-        )
-        assert len(metrics_b) > 0, (
-            f"Expected metric for flag '{self.flag_b}', found none. All: {find_eval_metrics()}"
-        )
+        assert len(metrics_a) > 0, f"Expected metric for flag '{self.flag_a}', found none. All: {find_eval_metrics()}"
+        assert len(metrics_b) > 0, f"Expected metric for flag '{self.flag_b}', found none. All: {find_eval_metrics()}"
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -290,9 +277,7 @@ class Test_FFE_Eval_Metric_Error:
 
         # Set up config with a different flag than what we'll request
         config_id = "ffe-eval-metric-error"
-        rc.tracer_rc_state.set_config(
-            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
-        ).apply()
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
 
         self.flag_key = "non-existent-eval-metric-flag"
         self.r = weblog.post(
@@ -305,8 +290,6 @@ class Test_FFE_Eval_Metric_Error:
                 "attributes": {},
             },
         )
-
-
 
     def test_ffe_eval_metric_error(self):
         """Test that error evaluations produce metric with error.type tag."""
@@ -362,16 +345,12 @@ class Test_FFE_Eval_Metric_Type_Mismatch:
             },
         )
 
-
-
     def test_ffe_eval_metric_type_mismatch(self):
         """Test that type conversion errors produce metric with error.type:type_mismatch."""
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
-        assert len(metrics) > 0, (
-            f"Expected metric for flag '{self.flag_key}', found none. All: {find_eval_metrics()}"
-        )
+        assert len(metrics) > 0, f"Expected metric for flag '{self.flag_key}', found none. All: {find_eval_metrics()}"
 
         point = metrics[0]
         tags = point.get("tags", [])
