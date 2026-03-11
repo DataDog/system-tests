@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard: irrelevant (no ai guard)
   tests/appsec/api_security/test_api_security_rc.py: v2.4.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_apisecurity_telemetry.py::Test_API_Security_Telemetry_Metric: missing_feature (weblog does not support set 404 status code and /tag_value endpoint)
@@ -16,6 +17,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/iast: irrelevant (proxies does not support iast)
   tests/appsec/test_alpha.py: v2.4.0
   tests/appsec/test_asm_standalone.py: v2.4.0
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
@@ -23,6 +25,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: irrelevant (Proxies doesn't support login events (go sdk))
+  tests/appsec/test_automated_login_events.py: irrelevant (proxies does not support login events)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_blocking_addresses.py: v2.4.0
@@ -47,6 +50,7 @@ manifest:
   tests/appsec/test_client_ip.py: v2.4.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.4.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v2.4.0
+  tests/appsec/test_event_tracking.py: irrelevant (proxies does not support login events)
   tests/appsec/test_extended_data_collection.py: v2.4.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
@@ -57,9 +61,14 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking: missing_feature (proxies removes the 'connection' header, thus making fails the header fingerprinting rule)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: irrelevant (Proxies doesn't support session fingerprinting)
   tests/appsec/test_ip_blocking_full_denylist.py: v2.4.0
+  tests/appsec/test_logs.py::Test_Standardization: missing_feature
+  tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_remote_config_rule_changes.py: v2.4.0
   tests/appsec/test_reports.py: v2.4.0
   tests/appsec/test_request_blocking.py: v2.4.0
+  tests/appsec/test_shell_execution.py: irrelevant
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking::test_content_type_event_blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: irrelevant (Proxies run with appsec standalone by default)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: irrelevant (Proxies run with appsec standalone by default)
@@ -68,13 +77,27 @@ manifest:
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: missing_feature (no endpoint to test user blocking - auto instrum irrelevant)
   tests/appsec/test_versions.py::Test_Events: v2.4.0
+  tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded::test_body_value: missing_feature (no urlencoded body parsing implemented in proxies)
+  tests/appsec/waf/test_addresses.py::Test_BodyXml::test_xml_attr_value: missing_feature (no xml body parsing implemented in proxies)
+  tests/appsec/waf/test_addresses.py::Test_BodyXml::test_xml_content: missing_feature (no xml body parsing implemented in proxies)
+  tests/appsec/waf/test_addresses.py::Test_FullGrpc::test_main: irrelevant (proxies does not support grpc)
+  tests/appsec/waf/test_addresses.py::Test_PathParams::test_security_scanner: missing_feature
+  tests/appsec/waf/test_addresses.py::Test_ResponseStatus::test_basic: missing_feature
+  tests/appsec/waf/test_addresses.py::Test_gRPC::test_basic: missing_feature (proxies does not support grpc)
   tests/appsec/waf/test_blocking.py: v2.4.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py: v2.5.0
+  tests/appsec/waf/test_miscs.py::Test_404::test_404: missing_feature (weblog does not support 404 status code)
+  tests/integrations/test_dbm.py: irrelevant
   tests/remote_config/test_remote_configuration.py: v2.4.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
+  tests/serverless: irrelevant
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.4.0
+  tests/test_identify.py: irrelevant (proxies does not support custom sdk)
+  tests/test_protobuf.py: irrelevant
   tests/test_resource_renaming.py: v2.4.0
   tests/test_scrubbing.py: v2.4.0
   tests/test_semantic_conventions.py: v2.4.0

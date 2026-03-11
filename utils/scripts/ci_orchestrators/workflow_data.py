@@ -5,12 +5,12 @@ import os
 from pathlib import Path
 from utils._context.weblog_infrastructure import PROXY_WEBLOGS
 
-
+# TODO: remove and update the envoy/haproxy manifests to fully supports all scenarios
 PROXY_SUPPORTED_SCENARIOS = {
-    "DEFAULT",
+    # "DEFAULT",
+    # "TRACING_CONFIG_NONDEFAULT",
     "APPSEC_BLOCKING",
     "APPSEC_BLOCKING_FULL_DENYLIST",
-    "TRACING_CONFIG_NONDEFAULT",
 }
 
 

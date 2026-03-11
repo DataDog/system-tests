@@ -90,9 +90,7 @@ class DockerScenario(Scenario):
     def configure(self, config: pytest.Config):  # noqa: ARG002
         if not self.replay:
             docker_info = get_docker_client().info()
-            cgroup_version = docker_info.get("CgroupVersion")
-            if cgroup_version is not None:
-                self.components["docker.Cgroup"] = cgroup_version
+            self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
 
