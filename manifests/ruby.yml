@@ -32,6 +32,8 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+        uds-rails: v2.29.0  # Modified by easy win activation script
+        rails52: v2.29.0  # Modified by easy win activation script
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": v2.25.0-dev
@@ -234,7 +236,21 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v2.22.1-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_all:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -251,7 +267,21 @@ manifest:
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -260,7 +290,21 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -277,9 +321,527 @@ manifest:
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_cmdi.py: missing_feature
-  tests/appsec/rasp/test_lfi.py: missing_feature
-  tests/appsec/rasp/test_shi.py: missing_feature
+  tests/appsec/rasp/test_cmdi.py:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Capability:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        rails80: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        uds-sinatra: missing_feature
+        rails72: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        rails42: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
     - weblog_declaration:
         "*": v2.12.3
@@ -326,7 +888,12 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version:  # Modified by easy win activation script
+    - declaration: missing_feature (relies on Telemetry V2)
+      component_version: <2.29.0
+      weblog: [sinatra41, sinatra32, uds-rails, rails42, sinatra22, rack, sinatra14, rails52, rails72, rails61, rails80, uds-sinatra]
+    - declaration: missing_feature (relies on Telemetry V2)
+      excluded_weblog: [sinatra41, sinatra32, uds-rails, rails42, sinatra22, rack, sinatra14, rails52, rails72, rails61, rails80, uds-sinatra]
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
     - weblog_declaration:
         "*": v2.14.0
@@ -355,19 +922,52 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version:  # Modified by easy win activation script
+    - declaration: missing_feature (relies on Telemetry V2)
+      component_version: <2.29.0
+      weblog: [sinatra41, sinatra32, uds-rails, rails42, sinatra22, rack, sinatra14, rails52, rails72, rails61, rails80, uds-sinatra]
+    - declaration: missing_feature (relies on Telemetry V2)
+      excluded_weblog: [sinatra41, sinatra32, uds-rails, rails42, sinatra22, rack, sinatra14, rails52, rails72, rails61, rails80, uds-sinatra]
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: irrelevant  # xml body not natively supported
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v2.14.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version:  # requires Telemetry V2
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.14.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version:  # requires Telemetry V2
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.29.0'
+        sinatra32: '>=2.29.0'
+        uds-rails: '>=2.29.0'
+        rails42: '>=2.29.0'
+        sinatra22: '>=2.29.0'
+        rack: '>=2.29.0'
+        sinatra14: '>=2.29.0'
+        rails52: '>=2.29.0'
+        rails72: '>=2.29.0'
+        rails61: '>=2.29.0'
+        rails80: '>=2.29.0'
+        uds-sinatra: '>=2.29.0'
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
@@ -742,7 +1342,26 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
-  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py:  # Modified by easy win activation script
+    - declaration: bug (APPSEC-61286)
+      component_version: <2.29.0
+      weblog: [sinatra41, sinatra32, sinatra22, sinatra14, uds-sinatra]
+    - declaration: bug (APPSEC-61286)
+      excluded_weblog: [sinatra41, sinatra32, sinatra22, sinatra14, uds-sinatra]
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking:  # Created by easy win activation script
+    - weblog_declaration:
+        sinatra41: bug (APPSEC-61286)
+        uds-sinatra: bug (APPSEC-61286)
+        sinatra32: bug (APPSEC-61286)
+        sinatra14: bug (APPSEC-61286)
+        sinatra22: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py::Test_Headers_No_Event:  # Created by easy win activation script
+    - weblog_declaration:
+        sinatra41: bug (APPSEC-61286)
+        uds-sinatra: bug (APPSEC-61286)
+        sinatra32: bug (APPSEC-61286)
+        sinatra14: bug (APPSEC-61286)
+        sinatra22: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.22.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.22.0-dev
@@ -1476,7 +2095,9 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
-  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature (Not yet implemented)
+  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags:  # Modified by easy win activation script
+    - declaration: missing_feature (Not yet implemented)
+      component_version: <2.29.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
