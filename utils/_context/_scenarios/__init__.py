@@ -126,6 +126,13 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    sampling_rate_capping = EndToEndScenario(
+        "SAMPLING_RATE_CAPPING",
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test that tracers cap sampling rate increases to 2x per interval when agent restarts",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     trace_propagation_style_w3c = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={

@@ -48,6 +48,21 @@ You can run a group of scenarios as they are defined in `scenario_groups.yml`
 # e.g, "APPSEC_SCENARIOS" to run most of APPSEC scenarios
 ```
 
+## Force execute disabled tests
+
+Test items are skipped (or not) based on declarations in tests class, using manifest, or @bug/flaky/missing_feature decorators.
+
+You can force a disabled test to execute using the `-F` option, e.g.
+`./run.sh MY_SCENARIO -F tests/feature.py::Test_Feature -F tests/feature.py::Test_FeatureEdgeCase`
+
+ A common use-case is if a feature covered by a test is currently in progress for your library. Once progress is complete, follow the [enable-test.md](../edit/enable-test.md) doc to enable the test in CI.
+
+## Skip empty scenarios
+
+The `--skip-empty-scenario` option will deselect all tests if the current scenario contains only disabled tests (see [glossary](../glossary.md) for terminology).
+
+This option can also be activated with the environment variable `SYSTEM_TESTS_SKIP_EMPTY_SCENARIO=True`
+
 ## Spawn components, but do nothing
 
 ```bash
