@@ -5,7 +5,14 @@
         "weblog/acme": "*",
         "monolog/monolog": "*",
         "openai-php/client": "*",
-        "guzzlehttp/guzzle": "*"
+        "guzzlehttp/guzzle": "*",
+        "open-telemetry/sdk": "^1.0.0",
+        "open-telemetry/exporter-otlp": "^1.0.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "repositories": [
         {

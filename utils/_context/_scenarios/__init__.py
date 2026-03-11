@@ -542,6 +542,8 @@ class _Scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+            "OTEL_PHP_AUTOLOAD_ENABLED": "true",
+            "OTEL_METRICS_EXPORTER": "otlp",
         },
         doc="",
         scenario_groups=[scenario_groups.ffe],
