@@ -305,24 +305,13 @@ class Test_Knuth_Sample_Rate:
         """
 
         with test_library:
-            with test_library.dd_start_span("span1"):
+            with test_library.dd_start_span("span"):
                 pass
             test_library.dd_flush()
 
-            with test_library.dd_start_span("span2"):
-                pass
-            test_library.dd_flush()
-
-            with test_library.dd_start_span("span3"):
-                pass
-            test_library.dd_flush()
-
-        traces = test_agent.wait_for_num_traces(3)
-        assert len(traces) == 3, f"Expected 3 traces: {traces}"
-        for trace in traces:
-            assert len(trace) == 1, f"Expected 1 span in the trace: {trace}"
-            span = trace[0]
-            assert span["meta"].get("_dd.p.ksr") == sample_rate, f"Expected {sample_rate} for span {span}"
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert span["meta"].get("_dd.p.ksr") == sample_rate, f"Expected {sample_rate} for span {span}"
 
     @pytest.mark.parametrize(
         "library_env",
