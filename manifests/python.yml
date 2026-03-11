@@ -725,7 +725,7 @@ manifest:
   tests/appsec/test_rate_limiter.py::Test_Main:
     - weblog_declaration:
         "*": v2.0.0
-        tornado: missing_feature
+        tornado: v4.3.1
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
     - weblog_declaration:
@@ -2034,7 +2034,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
         "*": v1.6.0
-        tornado: missing_feature
+        tornado: v4.3.1
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v1.4.0-rc1
   tests/test_standard_tags.py::Test_StandardTagsUrl:
     - weblog_declaration:
