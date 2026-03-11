@@ -55,7 +55,7 @@ manifest:
     - weblog_declaration:
         "*": v3.13.0.dev
         *django: v3.12.0.dev
-        tornado: v4.6.0-rc3
+        tornado: v4.7.0-rc1
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_metadata: irrelevant
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant
