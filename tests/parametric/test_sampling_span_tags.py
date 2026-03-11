@@ -287,8 +287,15 @@ class Test_Knuth_Sample_Rate:
                 },
                 "0.765432",
             ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
+                },
+                "0.5",
+            ),
         ],
-        ids=["truncate_trailing_zeros", "percision_of_6_digits"],
+        ids=["truncate_trailing_zeros", "percision_of_6_digits", "no_trailing_zeros_half"],
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, sample_rate: str
@@ -384,3 +391,62 @@ class Test_Knuth_Sample_Rate:
         assert span["meta"].get("_dd.p.dm") == "-1"
         assert span["meta"].get("_dd.p.ksr") == "0.1"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": None,
+            }
+        ],
+    )
+    def test_sampling_knuth_sample_rate_not_set_for_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When no sampling rules or agent rates are configured, _dd.p.ksr should NOT be set.
+        The ksr tag should only appear when a trace sampling rule is applied, not for
+        default agent-based sampling.
+        """
+        with test_library:
+            with test_library.dd_start_span("span"):
+                pass
+            test_library.dd_flush()
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert "_dd.p.ksr" not in span.get("meta", {}), f"_dd.p.ksr should not be set for default sampling: {span}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PROPAGATION_STYLE": "Datadog",
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
+            }
+        ],
+    )
+    def test_sampling_knuth_sample_rate_overwritten_by_local_sampling(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """When a trace arrives with _dd.p.ksr from upstream, and the local tracer applies
+        its own sampling rule, the local ksr should overwrite the upstream value.
+        """
+        with test_library:
+            # Inject headers with an upstream ksr of "0.9"
+            incoming_headers = [
+                ("x-datadog-trace-id", "123456789"),
+                ("x-datadog-parent-id", "987654321"),
+                ("x-datadog-sampling-priority", "2"),
+                ("x-datadog-tags", "_dd.p.dm=-3,_dd.p.ksr=0.9"),
+            ]
+            with test_library.dd_extract_headers_and_make_child_span("span", incoming_headers):
+                pass
+            test_library.dd_flush()
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span.get("trace_id") == 123456789
+        assert span.get("parent_id") == 987654321
+        # The local sampling rule (rate 0.5) should overwrite the upstream ksr (0.9)
+        assert span["meta"].get("_dd.p.ksr") == "0.5", (
+            f"Expected local ksr '0.5' to overwrite upstream '0.9', got: {span['meta'].get('_dd.p.ksr')}"
+        )
