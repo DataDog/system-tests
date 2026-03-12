@@ -690,6 +690,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
@@ -749,6 +750,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.36.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.36.0
@@ -1007,6 +1009,8 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.46.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v2.48.0
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v2.48.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: v2.36.0
@@ -1115,6 +1119,7 @@ manifest:
   tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v3.11.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v3.11.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v3.11.1  # real version unknown

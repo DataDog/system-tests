@@ -33,6 +33,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
@@ -62,6 +63,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py: irrelevant (library does not implement OpenTelemetry)
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -79,6 +81,8 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
@@ -157,6 +161,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SampleRateFunction::test_sample_rate_function: missing_feature (/sample_rate_route is not implemented)
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.0.0  # real version unknown

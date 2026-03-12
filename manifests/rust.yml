@@ -21,6 +21,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
@@ -44,6 +45,7 @@ manifest:
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -290,6 +292,8 @@ manifest:
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script

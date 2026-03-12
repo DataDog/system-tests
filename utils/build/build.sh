@@ -49,6 +49,8 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 readonly WHITE_BOLD='\033[1;37m'
 
+VALID_LIBRARIES=$(python3 utils/const/__main__.py COMPONENT_GROUPS buildable)
+
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
     echo -e "  Builds Docker images for weblog variants with tracers."
@@ -143,6 +145,14 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+                # Homebrew/Python upgrades can invalidate an existing venv.
+                # If the interpreter is broken, recreate the venv automatically.
+                if [ -d "venv/" ] && ! venv/bin/python -V >/dev/null 2>&1
+                then
+                    echo "Existing venv is broken. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
@@ -320,7 +330,6 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_kong|cpp_nginx|cpp_httpd|dotnet|golang|java|java_lambda|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
@@ -337,7 +346,13 @@ while [[ "$#" -gt 0 ]]; do
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
         --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;  # deprecated
-        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+        *)
+            if [[ "$1" =~ ^(${VALID_LIBRARIES})$ ]]; then
+                TEST_LIBRARY="$1"
+            else
+                echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1
+            fi
+            ;;
     esac
     shift
 done

@@ -197,6 +197,8 @@ class Test_StandardTagsRoute:
                 tags["http.route"] = "/sample_rate_route/<i>"
             elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
+            elif context.weblog_variant == "tornado":
+                tags["http.route"] = "/sample_rate_route/%s"
         if context.library == "java":
             if context.weblog_variant in ("ratpack", "vertx3", "vertx4"):
                 tags["http.route"] = "/sample_rate_route/:i"

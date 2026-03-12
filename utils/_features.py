@@ -2782,5 +2782,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=543, owner=_Owner.ml_observability)
 
+    @staticmethod
+    def service_override_source(test_object):
+        """Signal Service override source in tracing
+
+        https://feature-parity.us1.prod.dog/#/?feature=545
+        """
+        return _mark_test_object(test_object, feature_id=545, owner=_Owner.language_platform)
+
 
 features = _Features()

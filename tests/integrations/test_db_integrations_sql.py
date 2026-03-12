@@ -259,6 +259,11 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
                 f"db.mssql.instance_name must not be empty for operation {db_operation}"
             )
 
+    def test_db_type(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
+        expected = "sqlserver" if context.library.name == "java" else self.db_service
+        for db_operation, span_meta in self.get_spans_meta():
+            assert span_meta["db.type"] == expected, f"Test is failing for {db_operation}"
+
     def test_db_name(self):
         super().test_db_name()
 
