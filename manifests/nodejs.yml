@@ -83,6 +83,7 @@ refs:
   - &ref_5_83_0 '>=5.83.0'
   - &ref_5_87_0 '>=5.87.0'  # Debugger: Capture expressions support
   - &ref_5_89_0 '>=5.89.0'
+  - &ref_5_90_0 '>=5.90.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
@@ -1203,7 +1204,12 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: missing_feature
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
-  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant  # the feature is framework agnostic, no need to test all variants
+        express4: *ref_5_90_0
+        express5: *ref_5_90_0
+        fastify: *ref_5_90_0
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": *ref_3_11_0
@@ -1818,7 +1824,12 @@ manifest:
         express4: ">=5.37.0 <5.88.0"
         express5: ">=5.37.0 <5.88.0"
         fastify: ">=5.37.0 <5.88.0"
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": irrelevant  # the feature is framework agnostic, no need to test all variants
+        express4: *ref_5_90_0
+        express5: *ref_5_90_0
+        fastify: *ref_5_90_0
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)

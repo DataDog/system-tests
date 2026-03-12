@@ -309,17 +309,11 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
 
 elif [ "$TARGET" = "cpp_kong" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
-    RELEASE=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" \
-        "https://api.github.com/repos/DataDog/kong-plugin-ddtrace/releases/tags/tip")
-    ASSET_NAME=$(echo "$RELEASE" | jq -r '.assets[] | select(.name | test("kong-plugin-ddtrace.*\\.rock")) | .name')
-    ASSET_URL=$(echo "$RELEASE" | jq -r '.assets[] | select(.name | test("kong-plugin-ddtrace.*\\.rock")) | .url')
-    echo "Downloading $ASSET_NAME from kong-plugin-ddtrace tip release"
-    curl --silent --fail --show-error -L \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -H "Accept: application/octet-stream" \
-        --output "$ASSET_NAME" \
-        "$ASSET_URL"
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "Cloning kong-plugin-ddtrace branch ${LIBRARY_TARGET_BRANCH}"
+    git clone --depth 1 --branch "$LIBRARY_TARGET_BRANCH" \
+        https://github.com/DataDog/kong-plugin-ddtrace.git kong-plugin-ddtrace
+    echo "Using kong-plugin-ddtrace@$(git -C kong-plugin-ddtrace rev-parse --short HEAD)"
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev

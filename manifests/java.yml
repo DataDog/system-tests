@@ -2227,7 +2227,10 @@ manifest:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": v1.61.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": v0.111.0
@@ -3046,7 +3049,9 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v1.59.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10788)
+      component_version: '>=1.60.1'
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
@@ -3425,16 +3430,19 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.56.0-SNAPSHOT
+        spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.56.0-SNAPSHOT
+        spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.56.0-SNAPSHOT
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
+        spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": v1.61.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
@@ -4119,6 +4127,7 @@ manifest:
         "*": irrelevant (RUM injection only supported for spring-boot)
         spring-boot: v1.49.0
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v1.60.0-SNAPSHOT+c95286e6a5
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
         "*": v1.49.0
