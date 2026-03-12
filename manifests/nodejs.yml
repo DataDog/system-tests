@@ -1206,7 +1206,7 @@ manifest:
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags:
     - weblog_declaration:
-        "*": irrelevant # the feature is framework agnostic, no need to test all variants
+        "*": irrelevant  # the feature is framework agnostic, no need to test all variants
         express4: *ref_5_90_0
         express5: *ref_5_90_0
         fastify: *ref_5_90_0
@@ -1826,7 +1826,7 @@ manifest:
         fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
     - weblog_declaration:
-        "*": irrelevant # the feature is framework agnostic, no need to test all variants
+        "*": irrelevant  # the feature is framework agnostic, no need to test all variants
         express4: *ref_5_90_0
         express5: *ref_5_90_0
         fastify: *ref_5_90_0
