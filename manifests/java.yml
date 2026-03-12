@@ -1630,6 +1630,9 @@ manifest:
         ratpack: missing_feature (endpoint not implemented)
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_telemetry_sca_enabled_propagated:
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
+      component_version: '>=1.60.1'
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v1.45.0
@@ -3050,7 +3053,7 @@ manifest:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
-    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10788)
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
       component_version: '>=1.60.1'
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py:
@@ -4284,6 +4287,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
+      component_version: '>=1.60.1'
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -4306,6 +4311,8 @@ manifest:
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
+    - declaration: missing_feature (Temporarily disabling)
+      component_version: '>=1.60.1'
     - weblog_declaration:
         "*": v1.54.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
