@@ -2,7 +2,7 @@ import json
 import time
 from typing import Literal
 
-from utils import weblog, scenarios, features, interfaces, logger
+from utils import weblog, scenarios, features, interfaces, logger, context
 from utils.dd_types import DataDogLibrarySpan
 
 DISTRIBUTED_TRACE_ID = 1
@@ -175,14 +175,17 @@ def assert_api_gateway_span(
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
     assert span["meta"]["http.method"] == "GET", "Inferred AWS API Gateway span meta expected HTTP method to be 'GET'"
 
-    # Skip http.url and http.status_code assertions for Java (language='jvm') - these fields are not properly set
+    # http.url expected value in this test lacks the https:// scheme that Java correctly sets;
+    # the v2 tests (mandatory_tags_validator_factory) validate the full URL for all languages.
     is_java = span["meta"].get("language") == "jvm" or span["meta"].get("language") == "java"
     if not is_java:
-        assert "http.url" in span["meta"], "Inferred AWS API Gateway span eta should contain 'http.url'"
+        assert "http.url" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.url'"
         assert span["meta"]["http.url"] == "system-tests-api-gateway.com" + path, (
             f"Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com{path}'"
         )
-        assert "http.status_code" in span["meta"], "Inferred AWS API Gateway span eta should contain 'http.status_code'"
+    # http.status_code is only guaranteed in newer tracer versions; skip if absent to stay compatible
+    # with older releases. The v2 tests (mandatory_tags_validator_factory) strictly validate this tag.
+    if "http.status_code" in span["meta"]:
         assert span["meta"]["http.status_code"] == status_code, (
             f"Inferred AWS API Gateway span meta expected HTTP Status Code of '{status_code}'"
         )
@@ -198,7 +201,7 @@ def assert_api_gateway_span(
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
         assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
 
-    if is_error and not is_java:
+    if is_error and "http.status_code" in span["meta"]:
         assert span["error"] == 1
         assert span["meta"]["http.status_code"] == "500"
 
@@ -320,9 +323,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
         if region != "eu-west-3":
             raise ValueError(f"Expected 'region' tag to be 'eu-west-3', found '{region}'")
 
-        user = meta.get("aws_user")
-        if user != "aws-user":
-            raise ValueError(f"Expected 'aws_user' tag to be 'aws-user', found '{user}'")
+        # Note: aws_user is NOT validated - RFC states it should not be implemented without explicit approval (PII concerns)
 
         dd_resource_key = meta.get("dd_resource_key")
         if dd_resource_key != expected_arn:
@@ -417,6 +418,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 self.start_time_ns,
                 distributed=True,
             ),
+            full_trace=(context.library == "nodejs"),
         )
 
     def setup_api_gateway_rest_inferred_span_creation_with_error(self):
