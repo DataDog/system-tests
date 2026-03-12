@@ -1,5 +1,5 @@
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
-from utils import context, features, scenarios
+from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from .utils import BaseAnthropicTest
@@ -7,24 +7,6 @@ from .utils import BaseAnthropicTest
 import pytest
 from unittest import mock
 import json
-
-
-def _expected_llmobs_metrics():
-    """Return expected LLMObs token metrics for anthropic spans.
-
-    Ephemeral cache TTL metrics are only emitted by the Python tracer.
-    """
-    metrics = {
-        "input_tokens": mock.ANY,
-        "output_tokens": mock.ANY,
-        "total_tokens": mock.ANY,
-        "cache_read_input_tokens": mock.ANY,
-        "cache_write_input_tokens": mock.ANY,
-    }
-    if context.library == "python":
-        metrics["ephemeral_1h_input_tokens"] = mock.ANY
-        metrics["ephemeral_5m_input_tokens"] = mock.ANY
-    return metrics
 
 TOOLS = [
     {
@@ -93,7 +75,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     def test_create_stream_method(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -130,7 +120,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -181,7 +179,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -312,7 +318,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -372,7 +386,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -483,7 +505,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -550,7 +580,15 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "max_tokens": 100,
                 "temperature": 0.5,
             },
-            metrics=_expected_llmobs_metrics(),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+                "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
+            },
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -606,4 +644,5 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
         write_span_event, read_span_event = span_events
 
         assert write_span_event["metrics"]["cache_write_input_tokens"] == 6163
+        assert write_span_event["metrics"]["ephemeral_5m_input_tokens"] == 6163
         assert read_span_event["metrics"]["cache_read_input_tokens"] == 6163
