@@ -42,7 +42,10 @@ fi
 EXTRA_ARGS=""
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; then
-  EXTRA_ARGS="--enable-profiling"
+  # Only enable profiling if using default release download or if local package contains profiling
+  if [ -z "${PKG:-}" ] || tar -tzf "$PKG" 2>/dev/null | grep -q "datadog-profiling"; then
+    EXTRA_ARGS="--enable-profiling"
+  fi
 fi
 
 INI_FILE=/etc/php/php.ini

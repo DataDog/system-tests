@@ -546,6 +546,41 @@ $router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Req
     return jsonResponse([]);
 }));
 
+// FFE (Feature Flags & Experimentation) endpoints
+$ffeProvider = null;
+
+$router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeProvider) {
+    try {
+        if ($ffeProvider === null) {
+            $ffeProvider = \DDTrace\FeatureFlags\Provider::getInstance();
+        }
+        $ffeProvider->start();
+        return jsonResponse([]);
+    } catch (\Throwable $e) {
+        return new Response(status: 500, body: json_encode(['error' => $e->getMessage()]));
+    }
+}));
+
+$router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (Request $req) use (&$ffeProvider) {
+    try {
+        if ($ffeProvider === null) {
+            $ffeProvider = \DDTrace\FeatureFlags\Provider::getInstance();
+            $ffeProvider->start();
+        }
+
+        $flag = arg($req, 'flag');
+        $variationType = arg($req, 'variationType');
+        $defaultValue = arg($req, 'defaultValue');
+        $targetingKey = arg($req, 'targetingKey');
+        $attributes = arg($req, 'attributes') ?? [];
+
+        $result = $ffeProvider->evaluate($flag, $variationType, $defaultValue, $targetingKey, $attributes);
+        return jsonResponse($result);
+    } catch (\Throwable $e) {
+        return new Response(status: 500, body: json_encode(['error' => $e->getMessage()]));
+    }
+}));
+
 $middleware = new class implements Middleware {
     public function handleRequest(Request $request, RequestHandler $next): Response {
         $response = $next->handleRequest($request);
