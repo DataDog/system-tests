@@ -1173,6 +1173,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature (APMAPI-745)
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.1.0-dev.2
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : missing_feature (extended configs are not supported)

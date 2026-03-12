@@ -1238,3 +1238,62 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled[0].get("value") is None
         else:
             assert dd_appsec_sca_enabled not in configuration_by_name
+
+
+@scenarios.parametric
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/AP/pages/")
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event"""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",
+            }
+        ],
+    )
+    def test_extended_heartbeat_config_matches(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Test that app-extended-heartbeat config matches app-started and app-client-configuration-change"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        time.sleep(1.5)
+
+        events = test_agent.telemetry(clear=False)
+
+        app_started = None
+        extended_hb = None
+        config_change = None
+
+        for event in events:
+            if test_agent._get_telemetry_event(event, "app-started"):
+                app_started = test_agent._get_telemetry_event(event, "app-started")
+            if test_agent._get_telemetry_event(event, "app-extended-heartbeat"):
+                extended_hb = test_agent._get_telemetry_event(event, "app-extended-heartbeat")
+            if test_agent._get_telemetry_event(event, "app-client-configuration-change"):
+                config_change = test_agent._get_telemetry_event(event, "app-client-configuration-change")
+
+        assert app_started is not None, "app-started event not found"
+        assert extended_hb is not None, "app-extended-heartbeat event not found"
+
+        started_config = {c["name"]: c.get("value") for c in app_started["payload"].get("configuration", [])}
+        extended_config = {c["name"]: c.get("value") for c in extended_hb["payload"].get("configuration", [])}
+
+        assert started_config == extended_config, (
+            f"Configuration should match between app-started and app-extended-heartbeat. "
+            f"app-started: {started_config}, "
+            f"app-extended-heartbeat: {extended_config}"
+        )
+
+        if config_change is not None:
+            change_config = {c["name"]: c.get("value") for c in config_change["payload"].get("configuration", [])}
+            for name, value in change_config.items():
+                assert extended_config.get(name) == value, (
+                    f"Configuration '{name}' should match between app-client-configuration-change and app-extended-heartbeat. "
+                    f"app-client-configuration-change: {value}, "
+                    f"app-extended-heartbeat: {extended_config.get(name)}"
+                )
