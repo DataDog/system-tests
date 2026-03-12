@@ -470,6 +470,10 @@ class TraceSamplingMiddleware
 end
 
 use TraceSamplingMiddleware
+# NOTE: Most of the frameworks rely on Web Server to compute `Content-Length` header.
+#       But in this case to make it different from Rails and Sinatra we are going
+#       to provide it.
+use Rack::ContentLength
 
 # /flush
 module Flush
