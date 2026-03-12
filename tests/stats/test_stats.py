@@ -1,5 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, logger
+from utils import context, features, interfaces, logger, missing_feature, scenarios, weblog
 
 """
 Test scenarios we want:
@@ -98,6 +98,35 @@ class Test_Client_Stats:
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Client-side stats should be disabled by default"
+
+    def setup_grpc_status_code(self):
+        self.grpc_request = weblog.grpc("grpc stats")
+
+    @missing_feature(
+        context.library != "java" or context.library < "java@1.61.0",
+        reason="GRPCStatusCode stats payload field was added in java@1.61.0",
+        force_skip=True,
+    )
+    @missing_feature(
+        context.weblog_variant != "spring-boot",
+        reason="gRPC stats coverage requires a weblog variant with gRPC support",
+        force_skip=True,
+    )
+    def test_grpc_status_code(self):
+        grpc_stats = []
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "rpc" and stat.get("SpanKind") == "server":
+                        grpc_stats.append(stat)
+
+        assert grpc_stats, "Expected at least one gRPC stats entry in the v0.6/stats payload"
+        # 0 means OK in gRPC status codes
+        assert any(stat.get("GRPCStatusCode") == "0" for stat in grpc_stats), (
+            f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
+        )
 
 
 @features.client_side_stats_supported
