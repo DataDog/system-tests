@@ -228,8 +228,6 @@ patterns:
         scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
-    utils/_context/_scenarios/go_proxies.py:
-        scenario_groups: go_proxies
 
 
 ############################### Script file rules ##############################

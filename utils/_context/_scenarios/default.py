@@ -13,7 +13,9 @@ _iast_security_controls_map = {
     "cpp_nginx": "TODO",
     "cpp_httpd": "TODO",
     "dotnet": "TODO",
+    "envoy": "TODO",
     "golang": "TODO",
+    "haproxy": "TODO",
     "java": (
         "SANITIZER:COMMAND_INJECTION:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitize;"
         "SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitizeForAllVulns;"
@@ -82,4 +84,5 @@ class DefaultScenario(EndToEndScenario):
         super().configure(config)
         library = self.weblog_infra.library_name
         value = _iast_security_controls_map[library]
-        self.weblog_container.environment["DD_IAST_SECURITY_CONTROLS_CONFIGURATION"] = value
+        if value != "TODO":
+            self.weblog_container.environment["DD_IAST_SECURITY_CONTROLS_CONFIGURATION"] = value

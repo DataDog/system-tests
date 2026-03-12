@@ -3,7 +3,15 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
-from utils._context._scenarios import go_proxies
+from utils._context.weblog_infrastructure import PROXY_WEBLOGS
+
+# TODO: remove and update the envoy/haproxy manifests to fully supports all scenarios
+PROXY_SUPPORTED_SCENARIOS = {
+    # "DEFAULT",
+    # "TRACING_CONFIG_NONDEFAULT",
+    "APPSEC_BLOCKING",
+    "APPSEC_BLOCKING_FULL_DENYLIST",
+}
 
 
 def _load_json(file_path: str) -> dict:
@@ -323,7 +331,7 @@ def _get_endtoend_weblogs(
                     )
 
     # weblog not related to a docker file
-    for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
+    for weblog, lib in PROXY_WEBLOGS.items():
         if lib == library:
             result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
 
@@ -568,13 +576,8 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
-    # Go proxies
-    if scenario.startswith("GO_PROXIES"):
-        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog) != library:
-            return False
-    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog):
-        if not scenario.startswith("GO_PROXIES"):
-            return False
+    if PROXY_WEBLOGS.get(weblog) == library:
+        return scenario in PROXY_SUPPORTED_SCENARIOS
 
     # otel collector
     if weblog == "otel_collector" or scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):

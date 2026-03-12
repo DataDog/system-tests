@@ -3363,9 +3363,6 @@
   "tests/docker_ssi/test_docker_ssi_servicenaming.py::TestDockerServiceNaming::test_service_name": [
     "DOCKER_SSI_SERVICENAMING"
   ],
-  "tests/external_processing/test_apm.py::Test_ExternalProcessing_Tracing::test_correct_span_structure": [
-    "EXTERNAL_PROCESSING"
-  ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
   ],

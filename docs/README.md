@@ -65,7 +65,7 @@ Deep dives into each scenario type.
 - **AWS SSI / Onboarding**: [full guide](understand/scenarios/onboarding.md) and [provision structure](understand/scenarios/onboarding_provision_section.md)
 - **Docker SSI**: [guide](understand/scenarios/docker_ssi.md)
 - **Kubernetes lib injection**: [overview](understand/scenarios/k8s_library_injection_overview.md), [details](understand/scenarios/k8s_lib_injection.md), and [injector dev](understand/scenarios/k8s_injector_dev.md)
-- **Other scenarios**: [AWS Lambda](understand/scenarios/aws_lambda.md), [integration frameworks](understand/scenarios/integration_frameworks.md) (IPv6 and Go proxies are covered in the [scenarios overview](understand/scenarios/README.md))
+- **Other scenarios**: [AWS Lambda](understand/scenarios/aws_lambda.md), [integration frameworks](understand/scenarios/integration_frameworks.md), and [IPv6](understand/scenarios/README.md#ipv6-scenario)
 
 ## CI integration
 
