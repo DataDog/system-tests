@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, features
 from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import find_series, is_same_object
+from tests.appsec.utils import find_series, is_same_boolean
 
 HEADERS = {
     "Accept": "text/html",
@@ -61,8 +61,7 @@ class Test_UserLoginSuccessEvent:
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-
-                if not is_same_object(value, expected_value):
+                if not is_same_boolean(value, expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -131,8 +130,7 @@ class Test_UserLoginFailureEvent:
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-
-                if not is_same_object(value, expected_value):
+                if not is_same_boolean(value, expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -199,7 +197,7 @@ class Test_CustomEvent:
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
 
-                if not is_same_object(value, expected_value):
+                if not is_same_boolean(value, expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
