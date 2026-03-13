@@ -38,6 +38,11 @@ def is_same_boolean(actual: object, expected: object) -> bool:
         return ("true" if expected else "false") == actual
     return False
 
+def is_same_object(actual: object, expected: object) -> bool:
+    if expected in {"true", "false"}:
+        return is_same_boolean(actual, expected)
+
+    return actual == expected
 
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
