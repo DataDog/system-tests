@@ -33,7 +33,26 @@ func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		val := ofClient.Object(request.Context(), body.Flag, body.DefaultValue, of.NewEvaluationContext(body.TargetingKey, body.Attributes))
+		ctx := request.Context()
+		evalCtx := of.NewEvaluationContext(body.TargetingKey, body.Attributes)
+
+		var val any
+		switch body.VariationType {
+		case "BOOLEAN":
+			defBool, _ := body.DefaultValue.(bool)
+			val, _ = ofClient.BooleanValue(ctx, body.Flag, defBool, evalCtx)
+		case "STRING":
+			defStr, _ := body.DefaultValue.(string)
+			val, _ = ofClient.StringValue(ctx, body.Flag, defStr, evalCtx)
+		case "INTEGER":
+			defFloat, _ := body.DefaultValue.(float64)
+			val, _ = ofClient.IntValue(ctx, body.Flag, int64(defFloat), evalCtx)
+		case "NUMERIC":
+			defFloat, _ := body.DefaultValue.(float64)
+			val, _ = ofClient.FloatValue(ctx, body.Flag, defFloat, evalCtx)
+		default:
+			val = ofClient.Object(ctx, body.Flag, body.DefaultValue, evalCtx)
+		}
 
 		writer.WriteHeader(http.StatusOK)
 
