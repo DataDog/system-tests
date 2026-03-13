@@ -31,14 +31,12 @@ def find_configuration() -> Generator:
 
 # Protocol v1.0 may return booleans as True,
 # while older protocols may return them as the string "true".
-def is_same_boolean(actual: object, expected: object) -> bool:
-    if isinstance(actual, bool) and isinstance(expected, str):
-        return ("true" if actual else "false") == expected
-    if isinstance(actual, str) and isinstance(expected, bool):
-        return ("true" if expected else "false") == actual
-    if isinstance(actual, str) and isinstance(expected, str):
-        return actual == expected
-    return False
+def _normalize_for_compare(*, value: bool | str) -> str:
+    return "true" if value is True else ("false" if value is False else value)
+
+
+def is_same_boolean(*, actual: bool | str, expected: bool | str) -> bool:
+    return _normalize_for_compare(value=actual) == _normalize_for_compare(value=expected)
 
 
 class BaseFullDenyListTest:

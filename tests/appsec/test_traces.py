@@ -46,7 +46,7 @@ class Test_RetainTraces:
 
             if "appsec.event" not in span["meta"]:
                 raise Exception("Can't find appsec.event in span's meta")
-            if not is_same_boolean(span["meta"]["appsec.event"], "true"):
+            if not is_same_boolean(actual=span["meta"]["appsec.event"], expected="true"):
                 raise Exception(f'appsec.event in span\'s meta should be "true", not {span["meta"]["appsec.event"]}')
 
             if "_sampling_priority_v1" not in span["metrics"]:

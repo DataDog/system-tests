@@ -61,7 +61,7 @@ class Test_UserLoginSuccessEvent:
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if not is_same_boolean(value, expected_value):
+                if not is_same_boolean(actual=value, expected=expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -130,7 +130,7 @@ class Test_UserLoginFailureEvent:
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if not is_same_boolean(value, expected_value):
+                if not is_same_boolean(actual=value, expected=expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -197,7 +197,7 @@ class Test_CustomEvent:
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
 
-                if not is_same_boolean(value, expected_value):
+                if not is_same_boolean(actual=value, expected=expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
