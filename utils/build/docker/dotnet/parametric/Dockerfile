@@ -63,11 +63,14 @@ RUN mkdir /parametric-tracer-logs
 
 # Conditionally set LD_PRELOAD at runtime — the x64 ApiWrapper .so does not
 # exist on ARM and would crash the container if set unconditionally.
-RUN printf '#!/bin/bash\nset -e\n\
-if [ -f /opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so ]; then\n\
-  export LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so\n\
-fi\n\
-exec "$@"\n' > /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+RUN cat <<'SH' > /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
+#!/bin/bash
+set -e
+if [ -f /opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so ]; then
+  export LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
+fi
+exec "$@"
+SH
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["./ApmTestApi"]
