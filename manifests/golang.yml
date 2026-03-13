@@ -819,6 +819,7 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
+  tests/ffe/test_flag_eval_metrics.py: v2.7.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
