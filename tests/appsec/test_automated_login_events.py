@@ -1041,6 +1041,7 @@ class Test_V2_Login_Events_Anon:
 
         interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
+
 def assert_priority(span: DataDogLibrarySpan, trace: DataDogLibraryTrace):
     # Legacy logic, check priority on span level
     span_priority = span["metrics"].get("_sampling_priority_v1")
