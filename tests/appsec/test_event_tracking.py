@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, features
 from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import find_series
+from tests.appsec.utils import find_series, is_same_boolean
 
 HEADERS = {
     "Accept": "text/html",
@@ -61,7 +61,12 @@ class Test_UserLoginSuccessEvent:
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if value != expected_value:
+                not_found = value != expected_value
+
+                if expected_value == "true":
+                    not_found = not is_same_boolean(value, expected_value)
+
+                if not_found:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -127,11 +132,16 @@ class Test_UserLoginFailureEvent:
                 "appsec.events.users.login.failure.metadata0": "value0",
                 "appsec.events.users.login.failure.metadata1": "value1",
             }
-
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if value != expected_value:
+
+                not_found = value != expected_value
+
+                if expected_value == "true":
+                    not_found = not is_same_boolean(value, expected_value)
+
+                if not_found:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -194,11 +204,16 @@ class Test_CustomEvent:
                 "appsec.events.system_tests_event.metadata0": "value0",
                 "appsec.events.system_tests_event.metadata1": "value1",
             }
-
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if value != expected_value:
+
+                not_found = value != expected_value
+
+                if expected_value == "true":
+                    not_found = not is_same_boolean(value, expected_value)
+
+                if not_found:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
