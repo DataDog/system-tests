@@ -129,6 +129,7 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
 
         while not snapshot_found and retries < self._max_retries:
             self.send_weblog_request("/debugger/pii", reset=(retries == 0))
+            self.wait_for_all_probes(statuses=["EMITTING"])
             snapshot_found = self.wait_for_all_snapshots(timeout=timeout)
             timeout = self._timeout_next
             retries += 1
@@ -153,6 +154,13 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         not_found = list(set(REDACTED_KEYS))
         improperly_redacted = []
         excluded_identifiers = excluded_identifiers if excluded_identifiers else []
+
+        missing = [pid for pid in self.probe_ids if pid not in self.probe_snapshots]
+        if missing:
+            raise AssertionError(
+                f"Expected snapshots for probes {missing} not found. "
+                f"Got snapshots for: {list(self.probe_snapshots.keys())}"
+            )
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
