@@ -107,7 +107,7 @@ class ComponentVersion:
                 # version string when the php binary emits them to stdout.  Strip
                 # every line that starts with "Warning:" and take the last
                 # non-empty line so we are left with just the bare version number.
-                lines = [l for l in version.splitlines() if not l.startswith("Warning:")]
+                lines = [line for line in version.splitlines() if not line.startswith("Warning:")]
                 version = lines[-1].strip() if lines else version
 
                 # if the pre-release part looks like a commit sha [0-9abcdef]{32,100}
