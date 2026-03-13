@@ -23,9 +23,7 @@ def command_injection_skipped(command_line: str, log_local_path: str):
         if process_exe is None or command != process_exe:
             continue
         if _process_chunk_means_skipped(process_logs):
-            logger.debug(
-                f"    Command '{command}' was skipped (denied by WLS or no known runtime)"
-            )
+            logger.debug(f"    Command '{command}' was skipped (denied by WLS or no known runtime)")
             return True
         logger.info(f"    Command '{command}' was allowed and injected")
         return False
@@ -47,6 +45,7 @@ def _get_exe_from_log_line(line: str) -> str | None:
         return Path(match.group(1)).name
     return None
 
+
 def _parse_command(command: str):
     command_args = command.split()
     command = None
@@ -67,7 +66,7 @@ def _parse_command(command: str):
 
 
 def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
-    """From instrumentation log file, extract all log lines per process.
+    r"""From instrumentation log file, extract all log lines per process.
 
     A process chunk starts at the line containing \"process_exe:\" and runs until
     \"injector finished\" (or the next \"process_exe:\"). This includes WLS decision
