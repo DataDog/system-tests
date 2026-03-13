@@ -1411,9 +1411,6 @@ manifest:
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once:
     - declaration: irrelevant (replaced by test_waf_monitoring_once_rfc1025)
       component_version: '>=5.58.0'
-  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once_rfc1025:
-    - component_version: ">=5.80.0"
-      declaration: flaky (APPSEC-60220)
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v2.0.0
