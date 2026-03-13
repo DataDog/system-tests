@@ -42,7 +42,21 @@ fi
 EXTRA_ARGS=""
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; then
-  EXTRA_ARGS="--enable-profiling"
+  # Only enable profiling if the bundle actually contains a profiling extension.
+  # When installing from a local package that was built without profiling support,
+  # passing --enable-profiling causes datadog-setup.php to exit with an error.
+  PKG_HAS_PROFILING=0
+  if [ -n "${PKG:-}" ]; then
+    if tar -tzf "$PKG" 2>/dev/null | grep -q "datadog-profiling"; then
+      PKG_HAS_PROFILING=1
+    fi
+  else
+    # Downloading from GitHub releases always includes profiling
+    PKG_HAS_PROFILING=1
+  fi
+  if [ "$PKG_HAS_PROFILING" = "1" ]; then
+    EXTRA_ARGS="--enable-profiling"
+  fi
 fi
 
 INI_FILE=/etc/php/php.ini

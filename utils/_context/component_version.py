@@ -103,8 +103,15 @@ class ComponentVersion:
                 version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
 
             elif name == "php":
+                # PHP startup warnings (e.g. missing .so files) can appear in the
+                # version string when the php binary emits them to stdout.  Strip
+                # every line that starts with "Warning:" and take the last
+                # non-empty line so we are left with just the bare version number.
+                lines = [l for l in version.splitlines() if not l.startswith("Warning:")]
+                version = lines[-1].strip() if lines else version
+
                 # if the pre-release part looks like a commit sha [0-9abcdef]{32,100}
-                # the we can hack to move it to the built part:
+                # then we can hack to move it to the built part:
                 version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
             elif name == "python":
