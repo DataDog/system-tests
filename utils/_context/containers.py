@@ -523,22 +523,33 @@ class ImageInfo:
         self.name = image_name
         self.local_image_only = local_image_only
 
-    def load(self):
+    _PULL_MAX_RETRIES = 3
+    _PULL_INITIAL_WAIT = 5
+
+    def load(self) -> None:
         try:
             self._image = get_docker_client().images.get(self.name)
         except docker.errors.ImageNotFound:
             if self.local_image_only:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
-            logger.stdout(f"Pulling {self.name}")
-            try:
-                self._image = get_docker_client().images.pull(self.name)
-            except docker.errors.ImageNotFound:
-                # Sometimes pull returns ImageNotFound, internal race?
-                time.sleep(5)
-                self._image = get_docker_client().images.pull(self.name)
+            self._image = self._pull_with_retries()
 
         self._init_from_attrs(self._image.attrs)
+
+    def _pull_with_retries(self) -> docker.models.images.Image:
+        last_exception: Exception | None = None
+        for attempt in range(1, self._PULL_MAX_RETRIES + 1):
+            logger.stdout(f"Pulling {self.name} (attempt {attempt}/{self._PULL_MAX_RETRIES})")
+            try:
+                return get_docker_client().images.pull(self.name)
+            except (docker.errors.APIError, docker.errors.ImageNotFound) as e:
+                last_exception = e
+                wait = self._PULL_INITIAL_WAIT * (2 ** (attempt - 1))
+                logger.stdout(f"Failed to pull {self.name}: {e}. Retrying in {wait}s...")
+                time.sleep(wait)
+
+        raise last_exception  # type: ignore[misc]
 
     def load_from_logs(self, dir_path: str):
         with open(f"{dir_path}/image.json", encoding="utf-8") as f:
