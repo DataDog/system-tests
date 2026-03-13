@@ -3150,13 +3150,13 @@
   "tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec::test_appsec": [
     "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
   ],
-  "tests/auto_inject/test_blocklist_auto_inject.py::TestAutoInjectWorkloadSelectionInstallManualHost::test_commands_excluded_by_workload_policy": [
+  "tests/auto_inject/test_auto_inject_workload_selection.py::TestAutoInjectWorkloadSelectionInstallManualHost::test_commands_excluded_by_workload_policy": [
     "INSTALLER_AUTO_INJECTION"
   ],
-  "tests/auto_inject/test_blocklist_auto_inject.py::TestAutoInjectWorkloadSelectionInstallManualHost::test_args_excluded_by_workload_policy": [
+  "tests/auto_inject/test_auto_inject_workload_selection.py::TestAutoInjectWorkloadSelectionInstallManualHost::test_args_excluded_by_workload_policy": [
     "INSTALLER_AUTO_INJECTION"
   ],
-  "tests/auto_inject/test_blocklist_auto_inject.py::TestAutoInjectWorkloadSelectionInstallManualHost::test_args_included_by_workload_policy": [
+  "tests/auto_inject/test_auto_inject_workload_selection.py::TestAutoInjectWorkloadSelectionInstallManualHost::test_args_included_by_workload_policy": [
     "INSTALLER_AUTO_INJECTION"
   ],
   "tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present": [
