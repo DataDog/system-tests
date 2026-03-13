@@ -5,8 +5,8 @@ from utils import scenarios, context, features, irrelevant, logger
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
-class _AutoInjectBlockListBaseTest:
-    """Base class to test the block list on auto instrumentation"""
+class _AutoInjectWorkloadSelectionBaseTest:
+    """Base class to test workload selection policies on auto instrumentation."""
 
     def _execute_remote_command(self, ssh_client, command):
         """Execute remote command and get remote log file from the vm. You can use this method using env variables or using injection config file"""
@@ -32,10 +32,22 @@ class _AutoInjectBlockListBaseTest:
 @features.host_block_list
 @scenarios.installer_auto_injection
 @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
-class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
-    builtin_args_commands_block = {
+class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelectionBaseTest):
+    """Test that auto instrumentation respects workload selection policies (excluded specific commands and args)."""
+
+    # Commands excluded by workload selection policy (should not be instrumented)
+    no_language_found_commands = [
+        "ps -fea",
+        "touch myfile.txt",
+        "hello=hola cat myfile.txt",
+        "ls -la",
+        "mkdir newdir",
+    ]
+
+    # Commands with args excluded by workload selection policy per language (should not be instrumented)
+    commands_excluded_by_workload_policy = {
         "java": ["java -version", "MY_ENV_VAR=hello java -version"],
-        "donet": [
+        "dotnet": [
             "dotnet restore",
             "dotnet build -c Release",
             "sudo -E dotnet publish",
@@ -43,14 +55,15 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         ],
     }
 
-    builtin_args_commands_injected = {
+    # Commands with args included by workload selection policy per language (should be instrumented)
+    commands_not_excluded_by_workload_policy = {
         "java": [
             "java -jar myjar.jar",
             "sudo -E java -jar myjar.jar",
             "version=-version java -jar myjar.jar",
             "java -Dversion=-version -jar myapp.jar",
         ],
-        "donet": [
+        "dotnet": [
             "dotnet run -- -p build",
             "dotnet build.dll -- -p build",
             "sudo -E dotnet run myapp.dll -- -p build",
@@ -59,58 +72,56 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         ],
     }
 
-    builtin_commands_not_injected = [
-        "ps -fea",
-        "touch myfile.txt",
-        "hello=hola cat myfile.txt",
-        "ls -la",
-        "mkdir newdir",
-    ]
-
     @irrelevant(
         condition="container" in context.weblog_variant
         or "alpine" in context.weblog_variant
         or "buildpack" in context.weblog_variant
     )
-    def test_builtin_block_commands(self):
-        """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
+    def test_no_language_found_commands(self):
+        """Check that commands with no language found are skipped from auto injection."""
         virtual_machine = context.virtual_machine
-        logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
+        logger.info(f"[{virtual_machine.get_ip()}] Executing commands with no language found")
         ssh_client = virtual_machine.get_ssh_connection()
-        for command in self.builtin_commands_not_injected:
+        for command in self.no_language_found_commands:
             local_log_file = self._execute_remote_command(ssh_client, command)
-            assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
+            assert command_injection_skipped(command, local_log_file), (
+                f"The command {command} was instrumented but should be skipped from auto injection!"
+            )
 
     @irrelevant(
         condition="container" in context.weblog_variant
         or "alpine" in context.weblog_variant
         or "buildpack" in context.weblog_variant
     )
-    def test_builtin_block_args(self):
-        """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
+    def test_commands_denied_by_workload_selection(self):
+        """Check that commands are skipped from auto injection based on workload selection policies."""
         virtual_machine = context.virtual_machine
-        logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_block_args")
+        logger.info(f"[{virtual_machine.get_ip()}] Executing commands that are denied by workload selection policies")
         language = context.library.name
-        if language in self.builtin_args_commands_block:
-            ssh_client = virtual_machine.get_ssh_connection()
-            for command in self.builtin_args_commands_block[language]:
-                local_log_file = self._execute_remote_command(ssh_client, command)
-                assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
+        if language not in self.commands_excluded_by_workload_policy:
+            return
+        ssh_client = virtual_machine.get_ssh_connection()
+        for command in self.commands_excluded_by_workload_policy[language]:
+            local_log_file = self._execute_remote_command(ssh_client, command)
+            assert command_injection_skipped(command, local_log_file), (
+                f"The command {command} was instrumented but should be denied by workload selection policies!"
+            )
 
     @irrelevant(
         condition="container" in context.weblog_variant
         or "alpine" in context.weblog_variant
         or "buildpack" in context.weblog_variant
     )
-    def test_builtin_instrument_args(self):
-        """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
+    def test_commands_allowed_by_workload_selection(self):
+        """Check that commands are allowed to be instrumented based on workload selection policies."""
         virtual_machine = context.virtual_machine
-        logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_instrument_args")
+        logger.info(f"[{virtual_machine.get_ip()}] Executing commands that are allowed by workload selection policies")
         language = context.library.name
-        if language in self.builtin_args_commands_injected:
-            ssh_client = virtual_machine.get_ssh_connection()
-            for command in self.builtin_args_commands_injected[language]:
-                local_log_file = self._execute_remote_command(ssh_client, command)
-                assert command_injection_skipped(command, local_log_file) is False, (
-                    f"The command {command} was not instrumented, but it should be instrumented!"
-                )
+        if language not in self.commands_not_excluded_by_workload_policy:
+            return
+        ssh_client = virtual_machine.get_ssh_connection()
+        for command in self.commands_not_excluded_by_workload_policy[language]:
+            local_log_file = self._execute_remote_command(ssh_client, command)
+            assert command_injection_skipped(command, local_log_file) is False, (
+                f"The command {command} was denied by workload selection policies but should be allowed!"
+            )
