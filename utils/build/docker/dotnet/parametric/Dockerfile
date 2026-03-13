@@ -42,7 +42,9 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV CORECLR_ENABLE_PROFILING=1
 ENV CORECLR_PROFILER='{846F5F1C-F9AE-4B07-969E-05C26BC060D8}'
 ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
-ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
+# LD_PRELOAD for continuous profiler: the ApiWrapper.x64.so is x86_64-only
+# and crashes immediately on ARM.  Set it conditionally via an entrypoint
+# wrapper so the image works on both architectures.
 ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
@@ -59,4 +61,15 @@ COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
 
+# Conditionally set LD_PRELOAD at runtime — the x64 ApiWrapper .so does not
+# exist on ARM and would crash the container if set unconditionally.
+RUN echo '#!/bin/bash'                                                          > /usr/local/bin/entrypoint.sh && \
+    echo 'set -e'                                                              >> /usr/local/bin/entrypoint.sh && \
+    echo 'if [ -f /opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so ]; then' >> /usr/local/bin/entrypoint.sh && \
+    echo '  export LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so' >> /usr/local/bin/entrypoint.sh && \
+    echo 'fi'                                                                  >> /usr/local/bin/entrypoint.sh && \
+    echo 'exec "$@"'                                                           >> /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["./ApmTestApi"]
