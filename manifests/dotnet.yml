@@ -690,6 +690,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
@@ -769,6 +770,9 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: v3.3.0
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: v3.3.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v3.28.0
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_default_config: missing_feature (runtime metrics default changing to true)
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_invalid_files: missing_feature (runtime metrics default changing to true)
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_unknown_key_skipped: missing_feature (runtime metrics default changing to true)
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v3.2.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.53.2
