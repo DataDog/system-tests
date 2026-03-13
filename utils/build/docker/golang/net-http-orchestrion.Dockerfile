@@ -1,4 +1,6 @@
-FROM golang:1.25-alpine AS build
+ARG GO_VERSION=1.25
+FROM golang:${GO_VERSION}-alpine AS build
+ARG GO_VERSION
 
 RUN apk add --no-cache jq curl bash gcc musl-dev git
 
@@ -11,6 +13,7 @@ COPY utils/build/docker/golang/app/ /app/
 # WORKDIR /app will fail with the following error:
 # main module (systemtests.weblog) does not contain package systemtests.weblog/net-http-orchestrion
 WORKDIR /app/net-http-orchestrion
+RUN go mod edit -go=${GO_VERSION}
 
 ENV GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/go/pkg/mod
@@ -26,7 +29,7 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 # ==============================================================================
 
-FROM golang:1.25-alpine
+FROM golang:${GO_VERSION}-alpine
 
 RUN apk add --no-cache curl bash gcc musl-dev
 
