@@ -14,6 +14,7 @@ from utils import (
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
 from utils.dd_types import DataDogLibrarySpan
+from tests.appsec.utils import is_same_boolean
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
@@ -45,8 +46,7 @@ class Test_RetainTraces:
 
             if "appsec.event" not in span["meta"]:
                 raise Exception("Can't find appsec.event in span's meta")
-
-            if span["meta"]["appsec.event"] != "true":
+            if not is_same_boolean(actual=span["meta"]["appsec.event"], expected="true"):
                 raise Exception(f'appsec.event in span\'s meta should be "true", not {span["meta"]["appsec.event"]}')
 
             if "_sampling_priority_v1" not in span["metrics"]:
