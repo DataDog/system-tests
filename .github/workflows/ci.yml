@@ -49,7 +49,7 @@ jobs:
     name: Fail if target branch is specified
     needs:
       - compute_libraries_and_scenarios
-    if: needs.compute_libraries_and_scenarios.outputs.target-branch != ''
+    if: needs.compute_libraries_and_scenarios.outputs.has-target-branch == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Fail if PR title contains a target branch

@@ -1,13 +1,16 @@
 name: Get_target_branch
-description: "Gets target branch from the PR description"
+description: "Gets target branch from the PR description. Supports multiple [lang@branch] pairs."
 inputs:
   text:
     description: "Text from which to extract the target branch"
     required: true
 outputs:
   target-branch:
-    description: "Target branch"
+    description: "JSON map of library to target branch, e.g. {\"java\":\"my-branch\",\"dotnet\":\"other-branch\"}"
     value: ${{ steps.extract.outputs.target-branch }}
+  has-target-branch:
+    description: "Whether any target branch was found"
+    value: ${{ steps.extract.outputs.has-target-branch }}
 
 runs:
   using: composite
@@ -17,9 +20,33 @@ runs:
       shell: bash
       run: |
         LIBS=$(PYTHONPATH=. python3 utils/const/__main__.py COMPONENT_GROUPS all)
-        branch=$(echo "${INPUTS_TEXT}" | grep -ioP "\[(?:${LIBS}|agent)@[^]]+(?=\])" | tr -d '[:space:]' || true)
+        # Match all [lang@branch] pairs from the PR title
+        matches=$(echo "${INPUTS_TEXT}" | grep -ioP "\[(?:${LIBS}|agent)@[^]]+(?=\])" || true)
 
-        echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
+        if [ -z "$matches" ]; then
+          echo "target-branch=" >> $GITHUB_OUTPUT
+          echo "has-target-branch=false" >> $GITHUB_OUTPUT
+        else
+          # Build a JSON map of {library: branch} from all matches
+          json="{"
+          first=true
+          while IFS= read -r match; do
+            # match is like "[java@my-branch" (without closing bracket)
+            match=$(echo "$match" | tr -d '[:space:]')
+            lib=$(echo "$match" | sed 's/^\[//' | cut -d'@' -f1 | tr '[:upper:]' '[:lower:]')
+            branch=$(echo "$match" | cut -d'@' -f2-)
+            if [ "$first" = true ]; then
+              first=false
+            else
+              json="$json,"
+            fi
+            json="$json\"$lib\":\"$branch\""
+          done <<< "$matches"
+          json="$json}"
+
+          echo "target-branch=$json" >> $GITHUB_OUTPUT
+          echo "has-target-branch=true" >> $GITHUB_OUTPUT
+        fi
 
       # the preferred approach to handling untrusted input is to set the value of the expression to an intermediate environment variable
       env:
