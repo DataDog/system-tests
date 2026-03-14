@@ -3,8 +3,9 @@ import importlib.util
 import inspect
 import json
 import sys
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import yaml
 from jsonschema import validate
@@ -12,9 +13,6 @@ from jsonschema import validate
 from utils._context.core import context
 
 from .parser import _load_file
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 def assert_key_order(obj: dict, path: str = "") -> list[str]:
@@ -222,7 +220,7 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
 #     return errors
 
 
-def pretty(name: str, errors: dict[str, list]) -> str:
+def pretty(name: str, errors: dict[Path, list]) -> str:
     width = 80
     padding = width - len(name)
     ret = "\n" + "=" * (padding // 2 + padding % 2) + name + "=" * (padding // 2) + "\n"
@@ -231,6 +229,36 @@ def pretty(name: str, errors: dict[str, list]) -> str:
         for error in file_errors:
             ret += "\n".join("    " + line for line in str(error).splitlines()) + "\n"
     return ret
+
+
+def _load_and_validate_file(file: Path, validations: list[tuple[str, Callable]]) -> dict[str, list[BaseException]]:
+    """Load and validate a single manifest file.
+
+    Returns dict of validation_name -> errors.
+    """
+    file_errors: dict[str, list[BaseException]] = {}
+
+    try:
+        with open(file, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    except Exception as e:
+        file_errors["Loading errors"] = [e]
+        return file_errors
+
+    for name, validation in validations:
+        try:
+            errors = validation(data)
+        except BaseException as e:
+            errors = [e]
+        if errors:
+            file_errors[name] = errors
+
+    try:
+        _load_file(file, file.stem)
+    except Exception as e:
+        file_errors["Loading errors"] = [e]
+
+    return file_errors
 
 
 def validate_manifest_files(path: Path = Path("manifests/"), *, assume_sorted: bool = False) -> None:
@@ -246,35 +274,36 @@ def validate_manifest_files(path: Path = Path("manifests/"), *, assume_sorted: b
     if not assume_sorted:
         validations.append(("Key order errors", assert_key_order))
 
+    # Collect all YAML files
+    yaml_files = [file for file in path.iterdir() if file.is_file() and file.suffix == ".yml"]
+
     all_errors: dict[str, dict[Path, list[BaseException]]] = {}
 
-    for file in path.iterdir():
-        if file.is_dir():
-            continue
-        if file.suffix == ".yml":
-            with open(file, encoding="utf-8") as f:
-                data = yaml.safe_load(f)
+    # Parallel YAML loading and validation using ThreadPoolExecutor
+    # Use max_workers=4 for optimal performance without overwhelming the system
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        # Submit all files for processing
+        future_to_file = {executor.submit(_load_and_validate_file, file, validations): file for file in yaml_files}
 
-            for name, validation in validations:
-                try:
-                    errors = validation(data)
-                except BaseException as e:
-                    errors = [e]
-                if errors:
+        # Collect results as they complete
+        for future in as_completed(future_to_file):
+            file = future_to_file[future]
+            try:
+                file_errors = future.result()
+                for name, errors in file_errors.items():
                     if name not in all_errors:
                         all_errors[name] = {}
                     all_errors[name][file] = errors
-
-            try:
-                _load_file(file, file.stem)
             except Exception as e:
-                name = "Loading errors"
-                all_errors[name] = {}
+                # Handle any unexpected errors during processing
+                name = "Processing errors"
+                if name not in all_errors:
+                    all_errors[name] = {}
                 all_errors[name][file] = [e]
 
     message = ""
-    for name, errors in all_errors.items():
-        message += pretty(name, errors)
+    for name, error_dict in all_errors.items():
+        message += pretty(name, error_dict)
 
     assert not message, message
 
