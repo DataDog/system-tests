@@ -235,6 +235,11 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_OTLP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_OTLP"')
+      run: ./run.sh APM_TRACING_OTLP
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
       run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
