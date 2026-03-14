@@ -2,6 +2,7 @@ import base64
 from collections.abc import Generator
 import contextlib
 import datetime
+import gzip
 import hashlib
 from http import HTTPStatus
 import json
@@ -11,6 +12,7 @@ import time
 from typing import TypedDict, Any, cast
 import urllib.parse
 
+import msgpack
 import pytest
 import requests
 from retry import retry
@@ -386,24 +388,47 @@ class TestAgentAPI:
         self._write_log("info", resp_json)
         return resp_json
 
+    def _decode_llmobs_body(self, body_b64: str) -> list[Any]:
+        """Decode base64 body; handle gzip (Java), then JSON or MessagePack (Java) encoding.
+
+        Returns a list of events (each event is a dict with 'spans'). Java can send multiple
+        concatenated msgpack objects in one request; we use Unpacker to decode all of them
+        (same as llm-obs test/conftest.py).
+        """
+        decoded = base64.b64decode(body_b64)
+        if decoded[:2] == b"\x1f\x8b":
+            decoded = gzip.decompress(decoded)
+        # JSON (Python/Node tracer): starts with { or [
+        if decoded.lstrip().startswith((b"{", b"[")):
+            parsed = json.loads(decoded)
+            return [parsed] if isinstance(parsed, dict) else parsed
+        # MessagePack (Java tracer): binary format; may be multiple concatenated objects
+        unpacker = msgpack.Unpacker(unicode_errors="replace", strict_map_key=False)
+        unpacker.feed(decoded)
+        return list(unpacker)
+
     def llmobs_requests(self) -> list[Any]:
-        reqs = [r for r in self.requests() if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs")]
+        reqs = [
+            r
+            for r in self.requests()
+            if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs") or r["url"].endswith("/evp_proxy/v4/api/v2/llmobs")
+        ]
 
         events = []
         for r in reqs:
-            decoded_body = base64.b64decode(r["body"])
-            events.append(json.loads(decoded_body))
+            events.append(self._decode_llmobs_body(r["body"]))
         return events
 
-    def llmobs_evaluations_requests(self):
+    def llmobs_evaluations_requests(self) -> list[Any]:
         reqs = [
             r
             for r in self.requests()
             if r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v1/eval-metric")
             or r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v2/eval-metric")
         ]
-
-        return [json.loads(base64.b64decode(r["body"])) for r in reqs]
+        # One decoded body per request (evaluations are typically single JSON per request)
+        decoded_per_request = [self._decode_llmobs_body(r["body"]) for r in reqs]
+        return [events[0] for events in decoded_per_request]
 
     @contextlib.contextmanager
     def snapshot_context(self, token: str, ignores: list[str] | None = None):
