@@ -35,7 +35,7 @@ Do not store large payloads or request data as `self.<attribute>` on the test cl
 
 ## 6. Use Scenario-Level Timeouts, Not Test-Level Sleeps
 
-Do not add `time.sleep()` or explicit waits inside tests. If a longer wait is needed, use the scenario parameters `agent_interface_timeout` or `library_interface_timeout` defined in `utils/_context/_scenarios/endtoend.py`.
+Do not add `time.sleep()` or explicit waits inside `setup_` method in end-to-end scenarios. If a longer wait is needed, use the scenario parameters `agent_interface_timeout` or `library_interface_timeout` defined in `utils/_context/_scenarios/endtoend.py`.
 
 ## 7. Environment Variables at Scenario Level, Not in Dockerfiles
 
