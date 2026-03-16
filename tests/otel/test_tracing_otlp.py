@@ -10,24 +10,6 @@ from typing import Any
 from collections.abc import Iterator
 
 
-def _snake_to_camel(snake_key: str) -> str:
-    parts = snake_key.split("_")
-    return parts[0].lower() + "".join(p.capitalize() for p in parts[1:])
-
-
-def get_otlp_key(d: dict[str, Any] | None, snake_case_key: str, *, is_json: bool, default: Any = None) -> Any:  # noqa: ANN401
-    """Look up a field by its snake_case name when is_json is false, or its camelCase equivalent when is_json is true.
-
-    Binary Protobuf is deserialised with preserving_proto_field_name=True (snake_case keys, integer enums).
-    JSON Protobuf encoding uses camelCase keys per the OTLP spec.
-    See https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
-    """
-    if d is None:
-        return default
-    key = _snake_to_camel(snake_case_key) if is_json else snake_case_key
-    return d.get(key, default)
-
-
 # See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L153
 class SpanKind(Enum):
     UNSPECIFIED = 0
@@ -50,32 +32,18 @@ def get_keyvalue_generator(attributes: list[dict]) -> Iterator[tuple[str, Any]]:
         v = key_value["value"]
         # Use `is not None` rather than truthiness so zero/false/empty values are not skipped.
         # Binary protobuf uses snake_case keys; JSON encoding uses camelCase. Handle both.
-        if v.get("string_value") is not None:
-            yield key_value["key"], v["string_value"]
-        elif v.get("stringValue") is not None:
+        if v.get("stringValue") is not None:
             yield key_value["key"], v["stringValue"]
-        elif v.get("bool_value") is not None:
-            yield key_value["key"], v["bool_value"]
         elif v.get("boolValue") is not None:
             yield key_value["key"], v["boolValue"]
-        elif v.get("int_value") is not None:
-            yield key_value["key"], v["int_value"]
         elif v.get("intValue") is not None:
             yield key_value["key"], v["intValue"]
-        elif v.get("double_value") is not None:
-            yield key_value["key"], v["double_value"]
         elif v.get("doubleValue") is not None:
             yield key_value["key"], v["doubleValue"]
-        elif v.get("array_value") is not None:
-            yield key_value["key"], v["array_value"]
         elif v.get("arrayValue") is not None:
             yield key_value["key"], v["arrayValue"]
-        elif v.get("kvlist_value") is not None:
-            yield key_value["key"], v["kvlist_value"]
         elif v.get("kvlistValue") is not None:
             yield key_value["key"], v["kvlistValue"]
-        elif v.get("bytes_value") is not None:
-            yield key_value["key"], v["bytes_value"]
         elif v.get("bytesValue") is not None:
             yield key_value["key"], v["bytesValue"]
         else:
@@ -104,13 +72,13 @@ class Test_Otel_Tracing_OTLP:
         is_json = request_headers.get("content-type") == "application/json"
 
         # Assert that there is only one resource span (i.e. SDK) in the OTLP request
-        resource_spans = get_otlp_key(content, "resource_spans", is_json=is_json)
-        assert resource_spans is not None, f"missing '{_snake_to_camel('resource_spans')}' on content: {content}"
+        resource_spans = content["resourceSpans"]
+        assert resource_spans is not None, f"missing 'resourceSpans' on content: {content}"
         assert len(resource_spans) == 1, f"expected 1 resource span, got {len(resource_spans)}"
         resource_span = resource_spans[0]
 
         attributes = {
-            key_value["key"]: get_otlp_key(key_value["value"], "string_value", is_json=is_json)
+            key_value["key"]: key_value["value"]["stringValue"]
             for key_value in resource_span.get("resource").get("attributes")
         }
 
@@ -138,22 +106,24 @@ class Test_Otel_Tracing_OTLP:
             )
 
         # Assert that the span fields match the expected values
-        span_start_time_ns = int(get_otlp_key(span, "start_time_unix_nano", is_json=is_json))
-        span_end_time_ns = int(get_otlp_key(span, "end_time_unix_nano", is_json=is_json))
+        span_start_time_ns = int(span["startTimeUnixNano"])
+        span_end_time_ns = int(span["endTimeUnixNano"])
         assert span_start_time_ns >= self.start_time_ns
         assert span_end_time_ns >= span_start_time_ns
         assert span_end_time_ns <= self.end_time_ns
 
-        assert get_otlp_key(span, "name", is_json=is_json)
-        assert get_otlp_key(span, "kind", is_json=is_json) == SpanKind.SERVER.value
-        assert get_otlp_key(span, "attributes", is_json=is_json) is not None
-        status = get_otlp_key(span, "status", is_json=is_json)
+        assert span["name"]
+        assert span["kind"] == SpanKind.SERVER.value
+        assert span["attributes"] is not None
+        status = span["status"]
         # An absent or empty status dict both mean STATUS_CODE_UNSET (protobuf default = 0).
-        assert not status or status.get("code", StatusCode.STATUS_CODE_UNSET.value) == StatusCode.STATUS_CODE_UNSET.value
+        assert (
+            not status or status.get("code", StatusCode.STATUS_CODE_UNSET.value) == StatusCode.STATUS_CODE_UNSET.value
+        )
 
         # Assert HTTP tags
         # Convert attributes list to a dictionary, but for now only handle key_value objects with stringValue
-        span_attributes = dict(get_keyvalue_generator(get_otlp_key(span, "attributes", is_json=is_json)))
+        span_attributes = dict(get_keyvalue_generator(span["attributes"]))
         method = span_attributes.get("http.method") or span_attributes.get("http.request.method")
         status_code = span_attributes.get("http.status_code") or span_attributes.get("http.response.status_code")
         assert method == "GET", f"HTTP method is not GET, got {method}"
