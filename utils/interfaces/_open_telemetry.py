@@ -37,13 +37,11 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                 scope_spans = resource_span.get("scopeSpans") or []
                 for scope_span in scope_spans:
                     for span in scope_span.get("spans", []):
-                        for attribute in span.get("attributes", []):
-                            attr_key = attribute.get("key")
-                            attr_val = attribute.get("value", {}).get("stringValue")
-                            if (attr_key == "http.request.headers.user-agent" and rid in attr_val) or (
-                                attr_key == "http.useragent" and rid in attr_val
-                            ):
-                                yield span.get("trace_id") or span.get("traceId")
+                        attributes = span.get("attributes", {})
+                        request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
+                        user_agent_value = attributes.get("http.useragent", "")
+                        if rid in request_headers_user_agent_value or rid in user_agent_value:
+                            yield span.get("trace_id") or span.get("traceId")
 
     def get_otel_spans(self, request: HttpResponse):
         paths = ["/api/v0.2/traces", "/v1/traces"]
@@ -54,16 +52,15 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         for data in self.get_data(path_filters=paths):
             content = data.get("request").get("content")
-            resource_spans = content.get("resourceSpans")
+            logger.debug(f"[get_otel_spans] content: {content}")
+            resource_spans = content.get("resourceSpans") or []
             for resource_span in resource_spans:
                 scope_spans = resource_span.get("scopeSpans")
                 for scope_span in scope_spans:
                     for span in scope_span.get("spans"):
-                        for attribute in span.get("attributes", []):
-                            attr_key = attribute.get("key")
-                            attr_val = attribute.get("value").get("stringValue")
-                            if (attr_key == "http.request.headers.user-agent" and rid in attr_val) or (
-                                attr_key == "http.useragent" and rid in attr_val
-                            ):
-                                yield data.get("request"), content, span
-                                break  # Skip to next span
+                        attributes = span.get("attributes", {})
+                        request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
+                        user_agent_value = attributes.get("http.useragent", "")
+                        if rid in request_headers_user_agent_value or rid in user_agent_value:
+                            yield data.get("request"), content, span
+                            break  # Skip to next span

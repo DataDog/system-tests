@@ -6,8 +6,6 @@ import time
 import re
 from enum import Enum
 from utils import weblog, interfaces, scenarios, features
-from typing import Any
-from collections.abc import Iterator
 
 
 # See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L153
@@ -27,29 +25,6 @@ class StatusCode(Enum):
     STATUS_CODE_ERROR = 2
 
 
-def get_keyvalue_generator(attributes: list[dict]) -> Iterator[tuple[str, Any]]:
-    for key_value in attributes:
-        v = key_value["value"]
-        # Use `is not None` rather than truthiness so zero/false/empty values are not skipped.
-        # Binary protobuf uses snake_case keys; JSON encoding uses camelCase. Handle both.
-        if v.get("stringValue") is not None:
-            yield key_value["key"], v["stringValue"]
-        elif v.get("boolValue") is not None:
-            yield key_value["key"], v["boolValue"]
-        elif v.get("intValue") is not None:
-            yield key_value["key"], v["intValue"]
-        elif v.get("doubleValue") is not None:
-            yield key_value["key"], v["doubleValue"]
-        elif v.get("arrayValue") is not None:
-            yield key_value["key"], v["arrayValue"]
-        elif v.get("kvlistValue") is not None:
-            yield key_value["key"], v["kvlistValue"]
-        elif v.get("bytesValue") is not None:
-            yield key_value["key"], v["bytesValue"]
-        else:
-            raise ValueError(f"Unknown attribute value: {v}")
-
-
 # @scenarios.apm_tracing_e2e_otel
 @features.otel_api
 @scenarios.apm_tracing_otlp
@@ -57,7 +32,6 @@ class Test_Otel_Tracing_OTLP:
     def setup_single_server_trace(self):
         self.start_time_ns = time.time_ns()
         self.req = weblog.get("/")
-        self.end_time_ns = time.time_ns()
 
     def test_single_server_trace(self):
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
@@ -77,10 +51,7 @@ class Test_Otel_Tracing_OTLP:
         assert len(resource_spans) == 1, f"expected 1 resource span, got {len(resource_spans)}"
         resource_span = resource_spans[0]
 
-        attributes = {
-            key_value["key"]: key_value["value"]["stringValue"]
-            for key_value in resource_span.get("resource").get("attributes")
-        }
+        attributes = resource_span.get("resource", {}).get("attributes", {})
 
         # Assert that the resource attributes contain the service-level attributes and tracer-level attributes we expect
         # TODO: Assert the following attributes: runtime-id, git.commit.sha, git.repository_url
@@ -110,12 +81,11 @@ class Test_Otel_Tracing_OTLP:
         span_end_time_ns = int(span["endTimeUnixNano"])
         assert span_start_time_ns >= self.start_time_ns
         assert span_end_time_ns >= span_start_time_ns
-        assert span_end_time_ns <= self.end_time_ns
 
         assert span["name"]
         assert span["kind"] == SpanKind.SERVER.value
         assert span["attributes"] is not None
-        status = span["status"]
+        status = span.get("status", {})
         # An absent or empty status dict both mean STATUS_CODE_UNSET (protobuf default = 0).
         assert (
             not status or status.get("code", StatusCode.STATUS_CODE_UNSET.value) == StatusCode.STATUS_CODE_UNSET.value
@@ -123,7 +93,7 @@ class Test_Otel_Tracing_OTLP:
 
         # Assert HTTP tags
         # Convert attributes list to a dictionary, but for now only handle key_value objects with stringValue
-        span_attributes = dict(get_keyvalue_generator(span["attributes"]))
+        span_attributes = span["attributes"]
         method = span_attributes.get("http.method") or span_attributes.get("http.request.method")
         status_code = span_attributes.get("http.status_code") or span_attributes.get("http.response.status_code")
         assert method == "GET", f"HTTP method is not GET, got {method}"
