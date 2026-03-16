@@ -29,40 +29,36 @@ Versions in manifest files must use the `v` prefix for "this version and above" 
 
 - Ref: [add-new-test.md](mdc:docs/edit/add-new-test.md), [test-flow.md](mdc:docs/understand/test-flow.md)
 
-## 5. No Unnecessary Data Stored on Test Class
-
-Do not store large payloads or request data as `self.<attribute>` on the test class unless needed by a `test_*` method. All class attributes are serialized into logs and inflate their size. Prefer local variables or pass values directly.
-
-## 6. Use Scenario-Level Timeouts, Not Test-Level Sleeps
+## 5. Use Scenario-Level Timeouts, Not Test-Level Sleeps
 
 Do not add `time.sleep()` or explicit waits inside `setup_` method in end-to-end scenarios. If a longer wait is needed, use the scenario parameters `agent_interface_timeout` or `library_interface_timeout` defined in `utils/_context/_scenarios/endtoend.py`.
 
-## 7. Environment Variables at Scenario Level, Not in Dockerfiles
+## 6. Environment Variables at Scenario Level, Not in Dockerfiles
 
 Env vars that modify tracer/agent behavior should be set at the scenario level (`weblog_env`, `agent_env`), not in weblog Dockerfiles. Setting them in Dockerfiles affects all scenarios, not just the intended one.
 
 - Ref: [scenarios](mdc:utils/_context/_scenarios/__init__.py)
 
-## 8. Use Existing Utilities
+## 7. Use Existing Utilities
 
 Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular:
 
 - Constants/enums: check `utils/dd_constants.py` and `utils/_features.py`
 - Logger: use `from utils._logger import logger` — see [Using logger](mdc:docs/edit/README.md)
 
-## 9. Removed or Skipped Tests Need Manifest Entries
+## 8. Removed or Skipped Tests Need Manifest Entries
 
 When a test is removed or permanently skipped for a language, add an `irrelevant` entry in the corresponding manifest file. Otherwise, downstream processes (easy-win) will incorrectly assume the test passes.
 
 - Ref: [manifest.md](mdc:docs/edit/manifest.md)
 
-## 10. Unique Weblog Names
+## 9. Unique Weblog Names
 
 When adding a new weblog, verify the name is unique across all languages. Search existing weblogs under `utils/build/docker/` before using a name.
 
 - Ref: [build.md](mdc:docs/execute/build.md)
 
-## 11. Manifest YAML Syntax
+## 10. Manifest YAML Syntax
 
 - `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`)
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted
