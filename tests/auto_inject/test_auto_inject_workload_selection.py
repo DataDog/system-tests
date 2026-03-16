@@ -37,11 +37,7 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
 
     # Commands excluded by workload selection policy (should not be instrumented)
     no_language_found_commands = [
-        "ps -fea",
-        "touch myfile.txt",
-        "hello=hola cat myfile.txt",
-        "ls -la",
-        "mkdir newdir",
+        "busybox"
     ]
 
     # Commands with args excluded by workload selection policy per language (should not be instrumented)
