@@ -1,5 +1,6 @@
 
-FROM datadog/docker-library:dd-trace-cpp-ci-23768e9-amd64 AS build
+ARG TARGETARCH=amd64
+FROM datadog/docker-library:dd-trace-cpp-ci-23768e9-${TARGETARCH} AS build
 
 RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
