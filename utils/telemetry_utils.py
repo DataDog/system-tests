@@ -18,6 +18,7 @@ class TelemetryUtils:
 
     @staticmethod
     def get_dd_appsec_sca_enabled_str(library: ComponentVersion) -> str:
+        result = "DD_APPSEC_SCA_ENABLED"
         if library == "nodejs":
             result = "appsec.sca.enabled"
         elif library in ("php", "ruby"):
