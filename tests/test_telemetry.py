@@ -566,13 +566,13 @@ class Test_Telemetry:
         # Allow parent to flush telemetry after child (parent returns after waitpid)
         time.sleep(3)
 
-    def test_session_id_headers_across_forks(self):
-        """Test session ID headers in telemetry (Stable Service Instance Identifier RFC).
+    def setup_session_id_headers_across_spawned(self):
+        """Trigger spawn_child endpoint with exec (fork=false) for session ID header validation."""
+        weblog.get("/spawn_child", params={"sleep": 2, "crash": False, "fork": False})
+        time.sleep(3)
 
-        setup_session_id_headers_across_forks triggers spawn_child, creating a parent-child pair.
-        Validates: DD-Session-ID matches runtime_id; root has no DD-Root/DD-Parent-Session-ID;
-        child has DD-Root-Session-ID pointing to root.
-        """
+    def _validate_session_id_headers_across_processes(self) -> None:
+        """Validate DD-Session-ID, DD-Root-Session-ID, DD-Parent-Session-ID in telemetry."""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if not telemetry_data:
             raise ValueError("No telemetry data to validate on")
@@ -596,8 +596,8 @@ class Test_Telemetry:
                 child_sid = sid
                 break
 
-        assert child_sid is not None, "No forked process found (DD-Root-Session-ID missing)"
-        assert root_sid is not None, "No forked process found (DD-Root-Session-ID missing)"
+        assert child_sid is not None, "No child process found (DD-Root-Session-ID missing)"
+        assert root_sid is not None, "No child process found (DD-Root-Session-ID missing)"
 
         # Validate DD-Session-ID matches runtime_id when present (root may omit header in some tracer versions)
         for data in telemetry_data:
@@ -643,6 +643,14 @@ class Test_Telemetry:
             assert parent_sid == root_sid or parent_sid in by_session_id, (
                 f"DD-Parent-Session-ID '{parent_sid}' must be root or in telemetry"
             )
+
+    def test_session_id_headers_across_forks(self):
+        """Test session ID headers in telemetry (fork=true). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
+
+    def test_session_id_headers_across_spawned(self):
+        """Test session ID headers in telemetry (fork=false, exec). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
 
 
 @features.telemetry_app_started_event

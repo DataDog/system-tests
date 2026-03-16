@@ -1399,7 +1399,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (fork not supported (session ID test requires fork=true))
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: 'missing_feature (spawn_child: net-http, not enabled yet)'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: 'missing_feature (spawn_child: net-http, not enabled yet)'
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1

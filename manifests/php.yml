@@ -949,7 +949,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration: missing_feature (Telemetry is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once: irrelevant (PHP registers 2 telemetry services)
   tests/test_telemetry.py::Test_Telemetry::test_seq_id: irrelevant (PHP registers 2 telemetry services)
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (fork not supported (session ID test requires fork=true))
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: 'missing_feature (spawn_child: apache-mod, php-fpm, not enabled yet)'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: 'missing_feature (spawn_child: apache-mod, php-fpm, not enabled yet)'
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v0.99.1
   tests/test_telemetry.py::Test_TelemetryV2: v0.90
