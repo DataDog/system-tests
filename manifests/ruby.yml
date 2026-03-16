@@ -1057,7 +1057,6 @@ manifest:
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_install_supported_runtime:
-    - declaration: bug (INPLAT-876)
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
@@ -1079,7 +1078,10 @@ manifest:
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: bug (APPSEC-60983)
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: bug (APPSEC-60983)
+      component_version: '<2.29.0-dev'
+      weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-884)
     - declaration: missing_feature (Not implemented)
