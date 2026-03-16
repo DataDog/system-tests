@@ -33,7 +33,6 @@ def deserialize_otlp_v1_trace(content: dict) -> dict:
     #
     # We'll remap them to simple key-value pairs {"key": <VALUE>, "key2": <VALUE2>, etc.}
     for resource_span in content.get("resourceSpans", []):
-
         resource = resource_span.get("resource", {})
         if resource:
             remapped_attributes = dict(_flatten_otlp_attributes(resource.get("attributes", [])))

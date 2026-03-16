@@ -182,17 +182,45 @@ def deserialize_http_message(
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
-            return deserialize_otlp_v1_trace(MessageToDict(ExportTraceServiceRequest.FromString(content), preserving_proto_field_name=False, use_integers_for_enums=True))
+            return deserialize_otlp_v1_trace(
+                MessageToDict(
+                    ExportTraceServiceRequest.FromString(content),
+                    preserving_proto_field_name=False,
+                    use_integers_for_enums=True,
+                )
+            )
         if dd_protocol == "otlp" and "metrics" in path:
-            return MessageToDict(ExportMetricsServiceRequest.FromString(content), preserving_proto_field_name=False, use_integers_for_enums=True)
+            return MessageToDict(
+                ExportMetricsServiceRequest.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if dd_protocol == "otlp" and "logs" in path:
-            return MessageToDict(ExportLogsServiceRequest.FromString(content), preserving_proto_field_name=False, use_integers_for_enums=True)
+            return MessageToDict(
+                ExportLogsServiceRequest.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/v1/traces":
-            return deserialize_otlp_v1_trace(MessageToDict(ExportTraceServiceResponse.FromString(content), preserving_proto_field_name=False, use_integers_for_enums=True))
+            return deserialize_otlp_v1_trace(
+                MessageToDict(
+                    ExportTraceServiceResponse.FromString(content),
+                    preserving_proto_field_name=False,
+                    use_integers_for_enums=True,
+                )
+            )
         if path == "/v1/metrics":
-            return MessageToDict(ExportMetricsServiceResponse.FromString(content), preserving_proto_field_name=False, use_integers_for_enums=True)
+            return MessageToDict(
+                ExportMetricsServiceResponse.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/v1/logs":
-            return MessageToDict(ExportLogsServiceResponse.FromString(content), preserving_proto_field_name=False, use_integers_for_enums=True)
+            return MessageToDict(
+                ExportLogsServiceResponse.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/api/v0.2/traces":
             result = MessageToDict(TracePayload.FromString(content))
             _deserialized_nested_json_from_trace_payloads(result, interface)
