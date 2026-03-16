@@ -1,5 +1,5 @@
 import pytest
-from utils import context, features, interfaces, logger, missing_feature, scenarios, weblog
+from utils import features, interfaces, logger, scenarios, weblog
 
 """
 Test scenarios we want:
@@ -102,16 +102,6 @@ class Test_Client_Stats:
     def setup_grpc_status_code(self):
         self.grpc_request = weblog.grpc("grpc stats")
 
-    @missing_feature(
-        context.library != "java" or context.library < "java@1.61.0",
-        reason="GRPCStatusCode stats payload field was added in java@1.61.0",
-        force_skip=True,
-    )
-    @missing_feature(
-        context.weblog_variant != "spring-boot",
-        reason="gRPC stats coverage requires a weblog variant with gRPC support",
-        force_skip=True,
-    )
     def test_grpc_status_code(self):
         grpc_stats = []
 
