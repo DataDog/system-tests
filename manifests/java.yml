@@ -1634,6 +1634,9 @@ manifest:
         ratpack: missing_feature (endpoint not implemented)
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_telemetry_sca_enabled_propagated:
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
+      component_version: '>=1.60.1'
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v1.45.0
@@ -3054,7 +3057,7 @@ manifest:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
-    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10788)
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
       component_version: '>=1.60.1'
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py:
@@ -3066,6 +3069,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
@@ -3712,20 +3716,22 @@ manifest:
     - component_version: ">=1.57.0"
       declaration: flaky (APMAPI-1785)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
-  tests/parametric/test_telemetry.py::Test_Defaults: v1.31.0
-  tests/parametric/test_telemetry.py::Test_Environment: v1.31.0
+  tests/parametric/test_telemetry.py::Test_Defaults: '>=1.31.0 <1.60.1'  # temporarily disabling until Java PR is merged (https://github.com/DataDog/dd-trace-java/pull/10823)
+  tests/parametric/test_telemetry.py::Test_Environment: '>=1.31.0 <1.60.1'  # temporarily disabling until Java PR is merged (https://github.com/DataDog/dd-trace-java/pull/10823)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v1.47.0-SNAPSHOT
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: '>=1.47.0-SNAPSHOT <1.60.1'
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id:
     - declaration: missing_feature (Not implemented)
       component_version: <=1.53.0-SNAPSHOT
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
+      component_version: '>=1.60.1'
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
   : irrelevant (temporary use case for python, ruby and nodejs)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v1.27.0
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.34.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=1.34.0 <1.60.1'  # temporarily disabling until Java PR is merged (https://github.com/DataDog/dd-trace-java/pull/10823)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
-  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.51.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: '>=1.51.0 <1.60.1'  # temporarily disabling until Java PR is merged (https://github.com/DataDog/dd-trace-java/pull/10823)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.111.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.25.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
@@ -4131,6 +4137,7 @@ manifest:
         "*": irrelevant (RUM injection only supported for spring-boot)
         spring-boot: v1.49.0
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v1.60.0-SNAPSHOT+c95286e6a5
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
         "*": v1.49.0
@@ -4288,6 +4295,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
+      component_version: '>=1.60.1'
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -4310,6 +4319,8 @@ manifest:
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
+    - declaration: missing_feature (Temporarily disabling until Java PR is merged https://github.com/DataDog/dd-trace-java/pull/10823)
+      component_version: '>=1.60.1'
     - weblog_declaration:
         "*": v1.54.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
