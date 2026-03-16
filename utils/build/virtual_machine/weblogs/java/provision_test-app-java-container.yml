@@ -7,8 +7,9 @@ lang_variant:
         os_branch: debian
         remote-command: |
           echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          printf 'Package: *\nPin: release a=unstable\nPin-Priority: 50\n' | sudo tee /etc/apt/preferences.d/limit-unstable
           sudo apt update
-          sudo apt -y install openjdk-11-jdk
+          sudo apt -o Dpkg::Options::="--force-overwrite" -y install openjdk-11-jdk
 
       - os_type: linux
         os_distro: deb
