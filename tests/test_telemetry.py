@@ -560,6 +560,90 @@ class Test_Telemetry:
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
+    def setup_session_id_headers_across_forks(self):
+        """Trigger spawn_child endpoint to create a fork tree for session ID header validation."""
+        weblog.get("/spawn_child", params={"sleep": 2, "crash": False, "fork": True})
+        # Allow parent to flush telemetry after child (parent returns after waitpid)
+        time.sleep(3)
+
+    def test_session_id_headers_across_forks(self):
+        """Test session ID headers in telemetry (Stable Service Instance Identifier RFC).
+
+        setup_session_id_headers_across_forks triggers spawn_child, creating a parent-child pair.
+        Validates: DD-Session-ID matches runtime_id; root has no DD-Root/DD-Parent-Session-ID;
+        child has DD-Root-Session-ID pointing to root.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        if not telemetry_data:
+            raise ValueError("No telemetry data to validate on")
+
+        # Group by DD-Session-ID (equals runtime_id)
+        by_session_id: dict[str, list[dict]] = defaultdict(list)
+        for data in telemetry_data:
+            sid = get_header(data, "request", "dd-session-id")
+            if sid:
+                by_session_id[sid].append(data)
+
+        if not by_session_id:
+            raise ValueError("No telemetry with DD-Session-ID found")
+
+        # Find child (has DD-Root-Session-ID)
+        child_sid = None
+        root_sid = None
+        for sid, requests in by_session_id.items():
+            root_sid = get_header(requests[0], "request", "dd-root-session-id")
+            if root_sid:
+                child_sid = sid
+                break
+
+        assert child_sid is not None, "No forked process found (DD-Root-Session-ID missing)"
+        assert root_sid is not None, "No forked process found (DD-Root-Session-ID missing)"
+
+        # Validate DD-Session-ID matches runtime_id when present (root may omit header in some tracer versions)
+        for data in telemetry_data:
+            runtime_id = data["request"]["content"].get("runtime_id")
+            sid = get_header(data, "request", "dd-session-id")
+            if runtime_id and sid is not None:
+                assert sid == runtime_id, (
+                    f"DD-Session-ID '{sid}' != runtime_id '{runtime_id}' in {data['log_filename']}"
+                )
+
+        # Root: find by runtime_id (root may not have DD-Session-ID so may not be in by_session_id)
+        root_requests = by_session_id.get(root_sid, [])
+        root_data: dict | None = root_requests[0] if root_requests else None
+        if root_data is None:
+            root_data = next(
+                (d for d in telemetry_data if d["request"]["content"].get("runtime_id") == root_sid),
+                None,
+            )
+        if root_data is None:
+            runtime_ids = {d["request"]["content"].get("runtime_id") for d in telemetry_data}
+            session_ids = set(by_session_id.keys())
+            raise AssertionError(
+                f"Root session '{root_sid}' (from child's DD-Root-Session-ID) not in telemetry. "
+                f"Parent may not have flushed before validation. "
+                f"runtime_ids in logs: {runtime_ids}, session_ids: {session_ids}"
+            )
+
+        # Root: no DD-Root-Session-ID, no DD-Parent-Session-ID
+        assert get_header(root_data, "request", "dd-root-session-id") is None, "Root must not have DD-Root-Session-ID"
+        assert get_header(root_data, "request", "dd-parent-session-id") is None, (
+            "Root must not have DD-Parent-Session-ID"
+        )
+
+        # Child: DD-Root-Session-ID points to root
+        child_data = by_session_id[child_sid][0]
+        assert get_header(child_data, "request", "dd-root-session-id") == root_sid, (
+            "Child DD-Root-Session-ID must match root"
+        )
+
+        # DD-Parent-Session-ID if present must reference root or known session
+        parent_sid = get_header(child_data, "request", "dd-parent-session-id")
+        if parent_sid:
+            assert parent_sid == root_sid or parent_sid in by_session_id, (
+                f"DD-Parent-Session-ID '{parent_sid}' must be root or in telemetry"
+            )
+
 
 @features.telemetry_app_started_event
 @scenarios.telemetry_enhanced_config_reporting

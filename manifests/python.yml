@@ -2088,6 +2088,14 @@ manifest:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
     - declaration: bug (APMAPI-1858)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        "*": v2.9.0
+        tornado: missing_feature (spawn_child endpoint not implemented)
+        django-poc: missing_feature (spawn_child endpoint not implemented)
+        django-py3.13: missing_feature (spawn_child endpoint not implemented)
+        fastapi: missing_feature (spawn_child endpoint not implemented)
+        python3.12: missing_feature (spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant

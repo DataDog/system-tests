@@ -318,6 +318,35 @@ public class App {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
+    @GetMapping("/spawn_child")
+    ResponseEntity<String> spawnChild(
+            @RequestParam(required = false) Integer sleep,
+            @RequestParam(required = false) String crash,
+            @RequestParam(required = false) String fork) {
+        if (sleep == null || sleep < 0) {
+            return ResponseEntity.badRequest().body("sleep required");
+        }
+        if (crash == null || (!crash.equalsIgnoreCase("true") && !crash.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("crash required (boolean)");
+        }
+        if (fork == null || (!fork.equalsIgnoreCase("true") && !fork.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("fork required (boolean)");
+        }
+        if (fork.equalsIgnoreCase("true")) {
+            return ResponseEntity.badRequest().body("fork not supported");
+        }
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "sh", "-c",
+                    String.format("sleep %d && %s", sleep, crash.equalsIgnoreCase("true") ? "kill -SEGV $$" : "exit 0"));
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+            return ResponseEntity.ok("Process " + p.pid() + " has exited with code " + exitCode);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed: " + e.getMessage());
+        }
+    }
+
     @RequestMapping("/stats-unique")
     ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));

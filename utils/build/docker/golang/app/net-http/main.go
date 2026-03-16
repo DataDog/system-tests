@@ -187,6 +187,8 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/spawn_child", common.SpawnChild)
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		if url == "" {

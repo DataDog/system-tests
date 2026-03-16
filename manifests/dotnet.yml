@@ -1115,6 +1115,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Easy win for poc, uds and version 3.36.0
     - declaration: bug (APMAPI-728)
       component_version: '>=3.4.0'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (fork not supported (session ID test requires fork=true))
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: v3.25.0
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v2.35.0

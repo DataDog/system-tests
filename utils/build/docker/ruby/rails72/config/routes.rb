@@ -16,6 +16,7 @@ Rails.application.routes.draw do
 
   get '/healthcheck' => 'internal#healthcheck'
   get '/flush' => 'internal#flush'
+  get '/spawn_child' => 'system_test#spawn_child'
 
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
