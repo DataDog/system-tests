@@ -108,7 +108,8 @@ public class Main {
                                 Span span = tracer.buildSpan("test-span").start();
                                 span.setTag("test-tag", "my value");
                                 try {
-                                    ctx.getResponse().send("text/plain", "Hello World!");
+                                    ctx.getResponse().getHeaders().set("Content-Length", "13");
+                                    ctx.getResponse().send("text/plain", "Hello world!\n");
                                 } finally {
                                     span.finish();
                                 }
@@ -260,6 +261,8 @@ public class Main {
                             })
                             .get("params/:params?:.*",
                                     ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
+                            .get("resource_renaming/:path?:.*",
+                                    ctx -> ctx.getResponse().send("text/plain", "ok"))
                             .path("status", ctx -> {
                                 String codeParam = ctx.getRequest().getQueryParams().get("code");
                                 int code = Integer.parseInt(codeParam);
@@ -367,6 +370,21 @@ public class Main {
                                 String serviceName = qp.get("serviceName");
                                 setRootSpanTag("service", serviceName);
                                 ctx.getResponse().send("ok");
+                            })
+                            .get("inferred-proxy/span-creation", ctx -> {
+                                String statusCodeParam = ctx.getRequest().getQueryParams().get("status_code");
+                                int statusCode = 200;
+                                if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                                    try {
+                                        statusCode = Integer.parseInt(statusCodeParam);
+                                    } catch (NumberFormatException e) {
+                                        statusCode = 400;
+                                    }
+                                }
+                                System.out.println("Received an API Gateway request:");
+                                Headers headers = ctx.getRequest().getHeaders();
+                                headers.getNames().forEach(name -> System.out.println(name + ": " + headers.get(name)));
+                                ctx.getResponse().status(statusCode).send("text/plain", "ok");
                             })
                             .get("set_cookie", ctx -> {
                                 final String name = ctx.getRequest().getQueryParams().get("name");

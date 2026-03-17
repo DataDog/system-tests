@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-02 (156 PR merged)
+
+* 2026-02-26 [Adding the datadog mcp to system-tests cursor configuration](https://github.com/DataDog/system-tests/pull/6380) by @nccatoni
+* 2026-02-23 [Support v1 trace format from libraries](https://github.com/DataDog/system-tests/pull/6360) by @cbeauchesne and @ajgajg1134
+* 2026-02-19 [[ruby] Use dd-trace-rb version as it is in the library](https://github.com/DataDog/system-tests/pull/6340) by @p-datadog
+* 2026-02-10 [codex: pr review rules](https://github.com/DataDog/system-tests/pull/6246) by @robertomonteromiguel
+* 2026-02-06 [Activate ANN001 format rules (typings) on K8s utils](https://github.com/DataDog/system-tests/pull/6231) by @robertomonteromiguel
+* 2026-02-02 [Update K8s Components github workflow](https://github.com/DataDog/system-tests/pull/6157) by @robertomonteromiguel
+* 2026-02-06 [[APMSP-2608] Introduce weblog infra abstraction](https://github.com/DataDog/system-tests/pull/6154) by @cbeauchesne
+
+
+### 2026-01 (184 PR merged)
+
+* 2026-01-30 [Adds library branch selector in debug harness](https://github.com/DataDog/system-tests/pull/6159) by @cbeauchesne
+* 2026-01-27 [AWS SSI: Better exception handler](https://github.com/DataDog/system-tests/pull/6120) by @robertomonteromiguel
+* 2026-01-26 [refactor(parametric): implement version-aware RC capability definitions](https://github.com/DataDog/system-tests/pull/6100) by @watson
+* 2026-01-29 [Add two new decorators to replace the force skip option](https://github.com/DataDog/system-tests/pull/6091) by @nccatoni
+* 2026-01-30 [python: add tornado weblog](https://github.com/DataDog/system-tests/pull/6079) by @florentinl
+* 2026-01-21 [Pushing system-tests CI executions to Test Optim  on DataDog prod](https://github.com/DataDog/system-tests/pull/6075) by @nccatoni
+* 2026-01-19 [python: improved local development experience for scenarios with a python weblog](https://github.com/DataDog/system-tests/pull/6035) by @florentinl
+* 2026-01-27 [[envoy / haproxy] Create new components manifests](https://github.com/DataDog/system-tests/pull/6024) by @e-n-0
+* 2026-01-12 [Allow code editors to collect tests](https://github.com/DataDog/system-tests/pull/5997) by @florentinl
+* 2026-01-07 [New AWs Account for local develpment](https://github.com/DataDog/system-tests/pull/5913) by @robertomonteromiguel
+* 2026-01-28 [K8s: Add cluster agent dev into the job matrix](https://github.com/DataDog/system-tests/pull/5881) by @robertomonteromiguel
+* 2026-01-02 [Test auto activation migration](https://github.com/DataDog/system-tests/pull/5740) by @nccatoni
+
+
 ### 2025-12 (109 PR merged)
 
 * 2025-12-30 [allows list of weblogs in weblog declaration keys](https://github.com/DataDog/system-tests/pull/5919) by @christophe-papazian

@@ -6,21 +6,32 @@ inputs:
     default: datadoghq.com
   datadog_api_key:
     description: "A valid DD_API_KEY"
+  ci_environment:
+    description: "CI environment running the tests (dev/prod/custom), used for Test Optimization tagging"
+    default: ""
 
 runs:
   using: composite
   steps:
+    - name: Skip for dependabot
+      if: github.event.pull_request.user.login == 'dependabot[bot]'
+      shell: bash
+      run: echo "Skipping TestOptim push for dependabot PRs"
+
     - name: Install datadog-ci
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
       shell: bash
       run: npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
 
     - name: checkout owner repo
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         path: repo
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
       shell: bash
       run: |
         cd repo
@@ -33,3 +44,4 @@ runs:
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY:  ${{ inputs.datadog_api_key }}
+        DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}

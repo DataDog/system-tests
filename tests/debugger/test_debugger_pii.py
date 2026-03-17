@@ -4,13 +4,7 @@
 
 import tests.debugger.utils as debugger
 
-from utils import (
-    scenarios,
-    features,
-    bug,
-    missing_feature,
-    context,
-)
+from utils import context, features, scenarios, slow
 
 REDACTED_KEYS = [
     "_2fa",
@@ -113,6 +107,10 @@ REDACTED_TYPES = ["customPii"]
 @features.debugger_pii_redaction
 class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
     ############ setup ############
+    _max_retries = 3
+    _timeout_first = 5
+    _timeout_next = 60
+
     def _setup(self, *, line_probe: bool = False):
         self.initialize_weblog_remote_config()
 
@@ -124,9 +122,19 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         self.set_probes(probes)
         self.send_rc_probes()
         self.wait_for_all_probes(statuses=["INSTALLED"])
-        self.send_weblog_request("/debugger/pii")
-        self.wait_for_all_probes(statuses=["EMITTING"])
-        self.wait_for_snapshot_received()
+
+        retries = 0
+        timeout = self._timeout_first
+        snapshot_found = False
+
+        while not snapshot_found and retries < self._max_retries:
+            self.send_weblog_request("/debugger/pii", reset=(retries == 0))
+            snapshot_found = self.wait_for_all_snapshots(timeout=timeout)
+            timeout = self._timeout_next
+            retries += 1
+
+        if not snapshot_found:
+            self.setup_failures.append("Snapshot was not received")
 
     ############ assert ############
     def _assert(self, excluded_identifiers: list[str] | None = None, *, line_probe: bool = False):
@@ -223,14 +231,7 @@ class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     def setup_pii_redaction_method_full(self):
         self._setup()
 
-    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted", force_skip=True)
-    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted", force_skip=True)
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(
-        context.library == "ruby", reason="Local variable capture not implemented for method probes", force_skip=True
-    )
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_pii_redaction_method_full(self):
         self._assert()
 
@@ -248,8 +249,6 @@ class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionT
     def setup_pii_redaction_excluded_identifiers(self):
         self._setup(line_probe=True)
 
-    @bug(context.library == "ruby", reason="DEBUG-3747")
-    @bug(context.library == "python", reason="DEBUG-3746")
     def test_pii_redaction_excluded_identifiers(self):
         excluded_identifiers = ["_2fa", "cookie", "sessionid"]
         self._assert(excluded_identifiers, line_probe=True)

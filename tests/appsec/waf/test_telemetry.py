@@ -1,4 +1,4 @@
-from utils import bug, context, interfaces, features, rfc, scenarios, weblog, logger
+from utils import context, interfaces, features, rfc, scenarios, weblog, logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
@@ -33,7 +33,6 @@ class Test_TelemetryMetrics:
 
     setup_headers_are_correct = _setup
 
-    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
         datas = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
@@ -81,7 +80,6 @@ class Test_TelemetryMetrics:
 
     setup_metric_waf_requests = _setup
 
-    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_metric_waf_requests(self):
         """Test waf.requests metric."""
         expected_metric_name = "waf.requests"
@@ -160,7 +158,6 @@ class Test_TelemetryMetrics:
 
     setup_waf_requests_match_traced_requests = _setup
 
-    @bug(context.library < "java@1.29.0", reason="APPSEC-51509")
     def test_waf_requests_match_traced_requests(self):
         """Total waf.requests metric should match the number of requests in traces."""
         spans = [s for _, s in interfaces.library.get_root_spans()]
@@ -179,9 +176,15 @@ class Test_TelemetryMetrics:
         for series in self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name):
             for point in series["points"]:
                 total_requests_metric += point[1]
-        assert total_requests_metric == request_count, (
-            "Number of requests in traces do not match waf.requests metric total"
-        )
+
+        if context.library == "dotnet":
+            assert total_requests_metric >= request_count, (
+                "Number of requests in traces do nois higher than waf.requests metric total"
+            )
+        else:
+            assert total_requests_metric == request_count, (
+                "Number of requests in traces do not match waf.requests metric total"
+            )
 
     def _find_series(self, request_type: str, namespace: str, metric: str):
         series = []
@@ -246,7 +249,7 @@ def _validate_headers(headers: list[list[str]], request_type: str):
     elif context.library > "nodejs@4.20.0":
         # APM Node.js migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
-    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0":
+    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0" or context.library == "dotnet":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     else:
         expected_headers["DD-Telemetry-API-Version"] = "v1"

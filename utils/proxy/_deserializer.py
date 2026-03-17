@@ -2,11 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
 import gzip
 import io
 import json
-import logging
 from hashlib import md5
 from http import HTTPStatus
 import traceback
@@ -28,10 +26,8 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
-from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
-
-
-logger = logging.getLogger(__name__)
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
+from .utils import logger
 
 
 def get_header_value(name: str, headers: list[tuple[str, str]]):
@@ -91,13 +87,12 @@ def _decode_v_0_5_traces(content: tuple):
 
 
 def deserialize_dd_appsec_s_meta(payload: str):
-    """Meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings"""
+    """Meta value for _dd.appsec.s.<address> are either JSON or b64-gzip-json encoded.
 
-    try:
-        return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
-    except Exception:
-        # b64/gzip is optional
-        return json.loads(payload)
+    Uses the same decoding logic as v1 trace attribute handling. Raises ValueError
+    if json, base64, or gzip decoding fails.
+    """
+    return decode_appsec_s_value(payload)
 
 
 def deserialize_http_message(
@@ -260,7 +255,7 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
 ) -> None:
     content_disposition = headers.get("content-disposition", "<not set>")
 
@@ -323,15 +318,16 @@ def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):
                 _deserialize_meta(span)
 
 
+_json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json"])
+
+
 def _deserialize_meta(span: dict):
     meta = span.get("meta", {})
-
-    keys = ("_dd.appsec.json", "_dd.iast.json")
 
     for key in list(meta):
         if key.startswith("_dd.appsec.s."):
             meta[key] = deserialize_dd_appsec_s_meta(meta[key])
-        elif key in keys:
+        elif key in _json_meta_values:
             meta[key] = json.loads(meta[key])
 
 

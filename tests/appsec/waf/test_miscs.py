@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules, missing_feature
+from utils import weblog, interfaces, scenarios, features, waf_rules
 
 
 @features.appsec_response_blocking
@@ -12,7 +12,6 @@ class Test_404:
     def setup_404(self):
         self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_404(self):
         """AppSec WAF catches attacks, even on 404"""
 
@@ -46,10 +45,6 @@ class Test_MultipleAttacks:
     def setup_basic(self):
         self.r_basic = weblog.get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
     def test_basic(self):
         """Basic test with more than one attack"""
         interfaces.library.assert_waf_attack(self.r_basic, pattern="/../")

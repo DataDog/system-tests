@@ -18,6 +18,25 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 * Profiling: add a ddprof release tar to the binaries folder. Call the `install_ddprof`.
 
+## C++ Kong library (cpp_kong)
+
+There are three ways to run system-tests with a custom Kong plugin:
+
+1. Place a `kong-plugin-ddtrace*.rock` file (`.src.rock` artifact from CI) in `binaries/`. The build will extract the source files from the rock package.
+2. Clone the kong-plugin-ddtrace repo inside `binaries/`:
+    ```bash
+    cd binaries && git clone https://github.com/DataDog/kong-plugin-ddtrace.git
+    ```
+3. Use `load-binary.sh` to download the latest CI artifact automatically:
+    ```bash
+    ./utils/scripts/load-binary.sh cpp_kong
+    ```
+
+To test with a custom dd-trace-cpp C binding, you can additionally:
+* Create a file `cpp-load-from-git` in `binaries/` (e.g. `https://github.com/DataDog/dd-trace-cpp@main`)
+* Clone dd-trace-cpp inside `binaries/`
+* Place a pre-built `libdd_trace_c.so` in `binaries/`
+
 ## .Net library
 
 * Add a file `datadog-dotnet-apm-<VERSION>.tar.gz` in `binaries/`. `<VERSION>` must be a valid version number.
@@ -144,6 +163,16 @@ Use one of the four options:
 - Add a `python-load-from-pip` file in `binaries`, its content will be sent to `pip install`
 - Add a `python-load-from-s3` file in `binaries`, with a dd-trace-py commit ID or branch inside, the corresponding wheel will be loaded from S3
 - Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
+
+For fast local development (for `PARAMETRIC`, `INTEGRATION_FRAMEWORKS`, otel and end-to-end scenarios):
+- **Prerequisites (for most use cases, a one-time setup)**: Make sure the native extensions are built for the Python version being used by the scenario you are running. For example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the `python:3.11-slim` image.
+  - If they are not available (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` does not exist), you will need to build them.
+  - Ensure Docker is running. In `dd-trace-py`, run `scripts/ddtest` to start up a shell which is based off of the `testrunner` image.
+  - Run `pyenv local [PYTHON_VERSION] && pip install -e .` to install the dd-trace-py package in development mode, which will build the native extensions. You need to replace `[PYTHON_VERSION]` with the appropriate version for the weblog you want to run (for example `3.11` for flask-poc). The required version can be found in the base image docker file of the weblog.
+  - Verify the native extensions are built by checking for the existence of `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so`.
+  - For any of these steps, swap out the Python version used/checked and the architecture (e.g. `aarch64-linux-gnu` or `x86_64-linux-gnu`) as needed.
+- Add a `python-load-from-local` file in `binaries`, with its contents being the relative path to the dd-trace-py repo on your machine
+- Build and run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
 
 
 ## Ruby library

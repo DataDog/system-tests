@@ -1,5 +1,15 @@
 {
     "normalization_rules": {
+        "DD_HAPROXY_SPOA_HEALTHCHECK_PORT": "haproxy_spoa_healthcheck_port",
+        "DD_HAPROXY_SPOA_HOST": "haproxy_spoa_host",
+        "DD_HAPROXY_SPOA_PORT": "haproxy_spoa_port",
+        "DD_SERVICE_EXTENSION_HEALTHCHECK_PORT": "service_extension_healthcheck_port",
+        "DD_SERVICE_EXTENSION_HOST": "service_extension_host",
+        "DD_SERVICE_EXTENSION_OBSERVABILITY_MODE": "service_extension_observability_mode",
+        "DD_SERVICE_EXTENSION_PORT": "service_extension_port",
+        "DD_SERVICE_EXTENSION_TLS": "service_extension_tls",
+        "DD_SERVICE_EXTENSION_TLS_CERT_FILE": "service_extension_tls_cert_file",
+        "DD_SERVICE_EXTENSION_TLS_KEY_FILE": "service_extension_tls_key_file",
         "cgo_enabled": "go_cgo_enabled",
         "endpoint_count_enabled": "endpoint_count_enabled",
         "execution_trace_enabled": "execution_trace_enabled",
@@ -16,6 +26,17 @@
         "withenablementmode": "appsec_enablement_mode"
     },
     "prefix_block_list": [
+        "DD_AGENTLESS",
+        "DD_BLOCK_",
+        "DD_CPU_",
+        "DD_DELTA_PROFILES",
+        "DD_FLUSH_ON_EXIT",
+        "DD_MAX_GOROUTINES_WAIT",
+        "DD_MUTEX_PROFILE_FRACTION",
+        "DD_NUM_CUSTOM_PROFILER_LABEL_KEYS",
+        "DD_OSINFO_LIBDL_PATH",
+        "DD_PROFILE_PERIOD",
+        "DD_UPLOAD_TIMEOUT",
         "agentless",
         "block_",
         "cpu_",
@@ -26,8 +47,6 @@
         "num_custom_profiler_label_keys",
         "osinfo_libdl_path",
         "profile_period",
-        "profile_period",
-        "upload_timeout",
         "upload_timeout"
     ],
     "redaction_list": [],

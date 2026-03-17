@@ -8,7 +8,8 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, logger
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, LibraryTraceFormat
 
 USER = "test"
 NEW_USER = "testnew"
@@ -32,8 +33,10 @@ TRUTHY_VALUES = ["yes", "true", "t", "1"]
 #   - The value can be None to assert that the tag is not present
 #   - The value can be a string to assert the value of the tag
 #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
-def assert_tags(first_span: dict, span: dict, obj: str, expected_tags: dict[str, str | None | Callable]) -> bool:
-    def _assert_tags_value(span: dict, obj: str, expected_tags: dict[str, str | None | Callable]):
+def assert_tags(
+    first_span: DataDogLibrarySpan, span: DataDogLibrarySpan, obj: str, expected_tags: dict[str, str | None | Callable]
+) -> bool:
+    def _assert_tags_value(span: DataDogLibrarySpan, obj: str, expected_tags: dict[str, str | None | Callable]):
         struct = span if obj is None else span[obj]
         for tag, value in expected_tags.items():
             if value is None:
@@ -56,6 +59,14 @@ def assert_tags(first_span: dict, span: dict, obj: str, expected_tags: dict[str,
         return True
     except (KeyError, AssertionError):
         return False
+
+
+def _assert_trace_id(trace: DataDogLibraryTrace, span: DataDogLibrarySpan, trace_id: int) -> None:
+    if trace.format == LibraryTraceFormat.v10:
+        assert trace.trace_id_equals(trace_id)
+    else:
+        assert span.raw_span["trace_id"] == trace_id
+        assert trace.raw_trace[0]["trace_id"] == trace_id
 
 
 class BaseAsmStandaloneUpstreamPropagation(ABC):
@@ -126,7 +137,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             )
 
     def fix_priority_lambda(
-        self, span: dict, default_checks: dict[str, str | Callable | None]
+        self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
     ) -> dict[str, str | Callable | None]:
         if "_dd.appsec.s.req.headers" in span["meta"]:
             return {
@@ -146,8 +157,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -192,8 +202,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -238,8 +247,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -284,8 +292,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -328,8 +335,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -372,8 +378,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -418,8 +423,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -463,8 +467,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -508,8 +511,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -550,8 +552,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -592,8 +593,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -634,8 +634,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -659,33 +658,18 @@ class BaseAppSecStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagati
     request_downstream_url: str = "/requestdownstream"
     tested_product: str = "appsec"
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
 
@@ -697,19 +681,15 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
 
     tested_product = "iast"
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
@@ -769,14 +749,6 @@ class BaseSCAStandaloneTelemetry:
         self.r0 = weblog.get("/load_dependency")
         self.r1 = weblog.get("/load_dependency")
 
-    @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
-    @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
-    @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
@@ -816,8 +788,8 @@ class Test_AppSecStandalone_NotEnabled:
 
     def test_client_computed_stats_header_is_not_present(self):
         spans_checked = 0
-        for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["trace_id"] == 1212121212121212122
+        for data, trace, _ in interfaces.library.get_spans(request=self.r):
+            assert trace.trace_id_equals(1212121212121212122)
             assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
             spans_checked += 1
         assert spans_checked == 1
@@ -892,8 +864,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
             SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0
         }
         for data, trace, span in interfaces.library.get_spans(request=request):
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            assert trace.trace_id_equals(1212121212121212121)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
 
@@ -1098,7 +1069,6 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212133
         self._call_endpoint("/signup", NEW_USER, trace_id)
 
-    @missing_feature(context.library == "nodejs", reason="no signup events in passport")
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)

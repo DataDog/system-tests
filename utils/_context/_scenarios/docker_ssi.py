@@ -216,7 +216,7 @@ class DockerSSIScenario(Scenario):
                 self._libray_version = ComponentVersion(self._library, str(library_version_number))
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
-                self.components[key.removeprefix("datadog-apm-library-")] = self.components[key]
+                self.components[self._library] = self.components[key]
                 del self.components[key]
 
     def print_installed_components(self):

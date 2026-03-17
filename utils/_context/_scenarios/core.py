@@ -31,6 +31,7 @@ class ScenarioGroup:
 
 class _ScenarioGroups:
     all = ScenarioGroup()
+    ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
     appsec_rasp_scenario = ScenarioGroup()
@@ -46,6 +47,7 @@ class _ScenarioGroups:
     lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
+    lib_injection_appsec = ScenarioGroup()
     k8s_injector_dev = ScenarioGroup()
     open_telemetry = ScenarioGroup()
     profiling = ScenarioGroup()
@@ -56,15 +58,13 @@ class _ScenarioGroups:
     simple_onboarding_appsec = ScenarioGroup()
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
-    external_processing = ScenarioGroup()
-    stream_processing_offload = ScenarioGroup()
+    go_proxies = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     ffe = ScenarioGroup()
-    default = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -107,6 +107,7 @@ class Scenario:
         self.replay = False
         self.doc = doc
         self.rc_api_enabled = False
+        self.rc_backend_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
         self.scenario_groups = scenario_groups or []
 
@@ -217,6 +218,11 @@ class Scenario:
 
     def customize_feature_parity_dashboard(self, result: dict):
         pass
+
+    def get_libraries(self) -> set[str] | None:
+        """Some scenarios are valid only with a subset of libraries."""
+
+        return None
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__} '{self.name}'"

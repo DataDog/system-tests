@@ -1,9 +1,18 @@
-from __future__ import annotations
-
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils import interfaces, scenarios, weblog, features, logger
 from utils.buddies import java_buddy, _Weblog as Weblog
+from utils.dd_types import DataDogLibrarySpan
+
+
+def assert_trace_id_equality(a: str | int, b: str | int):
+    if isinstance(a, str):
+        a = int(a, 16) & 0xFFFFFFFFFFFFFFFF
+
+    if isinstance(b, str):
+        b = int(b, 16) & 0xFFFFFFFFFFFFFFFF
+
+    assert a == b
 
 
 class _BaseKafka:
@@ -15,7 +24,9 @@ class _BaseKafka:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface: interfaces.LibraryInterfaceValidator, span_kind: str, topic: str) -> dict | None:
+    def get_span(
+        cls, interface: interfaces.LibraryInterfaceValidator, span_kind: str, topic: str
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -29,14 +40,14 @@ class _BaseKafka:
                 if topic != cls.get_topic(span):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
         return None
 
     @staticmethod
-    def get_topic(span: dict) -> str | None:
+    def get_topic(span: DataDogLibrarySpan) -> str | None:
         """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("kafka.topic")  # this is in python
         if topic is None:
@@ -73,9 +84,6 @@ class _BaseKafka:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
@@ -86,7 +94,7 @@ class _BaseKafka:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert_trace_id_equality(producer_span["trace_id"], consumer_span["trace_id"])
 
     def setup_consume(self):
         """Send request A to library buddy : this request will produce a kafka message
@@ -116,9 +124,6 @@ class _BaseKafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
@@ -129,7 +134,7 @@ class _BaseKafka:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert_trace_id_equality(producer_span["trace_id"], consumer_span["trace_id"])
 
     def validate_kafka_spans(
         self,
@@ -172,10 +177,8 @@ class Test_Kafka(_BaseKafka):
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
 
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

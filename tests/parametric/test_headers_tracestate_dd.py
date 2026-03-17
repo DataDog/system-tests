@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
-from utils import bug, missing_feature, context, scenarios, features
+from utils import scenarios, features
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -306,20 +306,6 @@ class Test_Headers_Tracestate_DD:
         assert "o:tracing2.0" in dd_items6
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(
-        context.library == "cpp", reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision"
-    )
-    @missing_feature(
-        context.library == "golang",
-        reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
-    )
-    @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
-    @bug(context.library == "ruby", reason="APMAPI-812")
-    @bug(context.library >= "php@1.11.0", reason="APMAPI-1539")
-    @missing_feature(
-        context.library == "rust",
-        reason="can't guarantee the order of strings in the tracestate since they came from the map.",
-    )
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -426,12 +412,6 @@ class Test_Headers_Tracestate_DD:
                 )
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library == "cpp", reason="_dd.p.dm is never dropped")
-    @missing_feature(
-        context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?"
-    )
-    @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
-    @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -492,10 +472,6 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted")
-    @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
-    @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -556,7 +532,6 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
-    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_library: APMLibrary):
         """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
@@ -622,12 +597,6 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate_4_string.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @bug(library="cpp", reason="APMAPI-914")
-    @bug(library="dotnet", reason="APMAPI-914")
-    @bug(library="nodejs", reason="APMAPI-914")
-    @bug(library="python", reason="APMAPI-914")
-    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output

@@ -13,7 +13,8 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
-from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios
+from utils.const import COMPONENT_GROUPS
+from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
 
@@ -25,26 +26,9 @@ root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-LIBRARIES = {
-    "cpp",
-    "cpp_httpd",
-    "cpp_nginx",
-    "dotnet",
-    "golang",
-    "java",
-    "nodejs",
-    "otel_collector",
-    "php",
-    "python",
-    "ruby",
-    "python_lambda",
-    "rust",
-}
-
-LAMBDA_LIBRARIES = {"python_lambda"}
-OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
-
-ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
+LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
+OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
+ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -82,12 +66,12 @@ class Param:
     ):
         self.libraries = _setify(parameters.get("libraries", LIBRARIES))
 
-        if "scenario_groups" not in parameters and "scenario" not in parameters:  # no instruction -> run all
+        if "scenario_groups" not in parameters and "scenarios" not in parameters:  # no instruction -> run all
             self.scenario_groups = {all_scenario_groups.all.name}
-            self.scenarios = set()
+            self.scenarios: set[str] = set()
         else:
             self.scenario_groups = _setify(parameters.get("scenario_groups"))
-            self.scenarios = _setify(parameters.get("scenario"))
+            self.scenarios = _setify(parameters.get("scenarios"))
 
         if not check_libraries(self.libraries):
             raise ValueError(f"One or more of the libraries for {pattern} does not exist: {self.libraries}")
@@ -190,6 +174,8 @@ class ScenarioProcessor:
         self.scenario_groups = scenario_groups if scenario_groups else set()
         self.scenarios = {scenarios.default.name}
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
+        self.impacted_libraries: set[str] = set()
+        """ libraries impacted by modified tests files """
 
     def process_manifests(self, inputs: Inputs) -> None:
         modified_nodeids = set()
@@ -208,7 +194,8 @@ class ScenarioProcessor:
         for nodeid, scenario_names in inputs.scenario_map.items():
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    self.scenarios |= set(scenario_names)
+                    logger.debug(f"Manifest nodeid {modified_nodeid} impacts scenario(s) {scenario_names}")
+                    self._append_scenarios_from_test_files(set(scenario_names))
                     break
 
     def compute_scenarios_by_files(self, inputs: Inputs) -> None:
@@ -231,19 +218,37 @@ class ScenarioProcessor:
 
                 for sub_file, scenario_names in self.scenarios_by_files.items():
                     if sub_file.startswith(folder):
-                        self.scenarios |= scenario_names
+                        self._append_scenarios_from_test_files(scenario_names)
 
-            elif file.endswith(("/utils.py", "/conftest.py", ".json")):
+            elif file.endswith(("/utils.py", "/conftest.py", ".json", ".yml")):
                 # particular use case for modification in tests/ of a file utils.py or conftest.py:
                 # in that situation, takes all scenarios executed in tests/<path>/
 
-                # same for any json file
+                # same for any json or yml file
 
                 folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
 
                 for sub_file, scenario_names in self.scenarios_by_files.items():
                     if sub_file.startswith(folder):
-                        self.scenarios |= scenario_names
+                        self._append_scenarios_from_test_files(scenario_names)
+
+    def _append_scenarios_from_test_files(self, scenario_names: set[str]) -> None:
+        """When a test file is modified, we want to add all scenarios executed in this file
+        But some libraries are not activated by default. If ever we modify such a test file, we store the corresponding
+        libraries to ensure they are activated later.
+        """
+
+        self.scenarios |= scenario_names
+
+        # some libraries are not activated by default. If ever we modify a file that explicitly
+        # mention a scenario, we want to activate the corresponding libraries too
+        for scenario_name in scenario_names:
+            scenario: Scenario = getattr(scenarios, scenario_name.lower())
+            libraries = scenario.get_libraries()
+
+            if libraries is not None:
+                logger.debug(f"Scenario {scenario_name}, activating libraries {libraries}")
+                self.impacted_libraries |= libraries
 
     def process_regular_file(self, file: str, param: Param | None) -> None:
         if param is not None:
@@ -256,7 +261,8 @@ class ScenarioProcessor:
 
         # now get known scenarios executed in this file
         if file in self.scenarios_by_files:
-            self.scenarios |= self.scenarios_by_files[file]
+            logger.debug(f"File {file} is modified, adding scenarios {self.scenarios_by_files[file]}")
+            self._append_scenarios_from_test_files(self.scenarios_by_files[file])
 
     def add(self, file: str, param: Param | None) -> None:
         self.process_test_files(file)
@@ -395,6 +401,9 @@ def process(inputs: Inputs) -> list[str]:
                 "utils/build/docker/lambda-proxy.Dockerfile",
             ):
                 rebuild_lambda_proxy = True
+
+        # ensure that libraries impacted by modification on test files are also activated
+        library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
         outputs |= scenario_processor.get_outputs()

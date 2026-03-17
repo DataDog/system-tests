@@ -3,11 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 import time
+from collections.abc import Callable
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context, irrelevant, bug, logger
-from utils.interfaces._library.miscs import validate_process_tags
+from utils import context, features, irrelevant, logger, missing_feature, scenarios, slow
+from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
 class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
@@ -55,8 +56,10 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 
         self.wait_for_all_probes(statuses=["EMITTING"])
 
-        if not self.wait_for_snapshot_received(timeout=60):
-            self.setup_failures.append("Snapshot was not received")
+        # Only wait for snapshots for log probes; span/decor probes create spans instead
+        if probe_type == "log":
+            if not self.wait_for_all_snapshots(timeout=60):
+                self.setup_failures.append("Snapshot was not received")
 
     def _assert(self):
         self.collect()
@@ -81,16 +84,43 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
             if not self.probe_spans[expected_trace]:
                 raise ValueError(f"No spans found for trace {expected_trace}")
 
+    def _validate_scm_tags(self):
+        expected_repo_tag = "git.repository_url:https://github.com/datadog/hello"
+        expected_sha_tag = "git.commit.sha:1234hash"
+
+        for expected_snapshot in self.probe_ids:
+            snapshots = self.probe_snapshots[expected_snapshot]
+            found_scm_tags = False
+
+            for snapshot in snapshots:
+                assert "query" in snapshot, f"Missing 'query' in snapshot for probe {expected_snapshot}"
+                assert isinstance(snapshot["query"], dict)
+
+                ddtags = snapshot["query"].get("ddtags", [])
+                assert isinstance(ddtags, list)
+
+                for tag_entry in ddtags:
+                    if not isinstance(tag_entry, str):
+                        continue
+                    if expected_repo_tag in tag_entry and expected_sha_tag in tag_entry:
+                        found_scm_tags = True
+                        break
+
+                if found_scm_tags:
+                    break
+
+            assert found_scm_tags, (
+                f"Expected SCM tags ({expected_repo_tag}, {expected_sha_tag}) "
+                f"not found in any snapshot ddtags for probe {expected_snapshot}"
+            )
+
 
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@slow
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
-@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -98,7 +128,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_method_snapshot(self):
         self._setup("probe_snapshot_log_method", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -107,7 +136,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -121,7 +150,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -130,8 +159,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_mix_snapshot(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -139,13 +167,10 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot_with_scm
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@slow
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
-@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -153,7 +178,6 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_log_method_snapshot(self):
         self._setup("probe_snapshot_log_method", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -162,7 +186,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -176,7 +200,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
             lines=None,
         )
 
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -185,29 +209,19 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_mix_snapshot(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
     def _validate_snapshots(self):
         super()._validate_snapshots()
-        for expected_snapshot in self.probe_ids:
-            snapshot = self.probe_snapshots[expected_snapshot][0]
-            assert "query" in snapshot
-            assert isinstance(snapshot["query"], dict)
-            assert "ddtags" in snapshot["query"]
-            tags = snapshot["query"]["ddtags"][0]
-            assert isinstance(tags, str)
-            assert "git.repository_url:https://github.com/datadog/hello" in tags
-            assert "git.commit.sha:1234hash" in tags
+        self._validate_scm_tags()
 
 
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@slow
 class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for line-level probe snapshots"""
 
@@ -221,7 +235,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -322,8 +335,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
         return self._measure_captured_depth(nested, current_depth + 1)
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
-    @bug(context.library.name == "ruby", reason="DEBUG-4675")  # Ruby has off-by-one bug: captures 4 levels instead of 3
     def test_default_max_reference_depth(self):
         """Test that the tracer uses default maxReferenceDepth=3 when capture property is omitted"""
         deep_object = self._get_snapshot_locals_variable("deepObject")
@@ -332,7 +343,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             f"deepObject should have been captured with {self.DEFAULT_MAX_REFERENCE_DEPTH} levels, got: {actual_depth}"
         )
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     def test_default_max_field_count(self):
         """Test that the tracer uses default maxFieldCount=20 when capture property is omitted"""
         many_fields = self._get_snapshot_locals_variable("manyFields")
@@ -345,7 +355,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             f"manyFields should have exactly {self.DEFAULT_MAX_FIELD_COUNT} fields captured, got: {captured_count}"
         )
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     def test_default_max_collection_size(self):
         """Test that the tracer uses default maxCollectionSize=100 when capture property is omitted"""
         large_collection = self._get_snapshot_locals_variable("largeCollection")
@@ -368,8 +377,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             f"largeCollection should have exactly {self.DEFAULT_MAX_COLLECTION_SIZE} elements, got: {captured_count}"
         )
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
-    @bug(context.library.name == "dotnet", reason="DEBUG-4669")  # .NET uses a different default maxLength: 1000
     def test_default_max_length(self):
         """Test that the tracer uses default maxLength=255 when capture property is omitted"""
         long_string = self._get_snapshot_locals_variable("longString")
@@ -382,11 +389,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "ruby", reason="DEBUG-4343")
-    @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
-    @missing_feature(
-        context.library < "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
-    )
+    @slow
     def test_log_line_snapshot_debug_track(self):
         """Test that the library sends snapshots to the debug track endpoint (fallback or not)"""
         self._assert()
@@ -396,12 +399,8 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "ruby", reason="DEBUG-4343")
-    @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(context.agent_version < "7.72.0", reason="Endpoint was introduced in 7.72.0", force_skip=True)
-    @missing_feature(
-        context.library < "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
-    )
+    @slow
     def test_log_line_snapshot_new_destination(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         self._assert()
@@ -419,9 +418,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -432,24 +429,10 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_process_tags_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @features.process_tags
-    @missing_feature(
-        condition=context.library.name not in ("java", "dotnet", "python"),
-        reason="Not yet implemented",
-    )
-    @missing_feature(
-        condition=context.weblog_variant == "spring-boot-3-native",
-        reason="Not yet implemented",
-    )
-    @missing_feature(
-        condition=context.library < "dotnet@3.32.0",
-        reason="Not implemented in older versions",
-    )
-    @missing_feature(
-        condition=context.library < "python@4.1.0",
-        reason="Not implemented in older versions",
-    )
-    def test_process_tags_snapshot(self):
+    def setup_process_tags_snapshot_svc(self):
+        self.setup_process_tags_snapshot()
+
+    def check_process_tags_snapshot(self, validate_process_tags_func: Callable):
         self._assert()
         self._validate_snapshots()
         process_tags = None
@@ -458,17 +441,24 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
                 current_process_tags = snapshot["process_tags"]
                 if process_tags is None:
                     process_tags = current_process_tags
-                    validate_process_tags(process_tags)
+                    validate_process_tags_func(process_tags)
                 elif process_tags != current_process_tags:
                     raise ValueError(
                         f"Process tags are not matching. Expected ({process_tags}) vs found({current_process_tags})"
                     )
 
+    @features.process_tags
+    def test_process_tags_snapshot_svc(self):
+        self.check_process_tags_snapshot(validate_process_tags_svc)
+
+    @features.process_tags
+    def test_process_tags_snapshot(self):
+        self.check_process_tags_snapshot(validate_process_tags)
+
 
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot_with_scm
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@slow
 class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for line-level probe snapshots"""
 
@@ -476,7 +466,6 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -490,21 +479,11 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()
 
     def _validate_snapshots(self):
         super()._validate_snapshots()
-        for expected_snapshot in self.probe_ids:
-            snapshot = self.probe_snapshots[expected_snapshot][0]
-            assert "query" in snapshot
-            assert isinstance(snapshot["query"], dict)
-            assert "ddtags" in snapshot["query"]
-            tags = snapshot["query"]["ddtags"][0]
-            assert isinstance(tags, str)
-            assert "git.repository_url:https://github.com/datadog/hello" in tags
-            assert "git.commit.sha:1234hash" in tags
+        self._validate_scm_tags()

@@ -142,7 +142,7 @@ class KrunVmCommander(Commander):
         """Local shared folder path"""
         return os.path.join(context.scenario.host_log_folder, vm.name, "shared_volume")
 
-    def _get_stdin_path(self, vm: _VirtualMachine):
+    def _get_stdin_path(self, vm: _VirtualMachine) -> str:
         """Local std.in path: we use std.in to execute commands on the microVM.
         We write the commands to execute on this file and the output is sent to the stod.out file
         """

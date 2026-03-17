@@ -2,7 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios, irrelevant
+from utils import weblog, interfaces, features, scenarios
+from utils.dd_types import DataDogLibrarySpan
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 
@@ -44,7 +45,11 @@ def validate_metric_type_and_version(event_type: str, version: str, metric: dict
 
 
 def validate_tags_and_metadata(
-    span: dict, prefix: str, expected_tags: dict, metadata: dict | None, unexpected_metadata: list[str] | None
+    span: DataDogLibrarySpan,
+    prefix: str,
+    expected_tags: dict,
+    metadata: dict | None,
+    unexpected_metadata: list[str] | None,
 ):
     if metadata is not None:
         for key, value in metadata.items():
@@ -70,7 +75,7 @@ class BaseUserLoginSuccessEventV2Tags:
     def get_user_login_success_tags_validator(
         self, login: str, user_id: str, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
     ):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             expected_tags = {
                 "appsec.events.users.login.success.usr.login": login,
                 "appsec.events.users.login.success.usr.id": user_id,
@@ -119,10 +124,6 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -152,8 +153,6 @@ class BaseUserLoginSuccessEventV2Tags:
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def setup_user_login_success_event_deep_metadata(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
@@ -168,11 +167,6 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
-    @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
 
@@ -225,7 +219,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span: dict):
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -245,7 +239,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
     def test_user_login_success_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span: dict):
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -342,7 +336,7 @@ class BaseUserLoginFailureEventV2Tags:
     def get_user_login_failure_tags_validator(
         self, login: str, *, exists: bool, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
     ):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             expected_tags = {
                 "appsec.events.users.login.failure.usr.login": login,
                 "appsec.events.users.login.failure.usr.exists": "true" if exists else "false",
@@ -432,11 +426,6 @@ class BaseUserLoginFailureEventV2Tags:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
-    @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 
@@ -487,7 +476,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span: dict):
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -507,7 +496,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span: dict):
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 

@@ -13,6 +13,7 @@ from utils._context.component_version import Version
 from utils._context.containers import (
     AgentContainer,
     OpenTelemetryCollectorContainer,
+    TestedContainer,
     WeblogContainer,
 )
 
@@ -33,16 +34,10 @@ class OpenTelemetryScenario(DockerScenario):
         include_agent: bool = True,
         include_collector: bool = True,
         include_intake: bool = True,
-        include_postgres_db: bool = False,
-        include_cassandra_db: bool = False,
-        include_mongo_db: bool = False,
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_mysql_db: bool = False,
-        include_sqlserver: bool = False,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
         mocked_backend: bool = True,
+        extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
             name,
@@ -51,26 +46,20 @@ class OpenTelemetryScenario(DockerScenario):
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
             mocked_backend=mocked_backend,
-            include_postgres_db=include_postgres_db,
-            include_cassandra_db=include_cassandra_db,
-            include_mongo_db=include_mongo_db,
-            include_kafka=include_kafka,
-            include_rabbitmq=include_rabbitmq,
-            include_mysql_db=include_mysql_db,
-            include_sqlserver=include_sqlserver,
+            extra_containers=extra_containers,
         )
         if include_agent:
             self.agent_container = AgentContainer(use_proxy=True)
-            self._required_containers.append(self.agent_container)
+            self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
-            self._required_containers.append(self.collector_container)
+            self._containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
             self.weblog_container.depends_on.append(self.agent_container)
         if include_collector:
             self.weblog_container.depends_on.append(self.collector_container)
-        self._required_containers.append(self.weblog_container)
+        self._containers.append(self.weblog_container)
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake
@@ -101,6 +90,13 @@ class OpenTelemetryScenario(DockerScenario):
         if not self.replay:
             self.warmups.insert(0, self._start_interface_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
+
+        self.warmups.append(self._set_components)
+
+    def _set_components(self):
+        self.components["agent"] = self.agent_version
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
@@ -139,7 +135,24 @@ class OpenTelemetryScenario(DockerScenario):
             logger.debug("Open telemetry ready")
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
-        if self.use_proxy:
+        if self.replay:
+            logger.terminal.write(
+                "\nReplay mode is not fully functional for this scenario, you may encounter errors\n",
+                bold=True,
+                red=True,
+            )
+            logger.terminal.write_sep("-", "Load all data from logs")
+            logger.terminal.flush()
+
+            interfaces.open_telemetry.load_data_from_logs()
+            interfaces.open_telemetry.check_deserialization_errors()
+
+            if self.include_agent:
+                interfaces.agent.load_data_from_logs()
+                interfaces.agent.check_deserialization_errors()
+
+            interfaces.backend.load_data_from_logs()
+        elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
@@ -177,3 +190,8 @@ class OpenTelemetryScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
+
+    def get_libraries(self) -> set[str] | None:
+        # return {"python_otel", "java_otel", "nodejs_otel"}
+        # nodejs_otel is broken since a while
+        return {"python_otel", "java_otel"}

@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -9,7 +10,7 @@ from utils._logger import logger
 API_HOST = "https://dd.datadoghq.com"
 
 
-def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
+def wait_backend_trace_id(trace_id: str, profile: bool = False, validator: Callable | None = None):
     logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
     results = _query_for_trace_id(trace_id, validator=validator)
     runtime_id = results["runtime_id"]
@@ -57,7 +58,7 @@ def _headers():
     }
 
 
-def _query_for_trace_id(trace_id, validator=None):
+def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
     url = f"{API_HOST}/api/ui/trace/{trace_id}"
 
     results = {}
@@ -82,16 +83,16 @@ def _query_for_trace_id(trace_id, validator=None):
 
 
 def _make_request(
-    url,
-    headers=None,
-    method="get",
-    json=None,
-    overall_timeout=300,
-    request_timeout=10,
-    retry_delay=1,
-    backoff_factor=2,
-    max_retries=30,
-    validator=None,
+    url: str,
+    headers: dict[str, str] | None = None,
+    method: str = "get",
+    json: dict | None = None,
+    overall_timeout: int = 300,
+    request_timeout: int = 10,
+    retry_delay: int = 1,
+    backoff_factor: int = 2,
+    max_retries: int = 30,
+    validator: Callable | None = None,
 ):
     """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
     start_time = time.perf_counter()
@@ -127,7 +128,7 @@ def _make_request(
     raise TimeoutError(f"Reached max retries limit for {method} {url}")
 
 
-def _parse_retry_after(headers):
+def _parse_retry_after(headers: dict[str, str]):
     # docs: https://docs.datadoghq.com/api/latest/rate-limits/
     limit = headers.get("X-RateLimit-Limit")
     period = headers.get("X-RateLimit-Period")
@@ -145,12 +146,12 @@ def _parse_retry_after(headers):
         return -1
 
 
-def _validate_profiler_response(json):
+def _validate_profiler_response(json: dict):
     data = json["data"]
     return isinstance(data, list) and len(data) > 0
 
 
-def _query_for_profile(runtime_id):
+def _query_for_profile(runtime_id: str):
     url = f"{API_HOST}/api/unstable/profiles/list"
     headers = _headers()
     headers["Content-Type"] = "application/json"

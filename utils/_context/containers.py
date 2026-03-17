@@ -19,13 +19,21 @@ import requests
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context.ports import ContainerPorts
+from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
-    MockedResponse,
+    MockedTracerResponse,
+    MockedBackendResponse,
     SetSpanEventFlags,
+    SetClientDropP0s,
     AddRemoteConfigEndpoint,
-    StaticJsonMockedResponse,
+    StaticJsonMockedTracerResponse,
+)
+from utils.proxy.rc_response_builder import (
+    build_rc_configurations_protobuf,
+    build_org_data_protobuf,
+    build_org_status_protobuf,
 )
 from utils._logger import logger
 from utils._weblog import weblog
@@ -66,8 +74,8 @@ class TestedContainer:
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
         self,
-        name: str,
-        image_name: str,
+        name: str = "",
+        image_name: str = "",
         *,
         allow_old_container: bool = False,
         binary_file_name: str | None = None,
@@ -84,6 +92,9 @@ class TestedContainer:
         working_dir: str | None = None,
         pid_mode: str | None = None,
     ) -> None:
+        assert name
+        assert image_name
+
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.allow_old_container = allow_old_container
@@ -320,6 +331,10 @@ class TestedContainer:
     def exec_run(self, cmd: str, *, demux: bool = False) -> ExecResult:
         return self._container.exec_run(cmd, demux=demux)
 
+    def get_archive(self, path: str):
+        """Return a tar archive of a path inside the container (wraps Docker SDK get_archive)."""
+        return self._container.get_archive(path)
+
     def execute_command(
         self, test: str, retries: int = 10, interval: float = 1_000_000_000, start_period: float = 0
     ) -> tuple[int, str]:
@@ -393,11 +408,13 @@ class TestedContainer:
     def stop(self):
         self._starting_thread = None
 
+        logger.debug(f"Stopping container {self.name}")
+
         if self._container:
             self._container.reload()
             if self._container.status != "running":
                 self.healthy = False
-                pytest.exit(f"Container {self.name} is not running, please check logs", 1)
+                pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
             self._container.stop()
 
@@ -535,10 +552,11 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-        for var in attrs["Config"]["Env"]:
-            key, value = var.split("=", 1)
-            if value:
-                self.env[key] = value
+        if attrs["Config"].get("Env"):
+            for var in attrs["Config"]["Env"]:
+                key, value = var.split("=", 1)
+                if value:
+                    self.env[key] = value
 
         if "Labels" in attrs["Config"]:
             self.labels = attrs["Config"]["Labels"]
@@ -553,15 +571,21 @@ class ProxyContainer(TestedContainer):
         self,
         *,
         rc_api_enabled: bool,
+        rc_backend_enabled: bool = False,
         meta_structs_disabled: bool,
         span_events: bool,
+        client_drop_p0s: bool | None = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
+        rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
 
         """
+
+        if rc_api_enabled and not mocked_backend:
+            raise ValueError("rc_backend_enabled requires mocked_backend")
 
         # Adjust healthcheck for IPv6 scenarios
         host_target = "::1" if enable_ipv6 else "localhost"
@@ -575,11 +599,11 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
-                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
+                "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
-            working_dir="/app/utils",
+            working_dir="/app",
             volumes={
-                "./utils/": {"bind": "/app/utils/", "mode": "ro"},
+                "./utils/proxy": {"bind": "/app/proxy", "mode": "ro"},
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
             command="python -m proxy.core",
@@ -589,29 +613,82 @@ class ProxyContainer(TestedContainer):
             },
         )
 
-        self.internal_mocked_responses: list[MockedResponse] = [SetSpanEventFlags(span_events=span_events)]
+        self.internal_mocked_tracer_responses: list[MockedTracerResponse] = [SetSpanEventFlags(span_events=span_events)]
 
         if meta_structs_disabled:
-            self.internal_mocked_responses.append(RemoveMetaStructsSupport())
+            self.internal_mocked_tracer_responses.append(RemoveMetaStructsSupport())
+
+        if client_drop_p0s is not None:
+            self.internal_mocked_tracer_responses.append(SetClientDropP0s(client_drop_p0s=client_drop_p0s))
 
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints
-            self.internal_mocked_responses.append(AddRemoteConfigEndpoint())
-            # mimic the default response from the agent
-            self.internal_mocked_responses.append(StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}))
+            self.internal_mocked_tracer_responses.append(AddRemoteConfigEndpoint())
+            # Only add static tracer-facing RC mock if NOT in backend mode
+            # In backend mode, tracer requests pass through to agent
+            if not rc_backend_enabled:
+                self.internal_mocked_tracer_responses.append(
+                    StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
+                )
+
+        # Backend mocked responses (create responses from scratch)
+        self.internal_mocked_backend_responses: list[MockedBackendResponse] = []
+
+        if rc_backend_enabled:
+            # Set up internal backend mocks for backend endpoints
+            self.internal_mocked_backend_responses = [
+                MockedBackendResponse(
+                    path="/api/v0.1/org",
+                    content=build_org_data_protobuf(),
+                    content_type="application/x-protobuf",
+                ),
+                MockedBackendResponse(
+                    path="/api/v0.1/status",
+                    content=build_org_status_protobuf(),
+                    content_type="application/x-protobuf",
+                ),
+                MockedBackendResponse(
+                    path="/api/v0.2/echo-test",
+                    content=b"ok",
+                    content_type="text/plain",
+                ),
+                MockedBackendResponse(
+                    path="/api/v0.1/configurations",
+                    content=build_rc_configurations_protobuf(None),
+                    content_type="application/x-protobuf",
+                ),
+            ]
 
         self.mocked_backend = mocked_backend
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
-        mocked_responses_path = f"{self.log_folder_path}/internal_mocked_responses.json"
+        # Write tracer mocked responses JSON
+        tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
+        with Path(tracer_mocks_path).open(encoding="utf-8", mode="w") as f:
+            json.dump([resp.to_json() for resp in self.internal_mocked_tracer_responses], f, indent=2)
 
-        with Path(mocked_responses_path).open(encoding="utf-8", mode="w") as f:
-            json.dump([resp.to_json() for resp in self.internal_mocked_responses], f, indent=2)
+        # Write backend mocked responses JSON
+        backend_mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
+        with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
+            json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
-        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
-        self.volumes[mocked_responses_path] = {"bind": "/app/logs/internal_mocked_responses.json", "mode": "ro"}
+        # in any info printed in stdout, log filename should be the same as the host.
+        # In the host, they are accessible in ./logs_<scenario_name>
+        # In proxy container, since only the container code is mounted in /app/proxy, and the working dir is /app,
+        # we need to mount the log folder in /app/logs_<scenario_name>, and give this name to the proxy.
+        # With that, the proxy will save all files as "./logs_<scenario_name>/...", which can be readed directly
+        # in the host from the root of system-tests
+        self.environment["SYSTEM_TESTS_LOG_FOLDER"] = f"./{host_log_folder}"
+        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"}
+
+        # mount mocked responses valid for the entire scenario
+        self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
+        self.volumes[backend_mocks_path] = {
+            "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
+            "mode": "ro",
+        }
 
 
 class LambdaProxyContainer(TestedContainer):
@@ -652,7 +729,13 @@ class AgentContainer(TestedContainer):
     dogstatsd_port: int = 8125
     agent_version: Version
 
-    def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        use_proxy: bool = True,
+        rc_backend_enabled: bool = False,
+        environment: dict[str, str | None] | None = None,
+    ) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -668,6 +751,17 @@ class AgentContainer(TestedContainer):
         if use_proxy:
             environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
+
+        # Configure backend mode via environment variables
+        # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
+        # We set RC_DD_URL to a fake hostname - HTTP_PROXY will intercept it on the agent port
+        if rc_backend_enabled:
+            tuf_root_json = get_tuf_root_json()
+            environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
+            environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
+            environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
+            environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
+            environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
         super().__init__(
             name="agent",
@@ -741,47 +835,6 @@ class BuddyContainer(TestedContainer):
 class WeblogContainer(TestedContainer):
     appsec_rules_file: str | None
     stdout_interface: LibraryStdoutInterface
-    _dd_rc_tuf_root: dict = {
-        "signed": {
-            "_type": "root",
-            "spec_version": "1.0",
-            "version": 1,
-            "expires": "2032-05-29T12:49:41.030418-04:00",
-            "keys": {
-                "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e": {
-                    "keytype": "ed25519",
-                    "scheme": "ed25519",
-                    "keyid_hash_algorithms": ["sha256", "sha512"],
-                    "keyval": {"public": "7d3102e39abe71044d207550bda239c71380d013ec5a115f79f51622630054e6"},
-                }
-            },
-            "roles": {
-                "root": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-                "snapshot": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-                "targets": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-                "timestsmp": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-            },
-            "consistent_snapshot": True,
-        },
-        "signatures": [
-            {
-                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",  # noqa: E501
-            }
-        ],
-    }
 
     def __init__(
         self,
@@ -811,7 +864,7 @@ class WeblogContainer(TestedContainer):
             "DD_ENV": "system-tests",
             "DD_TRACE_LOG_DIRECTORY": "/var/log/system-tests",
             # for remote configuration tests
-            "DD_RC_TUF_ROOT": json.dumps(self._dd_rc_tuf_root),
+            "DD_RC_TUF_ROOT": get_tuf_root_json(),
         }
 
         # Basic env set for all scenarios
@@ -1002,6 +1055,17 @@ class WeblogContainer(TestedContainer):
             except Exception:
                 logger.info("No local dd-trace-js found")
 
+        if library == "python":
+            try:
+                with open("./binaries/python-load-from-local", encoding="utf-8") as f:
+                    path = f.read().strip(" \r\n")
+                    source = os.path.join(str(Path.cwd()), path)
+                    resolved_path = Path(source).resolve()
+                    self.volumes[str(resolved_path)] = {"bind": "/volumes/dd-trace-py", "mode": "ro"}
+                    self.environment["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+            except FileNotFoundError:
+                logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
+
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
@@ -1009,7 +1073,13 @@ class WeblogContainer(TestedContainer):
         weblog.get("/", timeout=timeout)
 
     def flush(self) -> None:
-        # for weblogs who supports it, call the flush endpoint
+        if self.library.name not in (
+            "nodejs",
+            "ruby",
+        ):
+            # only nodejs and ruby supports it
+            return
+
         try:
             r = weblog.get("/flush", timeout=10)
             assert r.status_code == HTTPStatus.OK
@@ -1051,6 +1121,10 @@ class WeblogContainer(TestedContainer):
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
         self.stdout_interface.init_patterns(self.library)
+
+    @property
+    def library_name(self) -> str:
+        return self.image.labels["system-tests-library"]
 
     @property
     def library(self) -> ComponentVersion:
@@ -1394,7 +1468,7 @@ class APMTestAgentContainer(TestedContainer):
 class VCRCassettesContainer(TestedContainer):
     """VCR cassettes container for recording and replaying HTTP interactions.
 
-    Will mount the folder ./utils/build/docker/vcr_proxy/cassettes to /cassettes inside the container.
+    Will mount the folder ./utils/build/docker/vcr/cassettes to /cassettes inside the container.
 
     The endpoint will be made available to weblogs at 'http://vcr_cassettes:{proxy_port}/vcr'
     """
@@ -1406,8 +1480,8 @@ class VCRCassettesContainer(TestedContainer):
             environment={
                 "PORT": str(vcr_port),
                 "VCR_CASSETTES_DIRECTORY": "/cassettes",
-                # cassettes are pre-recorded and the real service will never be used in testing
                 "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+                "VCR_IGNORE_HEADERS": "content-security-policy",
             },
             healthcheck={
                 "test": f"curl --fail --silent --show-error http://localhost:{vcr_port}/info",
@@ -1422,6 +1496,12 @@ class VCRCassettesContainer(TestedContainer):
             ports={vcr_port: ("127.0.0.1", vcr_port)},
             allow_old_container=False,
         )
+
+    def set_generate_cassettes_mode(self):
+        """Switch to record mode: remove read-only cassettes mount so the container
+        records fresh cassettes to its internal filesystem.
+        """
+        del self.volumes["./utils/build/docker/vcr/cassettes"]
 
 
 class MountInjectionVolume(TestedContainer):
@@ -1527,7 +1607,7 @@ class EnvoyContainer(TestedContainer):
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            volumes={"./utils/build/docker/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
                 "test": "/bin/bash -c \"\
@@ -1556,6 +1636,7 @@ class ExternalProcessingContainer(TestedContainer):
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
@@ -1583,11 +1664,8 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        if "language" in lib:
-            self.library = ComponentVersion(lib["language"], lib["version"])
-        else:
-            self.library = ComponentVersion(lib["name"], lib["version"])
-
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("envoy", lib["version"])
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
 
@@ -1631,10 +1709,11 @@ class StreamProcessingOffloadContainer(TestedContainer):
             with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
-            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
+            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
             "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
         }
@@ -1661,10 +1740,8 @@ class StreamProcessingOffloadContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        if "language" in lib:
-            self.library = ComponentVersion(lib["language"], lib["version"])
-        else:
-            self.library = ComponentVersion(lib["name"], lib["version"])
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("haproxy", lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")

@@ -29,6 +29,7 @@ from jinja2 import Template
 import psycopg2
 from pydantic import BaseModel
 import requests
+import stripe
 import urllib3
 import xmltodict
 from packaging.version import Version
@@ -55,6 +56,10 @@ ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
 
 # Initialize OpenFeature client if FFE is enabled
 openfeature_client = None
@@ -1364,3 +1369,34 @@ async def ffe(request: Request):
         return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
 
     return JSONResponse({"value": value}, status_code=200)
+
+
+@app.post("/stripe/create_checkout_session", response_class=JSONResponse)
+async def stripe_create_checkout_session(request: Request):
+    try:
+        body = await request.json()
+        result = stripe.checkout.Session.create(**body)
+        return JSONResponse(dict(result))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/stripe/create_payment_intent", response_class=JSONResponse)
+async def stripe_create_payment_intent(request: Request):
+    try:
+        body = await request.json()
+        result = stripe.PaymentIntent.create(**body)
+        return JSONResponse(dict(result))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/stripe/webhook", response_class=JSONResponse)
+async def stripe_webhook(request: Request):
+    try:
+        body = await request.body()
+        signature = request.headers.get("Stripe-Signature")
+        event = stripe.Webhook.construct_event(body, signature, "whsec_FAKE")
+        return JSONResponse(event.data.object)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=403)

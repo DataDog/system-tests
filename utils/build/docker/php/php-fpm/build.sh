@@ -55,8 +55,13 @@ sed -i s/PHP_MAJOR_VERSION/$PHP_MAJOR_VERSION/ /etc/apache2/conf-available/php$P
 # Install Composer
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set up Monolog using Composer
 cd /var/www/html
+# Use composer.json for PHP < 8.2, composer.gte8.2.json for PHP >= 8.2 (COMPOSER env = config filename)
+export COMPOSER=composer.json
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+	export COMPOSER=composer.gte8.2.json
+fi
+echo "Using composer config: $COMPOSER"
 composer install --prefer-dist
 
 # Set proper permissions

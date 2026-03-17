@@ -4,7 +4,8 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils import weblog, interfaces, scenarios, features
+from utils.dd_types import DataDogLibrarySpan
 
 
 @features.support_in_app_waf_metrics_report
@@ -26,7 +27,7 @@ class Test_Monitoring:
 
         # Tags that are expected to be reported at least once at some point
 
-        def validate_waf_monitoring_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_waf_monitoring_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory waf monitoring span tags are added to the request span having an attack"""
 
             meta = span["meta"]
@@ -50,9 +51,6 @@ class Test_Monitoring:
     def setup_waf_monitoring_once(self):
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @irrelevant(context.library >= "golang@v2.1.0-dev", reason="replaced by test_waf_monitoring_once_rfc1025")
-    @irrelevant(context.library >= "nodejs@5.58.0", reason="replaced by test_waf_monitoring_once_rfc1025")
-    @irrelevant(library="ruby", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_once(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point. The metrics asserted by this
@@ -71,7 +69,7 @@ class Test_Monitoring:
             expected_rules_monitoring_nb_errors_tag,
         ]
 
-        def validate_rules_monitoring_span_tags(span: dict):
+        def validate_rules_monitoring_span_tags(span: DataDogLibrarySpan):
             """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
@@ -137,7 +135,7 @@ class Test_Monitoring:
         # Tags that are expected to be reported at least once at some point
         expected_waf_version_tag = "_dd.appsec.waf.version"
 
-        def validate_rules_monitoring_span_tags(span: dict):
+        def validate_rules_monitoring_span_tags(span: DataDogLibrarySpan):
             """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
@@ -160,7 +158,6 @@ class Test_Monitoring:
     def setup_waf_monitoring_optional(self):
         self.r_optional = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @irrelevant(condition=context.library not in ["golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
         """WAF monitoring span tags and metrics may send extra optional tags"""
 
@@ -168,7 +165,7 @@ class Test_Monitoring:
         expected_bindings_duration_metric = "_dd.appsec.waf.duration_ext"
         expected_metrics_tags = [expected_waf_duration_metric, expected_bindings_duration_metric]
 
-        def validate_waf_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_waf_span_tags(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             metrics = span["metrics"]
             for m in expected_metrics_tags:
                 if m not in metrics:
@@ -190,9 +187,6 @@ class Test_Monitoring:
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
     @scenarios.appsec_rules_monitoring_with_errors
-    @bug(library="golang", reason="LANGPLAT-584")
-    @irrelevant(context.library >= "nodejs@5.58.0", reason="expected tags were deprecated by rfc1025")
-    @irrelevant(library="ruby", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point
@@ -214,7 +208,7 @@ class Test_Monitoring:
         expected_nb_errors = 2
         expected_error_details = {"missing key 'name'": ["missing-name"], "missing key 'tags'": ["missing-tags"]}
 
-        def validate_rules_monitoring_span_tags(span: dict):
+        def validate_rules_monitoring_span_tags(span: DataDogLibrarySpan):
             """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """

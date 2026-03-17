@@ -54,7 +54,7 @@
             "os_branch": "ubuntu21",
             "os_cpu": "arm64",
             "default_vm": true,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Ubuntu_22_amd64",
@@ -366,8 +366,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2022",
             "os_cpu": "amd64",
-            "default_vm": true,
-            "disabled": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Amazon_Linux_2022_arm64",
@@ -381,8 +381,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2022",
             "os_cpu": "arm64",
-            "default_vm": true,
-            "disabled": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "CentOS_7_amd64",
@@ -701,7 +701,7 @@
             },
             "os_type": "linux",
             "os_distro": "rpm",
-            "os_branch": "fedora",
+            "os_branch": "fedora41",
             "os_cpu": "arm64",
             "default_vm": false,
             "disabled": false

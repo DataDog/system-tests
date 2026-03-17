@@ -3,8 +3,9 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
-from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils import features, interfaces, scenarios, slow, weblog
+from utils.docker_fixtures.spec.trace import ORIGIN, SAMPLING_PRIORITY_KEY, span_link_trace_id_equals
+from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
 
 
 @scenarios.trace_propagation_style_w3c
@@ -29,11 +30,7 @@ class Test_DistributedHttp:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_From_Conflicting_Contexts:
     """Verify headers containing conflicting trace context information are added as span links"""
 
@@ -58,9 +55,9 @@ class Test_Span_Links_From_Conflicting_Contexts:
     def test_span_links_from_conflicting_contexts(self):
         trace = [
             span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
+            for _, trace, span in interfaces.library.get_spans(self.req, full_trace=True)
             if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
+            and trace.trace_id_equals(2)
             and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
 
@@ -69,7 +66,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         links = _retrieve_span_links(span)
         assert len(links) == 1
         link1 = links[0]
-        assert link1["trace_id"] == 2
+        assert span_link_trace_id_equals(link1["trace_id"], 2)
         assert link1["span_id"] == 987654321
         assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
         assert link1["trace_id_high"] == 1229782938247303441
@@ -130,11 +127,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts have the correct flags set"""
 
@@ -160,7 +153,6 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
@@ -172,11 +164,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
+@slow
 class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts properly omit the tracestate when conflicting propagator is not W3C"""
 
@@ -201,7 +189,6 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
@@ -211,7 +198,24 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         assert link1.get("tracestate") is None
 
 
-def _retrieve_span_links(span: dict):
+def _normalize_v1_span_link(link: dict) -> dict:
+    """Ensure v1 span link has trace_id_high when trace_id is 128-bit hex string."""
+    link = dict(link)
+    tid = link.get("trace_id")
+    if isinstance(tid, str) and tid.startswith("0x") and len(tid) > 18 and "trace_id_high" not in link:
+        # 128-bit: high 64 bits (first 16 hex chars after 0x)
+        link["trace_id_high"] = int(tid[2:18], 16)
+    return link
+
+
+def _retrieve_span_links(span: DataDogLibrarySpan):
+    if span.trace.format == LibraryTraceFormat.v10:
+        # v1.0: span_links can be at top level or in attributes
+        links = span.raw_span.get("span_links") or span.raw_span.get("attributes", {}).get("_dd.span_links")
+        if links:
+            return [_normalize_v1_span_link(lnk) for lnk in links]
+        return None
+
     if span.get("span_links") is not None:
         return span["span_links"]
 
@@ -258,17 +262,22 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        traces = list(interfaces.agent.get_traces(self.r))
+        assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
-        span = spans[0]
-        assert span.get("traceID") == "1234567890"
+        _, trace = traces[0]
+        assert trace.trace_id_as_int == 1234567890
+        spans = list(interfaces.agent.get_spans(self.r))
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert span.get("meta")[ORIGIN] == "synthetics"
-        assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
+
+        meta = span.meta
+        metrics = interfaces.agent.get_span_metrics(span)
+        assert meta[ORIGIN] == "synthetics"
+        assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
     def setup_synthetics_browser(self):
         self.r = weblog.get(
@@ -281,14 +290,19 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        traces = list(interfaces.agent.get_traces(self.r))
+        assert len(traces) == 1, "Agent received the incorrect amount of traces"
+        _, trace = traces[0]
+        assert trace.trace_id_as_int == 1234567891
 
-        span = spans[0]
-        assert span.get("traceID") == "1234567891"
+        spans = list(interfaces.agent.get_spans(self.r))
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert span.get("meta")[ORIGIN] == "synthetics-browser"
-        assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
+
+        meta = span.meta
+        metrics = interfaces.agent.get_span_metrics(span)
+        assert meta[ORIGIN] == "synthetics-browser"
+        assert metrics[SAMPLING_PRIORITY_KEY] == 1
