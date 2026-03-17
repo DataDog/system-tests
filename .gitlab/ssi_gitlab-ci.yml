@@ -11,7 +11,7 @@ variables:
   PRIVATE_DOCKER_REGISTRY_USER: AWS
 
 ssi_tests:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   tags: ["arch:amd64"]
   stage: SSI_TESTS
   script:
