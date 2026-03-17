@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 $url = $_GET['url'] ?? null;
 $baggage_remove = $_GET['baggage_remove'] ?? null;
 $baggage_set = $_GET['baggage_set'] ?? null;
@@ -10,49 +12,25 @@ if ($url === null) {
     exit;
 }
 
-// open-telemetry/context (a dependency of open-telemetry/api) requires PHP ^8.1,
-// so use the OTel Baggage API on PHP 8.1+ and DDTrace's native API on PHP 8.0.
-if (PHP_VERSION_ID >= 80100) {
-    require_once __DIR__ . '/vendor/autoload.php';
+$baggage = \OpenTelemetry\API\Baggage\Baggage::getCurrent();
+$builder = $baggage->toBuilder();
 
-    $baggage = \OpenTelemetry\API\Baggage\Baggage::getCurrent();
-    $builder = $baggage->toBuilder();
-
-    if ($baggage_remove !== null) {
-        foreach (explode(',', $baggage_remove) as $key) {
-            $builder = $builder->remove(trim($key));
-        }
+if ($baggage_remove !== null) {
+    foreach (explode(',', $baggage_remove) as $key) {
+        $builder = $builder->remove(trim($key));
     }
+}
 
-    if ($baggage_set !== null) {
-        foreach (explode(',', $baggage_set) as $item) {
-            $parts = explode('=', $item, 2);
-            if (count($parts) === 2) {
-                $builder = $builder->set(trim($parts[0]), trim($parts[1]));
-            }
-        }
-    }
-
-    $scope = $builder->build()->activate();
-} else {
-    $scope = null;
-    $span = \DDTrace\root_span();
-    if ($span !== null) {
-        if ($baggage_remove !== null) {
-            foreach (explode(',', $baggage_remove) as $key) {
-                unset($span->baggage[trim($key)]);
-            }
-        }
-        if ($baggage_set !== null) {
-            foreach (explode(',', $baggage_set) as $item) {
-                $parts = explode('=', $item, 2);
-                if (count($parts) === 2) {
-                    $span->baggage[trim($parts[0])] = trim($parts[1]);
-                }
-            }
+if ($baggage_set !== null) {
+    foreach (explode(',', $baggage_set) as $item) {
+        $parts = explode('=', $item, 2);
+        if (count($parts) === 2) {
+            $builder = $builder->set(trim($parts[0]), trim($parts[1]));
         }
     }
 }
+
+$scope = $builder->build()->activate();
 
 try {
     $ch = curl_init($url);
@@ -97,7 +75,5 @@ try {
         'response_headers' => $response_headers_array,
     ]);
 } finally {
-    if ($scope !== null) {
-        $scope->detach();
-    }
+    $scope->detach();
 }
