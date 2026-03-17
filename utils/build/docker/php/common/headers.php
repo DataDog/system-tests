@@ -1,6 +1,5 @@
 <?php
 header("Content-Language: en-US");
-header("Content-Length: 16");
+header("Content-Length: 15");
 
 echo "Hello, headers!";
-?>

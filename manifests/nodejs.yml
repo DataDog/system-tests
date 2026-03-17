@@ -82,6 +82,8 @@ refs:
   - &ref_5_81_0 '>=5.81.0'
   - &ref_5_83_0 '>=5.83.0'
   - &ref_5_87_0 '>=5.87.0'  # Debugger: Capture expressions support
+  - &ref_5_89_0 '>=5.89.0'
+  - &ref_5_90_0 '>=5.90.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
@@ -103,6 +105,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_69_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_5_89_0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
@@ -139,6 +145,15 @@ manifest:
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_chat_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_responses_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0
@@ -590,12 +605,21 @@ manifest:
         nextjs: irrelevant  # nextjs is not related with kafka
   tests/appsec/iast/source/test_multipart.py::TestMultipart: missing_feature
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName: missing_feature
+  tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_source_post_reported:
+    - weblog_declaration:
+        express4: missing_feature (Tainted as request body)
+        express5: missing_feature (Tainted as request body)
+  tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_source_reported:
+    - weblog_declaration:
+        express4: missing_feature (Tainted as request body)
+        express5: missing_feature (Tainted as request body)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue:
     - weblog_declaration:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/iast/source/test_path.py::TestPath: missing_feature
   tests/appsec/iast/source/test_path_parameter.py::TestPathParameter:
     - weblog_declaration:
@@ -619,6 +643,9 @@ manifest:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: flaky (APPSEC-58724)
+      component_version: '<=5.80'
+      weblog: [fastify]
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in js)
   tests/appsec/iast/utils.py::BaseTestCookieNameFilter::test_cookie_name_filter:
@@ -878,11 +905,17 @@ manifest:
         nextjs: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
+  tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:
+    - weblog_declaration:
+        nextjs: missing_feature (endpoint not implemented)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: *ref_5_52_0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: *ref_5_18_0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_app_dependencies_loaded:
+    - weblog_declaration:
+        nextjs: missing_feature (endpoint not implemented)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": *ref_5_40_0
@@ -1124,6 +1157,14 @@ manifest:
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: *ref_5_71_0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: *ref_5_71_0
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: *ref_5_54_0
+  ? tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection::test_if_appsec_event_collect_all_response_headers
+  : - declaration: missing_feature (Collecting reply headers not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
+  ? tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection::test_not_exceed_default_50_maximum_response_header_collection
+  : - declaration: missing_feature (Collecting reply headers not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection:
     - weblog_declaration:
         "*": *ref_5_54_0
@@ -1163,7 +1204,12 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: missing_feature
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
-  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant  # the feature is framework agnostic, no need to test all variants
+        express4: *ref_5_90_0
+        express5: *ref_5_90_0
+        fastify: *ref_5_90_0
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": *ref_3_11_0
@@ -1175,6 +1221,7 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
   tests/appsec/test_rate_limiter.py::Test_Main::test_main:
     - declaration: bug (APMRP-360)
@@ -1224,6 +1271,22 @@ manifest:
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
     - weblog_declaration:
         "*": v2.6.0
+  tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_cookies_with_custom_rules:
+    - declaration: missing_feature (Cookies not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
+  tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_key:
+    - declaration: missing_feature (Query string not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
+  tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_key_with_custom_rules:
+    - declaration: missing_feature (Cookies not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
+  tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_value:
+    - declaration: missing_feature (Query string not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: *ref_5_18_0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - weblog_declaration:
@@ -1313,6 +1376,14 @@ manifest:
     - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
+  tests/appsec/waf/test_exclusions.py::Test_Exclusions::test_input_exclusion_negative_test:
+    - declaration: missing_feature (Query string not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
+  tests/appsec/waf/test_exclusions.py::Test_Exclusions::test_rule_exclusion_negative_test:
+    - declaration: missing_feature (Query string not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
   tests/appsec/waf/test_miscs.py::Test_404: v2.0.0
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
     - weblog_declaration:
@@ -1322,6 +1393,10 @@ manifest:
     - weblog_declaration:
         "*": v2.0.0
         fastify: *ref_5_57_0
+  tests/appsec/waf/test_miscs.py::Test_MultipleAttacks::test_basic:
+    - declaration: missing_feature (Query string not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight:
     - weblog_declaration:
         "*": v2.0.0
@@ -1360,6 +1435,10 @@ manifest:
     - weblog_declaration:
         "*": v2.0.0
         fastify: *ref_5_57_0
+  tests/appsec/waf/test_rules.py::Test_LFI::test_lfi:
+    - declaration: missing_feature (Query string not supported yet)
+      component_version: '<5.57.0'
+      weblog: [fastify]
   tests/appsec/waf/test_rules.py::Test_NoSqli: v2.0.0
   tests/appsec/waf/test_rules.py::Test_NoSqli::test_nosqli_keys: irrelevant (brackets are interpreted as arrays and thus truncated)
   tests/appsec/waf/test_rules.py::Test_PhpCodeInjection:
@@ -1414,6 +1493,10 @@ manifest:
         nextjs: missing_feature
         uds-express4: *ref_5_54_0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": *ref_5_48_0
@@ -1439,11 +1522,13 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": *ref_5_39_0
@@ -1455,25 +1540,35 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot: bug (DEBUG-4611)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track: missing_feature (DEBUG-4345)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination: missing_feature (DEBUG-4345)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_log_line_snapshot: bug (DEBUG-4611)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_log_method_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_log_method_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: missing_feature
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature (feature not implented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (feature not implemented)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <5.66.0
@@ -1490,8 +1585,17 @@ manifest:
         "*": incomplete_test_app
         express4: *ref_5_77_0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1730)
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create: missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_content_block: missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
+  ? tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_multiple_system_prompts
+  : missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_redact_image_input: missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_stream_method: missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result: bug (MLOB-1234)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_with_tools: missing_feature (Node.js LLM Observability Anthropic integration does not submit tool definitions)
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
@@ -1542,6 +1646,7 @@ manifest:
         express4: v0.1  # real version not known
         express5: v0.1  # real version not known
         fastify: v0.1  # real version not known
+    - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume: "missing_feature (\"Expected to fail, Node.js will not create a response span propagating context since it cannot extract AWSTracerHeader context that Java injects\")"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, Node.js does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
@@ -1550,6 +1655,7 @@ manifest:
         express4: v0.1  # real version not known
         express5: v0.1  # real version not known
         fastify: v0.1  # real version not known
+  tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql:
     - weblog_declaration:
         "*": missing_feature
@@ -1558,6 +1664,7 @@ manifest:
         fastify: v1.0.0
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name: missing_feature (Not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count: missing_feature (not implemented yet)
@@ -1572,6 +1679,7 @@ manifest:
         fastify: v1.0.0
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (not implemented yet)
@@ -1585,6 +1693,7 @@ manifest:
         fastify: v1.0.0
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (not implemented yet)
@@ -1593,12 +1702,18 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_type: bug (APMAPI-913)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_operation: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_row_count: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_sql_table: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_statement_query: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_system: missing_feature (not implemented yet)
   tests/integrations/test_dbm.py::Test_Dbm: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1613,6 +1728,12 @@ manifest:
         express5: *ref_5_13_0
         fastify: *ref_5_13_0
         uds-express4: *ref_5_13_0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -1711,8 +1832,16 @@ manifest:
         express4: ">=5.37.0 <5.88.0"
         express5: ">=5.37.0 <5.88.0"
         fastify: ">=5.37.0 <5.88.0"
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": irrelevant  # the feature is framework agnostic, no need to test all variants
+        express4: *ref_5_90_0
+        express5: *ref_5_90_0
+        fastify: *ref_5_90_0
+  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
+  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: *ref_5_83_0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: *ref_5_83_0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
@@ -1723,6 +1852,9 @@ manifest:
         fastify: *ref_5_26_0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Node.js extract endpoint doesn't seem to be working.)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_inject: incomplete_test_app (Node.js inject endpoint doesn't seem to be working.)
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: *ref_3_0_0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_enabled_by_default:
     - declaration: missing_feature (Implemented in 4.19.0 & 3.40.0)
@@ -1746,6 +1878,7 @@ manifest:
     - declaration: missing_feature (Implemented in 5.38.0)
       component_version: <5.38.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: *ref_5_29_0
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: *ref_5_25_0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: *ref_5_41_0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: *ref_5_25_0
@@ -1817,6 +1950,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (nodejs has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (nodejs has not implemented stats computation yet)
@@ -1826,6 +1960,8 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: missing_feature (this setting is not exposed in the Node.js config object)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: missing_feature (this setting is not exposed in the Node.js config object)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: *ref_5_72_0
@@ -1833,6 +1969,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
@@ -1862,6 +1999,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:
     - declaration: missing_feature (Implemented in v5.17.0 & v4.41.0)
       component_version: <5.17.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 5.16.0)
       component_version: <5.16.0
@@ -1954,6 +2092,7 @@ manifest:
       component_version: <=5.75.0
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: *ref_4_23_0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: *ref_5_13_0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: *ref_5_59_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: *ref_5_16_0
@@ -1974,9 +2113,13 @@ manifest:
     - declaration: missing_feature (Implemented in 5.38.0)
       component_version: <5.38.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: *ref_5_38_0
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes: missing_feature (nodejs overrides the manually set service name)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: *ref_3_21_0
   tests/parametric/test_tracer.py::Test_TracerSCITagging::test_tracer_repository_url_strip_credentials: missing_feature (nodejs does not strip credentials yet)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: *ref_5_15_0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature (Only plaintext files are sent presently)
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature (Only plaintext files are sent presently)
@@ -2063,6 +2206,15 @@ manifest:
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:
     - declaration: missing_feature (not implemented yet)
       component_version: <5.47.0
+  tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags:
+    - weblog_declaration:
+        anthropic-js: missing_feature (Missing endpoint)
+        express4-typescript: missing_feature (Missing endpoint)
+        fastify: missing_feature (Missing endpoint)
+        google_genai-js: missing_feature (Missing endpoint)
+        nextjs: missing_feature (Missing endpoint)
+        openai-js: missing_feature (Missing endpoint)
+        uds-express4: missing_feature (Missing endpoint)
   tests/test_distributed.py::Test_DistributedHttp: *ref_3_0_0
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: *ref_5_27_0
@@ -2095,6 +2247,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Long: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Short: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: *ref_5_25_0
@@ -2103,6 +2256,9 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
@@ -2111,12 +2267,18 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_81_0
         nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_root:
+    - weblog_declaration:
+        fastify: missing_feature (Fasitfy root route is always '/' not empty string)
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys:
     - weblog_declaration:
         "*": *ref_5_81_0
         nextjs: missing_feature
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: flaky (APPSEC-61406)
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
   tests/test_sampling_rates.py::Test_SamplingDecisions: *ref_5_54_0
@@ -2144,6 +2306,7 @@ manifest:
         express4: *ref_5_43_0
         express5: *ref_5_43_0
         fastify: *ref_5_43_0
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
     - weblog_declaration:
         "*": irrelevant
@@ -2165,6 +2328,8 @@ manifest:
         nextjs: missing_feature  # http.route not added in nextjs
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.11.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: *ref_3_0_0
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.9.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
   tests/test_telemetry.py::Test_Log_Generation: missing_feature
@@ -2191,6 +2356,7 @@ manifest:
         uds-express4: *ref_3_7_0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant

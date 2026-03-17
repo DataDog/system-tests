@@ -331,6 +331,10 @@ class TestedContainer:
     def exec_run(self, cmd: str, *, demux: bool = False) -> ExecResult:
         return self._container.exec_run(cmd, demux=demux)
 
+    def get_archive(self, path: str):
+        """Return a tar archive of a path inside the container (wraps Docker SDK get_archive)."""
+        return self._container.get_archive(path)
+
     def execute_command(
         self, test: str, retries: int = 10, interval: float = 1_000_000_000, start_period: float = 0
     ) -> tuple[int, str]:
@@ -595,11 +599,11 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
-                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
+                "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
-            working_dir="/app/utils",
+            working_dir="/app",
             volumes={
-                "./utils/": {"bind": "/app/utils/", "mode": "ro"},
+                "./utils/proxy": {"bind": "/app/proxy", "mode": "ro"},
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
             command="python -m proxy.core",
@@ -670,7 +674,16 @@ class ProxyContainer(TestedContainer):
         with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
-        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
+        # in any info printed in stdout, log filename should be the same as the host.
+        # In the host, they are accessible in ./logs_<scenario_name>
+        # In proxy container, since only the container code is mounted in /app/proxy, and the working dir is /app,
+        # we need to mount the log folder in /app/logs_<scenario_name>, and give this name to the proxy.
+        # With that, the proxy will save all files as "./logs_<scenario_name>/...", which can be readed directly
+        # in the host from the root of system-tests
+        self.environment["SYSTEM_TESTS_LOG_FOLDER"] = f"./{host_log_folder}"
+        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"}
+
+        # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
         self.volumes[backend_mocks_path] = {
             "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
@@ -1455,7 +1468,7 @@ class APMTestAgentContainer(TestedContainer):
 class VCRCassettesContainer(TestedContainer):
     """VCR cassettes container for recording and replaying HTTP interactions.
 
-    Will mount the folder ./utils/build/docker/vcr_proxy/cassettes to /cassettes inside the container.
+    Will mount the folder ./utils/build/docker/vcr/cassettes to /cassettes inside the container.
 
     The endpoint will be made available to weblogs at 'http://vcr_cassettes:{proxy_port}/vcr'
     """
@@ -1467,8 +1480,8 @@ class VCRCassettesContainer(TestedContainer):
             environment={
                 "PORT": str(vcr_port),
                 "VCR_CASSETTES_DIRECTORY": "/cassettes",
-                # cassettes are pre-recorded and the real service will never be used in testing
                 "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+                "VCR_IGNORE_HEADERS": "content-security-policy",
             },
             healthcheck={
                 "test": f"curl --fail --silent --show-error http://localhost:{vcr_port}/info",
@@ -1483,6 +1496,12 @@ class VCRCassettesContainer(TestedContainer):
             ports={vcr_port: ("127.0.0.1", vcr_port)},
             allow_old_container=False,
         )
+
+    def set_generate_cassettes_mode(self):
+        """Switch to record mode: remove read-only cassettes mount so the container
+        records fresh cassettes to its internal filesystem.
+        """
+        del self.volumes["./utils/build/docker/vcr/cassettes"]
 
 
 class MountInjectionVolume(TestedContainer):
@@ -1617,6 +1636,7 @@ class ExternalProcessingContainer(TestedContainer):
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
@@ -1693,6 +1713,7 @@ class StreamProcessingOffloadContainer(TestedContainer):
 
         environment: dict[str, str | None] = {
             "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
         }

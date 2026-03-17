@@ -47,12 +47,13 @@ public class MyResource {
     private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     @GET
-    public String hello() {
+    public Response hello() {
         var tracer = GlobalTracer.get();
         Span span = tracer.buildSpan("test-span").start();
         span.setTag("test-tag", "my value");
         try {
-            return "Hello world!\n";
+            return Response.ok("Hello world!\n")
+                .build();
         } finally {
             span.finish();
         }
@@ -441,6 +442,23 @@ public class MyResource {
             sb.append('}');
             return sb.toString();
         }
+    }
+
+    @GET
+    @Path("/inferred-proxy/span-creation")
+    public Response inferredProxySpanCreation(@QueryParam("status_code") String statusCodeParam, @Context HttpHeaders headers) {
+        int statusCode = 200;
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400;
+            }
+        }
+        System.out.println("Received an API Gateway request:");
+        headers.getRequestHeaders().forEach((name, values) ->
+            values.forEach(value -> System.out.println(name + ": " + value)));
+        return Response.status(statusCode).entity("ok").build();
     }
 
     @GET

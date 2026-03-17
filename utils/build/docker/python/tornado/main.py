@@ -75,6 +75,10 @@ _TRACK_USER = "system_tests_user"
 class BaseHandler(RequestHandler):
     """Base handler with automated user tracking middleware."""
 
+    def compute_etag(self) -> str | None:
+        """Override to avoid using hashlib.sha1 which triggers IAST weak_hash detection."""
+        return None
+
     def prepare(self) -> None:
         """Middleware to automatically track users from session cookies."""
         with contextlib.suppress(Exception):

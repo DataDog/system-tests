@@ -1,7 +1,5 @@
-from dataclasses import dataclass
 import os
 import pytest
-from _pytest.reports import TestReport
 
 from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
@@ -26,14 +24,6 @@ from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
-
-
-@dataclass
-class _SchemaBug:
-    endpoint: str
-    data_path: str | None  # None means that all data_path will be considered as bug
-    condition: bool
-    ticket: str
 
 
 class DockerScenario(Scenario):
@@ -183,36 +173,6 @@ class DockerScenario(Scenario):
         for container in reversed(self._containers):
             container.remove()
 
-    def test_schemas(
-        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
-    ) -> None:
-        long_repr = []
-
-        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
-
-        for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points and (
-                error.endpoint,
-                None,
-            ) not in excluded_points:
-                long_repr.append(f"* {error.message}")
-
-        if len(long_repr) != 0:
-            report = TestReport(
-                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::test_schemas",
-                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
-                {},
-                "failed",
-                "\n".join(long_repr),
-                "call",
-            )
-
-            if "error" not in logger.terminal.stats:
-                logger.terminal.stats["error"] = []
-
-            logger.terminal.stats["error"].append(report)
-            session.exitstatus = pytest.ExitCode.TESTS_FAILED
-
 
 class EndToEndScenario(DockerScenario):
     """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
@@ -343,18 +303,6 @@ class EndToEndScenario(DockerScenario):
             container.interface.configure(self.host_log_folder, replay=self.replay)
 
         library = self.weblog_infra.library_name
-
-        if library == "golang":
-            # temporary fix, waiting for a proper support of v1.0 traces:
-            # golang uses by default the v1.0 trace format, whoch is not yet correctly supported
-            # by system-tests. Unless there are explicit env var, force the trace format to be v0.5
-
-            weblog_env = self.weblog_infra.http_container.environment
-            if (
-                "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED" not in weblog_env
-                and "DD_TRACE_AGENT_PROTOCOL_VERSION" not in weblog_env
-            ):
-                weblog_env["DD_TRACE_AGENT_PROTOCOL_VERSION"] = "0.4"
 
         if self._library_interface_timeout is None:
             if library == "java":
@@ -501,164 +449,6 @@ class EndToEndScenario(DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
-
-    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
-        library_bugs = [
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content[]",
-                condition=self.library >= "php@1.12.0",
-                ticket="DEBUG-4431",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$",
-                condition=self.library > "nodejs@5.36.0",
-                ticket="DEBUG-3487",
-            ),
-            _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[]",
-                condition=self.library >= "nodejs@2.27.1",
-                ticket="APPSEC-52805",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library < "python@v2.9.0.dev",
-                ticket="APPSEC-52845",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=self.library == "golang",
-                ticket="APMS-12697",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content",
-                condition=self.library < "nodejs@5.31.0",
-                ticket="DEBUG-2864",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content[].debugger.diagnostics",
-                condition=self.library == "nodejs",
-                ticket="DEBUG-3245",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/input",
-                data_path="$[].debugger.snapshot.stack[].lineNumber",
-                condition=self.library in ("python@2.16.2", "python@2.16.3")
-                and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
-                ticket="APMRP-360",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/input",
-                data_path="$[].debugger.snapshot.probe.location.method",
-                condition=self.library == "dotnet",
-                ticket="DEBUG-3734",
-            ),
-            _SchemaBug(
-                endpoint="/symdb/v1/input",
-                data_path=None,
-                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
-                ticket="DEBUG-3298",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library > "php@1.7.3",
-                ticket="APMAPI-1270",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[]",
-                condition=self.library >= "php@1.8.3",
-                ticket="DEBUG-3709",
-            ),
-            _SchemaBug(
-                endpoint="/v0.6/stats",
-                data_path=None,
-                condition=self.library
-                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
-                and self.name in ("APPSEC_BLOCKING", "TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
-                ticket="APMSP-2158",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library >= "python@4.3.0-rc1" and self.name == "PROFILING",
-                ticket="APMSP-2590",
-            ),
-        ]
-
-        self.test_schemas(session, interfaces.library, library_bugs)
-
-        agent_bugs = [
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$",
-                condition=self.library > "nodejs@5.36.0",
-                ticket="DEBUG-3487",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[]",
-                condition=self.library >= "nodejs@2.27.1"
-                or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
-                ticket="APPSEC-52805",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library < "python@v2.9.0.dev",
-                ticket="APPSEC-52845",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
-            ),  # the main payload sent by the agent may be an array i/o an object
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=self.library == "golang",
-                ticket="APMS-12697",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[].content",
-                condition=self.library < "nodejs@5.31.0",
-                ticket="DEBUG-2864",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[]",
-                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
-                ticket="DEBUG-3298",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library > "php@1.7.3",
-                ticket="XXX-1234",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[]",
-                condition=self.library >= "php@1.8.3",
-                ticket="DEBUG-3709",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library >= "python@4.3.0-rc1" and self.name == "PROFILING",
-                ticket="APMSP-2590",
-            ),
-        ]
-        self.test_schemas(session, interfaces.agent, agent_bugs)
-
-        return super().pytest_sessionfinish(session, exitstatus)
 
     @property
     def weblog_container(self) -> WeblogContainer:

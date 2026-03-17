@@ -1,5 +1,5 @@
 import pytest
-from utils import missing_feature, context, scenarios, features
+from utils import context, scenarios, features
 from .conftest import APMLibrary
 
 
@@ -207,20 +207,12 @@ class Test_Otel_Env_Vars:
             resp = t.config()
         assert resp["dd_trace_otel_enabled"] == "false"
 
-    @missing_feature(
-        condition=True,
-        reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language",
-    )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_dd_trace_sample_ignore_parent_true(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_sample_ignore_parent"] == "true"
 
-    @missing_feature(
-        condition=True,
-        reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language",
-    )
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]
     )

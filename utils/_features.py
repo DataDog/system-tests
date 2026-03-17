@@ -2575,6 +2575,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=492, owner=_Owner.asm)
 
     @staticmethod
+    def api_llm_endpoint(test_object):
+        """API Security - Business logic events for LLM-based SDKs
+
+        https://feature-parity.us1.prod.dog/#/?feature=544
+        """
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.asm)
+
+    @staticmethod
     def agent_data_integrity(test_object):
         """Data integrity
 
@@ -2773,6 +2781,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=543
         """
         return _mark_test_object(test_object, feature_id=543, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def service_override_source(test_object):
+        """Signal Service override source in tracing
+
+        https://feature-parity.us1.prod.dog/#/?feature=545
+        """
+        return _mark_test_object(test_object, feature_id=545, owner=_Owner.language_platform)
 
 
 features = _Features()
