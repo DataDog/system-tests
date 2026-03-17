@@ -118,7 +118,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
     },
     "tags": {
-        "java": "DD_TAGS",
+        "java": "DD_TRACE_TAGS",
         "dotnet": "DD_TAGS",
         "python": "DD_TAGS",
         "nodejs": "DD_TAGS",
