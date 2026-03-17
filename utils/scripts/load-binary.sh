@@ -295,9 +295,9 @@ elif [ "$TARGET" = "httpd-datadog" ]; then
     assert_version_is_dev
     echo "No binary to load for httpd-datadog yet"
 
-elif [ "$TARGET" = "iis" ]; then
+elif [ "$TARGET" = "iis-datadog" ]; then
     assert_version_is_dev
-    echo "No binary to load for iis yet"
+    echo "No binary to load for iis-datadog yet"
 
 elif [ "$TARGET" = "nginx-datadog" ]; then
     assert_version_is_dev

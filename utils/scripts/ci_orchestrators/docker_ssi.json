@@ -383,7 +383,7 @@
             }
         ],
         "httpd-datadog": [],
-        "iis": [],
+        "iis-datadog": [],
         "nginx-datadog": []
     }
 }
