@@ -61,7 +61,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_Tags: ">=2.0.0"  # auto activation: might not be the earliest working version
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: ">1.0.0"
-  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6: missing_feature
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6: '>=2.0.0'
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_trace_agent_http_url_ipv6: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: ">1.0.0"
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature
