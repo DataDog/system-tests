@@ -569,6 +569,7 @@ class Test_Telemetry:
     def setup_session_id_headers_across_spawned(self):
         """Trigger spawn_child endpoint with exec (fork=false) for session ID header validation."""
         weblog.get("/spawn_child", params={"sleep": 2, "crash": False, "fork": False})
+        # Allow parent to flush telemetry after child (parent returns after waitpid)
         time.sleep(3)
 
     def _validate_session_id_headers_across_processes(self) -> None:
@@ -576,72 +577,35 @@ class Test_Telemetry:
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if not telemetry_data:
             raise ValueError("No telemetry data to validate on")
+        elif len(telemetry_data) == 1:
+            raise ValueError(f"Only one telemetry data to validate on. Expected at least 2: {telemetry_data}")
 
-        # Group by DD-Session-ID (equals runtime_id)
-        by_session_id: dict[str, list[dict]] = defaultdict(list)
+        runtime_ids = set[str]()
+        parent_runtime_ids = set[str]()
+        root_runtime_ids = set[str]()
+
         for data in telemetry_data:
-            sid = get_header(data, "request", "dd-session-id")
-            if sid:
-                by_session_id[sid].append(data)
+            curr_sid = get_header(data, "request", "dd-session-id")
+            curr_rid = get_header(data, "request", "dd-root-session-id")
+            curr_pid = get_header(data, "request", "dd-parent-session-id")
+            curr_id = data["request"]["content"].get("runtime_id")
 
-        if not by_session_id:
-            raise ValueError("No telemetry with DD-Session-ID found")
+            assert curr_sid is not None, f"DD-Session-ID is required in telemetry data: {data}"
+            assert curr_sid == curr_id, f"DD-Session-ID must match runtime_id: {curr_sid} != {curr_id}"
 
-        # Find child (has DD-Root-Session-ID)
-        child_sid = None
-        root_sid = None
-        for sid, requests in by_session_id.items():
-            root_sid = get_header(requests[0], "request", "dd-root-session-id")
-            if root_sid:
-                child_sid = sid
-                break
+            runtime_ids.add(curr_id)
+            if curr_pid is not None:
+                parent_runtime_ids.add(curr_pid)
+            if curr_rid is not None:
+                root_runtime_ids.add(curr_rid)
 
-        assert child_sid is not None, "No child process found (DD-Root-Session-ID missing)"
-        assert root_sid is not None, "No child process found (DD-Root-Session-ID missing)"
-
-        # Validate DD-Session-ID matches runtime_id when present (root may omit header in some tracer versions)
-        for data in telemetry_data:
-            runtime_id = data["request"]["content"].get("runtime_id")
-            sid = get_header(data, "request", "dd-session-id")
-            if runtime_id and sid is not None:
-                assert sid == runtime_id, (
-                    f"DD-Session-ID '{sid}' != runtime_id '{runtime_id}' in {data['log_filename']}"
-                )
-
-        # Root: find by runtime_id (root may not have DD-Session-ID so may not be in by_session_id)
-        root_requests = by_session_id.get(root_sid, [])
-        root_data: dict | None = root_requests[0] if root_requests else None
-        if root_data is None:
-            root_data = next(
-                (d for d in telemetry_data if d["request"]["content"].get("runtime_id") == root_sid),
-                None,
-            )
-        if root_data is None:
-            runtime_ids = {d["request"]["content"].get("runtime_id") for d in telemetry_data}
-            session_ids = set(by_session_id.keys())
-            raise AssertionError(
-                f"Root session '{root_sid}' (from child's DD-Root-Session-ID) not in telemetry. "
-                f"Parent may not have flushed before validation. "
-                f"runtime_ids in logs: {runtime_ids}, session_ids: {session_ids}"
-            )
-
-        # Root: no DD-Root-Session-ID, no DD-Parent-Session-ID
-        assert get_header(root_data, "request", "dd-root-session-id") is None, "Root must not have DD-Root-Session-ID"
-        assert get_header(root_data, "request", "dd-parent-session-id") is None, (
-            "Root must not have DD-Parent-Session-ID"
-        )
-
-        # Child: DD-Root-Session-ID points to root
-        child_data = by_session_id[child_sid][0]
-        assert get_header(child_data, "request", "dd-root-session-id") == root_sid, (
-            "Child DD-Root-Session-ID must match root"
-        )
-
-        # DD-Parent-Session-ID if present must reference root or known session
-        parent_sid = get_header(child_data, "request", "dd-parent-session-id")
-        if parent_sid:
-            assert parent_sid == root_sid or parent_sid in by_session_id, (
-                f"DD-Parent-Session-ID '{parent_sid}' must be root or in telemetry"
+        assert len(runtime_ids) > 1, f"Expected at least 2 runtime_ids, got {runtime_ids}"
+        assert len(root_runtime_ids) == 1, f"Expected 1 root runtime_id, got {root_runtime_ids}"
+        if parent_runtime_ids:
+            # Optional header: DD-Parent-Session-ID is not required by telemetry intake but is useful for debugging
+            missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
+            assert not missing_parent_runtime_ids, (
+                f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
             )
 
     def test_session_id_headers_across_forks(self):
