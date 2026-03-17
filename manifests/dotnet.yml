@@ -770,9 +770,9 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: v3.3.0
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: v3.3.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v3.28.0
-  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_default_config: missing_feature (runtime metrics default changing to true)
-  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_invalid_files: missing_feature (runtime metrics default changing to true)
-  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_unknown_key_skipped: missing_feature (runtime metrics default changing to true)
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_default_config: v3.40.0
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_invalid_files: v3.40.0
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_unknown_key_skipped: v3.40.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v3.2.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.53.2
