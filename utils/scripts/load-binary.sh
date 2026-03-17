@@ -172,11 +172,10 @@ elif [ "$TARGET" = "php" ]; then
         fi
 
         VERSION_HASH_ENCODED=$(echo "$VERSION_HASH" | sed 's/+/%2B/g')
-
-        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-x86_64-linux-gnu.tar.gz"
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-$(arch)-linux-gnu.tar.gz"
         echo "Downloading dd-library-php from: $URL"
-        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${VERSION_HASH}-x86_64-linux-gnu.tar.gz "$URL"
-        echo "dd-library-php downloaded"
+        curl --fail --location --silent --show-error --output "./temp/dd-library-php-${VERSION_HASH}-$(arch)-linux-gnu.tar.gz" "$URL"
+        echo "dd-library-php $(arch) downloaded"
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
