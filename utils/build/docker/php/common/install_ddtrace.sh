@@ -6,12 +6,14 @@ IS_APACHE=${1:-0}
 
 cd /binaries
 
-PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-linux-gnu.tar.gz')
+ARCH=$(uname -m)
+PKG=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
 SETUP=/binaries/datadog-setup.php
 
 DDTRACE_SO=/binaries/ddtrace.so
 DDAPPSEC_SO=/binaries/ddappsec.so
 APPSEC_HELPER_SO=/binaries/libddappsec-helper.so
+APPSEC_RUST_HELPER_SO=/binaries/libddappsec-helper-rust.so
 LIBDDWAF_SO=/binaries/libddwaf.so
 
 # Determine INI file location
@@ -101,6 +103,17 @@ if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
     cp -f $APPSEC_HELPER_SO $INSTALLED_HELPER
   else
     echo "Warning: Could not find installed libddappsec-helper.so to replace"
+  fi
+fi
+
+# Install the Rust helper alongside the C++ helper so DD_APPSEC_HELPER_RUST_REDIRECTION works
+if [ -f $APPSEC_RUST_HELPER_SO ]; then
+  INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
+  if [ -n "$INSTALLED_HELPER" ]; then
+    echo "Installing Rust helper at $(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
+    cp -f $APPSEC_RUST_HELPER_SO "$(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
+  else
+    echo "Warning: Could not find installed libddappsec-helper.so to install Rust helper alongside"
   fi
 fi
 
