@@ -46,7 +46,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "php": "trace.logs_enabled",
         "ruby": "tracing.log_injection",
         "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
-        "java": "DD_LOGS_INJECTION",
+        "java": "DD_LOGS_INJECTION_ENABLED",
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
