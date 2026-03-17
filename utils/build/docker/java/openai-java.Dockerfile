@@ -1,6 +1,7 @@
 FROM maven:3.9.14-eclipse-temurin-17
 
-ARG FRAMEWORK_VERSION
+ARG FRAMEWORK_VERSION=latest
+ENV FRAMEWORK_VERSION=${FRAMEWORK_VERSION}
 
 WORKDIR /app
 
@@ -8,8 +9,6 @@ COPY utils/build/docker/java/openai_app /app
 
 RUN ["./gradlew", "init"]
 
-
-# TODO $FRAMEWORK_VERSION pass thru if set
 
 
 # Copy DD trace installation scripts and binaries

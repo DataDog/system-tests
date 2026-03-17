@@ -19,7 +19,11 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
     implementation 'org.json:json:20230227'
     implementation 'org.slf4j:slf4j-simple:2.0.3'
-    implementation 'com.openai:openai-java:3.0.1'
+    def openaiVersion = System.getenv('FRAMEWORK_VERSION')
+    if (openaiVersion == null || openaiVersion.isEmpty() || openaiVersion == 'latest') {
+        openaiVersion = '+'
+    }
+    implementation "com.openai:openai-java:${openaiVersion}"
     implementation 'com.anthropic:anthropic-java:2.4.0'
 
     implementation files('/dd-tracer/dd-java-agent.jar')
@@ -28,3 +32,13 @@ dependencies {
 application {
     mainClass = 'SingleFileServer'
 }
+
+tasks.register('printOpenAIVersion') {
+    dependsOn configurations.runtimeClasspath
+    doLast {
+        def artifact = configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts
+            .find { it.name == 'openai-java' }
+        println "openai-java resolved version: ${artifact?.moduleVersion?.id?.version}"
+    }
+}
+build.finalizedBy 'printOpenAIVersion'
