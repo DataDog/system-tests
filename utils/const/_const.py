@@ -36,6 +36,7 @@ class ComponentGroups(ConstGroups):
             "java": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
             "java_lambda": [self.buildable, self.lambda_lib, self.parametric],
             "java_otel": [self.buildable, self.lib_injection, self.otel],
+            "nginx-datadog": [self.ssi],
             "nodejs": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
             "nodejs_otel": [self.buildable, self.lib_injection, self.otel],
             "otel_collector": [],
