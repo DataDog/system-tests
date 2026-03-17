@@ -33,6 +33,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
@@ -160,6 +161,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SampleRateFunction::test_sample_rate_function: missing_feature (/sample_rate_route is not implemented)
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.0.0  # real version unknown
@@ -178,7 +180,13 @@ manifest:
   tests/test_telemetry.py::Test_Log_Generation: '>=1.0.3'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_MessageBatch: '>=1.0.3'  # Modified by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=1.0.4'  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant

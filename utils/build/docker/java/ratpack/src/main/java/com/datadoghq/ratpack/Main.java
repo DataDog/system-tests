@@ -371,6 +371,21 @@ public class Main {
                                 setRootSpanTag("service", serviceName);
                                 ctx.getResponse().send("ok");
                             })
+                            .get("inferred-proxy/span-creation", ctx -> {
+                                String statusCodeParam = ctx.getRequest().getQueryParams().get("status_code");
+                                int statusCode = 200;
+                                if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                                    try {
+                                        statusCode = Integer.parseInt(statusCodeParam);
+                                    } catch (NumberFormatException e) {
+                                        statusCode = 400;
+                                    }
+                                }
+                                System.out.println("Received an API Gateway request:");
+                                Headers headers = ctx.getRequest().getHeaders();
+                                headers.getNames().forEach(name -> System.out.println(name + ": " + headers.get(name)));
+                                ctx.getResponse().status(statusCode).send("text/plain", "ok");
+                            })
                             .get("set_cookie", ctx -> {
                                 final String name = ctx.getRequest().getQueryParams().get("name");
                                 final String value = ctx.getRequest().getQueryParams().get("value");
