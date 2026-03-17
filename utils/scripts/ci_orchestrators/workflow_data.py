@@ -640,6 +640,7 @@ if __name__ == "__main__":
             "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
             "RUNTIME_METRICS_ENABLED",
             "SAMPLING",
+            "SAMPLING_RATE_CAPPING",
             "SCA_STANDALONE",
             "SCA_STANDALONE_V2",
             "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",

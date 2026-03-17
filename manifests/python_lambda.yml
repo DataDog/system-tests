@@ -63,15 +63,23 @@ manifest:
         alb-multi: v8.121.0  # Modified by easy win activation script
         function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
+  tests/appsec/rasp/test_api10.py::Test_API10_all:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-60508)
+      component_version: <8.123.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: bug (APPSEC-61151)
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61151)
+      component_version: <8.123.0
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-60508)
+      component_version: <8.123.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: bug (APPSEC-61151)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61151)
+      component_version: <8.123.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v8.117.0.dev
@@ -246,9 +254,15 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61196)
+      component_version: <8.123.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61196)
+      component_version: <8.123.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61196)
+      component_version: <8.123.0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers:
     - weblog_declaration:
         "*": v8.113.0
