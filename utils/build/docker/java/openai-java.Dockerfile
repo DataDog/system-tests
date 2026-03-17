@@ -1,4 +1,4 @@
-FROM maven:3.9.5-eclipse-temurin-17
+FROM maven:3.9.14-eclipse-temurin-17
 
 ARG FRAMEWORK_VERSION
 
