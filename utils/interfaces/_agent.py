@@ -35,13 +35,22 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             yield from all_data
         else:
             for data in all_data:
-                if data["request"]["content"].get("request_type") == "message-batch":
-                    for batch_payload in data["request"]["content"]["payload"]:
+                content = data["request"]["content"]
+                if not isinstance(content, dict):
+                    yield data
+                    continue
+
+                if content.get("request_type") == "message-batch":
+                    for batch_payload in content["payload"]:
                         # create a fresh copy of the request for each payload in the
                         # message batch, as though they were all sent independently
                         copied = copy.deepcopy(data)
-                        copied["request"]["content"]["request_type"] = batch_payload.get("request_type")
-                        copied["request"]["content"]["payload"] = batch_payload.get("payload")
+                        copied_content = copied["request"]["content"]
+                        if not isinstance(copied_content, dict):
+                            continue
+
+                        copied_content["request_type"] = batch_payload.get("request_type")
+                        copied_content["payload"] = batch_payload.get("payload")
                         yield copied
                 else:
                     yield data
@@ -131,6 +140,20 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             return span["attributes"]
 
         raise ValueError(f"Unknown span format: {span.trace.format}")
+
+    @staticmethod
+    def get_span_origin(span: DataDogAgentSpan) -> str | None:
+        """Returns the origin (_dd.origin) of a span according to its format.
+
+        In protocol v1, origin is stored at chunk level, not as a span attribute.
+        """
+        if span.trace.format == AgentTraceFormat.efficient_trace_payload_format:
+            raw_trace = span.trace.raw_trace
+            if isinstance(raw_trace, dict):
+                return raw_trace.get("origin")
+            return None
+
+        return span.meta.get("_dd.origin")
 
     def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
         return [span for _, span in self.get_spans(request)]
