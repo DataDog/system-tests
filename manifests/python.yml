@@ -30,7 +30,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": v4.6.0-rc3
+        "flask-poc": v4.7.0-rc1
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
