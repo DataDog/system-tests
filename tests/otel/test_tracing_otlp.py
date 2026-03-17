@@ -5,6 +5,7 @@
 import time
 import re
 from utils import weblog, interfaces, scenarios, features
+from utils.dd_constants import SpanKind, StatusCode
 
 
 # @scenarios.apm_tracing_e2e_otel
