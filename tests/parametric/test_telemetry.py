@@ -57,7 +57,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "trace_tags": {
         "dotnet": "DD_TAGS",
-        "java": "DD_TAGS",
+        "java": "DD_TRACE_TAGS",
         "nodejs": "DD_TAGS",
         "python": "DD_TAGS",
         "golang": ["DD_TAGS", "trace_tags"],
@@ -118,7 +118,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
     },
     "tags": {
-        "java": "DD_TRACE_TAGS",
+        "java": "DD_TAGS",
         "dotnet": "DD_TAGS",
         "python": "DD_TAGS",
         "nodejs": "DD_TAGS",
