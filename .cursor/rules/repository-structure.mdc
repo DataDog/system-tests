@@ -18,6 +18,7 @@ system-tests/
 |   |-- RFCs/           # Request for Comments documents
 |   |-- scenarios/      # Documentation about test scenarios
 |   |   |-- README.md           # Overview of the main types of scenarios
+|   |   |-- ai_guard.md         # AI Guard scenario documentation (VCR cassettes, upgrading cassettes)
 |   |   |-- docker_ssi.md       # Docker SSI scenario documentation
 |   |   |-- k8s_lib_injection.md # Kubernetes library injection tests details
 |   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation. You can find here the details about the onboarding tests and how to operate with them. i.e., how to run the tests, how to create a new virtual machine, a new weblog, create provisions...
