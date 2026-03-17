@@ -382,6 +382,8 @@
                 ]
             }
         ],
+        "httpd-datadog": [],
+        "iis": [],
         "nginx-datadog": []
     }
 }

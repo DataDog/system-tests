@@ -33,6 +33,8 @@ class ComponentGroups(ConstGroups):
             "envoy": [],
             "golang": [self.buildable, self.easy_win, self.lib_injection, self.parametric],
             "haproxy": [],
+            "httpd-datadog": [self.ssi],
+            "iis": [self.ssi],
             "java": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
             "java_lambda": [self.buildable, self.lambda_lib, self.parametric],
             "java_otel": [self.buildable, self.lib_injection, self.otel],
