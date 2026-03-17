@@ -3562,7 +3562,13 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'
       component_version: <1.58.2+06122213c8
-  tests/parametric/test_llm_observability/: incomplete_test_app
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation: missing_feature (prompt annotation not supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_default_id: missing_feature (prompt annotation not supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_in_annotation_context: missing_feature (prompt annotation not supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_supports_hallucinations: missing_feature (prompt annotation not supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_supports_tags: missing_feature (prompt annotation not supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_updates_existing_prompt: missing_feature (prompt annotation not supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_with_string_template: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
