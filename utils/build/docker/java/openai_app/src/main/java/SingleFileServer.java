@@ -213,6 +213,7 @@ public class SingleFileServer {
     EmbeddingCreateParams.Builder builder = EmbeddingCreateParams.builder();
     builder.model(model);
     builder.input(input);
+    builder.encodingFormat(EmbeddingCreateParams.EncodingFormat.FLOAT);
 
     openaiClient.embeddings().create(builder.build());
 
