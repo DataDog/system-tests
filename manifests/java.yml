@@ -3562,6 +3562,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'
       component_version: <1.58.2+06122213c8
+  tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset::test_dataset_create_delete: incomplete_test_app (Java parametric app does not implement /llm_observability/dataset endpoints)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_default_id: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_in_annotation_context: missing_feature (prompt annotation not supported in Java LLMObs SDK)
