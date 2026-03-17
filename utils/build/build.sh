@@ -105,7 +105,7 @@ list-weblogs() {
 default-weblog() {
     local var="DEFAULT_${TEST_LIBRARY}"
     if [[ -z "${!var:-}" ]]; then
-        echo "ERROR: This script should not be run for ${TEST_LIBRARY} library because it has no default weblog." >&2
+        echo "ERROR: This script should not be run for the ${TEST_LIBRARY} library because it has no default weblog." >&2
         exit 1
     fi
     echo -n "${!var}"
