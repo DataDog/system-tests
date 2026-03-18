@@ -1,8 +1,5 @@
 Rails.application.routes.draw do
-  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
-
-  # Defines the root path route ("/")
-  # root "articles#index"
+  root to: proc { [200, {}, ['OK']] }
   get 'crashme', controller: 'datadog', action: :crashme
   get 'fork_and_crash', controller: 'datadog', action: :fork_and_crash
   get 'child_pids', controller: 'datadog', action: :child_pids
