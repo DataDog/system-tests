@@ -275,7 +275,7 @@ class Test_Synthetics_APM_Datadog:
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         metrics = interfaces.agent.get_span_metrics(span)
-        assert interfaces.agent.get_span_origin(span) == "synthetics"
+        assert span.get_span_origin() == "synthetics"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
     def setup_synthetics_browser(self):
@@ -302,5 +302,5 @@ class Test_Synthetics_APM_Datadog:
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         metrics = interfaces.agent.get_span_metrics(span)
-        assert interfaces.agent.get_span_origin(span) == "synthetics-browser"
+        assert span.get_span_origin() == "synthetics-browser"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1

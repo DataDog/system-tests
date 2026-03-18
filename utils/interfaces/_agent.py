@@ -88,7 +88,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             logger.debug(f"Looking at agent data {data['log_filename']}")
 
-            builder: Callable[[dict, dict], DataDogAgentTrace]
+            builder: Callable[..., DataDogAgentTrace]
 
             if "tracerPayloads" in data["request"]["content"]:
                 builder = DataDogAgentTrace.from_agent_legacy
@@ -101,7 +101,10 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for payload in content:
                 for chunk in payload.get("chunks", []):
-                    trace = builder(data, raw_trace=chunk)
+                    if builder is DataDogAgentTrace.from_agent_v1:
+                        trace = builder(data, raw_trace=chunk, string_table=payload.get("strings", []))
+                    else:
+                        trace = builder(data, raw_trace=chunk)
                     if rid is None:
                         yield data, trace
                     else:
@@ -140,20 +143,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             return span["attributes"]
 
         raise ValueError(f"Unknown span format: {span.trace.format}")
-
-    @staticmethod
-    def get_span_origin(span: DataDogAgentSpan) -> str | None:
-        """Returns the origin (_dd.origin) of a span according to its format.
-
-        In protocol v1, origin is stored at chunk level, not as a span attribute.
-        """
-        if span.trace.format == AgentTraceFormat.efficient_trace_payload_format:
-            raw_trace = span.trace.raw_trace
-            if isinstance(raw_trace, dict):
-                return raw_trace.get("origin")
-            return None
-
-        return span.meta.get("_dd.origin")
 
     def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
         return [span for _, span in self.get_spans(request)]

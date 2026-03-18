@@ -33,8 +33,8 @@ class DataDogAgentTrace(ABC):
         return DataDogTraceAgentLegacy(data, raw_trace)
 
     @staticmethod
-    def from_agent_v1(data: dict, raw_trace: dict) -> "DataDogTraceAgentV1":
-        return DataDogTraceAgentV1(data, raw_trace)
+    def from_agent_v1(data: dict, raw_trace: dict, string_table: list[str]) -> "DataDogTraceAgentV1":
+        return DataDogTraceAgentV1(data, raw_trace, string_table)
 
     @property
     @abstractmethod
@@ -83,10 +83,11 @@ class DataDogTraceAgentLegacy(DataDogAgentTrace):
 class DataDogTraceAgentV1(DataDogAgentTrace):
     # spans: list["DataDogAgentSpanV10"]
 
-    def __init__(self, data: dict, raw_trace: dict):
+    def __init__(self, data: dict, raw_trace: dict, string_table: list[str]):
         self.data = data
 
-        self.raw_trace: dict = raw_trace
+        self.raw_trace: dict = dict(raw_trace)
+        self.string_table = string_table
 
         self.format = AgentTraceFormat.efficient_trace_payload_format
 
@@ -155,6 +156,10 @@ class DataDogAgentSpan(ABC):
     def get_span_kind(self) -> str:
         pass
 
+    @abstractmethod
+    def get_span_origin(self) -> str | None:
+        pass
+
 
 class DataDogAgentSpanLegacy(DataDogAgentSpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -186,8 +191,13 @@ class DataDogAgentSpanLegacy(DataDogAgentSpan):
     def get_span_kind(self) -> str:
         return self.meta["span.kind"]
 
+    def get_span_origin(self) -> str | None:
+        return self.meta["_dd.origin"]
+
 
 class DataDogAgentSpanV10(DataDogAgentSpan):
+    trace: DataDogTraceAgentV1
+
     def get(self, key: str, default: Any = None):  # noqa: ANN401
         return self.raw_span.get(key, default)
 
@@ -216,3 +226,11 @@ class DataDogAgentSpanV10(DataDogAgentSpan):
 
     def get_span_kind(self) -> str:
         return self.raw_span["kind"]
+
+    def get_span_origin(self) -> str | None:
+        idx = self.trace.raw_trace.get("originRef")
+
+        if isinstance(idx, int):
+            return self.trace.string_table[idx]
+
+        return None
