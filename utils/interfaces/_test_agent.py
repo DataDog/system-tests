@@ -7,7 +7,7 @@ import ddapm_test_agent.client as agent_client
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
 from utils._weblog import HttpResponse
-from utils.tools import get_rid_from_span
+from utils.tools import get_rid_from_user_agent
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):
@@ -42,7 +42,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
         for trace in self._data_traces_list:
             for span in trace:
-                if rid == get_rid_from_span(span):
+                if rid == _get_rid_from_span(span):
                     return span
         return None
 
@@ -136,9 +136,9 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
         """Get telemetry configurations for a given runtime ID and service name."""
         configurations = {}
-        # Sort telemetry requests by timestamp, this ensures later configurations take precedence
+        # Sort telemetry requests by timestamp and seq_id, this ensures later configurations take precedence
         requests = list(self.get_telemetry_for_runtime(runtime_id))
-        requests.sort(key=lambda x: x["tracer_time"])
+        requests.sort(key=lambda x: (x["tracer_time"], x.get("seq_id", 0)))
         for request in requests:
             if service_name is not None and request["application"]["service_name"] != service_name:
                 # Check if the service name in telemetry matches the expected service name
@@ -163,3 +163,42 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                     for config in config_list:
                         configurations[config["name"]] = config
         return configurations
+
+
+def _get_rid_from_span(span: dict) -> str | None:
+    meta = span.get("meta", {})
+    metrics = span.get("metrics", {})
+
+    if span.get("attributes") is not None:
+        # This is a v1 span so it won't have a meta or metrics field
+        # To reuse the logic here just override meta with the attributes
+        meta = span.get("attributes")
+        metrics = span.get("attributes")
+
+    user_agent = None
+
+    if span.get("type") == "rpc":
+        user_agent = meta.get("grpc.metadata.user-agent")
+        # java does not fill this tag; it uses the normal http tags
+
+    if not user_agent and metrics.get("_dd.top_level") == 1.0:
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
+        user_agent = meta.get("http.request.headers.user-agent")
+
+    if not user_agent:  # try something for .NET
+        user_agent = meta.get("http_request_headers_user-agent")
+
+    if not user_agent:
+        # cpp tracer
+        user_agent = meta.get("http_user_agent")
+
+    if not user_agent:  # last hope
+        user_agent = meta.get("http.useragent")
+
+    if not user_agent:  # last last hope (java opentelemetry autoinstrumentation)
+        user_agent = meta.get("user_agent.original")
+
+    if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
+        user_agent = meta.get("http.user_agent")
+
+    return get_rid_from_user_agent(user_agent)

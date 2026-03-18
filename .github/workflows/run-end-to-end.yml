@@ -363,6 +363,9 @@ jobs:
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
+    - name: Run SAMPLING_RATE_CAPPING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
+      run: ./run.sh SAMPLING_RATE_CAPPING
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
@@ -524,3 +527,4 @@ jobs:
       with:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
+        ci_environment: ${{ inputs.ci_environment }}

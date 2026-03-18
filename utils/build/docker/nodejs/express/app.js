@@ -636,6 +636,7 @@ app.get('/flush', (req, res) => {
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  tracer._tracer?._processor?._stats?.onInterval()
 
   // does have a callback :)
   const promises = []

@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, bug, logger
+from utils import weblog, interfaces, context, scenarios, features, logger
 from utils._weblog import HttpResponse
 from utils.dd_types import DataDogLibrarySpan
 
@@ -114,7 +114,6 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
-    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_trace_payload_full(self):
         assert self.requests, "No requests to validate"
         for request in self.requests:
@@ -146,7 +145,6 @@ class _BaseDbmComment:
     def setup_dbm_comment(self):
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
 
-    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_dbm_comment(self):
         assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
 
@@ -163,7 +161,6 @@ class _BaseDbmComment:
         assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
@@ -171,11 +168,10 @@ class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
@@ -183,14 +179,13 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
@@ -198,14 +193,13 @@ class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "postgres"  # db name
     ddh = "postgres"  # container name
 
 
 # no batching dbm comment injection for asyncpg
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
@@ -213,11 +207,10 @@ class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
@@ -225,11 +218,10 @@ class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
@@ -237,11 +229,10 @@ class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
@@ -249,11 +240,10 @@ class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
@@ -261,14 +251,13 @@ class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
@@ -276,14 +265,13 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
@@ -291,14 +279,13 @@ class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
@@ -306,14 +293,13 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
     operation = "executemany"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "mysqldb"  # db name
     ddh = "mysqldb"  # container name
 
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
 
-@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
@@ -321,14 +307,13 @@ class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
     operation = "execute"
 
     dddb = "mysql_dbname"  # db name
-    dddbs = "mysql_dbname"  # db name
+    dddbs = "weblog-mysql"  # db name
     ddh = "mysqldb"  # container name
 
 
 # no dbm batch comment injection for mysql2
 
 
-@irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
 class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
@@ -336,7 +321,7 @@ class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
     operation = "execute"
 
     dddb = "system_tests_dbname"  # db name
-    dddbs = "system_tests_dbname"  # db name
+    dddbs = "weblog-postgres"  # db name
     ddh = "postgres"  # container name
 
 

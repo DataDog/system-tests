@@ -10,26 +10,30 @@ import pytest
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
-from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
+from utils import context, scenarios, rfc, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
 
 telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
+    "instrumentation_source": {
+        "java": "DD_INSTRUMENTATION_SOURCE",
+    },
     "ssi_injection_enabled": {
         "python": "DD_INJECTION_ENABLED",
-        "java": "injection_enabled",
+        "java": "DD_INJECTION_ENABLED",
         "ruby": "DD_INJECTION_ENABLED",
         "golang": ["DD_INJECTION_ENABLED", "injection_enabled"],
     },
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
-        "java": "inject_force",
+        "java": "DD_INJECT_FORCE",
         "golang": ["DD_INJECT_FORCE", "inject_force"],
     },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
+        "java": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
         "python": "DD_TRACE_SAMPLE_RATE",
         "ruby": "DD_TRACE_SAMPLE_RATE",
@@ -42,16 +46,25 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "php": "trace.logs_enabled",
         "ruby": "tracing.log_injection",
         "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
+        "java": "DD_LOGS_INJECTION_ENABLED",
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
         "nodejs": "DD_TRACE_HEADER_TAGS",
         "python": "DD_TRACE_HEADER_TAGS",
         "golang": ["DD_TRACE_HEADER_TAGS", "trace_header_tags"],
+        "java": "DD_TRACE_HEADER_TAGS",
     },
-    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS", "golang": ["DD_TAGS", "trace_tags"]},
+    "trace_tags": {
+        "dotnet": "DD_TAGS",
+        "java": "DD_TRACE_TAGS",
+        "nodejs": "DD_TAGS",
+        "python": "DD_TAGS",
+        "golang": ["DD_TAGS", "trace_tags"],
+    },
     "trace_enabled": {
         "dotnet": "DD_TRACE_ENABLED",
+        "java": "DD_TRACE_ENABLED",
         "nodejs": "tracing",
         "python": "DD_TRACE_ENABLED",
         "ruby": "tracing.enabled",
@@ -63,6 +76,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_PROFILING_ENABLED",
         "ruby": "profiling.enabled",
         "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
+        "java": "DD_PROFILING_ENABLED",
     },
     "appsec_enabled": {
         "dotnet": "DD_APPSEC_ENABLED",
@@ -70,14 +84,17 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_APPSEC_ENABLED",
         "ruby": "appsec.enabled",
         "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
+        "java": "DD_APPSEC_ENABLED",
     },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
         "python": "DD_DATA_STREAMS_ENABLED",
+        "java": "DD_DATA_STREAMS_ENABLED",
         "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
     },
     "runtime_metrics_enabled": {
+        "java": "DD_RUNTIME_METRICS_ENABLED",
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
@@ -85,6 +102,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
     },
     "dynamic_instrumentation_enabled": {
+        "java": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "nodejs": "dynamicInstrumentation.enabled",
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
@@ -94,19 +112,20 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "trace_debug_enabled": {
         "php": "trace.debug",
-        "java": "trace_debug",
+        "java": "DD_TRACE_DEBUG",
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
         "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
     },
     "tags": {
-        "java": "trace_tags",
+        "java": "DD_TRACE_TAGS",
         "dotnet": "DD_TAGS",
         "python": "DD_TAGS",
         "nodejs": "DD_TAGS",
         "golang": ["DD_TAGS", "trace_tags"],
     },
     "trace_propagation_style": {
+        "java": "DD_TRACE_PROPAGATION_STYLE",
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
         "php": "trace.propagation_style",
         "golang": ["DD_TRACE_PROPAGATION_STYLE", "trace.propagation_style"],
@@ -802,10 +821,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
-    )
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
         local_cfg: dict[str, str],
@@ -882,11 +897,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
-    )
-    @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self,
         local_cfg: dict[str, str],
@@ -1202,7 +1212,6 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, False),
         ],
     )
-    @irrelevant(context.library not in ("python", "golang"))
     def test_telemetry_sca_enabled_propagated_specifics(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):

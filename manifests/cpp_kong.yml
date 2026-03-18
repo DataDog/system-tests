@@ -8,6 +8,7 @@ manifest:
   tests/appsec/: irrelevant (ASM is not implemented in Kong plugin)
   tests/debugger/: irrelevant
   tests/ffe/: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integrations/: missing_feature (Endpoints not implemented)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/: irrelevant (Parametric scenario is not applied on Kong)
@@ -27,6 +28,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py: missing_feature
   tests/test_scrubbing.py: irrelevant
   tests/test_semantic_conventions.py: missing_feature
@@ -34,4 +36,5 @@ manifest:
   tests/test_span_events.py: missing_feature
   tests/test_standard_tags.py: irrelevant
   tests/test_telemetry.py: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_v1_payloads.py: missing_feature

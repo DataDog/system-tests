@@ -147,12 +147,15 @@ public class App {
     int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
-    String home(HttpServletResponse response) {
+    ResponseEntity<String> home() {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
         // waiting for that, just set a random value
-        response.setHeader("Content-Language", "not-set");
-        return "Hello world!\n";
+        return ResponseEntity.ok()
+            .contentType(MediaType.TEXT_PLAIN)
+            .header("Content-Language", "not-set")
+            .contentLength(13)
+            .body("Hello world!\n");
     }
 
     @RequestMapping("/healthcheck")

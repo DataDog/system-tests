@@ -3,6 +3,7 @@ import json
 import secrets
 import sys
 
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
@@ -93,7 +94,8 @@ class CiData:
             "job_matrix": list(range(1, parametric_job_count + 1)),
             "enable": len(scenario_map["parametric"]) > 0
             and "otel" not in library
-            and library not in ("cpp_nginx", "cpp_kong", "cpp_httpd", "python_lambda", "envoy", "haproxy"),
+            and library
+            not in ("cpp_nginx", "cpp_kong", "cpp_httpd", "java_lambda", "python_lambda", "envoy", "haproxy"),
         }
 
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
@@ -229,27 +231,7 @@ if __name__ == "__main__":
         "library",
         type=str,
         help="One of the supported Datadog library",
-        choices=[
-            "cpp_httpd",
-            "cpp_kong",
-            "cpp_nginx",
-            "cpp",
-            "dotnet",
-            "golang",
-            "java_otel",
-            "java",
-            "nodejs_otel",
-            "nodejs",
-            "otel_collector",
-            "php",
-            "python_lambda",
-            "python_otel",
-            "python",
-            "ruby",
-            "rust",
-            "envoy",
-            "haproxy",
-        ],
+        choices=sorted(COMPONENT_GROUPS.all),
     )
 
     parser.add_argument(

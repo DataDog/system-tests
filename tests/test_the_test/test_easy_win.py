@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
     parse_artifact_data,
@@ -13,6 +14,7 @@ from utils.scripts.activate_easy_wins._internal.test_artifact import (
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.core import update_manifest
 from utils.scripts.activate_easy_wins._internal.types import Context
+from utils.scripts.activate_easy_wins._internal.manifest_editor import EASY_WIN_COMMENT
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -667,8 +669,8 @@ def test_easy_win_comment_preserves_existing_comment():
     """Test that existing YAML comments are not overwritten by the easy win activation script.
 
     When a manifest entry already has an inline comment and the activation script
-    would try to add an 'Easy win for ...' comment, the pre-existing comment must
-    be preserved.
+    would try to add a 'TODO: a lower version might be supported' comment, the pre-existing
+    comment must be preserved.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir) / "data"
@@ -691,7 +693,7 @@ def test_easy_win_comment_preserves_existing_comment():
 
         # Create manifest with a pre-existing inline comment on a list-style rule.
         # The list-style bug declaration without weblog_declaration triggers the
-        # else branch in write_poke, which attempts to write an "Easy win for ..." comment.
+        # else branch in write_poke, which attempts to write a "TODO: a lower version might be supported" comment.
         manifest_content = """---
 manifest:
   tests/appsec/test_feature.py::Test_Feature: # Important: tracked in TICKET-456
@@ -709,7 +711,7 @@ manifest:
         # The pre-existing comment must still be there
         assert "Important: tracked in TICKET-456" in output_content
         # The easy win comment must NOT have overwritten it
-        assert "Easy win for" not in output_content
+        assert EASY_WIN_COMMENT not in output_content
 
 
 def test_easy_win_comment_added_when_no_existing_comment():
@@ -753,7 +755,7 @@ manifest:
 
         output_content = (manifest_dir / "ruby.yml").read_text()
         # The easy win comment should have been added since there was no pre-existing comment
-        assert "Easy win for" in output_content
+        assert EASY_WIN_COMMENT in output_content
 
 
 # =============================================================================
@@ -841,3 +843,99 @@ def test_skip_nodeid_for_specific_component():
         assert unique_tests.get("ruby", 0) == 0
         assert tests_per_language.get("python", 0) == 1
         assert unique_tests.get("python", 0) == 1
+
+
+# =============================================================================
+# Tests for build_manifest_entry
+# =============================================================================
+
+
+def test_build_manifest_entry_no_existing_rule():
+    """Adding a condition when the rule does not exist in raw_manifest yields only the new condition."""
+    condition: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["flask"],
+    }
+    result = ManifestEditor.build_manifest_entry("tests/test.py::Test", condition, {}, [condition])
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0] == {"weblog_declaration": {"flask": "missing_feature"}}
+
+
+def test_build_manifest_entry_inline_string_missing_feature():
+    """When raw is a string inline declaration (missing_feature), it gets sanitized to a list then appended."""
+    condition: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["django"],
+    }
+    base: Condition = {"component": "python", "declaration": SkipDeclaration("missing_feature")}
+    result = ManifestEditor.build_manifest_entry(
+        "tests/test.py::Test",
+        condition,
+        {"tests/test.py::Test": "missing_feature"},
+        [base],
+    )
+    assert isinstance(result, list)
+    assert result[0] == {"declaration": "missing_feature"}
+    assert result[1] == {"weblog_declaration": {"django": "missing_feature"}}
+
+
+def test_build_manifest_entry_inline_string_excluded_version():
+    """When raw is a string with excluded_component_version, sanitize produces weblog_declaration with '*'."""
+    condition: Condition = {"component": "python", "declaration": SkipDeclaration("missing_feature")}
+    entry: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "excluded_component_version": SemverRange(">=2.0.0"),
+    }
+    result = ManifestEditor.build_manifest_entry(
+        "tests/test.py::Test",
+        condition,
+        {"tests/test.py::Test": ">=2.0.0"},
+        [entry],
+    )
+    assert isinstance(result, list)
+    assert result[0] == {"weblog_declaration": {"*": ">=2.0.0"}}
+
+
+def test_build_manifest_entry_compress_single_declaration():
+    """When output has a single dict with only 'declaration', compress returns the string."""
+    condition: Condition = {
+        "component": "ruby",
+        "declaration": SkipDeclaration("bug"),
+        "weblog": ["rails70"],
+        "component_version": SemverRange(">=1.0.0"),
+    }
+    other: Condition = {"component": "python", "declaration": SkipDeclaration("bug")}
+    result = ManifestEditor.build_manifest_entry("tests/test.py::Test", condition, {}, [other])
+    assert isinstance(result, list)
+
+
+def test_build_manifest_entry_appends_to_existing_list():
+    """When raw_manifest already has a list of conditions, the new condition is appended."""
+    existing_raw = [{"declaration": "bug (TICKET-1)", "component_version": ">=1.0.0"}]
+    condition: Condition = {
+        "component": "ruby",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["rails70"],
+    }
+    entry: Condition = {"component": "ruby", "declaration": SkipDeclaration("bug")}
+    result = ManifestEditor.build_manifest_entry(
+        "tests/test.py::Test",
+        condition,
+        {"tests/test.py::Test": existing_raw},
+        [entry],
+    )
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0] == existing_raw[0]
+    assert result[1] == {"weblog_declaration": {"rails70": "missing_feature"}}
+
+
+def test_build_manifest_entry_compress_to_inline_string():
+    """When the output is a single condition with only 'declaration', it is compressed to a string."""
+    condition: Condition = {"component": "ruby", "declaration": SkipDeclaration("bug")}
+    result = ManifestEditor.build_manifest_entry("tests/test.py::Test", condition, {}, [])
+    assert result == "bug"

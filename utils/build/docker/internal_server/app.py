@@ -1,5 +1,6 @@
 import os
 import signal
+import time
 import urllib.parse
 
 import fastapi
@@ -144,6 +145,115 @@ async def payment_intents(request: fastapi.Request):
         )
     except Exception as e:
         return fastapi.responses.JSONResponse({"error": {"type": "api_error", "message": str(e)}}, status_code=500)
+
+
+# Mock OpenAI API endpoints for LLM tests (OPENAI_BASE_URL=http://internal_server:8089).
+def _openai_fake_usage() -> dict:
+    return {"prompt_tokens": 1, "completion_tokens": 2, "total_tokens": 3}
+
+
+@app.post("/chat/completions", response_class=fastapi.responses.JSONResponse)
+async def openai_chat_completions(request: fastapi.Request):
+    """Mock for OpenAI Chat Completions API (POST /chat/completions)."""
+    try:
+        body = await request.json() if request.headers.get("content-length") else {}
+    except Exception:
+        body = {}
+    model = body.get("model", "gpt-4.1")
+    return fastapi.responses.JSONResponse(
+        {
+            "id": "chatcmpl-fake-internal",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "Fake response from internal_server mock."},
+                    "finish_reason": "stop",
+                }
+            ],
+            "usage": _openai_fake_usage(),
+        },
+        status_code=200,
+    )
+
+
+@app.post("/completions", response_class=fastapi.responses.JSONResponse)
+async def openai_completions(request: fastapi.Request):
+    """Mock for OpenAI Completions API (POST /completions, legacy)."""
+    try:
+        body = await request.json() if request.headers.get("content-length") else {}
+    except Exception:
+        body = {}
+    model = body.get("model", "text-davinci-003")
+    return fastapi.responses.JSONResponse(
+        {
+            "id": "cmpl-fake-internal",
+            "object": "text_completion",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [
+                {
+                    "text": "Fake completion from internal_server mock.",
+                    "index": 0,
+                    "finish_reason": "stop",
+                    "logprobs": None,
+                }
+            ],
+            "usage": _openai_fake_usage(),
+        },
+        status_code=200,
+    )
+
+
+@app.post("/responses", response_class=fastapi.responses.JSONResponse)
+async def openai_responses(request: fastapi.Request):
+    """Mock for OpenAI Responses API (POST /responses).
+    Shape matches openai-php/client CreateResponse (created_at, status, output with output_text content).
+    """
+    try:
+        body = await request.json() if request.headers.get("content-length") else {}
+    except Exception:
+        body = {}
+    model = body.get("model", "gpt-4.1")
+    return fastapi.responses.JSONResponse(
+        {
+            "id": "resp-fake-internal",
+            "object": "response",
+            "created_at": int(time.time()),
+            "status": "completed",
+            "model": model,
+            "output": [
+                {
+                    "type": "message",
+                    "id": "msg-fake-internal",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": "Fake response from internal_server mock.",
+                            "annotations": [],
+                        }
+                    ],
+                }
+            ],
+            "output_text": "Fake response from internal_server mock.",
+            "parallel_tool_calls": False,
+            "tool_choice": "none",
+            "tools": [],
+            "store": True,
+            "usage": {
+                "input_tokens": 1,
+                "input_tokens_details": {"cached_tokens": 0},
+                "output_tokens": 2,
+                "output_tokens_details": {"reasoning_tokens": 0},
+                "total_tokens": 3,
+            },
+        },
+        status_code=200,
+    )
 
 
 @app.get("/shutdown")

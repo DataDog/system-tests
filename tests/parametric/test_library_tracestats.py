@@ -8,7 +8,7 @@ import pytest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, context, scenarios, features, logger
+from utils import context, scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -339,7 +339,6 @@ class Test_Library_Tracestats:
 
     @enable_tracestats()
     @enable_agent_version()
-    @missing_feature(reason="relative error test is broken")
     def test_relative_error_TS008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When trace stats are computed for traces
             The stats should be accurate to within 1% of the real values

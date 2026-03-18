@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 # Fix line wrapping bug in ruamel
 ruamel.yaml.emitter.Emitter.MAX_SIMPLE_KEY_LENGTH = 1000
 
+EASY_WIN_COMMENT = "TODO: a lower version might be supported"
+
 
 class ManifestEditor:
     raw_data: dict[str, CommentedMap]
@@ -355,45 +357,53 @@ class ManifestEditor:
             # For sequences, use end-of-line comments for all positions
             obj.yaml_add_eol_comment(comment, key=key_or_index)
 
-    def write_new_rules(self) -> None:
-        def count_new_condition_per_component(new_conditions: list[Condition]) -> dict[str, int]:
-            ret = {}
-            for condition in new_conditions:
-                if condition["component"] not in ret:
-                    ret[condition["component"]] = 0
-                ret[condition["component"]] += 1
+    @staticmethod
+    def build_manifest_entry(
+        rule: str, condition: Condition, raw_manifest: dict[str, CommentedMap], manifest_entry: list[Condition]
+    ) -> str | list:
+        def filter_component(condition_list: list[Condition], component: str) -> list[Condition]:
+            ret = []
+            for cond in condition_list:
+                if cond.get("component") == component:
+                    ret.append(cond)
             return ret
 
+        def sanitize_original(raw: str | list[dict], conditions: list[Condition]) -> list[dict]:
+            if isinstance(raw, str):
+                condition = conditions[0]
+                if version := condition.get("excluded_component_version"):
+                    return [{"weblog_declaration": {"*": str(version)}}]
+                return [{"declaration": str(condition["declaration"])}]
+
+            return raw
+
+        def compress_output(output: list[dict]) -> str | list[dict]:
+            if len(output) == 1:
+                if len(output[0]) == 1 and (ret := output[0].get("declaration")):
+                    return ret
+            return output
+
+        original_conditions = filter_component(manifest_entry, condition["component"])
+        original_raw = raw_manifest.get(rule, [])
+
+        output_entry = sanitize_original(original_raw, original_conditions)
+
+        condition_dict = ManifestEditor.serialize_condition(condition)
+        output_entry.append(condition_dict)
+        return compress_output(output_entry)
+
+    def write_new_rules(self) -> None:
         new_rules = self.build_new_rules()
         new_rules = self.compress_rules(new_rules)
+
         for rule, conditions in new_rules.items():
-            counts = count_new_condition_per_component(conditions)
             for condition in conditions:
                 manifest = self.raw_data[condition["component"]]["manifest"]
-                if counts[condition["component"]] == 1 and "weblog" not in condition:
-                    manifest[rule] = str(condition["declaration"])
-                    self.write_comment(manifest, rule, "Created by easy win activation script", "inline")
-                    continue
-
-                if rule not in manifest:
-                    manifest[rule] = []
-                    self.write_comment(manifest, rule, "Created by easy win activation script", "inline")
-                condition_dict = self.serialize_condition(condition)
-                if isinstance(manifest[rule], str):
-                    if "excluded_component_version" in self.manifest.data:
-                        manifest[rule] = [
-                            {"weblog_declaration": {"*": manifest.rules[rule]["excluded_component_version"]}}
-                        ]
-                    else:
-                        manifest[rule] = [
-                            ManifestEditor.serialize_condition(
-                                next(x for x in self.manifest.data[rule] if x["component"] == condition["component"])
-                            )
-                        ]
-                manifest[rule].append(condition_dict)
-                if isinstance(manifest[rule], CommentedSeq) and len(manifest[rule]) > 0:
-                    last_index = len(manifest[rule]) - 1
-                    self.write_comment(manifest[rule], last_index, "Added by easy win activation script", "inline")
+                manifest_entry = self.manifest.data.get(rule, [])
+                manifest[rule] = ManifestEditor.build_manifest_entry(rule, condition, manifest, manifest_entry)
+                if rule not in self.manifest.data:
+                    self.manifest.data[rule] = []
+                self.manifest.data[rule].append(condition)
 
     def write_poke(self) -> None:
         for view, contexts in self.poked_views.items():
@@ -404,9 +414,7 @@ class ManifestEditor:
             )
 
             if "excluded_component_version" in view.condition:
-                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
-                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
-                comment_text = f"Easy win for {weblog_list} and version {component_version}"
+                comment_text = EASY_WIN_COMMENT
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue
@@ -418,13 +426,13 @@ class ManifestEditor:
                     if all_weblogs:
                         self.raw_data[view.condition["component"]]["manifest"][view.rule] = f">={component_version}"
                         manifest_map = self.raw_data[view.condition["component"]]["manifest"]
-                        self.write_comment(manifest_map, view.rule, "Modified by easy win activation script", "inline")
+                        self.write_comment(manifest_map, view.rule, EASY_WIN_COMMENT, "inline")
                         continue
                     self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
                         {"weblog_declaration": {"*": str(view.condition["declaration"])}}
                     ]
                     manifest_map = self.raw_data[view.condition["component"]]["manifest"]
-                    self.write_comment(manifest_map, view.rule, "Modified by easy win activation script", "inline")
+                    self.write_comment(manifest_map, view.rule, EASY_WIN_COMMENT, "inline")
                     for weblog in weblogs:
                         self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["weblog_declaration"][
                             weblog
@@ -438,7 +446,7 @@ class ManifestEditor:
                     },
                 ]
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
-                self.write_comment(manifest_map, view.rule, "Modified by easy win activation script", "inline")
+                self.write_comment(manifest_map, view.rule, EASY_WIN_COMMENT, "inline")
                 raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
 
                 if not all_weblogs:
@@ -467,14 +475,10 @@ class ManifestEditor:
                     # Add comment to the specific weblog key that was modified
                     # weblog_declaration is a dict loaded from YAML, so it should be a CommentedMap
                     if isinstance(weblog_declaration, CommentedMap):
-                        self.write_comment(
-                            weblog_declaration, weblog, "Modified by easy win activation script", "inline"
-                        )
+                        self.write_comment(weblog_declaration, weblog, EASY_WIN_COMMENT, "inline")
 
             else:
-                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
-                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
-                comment_text = f"Easy win for {weblog_list} and version {component_version}"
+                comment_text = EASY_WIN_COMMENT
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue
@@ -486,9 +490,7 @@ class ManifestEditor:
                 )
                 raw_data[view.condition_index]["excluded_weblog"].fa.set_flow_style()
                 condition_item = raw_data[view.condition_index]
-                self.write_comment(
-                    condition_item, "excluded_weblog", "Modified by easy win activation script", "inline"
-                )
+                self.write_comment(condition_item, "excluded_weblog", EASY_WIN_COMMENT, "inline")
                 raw_data.append(
                     {
                         "declaration": str(view.condition["declaration"]),
@@ -496,15 +498,17 @@ class ManifestEditor:
                     }
                 )
                 if isinstance(raw_data, CommentedSeq) and len(raw_data) > 0:
-                    self.write_comment(raw_data, len(raw_data) - 1, "Added by easy win activation script", "inline")
+                    self.write_comment(raw_data, len(raw_data) - 1, EASY_WIN_COMMENT, "inline")
 
                 if not all_weblogs:
                     raw_data[-1]["weblog"] = CommentedSeq(weblogs.copy())
                     raw_data[-1]["weblog"].fa.set_flow_style()
 
-    def write(self, output_dir: Path = Path("manifests/")) -> None:
+    def write(self, output_dir: Path = Path("manifests/"), *, dry_run: bool = False) -> None:
         self.write_new_rules()
         self.write_poke()
+        if dry_run:
+            return
         for component, data in self.raw_data.items():
             file = output_dir.joinpath(f"{component}.yml")
             self.round_trip_parser.dump(data, file)
