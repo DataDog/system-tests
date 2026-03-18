@@ -331,6 +331,10 @@ class TestedContainer:
     def exec_run(self, cmd: str, *, demux: bool = False) -> ExecResult:
         return self._container.exec_run(cmd, demux=demux)
 
+    def get_archive(self, path: str):
+        """Return a tar archive of a path inside the container (wraps Docker SDK get_archive)."""
+        return self._container.get_archive(path)
+
     def execute_command(
         self, test: str, retries: int = 10, interval: float = 1_000_000_000, start_period: float = 0
     ) -> tuple[int, str]:
@@ -1464,7 +1468,7 @@ class APMTestAgentContainer(TestedContainer):
 class VCRCassettesContainer(TestedContainer):
     """VCR cassettes container for recording and replaying HTTP interactions.
 
-    Will mount the folder ./utils/build/docker/vcr_proxy/cassettes to /cassettes inside the container.
+    Will mount the folder ./utils/build/docker/vcr/cassettes to /cassettes inside the container.
 
     The endpoint will be made available to weblogs at 'http://vcr_cassettes:{proxy_port}/vcr'
     """
@@ -1476,8 +1480,8 @@ class VCRCassettesContainer(TestedContainer):
             environment={
                 "PORT": str(vcr_port),
                 "VCR_CASSETTES_DIRECTORY": "/cassettes",
-                # cassettes are pre-recorded and the real service will never be used in testing
                 "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+                "VCR_IGNORE_HEADERS": "content-security-policy",
             },
             healthcheck={
                 "test": f"curl --fail --silent --show-error http://localhost:{vcr_port}/info",
@@ -1492,6 +1496,12 @@ class VCRCassettesContainer(TestedContainer):
             ports={vcr_port: ("127.0.0.1", vcr_port)},
             allow_old_container=False,
         )
+
+    def set_generate_cassettes_mode(self):
+        """Switch to record mode: remove read-only cassettes mount so the container
+        records fresh cassettes to its internal filesystem.
+        """
+        del self.volumes["./utils/build/docker/vcr/cassettes"]
 
 
 class MountInjectionVolume(TestedContainer):
