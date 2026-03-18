@@ -382,8 +382,7 @@
                 ]
             }
         ],
-        "httpd-datadog": [],
-        "iis-datadog": [],
-        "nginx-datadog": []
+        "cpp_httpd": [],
+        "cpp_nginx": []
     }
 }

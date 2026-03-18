@@ -291,19 +291,6 @@ elif [ "$TARGET" = "python_lambda" ]; then
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
     get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" $LIBRARY_TARGET_BRANCH "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip" "false"
 
-elif [ "$TARGET" = "httpd-datadog" ]; then
-    assert_version_is_dev
-    echo "No binary to load for httpd-datadog yet"
-
-elif [ "$TARGET" = "iis-datadog" ]; then
-    assert_version_is_dev
-    echo "No binary to load for iis-datadog yet"
-
-elif [ "$TARGET" = "nginx-datadog" ]; then
-    assert_version_is_dev
-    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
-    echo "No binary to load for nginx-datadog yet"
-
 elif [ "$TARGET" = "otel_collector" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
