@@ -198,7 +198,7 @@ class DataDogAgentSpanLegacy(DataDogAgentSpan):
         return self.meta["_dd.origin"]
 
     def get_sampling_priority(self) -> int | None:
-        return self.meta["_sampling_priority_v1"]
+        return self.metrics["_sampling_priority_v1"]
 
 
 class DataDogAgentSpanV10(DataDogAgentSpan):
