@@ -275,7 +275,7 @@ class Test_Synthetics_APM_Datadog:
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         assert span.get_span_origin() == "synthetics"
-        assert trace.get_sampling_priority() == 1
+        assert span.get_sampling_priority() == 1
 
     def setup_synthetics_browser(self):
         self.r = weblog.get(
@@ -301,4 +301,4 @@ class Test_Synthetics_APM_Datadog:
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         assert span.get_span_origin() == "synthetics-browser"
-        assert trace.get_sampling_priority() == 1
+        assert span.get_sampling_priority() == 1
