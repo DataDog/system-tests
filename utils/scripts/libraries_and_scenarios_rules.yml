@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [java_lambda, nodejs_lambda, python_lambda]
+  - &lambda_libraries [java_lambda, nodejs_lambda, python_lambda, ruby_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:

@@ -27,6 +27,7 @@ default_libs_with_prod = [
     "python",
     "python_lambda",
     "ruby",
+    "ruby_lambda",
     "rust",
 ]
 default_libs_with_dev = [
@@ -46,6 +47,7 @@ default_libs_with_dev = [
     "python",
     "python_lambda",
     "ruby",
+    "ruby_lambda",
     "rust",
 ]
 default_otel_libs = ["java_otel", "python_otel"]
@@ -341,8 +343,8 @@ class Test_ComputeLibrariesAndScenarios:
 
         assert_github_processor(
             inputs,
-            ["java_lambda", "nodejs_lambda", "python_lambda"],
-            ["java_lambda", "nodejs_lambda", "python_lambda"],
+            ["java_lambda", "nodejs_lambda", "python_lambda", "ruby_lambda"],
+            ["java_lambda", "nodejs_lambda", "python_lambda", "ruby_lambda"],
             3600,
             "true",
             "DEFAULT",
