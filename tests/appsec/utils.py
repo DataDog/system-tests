@@ -29,6 +29,16 @@ def find_configuration() -> Generator:
         yield payload.get("configuration")
 
 
+# Protocol v1.0 may return booleans as True,
+# while older protocols may return them as the string "true".
+def _normalize_for_compare(*, value: bool | str) -> str:
+    return "true" if value is True else ("false" if value is False else value)
+
+
+def is_same_boolean(*, actual: bool | str, expected: bool | str) -> bool:
+    return _normalize_for_compare(value=actual) == _normalize_for_compare(value=expected)
+
+
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
 
