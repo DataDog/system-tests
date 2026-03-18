@@ -59,6 +59,10 @@ class DataDogAgentTrace(ABC):
         """Return span count"""
         return len(self.spans)
 
+    @abstractmethod
+    def get_sampling_priority(self) -> int | None:
+        pass
+
 
 class DataDogTraceAgentLegacy(DataDogAgentTrace):
     def __init__(self, data: dict, raw_trace: dict):
@@ -78,6 +82,9 @@ class DataDogTraceAgentLegacy(DataDogAgentTrace):
     @property
     def trace_id_as_int(self) -> int:
         return int(self.trace_id)
+
+    def get_sampling_priority(self) -> int | None:
+        return self.spans[0]["metrics"].get("_sampling_priority_v1")
 
 
 class DataDogTraceAgentV1(DataDogAgentTrace):
@@ -99,6 +106,9 @@ class DataDogTraceAgentV1(DataDogAgentTrace):
     @property
     def trace_id_as_int(self) -> int:
         return int(self.trace_id, 16) & 0xFFFFFFFFFFFFFFFF
+
+    def get_sampling_priority(self) -> int | None:
+        return self.raw_trace.get("priority")
 
 
 class DataDogAgentSpan(ABC):
