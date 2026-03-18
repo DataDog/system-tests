@@ -213,6 +213,7 @@
     "DD_PROFILING_CODE_HOTSPOTS_COLLECTION_ENABLED": "profiling_code_hotspots_collection_enabled",
     "DD_PROFILING_ENABLED": "profiling_enabled",
     "DD_PROFILING_ENDPOINT_COLLECTION_ENABLED": "profiling_endpoint_collection_enabled",
+    "DD_PROFILING_LOCK_EXCLUDE_MODULES": "profiling_lock_exclude_modules",
     "DD_PROFILING_MANAGED_ACTIVATION_ENABLED": "profiling_managed_activation_enabled",
     "DD_PROFILING_STACK_NATIVE_FRAMES": "profiling_stack_native_frames",
     "DD_PROPAGATION_STYLE_EXTRACT": "trace_propagation_style_extract",
