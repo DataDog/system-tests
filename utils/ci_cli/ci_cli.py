@@ -238,6 +238,118 @@ def cmd_pr(args: argparse.Namespace) -> int:  # noqa: ARG001
     return 0
 
 
+def cmd_pr_status(args: argparse.Namespace) -> int:  # noqa: ARG001
+    print(f"PR #{PR_NUMBER} — {PR_REPO}\n")
+
+    # --- GitHub Actions ---
+    print("GitHub Actions runs:")
+    branch: str | None = None
+    try:
+        data = _gh_api(f"repos/{PR_REPO}/pulls/{PR_NUMBER}")
+        assert isinstance(data, dict)
+        sha = str(data["head"]["sha"])
+        branch = str(data["head"]["ref"])
+        runs_data = _gh_api(f"repos/{PR_REPO}/actions/runs", {"head_sha": sha, "per_page": 50})
+        assert isinstance(runs_data, dict)
+        runs = runs_data.get("workflow_runs", [])
+        if runs:
+            col = "  {:<12} {:<12} {:<40}"
+            print(col.format("STATUS", "CONCLUSION", "WORKFLOW"))
+            print("  " + "-" * 65)
+            for run in runs:
+                conclusion = run.get("conclusion") or "in_progress"
+                print(col.format(run["status"], conclusion, run["name"][:40]))
+                print(f"  → {run['html_url']}")
+        else:
+            print("  (no runs found)")
+    except Exception as e:  # noqa: BLE001
+        print(f"  error: {e}", file=sys.stderr)
+
+    print()
+
+    # --- GitLab CI ---
+    print(f"GitLab CI ({GLAB_HOST}) pipelines:")
+    if not _is_host_resolvable(GLAB_HOST):
+        print(f"  skipped: {GLAB_HOST} not resolvable — are you on VPN?")
+        return 1
+
+    if branch is None:
+        branch = _run(["git", "rev-parse", "--abbrev-ref", "HEAD"]).stdout.strip()
+
+    try:
+        gl = _gitlab_client()
+        project = gl.projects.get(PR_REPO)
+        pipelines = project.pipelines.list(ref=branch, per_page=10, get_all=False)
+        if pipelines:
+            col = "  {:<12} {:<12} {:<10} {:<50}"
+            print(col.format("ID", "STATUS", "REF", "URL"))
+            print("  " + "-" * 85)
+            for p in pipelines:
+                print(col.format(str(p.id), p.status, p.ref[:10], p.web_url))
+        else:
+            print("  (no pipelines found)")
+    except Exception as e:  # noqa: BLE001
+        print(f"  error: {e}", file=sys.stderr)
+        return 1
+
+    return 0
+
+
+def cmd_glab_bridges(args: argparse.Namespace) -> int:
+    if not _is_host_resolvable(GLAB_HOST):
+        print(f"error: {GLAB_HOST} not resolvable — are you on VPN?", file=sys.stderr)
+        return 1
+
+    try:
+        gl = _gitlab_client()
+        project = gl.projects.get(PR_REPO)
+        pipeline = project.pipelines.get(args.pipeline_id)
+        bridges = pipeline.bridges.list(get_all=True)
+    except gitlab.exceptions.GitlabError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+
+    if not bridges:
+        print("no bridge jobs found")
+        return 0
+
+    col = "{:<12} {:<12} {:<35} {:<15} {}"
+    print(col.format("BRIDGE ID", "STATUS", "NAME", "DOWNSTREAM ID", "DOWNSTREAM URL"))
+    print("-" * 120)
+    for b in bridges:
+        ds = b.downstream_pipeline
+        ds_id = str(ds["id"]) if ds else "-"
+        ds_url = ds["web_url"] if ds else "-"
+        print(col.format(str(b.id), b.status, b.name[:35], ds_id, ds_url))
+    return 0
+
+
+def cmd_glab_jobs(args: argparse.Namespace) -> int:
+    if not _is_host_resolvable(GLAB_HOST):
+        print(f"error: {GLAB_HOST} not resolvable — are you on VPN?", file=sys.stderr)
+        return 1
+
+    try:
+        gl = _gitlab_client()
+        project = gl.projects.get(PR_REPO)
+        pipeline = project.pipelines.get(args.pipeline_id)
+        jobs = pipeline.jobs.list(get_all=True)
+    except gitlab.exceptions.GitlabError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+
+    if not jobs:
+        print("no jobs found")
+        return 0
+
+    col = "{:<12} {:<12} {:<30} {:<10} {:<50}"
+    print(col.format("JOB ID", "STATUS", "NAME", "STAGE", "URL"))
+    print("-" * 115)
+    for job in jobs:
+        print(col.format(str(job.id), job.status, job.name[:30], job.stage[:10], job.web_url))
+    return 0
+
+
 def cmd_gh_ci(args: argparse.Namespace) -> int:
     cmd = ["gh", "run", "list"]
     if args.branch:
@@ -393,8 +505,14 @@ def build_parser() -> argparse.ArgumentParser:
     claude_p.set_defaults(func=cmd_claude)
 
     # pr
-    pr_p = sub.add_parser("pr", help=f"List all failed CI jobs for PR #{PR_NUMBER} (GitHub + GitLab)")
-    pr_p.set_defaults(func=cmd_pr)
+    pr_p = sub.add_parser("pr", help=f"PR #{PR_NUMBER} CI commands")
+    pr_sub = pr_p.add_subparsers(dest="pr_command", required=True)
+
+    pr_failed = pr_sub.add_parser("failed", help="List all failed jobs (GitHub + GitLab)")
+    pr_failed.set_defaults(func=cmd_pr)
+
+    pr_status = pr_sub.add_parser("status", help="Show all pipeline/run statuses (GitHub + GitLab)")
+    pr_status.set_defaults(func=cmd_pr_status)
 
     # gh
     gh_p = sub.add_parser("gh", help="GitHub CI commands (via gh)")
@@ -418,6 +536,14 @@ def build_parser() -> argparse.ArgumentParser:
     gl_art = gl_sub.add_parser("artifacts", help="Download and unpack job artifacts to a temp directory")
     gl_art.add_argument("job_id", type=int, help="GitLab job ID")
     gl_art.set_defaults(func=cmd_glab_artifacts)
+
+    gl_jobs = gl_sub.add_parser("jobs", help="List all jobs in a pipeline")
+    gl_jobs.add_argument("pipeline_id", type=int, help="GitLab pipeline ID")
+    gl_jobs.set_defaults(func=cmd_glab_jobs)
+
+    gl_bridges = gl_sub.add_parser("bridges", help="List bridge jobs (child pipeline triggers) in a pipeline")
+    gl_bridges.add_argument("pipeline_id", type=int, help="GitLab pipeline ID")
+    gl_bridges.set_defaults(func=cmd_glab_bridges)
 
     return parser
 
