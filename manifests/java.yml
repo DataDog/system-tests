@@ -3791,6 +3791,10 @@ manifest:
         "*": v1.54.0
         play: missing_feature (play controllers also generate stats and the test will fail)
         ratpack: missing_feature (ratpack controllers also generate stats and the test will fail)
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code:
+    - weblog_declaration:
+        "*": irrelevant (variant has no gRPC endpoint)
+        spring-boot: v1.61.0
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation:
     - weblog_declaration:
         "*": v1.54.0
