@@ -2114,11 +2114,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
     - weblog_declaration:
         '*': missing_feature
-        rails72: v2.31.0
+        rails72: missing_feature (not implemented yet)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
         '*': missing_feature
-        rails72: v2.31.0
+        rails72: missing_feature (not implemented yet)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

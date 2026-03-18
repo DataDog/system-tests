@@ -2090,11 +2090,11 @@ manifest:
     - declaration: bug (APMAPI-1858)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
     - weblog_declaration:
-        flask-poc: v4.7.0
+        flask-poc: missing_feature (not implemented yet)
         "*": missing_feature (spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
-        flask-poc: v4.7.0
+        flask-poc: missing_feature (not implemented yet)
         "*": missing_feature (spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
