@@ -461,7 +461,7 @@ class Test_Telemetry:
             "python": {},
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
-            "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
+            "java": {"DD_TRACE_AGENT_PORT": trace_agent_port, "DD_TELEMETRY_HEARTBEAT_INTERVAL": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
             "golang": {"lambda_mode": False},
         }
@@ -489,7 +489,7 @@ class Test_Telemetry:
                         if cnf.get("name") == config_name_to_check:
                             config_value = cnf.get("value")
                             # Accept both the expected value and its float version for telemetry_heartbeat_interval
-                            if expected_config_name == "telemetry_heartbeat_interval":
+                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL":
                                 try:
                                     expected_float = float(expected_value)
                                     config_float = float(config_value)
@@ -589,7 +589,7 @@ class Test_TelemetryEnhancedConfigReporting:
             ],
         },
         "java": {
-            "name": "logs_injection_enabled",
+            "name": "DD_LOGS_INJECTION_ENABLED",
             "precedence": [
                 {"origin": "default", "value": "true"},
                 {
