@@ -902,6 +902,7 @@ This endpoint is OPTIONAL and not related to any test, but to the testing proces
 ### GET /spawn_child
 
 This endpoint is used for telemetry session ID header tests (Stable Service Instance Identifier RFC). It must fork or exec a child process, pass in the required arguments, wait for the child, and return a response. Used to validate `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers in instrumentation telemetry across process forks.
+RFC: https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit?tab=t.0#heading=h.ojliy5oytqgg
 
 Required query parameters:
 
