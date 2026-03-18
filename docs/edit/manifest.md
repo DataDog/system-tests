@@ -23,6 +23,7 @@ Each component has its own manifest file in the `manifests/` directory.
 ### Library Manifests
 - `manifests/cpp.yml` - C++ library
 - `manifests/cpp_httpd.yml` - C++ Apache httpd module
+- `manifests/cpp_kong.yml` - C++ Kong module
 - `manifests/cpp_nginx.yml` - C++ Nginx module
 - `manifests/dotnet.yml` - .NET library
 - `manifests/golang.yml` - Go library
