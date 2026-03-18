@@ -11,7 +11,7 @@ import threading
 from utils.tools import get_rid_from_user_agent
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, LibraryTraceFormat
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
@@ -646,17 +646,3 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             return True
 
         self.validate_one_appsec(request, validator)
-
-    @staticmethod
-    def get_sampling_priority(span: DataDogLibrarySpan) -> int | None:
-        # Legacy logic, check priority on span level
-        sampling_priority = span["metrics"].get("_sampling_priority_v1")
-
-        # Protocol v1 stores sampling priority at chunk level.
-        if sampling_priority is None:
-            if span.trace.format == LibraryTraceFormat.v10 and isinstance(span.trace.raw_trace, dict):
-                raw_priority = span.trace.raw_trace.get("priority")
-                if raw_priority is not None:
-                    sampling_priority = int(raw_priority)
-
-        return sampling_priority

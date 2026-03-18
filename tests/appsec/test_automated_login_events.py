@@ -1043,10 +1043,10 @@ class Test_V2_Login_Events_Anon:
 
 
 def assert_priority(span: DataDogLibrarySpan):
-    span_priority = interfaces.library.get_sampling_priority(span)
+    sampling_priority = span.get_sampling_priority()
 
-    assert span_priority == SamplingPriority.USER_KEEP, (
-        f"Expected sampling priority {SamplingPriority.USER_KEEP}, got {span_priority}"
+    assert sampling_priority == SamplingPriority.USER_KEEP, (
+        f"Expected sampling priority {SamplingPriority.USER_KEEP}, got {sampling_priority}"
     )
 
 
