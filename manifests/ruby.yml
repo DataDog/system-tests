@@ -1591,6 +1591,7 @@ manifest:
         sinatra14: missing_feature
         rails52: missing_feature
         sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:  # Created by easy win activation script
     - weblog_declaration:
         rails80: missing_feature

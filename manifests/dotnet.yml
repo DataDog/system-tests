@@ -1029,6 +1029,7 @@ manifest:
         '*': missing_feature
         uds: '>=3.36.0'
         poc: '>=3.36.0'
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:  # Created by easy win activation script
     - weblog_declaration:
         uds: missing_feature
