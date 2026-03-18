@@ -95,7 +95,7 @@ class CiData:
             "enable": len(scenario_map["parametric"]) > 0
             and "otel" not in library
             and library
-            not in ("cpp_nginx", "cpp_kong", "cpp_httpd", "java_lambda", "python_lambda", "envoy", "haproxy"),
+            not in ("cpp_nginx", "cpp_kong", "cpp_httpd", "httpd-datadog", "iis-datadog", "java_lambda", "nginx-datadog", "python_lambda", "envoy", "haproxy"),
         }
 
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
