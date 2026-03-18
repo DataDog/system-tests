@@ -35,22 +35,13 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             yield from all_data
         else:
             for data in all_data:
-                content = data["request"]["content"]
-                if not isinstance(content, dict):
-                    yield data
-                    continue
-
-                if content.get("request_type") == "message-batch":
-                    for batch_payload in content["payload"]:
+                if data["request"]["content"].get("request_type") == "message-batch":
+                    for batch_payload in data["request"]["content"]["payload"]:
                         # create a fresh copy of the request for each payload in the
                         # message batch, as though they were all sent independently
                         copied = copy.deepcopy(data)
-                        copied_content = copied["request"]["content"]
-                        if not isinstance(copied_content, dict):
-                            continue
-
-                        copied_content["request_type"] = batch_payload.get("request_type")
-                        copied_content["payload"] = batch_payload.get("payload")
+                        copied["request"]["content"]["request_type"] = batch_payload.get("request_type")
+                        copied["request"]["content"]["payload"] = batch_payload.get("payload")
                         yield copied
                 else:
                     yield data
@@ -88,7 +79,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             logger.debug(f"Looking at agent data {data['log_filename']}")
 
-            builder: Callable[..., DataDogAgentTrace]
+            builder: Callable[[dict, dict], DataDogAgentTrace]
 
             if "tracerPayloads" in data["request"]["content"]:
                 builder = DataDogAgentTrace.from_agent_legacy
@@ -101,10 +92,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for payload in content:
                 for chunk in payload.get("chunks", []):
-                    if builder is DataDogAgentTrace.from_agent_v1:
-                        trace = builder(data, raw_trace=chunk, string_table=payload.get("strings", []))
-                    else:
-                        trace = builder(data, raw_trace=chunk)
+                    trace = builder(data, raw_trace=chunk)
                     if rid is None:
                         yield data, trace
                     else:

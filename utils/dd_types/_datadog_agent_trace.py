@@ -33,8 +33,8 @@ class DataDogAgentTrace(ABC):
         return DataDogTraceAgentLegacy(data, raw_trace)
 
     @staticmethod
-    def from_agent_v1(data: dict, raw_trace: dict, string_table: list[str]) -> "DataDogTraceAgentV1":
-        return DataDogTraceAgentV1(data, raw_trace, string_table)
+    def from_agent_v1(data: dict, raw_trace: dict) -> "DataDogTraceAgentV1":
+        return DataDogTraceAgentV1(data, raw_trace)
 
     @property
     @abstractmethod
@@ -83,11 +83,10 @@ class DataDogTraceAgentLegacy(DataDogAgentTrace):
 class DataDogTraceAgentV1(DataDogAgentTrace):
     # spans: list["DataDogAgentSpanV10"]
 
-    def __init__(self, data: dict, raw_trace: dict, string_table: list[str]):
+    def __init__(self, data: dict, raw_trace: dict):
         self.data = data
 
-        self.raw_trace: dict = dict(raw_trace)
-        self.string_table = string_table
+        self.raw_trace: dict = raw_trace
 
         self.format = AgentTraceFormat.efficient_trace_payload_format
 
@@ -228,9 +227,4 @@ class DataDogAgentSpanV10(DataDogAgentSpan):
         return self.raw_span["kind"]
 
     def get_span_origin(self) -> str | None:
-        idx = self.trace.raw_trace.get("originRef")
-
-        if isinstance(idx, int):
-            return self.trace.string_table[idx]
-
-        return None
+        return self.trace.raw_trace.get("origin")
