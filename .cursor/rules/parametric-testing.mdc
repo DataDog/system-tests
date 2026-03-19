@@ -23,19 +23,14 @@ TEST_LIBRARY=nodejs ./run.sh PARAMETRIC tests/parametric/test_tracer.py
 TEST_LIBRARY=nodejs ./run.sh PARAMETRIC -k test_tracer_span
 ```
 
-## Re-running a single test repeatedly
+## Skipping the build when iterating on test code
 
-When re-running a **single test** many times (e.g. iterating on a fix), add `+1 --skip-parametric-build` to make each re-run ~1.8× faster:
-
-1. **`+1`** – Single pytest worker (no xdist). Avoids spawning 10 xdist workers for one test.
-2. **`--skip-parametric-build`** (or `SKIP_PARAMETRIC_BUILD=1`) – Skip rebuilding the parametric library image. Saves ~3–4s per run. Only safe when `utils/build/docker/<lang>/parametric/` has not changed.
-
-**Example:**
+When iterating on test code without changing the library image, add `--skip-parametric-build` to skip rebuilding the parametric library image on every run (~3–4s saved per invocation):
 
 ```sh
-TEST_LIBRARY=java ./run.sh PARAMETRIC +1 --skip-parametric-build tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled
+TEST_LIBRARY=java ./run.sh PARAMETRIC --skip-parametric-build tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled
 ```
 
-> **Warning:** Do not use `+1` when running multiple tests. It forces sequential execution (slower than parallel xdist) and enables library container reuse, which can cause test pollution failures.
+Only safe when `utils/build/docker/<lang>/parametric/` has not changed. Run without the flag after modifying the Dockerfile or app code.
 
 * Full details: see the "Making parametric runs faster" section in [parametric scenario](mdc:docs/scenarios/parametric.md).

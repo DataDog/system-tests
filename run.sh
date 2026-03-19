@@ -46,10 +46,6 @@ OPTIONS
     +l, ++library LIBRARY
       Inform test suite that test pertains to LIBRARY.
 
-    +1, ++numprocesses N
-      Use N pytest workers (e.g. +1 for single worker). Enables session-scoped
-      agent and library container reuse for PARAMETRIC when N is 1.
-
     ++
       Ignore flags after this separator. All subsequent arguments are passed
       as-is to pytest.
@@ -236,7 +232,6 @@ function main() {
     local libraries=()
     local pytest_args=()
     local pytest_numprocesses='auto'
-    local force_numprocesses=''
 
     ## handle environment variables
 
@@ -290,18 +285,6 @@ function main() {
                   exit 64
                 fi
                 libraries+=("$2")
-                shift
-                ;;
-            +1)
-                force_numprocesses=1
-                ;;
-            ++numprocesses)
-                if [[ "$#" -eq 1 ]]; then
-                  error "missing argument value for: $1"
-                  hint
-                  exit 64
-                fi
-                force_numprocesses="$2"
                 shift
                 ;;
             ++)
@@ -457,10 +440,6 @@ function main() {
             pytest_numprocesses=$(nproc)
         fi
     done
-
-    if [[ -n "${force_numprocesses}" ]]; then
-        pytest_numprocesses="${force_numprocesses}"
-    fi
 
     case "${pytest_numprocesses}" in
         0|1)

@@ -1,7 +1,6 @@
 from collections.abc import Generator
 import contextlib
 import glob
-import hashlib
 import json
 import os
 from typing import Any
@@ -67,10 +66,6 @@ class ParametricScenario(DockerFixturesScenario):
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
-        # Cache for reusing library container when worker_id == "master" (single-worker).
-        # Key: (frozenset(library_env.items()), tuple(library_extra_command_arguments))
-        # Value: (container, client)
-        self._library_container_cache: dict[tuple[frozenset[tuple[str, str]], tuple[str, ...]], tuple[Any, Any]] = {}
 
     @property
     def parametrized_tests_metadata(self):
@@ -169,25 +164,6 @@ class ParametricScenario(DockerFixturesScenario):
 
         return result
 
-    def _library_cache_key(
-        self, library_env: dict, library_extra_command_arguments: list[str]
-    ) -> tuple[frozenset[tuple[str, str]], tuple[str, ...]]:
-        return (frozenset(library_env.items()), tuple(library_extra_command_arguments))
-
-    def _library_cache_stable_test_id(self, library_env: dict, library_extra_command_arguments: list[str]) -> str:
-        key_repr = repr((sorted(library_env.items()), library_extra_command_arguments))
-        return f"session-{hashlib.sha256(key_repr.encode()).hexdigest()[:12]}"
-
-    def clear_library_container_cache(self) -> None:
-        for _key, (container, _client) in list(self._library_container_cache.items()):
-            try:
-                logger.info(f"Stopping cached library container {container.name}")
-                container.stop(timeout=1)
-                container.remove(force=True)
-            except Exception as e:
-                logger.info(f"Failed to stop cached container {container.name}: {e}")
-        self._library_container_cache.clear()
-
     @contextlib.contextmanager
     def get_apm_library(
         self,
@@ -198,26 +174,6 @@ class ParametricScenario(DockerFixturesScenario):
         library_env: dict,
         library_extra_command_arguments: list[str],
     ) -> Generator[ParametricTestClientApi, None, None]:
-        if worker_id == "master":
-            cache_key = self._library_cache_key(library_env, library_extra_command_arguments)
-            if cache_key in self._library_container_cache:
-                _container, client = self._library_container_cache[cache_key]
-                yield client
-                return
-            self.clear_library_container_cache()
-            stable_test_id = self._library_cache_stable_test_id(library_env, library_extra_command_arguments)
-            with self._test_client_factory.get_apm_library(
-                request=request,
-                worker_id=worker_id,
-                test_id=stable_test_id,
-                test_agent=test_agent,
-                library_env=library_env,
-                library_extra_command_arguments=library_extra_command_arguments,
-                leave_running=True,
-            ) as client:
-                self._library_container_cache[cache_key] = (client.container, client)
-                yield client
-            return
         with self._test_client_factory.get_apm_library(
             request=request,
             worker_id=worker_id,
