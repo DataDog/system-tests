@@ -420,6 +420,8 @@ manifest:
       component_version: <1.12.0
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: '>=1.12.0'  # Modified by easy win activation script

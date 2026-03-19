@@ -4299,8 +4299,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_seq_id:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: 'missing_feature (spawn_child: spring-boot, not enabled yet)'
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: 'missing_feature (spawn_child: spring-boot, not enabled yet)'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (spawn_child: spring-boot, not enabled yet)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (spawn_child: spring-boot, not enabled yet)
   tests/test_telemetry.py::Test_Telemetry::test_status_ok:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
