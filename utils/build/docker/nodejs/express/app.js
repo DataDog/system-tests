@@ -72,6 +72,41 @@ app.get('/', (req, res) => {
   res.send('Hello world!\n')
 })
 
+app.get('/spawn_child', (req, res) => {
+  const path = require('path')
+  const { spawn, fork } = require('child_process')
+  const sleep = req.query.sleep != null ? String(req.query.sleep) : null
+  const crash = req.query.crash
+  if (sleep == null || sleep === '') {
+    res.status(400).send('sleep required')
+    return
+  }
+  const crashStr = String(crash || '').toLowerCase()
+  const forkStr = String(req.query.fork || '').toLowerCase()
+  if (crashStr !== 'true' && crashStr !== 'false') {
+    res.status(400).send('crash required (boolean)')
+    return
+  }
+  if (forkStr !== 'true' && forkStr !== 'false') {
+    res.status(400).send('fork required (boolean)')
+    return
+  }
+  const useFork = forkStr === 'true'
+  const childScript = path.join(__dirname, 'fork_child.js')
+
+  if (useFork) {
+    const child = fork(childScript, [sleep, crashStr])
+    child.on('close', (code, signal) => {
+      res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
+    })
+  } else {
+    const child = spawn(process.execPath, [childScript, sleep, crashStr], { stdio: 'inherit' })
+    child.on('close', (code, signal) => {
+      res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
+    })
+  }
+})
+
 app.get('/healthcheck', (req, res) => {
   res.json({
     status: 'ok',
