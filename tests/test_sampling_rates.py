@@ -53,7 +53,7 @@ def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
         raise ValueError("Some path has not been transmitted")
 
 
-def priority_should_be_kept(sampling_priority: SamplingPriority):
+def priority_should_be_kept(sampling_priority: int | SamplingPriority):
     """Returns if a given sampling priority means its trace has to be kept.
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
