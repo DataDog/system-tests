@@ -467,7 +467,7 @@ class Test_Telemetry:
 
         test_configuration: dict[str, dict] = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
+            "nodejs": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port, "DD_APPSEC_ENABLED": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
@@ -576,7 +576,7 @@ class Test_TelemetryEnhancedConfigReporting:
     # Expected configuration precedence: default -> env_var -> code
     EXPECTED_CONFIGS: dict[str, dict[str, Any]] = {
         "nodejs": {
-            "name": "DD_LOG_INJECTION",
+            "name": "DD_LOGS_INJECTION",
             "precedence": [
                 {"origin": "default", "value": True},
                 {"origin": "env_var", "value": False},
