@@ -105,6 +105,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_69_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_5_90_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

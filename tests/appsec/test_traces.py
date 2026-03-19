@@ -49,10 +49,10 @@ class Test_RetainTraces:
             if not is_same_boolean(actual=span["meta"]["appsec.event"], expected="true"):
                 raise Exception(f'appsec.event in span\'s meta should be "true", not {span["meta"]["appsec.event"]}')
 
-            if "_sampling_priority_v1" not in span["metrics"]:
+            sampling_priority = span.get_sampling_priority()
+            if sampling_priority is None:
                 raise Exception("Metric _sampling_priority_v1 should be set on traces that are manually kept")
-
-            if span["metrics"]["_sampling_priority_v1"] != SamplingPriority.USER_KEEP:
+            if sampling_priority != SamplingPriority.USER_KEEP:
                 raise Exception(
                     f"Trace id {span['trace_id']} , sampling priority should be {SamplingPriority.USER_KEEP}"
                 )

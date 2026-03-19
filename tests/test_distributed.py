@@ -4,7 +4,7 @@
 
 import json
 from utils import features, interfaces, scenarios, slow, weblog
-from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, span_link_trace_id_equals
+from utils.docker_fixtures.spec.trace import span_link_trace_id_equals
 from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
 
 
@@ -274,9 +274,8 @@ class Test_Synthetics_APM_Datadog:
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        metrics = interfaces.agent.get_span_metrics(span)
         assert span.get_span_origin() == "synthetics"
-        assert metrics[SAMPLING_PRIORITY_KEY] == 1
+        assert span.get_sampling_priority() == 1
 
     def setup_synthetics_browser(self):
         self.r = weblog.get(
@@ -301,6 +300,5 @@ class Test_Synthetics_APM_Datadog:
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        metrics = interfaces.agent.get_span_metrics(span)
         assert span.get_span_origin() == "synthetics-browser"
-        assert metrics[SAMPLING_PRIORITY_KEY] == 1
+        assert span.get_sampling_priority() == 1
