@@ -72,6 +72,9 @@ class V06StatsAggr(TypedDict):
     Service: str
     HTTPStatusCode: int
     GRPCStatusCode: str
+    SpanKind: str
+    IsTraceRoot: int
+    PeerTags: list[str]
     Synthetics: bool
     Hits: int
     TopLevelHits: int
@@ -133,6 +136,9 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
                 Type=raw_stats.get("Type"),
                 HTTPStatusCode=raw_stats.get("HTTPStatusCode"),
                 GRPCStatusCode=raw_stats.get("GRPCStatusCode"),
+                SpanKind=raw_stats.get("SpanKind", ""),
+                IsTraceRoot=raw_stats.get("IsTraceRoot", 0),
+                PeerTags=raw_stats.get("PeerTags", []),
                 Synthetics=raw_stats["Synthetics"],
                 Hits=raw_stats["Hits"],
                 TopLevelHits=raw_stats["TopLevelHits"],

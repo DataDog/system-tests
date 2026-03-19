@@ -159,6 +159,8 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_aggregation_dimension_TS011: missing_feature (span_kind aggregation dimension not yet implemented)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS012: missing_feature (span_kind eligibility not yet implemented)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature  # Created by easy win activation script
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
@@ -302,7 +304,10 @@ manifest:
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
-  tests/stats/test_stats.py: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (variant has no gRPC endpoint)
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature (RASP SQL endpoint not implemented)
+  tests/stats/test_stats.py::Test_Client_Stats::test_span_kind_aggregation: missing_feature (span_kind aggregation dimension not yet validated)
+  tests/stats/test_stats.py::Test_Client_Stats::test_span_kind_eligibility: missing_feature (span_kind eligibility not yet validated)
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)

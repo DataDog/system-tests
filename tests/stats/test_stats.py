@@ -94,6 +94,60 @@ class Test_Client_Stats:
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
 
+    def setup_span_kind_aggregation(self):
+        """Setup for span_kind aggregation test - generate server requests that produce different span kinds"""
+        for _ in range(3):
+            weblog.get("/stats-unique")
+        for _ in range(2):
+            weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")
+
+    def test_span_kind_aggregation(self):
+        """Test that span_kind is used as an aggregation dimension.
+        Stats entries with different span.kind values should be aggregated separately,
+        even if they share the same service, name, resource, and type.
+        """
+        span_kinds_found = set()
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    span_kind = stat.get("SpanKind", "")
+                    if span_kind:
+                        span_kinds_found.add(span_kind)
+
+        assert len(span_kinds_found) >= 2, (
+            f"Expected at least 2 distinct SpanKind values across stats entries, found: {span_kinds_found}"
+        )
+        assert "server" in span_kinds_found, f"Expected 'server' SpanKind in stats, found: {span_kinds_found}"
+        assert "client" in span_kinds_found, f"Expected 'client' SpanKind in stats, found: {span_kinds_found}"
+
+    def setup_span_kind_eligibility(self):
+        """Setup for span_kind eligibility test - generate client spans via make_distant_call"""
+        for _ in range(3):
+            weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")
+
+    def test_span_kind_eligibility(self):
+        """Test that spans with span.kind in {server, client, producer, consumer} are eligible
+        for stats computation even if they are not top-level or measured.
+        Client spans from /make_distant_call should produce stats entries with SpanKind=client.
+        """
+        client_stats_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("SpanKind") == "client":
+                        client_stats_found = True
+                        assert stat["Hits"] > 0, "Client span stats should have positive hits"
+                        assert stat["Duration"] > 0, "Client span stats should have positive duration"
+
+        assert client_stats_found, (
+            "Expected stats entries with SpanKind=client from /make_distant_call endpoint. "
+            "Spans with span.kind=client should be eligible for stats even without _dd.measured."
+        )
+
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))

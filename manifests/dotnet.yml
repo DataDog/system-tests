@@ -865,6 +865,8 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Easy win for all weblogs and version 3.36.0
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_aggregation_dimension_TS011: missing_feature (span_kind aggregation dimension not yet validated)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS012: missing_feature (span_kind eligibility not yet validated)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:  # Easy win for all weblogs and version 3.36.0
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
@@ -1035,6 +1037,8 @@ manifest:
     - weblog_declaration:
         uds: missing_feature
         poc: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_span_kind_aggregation: missing_feature (span_kind aggregation dimension not yet validated)
+  tests/stats/test_stats.py::Test_Client_Stats::test_span_kind_eligibility: missing_feature (span_kind eligibility not yet validated)
   tests/stats/test_stats.py::Test_Peer_Tags:  # Created by easy win activation script
     - weblog_declaration:
         uds: missing_feature

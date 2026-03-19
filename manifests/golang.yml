@@ -1074,6 +1074,8 @@ manifest:
       component_version: <1.64.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_aggregation_dimension_TS011: missing_feature (span_kind aggregation dimension not yet validated)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS012: missing_feature (span_kind eligibility not yet validated)
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
@@ -1217,6 +1219,8 @@ manifest:
   tests/stats/test_stats.py: v1.54.0
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
+  tests/stats/test_stats.py::Test_Client_Stats::test_span_kind_aggregation: missing_feature (span_kind aggregation dimension not yet validated)
+  tests/stats/test_stats.py::Test_Client_Stats::test_span_kind_eligibility: missing_feature (span_kind eligibility not yet validated)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)

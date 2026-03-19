@@ -444,3 +444,121 @@ class Test_Library_Tracestats:
 
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_aggregation_dimension_TS011(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When spans have different span.kind values
+        Each unique span.kind produces a separate stats aggregation entry because span_kind is an aggregation dimension.
+        Two top-level spans with the same (service, name, resource, type) but different span.kind values
+        must produce two distinct stats entries.
+        """
+        name = "http.request"
+        resource = "/api/v1/users"
+        service = "webserver"
+        span_type = "web"
+
+        with test_library:
+            # Server span
+            with test_library.dd_start_span(
+                name=name, resource=resource, service=service, typestr=span_type
+            ) as server_span:
+                server_span.set_meta(key="span.kind", val="server")
+
+            # Client span
+            with test_library.dd_start_span(
+                name=name, resource=resource, service=service, typestr=span_type
+            ) as client_span:
+                client_span.set_meta(key="span.kind", val="client")
+
+        requests = test_agent.get_v06_stats_requests()
+        assert len(requests) >= 1, "At least one stats request expected"
+
+        all_stats = []
+        for req in requests:
+            for bucket in req["body"]["Stats"]:
+                all_stats.extend(bucket["Stats"])
+
+        logger.debug([_human_stats(s) for s in all_stats])
+
+        # Filter to only our target operation
+        target_stats = [s for s in all_stats if s["Name"] == name and s["Resource"] == resource]
+        assert len(target_stats) == 2, (
+            f"Expected 2 stats entries (one per span.kind), got {len(target_stats)}: "
+            f"{[_human_stats(s) for s in target_stats]}"
+        )
+
+        span_kinds = {s["SpanKind"] for s in target_stats}
+        assert "server" in span_kinds, f"Expected a 'server' SpanKind entry, found: {span_kinds}"
+        assert "client" in span_kinds, f"Expected a 'client' SpanKind entry, found: {span_kinds}"
+
+        for s in target_stats:
+            assert s["Hits"] == 1
+            assert s["Duration"] > 0
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_eligibility_TS012(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When child spans have span.kind set to server, client, producer, or consumer
+        Stats should be computed for them even without _dd.measured being set, because
+        span.kind-based eligibility makes these spans automatically eligible for stats computation.
+        A child span without span.kind or _dd.measured should NOT produce stats.
+        """
+        with (
+            test_library,
+            test_library.dd_start_span(name="root.op", resource="/", service="webserver") as root,
+        ):
+            # Child with span.kind=client (eligible)
+            with test_library.dd_start_span(
+                name="http.client", resource="GET /downstream", service="webserver", parent_id=root.span_id
+            ) as child_client:
+                child_client.set_meta(key="span.kind", val="client")
+
+            # Child with span.kind=producer (eligible)
+            with test_library.dd_start_span(
+                name="queue.produce", resource="send message", service="webserver", parent_id=root.span_id
+            ) as child_producer:
+                child_producer.set_meta(key="span.kind", val="producer")
+
+            # Child with span.kind=consumer (eligible)
+            with test_library.dd_start_span(
+                name="queue.consume", resource="recv message", service="webserver", parent_id=root.span_id
+            ) as child_consumer:
+                child_consumer.set_meta(key="span.kind", val="consumer")
+
+            # Child without span.kind or _dd.measured (NOT eligible)
+            with test_library.dd_start_span(
+                name="internal.op", resource="compute", service="webserver", parent_id=root.span_id
+            ):
+                pass
+
+        requests = test_agent.get_v06_stats_requests()
+        assert len(requests) >= 1, "At least one stats request expected"
+
+        all_stats = []
+        for req in requests:
+            for bucket in req["body"]["Stats"]:
+                all_stats.extend(bucket["Stats"])
+
+        logger.debug([_human_stats(s) for s in all_stats])
+
+        stat_names = {s["Name"] for s in all_stats}
+
+        # Root span is top-level, always eligible
+        assert "root.op" in stat_names, f"Root span should have stats, found: {stat_names}"
+
+        # Spans with span.kind should be eligible
+        assert "http.client" in stat_names, (
+            f"span.kind=client child should have stats (span.kind eligibility), found: {stat_names}"
+        )
+        assert "queue.produce" in stat_names, (
+            f"span.kind=producer child should have stats (span.kind eligibility), found: {stat_names}"
+        )
+        assert "queue.consume" in stat_names, (
+            f"span.kind=consumer child should have stats (span.kind eligibility), found: {stat_names}"
+        )
+
+        # Internal span without span.kind or _dd.measured should NOT be eligible
+        assert "internal.op" not in stat_names, (
+            f"Internal span without span.kind or _dd.measured should NOT have stats, found: {stat_names}"
+        )
