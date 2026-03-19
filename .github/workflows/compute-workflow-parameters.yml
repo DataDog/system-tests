@@ -47,8 +47,8 @@ on:
         default: false
         required: false
         type: boolean
-      _system_tests_library_target_branch:
-        description: "If system-tests dev mode, the branch to use for the library"
+      _system_tests_library_target_branch_map:
+        description: "If system-tests dev mode, JSON map of library to branch (e.g. {\"java\":\"b1\",\"dotnet\":\"b2\"})"
         default: ''
         required: false
         type: string
@@ -155,25 +155,28 @@ jobs:
     - name: Extract library target branch
       if: ${{ inputs._system_tests_dev_mode }}
       id: extract_branch
-      shell: bash
+      shell: python
       run: |
-        TARGET_BRANCH_MAP='${{ inputs._system_tests_library_target_branch }}'
-        LIBRARY='${{ inputs.library }}'
+        import json
+        import os
 
-        if [ -z "$TARGET_BRANCH_MAP" ]; then
-          echo "library_branch=" >> $GITHUB_OUTPUT
-          echo "agent_branch=" >> $GITHUB_OUTPUT
-        elif echo "$TARGET_BRANCH_MAP" | jq empty 2>/dev/null; then
-          # It's valid JSON — extract the branch for this library and agent
-          library_branch=$(echo "$TARGET_BRANCH_MAP" | jq -r --arg lib "$LIBRARY" '.[$lib] // empty')
-          agent_branch=$(echo "$TARGET_BRANCH_MAP" | jq -r '.agent // empty')
-          echo "library_branch=$library_branch" >> $GITHUB_OUTPUT
-          echo "agent_branch=$agent_branch" >> $GITHUB_OUTPUT
-        else
-          # Legacy: plain branch string (backward compatibility)
-          echo "library_branch=$TARGET_BRANCH_MAP" >> $GITHUB_OUTPUT
-          echo "agent_branch=" >> $GITHUB_OUTPUT
-        fi
+        branch_map_str = os.environ.get("TARGET_BRANCH_MAP", "")
+        library = os.environ.get("LIBRARY", "")
+
+        library_branch = ""
+        agent_branch = ""
+
+        if branch_map_str:
+            branch_map = json.loads(branch_map_str)
+            library_branch = branch_map.get(library, "")
+            agent_branch = branch_map.get("agent", "")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"library_branch={library_branch}\n")
+            f.write(f"agent_branch={agent_branch}\n")
+      env:
+        TARGET_BRANCH_MAP: ${{ inputs._system_tests_library_target_branch_map }}
+        LIBRARY: ${{ inputs.library }}
 
     - name: Get dev artifacts
       if: ${{ inputs._system_tests_dev_mode }}
