@@ -53,7 +53,7 @@ def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
         raise ValueError("Some path has not been transmitted")
 
 
-def priority_should_be_kept(sampling_priority: SamplingPriority):
+def priority_should_be_kept(sampling_priority: int | SamplingPriority):
     """Returns if a given sampling priority means its trace has to be kept.
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
@@ -116,9 +116,9 @@ class Test_SamplingRates:
         sampled_count = {True: 0, False: 0}
 
         for trace, root_span in interfaces.library.get_root_spans():
-            metrics = root_span["metrics"]
-            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {trace.log_filename}"
-            sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
+            sampling_priority = root_span.get_sampling_priority()
+            assert sampling_priority is not None, f"_sampling_priority_v1 is missing in {trace.log_filename}"
+            sampled_count[priority_should_be_kept(sampling_priority)] += 1
 
         trace_count = sum(sampled_count.values())
         # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
@@ -151,7 +151,7 @@ class Test_SamplingDecisions:
         """Verify that traces are sampled following the sample rate"""
 
         def validator(trace: DataDogLibraryTrace, root_span: DataDogLibrarySpan):
-            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
+            sampling_priority = root_span.get_sampling_priority()
             if sampling_priority is None:
                 raise ValueError(
                     f"Message: {trace.log_filename}:"
@@ -211,7 +211,7 @@ class Test_SamplingDecisionAdded:
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
                 )
 
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                sampling_priority = span.get_sampling_priority()
 
                 assert sampling_priority is not None, (
                     f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
@@ -322,7 +322,7 @@ class Test_SampleRateFunction:
             for data, _, span in interfaces.library.get_spans(request=req):
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                sampling_priority = span.get_sampling_priority()
                 logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
                 assert sampling_priority is not None, (
