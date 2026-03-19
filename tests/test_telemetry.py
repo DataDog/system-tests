@@ -610,6 +610,9 @@ class Test_Telemetry:
                 parent_runtime_ids.add(curr_pid)
             if curr_rid is not None:
                 root_runtime_ids.add(curr_rid)
+            else:
+                # If dd-root-session-id is not set, dd-session-id is treated as root
+                root_runtime_ids.add(curr_id)
 
         # At least two runtimes: parent (root) and child from spawn_child
         assert len(runtime_ids) > 1, f"Expected at least 2 runtime_ids, got {runtime_ids}"
