@@ -97,7 +97,7 @@ class Test_Client_Stats:
     def setup_span_kind_aggregation(self):
         """Setup for span_kind aggregation test - generate server requests that produce different span kinds"""
         for _ in range(3):
-            weblog.get("/stats-unique")
+            weblog.get("/")
         for _ in range(2):
             weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")
 
