@@ -42,7 +42,10 @@ def assert_tags(
             if value is None:
                 assert tag not in struct
             elif tag == SAMPLING_PRIORITY_KEY:  # special case, it's a lambda to check for a condition
-                assert value(span.get_sampling_priority())  # type: ignore[operator]
+                sampling_priority = span.get_sampling_priority()
+                if sampling_priority is None:
+                    raise KeyError(SAMPLING_PRIORITY_KEY)
+                assert value(sampling_priority)  # type: ignore[operator]
             else:
                 assert struct[tag] == value
 
