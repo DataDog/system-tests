@@ -205,7 +205,7 @@ class Test_SamplingDecisionAdded:
                 expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
-                assert trace.trace_id_as_int == expected_trace_id, (
+                assert trace.trace_id_equals(expected_trace_id), (
                     f"Message: {data['log_filename']}: If parent_id matches, "
                     f"trace_id should match too expected trace_id {expected_trace_id} "
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
