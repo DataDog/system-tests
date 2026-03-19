@@ -134,7 +134,7 @@ capabilities:
       - APM_TRACING_SAMPLE_RULES
       - ASM_ACTIVATION
 
-    '>=2.7.0':
+    '>=2.6.0':
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
       - APM_TRACING_MULTICONFIG
 

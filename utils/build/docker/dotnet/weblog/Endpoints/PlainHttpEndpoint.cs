@@ -9,7 +9,8 @@ namespace weblog
         {
             routeBuilder.MapGet("/", async context =>
             {
-                await context.Response.WriteAsync("Hello world!\\n");
+                context.Response.ContentType = "text/plain";
+                await context.Response.WriteAsync("Hello world!\n");
             });
         }
     }

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, context, logger, bug, missing_feature
+from utils import context, features, logger, scenarios, slow
 import json
 import time
 
@@ -86,7 +86,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_snapshot_received(exception_message, TIMEOUT)
+            snapshot_found = self.wait_for_all_snapshots(exception_message, TIMEOUT)
 
             retries += 1
 
@@ -154,7 +154,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
-    @bug(context.library == "java", reason="DEBUG-4736", force_skip=True)
+    @slow
     def test_inproduct_enablement_exception_replay_apm_multiconfig(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -167,8 +167,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "java", force_skip=True)
-@missing_feature(context.library == "python", force_skip=True)
+@slow
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def _check_code_origin(self):

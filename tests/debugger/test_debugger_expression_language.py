@@ -21,7 +21,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
         self.wait_for_all_probes(statuses=["EMITTING"])
-        self.wait_for_snapshot_received()
+        self.wait_for_all_snapshots()
 
     ############ assert ############
     def _assert(self, expected_response: int):
@@ -948,7 +948,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             elif value_type == "string":
                 instance_type = "java.lang.String"
             elif value_type == "pii":
-                instance_type = "com.datadoghq.system_tests.springboot.PiiBase"
+                instance_type = "com.datadoghq.system_tests.springboot.debugger.PiiBase"
             else:
                 instance_type = value_type
         elif self.get_tracer()["language"] == "python":

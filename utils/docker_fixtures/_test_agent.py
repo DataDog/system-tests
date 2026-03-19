@@ -706,6 +706,33 @@ class TestAgentAPI:
                 return event
         return None
 
+    def count_telemetry_events(self, event_name: str) -> int:
+        """Count telemetry events of the given type, using the same logic as _get_telemetry_event.
+
+        Handles both top-level events and events inside message-batch payloads, excluding
+        sidecar-originated events.
+        """
+        try:
+            events: list[Any] = self.telemetry(clear=False)
+        except requests.exceptions.RequestException:
+            return 0
+
+        count: int = 0
+        for event in events:
+            if not event:
+                continue
+            if event.get("request_type") == event_name:
+                count += int(event.get("application", {}).get("language_version") != "SIDECAR")
+            elif event.get("request_type") == "message-batch":
+                count += sum(
+                    1
+                    for message in event.get("payload", [])
+                    if message.get("request_type") == event_name
+                    and message.get("application", {}).get("language_version") != "SIDECAR"
+                )
+
+        return count
+
     def wait_for_rc_apply_state(
         self,
         product: str,
@@ -714,11 +741,16 @@ class TestAgentAPI:
         clear: bool = False,
         wait_loops: int = 100,
         post_only: bool = False,
-    ):
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        config_id: str | int | None = None,
+    ) -> dict[str, Any]:
+        """Wait for the given RemoteConfig apply state to be received by the test agent.
+
+        When config_id is provided, only match config_states whose id equals config_id.
+        This avoids matching stale ACKs from a prior RC update (e.g. for dotnet/php/ruby).
+        """
         logger.info(f"Wait for RemoteConfig apply state {state} for product {product}")
-        rc_reqs = []
-        last_known_state = None
+        rc_reqs: list[Any] = []
+        last_known_state: int | None = None
         for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests(post_only=post_only)
@@ -741,6 +773,8 @@ class TestAgentAPI:
                                 # will probably be the same as the current state
                                 last_known_state = cfg_state["apply_state"]
                                 logger.debug(f"Apply state {cfg_state['apply_state']} does not match {state}")
+                        elif config_id and str(cfg_state.get("id")) != str(config_id):
+                            logger.debug(f"Config state id {cfg_state.get('id')!r} does not match {config_id!r}")
                         else:
                             logger.info(f"Found apply state {state} for product {product}")
                             if clear:

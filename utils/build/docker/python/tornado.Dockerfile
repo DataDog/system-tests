@@ -3,6 +3,7 @@ FROM datadog/system-tests:tornado.base-v2
 WORKDIR /app
 
 ENV DD_TRACE_TORNADO_ENABLED=true
+ENV DD_REMOTECONFIG_POLL_SECONDS=1
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
