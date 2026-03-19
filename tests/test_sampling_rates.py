@@ -83,10 +83,6 @@ def _spans_with_parent(traces: list, parent_ids: list):
                     yield span
 
 
-def _normalize_uint64(value: int) -> int:
-    return value & MAX_UINT64
-
-
 def generate_request_id() -> Generator[int, Any, Any]:
     i = 0
     while True:
@@ -197,21 +193,16 @@ class Test_SamplingDecisionAdded:
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
-        traces = {_normalize_uint64(trace["parent_id"]): trace for trace in self.traces}
+        traces = {trace["parent_id"]: trace for trace in self.traces}
         parent_ids = set(traces.keys())
         spans = []
 
         for data, trace in interfaces.library.get_traces():
             for span in trace:
-                parent_id = span.get("parent_id")
-                if parent_id is None:
+                if span.get("parent_id") not in parent_ids:
                     continue
 
-                parent_id = _normalize_uint64(parent_id)
-                if parent_id not in parent_ids:
-                    continue
-
-                expected_trace_id = traces[parent_id]["trace_id"]
+                expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
                 assert trace.trace_id_equals(expected_trace_id), (
