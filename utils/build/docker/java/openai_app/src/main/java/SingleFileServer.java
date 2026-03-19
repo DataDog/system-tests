@@ -40,7 +40,8 @@ public class SingleFileServer {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   public static void main(String[] args) {
-    Integer port = Integer.parseInt(System.getenv("FRAMEWORK_TEST_CLIENT_SERVER_PORT"));
+    String serverPort = System.getenv("FRAMEWORK_TEST_CLIENT_SERVER_PORT");
+    Integer port = serverPort != null ? Integer.parseInt(serverPort) : 7777;
     Javalin app = Javalin.create(config -> {
       config.plugins.enableDevLogging();
     });
