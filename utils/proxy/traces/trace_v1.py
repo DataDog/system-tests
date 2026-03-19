@@ -604,6 +604,9 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
         for chunk in data["idxTracerPayloads"][idx].get("chunks", []):
             _deserialize_base64_trace_id(chunk)
             chunk["attributes"] = _uncompress_attributes(chunk.get("attributes", {}), strings)
+            origin_ref = chunk.get("originRef")
+            if isinstance(origin_ref, int) and origin_ref < len(strings):
+                chunk["origin"] = strings[origin_ref]
             for span in chunk.get("spans", []):
                 span["attributes"] = _uncompress_attributes(span.get("attributes", {}), strings)
                 # Uncompress span links
