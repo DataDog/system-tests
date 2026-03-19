@@ -21,6 +21,6 @@ class TelemetryUtils:
         result = "DD_APPSEC_SCA_ENABLED"
         if library == "nodejs":
             result = "appsec.sca.enabled"
-        elif library in ("php", "ruby"):
+        elif library == "php":
             result = "appsec.sca_enabled"
         return result
