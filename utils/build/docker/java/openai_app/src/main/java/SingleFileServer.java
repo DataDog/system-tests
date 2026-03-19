@@ -582,7 +582,7 @@ public class SingleFileServer {
     JSONObject tagsObject = payload.optJSONObject("tags");
     var tags = tagsObject != null ? tagsObject.toMap() : null;
 
-    String mlApp = payload.optString("ml_app");
+    String mlApp = payload.optString("ml_app", null);
 
     if (mlApp != null) {
       LLMObs.SubmitEvaluation(
