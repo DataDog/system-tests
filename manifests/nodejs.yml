@@ -2356,8 +2356,14 @@ manifest:
         uds-express4: *ref_3_7_0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (spawn_child: express4, not enabled yet)
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (spawn_child: express4, not enabled yet)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+   - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        express4: *ref_5_90_0
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+  - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        express4: *ref_5_90_0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
