@@ -118,9 +118,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot
 @slow
-@missing_feature(
-    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
-)
+@missing_feature(context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented")
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -136,7 +134,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
-    @slow
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -150,7 +147,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @slow
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -159,7 +155,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_mix_snapshot(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
 
-    @slow
     def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -168,9 +163,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot_with_scm
 @slow
-@missing_feature(
-    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
-)
+@missing_feature(context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented")
 class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -186,7 +179,6 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
-    @slow
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -200,7 +192,6 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
             lines=None,
         )
 
-    @slow
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -209,7 +200,6 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_mix_snapshot(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
 
-    @slow
     def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -389,7 +379,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @slow
     def test_log_line_snapshot_debug_track(self):
         """Test that the library sends snapshots to the debug track endpoint (fallback or not)"""
         self._assert()
@@ -399,8 +388,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.agent_version < "7.72.0", reason="Endpoint was introduced in 7.72.0", force_skip=True)
-    @slow
+    @missing_feature(context.agent_version < "7.72.0", reason="Endpoint was introduced in 7.72.0")
     def test_log_line_snapshot_new_destination(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         self._assert()
@@ -418,7 +406,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @slow
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -479,7 +466,6 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @slow
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()

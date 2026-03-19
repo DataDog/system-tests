@@ -23,6 +23,7 @@ from .docker_ssi import DockerSSIScenario
 from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
@@ -542,7 +543,10 @@ class _Scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
         },
+        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )
@@ -1182,7 +1186,7 @@ class _Scenarios:
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )
 
-    ai_guard = EndToEndScenario(
+    ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
         weblog_env={

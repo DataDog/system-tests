@@ -16,6 +16,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
   tests/apm_tracing_e2e/: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/: irrelevant (ASM is not implemented in C++)
@@ -33,6 +34,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
@@ -95,6 +97,7 @@ manifest:
   tests/stats/test_stats.py: '>=1.0.3'  # Modified by easy win activation script
   tests/stats/test_stats.py::Test_Agent_Info_Endpoint: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Peer_Tags: missing_feature  # Created by easy win activation script
@@ -179,7 +182,13 @@ manifest:
   tests/test_telemetry.py::Test_Log_Generation: '>=1.0.3'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_MessageBatch: '>=1.0.3'  # Modified by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=1.0.4'  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant

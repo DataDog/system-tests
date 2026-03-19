@@ -1,5 +1,5 @@
 
-FROM datadog/dd-trace-ci:php-8.2_buster
+FROM datadog/dd-trace-ci:php-8.2_bookworm-6
 RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1

@@ -401,6 +401,8 @@ class ManifestEditor:
                 manifest = self.raw_data[condition["component"]]["manifest"]
                 manifest_entry = self.manifest.data.get(rule, [])
                 manifest[rule] = ManifestEditor.build_manifest_entry(rule, condition, manifest, manifest_entry)
+                if rule not in self.manifest.data:
+                    self.manifest.data[rule] = []
                 self.manifest.data[rule].append(condition)
 
     def write_poke(self) -> None:
