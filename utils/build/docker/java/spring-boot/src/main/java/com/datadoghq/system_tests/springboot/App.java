@@ -340,8 +340,12 @@ public class App {
         }
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    "sh", "-c",
-                    String.format("sleep %d && %s", sleep, crash.equalsIgnoreCase("true") ? "kill -SEGV $$" : "exit 0"));
+                    "java", "-Xmx128m",
+                    "-javaagent:/app/dd-java-agent.jar",
+                    "-jar", "/app/app.jar");
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_SLEEP", String.valueOf(sleep));
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_CRASH", crash.toLowerCase());
+            pb.inheritIO();
             Process p = pb.start();
             int exitCode = p.waitFor();
             return ResponseEntity.ok("Process " + p.pid() + " has exited with code " + exitCode);
@@ -1499,7 +1503,16 @@ public class App {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        String childSleep = System.getenv("DD_SYSTEM_TEST_CHILD_SLEEP");
+        if (childSleep != null) {
+            int sleep = Integer.parseInt(childSleep);
+            Thread.sleep(sleep * 1000L);
+            if ("true".equals(System.getenv("DD_SYSTEM_TEST_CHILD_CRASH"))) {
+                Runtime.getRuntime().halt(139);
+            }
+            return;
+        }
         SpringApplication.run(App.class, args);
     }
 
