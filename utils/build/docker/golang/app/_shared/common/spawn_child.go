@@ -37,7 +37,7 @@ func RunAsChildIfRequested() {
 // SpawnChild handles GET /spawn_child for telemetry session ID header tests.
 // Go does not support fork; returns 400 when fork=true. Otherwise re-execs
 // the current binary in child mode, which initializes dd-trace-go and emits
-// its own telemetry. The SDK propagates DD_ROOT_GO_SESSION_ID via the process
+// its own telemetry. The SDK propagates _DD_ROOT_GO_SESSION_ID via the process
 // environment so that child processes inherit the root session ID automatically.
 func SpawnChild(w http.ResponseWriter, r *http.Request) {
 	sleepStr := r.URL.Query().Get("sleep")
