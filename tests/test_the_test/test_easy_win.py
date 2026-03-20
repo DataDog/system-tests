@@ -1,7 +1,7 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+
 
 import pytest
 import yaml
@@ -385,11 +385,11 @@ def test_e2e_activation_modifies_manifest():
         # Run activation
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, modified_rules, created_rules, _, _, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify activation occurred
-        assert tests_per_language.get("ruby", 0) > 0
-        assert sum(modified_rules.values()) > 0 or created_rules > 0
+        assert logger.tests_per_language.get("ruby", 0) > 0
+        assert logger.total_modified_rules > 0 or len(manifest_editor.added_rules) > 0
 
 
 def test_e2e_activation_filters_by_component():
@@ -425,11 +425,11 @@ def test_e2e_activation_filters_by_component():
         # Run activation with only ruby
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, _, _, _, _, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify only ruby was processed
-        assert "ruby" in tests_per_language
-        assert "python" not in tests_per_language
+        assert "ruby" in logger.tests_per_language
+        assert "python" not in logger.tests_per_language
 
 
 def test_e2e_activation_excludes_owners():
@@ -475,11 +475,11 @@ def test_e2e_activation_excludes_owners():
         # Run activation with excluded owner
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby"], excluded_owners={"@DataDog/excluded-team"})
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, _, _, _, unique_tests, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify only one test was activated (the included one)
-        assert tests_per_language.get("ruby", 0) == 1
-        assert unique_tests.get("ruby", 0) == 1
+        assert logger.tests_per_language.get("ruby", 0) == 1
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 1
 
 
 def test_e2e_activation_tracks_activations_per_owner():
@@ -531,11 +531,11 @@ def test_e2e_activation_tracks_activations_per_owner():
         # Run activation
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        _, _, _, _, _, activations_per_owner = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify owner tracking
-        assert activations_per_owner.get("@DataDog/team-a", 0) == 2
-        assert activations_per_owner.get("@DataDog/team-b", 0) == 1
+        assert logger.activations_per_owner.get("@DataDog/team-a", 0) == 2
+        assert logger.activations_per_owner.get("@DataDog/team-b", 0) == 1
 
 
 def test_e2e_activation_handles_mixed_outcomes():
@@ -575,11 +575,11 @@ def test_e2e_activation_handles_mixed_outcomes():
         # Run activation
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, _modified_rules, _, _, unique_tests, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify: xpassed tests are tracked
-        assert tests_per_language.get("ruby", 0) == 3  # 3 xpassed tests
-        assert unique_tests.get("ruby", 0) == 3
+        assert logger.tests_per_language.get("ruby", 0) == 3  # 3 xpassed tests
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 3
 
         # Verify trie has correct status (class level should be NONE due to mixed outcomes)
         context = next(iter(test_data.keys()))
@@ -798,11 +798,10 @@ def test_skip_nodeid_for_all_components():
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
 
-        with patch("utils.scripts.activate_easy_wins._internal.core.yaml.safe_load", return_value=skip_data):
-            tests_per_language, _, _, _, unique_tests, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data, skip_data)
 
-        assert tests_per_language.get("ruby", 0) == 1
-        assert unique_tests.get("ruby", 0) == 1
+        assert logger.tests_per_language.get("ruby", 0) == 1
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 1
 
 
 def test_skip_nodeid_for_specific_component():
@@ -836,13 +835,12 @@ def test_skip_nodeid_for_specific_component():
         test_data, weblogs = parse_artifact_data(data_dir, ["ruby", "python"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby", "python"])
 
-        with patch("utils.scripts.activate_easy_wins._internal.core.yaml.safe_load", return_value=skip_data):
-            tests_per_language, _, _, _, unique_tests, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data, skip_data)
 
-        assert tests_per_language.get("ruby", 0) == 0
-        assert unique_tests.get("ruby", 0) == 0
-        assert tests_per_language.get("python", 0) == 1
-        assert unique_tests.get("python", 0) == 1
+        assert logger.tests_per_language.get("ruby", 0) == 0
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 0
+        assert logger.tests_per_language.get("python", 0) == 1
+        assert logger.unique_tests_per_language_count.get("python", 0) == 1
 
 
 # =============================================================================
