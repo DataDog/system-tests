@@ -37,42 +37,30 @@ namespace weblog
                     return;
                 }
 
-                var crash = crashStr == "true";
-                Process process;
-
                 if (forkStr == "true")
                 {
-                    // Fork path: spawn same process with env vars (lib-injection fork_and_crash pattern)
-                    var cmdArgs = Environment.GetCommandLineArgs();
-                    var args = cmdArgs.Length > 1 ? string.Join(" ", cmdArgs.Skip(1)) : "app.dll";
-                    var startInfo = new ProcessStartInfo
-                    {
-                        FileName = Environment.ProcessPath ?? "/usr/share/dotnet/dotnet",
-                        Arguments = args,
-                        WorkingDirectory = Environment.CurrentDirectory,
-                    };
-                    startInfo.Environment["SPAWN_CHILD_FORKED"] = "1";
-                    startInfo.Environment["SPAWN_CHILD_SLEEP"] = sleep.ToString();
-                    startInfo.Environment["SPAWN_CHILD_CRASH"] = crash ? "1" : "0";
+                    context.Response.StatusCode = 400;
+                    await context.Response.WriteAsync("fork not supported in .NET");
+                    return;
+                }
 
-                    process = Process.Start(startInfo);
-                }
-                else
+                var crash = crashStr == "true";
+
+                // Re-exec the weblog binary as a child process. The CLR profiler
+                // auto-attaches dd-trace-dotnet, so the child emits its own telemetry.
+                var cmdArgs = Environment.GetCommandLineArgs();
+                var args = cmdArgs.Length > 1 ? string.Join(" ", cmdArgs.Skip(1)) : "app.dll";
+                var startInfo = new ProcessStartInfo
                 {
-                    // Exec path: shell script
-                    var script = crash
-                        ? $"sleep {sleep} && kill -SEGV $$$$"
-                        : $"sleep {sleep} && exit 0";
-                    var startInfo = new ProcessStartInfo
-                    {
-                        FileName = "/bin/sh",
-                        Arguments = $"-c \"{script}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                    };
-                    process = Process.Start(startInfo);
-                }
+                    FileName = Environment.ProcessPath ?? "/usr/share/dotnet/dotnet",
+                    Arguments = args,
+                    WorkingDirectory = Environment.CurrentDirectory,
+                };
+                startInfo.Environment["SPAWN_CHILD_FORKED"] = "1";
+                startInfo.Environment["SPAWN_CHILD_SLEEP"] = sleep.ToString();
+                startInfo.Environment["SPAWN_CHILD_CRASH"] = crash ? "1" : "0";
+
+                var process = Process.Start(startInfo);
 
                 if (process == null)
                 {

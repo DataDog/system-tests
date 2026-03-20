@@ -1178,8 +1178,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Easy win for poc, uds and version 3.36.0
     - declaration: bug (APMAPI-728)
       component_version: '>=3.4.0'
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (spawn_child poc, not enabled yet)
-  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (spawn_child poc, not enabled yet)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (.NET does not support fork)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: v3.4.0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: v3.25.0
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
