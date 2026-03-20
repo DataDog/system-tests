@@ -153,6 +153,9 @@ class DataDogLibrarySpan(ABC):
 
         return get_rid_from_span_data(self.raw_span.get("type", ""), self.meta, self.metrics)
 
+    def trace_id_equals(self, other: int | str) -> bool:
+        return self.trace.trace_id_equals(other)
+
     @abstractmethod
     def get_sampling_priority(self) -> int | None:
         pass
