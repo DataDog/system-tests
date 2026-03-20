@@ -15,7 +15,10 @@ if TYPE_CHECKING:
 
 
 def update_manifest(
-    manifest_editor: ManifestEditor, test_data: dict[Context, TestData], skipped_nodes: dict | None = None
+    manifest_editor: ManifestEditor,
+    test_data: dict[Context, TestData],
+    skipped_nodes: dict | None = None,
+    code_owner: str | None = None,
 ) -> ActivationLogger:
     def tup_to_rule(tup: tuple[str, ...]) -> str:
         rule = tup[0]
@@ -50,6 +53,9 @@ def update_manifest(
 
         for node in test_data_item.xpass_nodes:
             if node in skipped_nodes.get(context.library, []) + skipped_nodes.get("*", []):
+                continue
+            ref_owner = [*sorted(test_data_item.nodeid_to_owners.get(node, set())), ""][0]
+            if code_owner is not None and code_owner != ref_owner:
                 continue
 
             views = manifest_editor.get_matches(node)

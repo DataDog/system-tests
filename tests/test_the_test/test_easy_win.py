@@ -69,7 +69,7 @@ def test_parse_artifact_data_xpassed_tests():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
@@ -100,7 +100,7 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["python"])
+        test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
         context = next(iter(test_data.keys()))
         assert "tests/test_module.py::Test_Class::test_mixed" not in test_data[context].xpass_nodes
@@ -125,7 +125,7 @@ def test_parse_artifact_data_xfailed_tests():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["java"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["java"])
 
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
@@ -161,7 +161,7 @@ def test_parse_artifact_data_excluded_owners():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["nodejs"], excluded_owners={"@excluded-team"})
+        test_data, *_ = parse_artifact_data(data_dir, ["nodejs"], excluded_owners={"@excluded-team"})
 
         context = next(iter(test_data.keys()))
         # The excluded owner test should not be in xpass_nodes
@@ -178,7 +178,7 @@ def test_parse_artifact_data_missing_report():
         scenario_dir = data_dir / "test_run" / "scenario_no_report"
         scenario_dir.mkdir(parents=True)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
         assert len(test_data) == 0
         assert len(weblogs) == 0
@@ -213,7 +213,7 @@ def test_parse_artifact_data_library_filter():
             json.dump(ruby_report, f)
 
         # Filter to only python
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
@@ -254,7 +254,7 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["python"])
+        test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
         context = next(iter(test_data.keys()))
         trie = test_data[context].trie
@@ -320,7 +320,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["python"])
+        test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
         context = next(iter(test_data.keys()))
         trie = test_data[context].trie
@@ -383,7 +383,7 @@ def test_e2e_activation_modifies_manifest():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         logger = update_manifest(manifest_editor, test_data)
 
@@ -423,7 +423,7 @@ def test_e2e_activation_filters_by_component():
             (manifest_dir / f"{lib_name}.yml").write_text(manifest_content)
 
         # Run activation with only ruby
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         logger = update_manifest(manifest_editor, test_data)
 
@@ -473,7 +473,7 @@ def test_e2e_activation_excludes_owners():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation with excluded owner
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"], excluded_owners={"@DataDog/excluded-team"})
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"], excluded_owners={"@DataDog/excluded-team"})
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         logger = update_manifest(manifest_editor, test_data)
 
@@ -529,7 +529,7 @@ def test_e2e_activation_tracks_activations_per_owner():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         logger = update_manifest(manifest_editor, test_data)
 
@@ -573,7 +573,7 @@ def test_e2e_activation_handles_mixed_outcomes():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         logger = update_manifest(manifest_editor, test_data)
 
@@ -627,7 +627,7 @@ manifest:
 """
         (manifest_dir / "python.yml").write_text(manifest_content)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
         update_manifest(manifest_editor, test_data)
 
@@ -702,7 +702,7 @@ manifest:
 """
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         update_manifest(manifest_editor, test_data)
         manifest_editor.write(manifest_dir)
@@ -748,7 +748,7 @@ manifest:
 """
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         update_manifest(manifest_editor, test_data)
         manifest_editor.write(manifest_dir)
@@ -795,7 +795,7 @@ def test_skip_nodeid_for_all_components():
 
         skip_data = {"*": ["tests/skipped/test_skipped.py::Test_Skipped::test_one"]}
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
 
         logger = update_manifest(manifest_editor, test_data, skip_data)
@@ -832,7 +832,7 @@ def test_skip_nodeid_for_specific_component():
 
         skip_data = {"ruby": [skipped_nodeid]}
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby", "python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby", "python"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby", "python"])
 
         logger = update_manifest(manifest_editor, test_data, skip_data)

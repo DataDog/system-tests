@@ -40,6 +40,11 @@ def main() -> None:
         action="store_true",
         help="Use data from dev runs instead of nightly runs",
     )
+    parser.add_argument(
+        "--split-co",
+        action="store_true",
+        help="Commits the changes to a different git branch for each test owner",
+    )
     args = parser.parse_args()
 
     # Filter libraries if components are specified
@@ -60,20 +65,35 @@ def main() -> None:
 
     skipped_nodes = yaml.safe_load(SKIPPED_NODES_FILE.read_text())
 
-    test_data, weblogs = parse_artifact_data(
+    test_data, weblogs, owners = parse_artifact_data(
         Path("data/"), libraries_to_process, excluded_owners=excluded_owners, use_dev=args.dev
     )
 
-    manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
-    logger = update_manifest(manifest_editor, test_data, skipped_nodes)
-    created_rules_count = len(manifest_editor.added_rules)
-    logger.print_top_rules()
-    logger.print_activation_report()
-    logger.print_detailed_rules_report(created_rules_count)
+    has_updates = False
+    if args.split_co:
+        for owner in owners:
+            print(f"====================== Update for {owner} ======================")
+            manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
+            logger = update_manifest(manifest_editor, test_data, skipped_nodes, owner)
+            created_rules_count = len(manifest_editor.added_rules)
+            logger.print_top_rules()
+            logger.print_activation_report()
+            logger.print_detailed_rules_report(created_rules_count)
 
-    has_updates = logger.total_modified_rules > 0 or created_rules_count > 0
+            has_updates += logger.total_modified_rules > 0 or created_rules_count > 0
 
-    manifest_editor.write(dry_run=args.dry_run)
+            manifest_editor.write(dry_run=args.dry_run)
+    else:
+        manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
+        logger = update_manifest(manifest_editor, test_data, skipped_nodes)
+        created_rules_count = len(manifest_editor.added_rules)
+        logger.print_top_rules()
+        logger.print_activation_report()
+        logger.print_detailed_rules_report(created_rules_count)
+
+        has_updates += logger.total_modified_rules > 0 or created_rules_count > 0
+
+        manifest_editor.write(dry_run=args.dry_run)
 
     # Exit with status 1 if no updates were made
     if not has_updates:
