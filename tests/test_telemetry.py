@@ -622,6 +622,14 @@ class Test_TelemetryEnhancedConfigReporting:
                 {"origin": "env_var", "value": "false"},
             ],
         },
+        "ruby": {
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
+        },
     }
 
     def test_telemetry_events_seq_id(self):
