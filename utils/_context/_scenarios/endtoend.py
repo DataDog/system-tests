@@ -91,7 +91,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
             self.warmups.append(self._create_network)
             if self._reuse:
-                self.warmups.append(self._attach_to_existing_containers)
+                self.warmups.append(self._attach_or_start_containers)
             else:
                 self.warmups.append(self._start_containers)
 
@@ -169,19 +169,39 @@ class DockerScenario(Scenario):
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
 
-    def _attach_to_existing_containers(self):
-        logger.stdout("Attaching to existing containers (reuse mode)...")
+    def _attach_or_start_containers(self):
+        """In reuse mode, try to attach to existing containers. Fall back to starting fresh
+        if containers are missing, not running, or built from a stale image."""
+        can_reuse = True
         for container in self._containers:
             existing = container.get_existing_container()
             if existing is None:
-                pytest.exit(f"ST_REUSE: container {container.container_name} not found. Run once without --reuse first.", 1)
+                logger.stdout(f"  Container {container.container_name} not found, will start fresh")
+                can_reuse = False
+                break
             if existing.status != "running":
-                pytest.exit(
-                    f"ST_REUSE: container {container.container_name} is {existing.status}, expected running", 1
-                )
-            container._container = existing  # noqa: SLF001
-            container.healthy = True
-            logger.stdout(f"  Attached to {container.container_name}")
+                logger.stdout(f"  Container {container.container_name} is {existing.status}, will start fresh")
+                can_reuse = False
+                break
+            if container.image_is_stale(existing):
+                logger.stdout(f"  Container {container.container_name} has a stale image, will start fresh")
+                can_reuse = False
+                break
+
+        if can_reuse:
+            logger.stdout("Attaching to existing containers (reuse mode)...")
+            for container in self._containers:
+                existing = container.get_existing_container()
+                container._container = existing  # noqa: SLF001
+                container.healthy = True
+                logger.stdout(f"  Attached to {container.container_name}")
+        else:
+            logger.stdout("Reuse not possible, starting containers normally...")
+            # Reconfigure containers for a normal start (kill old, load image fresh)
+            for container in reversed(self._containers):
+                container.configure(host_log_folder=self.host_log_folder, replay=self.replay, reuse=False)
+            self._start_containers()
+            self._needs_readiness_wait = True
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
         self.close_targets()
@@ -338,10 +358,13 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
+        self._needs_readiness_wait = False
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
             self.warmups.append(self._get_weblog_system_info)
-            if not self._reuse:
+            if self._reuse:
+                self.warmups.append(self._wait_for_app_readiness_if_needed)
+            else:
                 self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
@@ -389,6 +412,11 @@ class EndToEndScenario(DockerScenario):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
+
+    def _wait_for_app_readiness_if_needed(self):
+        """In reuse mode, only wait for readiness if we fell back to starting fresh."""
+        if self._needs_readiness_wait:
+            self._wait_for_app_readiness()
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:

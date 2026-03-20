@@ -194,6 +194,15 @@ class TestedContainer:
 
         return None
 
+    def image_is_stale(self, existing_container: Container) -> bool:
+        """Check if the running container was built from a different image than the current one."""
+        try:
+            current_image = get_docker_client().images.get(self.image.name)
+            container_image_id = existing_container.attrs.get("Image", "")
+            return current_image.id != container_image_id
+        except docker.errors.ImageNotFound:
+            return True
+
     def stop_previous_container(self):
         if self.allow_old_container:
             return
