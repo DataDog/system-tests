@@ -15,6 +15,7 @@ from utils import features, scenarios, context, missing_feature
 class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
+        self.initialize_weblog_remote_config()
         self.send_rc_symdb()
 
     ############ assert ############

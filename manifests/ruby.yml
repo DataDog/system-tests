@@ -1027,9 +1027,9 @@ manifest:
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": irrelevant
-        rails72: missing_feature (feature not implemented)
-        rails80: missing_feature (feature not implemented)
-        uds-rails: missing_feature (feature not implemented)
+        rails72: v2.30.0
+        rails80: v2.30.0
+        uds-rails: v2.30.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": irrelevant
