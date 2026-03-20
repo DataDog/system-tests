@@ -1,6 +1,7 @@
 name: Nightly
 
 on:
+  pull_request:
   workflow_dispatch: {}
   # schedule:
   #   - cron:  '00 03 * * 1-5'
@@ -167,6 +168,11 @@ jobs:
           source venv/bin/activate
           python -m pip install --upgrade pip ruamel.yaml requests tqdm pygtrie
 
+      - name: Configure git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: Run activation script
         id: activation_script
         shell: bash
@@ -180,132 +186,95 @@ jobs:
           if [[ -n "${{ matrix.use_dev }}" ]]; then
             EXTRA_ARGS="$EXTRA_ARGS --dev"
           fi
-          python -m utils.scripts.activate_easy_wins --no-download --components "${{ matrix.library }}" $EXTRA_ARGS
+          python -m utils.scripts.activate_easy_wins --no-download --split-co --components "${{ matrix.library }}" $EXTRA_ARGS
           EXIT_CODE=$?
-          ./format.sh
           set -e
           echo "activation_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
-          if [ "$EXIT_CODE" -eq 1 ]; then
-            echo "Activation script returned exit code 1, skipping PR/commit/branch creation"
-          fi
+
+          # Collect branches created by --split-co
+          BRANCHES=$(git branch --list 'easy-win/*/${{ matrix.library }}' --format='%(refname:short)' | tr '\n' ' ')
+          echo "branches=$BRANCHES" >> "$GITHUB_OUTPUT"
 
       - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
         id: octo-sts
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         with:
           scope: DataDog/system-tests
           policy: self.test-activation-github
 
-      - name: Check for changes
-        id: check_changes
-        if: steps.activation_script.outputs.activation_exit_code == '0'
+      - name: Push signed branches and create PRs
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         env:
           GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
         shell: bash
         run: |
-          # Use gh auth as git credential helper
           gh auth setup-git
 
-          # Ensure local is up to date
-          git fetch origin
+          for BRANCH_NAME in ${{ steps.activation_script.outputs.branches }}; do
+            echo "============ Processing $BRANCH_NAME ============"
 
-          # Check if there are changes to the manifest file
-          if [[ -f "manifests/${{ matrix.library }}.yml" ]]; then
-            if git diff --quiet HEAD "manifests/${{ matrix.library }}.yml"; then
-              echo "No changes to ${{ matrix.library }} manifest"
-              echo "has_changes=false" >> "$GITHUB_OUTPUT"
-              exit 0
+            # Extract owner name from branch: easy-win/<owner>/<library> -> <owner>
+            OWNER=$(echo "$BRANCH_NAME" | cut -d'/' -f2)
+
+            # Check if a PR already exists for this branch
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
+
+            if [[ -n "$PR_NUMBER" ]]; then
+              # Skip if the PR has any activity (comments, reviews, or extra commits)
+              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq 'length')
+              REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq 'length')
+              COMMITS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/commits" --jq 'length')
+
+              if [[ "$COMMENTS" -gt 0 || "$REVIEWS" -gt 0 || "$COMMITS" -gt 1 ]]; then
+                echo "PR #$PR_NUMBER for $BRANCH_NAME has activity (comments=$COMMENTS, reviews=$REVIEWS, commits=$COMMITS), skipping"
+                continue
+              fi
+              echo "PR #$PR_NUMBER exists but has no activity, updating"
             fi
-          else
-            echo "Manifest file manifests/${{ matrix.library }}.yml does not exist"
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
 
-          echo "Changes detected in ${{ matrix.library }} manifest"
-          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            # Get commit info from local branch
+            TREE_SHA=$(git rev-parse "$BRANCH_NAME^{tree}")
+            PARENT_SHA=$(git rev-parse main)
+            COMMIT_MSG=$(git log -1 --format=%B "$BRANCH_NAME")
 
-      - name: Configure git
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          # Set the git user.
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            # Create or update remote branch at main's HEAD
+            if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+              gh api "repos/${{ github.repository }}/git/refs/heads/${BRANCH_NAME}" \
+                -X PATCH -f "sha=$PARENT_SHA" --silent
+            else
+              gh api "repos/${{ github.repository }}/git/refs" \
+                -f "ref=refs/heads/$BRANCH_NAME" -f "sha=$PARENT_SHA" --silent
+            fi
 
-      - name: Add files
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          git add "manifests/${{ matrix.library }}.yml"
+            # Create signed commit via the GitHub API
+            SIGNED_COMMIT=$(gh api "repos/${{ github.repository }}/git/commits" \
+              -f "message=$COMMIT_MSG" \
+              -f "tree=$TREE_SHA" \
+              -f "parents[]=$PARENT_SHA" \
+              --jq '.sha')
 
-      - name: Variables
-        id: vars
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          BRANCH_NAME="auto-${{ matrix.library }}-manifest"
-          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+            # Update the remote branch to point to the signed commit
+            gh api "repos/${{ github.repository }}/git/refs/heads/${BRANCH_NAME}" \
+              -X PATCH -f "sha=$SIGNED_COMMIT" --silent
 
-          # Check if branch already exists - skip if it does
-          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-            echo "Branch $BRANCH_NAME already exists, skipping"
-            echo "branch_exists=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+            echo "Pushed signed commit $SIGNED_COMMIT to $BRANCH_NAME"
 
-          echo "branch_exists=false" >> "$GITHUB_OUTPUT"
-
-      - name: Create branch
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
-        run: |
-          echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
-          git checkout -b ${{ steps.vars.outputs.branch_name }}
-
-          echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
-          git push -u origin ${{ steps.vars.outputs.branch_name }}
-        env:
-          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
-
-      - name: Create commit
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
-        run: |
-          echo "Committing..."
-          git commit -m "Update ${{ matrix.library }} manifest activation" --no-verify
-        env:
-          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
-
-      - name: Push signed commits
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
-        uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
-        with:
-          github-token: ${{ steps.octo-sts.outputs.token }}
-          repo: DataDog/system-tests
-          local_branch_name: ${{ steps.vars.outputs.branch_name }}
-          remote_name: origin
-          remote_branch_name: ${{ steps.vars.outputs.branch_name }}
-
-      - name: Create Pull Request
-        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
-        env:
-          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
-        shell: bash
-        run: |
-          BRANCH_NAME="${{ steps.vars.outputs.branch_name }}"
-
-          # Create or reference PR
-          if gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' | grep -q .; then
-            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
-            echo "PR already exists: #$PR_NUMBER"
-          else
-            gh pr create \
-              --title "Auto-activate ${{ matrix.library }} manifest tests" \
-              --body "Automated activation of easy-win tests for ${{ matrix.library }}
+            # Create PR if it doesn't exist
+            if [[ -z "$PR_NUMBER" ]]; then
+              gh pr create \
+                --title "Auto-activate ${{ matrix.library }} easy wins for $OWNER" \
+                --body "Automated activation of easy-win tests for \`${{ matrix.library }}\` owned by \`$OWNER\`
           [View nightly workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           - If you approve this PR please also merge it.
           - If the tests are failing it might be due to a change made since the last nightly system-tests run. You can close the PR, an updated one will be available tomorrow.
           - If you close the PR please also delete the branch" \
-              --head "$BRANCH_NAME" \
-              --base main
-            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
-          fi
+                --head "$BRANCH_NAME" \
+                --base main
+              PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+            fi
 
-          # Enable auto-merge on the PR
-          echo "Enabling auto-merge on PR #$PR_NUMBER..."
-          gh pr merge "$PR_NUMBER" --auto --squash
+            # Enable auto-merge on the PR
+            echo "Enabling auto-merge on PR #$PR_NUMBER..."
+            gh pr merge "$PR_NUMBER" --auto --squash
+
+          done
