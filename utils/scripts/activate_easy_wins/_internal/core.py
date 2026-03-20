@@ -45,23 +45,25 @@ def update_manifest(
     skipped_nodes = skipped_nodes or {}
 
     for context, test_data_item in test_data.items():
-        nodes, trie = test_data_item.xpass_nodes, test_data_item.trie
-        nodeid_to_owners = test_data_item.nodeid_to_owners
         manifest_editor.set_context(context)
         logger.init_language(context.library)
-        for node in nodes:
+
+        for node in test_data_item.xpass_nodes:
             if node in skipped_nodes.get(context.library, []) + skipped_nodes.get("*", []):
                 continue
+
             views = manifest_editor.get_matches(node)
             if views:
                 logger.record_activation(
-                    context.library, node, nodeid_to_owners.get(node, set()), [v.rule for v in views]
+                    context.library, node, test_data_item.nodeid_to_owners.get(node, set()), [v.rule for v in views]
                 )
+
                 for view in views:
                     manifest_editor.poke(view)
                     with contextlib.suppress(KeyError):
                         manifest_editor.add_rules(
-                            tups_to_rule(trie.traverse(get_deactivation, view.rule.replace("::", "/"))), view
+                            tups_to_rule(test_data_item.trie.traverse(get_deactivation, view.rule.replace("::", "/"))),
+                            view,
                         )
             else:
                 logger.record_no_rule()
