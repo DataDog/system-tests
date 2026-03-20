@@ -58,7 +58,6 @@ def validate_tags_and_metadata(
     for tag, expected_value in expected_tags.items():
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
-        # Protocol v1 may preserve boolean attribute values as booleans instead of lower-case strings.
         if not is_same_boolean(actual=value, expected=expected_value):
             raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
