@@ -4,7 +4,8 @@ from os import environ
 from pathlib import Path
 
 import yaml
-from ._internal.const import ARTIFACT_URL, LIBRARIES, SKIPPED_NODES_FILE
+from utils.const import COMPONENT_GROUPS
+from ._internal.const import ARTIFACT_URL, SKIPPED_NODES_FILE
 from ._internal.core import update_manifest
 from ._internal.test_artifact import parse_artifact_data, pull_artifact
 from ._internal.manifest_editor import ManifestEditor
@@ -42,12 +43,13 @@ def main() -> None:
     args = parser.parse_args()
 
     # Filter libraries if components are specified
-    libraries_to_process = args.components or LIBRARIES
-    # Validate that all specified components exist in LIBRARIES
+    libraries_to_process = args.components or sorted(COMPONENT_GROUPS.easy_win)
+    # Validate that all specified components exist in COMPONENT_GROUPS.easy_win
     if args.components:
-        invalid_components = [c for c in args.components if c not in LIBRARIES]
+        invalid_components = [c for c in args.components if c not in COMPONENT_GROUPS.easy_win]
         if invalid_components:
-            parser.error(f"Invalid components: {invalid_components}. Valid components are: {', '.join(LIBRARIES)}")
+            valid = ", ".join(sorted(COMPONENT_GROUPS.easy_win))
+            parser.error(f"Invalid components: {invalid_components}. Valid components are: {valid}")
 
     if not args.no_download:
         token = environ["GITHUB_TOKEN"]

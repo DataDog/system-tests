@@ -2,10 +2,7 @@ from __future__ import annotations
 
 import contextlib
 from functools import reduce
-from pathlib import Path
 from typing import TYPE_CHECKING
-
-import yaml
 
 
 from .logger import ActivationLogger
@@ -20,7 +17,6 @@ if TYPE_CHECKING:
 def update_manifest(
     manifest_editor: ManifestEditor, test_data: dict[Context, TestData], skipped_nodes: dict | None = None
 ) -> ActivationLogger:
-
     def tup_to_rule(tup: tuple[str, ...]) -> str:
         rule = tup[0]
         sep = "/"
