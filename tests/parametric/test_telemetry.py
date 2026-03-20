@@ -47,7 +47,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "ruby": "DD_LOGS_INJECTION",
         "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
         "java": "DD_LOGS_INJECTION_ENABLED",
-        "cpp": "DD_LOGS_INJECTION",
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
@@ -80,7 +79,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "ruby": "DD_PROFILING_ENABLED",
         "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
         "java": "DD_PROFILING_ENABLED",
-        "cpp": "DD_PROFILING_ENABLED",
     },
     "appsec_enabled": {
         "dotnet": "DD_APPSEC_ENABLED",
@@ -97,7 +95,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "java": "DD_DATA_STREAMS_ENABLED",
         "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
         "ruby": "DD_DATA_STREAMS_ENABLED",
-        "cpp": "DD_DATA_STREAMS_ENABLED",
     },
     "runtime_metrics_enabled": {
         "java": "DD_RUNTIME_METRICS_ENABLED",
@@ -106,7 +103,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_RUNTIME_METRICS_ENABLED",
         "ruby": "DD_RUNTIME_METRICS_ENABLED",
         "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
-        "cpp": "DD_RUNTIME_METRICS_ENABLED",
     },
     "dynamic_instrumentation_enabled": {
         "java": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
@@ -116,7 +112,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "php": "dynamic_instrumentation.enabled",
         "ruby": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "golang": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamic_instrumentation_enabled"],
-        "cpp": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
     },
     "trace_debug_enabled": {
         "php": "trace.debug",
@@ -124,7 +119,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
         "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
-        "cpp": "DD_TRACE_DEBUG",
     },
     "tags": {
         "java": "DD_TRACE_TAGS",
@@ -133,7 +127,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "nodejs": "DD_TAGS",
         "golang": ["DD_TAGS", "trace_tags"],
         "ruby": "DD_TAGS",
-        "cpp": "DD_TAGS",
     },
     "trace_propagation_style": {
         "java": "DD_TRACE_PROPAGATION_STYLE",
@@ -141,7 +134,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "php": "trace.propagation_style",
         "golang": ["DD_TRACE_PROPAGATION_STYLE", "trace.propagation_style"],
         "ruby": "DD_TRACE_PROPAGATION_STYLE",
-        "cpp": "DD_TRACE_PROPAGATION_STYLE",
     },
 }
 
