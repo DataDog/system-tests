@@ -1,13 +1,4 @@
 import os
-
-if os.environ.get("UWSGI_ENABLED", "false") == "false":
-    # Patch with gevent but not for uwsgi-poc
-    import gevent  # noqa: E402
-    from gevent import monkey  # noqa: E402
-
-    monkey.patch_all(thread=True)  # noqa: E402
-
-
 import contextlib
 import base64
 import http.client
