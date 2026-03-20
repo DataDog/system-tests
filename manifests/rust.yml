@@ -237,7 +237,7 @@ manifest:
   tests/parametric/test_process_discovery.py: missing_feature
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: missing_feature
   tests/parametric/test_sampling_span_tags.py: '>=0.2.1'  # Modified by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=0.1.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: missing_feature
