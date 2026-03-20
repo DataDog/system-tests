@@ -377,26 +377,30 @@ class Test_Config_Dogstatsd:
         assert resp["dd_dogstatsd_port"] == "8150"
 
 
-SDK_DEFAULT_STABLE_CONFIG = {
-    "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
-    "dd_profiling_enabled": "1"
-    if context.library == "php"
-    else "true"
-    if context.library == "golang"
-    else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
-    "dd_data_streams_enabled": "false"
-    if context.library != "dotnet"
-    else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
-    "dd_logs_injection": {
-        "dotnet": "true",
-        "ruby": "true",
-        "java": "true",
-        "golang": None,
-        "python": "true",
-        "nodejs": "true",
-        "php": "true",
-    }.get(context.library.name, "false"),  # Enabled by default in ruby
-}
+SDK_DEFAULT_STABLE_CONFIG = (
+    {}
+    if context.library == "cpp"
+    else {
+        "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
+        "dd_profiling_enabled": "1"
+        if context.library == "php"
+        else "true"
+        if context.library == "golang"
+        else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
+        "dd_data_streams_enabled": "false"
+        if context.library != "dotnet"
+        else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
+        "dd_logs_injection": {
+            "dotnet": "true",
+            "ruby": "true",
+            "java": "true",
+            "golang": None,
+            "python": "true",
+            "nodejs": "true",
+            "php": "true",
+        }.get(context.library.name, "false"),  # Enabled by default in ruby
+    }
+)
 
 
 class QuotedStr(str):
