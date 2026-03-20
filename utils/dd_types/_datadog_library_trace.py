@@ -1,7 +1,10 @@
+import ast
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import StrEnum
 from typing import Any
+
+import msgpack
 
 from ._utils import get_rid_from_span_data
 
@@ -181,6 +184,39 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
 class DataDogLibrarySpanV1(DataDogLibrarySpan):
     trace: DataDogLibraryTracev1
 
+    @staticmethod
+    def _normalize_meta(attributes: dict[str, Any]) -> dict[str, Any]:
+        meta = dict(attributes)
+        for key, value in meta.items():
+            # Protocol v1 can expose boolean meta tags as native booleans.
+            if isinstance(value, bool):
+                meta[key] = "true" if value else "false"
+        return meta
+
+    @staticmethod
+    def _decode_request_body_meta_struct(value: Any) -> Any:  # noqa: ANN401
+        if isinstance(value, bytes):
+            raw_value = value
+        elif isinstance(value, str) and value.startswith(("b'", 'b"')):
+            try:
+                raw_value = ast.literal_eval(value)
+            except (SyntaxError, ValueError):
+                return value
+            if not isinstance(raw_value, bytes):
+                return value
+        else:
+            return value
+
+        # Protocol v1 can carry request body meta_struct values as msgpack bytes.
+        return msgpack.unpackb(raw_value, unicode_errors="replace", strict_map_key=False)
+
+    @classmethod
+    def _normalize_meta_struct(cls, attributes: dict[str, Any]) -> dict[str, Any]:
+        meta_struct = dict(attributes)
+        if "http.request.body" in meta_struct:
+            meta_struct["http.request.body"] = cls._decode_request_body_meta_struct(meta_struct["http.request.body"])
+        return meta_struct
+
     def __contains__(self, key: str) -> bool:
         if key in ("meta", "meta_struct", "metrics"):
             return "attributes" in self.raw_span
@@ -194,8 +230,12 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
         if key == "trace_id":
             return self.trace.trace_id
 
-        if key in ("meta", "meta_struct", "metrics"):
+        if key == "meta":
+            return self._normalize_meta(self.raw_span["attributes"])
+        if key == "metrics":
             return self.raw_span["attributes"]
+        if key == "meta_struct":
+            return self._normalize_meta_struct(self.raw_span["attributes"])
 
         return self.raw_span.get(key, default)
 
@@ -203,15 +243,19 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
         if key == "trace_id":
             return self.trace.trace_id
 
-        if key in ("meta", "meta_struct", "metrics"):
+        if key == "meta":
+            return self._normalize_meta(self.raw_span["attributes"])
+        if key == "metrics":
             return self.raw_span["attributes"]
+        if key == "meta_struct":
+            return self._normalize_meta_struct(self.raw_span["attributes"])
 
         return self.raw_span[key]
 
     @property
     def meta(self) -> dict[str, Any]:
         assert "attributes" in self.raw_span
-        return self.raw_span["attributes"]
+        return self._normalize_meta(self.raw_span["attributes"])
 
     @property
     def metrics(self) -> dict[str, Any]:
