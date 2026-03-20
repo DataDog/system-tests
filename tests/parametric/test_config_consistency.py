@@ -394,7 +394,7 @@ SDK_DEFAULT_STABLE_CONFIG = (
         "dd_data_streams_enabled": "false"
         if context.library != "dotnet"
         else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
-        "dd_logs_injection": {
+        "dd_logs_injection": {  # type: ignore[dict-item]
             "dotnet": "true",
             "ruby": "true",
             "java": "true",

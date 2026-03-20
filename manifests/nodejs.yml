@@ -2090,9 +2090,9 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (does not collect otel_env.invalid metrics for otel_resource_attributes)
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: *ref_5_41_0
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id: missing_feature (Not implemented)
-  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin_Product_Enablement::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1709)
-  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin_Product_Enablement::test_stable_configuration_origin_extended_configs_temporary_use_case
   : - declaration: missing_feature (extended configs are not supported)
       component_version: <=5.75.0
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: *ref_4_23_0

@@ -1772,7 +1772,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (OTEL Sampling config is mapped to a different datadog config)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (OTEL Sampling config is mapped to a different datadog config)
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v3.7.0.dev
-  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin_Product_Enablement::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1630)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v2.5.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.9.0
