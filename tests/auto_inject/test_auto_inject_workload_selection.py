@@ -36,7 +36,12 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
     """Test that auto instrumentation respects workload selection policies (excluded specific commands and args)."""
 
     # Commands excluded by workload selection policy (should not be instrumented)
-    no_language_found_commands = ["busybox"]
+    no_language_found_commands = [
+        "touch myfile.txt",
+        "hello=hola cat myfile.txt",
+        "ls -la",
+        "mkdir newdir",
+    ]
 
     # Commands with args excluded by workload selection policy per language (should not be instrumented)
     commands_excluded_by_workload_policy = {
