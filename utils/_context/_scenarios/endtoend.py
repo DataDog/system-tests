@@ -365,12 +365,11 @@ class EndToEndScenario(DockerScenario):
         logger.stdout("")
 
     def _start_interfaces_watchdog(self):
+        open_telemetry_interfaces = [interfaces.open_telemetry] if self.include_opentelemetry else []
         super().start_interfaces_watchdog(
             [interfaces.library, interfaces.agent]
             + [container.interface for container in self.buddies]
-            + [interfaces.open_telemetry]
-            if self.include_opentelemetry
-            else []
+            + open_telemetry_interfaces
         )
 
     def _set_weblog_domain(self):
