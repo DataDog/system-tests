@@ -396,4 +396,3 @@ class Test_Knuth_Sample_Rate:
         span = find_only_span(traces)
         ksr = span.get("meta", {}).get("_dd.p.ksr")
         assert ksr is None or ksr == "1", f"If _dd.p.ksr is set for default sampling, it should be '1', got: {ksr}"
-
