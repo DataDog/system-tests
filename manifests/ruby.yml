@@ -1746,9 +1746,9 @@ manifest:
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": irrelevant
-        rails72: v2.30.0
-        rails80: v2.30.0
-        uds-rails: v2.30.0
+        rails72: v2.34.0
+        rails80: v2.34.0
+        uds-rails: v2.34.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
