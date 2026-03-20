@@ -250,6 +250,9 @@ function main() {
             +v|++verbose)
                 verbosity=$(( verbosity + 1 ))
                 ;;
+            +r|++reuse)
+                export ST_REUSE=1
+                ;;
             +y|++dry)
                 dry=1
                 ;;

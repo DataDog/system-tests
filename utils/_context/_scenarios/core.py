@@ -129,6 +129,7 @@ class Scenario:
 
         self.warmups: list[Callable] = []
         self.collect_only: bool = False
+        self._reuse: bool = bool(os.environ.get("ST_REUSE"))
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:
@@ -136,7 +137,7 @@ class Scenario:
 
         path = os.path.join(self.host_log_folder, subfolder)
 
-        if remove_if_exists:
+        if remove_if_exists and not self._reuse:
             shutil.rmtree(path, ignore_errors=True)
 
         Path(path).mkdir(mode=0o777, parents=True, exist_ok=True)

@@ -154,17 +154,22 @@ class TestedContainer:
         """Returns the image list that will be loaded to be able to run/build the container"""
         return [self.image.name]
 
-    def configure(self, *, host_log_folder: str, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):
         self.host_log_folder = host_log_folder
+        self._reuse = reuse
         if not replay:
-            self.stop_previous_container()
+            if not reuse:
+                self.stop_previous_container()
             self._starting_lock = RLock()
 
             Path(self.log_folder_path).mkdir(mode=0o777, exist_ok=True, parents=True)
             Path(f"{self.log_folder_path}/logs").mkdir(mode=0o777, exist_ok=True, parents=True)
 
-            self.image.load()
-            self.image.save_image_info(self.log_folder_path)
+            if reuse:
+                self.image.load_from_logs(self.log_folder_path)
+            else:
+                self.image.load()
+                self.image.save_image_info(self.log_folder_path)
         else:
             self.image.load_from_logs(self.log_folder_path)
 
@@ -406,6 +411,10 @@ class TestedContainer:
         self.volumes = result
 
     def stop(self):
+        if getattr(self, "_reuse", False):
+            logger.debug(f"Skipping stop of {self.name} (reuse mode)")
+            return
+
         self._starting_thread = None
 
         logger.debug(f"Stopping container {self.name}")
@@ -445,6 +454,10 @@ class TestedContainer:
                 logger.stdout("")
 
     def remove(self):
+        if getattr(self, "_reuse", False):
+            logger.debug(f"Skipping removal of {self.name} (reuse mode)")
+            return
+
         logger.debug(f"Removing container {self.name}")
 
         if self._container:
