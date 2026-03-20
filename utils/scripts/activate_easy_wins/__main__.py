@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 import sys
 from os import environ
 from pathlib import Path
@@ -10,6 +11,17 @@ from ._internal.core import update_manifest
 from ._internal.logger import ActivationLogger
 from ._internal.test_artifact import parse_artifact_data, pull_artifact
 from ._internal.manifest_editor import ManifestEditor
+
+MANIFESTS_DIR = Path("manifests/")
+
+
+def _owner_to_branch(owner: str) -> str:
+    name = owner.rsplit("/", maxsplit=1)[-1] if "/" in owner else owner
+    return f"easy-win/{name or 'no-code-owner'}"
+
+
+def _git(*args: str) -> None:
+    subprocess.run(["git", *args], check=True)
 
 
 def main() -> None:
@@ -72,16 +84,26 @@ def main() -> None:
 
     has_updates = False
     if args.split_co:
+        base_branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], check=True, capture_output=True, text=True
+        ).stdout.strip()
         activations_per_owner: dict[str, int] = {}
         for owner in owners:
             manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
             logger = update_manifest(manifest_editor, test_data, skipped_nodes, owner)
             created_rules_count = len(manifest_editor.added_rules)
             activations_per_owner[owner or "No code owner"] = logger.total_tests_activated
-
-            has_updates += logger.total_modified_rules > 0 or created_rules_count > 0
+            owner_has_changes = logger.total_modified_rules > 0 or created_rules_count > 0
+            has_updates = has_updates or owner_has_changes
 
             manifest_editor.write(dry_run=args.dry_run)
+            if not args.dry_run and owner_has_changes:
+                branch = _owner_to_branch(owner)
+                _git("checkout", "-B", branch, base_branch)
+                subprocess.run(["./format.sh"], check=True)
+                _git("add", str(MANIFESTS_DIR))
+                _git("commit", "-m", f"chore: activate easy wins for {owner or 'no code owner'}")
+                _git("checkout", base_branch)
         ActivationLogger.print_split_co_report(activations_per_owner)
     else:
         manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
@@ -91,7 +113,7 @@ def main() -> None:
         logger.print_activation_report()
         logger.print_detailed_rules_report(created_rules_count)
 
-        has_updates += logger.total_modified_rules > 0 or created_rules_count > 0
+        has_updates = has_updates or logger.total_modified_rules > 0 or created_rules_count > 0
 
         manifest_editor.write(dry_run=args.dry_run)
 

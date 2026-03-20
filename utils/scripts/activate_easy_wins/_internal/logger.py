@@ -163,7 +163,7 @@ class ActivationLogger:
         print(f"{'Code Owner':<{col}} {'Activations':>15}")
         print("-" * w)
         total = 0
-        for owner in sorted(results, key=results.get, reverse=True):
+        for owner in sorted(results, key=lambda k: results[k], reverse=True):
             print(f"{owner:<{col}} {results[owner]:>15}")
             total += results[owner]
         print("-" * w)
