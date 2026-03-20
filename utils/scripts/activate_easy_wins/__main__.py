@@ -15,9 +15,12 @@ from ._internal.manifest_editor import ManifestEditor
 MANIFESTS_DIR = Path("manifests/")
 
 
-def _owner_to_branch(owner: str) -> str:
+def _owner_to_branch(owner: str, components: list[str] | None = None) -> str:
     name = owner.rsplit("/", maxsplit=1)[-1] if "/" in owner else owner
-    return f"easy-win/{name or 'no-code-owner'}"
+    branch = f"easy-win/{name or 'no-code-owner'}"
+    if components:
+        branch += f"/{'-'.join(sorted(components))}"
+    return branch
 
 
 def _git(*args: str) -> None:
@@ -98,7 +101,7 @@ def main() -> None:
 
             manifest_editor.write(dry_run=args.dry_run)
             if not args.dry_run and owner_has_changes:
-                branch = _owner_to_branch(owner)
+                branch = _owner_to_branch(owner, args.components)
                 _git("checkout", "-B", branch, base_branch)
                 subprocess.run(["./format.sh"], check=True)
                 _git("add", str(MANIFESTS_DIR))
