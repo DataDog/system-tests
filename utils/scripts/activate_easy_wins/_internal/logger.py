@@ -55,7 +55,8 @@ class ActivationLogger:
         self.tests_per_language[library] += 1
         self.unique_tests_per_language[library].add(node)
         for owner in owners:
-            self.activations_per_owner[owner] = self.activations_per_owner.get(owner, 0) + 1
+            key = owner or "No code owner"
+            self.activations_per_owner[key] = self.activations_per_owner.get(key, 0) + 1
         for rule_str in rules:
             if rule_str not in self.rule_to_tests:
                 self.rule_to_tests[rule_str] = set()
@@ -141,11 +142,30 @@ class ActivationLogger:
                 print(f"{'Tests Without Matching Rules':<30} {self.tests_without_rules:>10}")
 
         if self.activations_per_owner:
-            print("\nTop 5 Code Owners by Activations:")
-            print("-" * 50)
-            print(f"{'Code Owner':<40} {'Activations':>10}")
-            print("-" * 50)
             sorted_owners = sorted(self.activations_per_owner.items(), key=lambda x: x[1], reverse=True)
+            col = max(len(o) for o, _ in sorted_owners[:5]) + 2
+            w = col + 16
+            print("\nTop 5 Code Owners by Activations:")
+            print("-" * w)
+            print(f"{'Code Owner':<{col}} {'Activations':>15}")
+            print("-" * w)
             for owner, count in sorted_owners[:5]:
-                print(f"{owner:<40} {count:>10}")
-            print("=" * 50 + "\n")
+                print(f"{owner:<{col}} {count:>15}")
+            print("=" * w + "\n")
+
+    @staticmethod
+    def print_split_co_report(results: dict[str, int]) -> None:
+        col = max((len(k) for k in results), default=10) + 2
+        w = col + 16
+        print("\n" + "=" * w)
+        print("Activations per Code Owner")
+        print("=" * w)
+        print(f"{'Code Owner':<{col}} {'Activations':>15}")
+        print("-" * w)
+        total = 0
+        for owner in sorted(results, key=results.get, reverse=True):
+            print(f"{owner:<{col}} {results[owner]:>15}")
+            total += results[owner]
+        print("-" * w)
+        print(f"{'Total':<{col}} {total:>15}")
+        print("=" * w + "\n")

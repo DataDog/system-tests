@@ -7,6 +7,7 @@ import yaml
 from utils.const import COMPONENT_GROUPS
 from ._internal.const import ARTIFACT_URL, SKIPPED_NODES_FILE
 from ._internal.core import update_manifest
+from ._internal.logger import ActivationLogger
 from ._internal.test_artifact import parse_artifact_data, pull_artifact
 from ._internal.manifest_editor import ManifestEditor
 
@@ -71,18 +72,17 @@ def main() -> None:
 
     has_updates = False
     if args.split_co:
+        activations_per_owner: dict[str, int] = {}
         for owner in owners:
-            print(f"====================== Update for {owner} ======================")
             manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
             logger = update_manifest(manifest_editor, test_data, skipped_nodes, owner)
             created_rules_count = len(manifest_editor.added_rules)
-            logger.print_top_rules()
-            logger.print_activation_report()
-            logger.print_detailed_rules_report(created_rules_count)
+            activations_per_owner[owner or "No code owner"] = logger.total_tests_activated
 
             has_updates += logger.total_modified_rules > 0 or created_rules_count > 0
 
             manifest_editor.write(dry_run=args.dry_run)
+        ActivationLogger.print_split_co_report(activations_per_owner)
     else:
         manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
         logger = update_manifest(manifest_editor, test_data, skipped_nodes)
