@@ -378,7 +378,11 @@ class Test_Config_Dogstatsd:
 
 
 SDK_DEFAULT_STABLE_CONFIG = (
-    {}
+    {
+        # C++ natively reports trace_enabled but doesn't support product enablement
+        # flags like profiling, runtime_metrics, data_streams, or logs_injection.
+        "dd_trace_enabled": "true",
+    }
     if context.library == "cpp"
     else {
         "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
