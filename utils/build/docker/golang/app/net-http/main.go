@@ -42,6 +42,8 @@ import (
 )
 
 func main() {
+	common.RunAsChildIfRequested()
+
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)

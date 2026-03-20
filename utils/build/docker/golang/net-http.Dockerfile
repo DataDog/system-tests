@@ -18,8 +18,7 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
     --mount=type=bind,source=binaries,target=/binaries                          \
   go mod download && go mod verify &&                                           \
   /utils/install_ddtrace.sh &&                                                  \
-  go build -v -tags=appsec -o=./weblog ./net-http &&                            \
-  go build -v -o=./child ./child
+  go build -v -tags=appsec -o=./weblog ./net-http
 
 # ==============================================================================
 
@@ -28,7 +27,6 @@ FROM golang:1.25-alpine
 RUN apk add --no-cache curl bash gcc musl-dev
 
 COPY --from=build /app/weblog /app/weblog
-COPY --from=build /app/child /app/child
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
 
 WORKDIR /app
