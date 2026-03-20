@@ -86,6 +86,7 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
+        self._needs_readiness_wait = False
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
@@ -197,10 +198,13 @@ class DockerScenario(Scenario):
                 logger.stdout(f"  Attached to {container.container_name}")
         else:
             logger.stdout("Reuse not possible, starting containers normally...")
-            # Reconfigure containers for a normal start (kill old, load image fresh)
+            # Reconfigure containers for a fresh start (kill old, load image)
             for container in reversed(self._containers):
                 container.configure(host_log_folder=self.host_log_folder, replay=self.replay, reuse=False)
             self._start_containers()
+            # Re-enable reuse on containers so they're kept alive after tests
+            for container in self._containers:
+                container._reuse = True  # noqa: SLF001
             self._needs_readiness_wait = True
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
@@ -358,7 +362,6 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
-        self._needs_readiness_wait = False
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
             self.warmups.append(self._get_weblog_system_info)

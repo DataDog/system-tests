@@ -251,7 +251,7 @@ function main() {
                 verbosity=$(( verbosity + 1 ))
                 ;;
             +r|++reuse)
-                export ST_REUSE=1
+                pytest_args+=('--reuse')
                 ;;
             +y|++dry)
                 dry=1

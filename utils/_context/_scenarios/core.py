@@ -129,7 +129,7 @@ class Scenario:
 
         self.warmups: list[Callable] = []
         self.collect_only: bool = False
-        self._reuse: bool = bool(os.environ.get("ST_REUSE"))
+        self._reuse: bool = False
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:
@@ -152,6 +152,7 @@ class Scenario:
     def pytest_configure(self, config: pytest.Config):
         self.replay = config.option.replay
         self.collect_only = config.option.collectonly
+        self._reuse = config.option.reuse
 
         # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
         # we are in the main worker, not in a xdist sub-worker
