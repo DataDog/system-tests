@@ -4,6 +4,7 @@
 
 from utils import interfaces, scenarios, features, weblog, context, remote_config as rc
 from utils.dd_constants import Capabilities
+from utils.dd_types import is_same_boolean
 
 
 # Remote config configurations for extended data collection
@@ -527,4 +528,4 @@ class Test_ExtendedRequestBodyCollection:
 
         # Verify the body size exceed tag is set
         meta = span.get("meta", {})
-        assert meta.get("_dd.appsec.request_body_size.exceeded") == "true"
+        assert is_same_boolean(actual=meta.get("_dd.appsec.request_body_size.exceeded"), expected="true")

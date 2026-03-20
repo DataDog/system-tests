@@ -11,8 +11,7 @@ from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
-from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import is_same_boolean
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 def login_data(username: str, password: str):

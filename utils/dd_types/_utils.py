@@ -29,3 +29,16 @@ def get_rid_from_span_data(span_type: str, meta: dict, metrics: dict) -> str | N
         user_agent = meta.get("http.user_agent")
 
     return get_rid_from_user_agent(user_agent)
+
+
+# Protocol v1.0 may deserialize meta booleans as True/False; older formats use "true"/"false".
+def _normalize_for_compare(*, value: bool | str | None) -> str | None:
+    if value is True:
+        return "true"
+    if value is False:
+        return "false"
+    return value
+
+
+def is_same_boolean(*, actual: bool | str | None, expected: bool | str | None) -> bool:
+    return _normalize_for_compare(value=actual) == _normalize_for_compare(value=expected)

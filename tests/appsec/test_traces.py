@@ -13,8 +13,7 @@ from utils import (
 )
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
-from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import is_same_boolean
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
