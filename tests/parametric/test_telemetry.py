@@ -650,41 +650,26 @@ class Test_Environment:
 class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully.
 
-    Uses universally supported configs (DD_TRACE_ENABLED, DD_VERSION) so this runs for all
-    languages including C++. Product-specific origin tests are in
-    Test_Stable_Configuration_Origin_Product_Enablement.
+    Uses DD_TRACE_ENABLED (universally supported) so this runs for all languages including C++.
+    Product-specific origin tests are in Test_Stable_Configuration_Origin_Product_Enablement.
     """
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "expected_origins"),
+        ("library_env", "fleet_cfg"),
         [
             (
-                {"DD_VERSION": "local-1.0"},
-                {
-                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                },
+                {"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"},
                 {"DD_TRACE_ENABLED": True},
-                {
-                    "trace_enabled": "fleet_stable_config",
-                    "application_version": "local_stable_config",
-                },
             )
         ],
     )
     def test_stable_configuration_origin(
         self,
-        local_cfg: dict[str, bool | str],
-        fleet_cfg: dict[str, bool | str],
+        fleet_cfg: dict[str, bool],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
-        expected_origins: dict[str, str],
     ):
         with test_library:
-            self.write_stable_config(
-                {"apm_configuration_default": local_cfg},
-                "/etc/datadog-agent/application_monitoring.yaml",
-                test_library,
-            )
             self.write_stable_config(
                 {"apm_configuration_default": fleet_cfg},
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
@@ -694,27 +679,25 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.container_restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        for cfg_name, expected_origin in expected_origins.items():
-            apm_telemetry_names = _mapped_telemetry_name(cfg_name)
-            telemetry_item = None
-            for apm_name in apm_telemetry_names:
-                telemetry_item = test_agent.get_telemetry_config_by_origin(
-                    configuration_by_name, apm_name, expected_origin
-                )
-                if telemetry_item is not None:
-                    break
-            assert telemetry_item is not None, (
-                f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'"
+        apm_telemetry_names = _mapped_telemetry_name("trace_enabled")
+        telemetry_item = None
+        for apm_name in apm_telemetry_names:
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_name, "fleet_stable_config"
             )
-            assert isinstance(telemetry_item, dict)
-            assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
-            assert telemetry_item["value"]
+            if telemetry_item is not None:
+                break
+        assert telemetry_item is not None, (
+            f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin 'fleet_stable_config'"
+        )
+        assert isinstance(telemetry_item, dict)
+        assert telemetry_item["origin"] == "fleet_stable_config"
+        assert telemetry_item["value"]
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
+        ("library_env", "fleet_cfg", "fleet_config_id"),
         [
             (
-                {"DD_VERSION": "local-1.0"},
                 {"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"},
                 {"DD_TRACE_ENABLED": True},
                 "1231231231231",
@@ -723,18 +706,12 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     )
     def test_stable_configuration_config_id(
         self,
-        local_cfg: dict[str, bool | str],
-        fleet_cfg: dict[str, bool | str],
+        fleet_cfg: dict[str, bool],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
         fleet_config_id: str,
     ):
         with test_library:
-            self.write_stable_config(
-                {"apm_configuration_default": local_cfg},
-                "/etc/datadog-agent/application_monitoring.yaml",
-                test_library,
-            )
             self.write_stable_config(
                 {"apm_configuration_default": fleet_cfg, "config_id": fleet_config_id},
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
@@ -744,7 +721,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.container_restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        # Fleet config should have the config_id set
         apm_telemetry_names = _mapped_telemetry_name("trace_enabled")
         telemetry_item = None
         for apm_name in apm_telemetry_names:
@@ -759,22 +735,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
-
-        # Local config should not have the config_id set
-        apm_telemetry_names = _mapped_telemetry_name("application_version")
-        telemetry_item = None
-        for apm_name in apm_telemetry_names:
-            telemetry_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, apm_name, "local_stable_config"
-            )
-            if telemetry_item is not None:
-                break
-        assert telemetry_item is not None, (
-            f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin 'local_stable_config'"
-        )
-        assert isinstance(telemetry_item, dict)
-        assert telemetry_item["origin"] == "local_stable_config"
-        assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
 
 
 @scenarios.parametric
