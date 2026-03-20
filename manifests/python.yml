@@ -27,6 +27,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.0.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.7.0-rc1
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -1841,6 +1845,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
         "*": v2.8.0

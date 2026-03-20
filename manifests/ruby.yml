@@ -42,6 +42,16 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
+    - weblog_declaration:
+        "*": missing_feature
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": missing_feature
@@ -372,7 +382,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.13.0
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v2.20.0-dev
@@ -1057,7 +1067,6 @@ manifest:
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_install_supported_runtime:
-    - declaration: bug (INPLAT-876)
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
@@ -1079,7 +1088,10 @@ manifest:
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: bug (APPSEC-60983)
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: bug (APPSEC-60983)
+      component_version: '<2.29.0-dev'
+      weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-884)
     - declaration: missing_feature (Not implemented)
@@ -1522,12 +1534,12 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.18.0
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1631)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.1.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.18.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
@@ -1589,6 +1601,7 @@ manifest:
         sinatra14: missing_feature
         rails52: missing_feature
         sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:  # Created by easy win activation script
     - weblog_declaration:
         rails80: missing_feature
