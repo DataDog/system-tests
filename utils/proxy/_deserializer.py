@@ -202,12 +202,10 @@ def deserialize_http_message(
                 use_integers_for_enums=True,
             )
         if path == "/v1/traces":
-            return deserialize_otlp_v1_trace(
-                MessageToDict(
-                    ExportTraceServiceResponse.FromString(content),
-                    preserving_proto_field_name=False,
-                    use_integers_for_enums=True,
-                )
+            return MessageToDict(
+                ExportTraceServiceResponse.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
             )
         if path == "/v1/metrics":
             return MessageToDict(
