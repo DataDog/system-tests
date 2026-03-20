@@ -3718,7 +3718,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: 1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id: 1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
-  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin_Product_Enablement::test_stable_configuration_origin_extended_configs_temporary_use_case
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
   : irrelevant (temporary use case for python, ruby and nodejs)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v1.27.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
