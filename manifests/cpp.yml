@@ -266,6 +266,9 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
+  # Remove missing_feature for origin + config_id tests once dd-trace-cpp stable config is released.
+  # Extended config tests remain missing_feature permanently (C++ doesn't report those origins).
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : missing_feature (C++ does not report extended config origins)
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
