@@ -4,7 +4,7 @@
 
 from utils import weblog, interfaces, features, scenarios
 from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import find_series
+from tests.appsec.utils import find_series, is_same_boolean
 from abc import ABC, abstractmethod
 
 IP_HEADERS = {
@@ -58,7 +58,7 @@ def validate_tags_and_metadata(
     for tag, expected_value in expected_tags.items():
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
-        if value != expected_value:
+        if not is_same_boolean(actual=value, expected=expected_value):
             raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
     if unexpected_metadata is not None:
