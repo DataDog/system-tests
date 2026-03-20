@@ -225,7 +225,6 @@ build() {
 
             if ! [[ -z "$BINARY_PATH" ]]; then
                 cd binaries
-                clean-binaries
 
                 expected_repo_dir=$(get_expected_repo_dir)
                 binary_basename=$(basename "$BINARY_PATH")
@@ -233,15 +232,18 @@ build() {
                 if [[ -n "$expected_repo_dir" ]] && [[ "$binary_basename" == "$expected_repo_dir" ]]; then
                     # BINARY_PATH points directly at a tracer source repo (e.g. ~/code/dd-trace-rb).
                     # Copy into the named subdirectory that install_ddtrace.sh expects.
+                    # rsync --delete keeps the destination in sync incrementally,
+                    # so we skip clean-binaries here for faster repeated builds.
                     if ! command -v rsync &>/dev/null; then
                         echo "Error: rsync is required for --binary-path with source repos" >&2
                         exit 1
                     fi
                     echo "Copying source repo into binaries/${expected_repo_dir}/"
-                    rsync -a --copy-links --exclude '.git' "$BINARY_PATH/" "$expected_repo_dir/"
+                    rsync -a --copy-links --delete --exclude '.git' "$BINARY_PATH/" "$expected_repo_dir/"
                 else
                     # BINARY_PATH contains flat artifacts (jars, .so, .whl, etc.)
                     # or is a staging directory that already has the right structure.
+                    clean-binaries
                     if [[ -n "$expected_repo_dir" ]]; then
                         echo "Warning: --binary-path basename '${binary_basename}' does not match expected '${expected_repo_dir}'." >&2
                         echo "  Doing flat copy. If this is a source checkout, rename the directory to '${expected_repo_dir}'." >&2
