@@ -173,17 +173,18 @@ class DockerScenario(Scenario):
     def _attach_or_start_containers(self):
         """In reuse mode, try to attach to existing containers. Fall back to starting fresh
         if containers are missing, not running, or built from a stale image."""
+        existing_containers = []
         can_reuse = True
         for container in self._containers:
             existing = container.get_existing_container()
             if existing is None or existing.status != "running" or container.image_is_stale(existing):
                 can_reuse = False
                 break
+            existing_containers.append(existing)
 
         if can_reuse:
             logger.stdout("Reusing existing containers")
-            for container in self._containers:
-                existing = container.get_existing_container()
+            for container, existing in zip(self._containers, existing_containers):
                 container._container = existing  # noqa: SLF001
                 container.healthy = True
         else:
@@ -195,6 +196,7 @@ class DockerScenario(Scenario):
             # Re-enable reuse on containers so they're kept alive after tests
             for container in self._containers:
                 container._reuse = True  # noqa: SLF001
+            # Set by DockerScenario, read by EndToEndScenario._wait_for_app_readiness_if_needed
             self._needs_readiness_wait = True
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002

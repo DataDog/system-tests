@@ -46,6 +46,10 @@ OPTIONS
     +l, ++library LIBRARY
       Inform test suite that test pertains to LIBRARY.
 
+    +u, ++reuse
+      Reuse existing containers for faster local iteration. Falls back to
+      a normal start if containers are missing or the image was rebuilt.
+
     ++
       Ignore flags after this separator. All subsequent arguments are passed
       as-is to pytest.
