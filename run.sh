@@ -250,7 +250,7 @@ function main() {
             +v|++verbose)
                 verbosity=$(( verbosity + 1 ))
                 ;;
-            +r|++reuse)
+            +u|++reuse)
                 pytest_args+=('--reuse')
                 ;;
             +y|++dry)
