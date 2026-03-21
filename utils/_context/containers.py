@@ -421,7 +421,6 @@ class TestedContainer:
 
     def stop(self):
         if getattr(self, "_reuse", False):
-            logger.debug(f"Skipping stop of {self.name} (reuse mode)")
             return
 
         self._starting_thread = None
@@ -464,7 +463,6 @@ class TestedContainer:
 
     def remove(self):
         if getattr(self, "_reuse", False):
-            logger.debug(f"Skipping removal of {self.name} (reuse mode)")
             return
 
         logger.debug(f"Removing container {self.name}")
