@@ -44,7 +44,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
     parser.addoption("--replay", "-R", action="store_true", help="Replay tests based on logs")
-    parser.addoption("--reuse", "-u", action="store_true", help="Reuse existing containers for faster local iteration")
+    parser.addoption("--reuse", "-U", action="store_true", help="Reuse existing containers for faster local iteration")
     parser.addoption("--sleep", action="store_true", help="Startup scenario without launching the tests (keep running)")
     parser.addoption(
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
