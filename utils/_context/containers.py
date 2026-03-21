@@ -691,7 +691,7 @@ class ProxyContainer(TestedContainer):
 
         self.mocked_backend = mocked_backend
 
-    def configure(self, *, host_log_folder: str, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         # Write tracer mocked responses JSON
@@ -1014,7 +1014,7 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def configure(self, *, host_log_folder: str, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
@@ -1434,7 +1434,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             user=f"{os.getuid()}:{os.getgid()}",
         )
 
-    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
@@ -1487,7 +1487,7 @@ class APMTestAgentContainer(TestedContainer):
             allow_old_container=False,
         )
 
-    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
         self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
             "bind": "/var/run/datadog/",
@@ -1595,7 +1595,7 @@ class DockerSSIContainer(TestedContainer):
             environment=cast("dict[str, str | None]", environment),
         )
 
-    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
         self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
             "bind": "/var/run/datadog/",

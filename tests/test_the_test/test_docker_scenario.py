@@ -11,7 +11,7 @@ class FakeContainer(_TestedContainer):
         super().__init__(name=name, image_name=name)
         self._test_events = events if events is not None else []
 
-    def configure(self, *, host_log_folder: str, replay: bool):  # noqa: ARG002
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):  # noqa: ARG002
         self._starting_lock = RLock()
 
     def start(self, network):  # noqa: ARG002, ANN001
