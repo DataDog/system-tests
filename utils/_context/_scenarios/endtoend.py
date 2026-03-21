@@ -455,9 +455,7 @@ class EndToEndScenario(DockerScenario):
             self._wait_interface(container.interface, 0)
             container.interface.check_deserialization_errors()
 
-        self._wait_interface(
-            interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout
-        )
+        self._wait_interface(interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout)
         interfaces.agent.check_deserialization_errors()
 
         self._wait_interface(
