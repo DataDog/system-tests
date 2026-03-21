@@ -176,16 +176,7 @@ class DockerScenario(Scenario):
         can_reuse = True
         for container in self._containers:
             existing = container.get_existing_container()
-            if existing is None:
-                logger.debug(f"Container {container.container_name} not found")
-                can_reuse = False
-                break
-            if existing.status != "running":
-                logger.debug(f"Container {container.container_name} is {existing.status}")
-                can_reuse = False
-                break
-            if container.image_is_stale(existing):
-                logger.debug(f"Container {container.container_name} has a stale image")
+            if existing is None or existing.status != "running" or container.image_is_stale(existing):
                 can_reuse = False
                 break
 
