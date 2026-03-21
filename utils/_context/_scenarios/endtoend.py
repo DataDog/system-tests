@@ -177,27 +177,26 @@ class DockerScenario(Scenario):
         for container in self._containers:
             existing = container.get_existing_container()
             if existing is None:
-                logger.stdout(f"  Container {container.container_name} not found, will start fresh")
+                logger.debug(f"Container {container.container_name} not found")
                 can_reuse = False
                 break
             if existing.status != "running":
-                logger.stdout(f"  Container {container.container_name} is {existing.status}, will start fresh")
+                logger.debug(f"Container {container.container_name} is {existing.status}")
                 can_reuse = False
                 break
             if container.image_is_stale(existing):
-                logger.stdout(f"  Container {container.container_name} has a stale image, will start fresh")
+                logger.debug(f"Container {container.container_name} has a stale image")
                 can_reuse = False
                 break
 
         if can_reuse:
-            logger.stdout("Attaching to existing containers (reuse mode)...")
+            logger.stdout("Reusing existing containers")
             for container in self._containers:
                 existing = container.get_existing_container()
                 container._container = existing  # noqa: SLF001
                 container.healthy = True
-                logger.stdout(f"  Attached to {container.container_name}")
         else:
-            logger.stdout("Reuse not possible, starting containers normally...")
+            logger.stdout("Reuse not possible, starting containers...")
             # Reconfigure containers for a fresh start (kill old, load image)
             for container in reversed(self._containers):
                 container.configure(host_log_folder=self.host_log_folder, replay=self.replay, reuse=False)
