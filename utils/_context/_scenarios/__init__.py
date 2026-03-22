@@ -546,6 +546,7 @@ class _Scenarios:
             "DD_METRICS_OTEL_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+            "DD_TRACE_DEBUG": "true",
         },
         agent_interface_timeout=30,
         doc="",
