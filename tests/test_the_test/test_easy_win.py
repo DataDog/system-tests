@@ -755,7 +755,7 @@ manifest:
 
         output_content = (manifest_dir / "ruby.yml").read_text()
         # The easy win comment should have been added since there was no pre-existing comment
-        assert EASY_WIN_COMMENT in output_content
+        assert "Easy win for all weblogs and version 2.5.0" in output_content
 
 
 # =============================================================================

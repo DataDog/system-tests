@@ -153,6 +153,13 @@ class DataDogLibrarySpan(ABC):
 
         return get_rid_from_span_data(self.raw_span.get("type", ""), self.meta, self.metrics)
 
+    def trace_id_equals(self, other: int | str) -> bool:
+        return self.trace.trace_id_equals(other)
+
+    @abstractmethod
+    def get_sampling_priority(self) -> int | None:
+        pass
+
 
 class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -170,8 +177,13 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def metrics(self) -> dict[str, Any]:
         return self.raw_span.get("metrics", {})
 
+    def get_sampling_priority(self) -> int | None:
+        return self["metrics"].get("_sampling_priority_v1")
+
 
 class DataDogLibrarySpanV1(DataDogLibrarySpan):
+    trace: DataDogLibraryTracev1
+
     def __contains__(self, key: str) -> bool:
         if key in ("meta", "meta_struct", "metrics"):
             return "attributes" in self.raw_span
@@ -208,3 +220,6 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
     def metrics(self) -> dict[str, Any]:
         assert "attributes" in self.raw_span
         return self.raw_span["attributes"]
+
+    def get_sampling_priority(self) -> int | None:
+        return self.trace.raw_trace.get("priority")
