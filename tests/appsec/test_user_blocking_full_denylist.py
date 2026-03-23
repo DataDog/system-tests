@@ -1,5 +1,5 @@
 from utils import interfaces, scenarios, weblog, features
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 from .utils import BaseFullDenyListTest
 
@@ -41,6 +41,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
             span = interfaces.library.get_root_span(r)
-            assert span["meta"]["appsec.event"] == "true"
+            assert is_same_boolean(actual=span["meta"]["appsec.event"], expected="true")
             assert span["meta"]["appsec.blocked"] == "true"
             assert span["meta"]["http.status_code"] == "403"
