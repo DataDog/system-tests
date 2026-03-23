@@ -126,7 +126,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212101
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -160,7 +160,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212101)
 
             # Some tracers use true while others use yes
             assert any(
@@ -181,7 +181,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212102
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -205,7 +205,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212102)
 
             # Some tracers use true while others use yes
             assert any(
@@ -226,7 +226,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212103
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -250,7 +250,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212103)
 
             # Some tracers use true while others use yes
             assert any(
@@ -271,7 +271,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212104
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -295,7 +295,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212104)
 
             # Some tracers use true while others use yes
             assert any(
@@ -314,7 +314,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
-        trace_id = 1212121212121212121
+        trace_id = 1212121212121212105
         parent_id = 34343434
         self.r = weblog.get(
             self.request_downstream_url,
@@ -338,7 +338,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212105)
 
             # Some tracers use true while others use yes
             assert any(
@@ -354,10 +354,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212105"
 
     def setup_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
-        trace_id = 1212121212121212121
+        trace_id = 1212121212121212106
         parent_id = 34343434
         self.r = weblog.get(
             self.request_downstream_url,
@@ -381,7 +381,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212106)
 
             # Some tracers use true while others use yes
             assert any(
@@ -397,12 +397,12 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212106"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212107
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -426,7 +426,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212107)
 
             # Some tracers use true while others use yes
             assert any(
@@ -441,12 +441,12 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["0", "2"]
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212107"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212108
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -470,7 +470,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212108)
 
             # Some tracers use true while others use yes
             assert any(
@@ -485,12 +485,12 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["1", "2"]
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212108"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         with weblog.get_session() as session:
             self.setup_product_is_enabled(session)
-            trace_id = 1212121212121212121
+            trace_id = 1212121212121212109
             parent_id = 34343434
             self.r = session.get(
                 "/requestdownstream",
@@ -514,7 +514,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212109)
 
             # Some tracers use true while others use yes
             assert any(
@@ -529,10 +529,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212109"
 
     def setup_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
-        trace_id = 1212121212121212121
+        trace_id = 1212121212121212110
         parent_id = 34343434
         self.r = weblog.get(
             self.request_downstream_url,
@@ -555,7 +555,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212110)
 
             # Some tracers use true while others use yes
             assert any(
@@ -570,10 +570,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212110"
 
     def setup_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
-        trace_id = 1212121212121212121
+        trace_id = 1212121212121212111
         parent_id = 34343434
         self.r = weblog.get(
             self.request_downstream_url,
@@ -596,7 +596,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212111)
 
             # Some tracers use true while others use yes
             assert any(
@@ -611,10 +611,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212111"
 
     def setup_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
-        trace_id = 1212121212121212121
+        trace_id = 1212121212121212112
         parent_id = 34343434
         self.r = weblog.get(
             self.request_downstream_url,
@@ -637,7 +637,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            _assert_trace_id(trace, span, 1212121212121212121)
+            _assert_trace_id(trace, span, 1212121212121212112)
 
             # Some tracers use true while others use yes
             assert any(
@@ -652,7 +652,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
-        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
+        assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212112"
 
 
 class BaseAppSecStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation):
