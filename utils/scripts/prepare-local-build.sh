@@ -62,7 +62,7 @@ Options:
                       java:    jars (default)
                       nodejs:  local (default, volume mount), clone
                       golang:  clone (default)
-                      python:  wheel (default, builds via ddtest if needed), local, pip, s3
+                      python:  wheel (default, builds via ddtest if needed), pip, s3
                       ruby:    clone (default)
                       rust:    clone (default)
                       cpp:     clone (default)
@@ -94,7 +94,7 @@ function clean_golang() {
 }
 
 function clean_python() {
-    rm -f "${BINARIES}/python-load-from-local" "${BINARIES}/python-load-from-pip" "${BINARIES}/python-load-from-s3"
+    rm -f "${BINARIES}/python-load-from-pip" "${BINARIES}/python-load-from-s3"
     rm -f "${BINARIES}"/ddtrace-*.whl "${BINARIES}"/ddtrace-*.tar.gz
     rm -rf "${BINARIES}/dd-trace-py"
     info "Cleaned Python binaries"
@@ -225,14 +225,6 @@ function prepare_python() {
     clean_python
 
     case "${method}" in
-        local)
-            local abs_path
-            abs_path="$(cd "${src}" && pwd)"
-            echo "${abs_path}" > "${BINARIES}/python-load-from-local"
-            info "Python: created python-load-from-local -> ${abs_path}"
-            info "  NOTE: native extensions (.so) must be pre-built for the target Python version."
-            info "  If missing, build them with: cd ${abs_path} && scripts/ddtest 'pyenv local 3.11 && pip install -e .'"
-            ;;
         wheel)
             local whl
             whl=$(find "${src}/dist" -name 'ddtrace-*.whl' 2>/dev/null | sort | tail -1)
@@ -257,7 +249,7 @@ function prepare_python() {
             info "Python: created python-load-from-s3 -> ${src}"
             ;;
         *)
-            die "Python supports methods 'local', 'wheel', 'pip', or 's3', got '${method}'"
+            die "Python supports methods 'wheel', 'pip', or 's3', got '${method}'"
             ;;
     esac
 }
@@ -451,10 +443,7 @@ function show_status() {
     fi
 
     # Python
-    if [[ -f "${BINARIES}/python-load-from-local" ]]; then
-        echo "  python: volume mount -> $(cat "${BINARIES}/python-load-from-local")"
-        found=1
-    elif ls "${BINARIES}"/ddtrace-*.whl 1>/dev/null 2>&1; then
+    if ls "${BINARIES}"/ddtrace-*.whl 1>/dev/null 2>&1; then
         echo "  python: wheel"
         found=1
     elif [[ -f "${BINARIES}/python-load-from-pip" ]]; then
@@ -506,7 +495,6 @@ Supported languages and methods:
            clone     Shallow clone into binaries/
   golang   clone     Shallow clone into binaries/ [default]
   python   wheel     Build/copy .whl via ddtest [default]
-           local     Volume mount (requires pre-built native extensions)
            pip       Install latest from PyPI
            s3        Load from S3 by commit hash
   ruby     clone     Shallow clone into binaries/ [default]
