@@ -271,20 +271,51 @@ class Test_Sampling_Span_Tags:
 @features.trace_sampling
 class Test_Knuth_Sample_Rate:
     @pytest.mark.parametrize(
-        "library_env",
+        ("library_env", "expected_ksr"),
         [
-            {
-                "DD_TRACE_SAMPLE_RATE": None,
-                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
-            },
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
+                },
+                "1",
+            ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.000001}]',
+                },
+                "0.000001",
+            ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.0000001}]',
+                },
+                "0",
+            ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.0000005}]',
+                },
+                "0.000001",
+            ),
+        ],
+        ids=[
+            "rate_1_strips_trailing_zeros",
+            "six_decimal_precision_boundary",
+            "below_precision_rounds_to_zero",
+            "rounds_up_to_one_millionth",
         ],
     )
-    def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When a trace is sampled via a sampling rule with rate 1.0,
-        _dd.p.ksr is set to "1" (trailing zeros stripped) on the root span.
-        Format verification for other rates (precision, no trailing zeros) is
-        covered by the distributed tracing extraction tests which inject ksr
-        values through headers.
+    def test_sampling_knuth_sample_rate_trace_sampling_rule(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, expected_ksr: str
+    ):
+        """When a trace is sampled via a sampling rule, the knuth sample rate
+        is sent to the agent on the root span with the _dd.p.ksr key in the meta field.
+        The value is formatted with up to 6 decimal digits of precision, with trailing
+        zeros stripped.
         """
 
         with test_library:
@@ -294,8 +325,8 @@ class Test_Knuth_Sample_Rate:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert span["meta"].get("_dd.p.ksr") == "1", (
-            f"Expected _dd.p.ksr='1' for sampling rule rate 1.0, got: {span['meta'].get('_dd.p.ksr')}"
+        assert span["meta"].get("_dd.p.ksr") == expected_ksr, (
+            f"Expected _dd.p.ksr='{expected_ksr}', got: {span['meta'].get('_dd.p.ksr')}"
         )
 
     @pytest.mark.parametrize(
