@@ -9,7 +9,8 @@ import os.path
 from pathlib import Path
 import uuid
 from urllib.parse import parse_qs
-from typing import TypedDict, Literal, Any
+from typing import Any, Literal, TypedDict
+from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
@@ -65,6 +66,26 @@ def extract_probe_ids(probes: dict | list) -> list:
         return list(probes.keys())
 
     return [probe["id"] for probe in probes]
+
+
+def _iter_snapshot_content_items(content_list: list) -> Iterator[Any]:
+    """Yield content items from request content, unwrapping multipart structure (part['content']).
+
+    The agent /api/v2/debugger endpoint can send content as multipart where each part has a
+    'content' key holding the actual snapshot/diagnostics payloads. This matches the handling
+    in _process_diagnostics_data and in the schema validator for the debugger endpoint.
+    """
+    if not content_list:
+        return
+    for part in content_list:
+        if isinstance(part, dict) and "content" in part:
+            inner = part["content"]
+            if isinstance(inner, list):
+                yield from inner
+            else:
+                yield inner
+        else:
+            yield part
 
 
 def _get_path(test_name: str, suffix: str, version: str) -> str:
@@ -496,7 +517,7 @@ class BaseDebuggerTest:
 
         contents = data["request"].get("content", []) or []
 
-        for content in contents:
+        for content in _iter_snapshot_content_items(contents):
             # Filter out snapshots from before the test start time for multiple tests using the same file.
             if "timestamp" in content and self.start_time is not None:
                 if content["timestamp"] < self.start_time:
@@ -732,7 +753,7 @@ class BaseDebuggerTest:
             for request in agent_logs_endpoint_requests:
                 content = request["request"]["content"]
                 if content:
-                    for item in content:
+                    for item in _iter_snapshot_content_items(content):
                         snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
                         item["query"] = parse_qs(request["query"])
                         if snapshot:

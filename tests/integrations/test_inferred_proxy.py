@@ -197,9 +197,9 @@ def assert_api_gateway_span(
         )
 
     if is_distributed:
-        assert span.trace.trace_id_as_int == DISTRIBUTED_TRACE_ID
+        assert span.trace_id_equals(DISTRIBUTED_TRACE_ID)
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
-        assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
+        assert span.get_sampling_priority() == DISTRIBUTED_SAMPLING_PRIORITY
 
     if is_error and "http.status_code" in span["meta"]:
         assert span["error"] == 1
@@ -277,13 +277,12 @@ def mandatory_tags_validator_factory(
             raise ValueError(f"Expected http.status_code to be '{expected_status_code}', found '{status_code}'")
 
         if distributed:
-            trace_id = span.get("trace_id")
-            if trace_id != DISTRIBUTED_TRACE_ID:
+            if not span.trace_id_equals(DISTRIBUTED_TRACE_ID):
                 raise ValueError(f"Expected trace_id to be '{DISTRIBUTED_TRACE_ID}', found '{span['trace_id']}'")
             parent_id = span.get("parent_id")
             if parent_id != DISTRIBUTED_PARENT_ID:
                 raise ValueError(f"Expected parent_id to be '{DISTRIBUTED_PARENT_ID}', found '{span['parent_id']}'")
-            sampling_priority = span.get("metrics", {}).get("_sampling_priority_v1")
+            sampling_priority = span.get_sampling_priority()
             if sampling_priority != DISTRIBUTED_SAMPLING_PRIORITY:
                 raise ValueError(f"Expected sampling_id to be '{DISTRIBUTED_PARENT_ID}', found '{span['parent_id']}'")
 
