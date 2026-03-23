@@ -498,8 +498,8 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
         "*": v3.2.0.dev
-        flask-poc: flaky (APPSEC-61840)
-        uds-flask: flaky (APPSEC-61840)
+        flask-poc: v4.7.0-rc1 (is v3.2.0.dev but weblog was flaky before fix)
+        uds-flask: v4.7.0-rc1 (is v3.2.0.dev but weblog was flaky before fix)
         tornado: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
