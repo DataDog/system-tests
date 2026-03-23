@@ -11,8 +11,8 @@ env:
   JOB_COUNT: "10"
   LIBRARY: python
   RUNS_PER_JOB: "10"
-  SCENARIO: IAST_STANDALONE
-  WEBLOG: flask-poc
+  SCENARIO: DEFAULT
+  WEBLOG: uwsgi-poc
 jobs:
   generate-matrix:
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
       - name: Load latest dev python binary
         run: ./utils/scripts/load-binary.sh python dev
       - name: Build base image
-        run: ./utils/build/build_python_base_images.sh ${{ env.WEBLOG }} 
+        run: ./utils/build/build_python_base_images.sh ${{ env.WEBLOG }}
       - name: Build ${{ env.WEBLOG }} weblog and save it to binaries
         run: |
           SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh \
@@ -88,7 +88,7 @@ jobs:
             echo "::group::Runner ${{ matrix.n }} attempt ${attempt}"
             rm -rf logs_iast_standalone
 
-            if ./run.sh "${{ env.SCENARIO }}"; then
+            if ./run.sh "${{ env.SCENARIO }}" tests/appsec/iast/sink; then
               echo "Attempt ${attempt} passed"
             else
               DEST="workflow-artifacts/logs_iast_standalone_job_${{ matrix.n }}_attempt_${attempt}"
