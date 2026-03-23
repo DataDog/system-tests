@@ -3,8 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, features, scenarios
-from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import find_series, is_same_boolean
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
+from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 
 IP_HEADERS = {
