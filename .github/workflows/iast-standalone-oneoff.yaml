@@ -3,7 +3,7 @@ name: IAST standalone flake one-off
 on:
     push:
         branches:
-            - "florentin.labelle/fix-flaky-iast-system-tests"
+            - "florentin.labelle/iast-flask-flakiness-measurements"
 permissions:
     contents: read
     packages: read
@@ -61,7 +61,7 @@ jobs:
             - generate-matrix
             - build-weblog
         strategy:
-            fail-fast: false
+            fail-fast: true
             max-parallel: 10
             matrix:
                 n: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
@@ -77,10 +77,9 @@ jobs:
                   path: binaries/
             - name: Load weblog image from binaries
               run: ./build.sh "${{ env.LIBRARY }}" -i weblog -w "${{ env.WEBLOG }}"
-            - name: Run IAST_STANDALONE 10 times
+            - name: Run IAST_STANDALONE up to ${{ env.RUNS_PER_JOB }} times
               id: run_iast
               run: |
-                  FAILURES=0
                   mkdir -p workflow-artifacts
 
                   for attempt in $(seq 1 "${{ env.RUNS_PER_JOB }}"); do
@@ -90,22 +89,20 @@ jobs:
                     if ./run.sh "${{ env.SCENARIO }}"; then
                       echo "Attempt ${attempt} passed"
                     else
-                      FAILURES=$((FAILURES + 1))
                       DEST="workflow-artifacts/logs_iast_standalone_job_${{ matrix.n }}_attempt_${attempt}"
                       mkdir -p "$DEST"
 
                       if [ -d logs_iast_standalone ]; then
                         cp -R logs_iast_standalone "$DEST/"
                       fi
+
+                      echo "Attempt ${attempt} failed"
+                      echo "::endgroup::"
+                      exit 1
                     fi
 
                     echo "::endgroup::"
                   done
-
-                  if [ "$FAILURES" -gt 0 ]; then
-                    echo "Recorded ${FAILURES} failing attempt(s)"
-                    exit 1
-                  fi
             - name: Upload failing logs
               if: always() && steps.run_iast.outcome == 'failure'
               uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
