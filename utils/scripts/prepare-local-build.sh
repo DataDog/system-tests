@@ -56,6 +56,7 @@ Usage:
 Languages: java, nodejs, golang, python, ruby, rust, cpp, dotnet, php
 
 If path is omitted, defaults to ~/dd/dd-trace-<lang> (e.g., ~/dd/dd-trace-java).
+For Python pip, no path is needed. For Python s3, pass a commit hash instead of a path.
 
 Options:
   --method <method>   Override the default preparation method for a language.
@@ -607,8 +608,17 @@ function main() {
         die 64 "Language is required. Run with --help for usage."
     fi
 
+    # Python pip and s3 methods don't require a local repo directory.
+    local skip_dir_check=0
+    if [[ "${language}" == "python" ]]; then
+        case "${method}" in
+            pip) skip_dir_check=1 ;;
+            s3)  skip_dir_check=1 ;;
+        esac
+    fi
+
     # Default repo path based on language if not provided
-    if [[ -z "${src}" ]]; then
+    if [[ -z "${src}" ]] && [[ "${skip_dir_check}" -eq 0 ]]; then
         local repo_name
         case "${language}" in
             java)    repo_name="dd-trace-java" ;;
@@ -631,7 +641,7 @@ function main() {
         fi
     fi
 
-    if [[ ! -d "${src}" ]]; then
+    if [[ "${skip_dir_check}" -eq 0 ]] && [[ ! -d "${src}" ]]; then
         die "Directory not found: ${src}"
     fi
 
