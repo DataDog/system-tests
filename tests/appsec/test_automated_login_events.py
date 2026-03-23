@@ -1547,7 +1547,7 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="false")
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1568,7 +1568,7 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="false")
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
@@ -1587,7 +1587,7 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
             if context.library not in libs_without_user_id_on_failure:
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
@@ -1612,7 +1612,7 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
             if context.library not in libs_without_user_id_on_failure:
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
