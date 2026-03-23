@@ -133,6 +133,25 @@ class Test_Client_Stats:
         )
 
 
+@features.service_override_source
+@scenarios.trace_stats_computation
+class Test_Stats_Service_Source:
+    """Test that srv_src field is set in stat buckets when service name is overridden by an integration"""
+
+    def setup_srv_src(self):
+        weblog.get("/rasp/sqli?user_id=1")
+
+    def test_srv_src(self):
+        """Test that at least one stat bucket has the srv_src field set"""
+        srv_src_found = False
+        for s in interfaces.agent.get_stats():
+            logger.debug(f"asserting on {s}")
+            if s.get("srv_src"):
+                srv_src_found = True
+                break
+        assert srv_src_found, "Expected at least one stat bucket to have srv_src set"
+
+
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
 class Test_Agent_Info_Endpoint:

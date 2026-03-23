@@ -1625,6 +1625,7 @@ manifest:
         sinatra41: missing_feature
         sinatra22: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Ruby does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
         rails80: missing_feature

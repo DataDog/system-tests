@@ -2,23 +2,6 @@
   "env": {
     "OTEL_RESOURCE_ATTRIBUTES": "repo.owner=DataDog,repo.name=system-tests"
   },
-  "defaultMode": "acceptEdits",
-  "enabledMcpjsonServers": [
-    "datadog"
-  ],
-  "enableAllProjectMcpServers": true,
-  "extraKnownMarketplaces": {
-    "datadog-claude-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "DataDog/claude-marketplace"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "marketplace-auto-update@datadog-claude-plugins": true,
-    "dd@datadog-claude-plugins": true
-  },
   "permissions": {
     "deny": [
       "Skill(dd:conductor *)",
@@ -28,6 +11,27 @@
       "Skill(dd:integrate *)",
       "Skill(dd:live-test-api *)",
       "Skill(dd:debug-ddci-request *)"
+    ],
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git rebase:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "datadog"
+  ],
+  "enabledPlugins": {
+    "marketplace-auto-update@datadog-claude-plugins": true,
+    "dd@datadog-claude-plugins": true
+  },
+  "extraKnownMarketplaces": {
+    "datadog-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "DataDog/claude-marketplace"
+      }
+    }
+  },
+  "defaultMode": "acceptEdits"
 }
