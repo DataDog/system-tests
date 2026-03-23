@@ -414,7 +414,9 @@ class ManifestEditor:
             )
 
             if "excluded_component_version" in view.condition:
-                comment_text = EASY_WIN_COMMENT
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue
@@ -478,7 +480,9 @@ class ManifestEditor:
                         self.write_comment(weblog_declaration, weblog, EASY_WIN_COMMENT, "inline")
 
             else:
-                comment_text = EASY_WIN_COMMENT
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue
