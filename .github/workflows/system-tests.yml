@@ -99,8 +99,8 @@ on:
         default: false
         required: false
         type: boolean
-      _system_tests_library_target_branch:
-        description: "If system-tests dev mode, the branch to use for the library"
+      _system_tests_library_target_branch_map:
+        description: "If system-tests dev mode, JSON map of library to branch (e.g. {\"java\":\"b1\",\"dotnet\":\"b2\"})"
         default: ''
         required: false
         type: string
@@ -162,7 +162,7 @@ jobs:
       desired_execution_time: ${{ inputs.desired_execution_time }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
-      _system_tests_library_target_branch: ${{ inputs._system_tests_library_target_branch }}
+      _system_tests_library_target_branch_map: ${{ inputs._system_tests_library_target_branch_map }}
 
   parametric:
     needs:
