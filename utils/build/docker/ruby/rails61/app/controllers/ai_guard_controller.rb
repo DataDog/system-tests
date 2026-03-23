@@ -23,14 +23,18 @@ class AiGuardController < ApplicationController
     allow_raise = request.headers['X-AI-Guard-Block']&.downcase == "true"
     result = Datadog::AIGuard.evaluate(*messages, allow_raise: allow_raise)
 
-    render json: {
+    response_data = {
       action: result.action,
       reason: result.reason,
       tags: result.tags,
       is_blocking_enabled: result.blocking_enabled?
     }
+    response_data[:sds] = result.sds if result.respond_to?(:sds)
+    render json: response_data
   rescue Datadog::AIGuard::AIGuardAbortError => e
-    render json: { action: e.action, reason: e.reason, tags: e.tags }, status: 403
+    error_data = { action: e.action, reason: e.reason, tags: e.tags }
+    error_data[:sds] = e.sds if e.respond_to?(:sds)
+    render json: error_data, status: 403
   rescue => e
     render json: {error: e.to_s, type: e.class.name}, status: 500
   end
