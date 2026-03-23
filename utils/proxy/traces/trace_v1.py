@@ -8,6 +8,9 @@ import warnings
 
 import msgpack
 
+# Relative import: mitmproxy Docker image uses /app/proxy without a top-level ``utils`` package.
+from ..trace_bytes_decoding import decode_v1_bytes_value_attribute, unpack_trace_bytes_msgpack  # noqa: TID252
+
 
 class V1TracePayloadKeys(IntEnum):
     strings = 1
@@ -164,6 +167,9 @@ def _uncompress_values(trace_payload: dict, strings: list[str]) -> dict:
 
 
 def _process_trace_attributes(trace_payload: dict, strings: list[str]) -> dict:
+    root_attrs = trace_payload.get("attributes")
+    if isinstance(root_attrs, list):
+        trace_payload["attributes"] = _attributes_to_dict(root_attrs, strings)
     # Process attributes in chunks
     for chunk in trace_payload.get("chunks", []):
         if "attributes" in chunk:
@@ -189,7 +195,8 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
         elif "intValue" in v:
             attrs_dict[k_str] = v["intValue"]
         elif "bytesValue" in v:
-            attrs_dict[k_str] = v["bytesValue"]
+            raw_b = v["bytesValue"]
+            attrs_dict[k_str] = decode_v1_bytes_value_attribute(raw_b) if isinstance(raw_b, bytes) else raw_b
         elif "arrayValue" in v:
             attrs_dict[k_str] = v["arrayValue"]
         elif "keyValueList" in v:
@@ -219,6 +226,8 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
                 v = strings[v]
         elif v_type == V1AnyValueKeys.array:
             v = _uncompress_array(v, strings)
+        elif v_type == V1AnyValueKeys.bytes_value and isinstance(v, bytes):
+            v = decode_v1_bytes_value_attribute(v)
 
         attrs_dict[k] = v
 
@@ -226,7 +235,9 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
         if key.startswith("_dd.appsec.s."):
             attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
         elif key in ("appsec", "_dd.stack"):
-            attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
+            val = attrs_dict[key]
+            if isinstance(val, bytes):
+                attrs_dict[key] = unpack_trace_bytes_msgpack(val)
         elif key in _json_meta_values:
             attrs_dict[key] = json.loads(attrs_dict[key])
 
@@ -253,9 +264,11 @@ def _uncompress_array(array: list, strings: list[str]) -> list:
             V1AnyValueKeys.bool_value,
             V1AnyValueKeys.double,
             V1AnyValueKeys.int_value,
-            V1AnyValueKeys.bytes_value,
         }:
             pass  # keep as-is
+        elif v_type == V1AnyValueKeys.bytes_value:
+            if isinstance(v, bytes):
+                v = decode_v1_bytes_value_attribute(v)
         elif v_type == V1AnyValueKeys.array:
             v = _uncompress_array(v, strings)
         elif v_type == V1AnyValueKeys.key_value_list:
@@ -604,6 +617,9 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
         for chunk in data["idxTracerPayloads"][idx].get("chunks", []):
             _deserialize_base64_trace_id(chunk)
             chunk["attributes"] = _uncompress_attributes(chunk.get("attributes", {}), strings)
+            origin_ref = chunk.get("originRef")
+            if isinstance(origin_ref, int) and origin_ref < len(strings):
+                chunk["origin"] = strings[origin_ref]
             for span in chunk.get("spans", []):
                 span["attributes"] = _uncompress_attributes(span.get("attributes", {}), strings)
                 # Uncompress span links

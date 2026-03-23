@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, features
-from utils.dd_types import DataDogLibrarySpan
-from tests.appsec.utils import find_series, is_same_boolean
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
+from tests.appsec.utils import find_series
 
 HEADERS = {
     "Accept": "text/html",

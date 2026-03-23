@@ -44,7 +44,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "nodejs": "DD_LOG_INJECTION",  # TODO: rename to DD_LOGS_INJECTION in subsequent PR
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
-        "ruby": "tracing.log_injection",
+        "ruby": "DD_LOGS_INJECTION",
         "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
         "java": "DD_LOGS_INJECTION_ENABLED",
     },
@@ -54,6 +54,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_TRACE_HEADER_TAGS",
         "golang": ["DD_TRACE_HEADER_TAGS", "trace_header_tags"],
         "java": "DD_TRACE_HEADER_TAGS",
+        "ruby": "DD_TRACE_HEADER_TAGS",
     },
     "trace_tags": {
         "dotnet": "DD_TAGS",
@@ -61,20 +62,21 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "nodejs": "DD_TAGS",
         "python": "DD_TAGS",
         "golang": ["DD_TAGS", "trace_tags"],
+        "ruby": "DD_TAGS",
     },
     "trace_enabled": {
         "dotnet": "DD_TRACE_ENABLED",
         "java": "DD_TRACE_ENABLED",
         "nodejs": "tracing",
         "python": "DD_TRACE_ENABLED",
-        "ruby": "tracing.enabled",
+        "ruby": "DD_TRACE_ENABLED",
         "golang": ["DD_TRACE_ENABLED", "trace_enabled"],
     },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
         "nodejs": "profiling.enabled",
         "python": "DD_PROFILING_ENABLED",
-        "ruby": "profiling.enabled",
+        "ruby": "DD_PROFILING_ENABLED",
         "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
         "java": "DD_PROFILING_ENABLED",
     },
@@ -82,7 +84,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "dotnet": "DD_APPSEC_ENABLED",
         "nodejs": "appsec.enabled",
         "python": "DD_APPSEC_ENABLED",
-        "ruby": "appsec.enabled",
+        "ruby": "DD_APPSEC_ENABLED",
         "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
         "java": "DD_APPSEC_ENABLED",
     },
@@ -92,13 +94,14 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_DATA_STREAMS_ENABLED",
         "java": "DD_DATA_STREAMS_ENABLED",
         "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
+        "ruby": "DD_DATA_STREAMS_ENABLED",
     },
     "runtime_metrics_enabled": {
         "java": "DD_RUNTIME_METRICS_ENABLED",
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
-        "ruby": "runtime_metrics_enabled",
+        "ruby": "DD_RUNTIME_METRICS_ENABLED",
         "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
     },
     "dynamic_instrumentation_enabled": {
@@ -107,7 +110,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "nodejs": "dynamicInstrumentation.enabled",
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "dynamic_instrumentation.enabled",
-        "ruby": "dynamic_instrumentation.enabled",
+        "ruby": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "golang": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamic_instrumentation_enabled"],
     },
     "trace_debug_enabled": {
@@ -123,12 +126,14 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_TAGS",
         "nodejs": "DD_TAGS",
         "golang": ["DD_TAGS", "trace_tags"],
+        "ruby": "DD_TAGS",
     },
     "trace_propagation_style": {
         "java": "DD_TRACE_PROPAGATION_STYLE",
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
         "php": "trace.propagation_style",
         "golang": ["DD_TRACE_PROPAGATION_STYLE", "trace.propagation_style"],
+        "ruby": "DD_TRACE_PROPAGATION_STYLE",
     },
 }
 
@@ -144,18 +149,6 @@ def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
     return [apm_telemetry_name]
 
 
-def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict | None:
-    """Find a configuration by origin from a list of configuration dictionaries.
-
-    Returns the first configuration that matches the origin,
-    or None if no match is found.
-    """
-    for config in config_list:
-        if config.get("origin") == origin:
-            return config
-    return None
-
-
 def _check_propagation_style_with_inject_and_extract(
     test_agent: TestAgentAPI, configuration_by_name: dict, expected_origin: str, library_name: str
 ) -> None:
@@ -168,12 +161,9 @@ def _check_propagation_style_with_inject_and_extract(
     Raises an AssertionError if either key is missing, has wrong origin, or has empty value
     """
     # Define the inject and extract key names for each language
-    if library_name == "python":
+    if library_name in ("python", "ruby"):
         inject_key = "DD_TRACE_PROPAGATION_STYLE_INJECT"
         extract_key = "DD_TRACE_PROPAGATION_STYLE_EXTRACT"
-    elif library_name == "ruby":
-        inject_key = "tracing.propagation_style_inject"
-        extract_key = "tracing.propagation_style_extract"
     elif library_name == "nodejs":
         inject_key = "tracePropagationStyle.inject"
         extract_key = "tracePropagationStyle.extract"
@@ -1251,7 +1241,7 @@ class Test_TelemetrySCAEnvVar:
 
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
-        if context.library in ("java", "nodejs", "python"):
+        if context.library in ("java", "nodejs", "python", "ruby"):
             cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
             assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
             assert cfg_appsec_enabled[0].get("value") is None
