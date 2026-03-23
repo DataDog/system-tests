@@ -158,6 +158,26 @@ function prepare_java() {
 
     if [[ -z "${agent_jar}" || -z "${api_jar}" ]]; then
         info "JARs not found. Building with Gradle..."
+        # Resolve a working JAVA_HOME if the current one is missing or invalid.
+        # dd-trace-java builds with JDK 11+.
+        if [[ ! -d "${JAVA_HOME:-}" ]]; then
+            if command -v /usr/libexec/java_home &>/dev/null; then
+                JAVA_HOME=$(/usr/libexec/java_home -v 11 2>/dev/null || /usr/libexec/java_home 2>/dev/null || true)
+            elif command -v java &>/dev/null; then
+                # Follow the java binary to find JAVA_HOME (works on Linux)
+                local java_bin
+                java_bin="$(command -v java)"
+                java_bin="$(readlink -f "${java_bin}" 2>/dev/null || realpath "${java_bin}" 2>/dev/null || echo "")"
+                if [[ -n "${java_bin}" ]]; then
+                    JAVA_HOME="${java_bin%/bin/java}"
+                fi
+            fi
+            if [[ ! -d "${JAVA_HOME:-}" ]]; then
+                die "JDK 11+ is required to build dd-trace-java but no JDK was found. Install a JDK and set JAVA_HOME."
+            fi
+            export JAVA_HOME
+            info "Resolved JAVA_HOME=${JAVA_HOME}"
+        fi
         (cd "${src}" && ./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar)
         agent_jar=$(find "${src}/dd-java-agent/build/libs" -name 'dd-java-agent-*-SNAPSHOT.jar' \
             ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -1)
