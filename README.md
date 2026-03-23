@@ -14,14 +14,10 @@ Key principles:
 You need **bash**, **Docker** (20.10+), and **Python 3.12**.
 
 ```bash
-# 1. Set up the Python environment
-./build.sh -i runner
-source venv/bin/activate
-
-# 2. Build images for the language you want to test
+# 1. Build images for the language you want to test
 ./build.sh python          # or: java, nodejs, ruby, php, dotnet, cpp, golang
 
-# 3. Run the tests
+# 2. Run the tests
 ./run.sh                   # run all default tests
 ./run.sh SCENARIO_NAME     # run a specific scenario
 ./run.sh tests/test_smoke.py::Test_Class::test_method   # run a single test

@@ -369,3 +369,28 @@ class Test_SensitiveDataScanning:
         """
         assert self.r.status_code == 200
         interfaces.library.validate_one_span(self.r, validator=self._assert_span_with_sensitive_data(), full_trace=True)
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_SDS_Findings_In_SDK_Response:
+    def setup_sds_in_response(self):
+        self.r = weblog.post("/ai_guard/evaluate", json=MESSAGES["SENSITIVE_DATA"])
+
+    def test_sds_in_response(self):
+        """Test SDS findings are returned in SDK response.
+        Verifies that the SDK evaluation response contains sds findings.
+        """
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        sds = _assert_key(body, "sds")
+        assert len(sds) > 0, f"No SDS findings in SDK response: {body}"
+        for finding in sds:
+            assert _assert_key(finding, "rule_display_name")
+            assert _assert_key(finding, "rule_tag")
+            assert _assert_key(finding, "category")
+            assert _assert_key(finding, "matched_text")
+            location = _assert_key(finding, "location")
+            assert _assert_key(location, "start_index") is not None
+            assert _assert_key(location, "end_index_exclusive") is not None
+            assert _assert_key(location, "path")

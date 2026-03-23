@@ -360,6 +360,22 @@ public class Main {
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
                 });
+        router.get("/inferred-proxy/span-creation")
+                .handler(ctx -> {
+                    String statusCodeParam = ctx.request().getParam("status_code");
+                    int statusCode = 200;
+                    if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                        try {
+                            statusCode = Integer.parseInt(statusCodeParam);
+                        } catch (NumberFormatException e) {
+                            statusCode = 400;
+                        }
+                    }
+                    System.out.println("Received an API Gateway request:");
+                    ctx.request().headers().forEach(header ->
+                        System.out.println(header.getKey() + ": " + header.getValue()));
+                    ctx.response().setStatusCode(statusCode).end("ok");
+                });
         router.get("/set_cookie")
                 .handler(ctx -> {
                     String name = ctx.request().getParam("name");
