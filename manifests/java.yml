@@ -3424,7 +3424,7 @@ manifest:
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.60.1  # TODO: a lower version might be supported
+        spring-boot: flaky (DSMON-1257)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
     - weblog_declaration:
         "*": irrelevant
