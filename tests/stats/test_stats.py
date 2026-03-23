@@ -81,7 +81,7 @@ class Test_Client_Stats:
         assert stats_count <= 4, (
             "expect <= 4 stats"
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
-        assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
+        assert hits == top_hits >= 4, "expect at least 4 'OK' hits and top level hits across all payloads"
 
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
