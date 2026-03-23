@@ -21,6 +21,7 @@ from pytest_jsonreport.plugin import JSONReport
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
 from utils._context.component_version import ComponentVersion, Version
+from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
@@ -120,7 +121,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "java_lambda", "nodejs", "php", "python", "ruby", "rust"],
+        choices=sorted(COMPONENT_GROUPS.parametric),
     )
     parser.addoption(
         "--github-token-file",
@@ -294,9 +295,12 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     must_pass_item_count = 0
     for item in items:
-        marker_names = [marker.name for marker in item.iter_markers()]
-        if "skip_if_xfail" in marker_names and "declaration" in marker_names:
-            item.add_marker(pytest.mark.skip())
+        markers = {marker.name: marker for marker in item.iter_markers()}
+        if "skip_if_xfail" in markers and "declaration" in markers:
+            marker = markers["declaration"]
+            declaration, details = marker.kwargs["declaration"], marker.kwargs["details"]
+            # mark as inconditional skip and rebuild the skip message
+            item.add_marker(pytest.mark.skip(f"{declaration} ({details})"))
 
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents

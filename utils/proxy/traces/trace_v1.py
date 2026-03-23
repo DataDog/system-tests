@@ -199,6 +199,9 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
     return attrs_dict
 
 
+_json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json", "_dd.span_links"])
+
+
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     if len(attrs) % 3 != 0:
         raise ValueError(f"Attributes list must be a multiple of 3: {attrs}")
@@ -224,7 +227,7 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
         elif key in ("appsec", "_dd.stack"):
             attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
-        elif key in ("_dd.span_links", "_dd.appsec.json"):
+        elif key in _json_meta_values:
             attrs_dict[key] = json.loads(attrs_dict[key])
 
     return attrs_dict
@@ -601,6 +604,9 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
         for chunk in data["idxTracerPayloads"][idx].get("chunks", []):
             _deserialize_base64_trace_id(chunk)
             chunk["attributes"] = _uncompress_attributes(chunk.get("attributes", {}), strings)
+            origin_ref = chunk.get("originRef")
+            if isinstance(origin_ref, int) and origin_ref < len(strings):
+                chunk["origin"] = strings[origin_ref]
             for span in chunk.get("spans", []):
                 span["attributes"] = _uncompress_attributes(span.get("attributes", {}), strings)
                 # Uncompress span links

@@ -378,7 +378,7 @@ class Test_Config_Dogstatsd:
 
 
 SDK_DEFAULT_STABLE_CONFIG = {
-    "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
+    "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
     "dd_profiling_enabled": "1"
     if context.library == "php"
     else "true"
