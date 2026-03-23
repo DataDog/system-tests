@@ -132,51 +132,6 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k "test_start_span"
 ./utils/scripts/prepare-local-build.sh --clean dotnet
 ```
 
-## Known ARM Mac Issues
-
-The script handles building and copying for all languages, but some ARM-specific
-Dockerfile issues in system-tests may require manual workarounds:
-
-### C++ -- TARGETARCH Dockerfile fix
-
-The parametric Dockerfile hardcodes an amd64-only base image. Apply this temporary fix:
-
-```bash
-sed -i '' 's/FROM datadog\/docker-library:dd-trace-cpp-ci-23768e9-amd64/ARG TARGETARCH=arm64\nFROM datadog\/docker-library:dd-trace-cpp-ci-23768e9-${TARGETARCH}/' \
-  utils/build/docker/cpp/parametric/Dockerfile
-
-# Run tests, then revert:
-git checkout -- utils/build/docker/cpp/parametric/Dockerfile
-```
-
-### .NET -- LD_PRELOAD on ARM
-
-The parametric Dockerfile sets `LD_PRELOAD` to an x64-only continuous profiler `.so`.
-Comment it out for ARM:
-
-```bash
-sed -i '' 's|^ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so|# ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so|' \
-  utils/build/docker/dotnet/parametric/Dockerfile
-
-# Run tests, then revert:
-git checkout -- utils/build/docker/dotnet/parametric/Dockerfile
-```
-
-### .NET -- ARM build notes
-
-On ARM Mac, the .NET build (triggered automatically by the script) may hit:
-- Missing `Datadog.Linux.ApiWrapper.x64.so` at ZipMonitoringHome step. Workaround: create dummy files:
-  ```bash
-  touch ~/dd/dd-trace-dotnet/tracer/src/bin/artifacts/linux-arm64/Datadog.Linux.ApiWrapper.x64.so
-  touch ~/dd/dd-trace-dotnet/tracer/src/bin/artifacts/linux-musl-arm64/Datadog.Linux.ApiWrapper.x64.so
-  ```
-
-### PHP -- system-tests fixes
-
-Two fixes may be needed in system-tests for PHP on ARM:
-1. `utils/_context/component_version.py` -- strip PHP startup warnings from version string
-2. `utils/build/docker/php/common/install_ddtrace.sh` -- conditionally enable profiling
-
 ## Useful Test Candidates
 
 Good parametric tests for smoke-testing across all languages:
