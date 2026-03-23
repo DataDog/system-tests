@@ -367,6 +367,7 @@ func main() {
 	var d DebuggerController
 	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
+	r.Any("/debugger/expression", ginHandleFunc(d.expression))
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -414,4 +415,27 @@ func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
 
 func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Mix probe"))
+}
+
+type ExpressionTestStruct struct {
+	IntValue    int
+	DoubleValue float64
+	StringValue string
+	BoolValue   bool
+	Collection  []string
+	Dictionary  map[string]int
+}
+
+func (d *DebuggerController) expression(w http.ResponseWriter, r *http.Request) {
+	inputValue := r.URL.Query().Get("inputValue")
+	testStruct := ExpressionTestStruct{
+		IntValue:    1,
+		DoubleValue: 1.1,
+		StringValue: "one",
+		BoolValue:   true,
+		Collection:  []string{"one", "two", "three"},
+		Dictionary:  map[string]int{"one": 1, "two": 2, "three": 3, "four": 4},
+	}
+	localValue := len(inputValue)
+	w.Write([]byte(fmt.Sprintf("Great success number %d %s", localValue, testStruct.StringValue)))
 }

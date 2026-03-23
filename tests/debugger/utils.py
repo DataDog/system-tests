@@ -242,6 +242,9 @@ class BaseDebuggerTest:
                             source_file = "debugger/index.ts"
                         else:
                             source_file = "debugger/index.js"
+                    elif language == "golang":
+                        variant = context.weblog_variant or "net-http"
+                        source_file = f"{variant}/main.go"
                     elif language == "php":
                         source_file = "debugger.php"
 
