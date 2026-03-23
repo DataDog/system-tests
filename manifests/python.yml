@@ -27,6 +27,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.0.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.7.0-rc1
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -229,25 +233,32 @@ manifest:
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
     - weblog_declaration:
-        "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
     - weblog_declaration:
-        "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:
     - weblog_declaration:
-        "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
-        "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
     - weblog_declaration:
-        "*": v3.19.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.19.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
-        "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:
     - weblog_declaration:
-        "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+        "*": flaky (APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
@@ -487,8 +498,8 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
         "*": v3.2.0.dev
-        flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
-        uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
+        flask-poc: flaky (APPSEC-61840)
+        uds-flask: flaky (APPSEC-61840)
         tornado: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
@@ -1842,6 +1853,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
         "*": v2.8.0

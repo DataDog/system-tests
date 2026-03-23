@@ -12,7 +12,6 @@
 #
 # * Agent:         Docker hub datadog/agent-dev:master-py3
 # * cpp_httpd:     Github action artifact
-# * cpp_nginx:     From circle ci
 # * Golang:        github.com/DataDog/dd-trace-go/v2@main
 # * .NET:          ghcr.io/datadog/dd-trace-dotnet
 # * Java:          S3
@@ -49,79 +48,6 @@ assert_target_branch_is_not_set() {
   echo "It is not possible to specify the '$LIBRARY_TARGET_BRANCH' target branch for $TARGET library yet"
 
   exit 1
-}
-
-get_circleci_artifact() {
-
-    SLUG=$1
-    WORKFLOW_NAME=$2
-    JOB_NAME=$3
-    ARTIFACT_PATTERN=$4
-
-    echo "CircleCI: https://app.circleci.com/pipelines/$SLUG?branch=master"
-    PIPELINES=$(curl --silent https://circleci.com/api/v2/project/$SLUG/pipeline?branch=master -H "Circle-Token: $CIRCLECI_TOKEN")
-
-    for i in {0..30}; do
-        PIPELINE_ID=$(echo $PIPELINES| jq -r ".items[$i].id")
-        PIPELINE_NUMBER=$(echo $PIPELINES | jq -r ".items[$i].number")
-
-        echo "Trying pipeline #$i $PIPELINE_NUMBER/$PIPELINE_ID"
-        WORKFLOWS=$(curl --silent https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow -H "Circle-Token: $CIRCLECI_TOKEN")
-
-        QUERY=".items[] | select(.name == \"$WORKFLOW_NAME\") | .id"
-        WORKFLOW_IDS=$(echo $WORKFLOWS | jq -r "$QUERY")
-
-        if [ ! -z "$WORKFLOW_IDS" ]; then
-
-            for WORKFLOW_ID in $WORKFLOW_IDS; do
-                echo "=> https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID"
-
-                JOBS=$(curl --silent https://circleci.com/api/v2/workflow/$WORKFLOW_ID/job -H "Circle-Token: $CIRCLECI_TOKEN")
-
-                QUERY=".items[] | select(.name == \"$JOB_NAME\" and .status==\"success\")"
-                JOB=$(echo $JOBS | jq "$QUERY")
-
-                if [ ! -z "$JOB" ]; then
-                    break
-                fi
-            done
-
-            if [ ! -z "$JOB" ]; then
-                break
-            fi
-        fi
-    done
-
-    if [ -z "$JOB" ]; then
-        echo "Oooops, I did not found any successful pipeline"
-        exit 1
-    fi
-
-    JOB_NUMBER=$(echo $JOB | jq -r ".job_number")
-    JOB_ID=$(echo $JOB | jq -r ".id")
-
-    echo "Job number/ID: $JOB_NUMBER/$JOB_ID"
-    echo "Job URL: https://app.circleci.com/pipelines/$SLUG/$PIPELINE_NUMBER/workflows/$WORKFLOW_ID/jobs/$JOB_NUMBER"
-
-    ARTIFACTS=$(curl --silent https://circleci.com/api/v2/project/$SLUG/$JOB_NUMBER/artifacts -H "Circle-Token: $CIRCLECI_TOKEN")
-    QUERY=".items[] | select(.path | test(\"$ARTIFACT_PATTERN\"))"
-    readarray -t ARTIFACT_URLS < <(jq -r "$QUERY | .url" <<< "$ARTIFACTS")
-
-    if [[ ${#ARTIFACT_URLS[@]} -eq 0 ]]; then
-        echo "Oooops, I did not found any artifact that satisfy this pattern: $ARTIFACT_PATTERN. Here is the list:"
-        echo $ARTIFACTS | jq -r ".items[] | .path"
-        exit 1
-    fi
-    echo "${ARTIFACT_URLS[@]}"
-
-    local aurl= aname=
-    for aurl in "${ARTIFACT_URLS[@]}"; do
-      aname="${aurl##*/}"
-      echo "Artifact URL: $aurl"
-      echo "Artifact Name: $aname"
-      echo "Downloading artifact..."
-      curl --silent -L "$aurl" --output "$aname"
-    done
 }
 
 get_github_action_artifact() {
@@ -246,11 +172,10 @@ elif [ "$TARGET" = "php" ]; then
         fi
 
         VERSION_HASH_ENCODED=$(echo "$VERSION_HASH" | sed 's/+/%2B/g')
-
-        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-x86_64-linux-gnu.tar.gz"
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-$(arch)-linux-gnu.tar.gz"
         echo "Downloading dd-library-php from: $URL"
-        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${VERSION_HASH}-x86_64-linux-gnu.tar.gz "$URL"
-        echo "dd-library-php downloaded"
+        curl --fail --location --silent --show-error --output "./temp/dd-library-php-${VERSION_HASH}-$(arch)-linux-gnu.tar.gz" "$URL"
+        echo "dd-library-php $(arch) downloaded"
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
@@ -296,7 +221,6 @@ elif [ "$TARGET" = "haproxy" ]; then
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
-    # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
