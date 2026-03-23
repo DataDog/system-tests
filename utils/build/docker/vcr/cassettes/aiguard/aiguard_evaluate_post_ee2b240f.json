@@ -29,7 +29,6 @@
       "message": "OK"
     },
     "headers": {
-      "content-encoding": "gzip",
       "content-type": "application/vnd.api+json",
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
