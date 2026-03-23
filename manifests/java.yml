@@ -3797,6 +3797,10 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
+  tests/stats/test_stats.py::Test_Stats_Service_Source:
+    - weblog_declaration:
+        "*": v0.0.0
+        spring-boot-3-native: irrelevant (/rasp/sqli endpoint is not available)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: irrelevant (no Datadog API for W3C Baggage)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel:
