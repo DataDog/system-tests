@@ -1139,7 +1139,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"],  expected="true")
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
         assert "appsec.events.users.login.failure.usr.exists" in meta
 
 

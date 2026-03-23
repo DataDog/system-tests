@@ -91,7 +91,9 @@ class Test_Evaluation:
             assert meta_struct_messages == messages, "Invalid messages stored in the meta struct"
             if action != "ALLOW" and blocking == "true":
                 assert span["error"] == 1
-                assert is_same_boolean(actual=meta["ai_guard.blocked"], expected="true"), f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
+                assert is_same_boolean(actual=meta["ai_guard.blocked"], expected="true"), (
+                    f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
+                )
                 assert "AIGuardAbortError".lower() in meta["error.type"].lower()
             else:
                 assert "ai_guard.blocked" not in span
