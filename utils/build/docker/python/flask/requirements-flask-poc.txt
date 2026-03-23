@@ -6,7 +6,7 @@ xmltodict==0.14.2
 flask[async]==2.2.4
 flask-login==0.6.3
 gunicorn==21.2.0
-gevent==25.5.1
+gevent==25.9.1
 requests==2.32.3
 pycryptodome==3.20.0
 psycopg2-binary==2.9.9
