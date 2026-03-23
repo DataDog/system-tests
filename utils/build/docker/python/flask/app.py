@@ -1751,9 +1751,13 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(timeout=2)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    try:
+        response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    except Exception:
+        return Response("The downstream request failed, probably due to a timeout", status=500)
+
     return Response(response.data)
 
 
@@ -1771,9 +1775,13 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(timeout=2)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    try:
+        response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    except Exception:
+        return Response("The downstream request failed, probably due to a timeout", status=500)
+
     return Response(response.data)
 
 

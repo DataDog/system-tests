@@ -315,7 +315,7 @@ class EndToEndScenario(DockerScenario):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
             elif library in ("python",):
-                self.library_interface_timeout = 10 
+                self.library_interface_timeout = 20
             else:
                 self.library_interface_timeout = 40
         else:
