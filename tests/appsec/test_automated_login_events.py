@@ -1503,7 +1503,7 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
@@ -1523,7 +1523,7 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
@@ -1543,11 +1543,11 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="false")
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1564,11 +1564,11 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="false")
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
@@ -1583,11 +1583,11 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
             if context.library not in libs_without_user_id_on_failure:
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
@@ -1608,11 +1608,11 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
             if context.library not in libs_without_user_id_on_failure:
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
@@ -1638,8 +1638,8 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
 
                 # optional (to review for each library)
                 if context.library not in libs_without_user_id:
@@ -1666,8 +1666,8 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
 
                 # optional (to review for each library)
                 if context.library not in libs_without_user_id:
@@ -1694,9 +1694,9 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = [
@@ -1718,9 +1718,9 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
@@ -1735,7 +1735,7 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == NEW_USERNAME_HASH
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.signup.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.signup.track"], expected="true")
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
