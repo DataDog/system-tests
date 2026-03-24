@@ -297,7 +297,7 @@ class Test_Knuth_Sample_Rate:
             (
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
-                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.0000005}]',
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.00000051}]',
                 },
                 "0.000001",
             ),
