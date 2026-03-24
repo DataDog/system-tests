@@ -20,7 +20,7 @@ def make_ufc_fixture(flag_key: str, variant_key: str = "on", variation_type: str
     values: dict[str, dict[str, str | bool | float | int]] = {
         "STRING": {"on": "on-value", "off": "off-value"},
         "BOOLEAN": {"on": True, "off": False},
-        "NUMERIC": {"on": 1.5, "off": 0.0},  # Decimal value for parse_error testing
+        "NUMERIC": {"on": 1.5, "off": 0.0},  # Decimal value for type_mismatch testing (NUMERIC→INTEGER)
         "INTEGER": {"on": 42, "off": 0},
     }
     var_values = values[variation_type]
@@ -374,6 +374,48 @@ def make_split_fixture(flag_key: str):
     }
 
 
+def make_invalid_regex_fixture(flag_key: str, invalid_regex: str = "[invalid"):
+    """Create a UFC fixture with an invalid regex pattern in a MATCHES condition.
+
+    This tests the PARSE_ERROR scenario where the configuration contains
+    a syntactically invalid regex pattern that fails during evaluation.
+    """
+    return {
+        "createdAt": "2024-04-17T19:40:53.716Z",
+        "format": "SERVER",
+        "environment": {"name": "Test"},
+        "flags": {
+            flag_key: {
+                "key": flag_key,
+                "enabled": True,
+                "variationType": "STRING",
+                "variations": {
+                    "on": {"key": "on", "value": "on-value"},
+                    "off": {"key": "off", "value": "off-value"},
+                },
+                "allocations": [
+                    {
+                        "key": "regex-allocation",
+                        "rules": [
+                            {
+                                "conditions": [
+                                    {
+                                        "operator": "MATCHES",
+                                        "attribute": "email",
+                                        "value": invalid_regex,  # Invalid regex pattern
+                                    }
+                                ]
+                            }
+                        ],
+                        "splits": [{"variationKey": "on", "shards": []}],
+                        "doLog": True,
+                    }
+                ],
+            }
+        },
+    }
+
+
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
 class Test_FFE_Eval_Reason_Targeting:
@@ -543,7 +585,7 @@ class Test_FFE_Eval_Reason_Disabled:
 #   -----------------------|---------------------------------------------
 #   FLAG_NOT_FOUND         | Test_FFE_Eval_Config_Exists_Flag_Missing
 #   TYPE_MISMATCH          | Test_FFE_Eval_Metric_Type_Mismatch, Test_FFE_Eval_Metric_Numeric_To_Integer
-#   PARSE_ERROR            | (not tested - no cross-SDK consistent scenario)
+#   PARSE_ERROR            | Test_FFE_Eval_Metric_Parse_Error
 #   GENERAL                | (not tested - catch-all error code)
 #   TARGETING_KEY_MISSING  | Test_FFE_Eval_Targeting_Key_Optional (verifies it's NOT returned; JS excluded)
 #   INVALID_CONTEXT        | Test_FFE_Eval_Invalid_Context_Nested_Attribute (Python only)
@@ -709,6 +751,63 @@ class Test_FFE_Eval_Metric_Numeric_To_Integer:
         )
         assert get_tag_value(tags, "error.type") == "type_mismatch", (
             f"Expected error.type 'type_mismatch', got tags: {tags}"
+        )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_eval_metrics
+@irrelevant(
+    context.library == "golang",
+    reason="Go validates regex at config load time and rejects invalid patterns upfront",
+)
+class Test_FFE_Eval_Metric_Parse_Error:
+    """Test that an invalid regex pattern produces error.type=parse_error.
+
+    This configures a flag with a MATCHES condition containing an invalid regex pattern
+    (e.g., "[invalid" which has an unclosed bracket). When the condition is evaluated,
+    the regex compilation fails and produces a parse_error.
+
+    Behavioral differences across SDKs:
+    - Python (libdatadog): Returns parse_error during evaluation
+    - Go: Validates regex at config load time, rejects config with invalid regex
+    """
+
+    def setup_ffe_eval_metric_parse_error(self):
+        rc.tracer_rc_state.reset().apply()
+
+        config_id = "ffe-eval-metric-parse-error"
+        self.flag_key = "eval-metric-parse-error-flag"
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_invalid_regex_fixture(self.flag_key)
+        ).apply()
+
+        # Evaluate the flag with an attribute that triggers the invalid regex condition
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": "user-1",
+                "attributes": {"email": "test@example.com"},  # Triggers MATCHES condition
+            },
+        )
+
+    def test_ffe_eval_metric_parse_error(self):
+        """Test that invalid regex produces error.type:parse_error."""
+        assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
+
+        metrics = find_eval_metrics(self.flag_key)
+        assert len(metrics) > 0, f"Expected metric for flag '{self.flag_key}', found none. All: {find_eval_metrics()}"
+
+        point = metrics[0]
+        tags = point.get("tags", [])
+
+        assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
+            f"Expected reason 'error' for parse error, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "error.type") == "parse_error", (
+            f"Expected error.type 'parse_error', got tags: {tags}"
         )
 
 
