@@ -5,6 +5,7 @@ from pathlib import Path
 from utils._logger import logger
 
 WLS_DENIED_INJECTION = "Workload selection denied injection"
+WLS_ALLOWED_INJECTION = "Workload selection allowed injection: continuing"
 NO_KNOWN_RUNTIME = "No known runtime was detected - not injecting!"
 
 
@@ -72,25 +73,26 @@ def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
     \"injector finished\" (or the next \"process_exe:\"). This includes WLS decision
     lines and post-WLS lines like \"No known runtime was detected - not injecting!\".
     """
-    injector_finished = "injector finished"
-    current: list[str] = []
+    process_logs = []
     with open(log_local_path, encoding="utf-8") as f:
         for line in f:
             if not line_filter(line):
                 continue
             if "process_exe:" in line:
-                if current:
-                    yield current.copy()
-                current = [line]
+                if process_logs:
+                    yield process_logs.copy()
+                process_logs = [line]
                 continue
-            if injector_finished in line:
-                if current:
-                    current.append(line)
-                    yield current.copy()
-                current = []
+            if process_logs and (WLS_ALLOWED_INJECTION in line or WLS_DENIED_INJECTION in line):
+                process_logs.append(line)
+                yield process_logs.copy()
+                process_logs = []
                 continue
-            if current:
-                current.append(line)
+            if "injector finished" in line:
+                process_logs.append(line)
+                yield process_logs.copy()
+                process_logs = []
+                continue
 
 
 def main():
