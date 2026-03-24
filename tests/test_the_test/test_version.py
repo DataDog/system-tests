@@ -343,13 +343,31 @@ def test_semver():
         ("^1.2.3", "1.5.0-alpha", True),
         ("^1.2.3", "1.2.3-alpha", False),
         ("^1.2.3", "2.0.0-alpha", False),
-        # Caret with prerelease target: ^1.2.3-beta means >=1.2.3-beta <2.0.0
+        # Caret with prerelease target: ^1.2.3-beta means >=1.2.3-beta <2.0.0-0
         ("^1.2.3-beta", "1.2.3-alpha", False),
         ("^1.2.3-beta", "1.2.3-beta", True),
         ("^1.2.3-beta", "1.2.3-rc.1", True),
         ("^1.2.3-beta", "1.2.3", True),
         ("^1.2.3-beta", "1.9.9", True),
         ("^1.2.3-beta", "2.0.0", False),
+        # Caret with 0.x: ^0.2.3 means >=0.2.3 <0.3.0-0 (minor is locked)
+        ("^0.2.3", "0.2.3", True),
+        ("^0.2.3", "0.2.9", True),
+        ("^0.2.3", "0.2.3-alpha", False),
+        ("^0.2.3", "0.2.4-alpha", True),
+        ("^0.2.3", "0.3.0", False),
+        ("^0.2.3", "0.3.0-alpha", False),
+        # Caret with 0.0.x: ^0.0.3 means >=0.0.3 <0.0.4-0 (patch is locked)
+        ("^0.0.3", "0.0.3", True),
+        ("^0.0.3", "0.0.3-alpha", False),
+        ("^0.0.3", "0.0.4", False),
+        ("^0.0.3", "0.0.4-alpha", False),
+        # Caret with 0.0.x and prerelease: ^0.0.3-beta means >=0.0.3-beta <0.0.4-0
+        ("^0.0.3-beta", "0.0.3-alpha", False),
+        ("^0.0.3-beta", "0.0.3-beta", True),
+        ("^0.0.3-beta", "0.0.3-rc.1", True),
+        ("^0.0.3-beta", "0.0.3", True),
+        ("^0.0.3-beta", "0.0.4", False),
         # Hyphen ranges: 1.0.0 - 2.0.0 means >=1.0.0 <=2.0.0
         ("1.0.0 - 2.0.0", "1.5.0", True),
         ("1.0.0 - 2.0.0", "1.0.0", True),
