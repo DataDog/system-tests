@@ -3067,6 +3067,8 @@ manifest:
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
+  tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
