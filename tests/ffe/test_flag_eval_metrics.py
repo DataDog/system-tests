@@ -542,12 +542,12 @@ class Test_FFE_Eval_Reason_Disabled:
 #   Error Code             | Test
 #   -----------------------|---------------------------------------------
 #   FLAG_NOT_FOUND         | Test_FFE_Eval_Config_Exists_Flag_Missing
-#   TYPE_MISMATCH          | Test_FFE_Eval_Metric_Type_Mismatch
-#   PARSE_ERROR            | Test_FFE_Eval_Metric_Parse_Error
+#   TYPE_MISMATCH          | Test_FFE_Eval_Metric_Type_Mismatch, Test_FFE_Eval_Metric_Numeric_To_Integer
+#   PARSE_ERROR            | (not tested - no cross-SDK consistent scenario)
 #   GENERAL                | (not tested - catch-all error code)
 #   TARGETING_KEY_MISSING  | Test_FFE_Eval_Targeting_Key_Optional (verifies it's NOT returned; JS excluded)
 #   INVALID_CONTEXT        | Test_FFE_Eval_Invalid_Context_Nested_Attribute (Python only)
-#   PROVIDER_NOT_READY     | Test_FFE_Eval_No_Config_Loaded (TODO: Go returns GENERAL)
+#   PROVIDER_NOT_READY     | Test_FFE_Eval_No_Config_Loaded
 #   PROVIDER_FATAL         | (not tested - requires fatal provider error)
 #
 # INVALID_CONTEXT behavioral differences:
@@ -714,19 +714,12 @@ class Test_FFE_Eval_Metric_Numeric_To_Integer:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-@irrelevant(
-    context.library == "golang", reason="TODO: Go returns GENERAL instead of PROVIDER_NOT_READY for no config loaded"
-)
 class Test_FFE_Eval_No_Config_Loaded:
     """Test that evaluating a flag when no configuration is loaded produces error metrics.
 
-    This is a cross-tracer consistency test. When no FFE configuration has been loaded,
-    tracers should return:
+    When no FFE configuration has been loaded, tracers should return:
     - feature_flag.result.reason = "error"
     - error.type = "provider_not_ready"
-
-    This aligns with Ruby, Java, .NET, JS, and Python which all return PROVIDER_NOT_READY.
-    Go currently returns GENERAL (TODO: fix to align with other SDKs).
     """
 
     def setup_ffe_eval_no_config_loaded(self):
