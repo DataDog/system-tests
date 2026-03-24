@@ -6,6 +6,9 @@ import semantic_version as semver
 from .const import TestDeclaration
 
 
+from semantic_version.base import *
+
+
 # semver module offers two spec engine :
 # 1. SimpleSpec : not a good fit because it does not allows OR clause
 # 2. NpmSpec : not a good fit because it disallow prerelease version by default (6.0.0-pre is not in ">=5.0.0")
@@ -14,6 +17,49 @@ class _CustomParser(semver.NpmSpec.Parser):
     @classmethod
     def range(cls, operator: Any, target: Any) -> semver.base.Range:  # noqa: ANN401
         return semver.base.Range(operator, target, prerelease_policy=semver.base.Range.PRERELEASE_ALWAYS)
+
+    @classmethod
+    def parse(cls, expression):
+        result = Never()
+        groups = expression.split(cls.JOINER)
+        for group in groups:
+            group = group.strip()
+            if not group:
+                group = ">=0.0.0"
+
+            subclauses = []
+            if cls.HYPHEN in group:
+                low, high = group.split(cls.HYPHEN, 2)
+                subclauses = cls.parse_simple(">=" + low) + cls.parse_simple("<=" + high)
+
+            else:
+                blocks = group.split(" ")
+                for block in blocks:
+                    if not cls.NPM_SPEC_BLOCK.match(block):
+                        raise ValueError("Invalid NPM block in %r: %r" % (expression, block))
+
+                    subclauses.extend(cls.parse_simple(block))
+
+            prerelease_clauses = []
+            non_prerel_clauses = []
+            for clause in subclauses:
+                if clause.target.prerelease:
+                    if clause.operator in (Range.OP_GT, Range.OP_GTE):
+                        non_prerel_clauses.append(
+                            cls.range(
+                                operator=Range.OP_GTE,
+                                target=clause.target.truncate(),
+                            )
+                        )
+                    elif clause.operator in (Range.OP_LT, Range.OP_LTE):
+                        non_prerel_clauses.append(clause)
+                else:
+                    non_prerel_clauses.append(clause)
+            if prerelease_clauses:
+                result |= AllOf(*prerelease_clauses)
+            result |= AllOf(*non_prerel_clauses)
+
+        return result
 
 
 class SemverRange(semver.NpmSpec):

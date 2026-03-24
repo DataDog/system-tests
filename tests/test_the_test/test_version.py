@@ -251,3 +251,74 @@ def test_custom_spec():
     check(declaration, "3.4.5", should_be_inside=True)
     check(declaration, "3.9.9", should_be_inside=True)
     check(declaration, "4.0.0", should_be_inside=True)
+
+
+def test_semver():
+    assert ComponentVersion("nodejs", "v2.7.0-rc.4") > ComponentVersion("nodejs", "v2.7.0-dev")
+    assert Version("2.7.0-rc.4") not in CustomSpec("<2.7.0-dev")
+    assert ComponentVersion("nodejs", "v2.7.0-a") < ComponentVersion("nodejs", "v2.7.0-dev")
+    assert Version("2.7.0-rc.4") not in CustomSpec(">2.7.0-dev")
+
+
+@pytest.mark.parametrize(
+    "spec, version, expected",
+    [
+        # Basic operators without prerelease
+        (">1.0.0", "1.0.1", True),
+        (">1.0.0", "1.0.0", False),
+        (">1.0.0", "0.9.9", False),
+        (">=1.0.0", "1.0.0", True),
+        (">=1.0.0", "0.9.9", False),
+        ("<2.0.0", "1.9.9", True),
+        ("<2.0.0", "2.0.0", False),
+        ("<=2.0.0", "2.0.0", True),
+        ("<=2.0.0", "2.0.1", False),
+        # Prereleases should be included in non-prerelease specs
+        (">=1.0.0", "1.0.1-alpha", True),
+        ("<2.0.0", "1.9.9-beta", True),
+        (">1.0.0", "1.0.1-rc.1", True),
+        # GT/GTE with prerelease target: prereleases of the same version are excluded
+        (">2.7.0-dev", "2.7.0", True),
+        (">2.7.0-dev", "2.8.0", True),
+        (">2.7.0-dev", "2.7.0-rc.4", False),
+        (">2.7.0-dev", "2.7.0-alpha", False),
+        (">2.7.0-dev", "2.6.0", False),
+        (">=2.7.0-dev", "2.7.0", True),
+        (">=2.7.0-dev", "2.7.0-rc.4", False),
+        (">=2.7.0-dev", "2.6.9", False),
+        # LT/LTE with prerelease target: alphabetical prerelease comparison
+        ("<2.7.0-dev", "2.7.0-alpha", True),
+        ("<2.7.0-dev", "2.7.0-beta", True),
+        ("<2.7.0-dev", "2.6.0", True),
+        ("<2.7.0-dev", "2.7.0-dev", False),
+        ("<2.7.0-dev", "2.7.0-rc.4", False),
+        ("<2.7.0-dev", "2.7.0", False),
+        ("<=2.7.0-dev", "2.7.0-dev", True),
+        ("<=2.7.0-dev", "2.7.0-alpha", True),
+        ("<=2.7.0-dev", "2.7.0-rc.4", False),
+        # AND clauses (space-separated)
+        (">=1.0.0 <2.0.0", "1.5.0", True),
+        (">=1.0.0 <2.0.0", "2.0.0", False),
+        (">=1.0.0 <2.0.0", "0.9.0", False),
+        (">=1.0.0 <2.0.0", "1.5.0-beta", True),
+        # OR clauses (||)
+        (">=1.0.0 <2.0.0 || >=3.0.0", "1.5.0", True),
+        (">=1.0.0 <2.0.0 || >=3.0.0", "3.0.0", True),
+        (">=1.0.0 <2.0.0 || >=3.0.0", "2.5.0", False),
+        # Caret (^) ranges
+        ("^1.2.3", "1.2.3", True),
+        ("^1.2.3", "1.9.9", True),
+        ("^1.2.3", "1.2.2", False),
+        ("^1.2.3", "2.0.0", False),
+        ("^1.2.3", "1.5.0-alpha", True),
+        # Hyphen ranges
+        ("1.0.0 - 2.0.0", "1.5.0", True),
+        ("1.0.0 - 2.0.0", "1.0.0", True),
+        ("1.0.0 - 2.0.0", "2.0.0", True),
+        ("1.0.0 - 2.0.0", "2.0.1", False),
+        ("1.0.0 - 2.0.0", "0.9.9", False),
+    ],
+)
+def test_semver_ranges(spec, version, expected):
+    result = Version(version) in CustomSpec(spec)
+    assert result == expected, f"Version('{version}') in CustomSpec('{spec}') = {result}, expected {expected}"
