@@ -71,6 +71,7 @@ class V06StatsAggr(TypedDict):
     Type: str
     Service: str
     HTTPStatusCode: int
+    GRPCStatusCode: str
     Synthetics: bool
     Hits: int
     TopLevelHits: int
@@ -131,6 +132,7 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
                 Service=raw_stats["Service"],
                 Type=raw_stats.get("Type"),
                 HTTPStatusCode=raw_stats.get("HTTPStatusCode"),
+                GRPCStatusCode=raw_stats.get("GRPCStatusCode"),
                 Synthetics=raw_stats["Synthetics"],
                 Hits=raw_stats["Hits"],
                 TopLevelHits=raw_stats["TopLevelHits"],

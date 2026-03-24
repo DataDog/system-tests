@@ -527,6 +527,21 @@ class ImageInfo:
         self.name = image_name
         self.local_image_only = local_image_only
 
+    def _pull_with_retries(self, max_retries: int = 4, delay: int = 4):
+        """Pull a docker image with retries on transient errors (500s, timeouts, etc.)."""
+        for attempt in range(max_retries):
+            try:
+                return get_docker_client().images.pull(self.name)
+            except (docker.errors.APIError, requests.exceptions.ConnectionError) as e:
+                if attempt < max_retries - 1:
+                    logger.stdout(f"Failed to pull {self.name} (attempt {attempt + 1}/{max_retries}): {e}")
+                    time.sleep(delay)
+                    delay *= 2
+                else:
+                    raise
+
+        return None  # unreachable, but satisfies linter
+
     def load(self):
         try:
             self._image = get_docker_client().images.get(self.name)
@@ -535,12 +550,7 @@ class ImageInfo:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
-            try:
-                self._image = get_docker_client().images.pull(self.name)
-            except docker.errors.ImageNotFound:
-                # Sometimes pull returns ImageNotFound, internal race?
-                time.sleep(5)
-                self._image = get_docker_client().images.pull(self.name)
+            self._image = self._pull_with_retries()
 
         self._init_from_attrs(self._image.attrs)
 

@@ -1,26 +1,55 @@
 name: Get_target_branch
-description: "Gets target branch from the PR description"
+description: "Gets target branch from the PR description. Supports multiple [lang@branch] pairs."
 inputs:
   text:
     description: "Text from which to extract the target branch"
     required: true
 outputs:
-  target-branch:
-    description: "Target branch"
-    value: ${{ steps.extract.outputs.target-branch }}
+  target-branch-map:
+    description: "JSON map of library to target branch, e.g. {\"java\":\"my-branch\",\"dotnet\":\"other-branch\"}"
+    value: ${{ steps.extract.outputs.target-branch-map }}
+  has-target-branch:
+    description: "Whether any target branch was found"
+    value: ${{ steps.extract.outputs.has-target-branch }}
 
 runs:
   using: composite
   steps:
+    - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      with:
+        python-version: '3.12'
     - name: Extract target branch
       id: extract
-      shell: bash
+      shell: python
       run: |
-        LIBS=$(PYTHONPATH=. python3 utils/const/__main__.py COMPONENT_GROUPS all)
-        branch=$(echo "${INPUTS_TEXT}" | grep -ioP "\[(?:${LIBS}|agent)@[^]]+(?=\])" | tr -d '[:space:]' || true)
+        import json
+        import os
+        import re
+        import subprocess
 
-        echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
+        result = subprocess.run(
+            ["python3", "utils/const/__main__.py", "COMPONENT_GROUPS", "all"],
+            capture_output=True, text=True, env={**os.environ, "PYTHONPATH": "."},
+        )
+        libs = result.stdout.strip().split("|")
+        libs.append("agent")
 
-      # the preferred approach to handling untrusted input is to set the value of the expression to an intermediate environment variable
+        text = os.environ["INPUTS_TEXT"]
+        pattern = re.compile(r"\[([^@\]]+)@([^\]]+)\]", re.IGNORECASE)
+
+        branch_map = {}
+        for match in pattern.finditer(text):
+            lib = match.group(1).lower()
+            branch = match.group(2)
+            if lib in libs:
+                branch_map[lib] = branch
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            if branch_map:
+                f.write(f"target-branch-map={json.dumps(branch_map)}\n")
+                f.write("has-target-branch=true\n")
+            else:
+                f.write("target-branch-map=\n")
+                f.write("has-target-branch=false\n")
       env:
         INPUTS_TEXT: ${{ inputs.text }}
