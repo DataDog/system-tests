@@ -714,19 +714,12 @@ class Test_FFE_Eval_Metric_Parse_Error:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-@irrelevant(
-    context.library == "golang", reason="TODO: Go returns GENERAL instead of PROVIDER_NOT_READY for no config loaded"
-)
 class Test_FFE_Eval_No_Config_Loaded:
     """Test that evaluating a flag when no configuration is loaded produces error metrics.
 
-    This is a cross-tracer consistency test. When no FFE configuration has been loaded,
-    tracers should return:
+    When no FFE configuration has been loaded, tracers should return:
     - feature_flag.result.reason = "error"
     - error.type = "provider_not_ready"
-
-    This aligns with Ruby, Java, .NET, JS, and Python which all return PROVIDER_NOT_READY.
-    Go currently returns GENERAL (TODO: fix to align with other SDKs).
     """
 
     def setup_ffe_eval_no_config_loaded(self):
