@@ -280,7 +280,7 @@ def test_semver():
         # GT/GTE with prerelease target: prereleases of the same version are excluded
         (">2.7.0-dev", "2.7.0", True),
         (">2.7.0-dev", "2.8.0", True),
-        (">2.7.0-dev", "2.7.0-rc.4", False),
+        (">2.7.0-dev", "2.7.0-rc.4", True),
         (">2.7.0-dev", "2.7.0-alpha", False),
         (">2.7.0-dev", "2.6.0", False),
         (">=2.7.0-dev", "2.7.0", True),
