@@ -20,7 +20,7 @@ def make_ufc_fixture(flag_key: str, variant_key: str = "on", variation_type: str
     values: dict[str, dict[str, str | bool | float | int]] = {
         "STRING": {"on": "on-value", "off": "off-value"},
         "BOOLEAN": {"on": True, "off": False},
-        "DOUBLE": {"on": 1.5, "off": 0.0},  # Decimal value for parse_error testing
+        "NUMERIC": {"on": 1.5, "off": 0.0},  # Decimal value for parse_error testing
         "INTEGER": {"on": 42, "off": 0},
     }
     var_values = values[variation_type]
@@ -669,11 +669,8 @@ class Test_FFE_Eval_Metric_Type_Mismatch:
 class Test_FFE_Eval_Metric_Parse_Error:
     """Test that parsing errors produce a metric with parse_error error type.
 
-    This configures a DOUBLE flag with a decimal value (1.5) but evaluates it as INTEGER.
-    In Go, this triggers a parse_error because the float has a decimal part.
-
-    Note: Parse error behavior may vary between tracers. This test documents
-    the expected behavior for cross-tracer consistency.
+    This configures a NUMERIC flag with a decimal value (1.5) but evaluates it as INTEGER.
+    The float-to-integer conversion triggers a parse_error because the decimal part is lost.
     """
 
     def setup_ffe_eval_metric_parse_error(self):
@@ -681,9 +678,8 @@ class Test_FFE_Eval_Metric_Parse_Error:
 
         config_id = "ffe-eval-metric-parse-error"
         self.flag_key = "eval-metric-parse-error-flag"
-        # Flag is configured as DOUBLE with a decimal value (1.5)
         rc.tracer_rc_state.set_config(
-            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, variation_type="DOUBLE")
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, variation_type="NUMERIC")
         ).apply()
 
         # But we evaluate it as INTEGER → parse error (decimal can't convert to int)
