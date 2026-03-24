@@ -263,6 +263,16 @@ def test_semver():
 @pytest.mark.parametrize(
     ("spec", "version", "expected"),
     [
+        # Equality operator
+        ("1.0.0", "1.0.0", True),
+        ("1.0.0", "1.0.1", False),
+        ("1.0.0", "0.9.9", False),
+        ("1.0.0", "1.0.0-alpha", False),
+        ("1.0.0-alpha", "1.0.0-alpha", True),
+        ("1.0.0-alpha", "1.0.0-beta", False),
+        ("1.0.0-alpha", "1.0.0", False),
+        ("1.0.0-alpha.1", "1.0.0-alpha.1", True),
+        ("1.0.0-alpha.1", "1.0.0-alpha.2", False),
         # Basic operators without prerelease
         (">1.0.0", "1.0.1", True),
         (">1.0.0", "1.0.0", False),
