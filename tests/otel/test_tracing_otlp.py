@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
-import time
 import re
-from utils import weblog, interfaces, scenarios, features
+
+from utils import context, features, interfaces, scenarios, weblog
+from utils._context._scenarios.endtoend import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 
 
@@ -13,7 +14,14 @@ from utils.dd_constants import SpanKind, StatusCode
 @scenarios.apm_tracing_otlp
 class Test_Otel_Tracing_OTLP:
     def setup_single_server_trace(self):
-        self.start_time_ns = time.time_ns()
+        # Get the start time of the weblog container in nanoseconds
+        assert isinstance(context.scenario, EndToEndScenario)
+        exit_code, output = context.scenario.weblog_container.execute_command("date -u +%s%N")
+        assert exit_code == 0, f"self.start_time_ns: date -u +%s%N in weblog container failed: {output!r}"
+        stripped = output.strip()
+        assert stripped, f"empty output from date -u +%s%N in weblog container: {output!r}"
+
+        self.start_time_ns = int(stripped)
         self.req = weblog.get("/")
 
     def test_single_server_trace(self):
