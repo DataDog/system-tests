@@ -350,11 +350,25 @@ def test_semver():
         ("1.0.0 - 2.0.0", "1.0.1-alpha", True),
         ("1.0.0 - 2.0.0", "2.0.0-rc.1", True),
         ("1.0.0 - 2.0.0", "2.0.1-alpha", False),
-        # Hyphen with prerelease bounds
+        # Hyphen with prerelease lower bound
         ("1.0.0-beta - 2.0.0", "1.0.0-alpha", False),
         ("1.0.0-beta - 2.0.0", "1.0.0-beta", True),
         ("1.0.0-beta - 2.0.0", "1.0.0-rc.1", True),
         ("1.0.0-beta - 2.0.0", "1.0.0", True),
+        # Hyphen with prerelease upper bound
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0-alpha", True),
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0-rc.1", True),
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0-rc.2", False),
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0", False),
+        ("1.0.0 - 2.0.0-rc.1", "1.9.9", True),
+        # Hyphen with prerelease on both bounds
+        ("1.0.0-alpha - 2.0.0-beta", "1.0.0-alpha", True),
+        ("1.0.0-alpha - 2.0.0-beta", "1.0.0", True),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0-alpha", True),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0-beta", True),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0-rc.1", False),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0", False),
+        ("1.0.0-alpha - 2.0.0-beta", "0.9.9", False),
     ],
 )
 def test_semver_ranges(spec: str, version: str, *, expected: bool) -> None:
