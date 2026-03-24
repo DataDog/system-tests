@@ -666,23 +666,23 @@ class Test_FFE_Eval_Metric_Type_Mismatch:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-class Test_FFE_Eval_Metric_Parse_Error:
-    """Test that parsing errors produce a metric with parse_error error type.
+class Test_FFE_Eval_Metric_Numeric_To_Integer:
+    """Test that evaluating a NUMERIC flag as INTEGER produces type_mismatch error.
 
     This configures a NUMERIC flag with a decimal value (1.5) but evaluates it as INTEGER.
-    The float-to-integer conversion triggers a parse_error because the decimal part is lost.
+    Since NUMERIC and INTEGER are different types, this produces a type_mismatch error.
     """
 
-    def setup_ffe_eval_metric_parse_error(self):
+    def setup_ffe_eval_metric_numeric_to_integer(self):
         rc.tracer_rc_state.reset().apply()
 
-        config_id = "ffe-eval-metric-parse-error"
-        self.flag_key = "eval-metric-parse-error-flag"
+        config_id = "ffe-eval-metric-numeric-to-int"
+        self.flag_key = "eval-metric-numeric-to-int-flag"
         rc.tracer_rc_state.set_config(
             f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, variation_type="NUMERIC")
         ).apply()
 
-        # But we evaluate it as INTEGER → parse error (decimal can't convert to int)
+        # Evaluate NUMERIC flag as INTEGER → type mismatch
         self.r = weblog.post(
             "/ffe",
             json={
@@ -694,8 +694,8 @@ class Test_FFE_Eval_Metric_Parse_Error:
             },
         )
 
-    def test_ffe_eval_metric_parse_error(self):
-        """Test that decimal-to-integer conversion errors produce error.type:parse_error."""
+    def test_ffe_eval_metric_numeric_to_integer(self):
+        """Test that NUMERIC-to-INTEGER evaluation produces error.type:type_mismatch."""
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
@@ -705,10 +705,10 @@ class Test_FFE_Eval_Metric_Parse_Error:
         tags = point.get("tags", [])
 
         assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
-            f"Expected reason 'error' for parse error, got tags: {tags}"
+            f"Expected reason 'error' for type mismatch, got tags: {tags}"
         )
-        assert get_tag_value(tags, "error.type") == "parse_error", (
-            f"Expected error.type 'parse_error', got tags: {tags}"
+        assert get_tag_value(tags, "error.type") == "type_mismatch", (
+            f"Expected error.type 'type_mismatch', got tags: {tags}"
         )
 
 
