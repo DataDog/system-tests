@@ -84,7 +84,7 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
         for command in self.no_language_found_commands:
             local_log_file = self._execute_remote_command(ssh_client, command)
             assert command_injection_skipped(command, local_log_file), (
-                f"The command {command} was instrumented but should be skipped from auto injection!"
+                f"The command '{command}' was allowed by auto injection but should have been denied"
             )
 
     @irrelevant(
@@ -103,7 +103,7 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
         for command in self.commands_excluded_by_workload_policy[language]:
             local_log_file = self._execute_remote_command(ssh_client, command)
             assert command_injection_skipped(command, local_log_file), (
-                f"The command {command} was instrumented but should be denied by workload selection policies!"
+                f"The command '{command}' was allowed by auto injection but should have been denied"
             )
 
     @irrelevant(
@@ -122,5 +122,5 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
         for command in self.commands_not_excluded_by_workload_policy[language]:
             local_log_file = self._execute_remote_command(ssh_client, command)
             assert command_injection_skipped(command, local_log_file) is False, (
-                f"The command {command} was denied by workload selection policies but should be allowed!"
+                f"The command '{command}' was denied by auto injection but should have been allowed"
             )
