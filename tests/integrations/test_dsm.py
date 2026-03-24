@@ -634,7 +634,7 @@ class DsmHelper:
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
-        def _matches(data):
+        def _matches(data: dict) -> bool:
             if data.get("path") != "/api/v0.1/pipeline_stats":
                 return False
             return DsmHelper._data_contains_checkpoint(data, hash_, parent_hash, tags)
