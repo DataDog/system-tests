@@ -83,12 +83,7 @@ def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
                     yield process_logs.copy()
                 process_logs = [line]
                 continue
-            if process_logs and WLS_DENIED_INJECTION in line:
-                process_logs.append(line)
-                yield process_logs.copy()
-                process_logs = []
-                continue
-            if "injector finished" in line:
+            if process_logs and (WLS_DENIED_INJECTION in line or WLS_ALLOWED_INJECTION in line):
                 process_logs.append(line)
                 yield process_logs.copy()
                 process_logs = []
