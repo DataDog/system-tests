@@ -25,6 +25,8 @@ default_subprocess_run_timeout = 300
 
 
 class ParametricScenario(DockerFixturesScenario):
+    """Scenario for running parametric tests against tracer libraries."""
+
     _test_client_factory: ParametricTestClientFactory
 
     class PersistentParametricTestConf(dict):
