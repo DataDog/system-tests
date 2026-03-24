@@ -261,7 +261,7 @@ def test_semver():
 
 
 @pytest.mark.parametrize(
-    "spec, version, expected",
+    ("spec", "version", "expected"),
     [
         # Basic operators without prerelease
         (">1.0.0", "1.0.1", True),
@@ -319,6 +319,6 @@ def test_semver():
         ("1.0.0 - 2.0.0", "0.9.9", False),
     ],
 )
-def test_semver_ranges(spec, version, expected):
+def test_semver_ranges(spec: str, version: str, *, expected: bool) -> None:
     result = Version(version) in CustomSpec(spec)
     assert result == expected, f"Version('{version}') in CustomSpec('{spec}') = {result}, expected {expected}"
