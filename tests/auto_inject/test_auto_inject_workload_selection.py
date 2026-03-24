@@ -49,7 +49,7 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
         "dotnet": [
             "dotnet restore",
             "dotnet build -c Release",
-            "sudo -E dotnet publish",
+            "dotnet publish",
             "MY_ENV_VAR=hello dotnet build -c Release",
         ],
     }
@@ -58,15 +58,15 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
     commands_not_excluded_by_workload_policy = {
         "java": [
             "java -jar myjar.jar",
-            "sudo -E java -jar myjar.jar",
+            "java -jar myjar.jar",
             "version=-version java -jar myjar.jar",
             "java -Dversion=-version -jar myapp.jar",
         ],
         "dotnet": [
             "dotnet run -- -p build",
             "dotnet build.dll -- -p build",
-            "sudo -E dotnet run myapp.dll -- -p build",
-            "sudo dotnet publish",
+            "dotnet run myapp.dll -- -p build",
+            "dotnet publish",
             "MY_ENV_VAR=build dotnet myapp.dll",
         ],
     }
