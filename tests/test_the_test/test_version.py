@@ -284,7 +284,7 @@ def test_semver():
         (">2.7.0-dev", "2.7.0-alpha", False),
         (">2.7.0-dev", "2.6.0", False),
         (">=2.7.0-dev", "2.7.0", True),
-        (">=2.7.0-dev", "2.7.0-rc.4", False),
+        (">=2.7.0-dev", "2.7.0-rc.4", True),
         (">=2.7.0-dev", "2.6.9", False),
         # LT/LTE with prerelease target: alphabetical prerelease comparison
         ("<2.7.0-dev", "2.7.0-alpha", True),
