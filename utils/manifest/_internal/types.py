@@ -6,7 +6,7 @@ import semantic_version as semver
 from .const import TestDeclaration
 
 
-from semantic_version.base import AllOf, Never, Range
+from semantic_version.base import AllOf, Never
 
 
 # semver module offers two spec engine :
@@ -36,16 +36,7 @@ class _CustomParser(semver.NpmSpec.Parser):
                         raise ValueError(f"Invalid NPM block in {expression!r}: {block!r}")
                     subclauses.extend(cls.parse_simple(block))
 
-            non_prerel_clauses = []
-            for clause in subclauses:
-                if clause.target.prerelease:
-                    if clause.operator in (Range.OP_GT, Range.OP_GTE):
-                        non_prerel_clauses.append(cls.range(operator=Range.OP_GTE, target=clause.target.truncate()))
-                    elif clause.operator in (Range.OP_LT, Range.OP_LTE):
-                        non_prerel_clauses.append(clause)
-                else:
-                    non_prerel_clauses.append(clause)
-            result |= AllOf(*non_prerel_clauses)
+            result |= AllOf(*subclauses)
 
         return result
 
