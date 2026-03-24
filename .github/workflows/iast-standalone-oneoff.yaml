@@ -8,7 +8,7 @@ permissions:
   contents: read
   packages: read
 env:
-  JOB_COUNT: "10"
+  JOB_COUNT: "100"
   LIBRARY: python
   RUNS_PER_JOB: "10"
   SCENARIO: DEFAULT
@@ -88,7 +88,7 @@ jobs:
             echo "::group::Runner ${{ matrix.n }} attempt ${attempt}"
             rm -rf logs_iast_standalone
 
-            if ./run.sh "${{ env.SCENARIO }}" tests/appsec/iast/sink; then
+            if ./run.sh "${{ env.SCENARIO }}" tests/appsec/iast; then
               echo "Attempt ${attempt} passed"
             else
               DEST="workflow-artifacts/logs_iast_standalone_job_${{ matrix.n }}_attempt_${attempt}"
