@@ -2,7 +2,6 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
@@ -10,7 +9,7 @@
         "_dd.p.tid": "<scrubbed>",
         "component": "spring-web-controller",
         "env": "system-tests",
-        "error.debug_info_captured": "true",
+        "error.debug_info_captured": true,
         "error.message": "500 INTERNAL_SERVER_ERROR \"Simple exception\"",
         "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"Simple exception\"\n\tat com.datadoghq.system_te<scrubbed>",
         "error.type": "org.springframework.web.server.ResponseStatusException",
@@ -18,8 +17,6 @@
         "key2": "val2",
         "language": "jvm",
         "span.kind": "server",
-        "thread.id": "<scrubbed>",
-        "thread.name": "<scrubbed>",
         "version": "<scrubbed>"
       },
       "componentRef": "spring-web-controller",
