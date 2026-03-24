@@ -257,7 +257,7 @@ def test_semver():
     assert ComponentVersion("nodejs", "v2.7.0-rc.4") > ComponentVersion("nodejs", "v2.7.0-dev")
     assert Version("2.7.0-rc.4") not in CustomSpec("<2.7.0-dev")
     assert ComponentVersion("nodejs", "v2.7.0-a") < ComponentVersion("nodejs", "v2.7.0-dev")
-    assert Version("2.7.0-rc.4") in CustomSpec(">2.7.0-dev")
+    assert Version("2.7.0-a") not in CustomSpec(">2.7.0-dev")
 
 
 @pytest.mark.parametrize(
