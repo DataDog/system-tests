@@ -532,7 +532,7 @@ class ImageInfo:
         """Pull a docker image with retries on transient errors (500s, timeouts, etc.)."""
         for attempt in range(max_retries):
             try:
-                kwargs = {}
+                kwargs: dict[str, str] = {}
                 if sys.platform == "darwin" and platform.machine() == "arm64":
                     kwargs["platform"] = "linux/amd64"
                 return get_docker_client().images.pull(self.name, **kwargs)
