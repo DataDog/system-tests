@@ -166,4 +166,3 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             # Reduce telemetry intervals for faster metric reporting in tests
             self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = "1"
             self.environment["DD_TELEMETRY_METRICS_INTERVAL"] = "1"
-            self.environment["DD_TRACE_DEBUG"] = "true"
