@@ -867,7 +867,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -881,7 +881,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
