@@ -202,8 +202,12 @@ class Test_Baggage_Headers_Max_Bytes:
 # Note: This currently relies on DD_TRACE_OTEL_ENABLED=true
 @scenarios.tracing_config_nondefault_4
 @features.datadog_baggage_headers
-@irrelevant(context.library == "php" and "-8.0" in context.weblog_variant, reason="OTel baggage is not supported on PHP < 8.1")
-@irrelevant(context.library == "php" and "-7." in context.weblog_variant, reason="OTel baggage is not supported on PHP < 8.1")
+@irrelevant(
+    context.library == "php" and "-8.0" in context.weblog_variant, reason="OTel baggage is not supported on PHP < 8.1"
+)
+@irrelevant(
+    context.library == "php" and "-7." in context.weblog_variant, reason="OTel baggage is not supported on PHP < 8.1"
+)
 class Test_Baggage_Headers_Api_OTel:
     def setup_otel_api_update(self):
         self.r = _setup_baggage_api_request("/otel_drop_in_baggage_api_otel")
