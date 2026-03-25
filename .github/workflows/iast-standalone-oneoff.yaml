@@ -13,7 +13,7 @@ env:
   RUNS_PER_JOB: "10"
   SCENARIO: DEFAULT
   WEBLOG: uwsgi-poc
-  DDPY_BRANCH: florentin.labelle/fix-unvalidated-redirect
+  DDPY_BRANCH: b1b15979fcf66cfc5bd3a73de61846315b6b5525
 jobs:
   generate-matrix:
     runs-on: ubuntu-latest
