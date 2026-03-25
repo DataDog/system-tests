@@ -273,6 +273,21 @@ def test_semver():
         ("1.0.0-alpha", "1.0.0", False),
         ("1.0.0-alpha.1", "1.0.0-alpha.1", True),
         ("1.0.0-alpha.1", "1.0.0-alpha.2", False),
+        # Build metadata ignored in precedence (semver rule 11.1)
+        ("1.0.0", "1.0.0+build123", True),
+        (">=1.0.0", "1.0.0+build", True),
+        (">0.9.0", "1.0.0+build", True),
+        ("<2.0.0", "1.0.0+build", True),
+        (">1.0.0", "1.0.0+build", False),
+        ("1.0.0", "1.0.0+other", True),
+        (">=1.0.0-alpha", "1.0.0-alpha+build", True),
+        ("<1.0.0", "1.0.0-alpha+build", True),
+        ("^1.2.3", "1.5.0+build", True),
+        ("1.0.0 - 2.0.0", "1.5.0+build", True),
+        # Build metadata in the range spec is also ignored
+        (">=1.0.0+build", "1.0.0", True),
+        (">=1.0.0+build", "1.0.0+other", True),
+        ("<2.0.0+build", "1.9.9", True),
         # Basic operators without prerelease
         (">1.0.0", "1.0.1", True),
         (">1.0.0", "1.0.0", False),
