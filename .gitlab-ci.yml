@@ -43,9 +43,11 @@ compute_pipeline:
           export scenarios=$SYSTEM_TESTS_SCENARIOS
           export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
           cd /system-tests
+          echo "====================DD_TRACE_JAVA TEST MARKER: requested SYSTEM_TESTS_REF=${SYSTEM_TESTS_REF:-unset}===================="
           git pull
           if [ -n "$SYSTEM_TESTS_REF" ]; then
             git checkout $SYSTEM_TESTS_REF
+            echo "====================DD_TRACE_JAVA TEST MARKER: checked out HEAD=$(git rev-parse HEAD)===================="
           else
             echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
           fi
