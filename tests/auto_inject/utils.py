@@ -95,9 +95,13 @@ class AutoInjectBaseTest:
         if meta.get("appsec.event") == "true":
             return True
 
-        # Backend traces can expose AppSec detections through structured payloads
-        # even when the legacy appsec.event tag is not present.
-        appsec_payload = meta.get("_dd.appsec.json") or meta_struct.get("appsec")
+        meta_appsec = meta.get("_dd.appsec.json")
+        metastruct_appsec = meta_struct.get("appsec")
+        if meta_appsec and metastruct_appsec:
+            logger.error("expected a single AppSec payload carrier but found both meta and meta_struct payloads")
+            return False
+
+        appsec_payload = metastruct_appsec if metastruct_appsec else meta_appsec
         if isinstance(appsec_payload, str):
             try:
                 appsec_payload = json.loads(appsec_payload)
