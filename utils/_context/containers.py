@@ -531,7 +531,7 @@ class ImageInfo:
         """Pull a docker image with retries on transient errors (500s, timeouts, etc.)."""
         for attempt in range(max_retries):
             try:
-                return get_docker_client().images.pull(self.name)
+                return get_docker_client().images.pull(self.name, platform="linux/amd64")
             except (docker.errors.APIError, requests.exceptions.ConnectionError) as e:
                 if attempt < max_retries - 1:
                     logger.stdout(f"Failed to pull {self.name} (attempt {attempt + 1}/{max_retries}): {e}")
