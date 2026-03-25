@@ -1035,6 +1035,7 @@ manifest:
     - weblog_declaration:
         uds: missing_feature
         poc: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (.NET sets Service per-bucket via StatsAggregationKey, not at payload level)
   tests/stats/test_stats.py::Test_Peer_Tags:  # Created by easy win activation script
     - weblog_declaration:
         uds: missing_feature
