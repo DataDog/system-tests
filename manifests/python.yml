@@ -1726,7 +1726,6 @@ manifest:
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.8.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v4.7.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: bug (APMAPI-1869)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: v2.8.0
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
