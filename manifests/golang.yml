@@ -1507,5 +1507,5 @@ manifest:
         '*': missing_feature
         net-http: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
-  tests/test_v1_payloads.py::Test_V1PayloadByDefault: v2.7.0
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (not implemented by default yet)
   tests/test_v1_payloads.py::Test_V1Payloads: v2.7.0
