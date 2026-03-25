@@ -224,7 +224,7 @@ class Test_Defaults:
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True, "structured")),
             ("trace_header_tags", ""),
-            ("trace_tags", ""),
+            ("trace_tags", "_dd.svc_src:m", ""),
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
