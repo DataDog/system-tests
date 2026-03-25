@@ -29,7 +29,6 @@
       "message": "OK"
     },
     "headers": {
-      "content-encoding": "gzip",
       "content-type": "application/vnd.api+json",
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
@@ -43,6 +42,6 @@
       "x-ratelimit-reset": "22",
       "x-ratelimit-name": "ai_guard_evaluate_per_org"
     },
-    "body": "{\"data\":{\"id\":\"21df3f84-982c-43f5-a168-d5adf68dba3e\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"sds_findings\":[{\"rule_display_name\":\"Standard Email Address Scanner\",\"rule_tag\":\"email_address\",\"category\":\"email_address\",\"matched_text\":\"john.smith@acmebank.com\",\"location\":{\"path\":\"messages[0].content\",\"start_index\":35,\"end_index_exclusive\":58}},{\"rule_display_name\":\"US Social Security Number Scanner\",\"rule_tag\":\"us_ssn\",\"category\":\"pii\",\"matched_text\":\"456-78-9012\",\"location\":{\"path\":\"messages[0].content\",\"start_index\":73,\"end_index_exclusive\":84}}],\"tag_probs\":{\"authority-override\":1.9361263070560852e-7,\"data-exfiltration\":0.008578038945358801,\"denial-of-service-tool-call\":9.088342229901514e-7,\"destructive-tool-call\":1.9361263070560852e-7,\"indirect-prompt-injection\":1.9361263070560852e-7,\"instruction-override\":1.9361263070560852e-7,\"jailbreak\":4.3201989441410404e-7,\"obfuscation\":3.12816276770711e-7,\"role-play\":0,\"security-exploit\":0,\"system-prompt-extraction\":0.00001676278181728108},\"tags\":[]}}}"
+    "body": "{\"data\":{\"id\":\"3cb5f17b-b7d8-49f4-9bac-cc3f49c22960\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"sds_findings\":[{\"rule_display_name\":\"Standard Email Address Scanner\",\"rule_tag\":\"email_address\",\"category\":\"email_address\",\"location\":{\"path\":\"messages[0].content\",\"start_index\":35,\"end_index_exclusive\":58}},{\"rule_display_name\":\"US Social Security Number Scanner\",\"rule_tag\":\"us_ssn\",\"category\":\"pii\",\"location\":{\"path\":\"messages[0].content\",\"start_index\":73,\"end_index_exclusive\":84}}],\"tag_probs\":{\"authority-override\":1.9361263070560852e-7,\"data-exfiltration\":0.022978067534292212,\"denial-of-service-tool-call\":4.3201989441410404e-7,\"destructive-tool-call\":1.9361263070560852e-7,\"indirect-prompt-injection\":1.9361263070560852e-7,\"instruction-override\":0,\"jailbreak\":6.704270871793483e-7,\"obfuscation\":5.512234979576647e-7,\"role-play\":0,\"security-exploit\":0,\"system-prompt-extraction\":0.000058363296655428165},\"tags\":[]}}}"
   }
 }
