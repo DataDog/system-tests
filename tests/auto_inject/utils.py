@@ -1,3 +1,4 @@
+import json
 import time
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -81,6 +82,7 @@ class AutoInjectBaseTest:
         root_span = trace_data["trace"]["spans"][root_id]
 
         meta = root_span.get("meta", {})
+        meta_struct = root_span.get("meta_struct", {})
         metrics = root_span.get("metrics", {})
 
         if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
@@ -89,6 +91,23 @@ class AutoInjectBaseTest:
                 metrics.get("_dd.appsec.enabled"),
             )
             return False
+
+        if meta.get("appsec.event") == "true":
+            return True
+
+        # Backend traces can expose AppSec detections through structured payloads
+        # even when the legacy appsec.event tag is not present.
+        appsec_payload = meta.get("_dd.appsec.json") or meta_struct.get("appsec")
+        if isinstance(appsec_payload, str):
+            try:
+                appsec_payload = json.loads(appsec_payload)
+            except json.JSONDecodeError:
+                logger.error("failed to decode AppSec payload from backend trace: %s", appsec_payload)
+                return False
+
+        if appsec_payload and appsec_payload.get("triggers"):
+            logger.info("AppSec payload found in backend trace without legacy 'appsec.event' tag")
+            return True
 
         if "appsec.event" not in meta or meta["appsec.event"] != "true":
             logger.error("expected 'appsec.event' to be true in trace meta but found %s", meta.get("appsec.event"))
