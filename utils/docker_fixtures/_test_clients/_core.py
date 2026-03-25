@@ -90,6 +90,18 @@ class TestClientFactory:
             )
 
             if p.returncode != 0:
+                with Path(log_path).open() as f:
+                    lines = f.readlines()
+
+                TAIL_LIMIT = 50  # noqa: N806
+                SEP = "=" * 30  # noqa: N806
+
+                logger.stdout(f"\n{SEP} {log_path} last {TAIL_LIMIT} lines {SEP}")
+                logger.stdout("")
+                # print last <tail> lines in stdout
+                logger.stdout("".join(lines[-TAIL_LIMIT:]))
+                logger.stdout("")
+
                 pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
 
             # Sanity checks
