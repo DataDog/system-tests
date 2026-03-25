@@ -65,7 +65,7 @@ composer install --prefer-dist
 # DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
 # with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
-    composer require "open-telemetry/sdk" --prefer-dist --no-interaction
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
 fi
 
 # Set proper permissions

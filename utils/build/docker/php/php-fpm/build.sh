@@ -64,7 +64,7 @@ composer install --prefer-dist
 # with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
 PHP_MINOR_VERSION=$(echo $PHP_VERSION | cut -d. -f2)
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
-    composer require "open-telemetry/sdk" --prefer-dist --no-interaction
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
 fi
 
 # Set proper permissions

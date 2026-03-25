@@ -30,9 +30,9 @@ if ($baggage_set !== null) {
     }
 }
 
-$scope = $builder->build()->activate();
-
+$scope = null;
 try {
+    $scope = $builder->build()->activate();
     $ch = curl_init($url);
 
     $response_headers_array = [];
@@ -75,5 +75,7 @@ try {
         'response_headers' => $response_headers_array,
     ]);
 } finally {
-    $scope->detach();
+    if ($scope !== null) {
+        $scope->detach();
+    }
 }
