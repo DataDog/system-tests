@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import stat
 import sys
@@ -531,7 +532,10 @@ class ImageInfo:
         """Pull a docker image with retries on transient errors (500s, timeouts, etc.)."""
         for attempt in range(max_retries):
             try:
-                return get_docker_client().images.pull(self.name)
+                kwargs: dict[str, str] = {}
+                if sys.platform == "darwin" and platform.machine() == "arm64":
+                    kwargs["platform"] = "linux/amd64"
+                return get_docker_client().images.pull(self.name, **kwargs)
             except (docker.errors.APIError, requests.exceptions.ConnectionError) as e:
                 if attempt < max_retries - 1:
                     logger.stdout(f"Failed to pull {self.name} (attempt {attempt + 1}/{max_retries}): {e}")
