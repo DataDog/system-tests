@@ -1,4 +1,3 @@
-import json
 import time
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -102,13 +101,6 @@ class AutoInjectBaseTest:
             return False
 
         appsec_payload = metastruct_appsec if metastruct_appsec else meta_appsec
-        if isinstance(appsec_payload, str):
-            try:
-                appsec_payload = json.loads(appsec_payload)
-            except json.JSONDecodeError:
-                logger.error("failed to decode AppSec payload from backend trace: %s", appsec_payload)
-                return False
-
         if appsec_payload and appsec_payload.get("triggers"):
             logger.info("AppSec payload found in backend trace without legacy 'appsec.event' tag")
             return True
