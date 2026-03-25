@@ -588,17 +588,17 @@ class Test_FFE_Eval_Reason_Disabled:
 #   PARSE_ERROR            | Test_FFE_Eval_Metric_Parse_Error
 #   GENERAL                | (not tested - catch-all error code)
 #   TARGETING_KEY_MISSING  | Test_FFE_Eval_Targeting_Key_Optional (verifies it's NOT returned; JS excluded)
-#   INVALID_CONTEXT        | Test_FFE_Eval_Invalid_Context_Nested_Attribute (Python only)
+#   INVALID_CONTEXT        | (not tested - per OF.3, nested attrs should be ignored, not error)
 #   PROVIDER_NOT_READY     | Test_FFE_Eval_No_Config_Loaded
 #   PROVIDER_FATAL         | (not tested - requires fatal provider error)
 #
-# INVALID_CONTEXT behavioral differences:
-#   - Python: Returns for nested dict/list attributes (PyO3 conversion failure)
-#   - Go: Flattens nested objects to dot notation instead
-#   - Ruby: Silently skips unsupported attribute types
-#   - Java: Returns only for null context, not nested attributes
-#   - .NET: Relies on native library; not yet standardized
-#   - JS: Does not use INVALID_CONTEXT at all
+# Note on INVALID_CONTEXT and nested attributes:
+#   Per FFE SDK requirements (OF.3): "Evaluation of nested attributes (arrays and maps)
+#   is currently not defined. SDKs must ignore such attributes. Passing nested
+#   attributes must not raise an error."
+#
+#   Therefore, Test_FFE_Eval_Nested_Attributes_Ignored verifies that nested attributes
+#   do NOT produce INVALID_CONTEXT error - they should be silently ignored.
 #
 # =============================================================================
 
@@ -926,47 +926,39 @@ class Test_FFE_Eval_Targeting_Key_Optional:
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
 @irrelevant(
+    context.library == "python",
+    reason="Python returns INVALID_CONTEXT for nested attributes (FFL-1980). Should be fixed to silently ignore per OF.3.",
+)
+@irrelevant(
     context.library == "golang",
-    reason="Go flattens nested attributes to dot notation instead of returning INVALID_CONTEXT",
+    reason="Go transforms nested attributes to dot notation (FFL-1980). Should be fixed to silently ignore per OF.3.",
 )
-@irrelevant(
-    context.library == "ruby",
-    reason="Ruby silently skips unsupported attribute types instead of returning INVALID_CONTEXT",
-)
-@irrelevant(
-    context.library == "java", reason="Java uses INVALID_CONTEXT only for null context, not for nested attributes"
-)
-@irrelevant(
-    context.library == "dotnet", reason=".NET INVALID_CONTEXT behavior for nested attributes is not yet standardized"
-)
-@irrelevant(context.library == "nodejs", reason="JS SDK does not use INVALID_CONTEXT error code")
-class Test_FFE_Eval_Invalid_Context_Nested_Attribute:
-    """Test that nested/unsupported attribute types produce error.type=invalid_context.
+class Test_FFE_Eval_Nested_Attributes_Ignored:
+    """Test that nested attributes are ignored without raising an error (OF.3).
 
-    The datadog-ffe native library (used by Python) only supports primitive attribute types:
-    str, int, float, bool, and None. Nested objects (dicts) and lists are NOT
-    supported and will trigger an INVALID_CONTEXT error.
+    Per FFE SDK requirements (OF.3):
+    "Evaluation of nested attributes (arrays and maps) is currently not defined.
+    SDKs must ignore such attributes. Passing nested attributes must not raise an error."
 
-    Behavioral differences across SDKs for nested attributes:
-    - Python: Returns INVALID_CONTEXT (PyO3 conversion failure)
-    - Go: Flattens to dot notation (e.g., {"a": {"b": 1}} → {"a.b": 1})
-    - Ruby: Silently skips unsupported attribute types
-    - Java: Uses INVALID_CONTEXT only for null context, not nested attributes
-    - .NET: Relies on native library; behavior not yet standardized
-    - JS: Does not use INVALID_CONTEXT at all
+    This test verifies that passing nested attributes:
+    1. Does NOT produce an error (no INVALID_CONTEXT)
+    2. Evaluation proceeds normally with nested attributes ignored
 
-    This test currently only runs for Python.
+    SDK compliance status:
+    - Ruby: Compliant (silently filters nested attributes in C extension)
+    - Python: Non-compliant (returns INVALID_CONTEXT) - tracked in FFL-1980
+    - Go: Non-compliant (transforms to dot notation) - tracked in FFL-1980
+    - Java, .NET, JS: TBD
     """
 
-    def setup_ffe_eval_invalid_context_nested_attribute(self):
+    def setup_ffe_eval_nested_attributes_ignored(self):
         rc.tracer_rc_state.reset().apply()
 
-        config_id = "ffe-invalid-context"
-        self.flag_key = "invalid-context-flag"
+        config_id = "ffe-nested-attrs"
+        self.flag_key = "nested-attrs-flag"
         rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        # Pass a nested dict as an attribute value - this should trigger INVALID_CONTEXT
-        # The native library only supports: str, int, float, bool, None
+        # Pass a nested dict as an attribute value - this should be IGNORED, not error
         self.r = weblog.post(
             "/ffe",
             json={
@@ -974,27 +966,30 @@ class Test_FFE_Eval_Invalid_Context_Nested_Attribute:
                 "variationType": "STRING",
                 "defaultValue": "default",
                 "targetingKey": "user-1",
-                "attributes": {"nested": {"inner": "value"}},  # Nested dict - not supported
+                "attributes": {"nested": {"inner": "value"}, "flat": "value"},  # Nested dict should be ignored
             },
         )
 
-    def test_ffe_eval_invalid_context_nested_attribute(self):
-        """Test that nested attribute values produce error.type=invalid_context."""
+    def test_ffe_eval_nested_attributes_ignored(self):
+        """Test that nested attributes are ignored and evaluation succeeds (OF.3)."""
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
-        assert len(metrics) > 0, (
-            f"Expected metric for flag '{self.flag_key}' with invalid context, found none. All: {find_eval_metrics()}"
-        )
+        assert len(metrics) > 0, f"Expected metric for flag '{self.flag_key}', found none. All: {find_eval_metrics()}"
 
         point = metrics[0]
         tags = point.get("tags", [])
 
-        assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
-            f"Expected reason 'error' for invalid context, got tags: {tags}"
+        # Per OF.3: Passing nested attributes must NOT raise an error
+        reason = get_tag_value(tags, "feature_flag.result.reason")
+        assert reason != "error", (
+            f"Expected successful evaluation (nested attrs should be ignored per OF.3), but got error. Tags: {tags}"
         )
-        assert get_tag_value(tags, "error.type") == "invalid_context", (
-            f"Expected error.type 'invalid_context' for nested attribute, got tags: {tags}"
+
+        # Should not have INVALID_CONTEXT error
+        error_type = get_tag_value(tags, "error.type")
+        assert error_type is None or error_type != "invalid_context", (
+            f"Got INVALID_CONTEXT error but nested attributes should be ignored per OF.3. Tags: {tags}"
         )
 
 
