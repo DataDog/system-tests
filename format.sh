@@ -29,14 +29,16 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [ ! -d "venv/" ]; then
-  echo "Runner is not installed, installing it (ETA 60s)"
-  ./build.sh -i runner
-elif ! diff requirements.txt venv/requirements.txt; then
-  ./build.sh -i runner
-fi
+if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+  if [ ! -d "venv/" ]; then
+    echo "Runner is not installed, installing it (ETA 60s)"
+    ./build.sh -i runner
+  elif ! diff requirements.txt venv/requirements.txt; then
+    ./build.sh -i runner
+  fi
 
-source venv/bin/activate
+  source venv/bin/activate
+fi
 
 echo "Running mypy type checks..."
 if ! mypy --config pyproject.toml; then
@@ -113,8 +115,31 @@ if ! which yamlfmt > /dev/null; then
     *) echo "Unsupported architecture"; return 1 ;;
   esac
 
+  YAMLFMT_SHA256=""
+  case "${YAMLFMT_OS}_${YAMLFMT_ARCH}" in
+    Darwin_arm64)   YAMLFMT_SHA256="fcffb2efdfdd27fb5bb658a8156972fda14f0864f336c181705b98eee5f6c139" ;;
+    Darwin_x86_64)  YAMLFMT_SHA256="740d23864fffcf1865a9e0a221840baae6b5f40b8a20ad2d5e79c1b9de9eaec7" ;;
+    Linux_arm64)    YAMLFMT_SHA256="208b9c0c4e67472e5205d3f826205b2f20da59a180b548cff02621401355bead" ;;
+    Linux_i386)     YAMLFMT_SHA256="1c20a6a7ca58736ba10e5c4fc02743d1163815d38e5332872033e775f9f048a1" ;;
+    Linux_x86_64)   YAMLFMT_SHA256="7819fa7c7e994d239009d30cbd58897149d7e7dd5847aedf7abd19c332298033" ;;
+    Windows_arm64)  YAMLFMT_SHA256="1adc6fa71e6e2fad3da09df409e2454e96a5c4a61a8669a6ae4023c163fc2a14" ;;
+    Windows_i386)   YAMLFMT_SHA256="de013077d923d9064cdd1ffedfd6d56274271772007fe214c6db7afdf571228d" ;;
+    Windows_x86_64) YAMLFMT_SHA256="dea055eb85a30d923850e46b462bb5f0e8f3ca9aee3b33b76a55f22995224e1b" ;;
+    *) echo "No known checksum for ${YAMLFMT_OS}_${YAMLFMT_ARCH}"; return 1 ;;
+  esac
+
   YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
-  curl -Lo "$PWD"/venv/bin/yamlfmt.tar.gz $YAMLFMT_URL
+  curl -Lo "$PWD"/venv/bin/yamlfmt.tar.gz "$YAMLFMT_URL"
+
+  # Validate checksum of downloaded archive
+  if command -v sha256sum > /dev/null; then
+    echo "$YAMLFMT_SHA256 *$PWD/venv/bin/yamlfmt.tar.gz" | sha256sum --check --strict
+  elif command -v shasum > /dev/null; then
+    echo "$YAMLFMT_SHA256 *$PWD/venv/bin/yamlfmt.tar.gz" | shasum -a 256 --check --strict
+  else
+    echo "ERROR: no sha256sum or shasum found, cannot verify download"; return 1
+  fi
+
   tar -xzf "$PWD"/venv/bin/yamlfmt.tar.gz -C "$PWD"/venv/bin/
   chmod +x "$PWD"/venv/bin/yamlfmt
 fi

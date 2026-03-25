@@ -1,0 +1,47 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "6.0.0-pre",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "nodejs",
+      "x-datadog-trace-id": "4374284661704588420",
+      "x-datadog-parent-id": "3930222335565331741",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.tid=69b2c74200000000,_dd.p.dm=-1",
+      "traceparent": "00-69b2c742000000003cb494b94f577c84-368af46417ad7d1d-01",
+      "tracestate": "dd=t.tid:69b2c74200000000;t.dm:-1;s:1;p:368af46417ad7d1d",
+      "Accept": "*/*",
+      "Accept-Language": "*",
+      "sec-fetch-mode": "cors",
+      "User-Agent": "node",
+      "Accept-Encoding": "gzip, deflate",
+      "Content-Length": "229"
+    },
+    "body": "{\"data\":{\"attributes\":{\"messages\":[{\"role\":\"user\",\"content\":\"My name is John Smith, my email is john.smith@acmebank.com and my SSN is 456-78-9012. Can you look up my account?\"}],\"meta\":{\"service\":\"weblog\",\"env\":\"system-tests\"}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "601",
+      "date": "Thu, 12 Mar 2026 14:01:39 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "x-ratelimit-limit": "2000",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "1993",
+      "x-ratelimit-reset": "22",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org"
+    },
+    "body": "{\"data\":{\"id\":\"3cb5f17b-b7d8-49f4-9bac-cc3f49c22960\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"sds_findings\":[{\"rule_display_name\":\"Standard Email Address Scanner\",\"rule_tag\":\"email_address\",\"category\":\"email_address\",\"location\":{\"path\":\"messages[0].content\",\"start_index\":35,\"end_index_exclusive\":58}},{\"rule_display_name\":\"US Social Security Number Scanner\",\"rule_tag\":\"us_ssn\",\"category\":\"pii\",\"location\":{\"path\":\"messages[0].content\",\"start_index\":73,\"end_index_exclusive\":84}}],\"tag_probs\":{\"authority-override\":1.9361263070560852e-7,\"data-exfiltration\":0.022978067534292212,\"denial-of-service-tool-call\":4.3201989441410404e-7,\"destructive-tool-call\":1.9361263070560852e-7,\"indirect-prompt-injection\":1.9361263070560852e-7,\"instruction-override\":0,\"jailbreak\":6.704270871793483e-7,\"obfuscation\":5.512234979576647e-7,\"role-play\":0,\"security-exploit\":0,\"system-prompt-extraction\":0.000058363296655428165},\"tags\":[]}}}"
+  }
+}

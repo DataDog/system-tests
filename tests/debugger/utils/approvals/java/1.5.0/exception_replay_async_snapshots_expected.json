@@ -15,7 +15,7 @@
           "message": "500 INTERNAL_SERVER_ERROR \"Async exception\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.lambda$asyncThrow$0",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.lambda$asyncThrow$0",
               "lineNumber": 75
             },
             {
@@ -34,12 +34,12 @@
       "location": {
         "lines": [],
         "method": "lambda$asyncThrow$0",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.lambda$asyncThrow$0",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.lambda$asyncThrow$0",
         "lineNumber": 75
       },
       {

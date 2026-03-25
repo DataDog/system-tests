@@ -12,12 +12,14 @@ from utils import scenarios
 default_libs_with_prod = [
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "envoy",
     "golang",
     "haproxy",
     "java",
+    "java_lambda",
     "nodejs",
     "otel_collector",
     "php",
@@ -28,18 +30,20 @@ default_libs_with_prod = [
 default_libs_with_dev = [
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "envoy",
     "golang",
     "haproxy",
     "java",
+    "java_lambda",
     "nodejs",
     "php",
     "python",
     "python_lambda",
     "ruby",
-    "rust",
+    # "rust",
 ]
 default_otel_libs = ["java_otel", "python_otel"]
 
@@ -259,6 +263,20 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_sub_utils_folder(self):
+        """Checks that if a file inside ./tests/xx/utils/ folder is modified, then all files ./tests/xx/test_stuff.py will be executed"""
+
+        inputs = build_inputs(["tests/schemas/utils/core.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,TRACE_STATS_COMPUTATION",
+            "",
+        )
+
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_library_tag(self):
         inputs = build_inputs(["utils/build/docker/java/test.Dockerfile"])
@@ -320,9 +338,9 @@ class Test_ComputeLibrariesAndScenarios:
 
         assert_github_processor(
             inputs,
-            ["python_lambda"],
-            ["python_lambda"],
-            600,
+            ["java_lambda", "python_lambda"],
+            ["java_lambda", "python_lambda"],
+            3600,
             "true",
             "DEFAULT",
             "lambda_end_to_end",

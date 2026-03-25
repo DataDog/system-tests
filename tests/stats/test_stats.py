@@ -1,5 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, logger
+from utils import features, interfaces, logger, scenarios, weblog
 
 """
 Test scenarios we want:
@@ -22,6 +22,10 @@ Config:
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
+    # The resource for the /stats-unique route differ between weblogs.
+    # We use this list to match all requests to this route regardless of the weblog.
+    STATS_UNIQUE_RESOURCES = ["GET /stats-unique", "GET stats-unique", "__main__.StatsUniqueHandler"]
+
     def setup_client_stats(self):
         for _ in range(5):
             weblog.get("/stats-unique")
@@ -34,7 +38,7 @@ class Test_Client_Stats:
         ok_top_hits = 0
         no_content_hits = 0
         no_content_top_hits = 0
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
@@ -85,15 +89,48 @@ class Test_Client_Stats:
         assertions to `test_client_stats` method.
         """
         root_found = False
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             if s["SpanKind"] == "server":
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
+
+    def setup_top_level_service(self):
+        weblog.get("/")
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_top_level_service(self):
+        """Test that the top-level Service field in the stats payload matches the configured base service"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        for stats_request in stats_requests:
+            payload = stats_request["request"]["content"]
+            service = payload.get("Service")
+            assert service == "weblog", f"Expected top-level Service to be 'weblog', got: {service!r}"
 
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Client-side stats should be disabled by default"
+
+    def setup_grpc_status_code(self):
+        self.grpc_request = weblog.grpc("grpc stats")
+
+    def test_grpc_status_code(self):
+        grpc_stats = []
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "rpc" and stat.get("SpanKind") == "server":
+                        grpc_stats.append(stat)
+
+        assert grpc_stats, "Expected at least one gRPC stats entry in the v0.6/stats payload"
+        # 0 means OK in gRPC status codes
+        assert any(stat.get("GRPCStatusCode") == "0" for stat in grpc_stats), (
+            f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
+        )
 
 
 @features.client_side_stats_supported

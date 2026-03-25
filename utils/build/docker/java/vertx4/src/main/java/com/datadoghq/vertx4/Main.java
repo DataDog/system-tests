@@ -71,13 +71,16 @@ public class Main {
         Router router = Router.router(vertx);
 
         router.get("/")
-                .produces("text/plain")
                 .handler(ctx -> {
                     var tracer = GlobalTracer.get();
                     Span span = tracer.buildSpan("test-span").start();
                     span.setTag("test-tag", "my value");
                     try {
-                        ctx.response().setStatusCode(200).end("Hello World!");
+                        ctx.response()
+                                .setStatusCode(200)
+                                .putHeader("Content-Type", "text/plain")
+                                .putHeader("Content-Length", "13")
+                                .end("Hello world!\n");
                     } finally {
                         span.finish();
                     }
@@ -140,6 +143,11 @@ public class Main {
             // Consume path params
             ctx.pathParams().toString();
             ctx.response().end("Hello world!");
+        });
+        router.getWithRegex("/resource_renaming(?:/(.*))?").handler(ctx -> {
+            // Consume path params
+            ctx.pathParams().toString();
+            ctx.response().end("ok");
         });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
@@ -351,6 +359,22 @@ public class Main {
                     JsonObject headersJson = new JsonObject();
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
+                });
+        router.get("/inferred-proxy/span-creation")
+                .handler(ctx -> {
+                    String statusCodeParam = ctx.request().getParam("status_code");
+                    int statusCode = 200;
+                    if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                        try {
+                            statusCode = Integer.parseInt(statusCodeParam);
+                        } catch (NumberFormatException e) {
+                            statusCode = 400;
+                        }
+                    }
+                    System.out.println("Received an API Gateway request:");
+                    ctx.request().headers().forEach(header ->
+                        System.out.println(header.getKey() + ": " + header.getValue()));
+                    ctx.response().setStatusCode(statusCode).end("ok");
                 });
         router.get("/set_cookie")
                 .handler(ctx -> {

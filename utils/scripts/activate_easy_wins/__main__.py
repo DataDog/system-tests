@@ -32,6 +32,11 @@ def main() -> None:
         help="List of code owners to exclude (e.g., @DataDog/apm-python @DataDog/asm-libraries). \
                 Tests owned by these teams will be excluded from activation.",
     )
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="Use data from dev runs instead of nightly runs",
+    )
     args = parser.parse_args()
 
     # Filter libraries if components are specified
@@ -49,7 +54,9 @@ def main() -> None:
     # Get excluded owners from command line
     excluded_owners: set[str] = set(args.exclude) if args.exclude else set()
 
-    test_data, weblogs = parse_artifact_data(Path("data/"), libraries_to_process, excluded_owners=excluded_owners)
+    test_data, weblogs = parse_artifact_data(
+        Path("data/"), libraries_to_process, excluded_owners=excluded_owners, use_dev=args.dev
+    )
 
     manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
     (
@@ -76,8 +83,7 @@ def main() -> None:
     total_modified_rules = sum(modified_rules_by_level.values())
     has_updates = total_modified_rules > 0 or created_rules_count > 0
 
-    if not args.dry_run:
-        manifest_editor.write()
+    manifest_editor.write(dry_run=args.dry_run)
 
     # Exit with status 1 if no updates were made
     if not has_updates:

@@ -71,6 +71,7 @@ class V06StatsAggr(TypedDict):
     Type: str
     Service: str
     HTTPStatusCode: int
+    GRPCStatusCode: str
     Synthetics: bool
     Hits: int
     TopLevelHits: int
@@ -131,6 +132,7 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
                 Service=raw_stats["Service"],
                 Type=raw_stats.get("Type"),
                 HTTPStatusCode=raw_stats.get("HTTPStatusCode"),
+                GRPCStatusCode=raw_stats.get("GRPCStatusCode"),
                 Synthetics=raw_stats["Synthetics"],
                 Hits=raw_stats["Hits"],
                 TopLevelHits=raw_stats["TopLevelHits"],
@@ -256,6 +258,39 @@ def retrieve_span_links(span: Span) -> list:
     return links
 
 
+def _span_link_trace_id_to_low64(value: int | str) -> int:
+    """Normalize a trace_id from a span or span link to low 64 bits.
+
+    Supports Go-style (int) and Java-style (hex string e.g. '0x...').
+    """
+    if isinstance(value, int):
+        return value & 0xFFFFFFFFFFFFFFFF
+    if isinstance(value, str) and value.startswith("0x"):
+        return int(value, 16) & 0xFFFFFFFFFFFFFFFF
+    raise TypeError(f"trace_id must be int or 0x-prefixed hex str, got {type(value).__name__}: {value!r}")
+
+
+def span_link_trace_id_equals(link_trace_id: int | str, expected: int) -> bool:
+    """Return True if a span link's trace_id equals the expected value.
+
+    Supports both Go-style (trace_id as int) and Java-style (trace_id as hex string
+    e.g. '0x11111111111111110000000000000002'). For hex strings, the low 64 bits
+    are compared to expected.
+    """
+    return _span_link_trace_id_to_low64(link_trace_id) == (expected & 0xFFFFFFFFFFFFFFFF)
+
+
+def span_link_trace_ids_equal(a: int | str | None, b: int | str | None) -> bool:
+    """Return True if two trace IDs are equal (e.g. link trace_id vs span trace_id).
+
+    Supports both Go-style (int) and Java-style (hex string '0x...') formats.
+    Returns False if either value is None.
+    """
+    if a is None or b is None:
+        return a == b
+    return _span_link_trace_id_to_low64(a) == _span_link_trace_id_to_low64(b)
+
+
 def retrieve_span_events(span: Span) -> list | None:
     if span.get("span_events") is not None:
         for event in span["span_events"]:
@@ -302,3 +337,15 @@ def id_to_int(value: str | int) -> int:
         return int(value)
     except ValueError:
         return int(value, 16)
+
+
+def extract_trace_id_from_otel_span(span: dict) -> str:
+    """Extract the full 128-bit trace ID from a span as a hex string.
+
+    Uses otel.trace_id from metadata if available (full 128-bit),
+    otherwise constructs from _dd.p.tid and trace_id (lower 64 bits).
+    """
+    if "otel.trace_id" in span.get("meta", {}):
+        return span["meta"]["otel.trace_id"]
+    root_tid = span["meta"].get("_dd.p.tid", "0" * 16)
+    return f"{root_tid}{span['trace_id']:016x}"

@@ -1,14 +1,15 @@
+from collections.abc import Callable
 import json
 from pathlib import Path
 
 from utils._logger import logger
 
 
-def exclude_telemetry_logs_filter(line):
+def exclude_telemetry_logs_filter(line: str):
     return '"command":"telemetry"' not in line and '"caller":"telemetry/' not in line
 
 
-def command_injection_skipped(command_line, log_local_path):
+def command_injection_skipped(command_line: str, log_local_path: str):
     """From parsed log, search on the list of logged commands
     if one command has been skipped from the instrumentation
     """
@@ -44,7 +45,7 @@ def command_injection_skipped(command_line, log_local_path):
     raise ValueError(f"Command {command} was NOT FOUND")
 
 
-def _parse_command(command):
+def _parse_command(command: str):
     command_args = command.split()
     command = None
     # Remove SUDO -E option
@@ -63,7 +64,7 @@ def _parse_command(command):
     return None, None
 
 
-def _get_commands_from_log_file(log_local_path, line_filter):
+def _get_commands_from_log_file(log_local_path: str, line_filter: Callable):
     """From instrumentation log file, extract all commands parsed by dd-injection (the log level should be DEBUG)"""
 
     store_as_command = False

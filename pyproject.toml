@@ -32,7 +32,8 @@ markers =[
     "features: declare the feature id",
     "owners: declare the owner of the test",
     "declaration: declare the expected outcome of a test",
-    "skip_if_xfail: skip the test if it is marked as xfail"
+    "skip_if_xfail: skip the test if it is marked as xfail",
+    "auxiliary_test: Do not count this test to determine if the scenario should run with the SYSTEM_TESTS_SKIP_EMPTY_SCENARIO option"
 ]
 
 python_files = "test_*.py *utils.py"
@@ -248,7 +249,6 @@ ignore = [
 ]
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "B006",     # mutable-argument-default: TODO
@@ -271,13 +271,7 @@ ignore = [
     "TRY301",   # raise-within-try: TODO
     "UP031",    # printf-string-formatting: TODO
 ]
-"utils/interfaces/schemas/serve_doc.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "INP001",  # implicit-namespace-package: this is not a package
-]
 "utils/onboarding/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
     "DTZ006",  # call-datetime-fromtimestamp: TODO

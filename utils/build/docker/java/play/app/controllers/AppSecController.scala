@@ -35,7 +35,8 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val span = tracer.buildSpan("test-span").start
     span.setTag("test-tag", "my value")
     withSpan(span) {
-      Results.Ok("Hello world!")
+      Results.Ok("Hello world!\n")
+        .as("text/plain; charset=UTF-8")
     }
   }
 
@@ -120,6 +121,12 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       .withHeaders(allHeaders: _*)
   }
 
+
+  def inferredProxySpanCreation(status_code: Option[Int]) = Action { request =>
+    println("Received an API Gateway request:")
+    request.headers.headers.foreach { case (name, value) => println(s"$name: $value") }
+    Results.Status(status_code.getOrElse(200))("ok")
+  }
 
   def tagValue(value: String, code: Int) = Action { request =>
     handleTagValue(value, code, request.queryString, None)

@@ -1,9 +1,15 @@
-import json
-from jsonschema import validate
-import yaml
-from pathlib import Path
 import ast
+import importlib.util
+import inspect
+import json
+import sys
+from pathlib import Path
 from typing import TYPE_CHECKING
+
+import yaml
+from jsonschema import validate
+
+from utils._context.core import context
 
 from .parser import _load_file
 
@@ -22,6 +28,69 @@ def assert_key_order(obj: dict, path: str = "") -> list[str]:
         last_key = key
 
     return errors
+
+
+class _MockScenario:
+    """Minimal mock scenario for manifest validation imports."""
+
+    collect_only = True
+    components: dict = {}
+    parametrized_tests_metadata = None
+
+
+def _setup_mock_context() -> object | None:
+    """Set up a mock context.scenario to allow test file imports.
+
+    Returns the original scenario (if any) so it can be restored later.
+    """
+    original_scenario = getattr(context, "scenario", None)
+    context.scenario = _MockScenario()  # type: ignore[assignment]
+    return original_scenario
+
+
+def _restore_context(original_scenario: object | None) -> None:
+    """Restore the original context.scenario."""
+    if original_scenario is not None:
+        context.scenario = original_scenario  # type: ignore[assignment]
+    elif hasattr(context, "scenario"):
+        delattr(context, "scenario")
+
+
+def _import_module_from_path(file_path: str) -> object | None:
+    """Dynamically import a module from a file path."""
+    path = Path(file_path)
+    module_name = path.stem
+
+    # Create a unique module name to avoid conflicts
+    unique_module_name = f"_manifest_check_{module_name}_{hash(file_path)}"
+
+    # Determine the package path for relative imports (e.g., "tests.parametric")
+    package_path = ".".join(path.parent.parts)
+
+    spec = importlib.util.spec_from_file_location(
+        unique_module_name, file_path, submodule_search_locations=[str(path.parent)]
+    )
+    if spec is None or spec.loader is None:
+        return None
+
+    module = importlib.util.module_from_spec(spec)
+    module.__package__ = package_path
+    sys.modules[unique_module_name] = module
+
+    # Set up mock context to allow imports of test files
+    original_scenario = _setup_mock_context()
+
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        # If the module fails to load, return None
+        if unique_module_name in sys.modules:
+            del sys.modules[unique_module_name]
+        return None
+    finally:
+        _restore_context(original_scenario)
+
+    return module
 
 
 def _find_class_in_ast(module_ast: ast.Module, class_name: str) -> ast.ClassDef | None:
@@ -58,9 +127,26 @@ def _function_exists_in_class(class_node: ast.ClassDef, function_name: str, modu
     return False
 
 
+def _check_with_ast(file_path: str, class_name: str, function_name: str | None) -> tuple[bool, bool]:
+    """Check class/function existence using AST parsing. Returns (found_class, found_function)."""
+    with open(file_path, encoding="utf-8") as f:
+        test_ast = ast.parse(f.read())
+
+    class_node = _find_class_in_ast(test_ast, class_name)
+    found_class = class_node is not None
+    found_function = function_name is None  # If no function to check, consider it found
+
+    if found_class and function_name is not None and class_node is not None:
+        found_function = _function_exists_in_class(class_node, function_name, test_ast)
+
+    return found_class, found_function
+
+
 def assert_nodeids_exist(obj: dict) -> list[str]:
     obj = obj["manifest"]
     errors = []
+    module_cache: dict[str, object | None] = {}
+
     for key in obj:
         elements = key.split("::")
 
@@ -71,22 +157,40 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
         if len(elements) < 2 or ".py" not in elements[0]:  # noqa: PLR2004
             continue
 
-        with open(elements[0]) as f:
-            test_ast = ast.parse(f.read())
+        file_path = elements[0]
+        class_name = elements[1]
+        function_name = elements[2] if len(elements) >= 3 else None  # noqa: PLR2004
 
-        found_class = False
-        found_function = len(elements) < 3  # noqa: PLR2004
-        class_node = _find_class_in_ast(test_ast, elements[1])
+        # Try to import the module and use hasattr
+        if file_path not in module_cache:
+            module_cache[file_path] = _import_module_from_path(file_path)
 
-        if class_node:
-            found_class = True
-            if len(elements) >= 3:  # noqa: PLR2004
-                found_function = _function_exists_in_class(class_node, elements[2], test_ast)
+        module = module_cache[file_path]
 
-        if not found_class:
-            errors.append(f"{elements[0]} does not contain class {elements[1]}")
-        if found_class and not found_function and len(elements) >= 3:  # noqa: PLR2004
-            errors.append(f"{elements[0]}::{elements[1]} does not contain function {elements[2]}")
+        if module is not None:
+            # Use hasattr for validation
+            found_class = hasattr(module, class_name)
+
+            if not found_class:
+                errors.append(f"{file_path} does not contain class {class_name}")
+                continue
+
+            if function_name is not None:
+                class_obj = getattr(module, class_name)
+                attr = getattr(class_obj, function_name, None)
+                found_function = attr is not None and inspect.isfunction(attr)
+
+                if not found_function:
+                    errors.append(f"{file_path}::{class_name} does not contain function {function_name}")
+        else:
+            # Fall back to AST parsing if import fails
+            # print("AST fallback: ", file_path)
+            found_class, found_function = _check_with_ast(file_path, class_name, function_name)
+
+            if not found_class:
+                errors.append(f"{file_path} does not contain class {class_name}")
+            elif not found_function:
+                errors.append(f"{file_path}::{class_name} does not contain function {function_name}")
 
     return errors
 

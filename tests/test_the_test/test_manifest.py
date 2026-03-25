@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 import tempfile
 import textwrap
 import pytest
@@ -6,6 +7,9 @@ from utils import scenarios
 from utils._context.component_version import Version
 from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
 from utils.manifest._internal.types import SemverRange as CustomSpec
+from utils.manifest._internal.validate import assert_nodeids_exist
+from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
+from utils.scripts.activate_easy_wins._internal.types import Context
 
 
 def manifest_init(
@@ -218,3 +222,184 @@ class TestManifest:
                     test_a_path.unlink()
                 if test_b_path.exists():
                     test_b_path.unlink()
+
+
+@scenarios.test_the_test
+class Test_NodeidValidation:
+    """Tests for the assert_nodeids_exist function."""
+
+    def test_existing_nodeids_pass_validation(self):
+        """Test that existing nodeids at all levels pass validation."""
+        test_dir_str = "tests/test_the_test/nodeid_test_dir_exist"
+        test_file_str = f"{test_dir_str}/test_nodeid_validation.py"
+
+        # Create test directory and file with inheritance hierarchy
+        test_dir = Path(test_dir_str)
+        test_dir.mkdir(exist_ok=True)
+
+        test_file = Path(test_file_str)
+        test_file.write_text(
+            textwrap.dedent(
+                """\
+                class GrandParentClass:
+                    def grandparent_method(self):
+                        pass
+
+                class ParentClass(GrandParentClass):
+                    def parent_method(self):
+                        pass
+
+                class Test_Child(ParentClass):
+                    def own_method(self):
+                        pass
+                """
+            )
+        )
+
+        manifest = {
+            "manifest": {
+                # Directory level nodeid
+                test_dir_str: "missing_feature",
+                # File level nodeid
+                test_file_str: "missing_feature",
+                # Class level nodeid
+                f"{test_file_str}::Test_Child": "missing_feature",
+                # Function level nodeid (own method)
+                f"{test_file_str}::Test_Child::own_method": "missing_feature",
+                # Function inherited twice (from grandparent)
+                f"{test_file_str}::Test_Child::grandparent_method": "missing_feature",
+            }
+        }
+
+        try:
+            errors = assert_nodeids_exist(manifest)
+            assert errors == [], f"Expected no errors for existing nodeids but got: {errors}"
+        finally:
+            shutil.rmtree(test_dir)
+
+    def test_non_existing_nodeids_fail_validation(self):
+        """Test that non-existing nodeids at all levels fail validation."""
+        test_dir_str = "tests/test_the_test/nodeid_test_dir_nonexist"
+        test_file_str = f"{test_dir_str}/test_nodeid_validation.py"
+
+        # Create test directory and file with inheritance hierarchy
+        test_dir = Path(test_dir_str)
+        test_dir.mkdir(exist_ok=True)
+
+        test_file = Path(test_file_str)
+        test_file.write_text(
+            textwrap.dedent(
+                """\
+                class GrandParentClass:
+                    def grandparent_method(self):
+                        pass
+
+                class ParentClass(GrandParentClass):
+                    def parent_method(self):
+                        pass
+
+                class Test_Child(ParentClass):
+                    def own_method(self):
+                        pass
+                """
+            )
+        )
+
+        manifest = {
+            "manifest": {
+                # Non-existing directory level nodeid
+                "tests/test_the_test/nonexistent_dir": "missing_feature",
+                # Non-existing file level nodeid
+                f"{test_dir_str}/nonexistent_file.py": "missing_feature",
+                # Non-existing class level nodeid
+                f"{test_file_str}::Test_NonExistent": "missing_feature",
+                # Non-existing function level nodeid
+                f"{test_file_str}::Test_Child::nonexistent_method": "missing_feature",
+                # Non-existing function that looks like inherited (but isn't)
+                f"{test_file_str}::Test_Child::fake_grandparent_method": "missing_feature",
+            }
+        }
+
+        try:
+            errors = assert_nodeids_exist(manifest)
+
+            assert len(errors) == 5, f"Expected 5 errors but got {len(errors)}: {errors}"
+
+            # Verify each type of error is present
+            assert any("nonexistent_dir" in e and "does not exist" in e for e in errors), f"Missing dir error: {errors}"
+            assert any("nonexistent_file.py" in e and "does not exist" in e for e in errors), (
+                f"Missing file error: {errors}"
+            )
+            assert any("does not contain class Test_NonExistent" in e for e in errors), f"Missing class error: {errors}"
+            assert any("does not contain function nonexistent_method" in e for e in errors), (
+                f"Missing function error: {errors}"
+            )
+            assert any("does not contain function fake_grandparent_method" in e for e in errors), (
+                f"Missing inherited function error: {errors}"
+            )
+        finally:
+            shutil.rmtree(test_dir)
+
+
+@scenarios.test_the_test
+class Test_ManifestEditor_WriteNewRules:
+    """Regression tests for ManifestEditor.write_new_rules multi-component handling."""
+
+    def test_selects_correct_component_when_converting_inline_to_list(self):
+        """When multiple components define the same rule as inline strings,
+        converting one to a list must serialize that component's own condition,
+        not the first one found in manifest.data (which may belong to another
+        component that sorts alphabetically earlier).
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir_path = Path(tmpdir)
+
+            # java sorts before python alphabetically, so its condition is at index 0
+            java_yml = tmpdir_path / "java.yml"
+            java_yml.write_text(
+                "---\nmanifest:\n  tests/test_the_test/test_manifest.py::TestManifest::test_formats: v1.0.0\n"
+            )
+
+            python_yml = tmpdir_path / "python.yml"
+            python_yml.write_text(
+                "---\nmanifest:\n"
+                '  tests/test_the_test/test_manifest.py::TestManifest::test_formats: "bug (TICKET-123)"\n'
+            )
+
+            weblogs: dict[str, set[str]] = {
+                "java": {"spring-boot"},
+                "python": {"django-poc", "flask-poc"},
+            }
+            editor = ManifestEditor(
+                weblogs=weblogs,
+                manifests_path=tmpdir_path,
+                components=["java", "python"],
+            )
+
+            context = Context(library="python", library_version=Version("3.0.0"), variant="django-poc")
+            editor.set_context(context)
+
+            rule = "tests/test_the_test/test_manifest.py::TestManifest::test_formats"
+
+            # Verify java condition is at index 0 (the precondition for this regression)
+            assert editor.manifest.data[rule][0]["component"] == "java"
+            assert editor.manifest.data[rule][1]["component"] == "python"
+
+            python_condition = editor.manifest.data[rule][1]
+            parent_view = ManifestEditor.View(
+                rule=rule,
+                condition=python_condition,
+                condition_index=0,
+                clause_key=None,
+                is_inline=True,
+            )
+
+            editor.added_rules[rule] = {(parent_view, context)}
+            editor.write_new_rules()
+
+            python_manifest_rule = editor.raw_data["python"]["manifest"][rule]
+            assert isinstance(python_manifest_rule, list)
+
+            first_entry = python_manifest_rule[0]
+            assert first_entry == {"declaration": "bug (TICKET-123)"}
+            assert "excluded_component_version" not in first_entry

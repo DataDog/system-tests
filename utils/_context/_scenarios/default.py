@@ -1,6 +1,7 @@
 import pytest
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
+from utils._context.containers import PostgresContainer
 
 
 # When Security Controls configuration is set, tracers must instrument all the designated methods in the
@@ -8,6 +9,7 @@ from .endtoend import EndToEndScenario
 # RFC(https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0)
 
 _iast_security_controls_map = {
+    "cpp_kong": "TODO",
     "cpp_nginx": "TODO",
     "cpp_httpd": "TODO",
     "dotnet": "TODO",
@@ -71,13 +73,13 @@ class DefaultScenario(EndToEndScenario):
                 "DD_RUM_REMOTE_CONFIGURATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
-            include_postgres_db=True,
+            other_weblog_containers=(PostgresContainer,),
             scenario_groups=[scenario_groups.essentials, scenario_groups.telemetry],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
 
     def configure(self, config: pytest.Config):
         super().configure(config)
-        library = self.weblog_container.image.labels["system-tests-library"]
+        library = self.weblog_infra.library_name
         value = _iast_security_controls_map[library]
         self.weblog_container.environment["DD_IAST_SECURITY_CONTROLS_CONFIGURATION"] = value

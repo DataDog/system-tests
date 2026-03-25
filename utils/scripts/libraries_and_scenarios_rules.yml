@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [python_lambda]
+  - &lambda_libraries [java_lambda, python_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
@@ -58,6 +58,13 @@ patterns:
         libraries: null
 
     requirements.txt: # run all by default
+
+    utils/build/docker/python/*/requirements*.txt:
+        libraries: python
+
+    utils/build/docker/python_lambda/*/requirements*.txt:
+        libraries: python_lambda
+
     "*.txt":
         scenario_groups: null
         libraries: null
@@ -69,8 +76,12 @@ patterns:
 # rule from this section to the default section at the end of the file.
 ################################################################################
 
+    .claude/*:
+        scenario_groups: null
+        libraries: null
     .cursor/*:
         scenario_groups: null
+        libraries: null
     .circleci/*:
         scenario_groups: null
     .vscode/*:
@@ -153,6 +164,7 @@ patterns:
         libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
+        libraries: null
     .github/workflows/changelog.yml:
         scenario_groups: null
         libraries: null
@@ -161,7 +173,11 @@ patterns:
         libraries: null
     .github/workflows/daily-tag.yml:
         scenario_groups: null
+        libraries: null
     .github/workflows/debug-harness.yml:
+        scenario_groups: null
+        libraries: null
+    .github/workflows/nightly.yml:
         scenario_groups: null
         libraries: null
     .github/workflows/run-docker-ssi.yml:
@@ -263,6 +279,9 @@ patterns:
 # This section contains rules to apply to files in the utils directory.
 ################################################################################
 
+    utils/interfaces/_library/*:
+        scenario_groups: [end_to_end, open_telemetry, go_proxies]
+
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
 
@@ -273,8 +292,6 @@ patterns:
         scenario_groups: docker_ssi
     utils/_features.py:
         scenarios: DEFAULT
-    utils/interfaces/schemas*:
-        scenario_groups: end_to_end
     utils/k8s_lib_injection*:
         scenario_groups: lib_injection
     utils/manifest/_internal/format.py:
@@ -342,6 +359,13 @@ patterns:
     utils/build/build_cpp_base_images.sh:
         libraries: cpp
 
+    manifests/cpp_kong.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_kong
+    utils/build/docker/cpp_kong/*:
+        libraries: cpp_kong
+        scenario_groups: [ end_to_end, ]
+
     manifests/cpp_httpd.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: cpp_httpd
@@ -404,6 +428,13 @@ patterns:
     utils/build/build_java_base_images.sh:
         libraries: java
 
+    manifests/java_lambda.yml:
+      scenario_groups: null  # already handled by the manifest comparison
+      libraries: java_lambda
+    utils/build/docker/java_lambda/*:
+      scenario_groups: appsec_lambda
+      libraries: java_lambda
+
     manifests/nodejs.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs
@@ -463,7 +494,7 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: rust
     utils/build/docker/rust/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenarios: [ PARAMETRIC ]
         libraries: rust
     lib-injection/build/docker/rust/*:
         libraries: rust

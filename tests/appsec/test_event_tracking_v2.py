@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, features, scenarios
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 
@@ -44,7 +45,11 @@ def validate_metric_type_and_version(event_type: str, version: str, metric: dict
 
 
 def validate_tags_and_metadata(
-    span: dict, prefix: str, expected_tags: dict, metadata: dict | None, unexpected_metadata: list[str] | None
+    span: DataDogLibrarySpan,
+    prefix: str,
+    expected_tags: dict,
+    metadata: dict | None,
+    unexpected_metadata: list[str] | None,
 ):
     if metadata is not None:
         for key, value in metadata.items():
@@ -53,7 +58,7 @@ def validate_tags_and_metadata(
     for tag, expected_value in expected_tags.items():
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
-        if value != expected_value:
+        if not is_same_boolean(actual=value, expected=expected_value):
             raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
     if unexpected_metadata is not None:
@@ -70,7 +75,7 @@ class BaseUserLoginSuccessEventV2Tags:
     def get_user_login_success_tags_validator(
         self, login: str, user_id: str, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
     ):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             expected_tags = {
                 "appsec.events.users.login.success.usr.login": login,
                 "appsec.events.users.login.success.usr.id": user_id,
@@ -214,7 +219,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span: dict):
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -234,7 +239,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
     def test_user_login_success_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span: dict):
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -331,7 +336,7 @@ class BaseUserLoginFailureEventV2Tags:
     def get_user_login_failure_tags_validator(
         self, login: str, *, exists: bool, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
     ):
-        def validate(span: dict):
+        def validate(span: DataDogLibrarySpan):
             expected_tags = {
                 "appsec.events.users.login.failure.usr.login": login,
                 "appsec.events.users.login.failure.usr.exists": "true" if exists else "false",
@@ -471,7 +476,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span: dict):
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -491,7 +496,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span: dict):
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
