@@ -1,4 +1,7 @@
+import json
+import os
 import time
+from pathlib import Path
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -13,6 +16,21 @@ class AutoInjectBaseTest:
         self, virtual_machine, *, profile: bool = False, appsec: bool = False, origin_detection: bool = False
     ):
         """If there is a multicontainer app, we need to make a request to each app"""
+
+        if context.scenario.replay:
+            request_uuid = self._load_replay_request_uuid()
+            logger.info(f"Replay mode: reusing recorded trace_id [{request_uuid}]")
+            validator = None
+            if appsec:
+                validator = self._appsec_validator
+            if origin_detection:
+                validator = self._container_tags_validator
+            if validator:
+                trace_data = self._load_replay_trace_data(request_uuid, validator.__name__)
+                assert validator(request_uuid, trace_data), (
+                    f"{validator.__name__} failed to validate trace_id: {request_uuid}"
+                )
+            return
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
             for app in virtual_machine.get_deployed_weblog().multicontainer_apps:
@@ -120,6 +138,41 @@ class AutoInjectBaseTest:
             "- A problem in the Docker daemon?? (check logs in `/var/log/journalctl_docker.log`)\n"
             f"- A problem processing the intake in the backend (manually locate the trace id [{request_uuid}] in the DD console, using the system-tests organization)\n"
         )
+
+    def _load_replay_request_uuid(self) -> str:
+        current_test = os.environ.get("PYTEST_CURRENT_TEST", "")
+        nodeid = current_test.split(" (", 1)[0]
+        test = self._load_replay_test_report(nodeid)
+
+        for entry in test.get("call", {}).get("log", []):
+            msg = entry.get("msg", "")
+            prefix = "Http request done with uuid: ["
+            if msg.startswith(prefix):
+                return msg.removeprefix(prefix).split("]", 1)[0]
+
+        raise AssertionError(f"Could not find recorded request uuid for replayed test: {nodeid}")
+
+    def _load_replay_trace_data(self, request_uuid: str, validator_name: str) -> dict:
+        trace_path = Path(context.scenario.host_log_folder) / "replay_traces" / f"{request_uuid}.json"
+        if trace_path.is_file():
+            with trace_path.open(encoding="utf-8") as f:
+                return json.load(f)
+
+        raise AssertionError(
+            "Could not find recorded backend trace data for replayed test. "
+            f"Expected {trace_path} or reconstructible validator logs for {validator_name}."
+        )
+
+    def _load_replay_test_report(self, nodeid: str) -> dict:
+        report_path = Path(context.scenario.host_log_folder) / "report.json"
+        with report_path.open(encoding="utf-8") as f:
+            report = json.load(f)
+
+        for test in report.get("tests", []):
+            if test.get("nodeid") == nodeid:
+                return test
+
+        raise AssertionError(f"Could not find replayed test report entry for {nodeid}")
 
     def close_channel(self, channel) -> None:
         try:

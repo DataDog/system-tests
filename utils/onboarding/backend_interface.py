@@ -1,9 +1,12 @@
 from collections.abc import Callable
+import json
 import os
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 import requests
 import random
+from utils._context.core import context
 from utils._logger import logger
 
 
@@ -64,6 +67,8 @@ def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
     results = {}
 
     trace_data = _make_request(url, headers=_headers())
+    _store_backend_artifact("replay_traces", f"{trace_id}.json", trace_data)
+
     if validator:
         logger.info("Validating backend trace...")
         results["validator"] = validator(trace_id, trace_data)
@@ -169,7 +174,26 @@ def _query_for_profile(runtime_id: str):
     }
 
     logger.debug(f"Posting to {url} with query: {queryJson}")
-    profileId = _make_request(
+    profile_data = _make_request(
         url, headers=headers, method="post", json=queryJson, validator=_validate_profiler_response
-    )["data"][0]["id"]
+    )
+    _store_backend_artifact("replay_profiles", f"{runtime_id}.json", profile_data)
+
+    profileId = profile_data["data"][0]["id"]
     logger.debug(f"Found profile in the backend with ID: {profileId}")
+
+
+def _store_backend_artifact(folder: str, filename: str, payload: dict) -> None:
+    scenario = getattr(context, "scenario", None)
+    if scenario is None or getattr(scenario, "replay", False):
+        return
+
+    host_log_folder = getattr(scenario, "host_log_folder", None)
+    if not host_log_folder:
+        return
+
+    artifact_dir = Path(host_log_folder) / folder
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    artifact_path = artifact_dir / filename
+    with artifact_path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)

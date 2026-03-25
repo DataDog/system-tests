@@ -74,7 +74,6 @@ class _VirtualMachineScenario(Scenario):
         self._env = config.option.vm_env
         self._weblog = config.option.vm_weblog
         self._check_test_environment()
-        self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
         self.only_default_vms = config.option.vm_default_vms
         logger.info(f"Default vms policy: {self.only_default_vms}")
         if self.only_default_vms not in ["All", "True", "False"]:
@@ -87,6 +86,12 @@ class _VirtualMachineScenario(Scenario):
         self.virtual_machine = next((vm for vm in all_vms if vm.name == config.option.vm_only), None)
         assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
         logger.info(f"Selected VM: {self.virtual_machine.name}")
+
+        if self.replay:
+            logger.info("Replay mode enabled: skipping VM provisioning and onboarding environment checks")
+            return
+
+        self.vm_provider = VmProviderFactory().get_provider(self.vm_provider_id)
         self.vm_provider.configure(self.virtual_machine)
         self.virtual_machine.add_provision(
             provisioner.get_provision(
@@ -126,6 +131,10 @@ class _VirtualMachineScenario(Scenario):
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
         assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
+        if self.replay:
+            logger.info("Replay mode enabled: skipping DD_KEYs checks")
+            return
+
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
 
@@ -157,6 +166,9 @@ class _VirtualMachineScenario(Scenario):
         self.close_targets()
 
     def close_targets(self):
+        if self.replay:
+            return
+
         if self.is_main_worker:
             # Extract logs from the VM before destroy
             download_vm_logs(
