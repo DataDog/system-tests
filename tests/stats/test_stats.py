@@ -94,6 +94,20 @@ class Test_Client_Stats:
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
 
+    def setup_top_level_service(self):
+        weblog.get("/")
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_top_level_service(self):
+        """Test that the top-level Service field in the stats payload matches the configured base service"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        for stats_request in stats_requests:
+            payload = stats_request["request"]["content"]
+            service = payload.get("Service")
+            assert service == "weblog", f"Expected top-level Service to be 'weblog', got: {service!r}"
+
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
