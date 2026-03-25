@@ -596,7 +596,7 @@ class _Scenarios:
         "APM_TRACING_EFFICIENT_PAYLOAD",
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
-            "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
         },
         agent_env={
             "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
@@ -879,7 +879,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -893,7 +893,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 

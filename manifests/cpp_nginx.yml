@@ -323,6 +323,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature
   tests/stats/test_stats.py::Test_Peer_Tags: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment: missing_feature  # Created by easy win activation script

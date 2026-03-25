@@ -122,7 +122,7 @@ class _BaseRabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def setup_consume(self):
         """Send request A to library buddy : this request will produce a RabbitMQ message
@@ -188,7 +188,7 @@ class _BaseRabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def validate_rabbitmq_spans(
         self,

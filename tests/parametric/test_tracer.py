@@ -238,7 +238,9 @@ class Test_TracerServiceNameSource:
 @features.process_tags
 @rfc("https://docs.google.com/document/d/1c47iSTWxIOHMHfZTF2nT9xfyQaIBP9KJvI9sRn5SvpM")
 class Test_ProcessTags_ServiceName:
-    @parametrize("library_env", [{"DD_SERVICE": "test-service"}])
+    @parametrize(
+        "library_env", [{"DD_SERVICE": "test-service", "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}]
+    )
     def test_process_tag_svc_user(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """When DD_SERVICE is set, process tags must include svc.user:true"""
         with test_library, test_library.dd_start_span("operation") as root:
@@ -252,7 +254,7 @@ class Test_ProcessTags_ServiceName:
         process_tags = span["meta"]["_dd.tags.process"]
         assert "svc.user:true" in process_tags, f"DD_SERVICE is set - Expecting svc.user:true in {process_tags}"
 
-    @parametrize("library_env", [{}])
+    @parametrize("library_env", [{"DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}])
     def test_process_tag_svc_auto(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """When DD_SERVICE is unset, process tags must include svc.auto:<default_svc_name>"""
         with test_library, test_library.dd_start_span("operation") as root:
@@ -264,5 +266,5 @@ class Test_ProcessTags_ServiceName:
         span = find_root_span(trace)
         assert span is not None
         process_tags = span["meta"]["_dd.tags.process"]
-        expected_tag = f"svc.auto:{span['service']}"
+        expected_tag = f"svc.auto:{span['service'].lower()}"
         assert expected_tag in process_tags, f"DD_SERVICE is set - Expecting {expected_tag} in {process_tags}"
