@@ -792,12 +792,18 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: v2.2.3
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_collection_size: missing_feature (no /debugger/snapshot/limits endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_field_count: missing_feature (no /debugger/snapshot/limits endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_length: missing_feature (no /debugger/snapshot/limits endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth: missing_feature (no /debugger/snapshot/limits endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track: missing_feature (Go system-probe does not route to debugger track endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination: missing_feature (Go system-probe does not route to debugger/v2/input endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Go system-probe does not emit process_tags)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Go system-probe does not emit process_tags)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (no span-decoration endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.2.3
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot: missing_feature (no span-decoration endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.2.3
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: missing_feature (Not yet implemented)
