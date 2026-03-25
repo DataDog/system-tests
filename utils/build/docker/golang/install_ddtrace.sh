@@ -2,7 +2,7 @@
 
 set -euv
 
-# Run go mod tidy once to make sure go list does not fail
+# Run go mod tidy once to make sure go list does not fail.
 go mod tidy
 
 MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"

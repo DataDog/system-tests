@@ -233,32 +233,25 @@ manifest:
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
     - weblog_declaration:
-        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
     - weblog_declaration:
-        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:
     - weblog_declaration:
-        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
-        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
     - weblog_declaration:
-        # "*": v3.19.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
-        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:
     - weblog_declaration:
-        # "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-        "*": flaky (APPSEC-61861)
+        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
