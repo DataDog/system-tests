@@ -13,6 +13,7 @@ env:
   RUNS_PER_JOB: "10"
   SCENARIO: DEFAULT
   WEBLOG: uwsgi-poc
+  DDPY_BRANCH: florentin.labelle/fix-unvalidated-redirect
 jobs:
   generate-matrix:
     runs-on: ubuntu-latest
@@ -31,8 +32,8 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Load latest dev python binary
-        run: ./utils/scripts/load-binary.sh python dev
+      - name: Load request binary
+        run: echo ${{ env.DDPY_BRANCH }} > binaries/python-load-from-s3
       - name: Build base image
         run: ./utils/build/build_python_base_images.sh ${{ env.WEBLOG }}
       - name: Build ${{ env.WEBLOG }} weblog and save it to binaries
@@ -86,7 +87,7 @@ jobs:
 
           for attempt in $(seq 1 "${{ env.RUNS_PER_JOB }}"); do
             echo "::group::Runner ${{ matrix.n }} attempt ${attempt}"
-            rm -rf logs_iast_standalone
+            rm -rf logs
 
             if ./run.sh "${{ env.SCENARIO }}" tests/appsec/iast; then
               echo "Attempt ${attempt} passed"
@@ -94,8 +95,8 @@ jobs:
               DEST="workflow-artifacts/logs_iast_standalone_job_${{ matrix.n }}_attempt_${attempt}"
               mkdir -p "$DEST"
 
-              if [ -d logs_iast_standalone ]; then
-                cp -R logs_iast_standalone "$DEST/"
+              if [ -d logs ]; then
+                cp -R logs "$DEST/"
               fi
 
               echo "Attempt ${attempt} failed"
@@ -109,7 +110,7 @@ jobs:
         if: always() && steps.run_iast.outcome == 'failure'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: logs_iast_standalone_${{ matrix.n }}_${{ github.run_id }}
+          name: logs_${{ matrix.n }}_${{ github.run_id }}
           path: workflow-artifacts/
           if-no-files-found: ignore
           retention-days: 14
