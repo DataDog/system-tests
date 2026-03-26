@@ -1359,12 +1359,8 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: *ref_3_19_0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
-    - declaration: missing_feature
-      component_version: <4.1.0
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:
-    - declaration: missing_feature
-      component_version: <4.1.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v4.1.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v4.1.0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: *ref_5_17_0
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: *ref_5_15_0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
