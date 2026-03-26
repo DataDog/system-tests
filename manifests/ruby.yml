@@ -1156,6 +1156,7 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, Ruby does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_consume_trace_equality: missing_feature (Expected to fail, Ruby does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_produce_trace_equality: missing_feature (Expected to fail, Ruby does not propagate context)
+  tests/integrations/test_base_service.py::Test_BaseService_SqlSpan: irrelevant (/rasp/sqli endpoint is not available)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
@@ -1550,6 +1551,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.4.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
@@ -1623,6 +1625,8 @@ manifest:
         uds-sinatra: missing_feature
         sinatra41: missing_feature
         sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Ruby does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
         rails80: missing_feature
