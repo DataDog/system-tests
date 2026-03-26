@@ -1040,7 +1040,7 @@ manifest:
     - weblog_declaration:
         uds: missing_feature
         poc: missing_feature
-  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
+  tests/stats/test_stats.py::Test_Stats_Service_Source: v3.41.0
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
         uds: missing_feature
