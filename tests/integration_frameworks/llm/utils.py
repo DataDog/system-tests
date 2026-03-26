@@ -178,6 +178,9 @@ def _library_to_language_tag() -> str:
     if context.library == "nodejs":
         return "javascript"
 
+    if context.library == "java":
+        return "jvm"
+
     return context.library.name
 
 
