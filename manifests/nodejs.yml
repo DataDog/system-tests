@@ -1660,6 +1660,9 @@ manifest:
         express4: v0.1  # real version not known
         express5: v0.1  # real version not known
         fastify: v0.1  # real version not known
+  tests/integrations/test_base_service.py::Test_BaseService_SqlSpan:
+    - weblog_declaration:
+        nextjs: irrelevant (/rasp/sqli endpoint is not available)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql:
     - weblog_declaration:

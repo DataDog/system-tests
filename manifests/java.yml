@@ -3103,6 +3103,9 @@ manifest:
         spring-boot: v0.2.0  # real version not known
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_produce_trace_equality: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+  tests/integrations/test_base_service.py::Test_BaseService_SqlSpan:
+    - weblog_declaration:
+        spring-boot-3-native: irrelevant (/rasp/sqli endpoint is not available)
   tests/integrations/test_cassandra.py::Test_Cassandra: bug (APMAPI-729)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql:
     - weblog_declaration:
