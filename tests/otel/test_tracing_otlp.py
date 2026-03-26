@@ -53,7 +53,7 @@ class Test_Otel_Tracing_OTLP:
             attributes.get("deployment.environment.name") == "system-tests"
             or attributes.get("deployment.environment") == "system-tests"
         )
-        # assert attributes.get("telemetry.sdk.name") == "datadog"
+        assert attributes.get("telemetry.sdk.name") == "datadog"
         assert "telemetry.sdk.language" in attributes
         # assert "telemetry.sdk.version" in attributes
 
@@ -76,16 +76,20 @@ class Test_Otel_Tracing_OTLP:
 
         assert span["name"]
         assert span["kind"] == SpanKind.SERVER.value
-        assert span["attributes"] is not None
         status = span.get("status", {})
         # An absent or empty status dict both mean STATUS_CODE_UNSET (protobuf default = 0).
         assert (
             not status or status.get("code", StatusCode.STATUS_CODE_UNSET.value) == StatusCode.STATUS_CODE_UNSET.value
         )
 
+        # Assert core span attributes
+        assert span["attributes"] is not None
+        span_attributes = span["attributes"]
+        assert span_attributes["span.type"] == "web"
+        assert span_attributes["operation.name"] is not None
+
         # Assert HTTP tags
         # Convert attributes list to a dictionary, but for now only handle key_value objects with stringValue
-        span_attributes = span["attributes"]
         method = span_attributes.get("http.method") or span_attributes.get("http.request.method")
         status_code = span_attributes.get("http.status_code") or span_attributes.get("http.response.status_code")
         assert method == "GET", f"HTTP method is not GET, got {method}"
