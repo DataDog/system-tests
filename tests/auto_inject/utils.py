@@ -90,12 +90,13 @@ class AutoInjectBaseTest:
             )
             return False
 
+        # Check for v0.4 protocol
         if meta.get("appsec.event") == "true":
             return True
 
+        # Check for v1.4 protocol
         appsec_payload = meta.get("_dd.appsec.json")
         if appsec_payload and appsec_payload.get("triggers"):
-            logger.info("There is at least one rule triggered")
             return True
 
         logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
