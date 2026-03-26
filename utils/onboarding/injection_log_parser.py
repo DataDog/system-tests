@@ -24,9 +24,9 @@ def command_injection_skipped(command_line: str, log_local_path: str):
         if process_exe is None or command != process_exe:
             continue
         if _process_chunk_means_skipped(process_logs):
-            logger.debug(f"    Command '{command}' was skipped (denied by WLS or no known runtime)")
+            logger.debug(f"    Command '{command_line}' was skipped by workload selection")
             return True
-        logger.info(f"    Command '{command}' was allowed and injected")
+        logger.info(f"    Command '{command_line}' was allowed and injected")
         return False
 
     logger.info(f"    Command {command} was NOT FOUND")
@@ -69,11 +69,10 @@ def _parse_command(command: str):
 def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
     r"""From instrumentation log file, extract all log lines per process.
 
-    A process chunk starts at the line containing \"process_exe:\" and runs until
-    \"injector finished\" (or the next \"process_exe:\"). This includes WLS decision
+    A process chunk starts at the line containing \"process_exe:\" and runs until the next \"process_exe:\". This includes WLS decision
     lines and post-WLS lines like \"No known runtime was detected - not injecting!\".
     """
-    process_logs = []
+    process_logs: list[str] = []
     with open(log_local_path, encoding="utf-8") as f:
         for line in f:
             if not line_filter(line):
@@ -83,11 +82,10 @@ def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
                     yield process_logs.copy()
                 process_logs = [line]
                 continue
-            if process_logs and (WLS_DENIED_INJECTION in line or WLS_ALLOWED_INJECTION in line):
+            if process_logs:
                 process_logs.append(line)
-                yield process_logs.copy()
-                process_logs = []
-                continue
+    if process_logs:
+        yield process_logs.copy()
 
 
 def main():
