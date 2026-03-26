@@ -2793,8 +2793,9 @@ class _Features:
     @staticmethod
     def base_service(test_object):
         """_dd.base_service meta tag is set on spans whose service name differs from the global service.
-
         Preserves the originating service context when integrations override the service name.
+
+        https://feature-parity.us1.prod.dog/#/?feature=546
         """
         return _mark_test_object(test_object, feature_id=546, owner=_Owner.idm)
 
