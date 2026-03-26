@@ -64,6 +64,14 @@ fi
 echo "Using composer config: $COMPOSER"
 composer install --prefer-dist
 
+# Install OTel SDK for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
+# DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
+# with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
+PHP_MINOR_VERSION=$(echo $PHP_VERSION | cut -d. -f2)
+if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
+fi
+
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;

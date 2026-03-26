@@ -7,7 +7,7 @@ from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
 from utils.manifest import Condition
-from .const import LIBRARIES
+from utils.const import COMPONENT_GROUPS
 from typing import TYPE_CHECKING
 import re
 
@@ -51,7 +51,7 @@ class ManifestEditor:
         self.init_round_trip_parser()
 
         self.raw_data = {}
-        components_to_process = components if components is not None else LIBRARIES
+        components_to_process = components if components is not None else COMPONENT_GROUPS.easy_win
         for component in components_to_process:
             data = self.wrap_key_anchors(manifests_path.joinpath(f"{component}.yml"))
             self.raw_data[component] = self.round_trip_parser.load(data)
@@ -161,7 +161,7 @@ class ManifestEditor:
         for rule, condition_indices in declaration_sources:
             for condition_index in condition_indices:
                 component = self.manifest.data[rule][condition_index[0]]["component"]
-                if component not in LIBRARIES:
+                if component not in COMPONENT_GROUPS.easy_win:
                     continue
                 raw_conditions = self.raw_data[component]["manifest"][rule]
                 parsed_condition = self.manifest.data[rule][condition_index[0]]
