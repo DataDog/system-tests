@@ -81,7 +81,6 @@ class AutoInjectBaseTest:
         root_span = trace_data["trace"]["spans"][root_id]
 
         meta = root_span.get("meta", {})
-        meta_struct = root_span.get("meta_struct", {})
         metrics = root_span.get("metrics", {})
 
         if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
@@ -94,22 +93,13 @@ class AutoInjectBaseTest:
         if meta.get("appsec.event") == "true":
             return True
 
-        meta_appsec = meta.get("_dd.appsec.json")
-        metastruct_appsec = meta_struct.get("appsec")
-        if meta_appsec and metastruct_appsec:
-            logger.error("expected a single AppSec payload carrier but found both meta and meta_struct payloads")
-            return False
-
-        appsec_payload = metastruct_appsec if metastruct_appsec else meta_appsec
+        appsec_payload = meta.get("_dd.appsec.json")
         if appsec_payload and appsec_payload.get("triggers"):
-            logger.info("AppSec payload found in backend trace without legacy 'appsec.event' tag")
+            logger.info("There is at least one rule triggered")
             return True
 
-        if "appsec.event" not in meta or meta["appsec.event"] != "true":
-            logger.error("expected 'appsec.event' to be true in trace meta but found %s", meta.get("appsec.event"))
-            return False
-
-        return True
+        logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
+        return False
 
     def _container_tags_validator(self, _, trace_data):
         root_id = trace_data["trace"]["root_id"]
