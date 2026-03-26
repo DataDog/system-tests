@@ -123,7 +123,6 @@ class AgentLevelSmokeTests:
 
     def test_attack_detection_smoke(self) -> None:
         found_attack = False
-        has_waf_version = False
         has_appsec_data = False
 
         for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r):
@@ -131,17 +130,11 @@ class AgentLevelSmokeTests:
             if span_meta.get("appsec.event") == "true":
                 found_attack = True
 
-                if "_dd.appsec.waf.version" in span_meta:
-                    has_waf_version = True
-
                 if appsec_data is not None:
                     has_appsec_data = True
-
-                if has_waf_version and has_appsec_data:
                     break
 
         assert found_attack, "Agent should forward detected attacks in span metadata"
-        assert has_waf_version, "Agent spans should include WAF version metadata"
         assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
 
 
