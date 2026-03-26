@@ -17,11 +17,9 @@ fi
 if [ -e /binaries/dd-trace-rs ]; then
     echo "install from /binaries/datadog-opentelemetry with metrics-http and metrics-grpc features"
     cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc
-
 else
     # TODO: add lastest release from crates.io
     echo "install from --git $REPO_URL --tag $PROD_TAG with metrics-http and metrics-grpc features"
     cargo add --git "$REPO_URL" --tag "$PROD_TAG" datadog-opentelemetry --features metrics-http,metrics-grpc
-
 fi
 
