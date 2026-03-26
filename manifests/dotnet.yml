@@ -1010,7 +1010,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v2.48.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.46.0
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v3.40.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v2.48.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: v3.40.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: v3.40.0
@@ -1035,10 +1035,12 @@ manifest:
     - weblog_declaration:
         uds: missing_feature
         poc: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (.NET sets Service per-bucket via StatsAggregationKey, not at payload level)
   tests/stats/test_stats.py::Test_Peer_Tags:  # Created by easy win activation script
     - weblog_declaration:
         uds: missing_feature
         poc: missing_feature
+  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
         uds: missing_feature

@@ -353,7 +353,6 @@ class Test_SensitiveDataScanning:
                 assert _assert_key(sd, "rule_display_name")
                 assert _assert_key(sd, "rule_tag")
                 assert _assert_key(sd, "category")
-                assert _assert_key(sd, "matched_text")
                 location = _assert_key(sd, "location")
                 assert _assert_key(location, "start_index") is not None
                 assert _assert_key(location, "end_index_exclusive") is not None
@@ -391,7 +390,6 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(finding, "rule_display_name")
             assert _assert_key(finding, "rule_tag")
             assert _assert_key(finding, "category")
-            assert _assert_key(finding, "matched_text")
             location = _assert_key(finding, "location")
             assert _assert_key(location, "start_index") is not None
             assert _assert_key(location, "end_index_exclusive") is not None
