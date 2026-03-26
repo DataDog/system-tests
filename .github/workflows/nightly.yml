@@ -201,6 +201,13 @@ jobs:
           scope: DataDog/system-tests
           policy: self.test-activation-github
 
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
+        with:
+          repository: DataDog/commit-headless
+          ref: action/v2.0.3
+          path: .commit-headless
+
       - name: Push signed branches and create PRs
         if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         env:
@@ -208,6 +215,8 @@ jobs:
         shell: bash
         run: |
           gh auth setup-git
+          chmod +x .commit-headless/dist/commit-headless-linux-amd64
+          COMMIT_HEADLESS=".commit-headless/dist/commit-headless-linux-amd64"
 
           for BRANCH_NAME in ${{ steps.activation_script.outputs.branches }}; do
             echo "============ Processing $BRANCH_NAME ============"
@@ -231,31 +240,18 @@ jobs:
               echo "PR #$PR_NUMBER exists but has no activity, updating"
             fi
 
-            # Get commit info from local branch
-            TREE_SHA=$(git rev-parse "$BRANCH_NAME^{tree}")
-            PARENT_SHA=$(git rev-parse main)
-            COMMIT_MSG=$(git log -1 --format=%B "$BRANCH_NAME")
+            git checkout "$BRANCH_NAME"
+            MAIN_SHA=$(git rev-parse main)
 
-            # Create or update remote branch at main's HEAD
             if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-              gh api "repos/${{ github.repository }}/git/refs/heads/${BRANCH_NAME}" \
-                -X PATCH -f "sha=$PARENT_SHA" --silent
+              SIGNED_COMMIT=$(HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
+                -T "${{ github.repository }}" --branch "$BRANCH_NAME" \
+                --head-sha "$MAIN_SHA" --force)
             else
-              gh api "repos/${{ github.repository }}/git/refs" \
-                -f "ref=refs/heads/$BRANCH_NAME" -f "sha=$PARENT_SHA" --silent
+              SIGNED_COMMIT=$(HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
+                -T "${{ github.repository }}" --branch "$BRANCH_NAME" \
+                --head-sha "$MAIN_SHA" --create-branch)
             fi
-
-            # Create signed commit via the GitHub API
-            SIGNED_COMMIT=$(gh api "repos/${{ github.repository }}/git/commits" \
-              -f "message=$COMMIT_MSG" \
-              -f "tree=$TREE_SHA" \
-              -f "parents[]=$PARENT_SHA" \
-              --jq '.sha')
-
-            # Update the remote branch to point to the signed commit
-            gh api "repos/${{ github.repository }}/git/refs/heads/${BRANCH_NAME}" \
-              -X PATCH -f "sha=$SIGNED_COMMIT" --silent
-
             echo "Pushed signed commit $SIGNED_COMMIT to $BRANCH_NAME"
 
             # Create PR if it doesn't exist
