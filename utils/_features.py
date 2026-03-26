@@ -2596,7 +2596,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=493
         """
-        return _mark_test_object(test_object, feature_id=493, owner=_Owner.agent_apm)
+        return _mark_test_object(test_object, feature_id=493, owner=_Owner.asm)
 
     @staticmethod
     def b3multi_headers_propagation(test_object):
