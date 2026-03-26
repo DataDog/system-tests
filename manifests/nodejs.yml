@@ -2118,7 +2118,7 @@ manifest:
     - declaration: missing_feature (Implemented in 5.38.0)
       component_version: <5.38.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: *ref_5_38_0
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v5.91.0
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes: missing_feature (nodejs overrides the manually set service name)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: *ref_3_21_0
   tests/parametric/test_tracer.py::Test_TracerSCITagging::test_tracer_repository_url_strip_credentials: missing_feature (nodejs does not strip credentials yet)
