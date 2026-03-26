@@ -287,6 +287,7 @@ def _get_endtoend_weblogs(
         # openai
         "openai-py": ["2.0.0"],
         "openai-js": ["6.0.0"],
+        "openai-java": ["4.29.0"],
         # anthropic
         "anthropic-js": ["0.71.0"],
         "anthropic-py": ["0.75.0"],
