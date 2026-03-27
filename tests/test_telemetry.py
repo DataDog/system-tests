@@ -509,14 +509,17 @@ class Test_Telemetry:
                         if cnf.get("name") in config_names_to_check:
                             config_value = cnf.get("value")
                             # Accept both the expected value and its float version for telemetry_heartbeat_interval
-                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL":
+                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL" and isinstance(
+                                expected_value, str | int | float
+                            ):
                                 try:
                                     expected_float = float(expected_value)
-                                    config_float = float(config_value)
-                                    if config_float == expected_float:
-                                        config_found = True
-                                        configurations_present.append(expected_config_name)
-                                        break
+                                    if isinstance(config_value, str | int | float):
+                                        config_float = float(config_value)
+                                        if config_float == expected_float:
+                                            config_found = True
+                                            configurations_present.append(expected_config_name)
+                                            break
                                 except Exception as e:
                                     logger.debug(
                                         f"Could not compare as float for config '{expected_config_name}': {e}"
