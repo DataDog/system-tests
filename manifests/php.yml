@@ -944,7 +944,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_profiling.py::Test_Profile:
+  tests/test_profiling.py::Test_Profile:  # Easy win for php-fpm-8.5 and version 1.17.0
     - declaration: missing_feature (profiling seems not to be activated)
       component_version: <1.16.0
       weblog: [php-fpm-7.2, apache-mod-8.0, php-fpm-7.3, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-7.4, apache-mod-7.1, apache-mod-7.3, php-fpm-8.2, apache-mod-8.1, apache-mod-7.4-zts, apache-mod-7.2-zts, apache-mod-8.2, php-fpm-8.0, php-fpm-7.1, php-fpm-8.1, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-8.0-zts, apache-mod-7.4, apache-mod-8.1-zts]
@@ -973,6 +973,8 @@ manifest:
         php-fpm-7.4: missing_feature (profiling seems not to be activated)
         apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
   tests/test_profiling.py::Test_Profile::test_process_tags_svc:
     - declaration: missing_feature
     - weblog_declaration:
@@ -997,6 +999,8 @@ manifest:
         php-fpm-7.4: missing_feature (profiling seems not to be activated)
         apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: v1.14.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
