@@ -18,7 +18,8 @@ from .conftest import APMLibrary
 telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "instrumentation_source": {
         "java": "DD_INSTRUMENTATION_SOURCE",
-        "nodejs": "instrumentationSource",
+        # Keep accepting the legacy name while Docker SSI still exercises older Node.js telemetry output.
+        "nodejs": ["instrumentationSource", "instrumentation_source"],
     },
     "ssi_injection_enabled": {
         "python": "DD_INJECTION_ENABLED",
@@ -320,12 +321,9 @@ class Test_Consistent_Configs:
             )
             == "5.2.0"
         )
-        assert (
-            test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, "DD_TRACE_RATE_LIMIT", "env_var", return_value_only=True
-            )
-            in ("10", 10)
-        )
+        assert test_agent.get_telemetry_config_by_origin(
+            configuration_by_name, "DD_TRACE_RATE_LIMIT", "env_var", return_value_only=True
+        ) in ("10", 10)
         assert (
             test_agent.get_telemetry_config_by_origin(
                 configuration_by_name, "DD_TRACE_HEADER_TAGS", "env_var", return_value_only=True
@@ -1131,7 +1129,9 @@ class Test_TelemetrySSIConfigs:
         inject_force_telemetry_names = _mapped_telemetry_name("ssi_forced_injection_enabled")
         inject_force = None
         for inject_force_name in inject_force_telemetry_names:
-            inject_force = test_agent.get_telemetry_config_by_origin(configuration_by_name, inject_force_name, "env_var")
+            inject_force = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, inject_force_name, "env_var"
+            )
             if inject_force is not None:
                 break
         assert inject_force is not None, (
@@ -1237,7 +1237,11 @@ class Test_TelemetrySCAEnvVar:
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
         cfg_appsec_enabled = next(
-            (configuration_by_name.get(config_name) for config_name in dd_appsec_sca_enabled_names if config_name in configuration_by_name),
+            (
+                configuration_by_name.get(config_name)
+                for config_name in dd_appsec_sca_enabled_names
+                if config_name in configuration_by_name
+            ),
             None,
         )
         logger.info(f"Oberved {dd_appsec_sca_enabled}: {cfg_appsec_enabled}")
@@ -1258,7 +1262,11 @@ class Test_TelemetrySCAEnvVar:
 
         if context.library in ("java", "nodejs", "python", "ruby"):
             cfg_appsec_enabled = next(
-                (configuration_by_name.get(config_name) for config_name in dd_appsec_sca_enabled_names if config_name in configuration_by_name),
+                (
+                    configuration_by_name.get(config_name)
+                    for config_name in dd_appsec_sca_enabled_names
+                    if config_name in configuration_by_name
+                ),
                 None,
             )
             assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
