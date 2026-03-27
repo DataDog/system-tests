@@ -46,8 +46,8 @@ class TestDockerSSIAppsecFeatures:
 
         # Check that instrumentation source is ssi
         injection_source = (
-            configurations.get("DD_APPSEC_ENABLED")  # Python
-            or configurations.get("appsec.enabled")  # Node.js & PHP
+            configurations.get("DD_APPSEC_ENABLED")  # Node.js & Python
+            or configurations.get("appsec.enabled")  # PHP
             or configurations.get("appsec_enabled")  # Java
         )
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
