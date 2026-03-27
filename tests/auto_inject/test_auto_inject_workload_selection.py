@@ -58,7 +58,6 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
     commands_not_excluded_by_workload_policy = {
         "java": [
             "java -jar myjar.jar",
-            "java -jar myjar.jar",
             "version=-version java -jar myjar.jar",
             "java -Dversion=-version -jar myapp.jar",
         ],
