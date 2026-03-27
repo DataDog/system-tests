@@ -1283,10 +1283,18 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.3.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.0.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: bug (APMAPI-867)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: bug (APMAPI-867)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: bug (APMAPI-867)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: bug (APMAPI-868)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-868)
+      component_version: <2.30.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
@@ -1295,9 +1303,15 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
     - declaration: bug (APMAPI-867)
       component_version: <2.27.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default: bug (APMAPI-867)  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: bug (APMAPI-867)  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: bug (APMAPI-867)  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:  # Created by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env:  # Created by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules:  # Created by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
@@ -1449,11 +1463,15 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_get_span_context:
     - declaration: bug (APMRP-360)
       component_version: <2.2.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+      component_version: <2.30.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error:
     - declaration: missing_feature (Not implemented)
       component_version: <2.3.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+      component_version: <2.30.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:
     - declaration: missing_feature (Not implemented)
       component_version: <2.3.0
@@ -1494,7 +1512,9 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
-  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature (Not yet implemented)
+  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Not yet implemented)
+      component_version: <2.30.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
@@ -1552,11 +1572,16 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.4.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
-  tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <2.30.0
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <2.30.0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
