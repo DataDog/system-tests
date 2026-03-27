@@ -1794,7 +1794,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v2.9.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v4.7.0
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
@@ -1850,6 +1850,7 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Python does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
