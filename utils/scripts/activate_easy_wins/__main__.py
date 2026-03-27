@@ -99,11 +99,13 @@ def main() -> None:
             owner_has_changes = logger.total_modified_rules > 0 or created_rules_count > 0
             has_updates = has_updates or owner_has_changes
 
-            manifest_editor.write(dry_run=args.dry_run)
             if not args.dry_run and owner_has_changes:
                 branch = _owner_to_branch(owner, args.components)
                 _git("checkout", "-B", branch, base_branch)
-                subprocess.run(["./format.sh"], check=True)
+                manifest_editor.write()
+                subprocess.run(["yamlfmt", "manifests/"], check=True)
+                subprocess.run(["yamllint", "-s", "manifests/"], check=True)
+                subprocess.run(["python", "utils/manifest/format.py"], check=True)
                 _git("add", str(MANIFESTS_DIR))
                 _git("commit", "-m", f"chore: activate easy wins for {owner or 'no code owner'}")
                 _git("checkout", base_branch)
