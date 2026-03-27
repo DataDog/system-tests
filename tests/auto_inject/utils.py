@@ -90,11 +90,17 @@ class AutoInjectBaseTest:
             )
             return False
 
-        if "appsec.event" not in meta or meta["appsec.event"] != "true":
-            logger.error("expected 'appsec.event' to be true in trace meta but found %s", meta.get("appsec.event"))
-            return False
+        # Check for v0.4 protocol
+        if meta.get("appsec.event") == "true":
+            return True
 
-        return True
+        # Check for v1.4 protocol
+        appsec_payload = meta.get("_dd.appsec.json")
+        if appsec_payload and appsec_payload.get("triggers"):
+            return True
+
+        logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
+        return False
 
     def _container_tags_validator(self, _, trace_data):
         root_id = trace_data["trace"]["root_id"]
