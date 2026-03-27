@@ -61,14 +61,14 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
 
         def check_scope(scope: dict):
             name = scope.get("name", "")
-            if re.search(pattern, name):
-                scope_type = scope.get("scope_type", "")
-                return scope_type in [
-                    "CLASS",
-                    "class",
-                    "MODULE",
-                    "struct",  # Go
-                ]
+            scope_type = scope.get("scope_type", "")
+            if re.search(pattern, name) and scope_type in [
+                "CLASS",
+                "class",
+                "MODULE",
+                "struct",  # Go
+            ]:
+                return True
 
             return any(check_scope(nested_scope) for nested_scope in scope.get("scopes", []))
 
