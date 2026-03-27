@@ -587,7 +587,6 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
         },
         backend_interface_timeout=5,
-        require_api_key=True,
         include_opentelemetry=True,
         doc="",
     )
