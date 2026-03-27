@@ -1886,7 +1886,9 @@ manifest:
     - declaration: missing_feature (Implemented in 5.38.0)
       component_version: <5.38.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: *ref_5_29_0
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+      component_version: <5.93.0
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: *ref_5_25_0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: *ref_5_41_0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: *ref_5_25_0
@@ -1911,8 +1913,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: bug (APMAPI-865)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: *ref_4_23_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
-  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_of7_empty_targeting_key: bug (FFL-1730)
-  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid: missing_feature (Need to remove b3=b3multi alias)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_of7_empty_targeting_key:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-1730)
+      component_version: <5.93.0
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Need to remove b3=b3multi alias)
+      component_version: <5.93.0
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_inject_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_invalid: missing_feature (Need to remove b3=b3multi alias)
@@ -1955,7 +1961,9 @@ manifest:
   : "missing_feature (\"Issue: the decision maker is removed. Is that allowed behavior?\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010: missing_feature (nodejs has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010:  # TODO: a lower version might be supported
+    - declaration: missing_feature (nodejs has not implemented stats computation yet)
+      component_version: <5.93.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
@@ -1987,7 +1995,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: *ref_5_72_0
   tests/parametric/test_otel_metrics.py: *ref_5_81_0
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=5.93.0'  # TODO: a lower version might be supported
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
@@ -2038,7 +2046,9 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span:
     - declaration: missing_feature (Implemented in 3.48.0, 4.27.0, and 5.3.0)
       component_version: <5.3.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans: missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Not implemented)
+      component_version: <5.93.0
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span: missing_feature (New operation name mapping not yet implemented)
@@ -2046,20 +2056,35 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (baggage endpoints are not implemented)
+      component_version: <5.93.0
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_all_baggage: incomplete_test_app (baggage endpoints are not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_baggage: incomplete_test_app (baggage endpoints are not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_set_baggage: incomplete_test_app (baggage endpoints are not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (crash endpoint is not implemented)
+      component_version: <5.93.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: *ref_5_75_0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events::test_record_exception: bug (APMAPI-778)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start:  # The expected span.kind tag is not set
+    - declaration: bug (APMAPI-778)
+      component_version: <5.93.0
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage:  # TODO: a lower version might be supported
+    - declaration: missing_feature (baggage is not supported)
+      component_version: <5.93.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current_span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: *ref_5_72_0
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: bug (APMLP-270)
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing:  # TODO: a lower version might be supported
+    - declaration: bug (APMLP-270)
+      component_version: <5.93.0
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_disabled: bug (APMLP-270)
   tests/parametric/test_process_discovery.py: missing_feature
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # Manual keep did not override the upstream drop decision
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=5.93.0'  # TODO: a lower version might be supported
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_0_sst008: bug (APMAPI-737)
@@ -2085,7 +2110,9 @@ manifest:
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
   : missing_feature (Not implemented)
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: *ref_6_0_0
-  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not emitted when agent is unreachable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Diagnostic messages not emitted when agent is unreachable)
+      component_version: <5.93.0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: *ref_5_25_0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings_2: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Defaults: *ref_5_6_0
@@ -2127,10 +2154,14 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerSCITagging::test_tracer_repository_url_strip_credentials: missing_feature (nodejs does not strip credentials yet)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <5.93.0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: *ref_5_15_0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature (Only plaintext files are sent presently)
-  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature (Only plaintext files are sent presently)
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Only plaintext files are sent presently)
+      component_version: <5.93.0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature (Only plaintext files are sent presently)
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature (Only plaintext files are sent presently)
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature (Only plaintext files are sent presently)
