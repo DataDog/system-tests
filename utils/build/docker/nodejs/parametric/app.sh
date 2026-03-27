@@ -14,4 +14,4 @@ if [ -e /volumes/dd-trace-js ]; then
 fi
 
 # shellcheck disable=SC2086
-exec node server.js ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-}
+node server.js ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-}
