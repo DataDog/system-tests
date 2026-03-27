@@ -163,8 +163,7 @@ class TestAgentFactory:
             else:
                 yield client
 
-        if hasattr(request.node, "add_report_section"):
-            request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
+        request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
 
 
 class TestAgentAPI:
