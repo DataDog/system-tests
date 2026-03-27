@@ -1196,7 +1196,7 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_sql_success:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
@@ -1315,23 +1315,23 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm::test_trace_payload_full:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        flask-poc: v4.6.4  # TODO: a lower version might be supported
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        flask-poc: v4.6.4  # TODO: a lower version might be supported
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1370,7 +1370,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1378,15 +1378,15 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        flask-poc: v4.6.4  # TODO: a lower version might be supported
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1405,7 +1405,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.6.4  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1434,7 +1434,7 @@ manifest:
         flask-poc: v2.16.0
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.6.4  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
