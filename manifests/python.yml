@@ -974,7 +974,12 @@ manifest:
         "*": missing_feature
         *flask: v3.5.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
-  : bug (DEBUG-5000)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-5000)
+      component_version: <4.6.4
+      weblog: [flask-poc, uwsgi-poc, uds-flask]
+    - declaration: bug (DEBUG-5000)
+      excluded_weblog: [flask-poc, uwsgi-poc, uds-flask]
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
