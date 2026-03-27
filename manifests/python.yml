@@ -1091,7 +1091,10 @@ manifest:
   ? tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_multiple_system_prompts
   : missing_feature  # ephemeral cache TTL metrics not yet released
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_redact_image_input: missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_stream_method: missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_stream_method:  # ephemeral cache TTL metrics not yet released
+    - weblog_declaration:
+        '*': missing_feature
+        anthropic-py@0.75.0: '>=4.6.4'
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result: bug (MLOB-1234)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_with_tools: missing_feature  # ephemeral cache TTL metrics not yet released
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
