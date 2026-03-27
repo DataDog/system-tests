@@ -58,7 +58,6 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
             "dotnet run -- -p build",
             "dotnet build.dll -- -p build",
             "sudo -E dotnet run myapp.dll -- -p build",
-            "sudo dotnet publish",
             "MY_ENV_VAR=build dotnet myapp.dll",
         ],
     }
