@@ -244,7 +244,21 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v2.22.1-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_all:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -261,7 +275,21 @@ manifest:
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -270,7 +298,21 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -287,9 +329,527 @@ manifest:
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_cmdi.py: missing_feature
-  tests/appsec/rasp/test_lfi.py: missing_feature
-  tests/appsec/rasp/test_shi.py: missing_feature
+  tests/appsec/rasp/test_cmdi.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+        sinatra14: missing_feature
+        sinatra32: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Capability:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails42: missing_feature
+        uds-rails: missing_feature
+        sinatra41: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        sinatra22: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
     - weblog_declaration:
         "*": v2.12.3
@@ -336,7 +896,12 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version:  # TODO: a lower version might be supported
+    - declaration: missing_feature (relies on Telemetry V2)
+      component_version: <2.30.0
+      weblog: [rack, rails42, sinatra22, rails52, rails61, uds-sinatra, sinatra41, rails72, sinatra14, sinatra32, rails80, uds-rails]
+    - declaration: missing_feature (relies on Telemetry V2)
+      excluded_weblog: [rack, rails42, sinatra22, rails52, rails61, uds-sinatra, sinatra41, rails72, sinatra14, sinatra32, rails80, uds-rails]
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
     - weblog_declaration:
         "*": v2.14.0
@@ -365,24 +930,76 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version:  # TODO: a lower version might be supported
+    - declaration: missing_feature (relies on Telemetry V2)
+      component_version: <2.30.0
+      weblog: [rack, rails42, sinatra22, rails52, rails61, uds-sinatra, sinatra41, rails72, sinatra14, sinatra32, rails80, uds-rails]
+    - declaration: missing_feature (relies on Telemetry V2)
+      excluded_weblog: [rack, rails42, sinatra22, rails52, rails61, uds-sinatra, sinatra41, rails72, sinatra14, sinatra32, rails80, uds-rails]
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: irrelevant  # xml body not natively supported
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v2.14.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version:  # requires Telemetry V2
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.14.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version:  # requires Telemetry V2
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.30.0'
+        rails42: '>=2.30.0'
+        sinatra22: '>=2.30.0'
+        rails52: '>=2.30.0'
+        rails61: '>=2.30.0'
+        uds-sinatra: '>=2.30.0'
+        sinatra41: '>=2.30.0'
+        rails72: '>=2.30.0'
+        sinatra14: '>=2.30.0'
+        sinatra32: '>=2.30.0'
+        rails80: '>=2.30.0'
+        uds-rails: '>=2.30.0'
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+      component_version: <2.30.0
+      weblog: [rack, rails42, sinatra22, rails52, rails61, uds-sinatra, sinatra41, rails72, sinatra14, sinatra32, rails80, uds-rails]
+    - declaration: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+      excluded_weblog: [rack, rails42, sinatra22, rails52, rails61, uds-sinatra, sinatra41, rails72, sinatra14, sinatra32, rails80, uds-rails]
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_telemetry_sca_enabled_propagated:
+    - weblog_declaration:
+        rails80: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        rails42: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        uds-rails: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        sinatra41: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        sinatra32: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        rails72: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        sinatra22: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        sinatra14: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        rack: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        uds-sinatra: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        rails52: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+        rails61: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v2.20.0-dev
@@ -499,11 +1116,11 @@ manifest:
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled:
     - weblog_declaration:
         rack: irrelevant (it's not possible to auto instrument with rack)
-        sinatra14: missing_feature (Sinatra endpoint not implemented)
-        sinatra22: missing_feature (Sinatra endpoint not implemented)
-        sinatra32: missing_feature (Sinatra endpoint not implemented)
-        sinatra41: missing_feature (Sinatra endpoint not implemented)
-        uds-sinatra: missing_feature (Sinatra endpoint not implemented)
+        sinatra14: v2.30.0  # TODO: a lower version might be supported
+        sinatra22: v2.30.0  # TODO: a lower version might be supported
+        sinatra32: v2.30.0  # TODO: a lower version might be supported
+        sinatra41: v2.30.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.30.0  # TODO: a lower version might be supported
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key:
     - declaration: missing_feature
       component_version: <=1.0.0
@@ -512,11 +1129,11 @@ manifest:
       component_version: <=1.0.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout:
     - weblog_declaration:
-        sinatra14: missing_feature (Sinatra endpoint not implemented)
-        sinatra22: missing_feature (Sinatra endpoint not implemented)
-        sinatra32: missing_feature (Sinatra endpoint not implemented)
-        sinatra41: missing_feature (Sinatra endpoint not implemented)
-        uds-sinatra: missing_feature (Sinatra endpoint not implemented)
+        sinatra14: v2.30.0  # TODO: a lower version might be supported
+        sinatra22: v2.30.0  # TODO: a lower version might be supported
+        sinatra32: v2.30.0  # TODO: a lower version might be supported
+        sinatra41: v2.30.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.30.0  # TODO: a lower version might be supported
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation::test_partial_obfuscation_parameter_value:
     - declaration: missing_feature
@@ -756,7 +1373,13 @@ manifest:
     - weblog_declaration:
         "*": v2.30.0-dev
         graphql23: irrelevant
-        rails42: missing_feature  # Old Rack does not support to_ary for content-length computation
+        rails42: v2.30.0  # Old Rack does not support to_ary for content-length computation
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_No_Blocking:
+    - weblog_declaration:
+        rails42: missing_feature
+  tests/appsec/test_span_tags_headers.py::Test_Headers_No_Event:
+    - weblog_declaration:
+        rails42: missing_feature
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.22.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.22.0-dev
@@ -777,6 +1400,7 @@ manifest:
         sinatra32: '>=2.24.0'
         sinatra22: '>=2.24.0'
         rails42: '>=2.24.0'
+        rack: v2.30.0  # TODO: a lower version might be supported
   tests/appsec/test_traces.py::Test_CollectRespondHeaders: v1.0.0.beta1
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.22.0
   tests/appsec/test_traces.py::Test_RetainTraces: v0.54.2
