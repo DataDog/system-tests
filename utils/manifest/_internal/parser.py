@@ -312,6 +312,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "java_lambda",
         "java_otel",
         "nodejs",
+        "nodejs_lambda",
         "nodejs_otel",
         "php",
         "python",

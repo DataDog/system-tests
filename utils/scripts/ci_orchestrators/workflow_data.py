@@ -500,6 +500,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     is_lambda_library = library in (
         "python_lambda",
         "java_lambda",
+        "nodejs_lambda",
     )
     is_lambda_scenario = scenario in (
         "APPSEC_LAMBDA_DEFAULT",
