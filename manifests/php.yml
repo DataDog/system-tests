@@ -625,7 +625,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.84.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.9.0
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+      component_version: <1.17.0
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v1.5.0
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: irrelevant (PHP backfill model does not support strict two-trace limit, see test below for its behavior)
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v1.9.0
@@ -655,7 +657,9 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
-  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_of7_empty_targeting_key: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <1.16.0
@@ -717,7 +721,7 @@ manifest:
   : bug (APMAPI-916)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_keeps_32_or_fewer_list_members
   : bug (APMAPI-916)
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # Easy win for all weblogs and version 1.17.0
     - declaration: bug (APMAPI-1539)
       component_version: '>=1.11.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (php has not implemented stats computation yet)
@@ -743,8 +747,20 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_traces_parentbased_on:
     - declaration: missing_feature (The always_on sampler mapping is properly implemented in v1.2.0)
       component_version: <=1.1.0
-  tests/parametric/test_otel_logs.py: missing_feature
+  tests/parametric/test_otel_logs.py: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature
   tests/parametric/test_otel_metrics.py: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
@@ -796,16 +812,19 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: missing_feature
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=1.17.0'  # TODO: a lower version might be supported
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_disabled: '>=1.16.0'
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_under_limit_one_payload: '>=1.16.0'
   tests/parametric/test_process_discovery.py: missing_feature
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=1.17.0'  # TODO: a lower version might be supported
   ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog
   : '>=1.16.0'
   ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext
   : '>=1.16.0'
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -815,8 +834,11 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_tiny_sst004: bug (APMAPI-737)
-  tests/parametric/test_span_events.py: missing_feature
+  tests/parametric/test_span_events.py: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v04: missing_feature
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: '>=1.16.0'
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v07: missing_feature
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_invalid_event_attributes: missing_feature
   tests/parametric/test_span_links.py: missing_feature
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : missing_feature (The PHP tracer always sends the full trace to the agent.)
@@ -843,11 +865,14 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v1.9.0
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
   : irrelevant (temporary use case for python, ruby and nodejs)
-  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: missing_feature
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_not_propagated: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
-  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_inject_force: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_injection_enabled: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_instrumentation_source_non_ssi: '>=1.16.0'
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
@@ -861,10 +886,18 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.2.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
-  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <1.17.0
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=1.17.0'  # TODO: a lower version might be supported
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: '>=1.16.0'
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_telemetry_app_started: '>=1.16.0'
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD:
     - declaration: bug (APPSEC-55129)
