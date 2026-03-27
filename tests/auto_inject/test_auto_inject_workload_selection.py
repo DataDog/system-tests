@@ -36,12 +36,12 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
     """Test that auto instrumentation respects workload selection policies (excluded specific commands and args)."""
 
     # Commands excluded by workload selection policy (should not be instrumented)
-    # no_language_found_commands = [
-    #     "touch myfile.txt",
-    #     "hello=hola cat myfile.txt",
-    #     "ls -la",
-    #     "mkdir newdir",
-    # ]
+    no_language_found_commands = [
+        "touch myfile.txt",
+        "hello=hola cat myfile.txt",
+        "ls -la",
+        "mkdir newdir",
+    ]
 
     # Commands with args excluded by workload selection policy per language (should not be instrumented)
     commands_excluded_by_workload_policy = {
@@ -71,21 +71,21 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
         ],
     }
 
-    # @irrelevant(
-    #     condition="container" in context.weblog_variant
-    #     or "alpine" in context.weblog_variant
-    #     or "buildpack" in context.weblog_variant
-    # )
-    # def test_no_language_found_commands(self):
-    #     """Check that commands with no language found are skipped from auto injection."""
-    #     virtual_machine = context.virtual_machine
-    #     logger.info(f"[{virtual_machine.get_ip()}] Executing commands with no language found")
-    #     ssh_client = virtual_machine.get_ssh_connection()
-    #     for command in self.no_language_found_commands:
-    #         local_log_file = self._execute_remote_command(ssh_client, command)
-    #         assert command_injection_skipped(command, local_log_file), (
-    #             f"The command '{command}' was allowed by auto injection but should have been denied"
-    #         )
+    @irrelevant(
+        condition="container" in context.weblog_variant
+        or "alpine" in context.weblog_variant
+        or "buildpack" in context.weblog_variant
+    )
+    def test_no_language_found_commands(self):
+        """Check that commands with no language found are skipped from auto injection."""
+        virtual_machine = context.virtual_machine
+        logger.info(f"[{virtual_machine.get_ip()}] Executing commands with no language found")
+        ssh_client = virtual_machine.get_ssh_connection()
+        for command in self.no_language_found_commands:
+            local_log_file = self._execute_remote_command(ssh_client, command)
+            assert command_injection_skipped(command, local_log_file), (
+                f"The command '{command}' was allowed by auto injection but should have been denied"
+            )
 
     @irrelevant(
         condition="container" in context.weblog_variant
