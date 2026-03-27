@@ -244,11 +244,13 @@ jobs:
             MAIN_SHA=$(git rev-parse main)
 
             if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-              SIGNED_COMMIT=$(HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
+              SIGNED_COMMIT=$(git log --reverse --format="%H" "$MAIN_SHA..HEAD" | \
+                HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
                 -T "${{ github.repository }}" --branch "$BRANCH_NAME" \
                 --head-sha "$MAIN_SHA" --force)
             else
-              SIGNED_COMMIT=$(HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
+              SIGNED_COMMIT=$(git log --reverse --format="%H" "$MAIN_SHA..HEAD" | \
+                HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
                 -T "${{ github.repository }}" --branch "$BRANCH_NAME" \
                 --head-sha "$MAIN_SHA" --create-branch)
             fi
