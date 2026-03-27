@@ -741,7 +741,11 @@ class BaseSCAStandaloneTelemetry:
         dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
 
         cfg_appsec_enabled = next(
-            (configuration_by_name.get(config_name) for config_name in dd_appsec_sca_enabled_names if config_name in configuration_by_name),
+            (
+                configuration_by_name.get(config_name)
+                for config_name in dd_appsec_sca_enabled_names
+                if config_name in configuration_by_name
+            ),
             None,
         )
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
