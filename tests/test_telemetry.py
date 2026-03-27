@@ -636,7 +636,9 @@ class Test_TelemetryEnhancedConfigReporting:
     def test_telemetry_enhanced_config_reporting_precedence(self):
         """Verify configuration precedence order matches expected sequence."""
         expected_config = self.EXPECTED_CONFIGS[context.library.name]
-        config_names = expected_config.get("names", [expected_config["name"]])
+        config_names = expected_config.get("names")
+        if config_names is None:
+            config_names = [expected_config["name"]]
         expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
         # Get configurations from telemetry events

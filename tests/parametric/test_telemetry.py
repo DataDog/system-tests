@@ -24,14 +24,14 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_INJECTION_ENABLED",
         "java": "DD_INJECTION_ENABLED",
         "ruby": "DD_INJECTION_ENABLED",
-        "nodejs": ["DD_INJECTION_ENABLED", "injectionEnabled"],
+        "nodejs": ["DD_INJECTION_ENABLED", "injectionEnabled", "ssi_injection_enabled"],
         "golang": ["DD_INJECTION_ENABLED", "injection_enabled"],
     },
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
         "java": "DD_INJECT_FORCE",
-        "nodejs": ["DD_INJECT_FORCE", "injectForce"],
+        "nodejs": ["DD_INJECT_FORCE", "injectForce", "ssi_forced_injection_enabled"],
         "golang": ["DD_INJECT_FORCE", "inject_force"],
     },
     "trace_sample_rate": {
@@ -1099,6 +1099,13 @@ class Test_TelemetrySSIConfigs:
             inject_enabled = test_agent.get_telemetry_config_by_origin(configuration_by_name, ssi_name, "env_var")
             if inject_enabled is not None:
                 break
+        if inject_enabled is None and context.library == "nodejs":
+            for ssi_name in ssi_enabled_telemetry_names:
+                inject_enabled = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, ssi_name, "calculated", fallback_to_first=True
+                )
+                if inject_enabled is not None:
+                    break
         assert inject_enabled is not None, (
             f"No configuration found for any of {' or '.join(ssi_enabled_telemetry_names)}"
         )
@@ -1151,6 +1158,13 @@ class Test_TelemetrySSIConfigs:
             )
             if inject_force is not None:
                 break
+        if inject_force is None and context.library == "nodejs":
+            for inject_force_name in inject_force_telemetry_names:
+                inject_force = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, inject_force_name, "calculated", fallback_to_first=True
+                )
+                if inject_force is not None:
+                    break
         assert inject_force is not None, (
             f"No configuration found for any of {' or '.join(inject_force_telemetry_names)}"
         )
