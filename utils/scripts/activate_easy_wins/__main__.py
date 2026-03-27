@@ -101,7 +101,7 @@ def main() -> None:
 
             if not args.dry_run and owner_has_changes:
                 branch = _owner_to_branch(owner, args.components)
-                _git("checkout", "-B", branch, base_branch)
+                _git("checkout", "-B", branch, "main")
                 manifest_editor.write()
                 subprocess.run(["yamlfmt", "manifests/"], check=True)
                 subprocess.run(["yamllint", "-s", "manifests/"], check=True)
