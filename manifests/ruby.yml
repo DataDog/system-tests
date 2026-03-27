@@ -1765,13 +1765,13 @@ manifest:
         rails42: missing_feature (Missing endpoint)
         rails52: missing_feature (Missing endpoint)
         rails61: missing_feature (Missing endpoint)
-        rails72: missing_feature (Missing endpoint)
-        rails80: missing_feature (Missing endpoint)
+        rails72: v2.30.0  # TODO: a lower version might be supported
+        rails80: v2.30.0  # TODO: a lower version might be supported
         sinatra14: missing_feature (Missing endpoint)
         sinatra22: missing_feature (Missing endpoint)
         sinatra32: missing_feature (Missing endpoint)
         sinatra41: missing_feature (Missing endpoint)
-        uds-rails: missing_feature (Missing endpoint)
+        uds-rails: v2.30.0  # TODO: a lower version might be supported
         uds-sinatra: missing_feature (Missing endpoint)
   tests/test_distributed.py::Test_DistributedHttp: v2.22.1-dev
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
