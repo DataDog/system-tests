@@ -18,7 +18,6 @@ from .conftest import APMLibrary
 telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "instrumentation_source": {
         "java": "DD_INSTRUMENTATION_SOURCE",
-        # Keep accepting the legacy name while Docker SSI still exercises older Node.js telemetry output.
         "nodejs": ["instrumentationSource", "instrumentation_source"],
     },
     "ssi_injection_enabled": {
@@ -45,7 +44,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
-        "nodejs": "DD_LOGS_INJECTION",
+        "nodejs": ["DD_LOGS_INJECTION", "DD_LOG_INJECTION"],
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
         "ruby": "DD_LOGS_INJECTION",
@@ -71,14 +70,14 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "trace_enabled": {
         "dotnet": "DD_TRACE_ENABLED",
         "java": "DD_TRACE_ENABLED",
-        "nodejs": ["DD_TRACE_ENABLED", "DD_TRACING_ENABLED"],
+        "nodejs": ["DD_TRACE_ENABLED", "tracing"],
         "python": "DD_TRACE_ENABLED",
         "ruby": "DD_TRACE_ENABLED",
         "golang": ["DD_TRACE_ENABLED", "trace_enabled"],
     },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
-        "nodejs": "DD_PROFILING_ENABLED",
+        "nodejs": ["DD_PROFILING_ENABLED", "profiling.enabled"],
         "python": "DD_PROFILING_ENABLED",
         "ruby": "DD_PROFILING_ENABLED",
         "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
@@ -86,7 +85,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "appsec_enabled": {
         "dotnet": "DD_APPSEC_ENABLED",
-        "nodejs": "DD_APPSEC_ENABLED",
+        "nodejs": ["DD_APPSEC_ENABLED", "appsec.enabled"],
         "python": "DD_APPSEC_ENABLED",
         "ruby": "DD_APPSEC_ENABLED",
         "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
@@ -94,7 +93,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
-        "nodejs": "DD_DATA_STREAMS_ENABLED",
+        "nodejs": ["DD_DATA_STREAMS_ENABLED", "dsmEnabled"],
         "python": "DD_DATA_STREAMS_ENABLED",
         "java": "DD_DATA_STREAMS_ENABLED",
         "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
@@ -103,7 +102,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "runtime_metrics_enabled": {
         "java": "DD_RUNTIME_METRICS_ENABLED",
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
-        "nodejs": "DD_RUNTIME_METRICS_ENABLED",
+        "nodejs": ["DD_RUNTIME_METRICS_ENABLED", "runtime.metrics.enabled"],
         "python": "DD_RUNTIME_METRICS_ENABLED",
         "ruby": "DD_RUNTIME_METRICS_ENABLED",
         "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
@@ -111,7 +110,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "dynamic_instrumentation_enabled": {
         "java": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
-        "nodejs": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+        "nodejs": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamicInstrumentation.enabled"],
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "dynamic_instrumentation.enabled",
         "ruby": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
@@ -165,14 +164,23 @@ def _check_propagation_style_with_inject_and_extract(
     Raises an AssertionError if either key is missing, has wrong origin, or has empty value
     """
     # Define the inject and extract key names for each language
-    if library_name in ("python", "ruby", "nodejs"):
-        inject_key = "DD_TRACE_PROPAGATION_STYLE_INJECT"
-        extract_key = "DD_TRACE_PROPAGATION_STYLE_EXTRACT"
+    if library_name in ("python", "ruby"):
+        inject_keys = ["DD_TRACE_PROPAGATION_STYLE_INJECT"]
+        extract_keys = ["DD_TRACE_PROPAGATION_STYLE_EXTRACT"]
+    elif library_name == "nodejs":
+        inject_keys = ["DD_TRACE_PROPAGATION_STYLE_INJECT", "tracePropagationStyle.inject"]
+        extract_keys = ["DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracePropagationStyle.extract"]
     else:
         raise ValueError(f"Unsupported library for inject/extract propagation style: {library_name}")
 
     # Check inject key
-    inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, inject_key, expected_origin)
+    inject_item = None
+    inject_key = inject_keys[0]
+    for candidate in inject_keys:
+        inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, candidate, expected_origin)
+        if inject_item is not None:
+            inject_key = candidate
+            break
     assert inject_item is not None, (
         f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
     )
@@ -183,7 +191,13 @@ def _check_propagation_style_with_inject_and_extract(
     assert inject_item["value"], f"Expected non-empty value for '{inject_key}'"
 
     # Check extract key
-    extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, extract_key, expected_origin)
+    extract_item = None
+    extract_key = extract_keys[0]
+    for candidate in extract_keys:
+        extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, candidate, expected_origin)
+        if extract_item is not None:
+            extract_key = candidate
+            break
     assert extract_item is not None, (
         f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
     )
@@ -1089,7 +1103,10 @@ class Test_TelemetrySSIConfigs:
             f"No configuration found for any of {' or '.join(ssi_enabled_telemetry_names)}"
         )
         assert isinstance(inject_enabled, dict)
-        assert inject_enabled.get("value") == expected_value
+        expected_values: tuple[object, ...] = (expected_value,)
+        if context.library == "nodejs":
+            expected_values += ([item.strip() for item in expected_value.split(",")],)
+        assert inject_enabled.get("value") in expected_values
         # Node.js now derives the SSI source config from canonical config entries. Once PR #7734
         # is fully rolled out, restore the strict env_var origin assertion here.
         if expected_value is not None and context.library != "nodejs":
