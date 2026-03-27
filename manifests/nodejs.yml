@@ -101,7 +101,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        express4: missing_feature
+        express4: v5.93.0  # TODO: a lower version might be supported
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -495,7 +495,12 @@ manifest:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # TODO: a lower version might be supported
+    - declaration: missing_feature (weblog does not respond)
+      component_version: <5.93.0
+      weblog: [uds-express4, fastify, express4, express4-typescript, express5]
+    - declaration: missing_feature (weblog does not respond)
+      excluded_weblog: [uds-express4, fastify, express4, express4-typescript, express5]
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -1043,6 +1048,18 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
+        nextjs: v5.93.0  # TODO: a lower version might be supported
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
+    - weblog_declaration:
         nextjs: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: *ref_5_17_0
@@ -1228,7 +1245,7 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
-  tests/appsec/test_rate_limiter.py::Test_Main::test_main:
+  tests/appsec/test_rate_limiter.py::Test_Main::test_main:  # Easy win for express4, express4-typescript, express5, fastify, nextjs, uds-express4 and version 5.93.0
     - declaration: bug (APMRP-360)
       component_version: '>3.14.1'
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: *ref_5_59_0
@@ -1265,7 +1282,26 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: *ref_5_55_0_5_78_0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: *ref_5_79_0
   tests/appsec/test_shell_execution.py::Test_ShellExecution: *ref_5_3_0
-  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61286)
+      component_version: <5.93.0
+      weblog: [uds-express4, fastify, express4, express4-typescript, express5]
+    - declaration: bug (APPSEC-61286)
+      excluded_weblog: [uds-express4, fastify, express4, express4-typescript, express5]
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking:
+    - weblog_declaration:
+        fastify: bug (APPSEC-61286)
+        express5: bug (APPSEC-61286)
+        express4: bug (APPSEC-61286)
+        express4-typescript: bug (APPSEC-61286)
+        uds-express4: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py::Test_Headers_No_Event:
+    - weblog_declaration:
+        fastify: bug (APPSEC-61286)
+        express5: bug (APPSEC-61286)
+        express4: bug (APPSEC-61286)
+        express4-typescript: bug (APPSEC-61286)
+        uds-express4: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: *ref_5_59_0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: *ref_5_60_0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: *ref_5_60_0
@@ -1359,7 +1395,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: *ref_3_19_0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:  # Easy win for express4, express4-typescript, express5, fastify, nextjs, uds-express4 and version 5.93.0
     - declaration: missing_feature
       component_version: <4.1.0
     - declaration: bug (APPSEC-61196)
@@ -1371,7 +1407,15 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: *ref_5_15_0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: missing_feature
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.93.0'
+        fastify: '>=5.93.0'
+        express4: '>=5.93.0'
+        express4-typescript: '>=5.93.0'
+        nextjs: '>=5.93.0'
+        express5: '>=5.93.0'
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: missing_feature
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
@@ -2275,7 +2319,13 @@ manifest:
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
         "*": *ref_5_81_0
-        nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+        nextjs: v5.93.0  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_basic:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_edge_cases:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_root:
     - weblog_declaration:
         fastify: missing_feature (Fasitfy root route is always '/' not empty string)
