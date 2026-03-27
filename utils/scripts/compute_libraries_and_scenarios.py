@@ -158,7 +158,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector", "rust")
+            if "otel" not in library and library not in ("otel_collector")
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]

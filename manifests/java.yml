@@ -2765,6 +2765,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
+  tests/auto_inject/test_blocklist_auto_inject.py::TestAutoInjectBlockListInstallManualHost::test_builtin_block_args: bug (INPLAT-1018)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
