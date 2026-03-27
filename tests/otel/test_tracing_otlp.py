@@ -85,7 +85,7 @@ class Test_Otel_Tracing_OTLP:
         # Assert core span attributes
         assert span["attributes"] is not None
         span_attributes = span["attributes"]
-        assert span_attributes.get("service.name") == "weblog" or span_attributes.get("service.name") == None
+        assert span_attributes.get("service.name") == "weblog" or span_attributes.get("service.name") is None
         assert span_attributes["resource.name"] == span["name"]
         assert span_attributes["span.type"] == "web"
         assert span_attributes["operation.name"] is not None
