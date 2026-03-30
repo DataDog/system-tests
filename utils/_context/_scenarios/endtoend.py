@@ -292,7 +292,6 @@ class EndToEndScenario(DockerScenario):
 
         self.weblog_infra.configure(config)
         self._set_containers_dependancies()
-        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY")
 
         super().configure(config)
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
