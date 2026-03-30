@@ -49,14 +49,29 @@ class AgentLevelSmokeTests:
     def test_lfi_smoke(self) -> None:
         assert self.r.status_code == 200
 
-        interfaces.agent.assert_rasp_attack(
-            self.r,
-            "rasp-930-100",
-            {
-                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
-                "params": {"address": "server.request.query", "value": "../etc/passwd"},
-            },
-        )
+        expected_rule = "rasp-930-100"
+        expected_params = {
+            "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+            "params": {"address": "server.request.query", "value": "../etc/passwd"},
+        }
+
+        for _, _, appsec_data in interfaces.agent.get_appsec_data(self.r):
+            for trigger in appsec_data.get("triggers", []):
+                if trigger.get("rule", {}).get("id") != expected_rule:
+                    continue
+                for match in trigger.get("rule_matches", []):
+                    for params in match.get("parameters", []):
+                        if not isinstance(params, dict):
+                            continue
+                        if all(
+                            isinstance(params.get(name), dict)
+                            and params[name].get("address") == fields.get("address")
+                            and ("value" not in fields or params[name].get("value") == fields["value"])
+                            for name, fields in expected_params.items()
+                        ):
+                            return
+
+        raise AssertionError(f"No RASP attack found for rule {expected_rule}")
 
     def setup_api_security_smoke(self) -> None:
         self.r = weblog.get("/waf")
