@@ -2189,7 +2189,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
-  tests/test_data_integrity.py::Test_LibraryHeaders: *ref_5_47_0 
+  tests/test_data_integrity.py::Test_LibraryHeaders: *ref_5_47_0
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id:
     - declaration: missing_feature (not implemented yet)
       component_version: <5.47.0
