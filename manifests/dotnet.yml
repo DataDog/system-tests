@@ -1014,6 +1014,7 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v2.48.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: v3.40.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: v3.40.0
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_srv_src_inherited_on_child_span: bug (APMLP-1227)
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v2.48.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: v2.36.0
