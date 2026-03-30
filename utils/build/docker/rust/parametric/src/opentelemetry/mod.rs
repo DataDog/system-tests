@@ -189,7 +189,7 @@ async fn get_span_context(
             span_context.span_id().to_string()
         );
         SpanContextResult {
-            span_id: span_context.span_id().to_string(),
+            span_id: u64::from_be_bytes(span_context.span_id().to_bytes()),
             trace_id: span_context.trace_id().to_string(),
             trace_flags: Some(if span_context.trace_flags().to_u8() == 1 {
                 "01".to_string()
@@ -203,7 +203,7 @@ async fn get_span_context(
         let span_id = args.span_id;
         debug!("get_span_context span NOT found: {span_id}");
         SpanContextResult {
-            span_id: "0000000000000000".to_string(),
+            span_id: 0,
             trace_id: "00000000000000000000000000000000".to_string(),
             trace_flags: Some("00".to_string()),
             trace_state: Some("".to_string()),

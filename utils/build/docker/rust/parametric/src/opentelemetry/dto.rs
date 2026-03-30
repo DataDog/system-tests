@@ -118,7 +118,7 @@ pub struct SpanContextArgs {
 // --- SpanContextResult ---
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SpanContextResult {
-    pub span_id: String,
+    pub span_id: u64,
     pub trace_id: String,
     pub trace_flags: Option<String>,
     pub trace_state: Option<String>,
