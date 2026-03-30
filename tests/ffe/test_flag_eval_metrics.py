@@ -416,6 +416,39 @@ def make_invalid_regex_fixture(flag_key: str, invalid_regex: str = "[invalid"):
     }
 
 
+def make_variant_type_mismatch_fixture(flag_key: str):
+    """Create a UFC fixture where the variant value doesn't match the declared type.
+
+    This tests the PARSE_ERROR scenario where the configuration declares a flag type
+    (e.g., INTEGER) but the variant value is incompatible (e.g., a string).
+    This is a configuration error, not a runtime type conversion error.
+    """
+    return {
+        "createdAt": "2024-04-17T19:40:53.716Z",
+        "format": "SERVER",
+        "environment": {"name": "Test"},
+        "flags": {
+            flag_key: {
+                "key": flag_key,
+                "enabled": True,
+                "variationType": "INTEGER",  # Declared as INTEGER
+                "variations": {
+                    "on": {"key": "on", "value": "not-an-integer"},  # But value is a string!
+                    "off": {"key": "off", "value": 0},
+                },
+                "allocations": [
+                    {
+                        "key": "default-allocation",
+                        "rules": [],
+                        "splits": [{"variationKey": "on", "shards": []}],
+                        "doLog": True,
+                    }
+                ],
+            }
+        },
+    }
+
+
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
 class Test_FFE_Eval_Reason_Targeting:
@@ -760,7 +793,7 @@ class Test_FFE_Eval_Metric_Numeric_To_Integer:
     context.library == "golang",
     reason="Go validates regex at config load time and rejects invalid patterns upfront",
 )
-class Test_FFE_Eval_Metric_Parse_Error:
+class Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex:
     """Test that an invalid regex pattern produces error.type=parse_error.
 
     This configures a flag with a MATCHES condition containing an invalid regex pattern
@@ -772,7 +805,7 @@ class Test_FFE_Eval_Metric_Parse_Error:
     - Go: Validates regex at config load time, rejects config with invalid regex
     """
 
-    def setup_ffe_eval_metric_parse_error(self):
+    def setup_ffe_eval_metric_parse_error_invalid_regex(self):
         rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-eval-metric-parse-error"
@@ -793,7 +826,7 @@ class Test_FFE_Eval_Metric_Parse_Error:
             },
         )
 
-    def test_ffe_eval_metric_parse_error(self):
+    def test_ffe_eval_metric_parse_error_invalid_regex(self):
         """Test that invalid regex produces error.type:parse_error."""
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
@@ -808,6 +841,59 @@ class Test_FFE_Eval_Metric_Parse_Error:
         )
         assert get_tag_value(tags, "error.type") == "parse_error", (
             f"Expected error.type 'parse_error', got tags: {tags}"
+        )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_eval_metrics
+class Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch:
+    """Test that a variant value not matching declared flag type produces parse_error.
+
+    This configures a flag as INTEGER type but gives the variant a string value.
+    When the configuration is validated during evaluation, this type mismatch
+    produces a parse_error (configuration is invalid).
+
+    This is different from Test_FFE_Eval_Metric_Type_Mismatch which tests
+    runtime type conversion (e.g., evaluating a STRING flag as BOOLEAN).
+    This test validates that configuration errors are properly detected.
+    """
+
+    def setup_ffe_eval_metric_parse_error_variant_type_mismatch(self):
+        rc.tracer_rc_state.reset().apply()
+
+        config_id = "ffe-eval-variant-type-mismatch"
+        self.flag_key = "eval-variant-type-mismatch-flag"
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_variant_type_mismatch_fixture(self.flag_key)
+        ).apply()
+
+        # Evaluate the flag - the variant value doesn't match the declared type
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "INTEGER",
+                "defaultValue": 0,
+                "targetingKey": "user-1",
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_eval_metric_parse_error_variant_type_mismatch(self):
+        """Test that variant type mismatch produces error.type:parse_error."""
+        assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
+
+        metrics = find_eval_metrics(self.flag_key)
+        assert len(metrics) > 0, f"Expected metric for flag '{self.flag_key}', found none. All: {find_eval_metrics()}"
+
+        point = metrics[0]
+        tags = point.get("tags", [])
+
+        assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
+            f"Expected reason 'error' for variant type mismatch, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "error.type") == "parse_error", (
+            f"Expected error.type 'parse_error' for variant type mismatch, got tags: {tags}"
         )
 
 
