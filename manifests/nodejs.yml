@@ -101,7 +101,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        express4: missing_feature
+        express4: *ref_5_90_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -201,9 +201,7 @@ manifest:
         "*": *ref_5_20_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
-  tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection::test_telemetry_metric_instrumented_sink:
-    - declaration: missing_feature
-      component_version: <5.34.0
+  tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection::test_telemetry_metric_instrumented_sink: v5.34.0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -955,12 +953,6 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <4.9.0
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant
-  tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended::test_login_failure_headers:
-    - declaration: missing_feature
-      component_version: <5.18.0
-  tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended::test_login_success_headers:
-    - declaration: missing_feature
-      component_version: <5.18.0
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: irrelevant
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: irrelevant
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: irrelevant
@@ -1228,9 +1220,6 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
-  tests/appsec/test_rate_limiter.py::Test_Main::test_main:
-    - declaration: bug (APMRP-360)
-      component_version: '>3.14.1'
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: *ref_5_59_0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
@@ -1365,7 +1354,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: *ref_5_15_0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: missing_feature
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v1.0.0 # TODO
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: missing_feature
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
@@ -2200,12 +2189,8 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   tests/test_data_integrity.py::Test_LibraryHeaders: *ref_5_47_0
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id:
-    - declaration: missing_feature (not implemented yet)
-      component_version: <5.47.0
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:
-    - declaration: missing_feature (not implemented yet)
-      component_version: <5.47.0
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: v5.47.0
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: v5.47.0
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags:
     - weblog_declaration:
         anthropic-js: missing_feature (Missing endpoint)
