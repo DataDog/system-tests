@@ -84,6 +84,7 @@ refs:
   - &ref_5_81_0 '>=5.81.0'
   - &ref_5_83_0 '>=5.83.0'
   - &ref_5_87_0 '>=5.87.0'  # Debugger: Capture expressions support
+  - &ref_5_88_0 '>=5.88.0'
   - &ref_5_89_0 '>=5.89.0'
   - &ref_5_90_0 '>=5.90.0'
   - &ref_6_0_0 '>=6.0.0-pre'
@@ -1355,7 +1356,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: *ref_5_15_0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v1.0.0 # TODO
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: *ref_5_88_0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: missing_feature
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
