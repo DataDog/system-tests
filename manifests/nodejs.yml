@@ -1217,6 +1217,9 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
+  tests/appsec/test_rate_limiter.py::Test_Main::test_main:
+    - declaration: bug (APMRP-360)
+      component_version: '>3.14.1 <4.8.0'
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: *ref_5_59_0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
