@@ -235,10 +235,56 @@ class Test_TracerServiceNameSource:
 
 
 @scenarios.parametric
+@features.base_service
+class Test_TracerBaseService:
+    @parametrize("library_env", [{"DD_SERVICE": "global-service"}])
+    def test_base_service_set_when_service_overridden(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a child span is created with a service name different from DD_SERVICE
+        The child span should have meta._dd.base_service set to the global service (DD_SERVICE)
+        """
+        with (
+            test_library,
+            test_library.dd_start_span("root") as root,
+            test_library.dd_start_span("child", service="other-service", parent_id=root.span_id),
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        child_span = next(s for s in trace if s["name"] == "child")
+        assert child_span["service"] == "other-service"
+        assert child_span["meta"].get("_dd.base_service") == "global-service", (
+            f"Expected _dd.base_service='global-service', got: {child_span['meta'].get('_dd.base_service')!r}"
+        )
+
+    @parametrize("library_env", [{"DD_SERVICE": "global-service"}])
+    def test_base_service_absent_when_service_not_overridden(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """When a span uses the same service name as DD_SERVICE
+        The span should not have meta._dd.base_service set
+        """
+        with test_library, test_library.dd_start_span("operation", service="global-service") as root:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None
+        assert "_dd.base_service" not in root_span.get("meta", {}), (
+            f"Root span should not have _dd.base_service, got: {root_span['meta'].get('_dd.base_service')!r}"
+        )
+
+
+@scenarios.parametric
 @features.process_tags
 @rfc("https://docs.google.com/document/d/1c47iSTWxIOHMHfZTF2nT9xfyQaIBP9KJvI9sRn5SvpM")
 class Test_ProcessTags_ServiceName:
-    @parametrize("library_env", [{"DD_SERVICE": "test-service"}])
+    @parametrize(
+        "library_env", [{"DD_SERVICE": "test-service", "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}]
+    )
     def test_process_tag_svc_user(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """When DD_SERVICE is set, process tags must include svc.user:true"""
         with test_library, test_library.dd_start_span("operation") as root:
@@ -252,7 +298,7 @@ class Test_ProcessTags_ServiceName:
         process_tags = span["meta"]["_dd.tags.process"]
         assert "svc.user:true" in process_tags, f"DD_SERVICE is set - Expecting svc.user:true in {process_tags}"
 
-    @parametrize("library_env", [{}])
+    @parametrize("library_env", [{"DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}])
     def test_process_tag_svc_auto(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """When DD_SERVICE is unset, process tags must include svc.auto:<default_svc_name>"""
         with test_library, test_library.dd_start_span("operation") as root:
@@ -264,5 +310,5 @@ class Test_ProcessTags_ServiceName:
         span = find_root_span(trace)
         assert span is not None
         process_tags = span["meta"]["_dd.tags.process"]
-        expected_tag = f"svc.auto:{span['service']}"
+        expected_tag = f"svc.auto:{span['service'].lower()}"
         assert expected_tag in process_tags, f"DD_SERVICE is set - Expecting {expected_tag} in {process_tags}"

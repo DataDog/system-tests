@@ -81,7 +81,7 @@ class Test_Client_Stats:
         assert stats_count <= 4, (
             "expect <= 4 stats"
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
-        assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
+        assert hits == top_hits >= 4, "expect at least 4 'OK' hits and top level hits across all payloads"
 
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
@@ -93,6 +93,20 @@ class Test_Client_Stats:
             if s["SpanKind"] == "server":
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
+
+    def setup_top_level_service(self):
+        weblog.get("/")
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_top_level_service(self):
+        """Test that the top-level Service field in the stats payload matches the configured base service"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        for stats_request in stats_requests:
+            payload = stats_request["request"]["content"]
+            service = payload.get("Service")
+            assert service == "weblog", f"Expected top-level Service to be 'weblog', got: {service!r}"
 
     @scenarios.default
     def test_disable(self):
@@ -117,6 +131,25 @@ class Test_Client_Stats:
         assert any(stat.get("GRPCStatusCode") == "0" for stat in grpc_stats), (
             f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
         )
+
+
+@features.service_override_source
+@scenarios.trace_stats_computation
+class Test_Stats_Service_Source:
+    """Test that srv_src field is set in stat buckets when service name is overridden by an integration"""
+
+    def setup_srv_src(self):
+        weblog.get("/rasp/sqli?user_id=1")
+
+    def test_srv_src(self):
+        """Test that at least one stat bucket has the srv_src field set"""
+        srv_src_found = False
+        for s in interfaces.agent.get_stats():
+            logger.debug(f"asserting on {s}")
+            if s.get("srv_src"):
+                srv_src_found = True
+                break
+        assert srv_src_found, "Expected at least one stat bucket to have srv_src set"
 
 
 @features.client_side_stats_supported

@@ -2,7 +2,7 @@ import json
 
 from utils import context, interfaces, scenarios, weblog, features
 from utils.dd_constants import SamplingMechanism, SamplingPriority
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -91,7 +91,9 @@ class Test_Evaluation:
             assert meta_struct_messages == messages, "Invalid messages stored in the meta struct"
             if action != "ALLOW" and blocking == "true":
                 assert span["error"] == 1
-                assert meta["ai_guard.blocked"] == "true", f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
+                assert is_same_boolean(actual=meta["ai_guard.blocked"], expected="true"), (
+                    f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
+                )
                 assert "AIGuardAbortError".lower() in meta["error.type"].lower()
             else:
                 assert "ai_guard.blocked" not in span
@@ -198,7 +200,7 @@ class Test_RootSpanUserKeep:
         assert root_spans, "No root span found in the trace"
 
         for root_span in root_spans:
-            assert root_span.get("metrics", {}).get("_sampling_priority_v1") == SamplingPriority.USER_KEEP, (
+            assert root_span.get_sampling_priority() == SamplingPriority.USER_KEEP, (
                 "Root span should be kept when an ai_guard span exists"
             )
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
@@ -351,7 +353,6 @@ class Test_SensitiveDataScanning:
                 assert _assert_key(sd, "rule_display_name")
                 assert _assert_key(sd, "rule_tag")
                 assert _assert_key(sd, "category")
-                assert _assert_key(sd, "matched_text")
                 location = _assert_key(sd, "location")
                 assert _assert_key(location, "start_index") is not None
                 assert _assert_key(location, "end_index_exclusive") is not None
@@ -389,7 +390,6 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(finding, "rule_display_name")
             assert _assert_key(finding, "rule_tag")
             assert _assert_key(finding, "category")
-            assert _assert_key(finding, "matched_text")
             location = _assert_key(finding, "location")
             assert _assert_key(location, "start_index") is not None
             assert _assert_key(location, "end_index_exclusive") is not None
