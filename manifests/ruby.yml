@@ -2269,7 +2269,7 @@ manifest:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: v2.31.0-dev
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
   tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
