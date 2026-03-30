@@ -1495,7 +1495,6 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
-  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature (Not yet implemented)
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
@@ -2270,35 +2269,7 @@ manifest:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        rails52: '>=2.24.0'
-        rails80: '>=2.24.0'
-        uds-rails: '>=2.24.0'
-        rails61: '>=2.24.0'
-        uds-sinatra: '>=2.24.0'
-        rails72: '>=2.24.0'
-        sinatra41: '>=2.24.0'
-        sinatra14: '>=2.24.0'
-        rack: '>=2.24.0'
-        sinatra32: '>=2.24.0'
-        sinatra22: '>=2.24.0'
-        rails42: '>=2.24.0'
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence:  # Created by easy win activation script
-    - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails72: missing_feature
-        rails61: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
   tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
