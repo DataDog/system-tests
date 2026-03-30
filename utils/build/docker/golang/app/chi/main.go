@@ -407,6 +407,7 @@ func main() {
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
+	mux.HandleFunc("/debugger/expression", d.expression)
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -438,14 +439,4 @@ func headers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", "42")
 	w.Header().Set("Content-Language", "en-US")
 	w.Write([]byte("Hello, headers!"))
-}
-
-type DebuggerController struct{}
-
-func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Log probe"))
-}
-
-func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Mix probe"))
 }

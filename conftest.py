@@ -130,6 +130,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default="",
         help="An file containing a valid Github token to perform API calls",
     )
+    parser.addoption(
+        "--skip-parametric-build",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip building the parametric library image when it already exists "
+            "(faster re-runs when only test code changes)"
+        ),
+    )
 
     # Integration frameworks scenario options
     parser.addoption(
@@ -175,6 +184,13 @@ def pytest_configure(config: pytest.Config) -> None:
         and os.environ.get("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", "").lower() == "true"
     ):
         config.option.skip_empty_scenario = True
+
+    if not config.option.skip_parametric_build and os.environ.get("SKIP_PARAMETRIC_BUILD", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        config.option.skip_parametric_build = True
 
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")

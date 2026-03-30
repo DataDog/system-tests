@@ -91,9 +91,10 @@ class TestData:
 
 def parse_artifact_data(
     data_dir: Path, libraries: list[str], *, excluded_owners: set[str] | None = None, use_dev: bool = False
-) -> tuple[dict[Context, TestData], dict[str, set[str]]]:
+) -> tuple[dict[Context, TestData], dict[str, set[str]], set[str]]:
     test_data: dict[Context, TestData] = {}
     weblogs: dict[str, set[str]] = {}
+    owners: set[str] = {""}
 
     for directory in data_dir.iterdir():
         is_dev = "_dev_" in directory.name
@@ -133,6 +134,8 @@ def parse_artifact_data(
 
                 # Store nodeid to owners mapping
                 test_data[context].nodeid_to_owners[test["nodeid"]] = test_owners
+                # Store owners
+                owners |= test_owners
 
                 # If test is xpassed and has excluded owners, treat it as xfailed instead
                 outcome = test["outcome"]
@@ -177,4 +180,4 @@ def parse_artifact_data(
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.PASS
 
-    return test_data, weblogs
+    return test_data, weblogs, owners
