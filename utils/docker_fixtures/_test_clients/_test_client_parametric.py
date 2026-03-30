@@ -182,10 +182,13 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: "ParametricTestClientApi", span_id: int, trace_id: int):
+    def __init__(self, client: "ParametricTestClientApi", span_id: int | str, trace_id: int):
         self._client = client
-        self.span_id = span_id
         self.trace_id = trace_id
+        self.span_id = span_id
+
+        if isinstance(span_id, str):
+            assert span_id.startswith("0x")
 
     # API methods
 
@@ -521,7 +524,7 @@ class ParametricTestClientApi:
         level: LogLevel,
         message: str,
         *,
-        span_id: int | None = None,
+        span_id: str | int | None = None,
     ) -> bool:
         """Generate a log message with the specified parameters.
 
@@ -604,7 +607,7 @@ class ParametricTestClientApi:
         name: str,
         timestamp: int | None = None,
         span_kind: SpanKind | None = None,
-        parent_id: int | None = None,
+        parent_id: str | int | None = None,
         links: list[Link] | None = None,
         events: list[Event] | None = None,
         attributes: dict | None = None,
@@ -630,12 +633,12 @@ class ParametricTestClientApi:
         name: str,
         timestamp: int | None,
         span_kind: SpanKind | None,
-        parent_id: int | None,
+        parent_id: str | int | None,
         links: list[Link] | None,
         events: list[Event] | None,
         attributes: dict | None,
     ) -> StartSpanResponse:
-        resp = self._session.post(
+        response = self._session.post(
             self._url("/trace/otel/start_span"),
             json={
                 "name": name,
@@ -646,33 +649,36 @@ class ParametricTestClientApi:
                 "events": events or [],
                 "attributes": attributes or {},
             },
-        ).json()
+        )
+        response.raise_for_status()
+
+        data = response.json()
         # TODO: Some http endpoints return span_id and trace_id as strings (ex: dotnet), some as uint64 (ex: go)
         # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
-        return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
+        return StartSpanResponse(span_id=data["span_id"], trace_id=data["trace_id"])
 
-    def otel_end_span(self, span_id: int, timestamp: int | None) -> None:
+    def otel_end_span(self, span_id: str | int, timestamp: int | None) -> None:
         self._session.post(
             self._url("/trace/otel/end_span"),
             json={"id": span_id, "timestamp": timestamp},
         )
 
-    def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
+    def otel_set_attributes(self, span_id: str | int, attributes: dict) -> None:
         self._session.post(
             self._url("/trace/otel/set_attributes"),
             json={"span_id": span_id, "attributes": attributes},
         )
 
-    def otel_set_name(self, span_id: int, name: str) -> None:
+    def otel_set_name(self, span_id: str | int, name: str) -> None:
         self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
 
-    def otel_set_status(self, span_id: int, code: StatusCode, description: str) -> None:
+    def otel_set_status(self, span_id: str | int, code: StatusCode, description: str) -> None:
         self._session.post(
             self._url("/trace/otel/set_status"),
             json={"span_id": span_id, "code": code.name, "description": description},
         )
 
-    def otel_add_event(self, span_id: int, name: str, timestamp: int | None, attributes: dict | None) -> None:
+    def otel_add_event(self, span_id: str | int, name: str, timestamp: int | None, attributes: dict | None) -> None:
         self._session.post(
             self._url("/trace/otel/add_event"),
             json={
@@ -683,31 +689,35 @@ class ParametricTestClientApi:
             },
         )
 
-    def otel_record_exception(self, span_id: int, message: str, attributes: dict | None) -> None:
+    def otel_record_exception(self, span_id: str | int, message: str, attributes: dict | None) -> None:
         self._session.post(
             self._url("/trace/otel/record_exception"),
             json={"span_id": span_id, "message": message, "attributes": attributes},
         )
 
-    def otel_is_recording(self, span_id: int) -> bool:
+    def otel_is_recording(self, span_id: str | int) -> bool:
         resp = self._session.post(self._url("/trace/otel/is_recording"), json={"span_id": span_id}).json()
         return resp["is_recording"]
 
-    def otel_get_span_context(self, span_id: int) -> OtelSpanContext:
-        resp = self._session.post(self._url("/trace/otel/span_context"), json={"span_id": span_id}).json()
+    def otel_get_span_context(self, span_id: str | int) -> OtelSpanContext:
+        response = self._session.post(self._url("/trace/otel/span_context"), json={"span_id": span_id})
+
+        response.raise_for_status()
+
+        data = response.json()
         return OtelSpanContext(
-            trace_id=resp["trace_id"],
-            span_id=resp["span_id"],
-            trace_flags=resp["trace_flags"],
-            trace_state=resp["trace_state"],
-            remote=resp["remote"],
+            trace_id=data["trace_id"],
+            span_id=data["span_id"],
+            trace_flags=data["trace_flags"],
+            trace_state=data["trace_state"],
+            remote=data["remote"],
         )
 
     def otel_flush(self, timeout_sec: int) -> bool:
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout_sec}).json()
         return resp["success"]
 
-    def otel_set_baggage(self, span_id: int, key: str, value: str):
+    def otel_set_baggage(self, span_id: str | int, key: str, value: str):
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"),
             json={"span_id": span_id, "key": key, "value": value},
