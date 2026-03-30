@@ -42,17 +42,20 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             v1_metastruct = span.meta.get("appsec")
             payload = legacy_metastruct or v1_metastruct
 
-            try:
-                b64_decoded = base64.b64decode(payload)
-                msgpack_decoded = msgpack.loads(b64_decoded, raw=False, strict_map_key=False, unicode_errors="replace")
-                yield data, span, msgpack_decoded
-            except Exception:
-                logger.warning(
-                    "Failed to decode appsec payload for request %s on span %s",
-                    request.get_rid(),
-                    span.get_span_name(),
-                    exc_info=True,
-                )
+            if isinstance(payload, str):
+                try:
+                    b64_decoded = base64.b64decode(payload)
+                    msgpack_decoded = msgpack.loads(
+                        b64_decoded, raw=False, strict_map_key=False, unicode_errors="replace"
+                    )
+                    yield data, span, msgpack_decoded
+                except Exception:
+                    logger.warning(
+                        "Failed to decode appsec payload for request %s on span %s",
+                        request.get_rid(),
+                        span.get_span_name(),
+                        exc_info=True,
+                    )
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
