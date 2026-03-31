@@ -713,7 +713,7 @@ class OtelSpanContextArgs(BaseModel):
 
 
 class OtelSpanContextReturn(BaseModel):
-    span_id: str
+    span_id: int
     trace_id: str
     trace_flags: str
     trace_state: str
@@ -730,7 +730,7 @@ def otel_span_context(args: OtelSpanContextArgs):
     # as integers and are converted to hex when the trace is submitted to the collector.
     # https://github.com/open-telemetry/opentelemetry-python/blob/v1.17.0/opentelemetry-api/src/opentelemetry/trace/span.py#L424-L425
     return OtelSpanContextReturn(
-        span_id="{:016x}".format(ctx.span_id),
+        span_id=ctx.span_id,
         trace_id="{:032x}".format(ctx.trace_id),
         trace_flags="{:02x}".format(ctx.trace_flags),
         trace_state=ctx.trace_state.to_header(),

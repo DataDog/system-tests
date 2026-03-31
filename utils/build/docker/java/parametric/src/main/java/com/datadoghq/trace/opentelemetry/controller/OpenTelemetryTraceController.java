@@ -102,7 +102,7 @@ public class OpenTelemetryTraceController {
     }
     SpanContext spanContext = span.getSpanContext();
     return new SpanContextResult(
-        spanContext.getSpanId(),
+        Long.parseUnsignedLong(spanContext.getSpanId(), 16),
         spanContext.getTraceId(),
         spanContext.getTraceFlags().asHex(),
         formatTraceState(spanContext.getTraceState()),
