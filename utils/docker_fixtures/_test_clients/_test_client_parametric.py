@@ -153,7 +153,6 @@ class _TestSpan:
             else:
                 assert span_id.isdigit(), f"{span_id} is not decimal"
 
-
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
 
