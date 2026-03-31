@@ -913,6 +913,16 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
   tests/appsec/test_apm_standalone.py: v5.92.0
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        fastify: missing_feature
+        nextjs: missing_feature
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:
     - weblog_declaration:
         nextjs: missing_feature (endpoint not implemented)
