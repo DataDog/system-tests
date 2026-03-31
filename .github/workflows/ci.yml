@@ -28,7 +28,7 @@ jobs:
       contents: read # need to read releases
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       - name: Install runner
         uses: ./.github/actions/install_runner
       # force /bin/bash in order to test against bash 3.2 on macOS
@@ -49,7 +49,7 @@ jobs:
     name: Fail if target branch is specified
     needs:
       - compute_libraries_and_scenarios
-    if: needs.compute_libraries_and_scenarios.outputs.target-branch != ''
+    if: needs.compute_libraries_and_scenarios.outputs.has-target-branch == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Fail if PR title contains a target branch
@@ -98,7 +98,7 @@ jobs:
       _build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       _enable_replay_scenarios: true
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
-      _system_tests_library_target_branch: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch }}
+      _system_tests_library_target_branch_map: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch-map }}
       push_to_test_optimization: true
 
   exotics:

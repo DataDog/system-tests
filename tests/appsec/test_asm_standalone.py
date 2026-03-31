@@ -8,7 +8,8 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, logger
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, LibraryTraceFormat, is_same_boolean
 
 USER = "test"
 NEW_USER = "testnew"
@@ -32,14 +33,19 @@ TRUTHY_VALUES = ["yes", "true", "t", "1"]
 #   - The value can be None to assert that the tag is not present
 #   - The value can be a string to assert the value of the tag
 #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
-def assert_tags(first_span: dict, span: dict, obj: str, expected_tags: dict[str, str | None | Callable]) -> bool:
-    def _assert_tags_value(span: dict, obj: str, expected_tags: dict[str, str | None | Callable]):
+def assert_tags(
+    first_span: DataDogLibrarySpan, span: DataDogLibrarySpan, obj: str, expected_tags: dict[str, str | None | Callable]
+) -> bool:
+    def _assert_tags_value(span: DataDogLibrarySpan, obj: str, expected_tags: dict[str, str | None | Callable]):
         struct = span if obj is None else span[obj]
         for tag, value in expected_tags.items():
             if value is None:
                 assert tag not in struct
             elif tag == SAMPLING_PRIORITY_KEY:  # special case, it's a lambda to check for a condition
-                assert value(struct[tag])  # type: ignore[operator]
+                sampling_priority = span.get_sampling_priority()
+                if sampling_priority is None:
+                    raise KeyError(SAMPLING_PRIORITY_KEY)
+                assert value(sampling_priority)  # type: ignore[operator]
             else:
                 assert struct[tag] == value
 
@@ -56,6 +62,14 @@ def assert_tags(first_span: dict, span: dict, obj: str, expected_tags: dict[str,
         return True
     except (KeyError, AssertionError):
         return False
+
+
+def _assert_trace_id(trace: DataDogLibraryTrace, span: DataDogLibrarySpan, trace_id: int) -> None:
+    if trace.format == LibraryTraceFormat.v10:
+        assert trace.trace_id_equals(trace_id)
+    else:
+        assert span.raw_span["trace_id"] == trace_id
+        assert trace.raw_trace[0]["trace_id"] == trace_id
 
 
 class BaseAsmStandaloneUpstreamPropagation(ABC):
@@ -126,7 +140,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             )
 
     def fix_priority_lambda(
-        self, span: dict, default_checks: dict[str, str | Callable | None]
+        self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
     ) -> dict[str, str | Callable | None]:
         if "_dd.appsec.s.req.headers" in span["meta"]:
             return {
@@ -146,8 +160,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -192,8 +205,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -238,8 +250,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -284,8 +295,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -328,8 +338,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -372,8 +381,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -418,8 +426,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -463,8 +470,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -508,8 +514,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -550,8 +555,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -592,8 +596,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -634,8 +637,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -735,9 +737,17 @@ class BaseSCAStandaloneTelemetry:
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)
         assert configuration_by_name
 
-        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
+        dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
 
-        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
+        cfg_appsec_enabled = next(
+            (
+                configuration_by_name.get(config_name)
+                for config_name in dd_appsec_sca_enabled_names
+                if config_name in configuration_by_name
+            ),
+            None,
+        )
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         outcome_value: bool | str = True
@@ -750,13 +760,6 @@ class BaseSCAStandaloneTelemetry:
         self.r0 = weblog.get("/load_dependency")
         self.r1 = weblog.get("/load_dependency")
 
-    @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
-    @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
@@ -796,8 +799,8 @@ class Test_AppSecStandalone_NotEnabled:
 
     def test_client_computed_stats_header_is_not_present(self):
         spans_checked = 0
-        for data, _, span in interfaces.library.get_spans(request=self.r):
-            assert span["trace_id"] == 1212121212121212122
+        for data, trace, _ in interfaces.library.get_spans(request=self.r):
+            assert trace.trace_id_equals(1212121212121212122)
             assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
             spans_checked += 1
         assert spans_checked == 1
@@ -872,8 +875,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
             SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0
         }
         for data, trace, span in interfaces.library.get_spans(request=request):
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            assert trace.trace_id_equals(1212121212121212121)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
 
@@ -1035,8 +1037,8 @@ class Test_UserEventsStandalone_Automated:
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == trace_id
-            assert trace[0]["trace_id"] == trace_id
+            assert span.trace_id_equals(trace_id)
+            assert trace.trace_id_equals(trace_id)
 
             # Some tracers use true while others use yes
             assert any(
@@ -1108,8 +1110,8 @@ class Test_UserEventsStandalone_SDK_V1:
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == trace_id
-            assert trace[0]["trace_id"] == trace_id
+            assert span.trace_id_equals(trace_id)
+            assert trace.trace_id_equals(trace_id)
 
             # Some tracers use true while others use yes
             assert any(
@@ -1134,7 +1136,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
         assert "appsec.events.users.login.success.usr.login" in meta
 
     def setup_user_login_failure_event_generates_asm_event(self):
@@ -1145,7 +1147,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
         assert "appsec.events.users.login.failure.usr.exists" in meta
 
 
@@ -1172,8 +1174,8 @@ class Test_UserEventsStandalone_SDK_V2:
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == trace_id
-            assert trace[0]["trace_id"] == trace_id
+            assert span.trace_id_equals(trace_id)
+            assert trace.trace_id_equals(trace_id)
 
             # Some tracers use true while others use yes
             assert any(
@@ -1196,7 +1198,7 @@ class Test_UserEventsStandalone_SDK_V2:
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
         assert "appsec.events.users.login.success.usr.login" in meta
 
     def setup_user_login_failure_event_generates_asm_event(self):
@@ -1208,5 +1210,5 @@ class Test_UserEventsStandalone_SDK_V2:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
         assert "appsec.events.users.login.failure.usr.exists" in meta

@@ -19,6 +19,7 @@ require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
   if c.respond_to?(:tracing)
     c.tracing.instrument :rack
   else
@@ -59,7 +60,7 @@ module Hello
   module_function
 
   def run
-    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+    [200, { 'Content-Type' => 'text/plain' }, ["Hello world!\n"]]
   end
 end
 
@@ -470,6 +471,10 @@ class TraceSamplingMiddleware
 end
 
 use TraceSamplingMiddleware
+# NOTE: Most of the frameworks rely on Web Server to compute `Content-Length` header.
+#       But in this case to make it different from Rails and Sinatra we are going
+#       to provide it.
+use Rack::ContentLength
 
 # /flush
 module Flush

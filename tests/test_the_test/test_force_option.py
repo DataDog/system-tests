@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from utils import bug, irrelevant, scenarios, features
@@ -58,7 +59,8 @@ class Test_ForceOption:
         nodeid_forced = f"{FILENAME}::Test_Another::test_main"
         nodeid_skipped = f"{FILENAME}::Test_Another::test_skipped"
 
-        env = {"SYSTEM_TESTS_FORCE_EXECUTE": f"{nodeid_forced},<other_nodeid>"}
+        env = os.environ.copy()
+        env["SYSTEM_TESTS_FORCE_EXECUTE"] = f"{nodeid_forced},<other_nodeid>"
 
         tests = execute_process(scenario=scenarios.mock_the_test_2, env=env)
         assert nodeid_forced in tests

@@ -350,6 +350,9 @@
                 "name": "test-app-nodejs-container",
                 "excluded_os_branches": [
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
@@ -381,7 +384,9 @@
                 ],
                 "excluded_os_names": [
                     "Debian_11_amd64",
-                    "Debian_11_arm64"
+                    "Debian_11_arm64",
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
                 ]
             },
             {
@@ -390,7 +395,9 @@
                     "Ubuntu_23_04_arm64",
                     "windows_server_2022_amd64",
                     "Debian_11_amd64",
-                    "Debian_11_arm64"
+                    "Debian_11_arm64",
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
                 ]
             },
             {
@@ -399,7 +406,9 @@
                     "Ubuntu_23_04_arm64",
                     "windows_server_2022_amd64",
                     "Debian_11_amd64",
-                    "Debian_11_arm64"
+                    "Debian_11_arm64",
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
                 ]
             },
             {
@@ -416,6 +425,7 @@
                     "Debian_11_amd64",
                     "Debian_11_arm64",
                     "Debian_12_amd64",
+                    "Debian_12_arm64",
                     "OracleLinux_9_2_amd64",
                     "OracleLinux_9_2_arm64",
                     "OracleLinux_9_3_amd64",
@@ -445,7 +455,9 @@
                     "Ubuntu_24_10_amd64",
                     "Ubuntu_24_10_arm64",
                     "Debian_11_amd64",
-                    "Debian_11_arm64"
+                    "Debian_11_arm64",
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
                 ]
             },
             {
@@ -457,7 +469,9 @@
                     "Ubuntu_24_10_amd64",
                     "Ubuntu_24_10_arm64",
                     "Debian_11_amd64",
-                    "Debian_11_arm64"
+                    "Debian_11_arm64",
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
                 ]
             }
         ],
@@ -625,6 +639,7 @@
                     "oracle_linux",
                     "alma_linux",
                     "fedora",
+                    "fedora41",
                     "debian",
                     "rhel_7_amd64",
                     "windows"
@@ -645,6 +660,7 @@
                 "name": "test-app-ruby-container",
                 "excluded_os_branches": [
                     "fedora",
+                    "fedora41",
                     "windows"
                 ]
             },

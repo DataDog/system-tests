@@ -14,6 +14,7 @@ end
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
 
   c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
 end
@@ -30,7 +31,7 @@ else
 end
 
 get '/' do
-  'Hello, world!'
+  "Hello world!\n"
 end
 
 get '/healthcheck' do

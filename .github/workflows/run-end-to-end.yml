@@ -123,7 +123,7 @@ jobs:
           echo "ref=main" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
-      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
@@ -363,6 +363,9 @@ jobs:
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
+    - name: Run SAMPLING_RATE_CAPPING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
+      run: ./run.sh SAMPLING_RATE_CAPPING
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
@@ -496,7 +499,7 @@ jobs:
         fi
     - name: Upload artifact
       if: always() && steps.compress_logs.outcome == 'success'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
         name: ${{ inputs.logs_artifact_name }}
@@ -524,3 +527,4 @@ jobs:
       with:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
+        ci_environment: ${{ inputs.ci_environment }}

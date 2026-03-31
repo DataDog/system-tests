@@ -102,7 +102,7 @@ from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
 from ddtrace.data_streams import set_produce_checkpoint
 
-from debugger_controller import debugger_blueprint
+from debugger.debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
 from openfeature import api
 from ddtrace.openfeature import DataDogProvider
@@ -2194,7 +2194,12 @@ def ai_guard_evaluate():
     except Exception as e:
         if isinstance(e, AIGuardAbortError):
             return jsonify(
-                {"action": getattr(e, "action", ""), "reason": getattr(e, "reason", ""), "tags": getattr(e, "tags", [])}
+                {
+                    "action": getattr(e, "action", ""),
+                    "reason": getattr(e, "reason", ""),
+                    "tags": getattr(e, "tags", []),
+                    "sds": getattr(e, "sds", []),
+                }
             ), 403
         else:
             return jsonify({"error": str(e), "type": e.__class__.__name__}), 500

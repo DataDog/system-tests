@@ -2,6 +2,7 @@ import base64
 from collections.abc import Generator
 import contextlib
 import datetime
+import gzip
 import hashlib
 from http import HTTPStatus
 import json
@@ -11,6 +12,7 @@ import time
 from typing import TypedDict, Any, cast
 import urllib.parse
 
+import msgpack
 import pytest
 import requests
 from retry import retry
@@ -386,24 +388,47 @@ class TestAgentAPI:
         self._write_log("info", resp_json)
         return resp_json
 
+    def _decode_llmobs_body(self, body_b64: str) -> list[Any]:
+        """Decode base64 body; handle gzip (Java), then JSON or MessagePack (Java) encoding.
+
+        Returns a list of events (each event is a dict with 'spans'). Java can send multiple
+        concatenated msgpack objects in one request; we use Unpacker to decode all of them
+        (same as llm-obs test/conftest.py).
+        """
+        decoded = base64.b64decode(body_b64)
+        if decoded[:2] == b"\x1f\x8b":
+            decoded = gzip.decompress(decoded)
+        # JSON (Python/Node tracer): starts with { or [
+        if decoded.lstrip().startswith((b"{", b"[")):
+            parsed = json.loads(decoded)
+            return [parsed] if isinstance(parsed, dict) else parsed
+        # MessagePack (Java tracer): binary format; may be multiple concatenated objects
+        unpacker = msgpack.Unpacker(unicode_errors="replace", strict_map_key=False)
+        unpacker.feed(decoded)
+        return list(unpacker)
+
     def llmobs_requests(self) -> list[Any]:
-        reqs = [r for r in self.requests() if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs")]
+        reqs = [
+            r
+            for r in self.requests()
+            if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs") or r["url"].endswith("/evp_proxy/v4/api/v2/llmobs")
+        ]
 
         events = []
         for r in reqs:
-            decoded_body = base64.b64decode(r["body"])
-            events.append(json.loads(decoded_body))
+            events.append(self._decode_llmobs_body(r["body"]))
         return events
 
-    def llmobs_evaluations_requests(self):
+    def llmobs_evaluations_requests(self) -> list[Any]:
         reqs = [
             r
             for r in self.requests()
             if r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v1/eval-metric")
             or r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v2/eval-metric")
         ]
-
-        return [json.loads(base64.b64decode(r["body"])) for r in reqs]
+        # One decoded body per request (evaluations are typically single JSON per request)
+        decoded_per_request = [self._decode_llmobs_body(r["body"]) for r in reqs]
+        return [events[0] for events in decoded_per_request]
 
     @contextlib.contextmanager
     def snapshot_context(self, token: str, ignores: list[str] | None = None):
@@ -702,6 +727,33 @@ class TestAgentAPI:
                 return event
         return None
 
+    def count_telemetry_events(self, event_name: str) -> int:
+        """Count telemetry events of the given type, using the same logic as _get_telemetry_event.
+
+        Handles both top-level events and events inside message-batch payloads, excluding
+        sidecar-originated events.
+        """
+        try:
+            events: list[Any] = self.telemetry(clear=False)
+        except requests.exceptions.RequestException:
+            return 0
+
+        count: int = 0
+        for event in events:
+            if not event:
+                continue
+            if event.get("request_type") == event_name:
+                count += int(event.get("application", {}).get("language_version") != "SIDECAR")
+            elif event.get("request_type") == "message-batch":
+                count += sum(
+                    1
+                    for message in event.get("payload", [])
+                    if message.get("request_type") == event_name
+                    and message.get("application", {}).get("language_version") != "SIDECAR"
+                )
+
+        return count
+
     def wait_for_rc_apply_state(
         self,
         product: str,
@@ -710,11 +762,16 @@ class TestAgentAPI:
         clear: bool = False,
         wait_loops: int = 100,
         post_only: bool = False,
-    ):
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        config_id: str | int | None = None,
+    ) -> dict[str, Any]:
+        """Wait for the given RemoteConfig apply state to be received by the test agent.
+
+        When config_id is provided, only match config_states whose id equals config_id.
+        This avoids matching stale ACKs from a prior RC update (e.g. for dotnet/php/ruby).
+        """
         logger.info(f"Wait for RemoteConfig apply state {state} for product {product}")
-        rc_reqs = []
-        last_known_state = None
+        rc_reqs: list[Any] = []
+        last_known_state: int | None = None
         for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests(post_only=post_only)
@@ -737,6 +794,8 @@ class TestAgentAPI:
                                 # will probably be the same as the current state
                                 last_known_state = cfg_state["apply_state"]
                                 logger.debug(f"Apply state {cfg_state['apply_state']} does not match {state}")
+                        elif config_id and str(cfg_state.get("id")) != str(config_id):
+                            logger.debug(f"Config state id {cfg_state.get('id')!r} does not match {config_id!r}")
                         else:
                             logger.info(f"Found apply state {state} for product {product}")
                             if clear:

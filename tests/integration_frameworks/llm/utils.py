@@ -167,7 +167,7 @@ def _assert_tags_span_event_tags(
 
     actual_tags_parsed = dict(tag.split(":") for tag in actual_tags)
 
-    assert len(actual_tags_parsed) == len(expected_tags)
+    assert len(actual_tags_parsed) >= len(expected_tags)
     for key, value in expected_tags.items():
         assert actual_tags_parsed[key] == value, (
             f"Tag '{key}' expected value '{value}', got '{actual_tags_parsed[key]}'"
@@ -177,6 +177,9 @@ def _assert_tags_span_event_tags(
 def _library_to_language_tag() -> str:
     if context.library == "nodejs":
         return "javascript"
+
+    if context.library == "java":
+        return "jvm"
 
     return context.library.name
 

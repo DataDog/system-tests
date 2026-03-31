@@ -218,6 +218,41 @@ class SequentialRemoteConfigJsonMockedTracerResponse(MockedTracerResponse):
         }
 
 
+class SequentialJsonMockedTracerResponse(MockedTracerResponse):
+    """Overwrites JSON content on requests to a given path with a sequence of predefined responses.
+
+    Uses a global counter (not per-runtime_id). When the sequence is exhausted,
+    the last element is returned for all subsequent requests.
+    """
+
+    def __init__(self, path: str, mocked_json_sequence: list[dict]):
+        super().__init__(path=path, mocked_headers={"Content-Type": "application/json"})
+        self.mocked_json_sequence = mocked_json_sequence
+        """Sequence of JSON responses to return"""
+
+        self._request_count: int = 0
+        """Tracks how many requests have been made"""
+
+    def execute(self, flow: HTTPFlow) -> None:
+        super().execute(flow)
+
+        idx = min(self._request_count, len(self.mocked_json_sequence) - 1)
+        response = self.mocked_json_sequence[idx]
+
+        flow.response.content = json.dumps(response).encode()
+        flow.response.headers["st-proxy-sequential-response-idx"] = str(idx)
+
+        if self._request_count < len(self.mocked_json_sequence) - 1:
+            self._request_count += 1
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "path": self.path,
+            "mocked_json_sequence": self.mocked_json_sequence,
+        }
+
+
 class _InternalMockedTracerResponse(MockedTracerResponse):
     """Tracer mocked responses that will be applied on the entire test session.
 

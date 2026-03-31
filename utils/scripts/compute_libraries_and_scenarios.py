@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
@@ -25,28 +26,9 @@ root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-LIBRARIES = {
-    "cpp",
-    "cpp_httpd",
-    "cpp_nginx",
-    "dotnet",
-    "golang",
-    "java",
-    "nodejs",
-    "otel_collector",
-    "php",
-    "python",
-    "ruby",
-    "python_lambda",
-    "rust",
-    "envoy",
-    "haproxy",
-}
-
-LAMBDA_LIBRARIES = {"python_lambda"}
-OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
-
-ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
+LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
+OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
+ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -176,7 +158,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector",)
+            if "otel" not in library and library not in ("otel_collector")
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
@@ -250,18 +232,18 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self._append_scenarios_from_test_files(scenario_names)
 
-    def _append_scenarios_from_test_files(self, scenarios: set[str]) -> None:
+    def _append_scenarios_from_test_files(self, scenario_names: set[str]) -> None:
         """When a test file is modified, we want to add all scenarios executed in this file
         But some libraries are not activated by default. If ever we modify such a test file, we store the corresponding
         libraries to ensure they are activated later.
         """
 
-        self.scenarios |= scenarios
+        self.scenarios |= scenario_names
 
         # some libraries are not activated by default. If ever we modify a file that explicitly
         # mention a scenario, we want to activate the corresponding libraries too
-        for scenario_name in scenarios:
-            scenario: Scenario = next(s for s in get_all_scenarios() if s.name == scenario_name)
+        for scenario_name in scenario_names:
+            scenario: Scenario = getattr(scenarios, scenario_name.lower())
             libraries = scenario.get_libraries()
 
             if libraries is not None:

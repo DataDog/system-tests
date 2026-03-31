@@ -2,9 +2,11 @@ import json
 import tempfile
 from pathlib import Path
 
+
 import pytest
 import yaml
 
+from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
     parse_artifact_data,
@@ -12,6 +14,7 @@ from utils.scripts.activate_easy_wins._internal.test_artifact import (
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.core import update_manifest
 from utils.scripts.activate_easy_wins._internal.types import Context
+from utils.scripts.activate_easy_wins._internal.manifest_editor import EASY_WIN_COMMENT
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -66,7 +69,7 @@ def test_parse_artifact_data_xpassed_tests():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
@@ -97,7 +100,7 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["python"])
+        test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
         context = next(iter(test_data.keys()))
         assert "tests/test_module.py::Test_Class::test_mixed" not in test_data[context].xpass_nodes
@@ -122,7 +125,7 @@ def test_parse_artifact_data_xfailed_tests():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["java"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["java"])
 
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
@@ -158,7 +161,7 @@ def test_parse_artifact_data_excluded_owners():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["nodejs"], excluded_owners={"@excluded-team"})
+        test_data, *_ = parse_artifact_data(data_dir, ["nodejs"], excluded_owners={"@excluded-team"})
 
         context = next(iter(test_data.keys()))
         # The excluded owner test should not be in xpass_nodes
@@ -175,7 +178,7 @@ def test_parse_artifact_data_missing_report():
         scenario_dir = data_dir / "test_run" / "scenario_no_report"
         scenario_dir.mkdir(parents=True)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
         assert len(test_data) == 0
         assert len(weblogs) == 0
@@ -210,7 +213,7 @@ def test_parse_artifact_data_library_filter():
             json.dump(ruby_report, f)
 
         # Filter to only python
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
 
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
@@ -251,7 +254,7 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["python"])
+        test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
         context = next(iter(test_data.keys()))
         trie = test_data[context].trie
@@ -317,7 +320,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
-        test_data, _ = parse_artifact_data(data_dir, ["python"])
+        test_data, *_ = parse_artifact_data(data_dir, ["python"])
 
         context = next(iter(test_data.keys()))
         trie = test_data[context].trie
@@ -380,13 +383,13 @@ def test_e2e_activation_modifies_manifest():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, modified_rules, created_rules, _, _, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify activation occurred
-        assert tests_per_language.get("ruby", 0) > 0
-        assert sum(modified_rules.values()) > 0 or created_rules > 0
+        assert logger.tests_per_language.get("ruby", 0) > 0
+        assert logger.total_modified_rules > 0 or len(manifest_editor.added_rules) > 0
 
 
 def test_e2e_activation_filters_by_component():
@@ -420,13 +423,13 @@ def test_e2e_activation_filters_by_component():
             (manifest_dir / f"{lib_name}.yml").write_text(manifest_content)
 
         # Run activation with only ruby
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, _, _, _, _, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify only ruby was processed
-        assert "ruby" in tests_per_language
-        assert "python" not in tests_per_language
+        assert "ruby" in logger.tests_per_language
+        assert "python" not in logger.tests_per_language
 
 
 def test_e2e_activation_excludes_owners():
@@ -470,13 +473,13 @@ def test_e2e_activation_excludes_owners():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation with excluded owner
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"], excluded_owners={"@DataDog/excluded-team"})
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"], excluded_owners={"@DataDog/excluded-team"})
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, _, _, _, unique_tests, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify only one test was activated (the included one)
-        assert tests_per_language.get("ruby", 0) == 1
-        assert unique_tests.get("ruby", 0) == 1
+        assert logger.tests_per_language.get("ruby", 0) == 1
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 1
 
 
 def test_e2e_activation_tracks_activations_per_owner():
@@ -526,13 +529,13 @@ def test_e2e_activation_tracks_activations_per_owner():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        _, _, _, _, _, activations_per_owner = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify owner tracking
-        assert activations_per_owner.get("@DataDog/team-a", 0) == 2
-        assert activations_per_owner.get("@DataDog/team-b", 0) == 1
+        assert logger.activations_per_owner.get("@DataDog/team-a", 0) == 2
+        assert logger.activations_per_owner.get("@DataDog/team-b", 0) == 1
 
 
 def test_e2e_activation_handles_mixed_outcomes():
@@ -570,13 +573,13 @@ def test_e2e_activation_handles_mixed_outcomes():
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
         # Run activation
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
-        tests_per_language, _modified_rules, _, _, unique_tests, _ = update_manifest(manifest_editor, test_data)
+        logger = update_manifest(manifest_editor, test_data)
 
         # Verify: xpassed tests are tracked
-        assert tests_per_language.get("ruby", 0) == 3  # 3 xpassed tests
-        assert unique_tests.get("ruby", 0) == 3
+        assert logger.tests_per_language.get("ruby", 0) == 3  # 3 xpassed tests
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 3
 
         # Verify trie has correct status (class level should be NONE due to mixed outcomes)
         context = next(iter(test_data.keys()))
@@ -624,7 +627,7 @@ manifest:
 """
         (manifest_dir / "python.yml").write_text(manifest_content)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
         update_manifest(manifest_editor, test_data)
 
@@ -666,8 +669,8 @@ def test_easy_win_comment_preserves_existing_comment():
     """Test that existing YAML comments are not overwritten by the easy win activation script.
 
     When a manifest entry already has an inline comment and the activation script
-    would try to add an 'Easy win for ...' comment, the pre-existing comment must
-    be preserved.
+    would try to add a 'TODO: a lower version might be supported' comment, the pre-existing
+    comment must be preserved.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir) / "data"
@@ -690,7 +693,7 @@ def test_easy_win_comment_preserves_existing_comment():
 
         # Create manifest with a pre-existing inline comment on a list-style rule.
         # The list-style bug declaration without weblog_declaration triggers the
-        # else branch in write_poke, which attempts to write an "Easy win for ..." comment.
+        # else branch in write_poke, which attempts to write a "TODO: a lower version might be supported" comment.
         manifest_content = """---
 manifest:
   tests/appsec/test_feature.py::Test_Feature: # Important: tracked in TICKET-456
@@ -699,7 +702,7 @@ manifest:
 """
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         update_manifest(manifest_editor, test_data)
         manifest_editor.write(manifest_dir)
@@ -708,7 +711,7 @@ manifest:
         # The pre-existing comment must still be there
         assert "Important: tracked in TICKET-456" in output_content
         # The easy win comment must NOT have overwritten it
-        assert "Easy win for" not in output_content
+        assert EASY_WIN_COMMENT not in output_content
 
 
 def test_easy_win_comment_added_when_no_existing_comment():
@@ -745,11 +748,192 @@ manifest:
 """
         (manifest_dir / "ruby.yml").write_text(manifest_content)
 
-        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
         manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
         update_manifest(manifest_editor, test_data)
         manifest_editor.write(manifest_dir)
 
         output_content = (manifest_dir / "ruby.yml").read_text()
         # The easy win comment should have been added since there was no pre-existing comment
-        assert "Easy win for" in output_content
+        assert "Easy win for all weblogs and version 2.5.0" in output_content
+
+
+# =============================================================================
+# Tests for the skip mechanism
+# =============================================================================
+
+
+def test_skip_nodeid_for_all_components():
+    """Test that a nodeid listed under '*' in skip.yml is skipped for every component."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/skipped/test_skipped.py::Test_Skipped::test_one", "outcome": "xpassed"},
+                {"nodeid": "tests/kept/test_kept.py::Test_Kept::test_two", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        manifest_content = create_manifest_yaml(
+            {
+                "tests/skipped/test_skipped.py::Test_Skipped": "missing_feature",
+                "tests/kept/test_kept.py::Test_Kept": "missing_feature",
+            }
+        )
+        (manifest_dir / "ruby.yml").write_text(manifest_content)
+
+        skip_data = {"*": ["tests/skipped/test_skipped.py::Test_Skipped::test_one"]}
+
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+
+        logger = update_manifest(manifest_editor, test_data, skip_data)
+
+        assert logger.tests_per_language.get("ruby", 0) == 1
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 1
+
+
+def test_skip_nodeid_for_specific_component():
+    """Test that a nodeid listed under a specific component is skipped only for that component."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        skipped_nodeid = "tests/feature/test_feature.py::Test_Feature::test_method"
+
+        for lib_name, weblog in [("ruby", "rails70"), ("python", "flask")]:
+            scenario_dir = data_dir / f"{lib_name}_run" / "scenario1"
+            scenario_dir.mkdir(parents=True)
+            report = create_report_json(
+                library_name=lib_name,
+                library_version="2.5.0",
+                weblog_variant=weblog,
+                tests=[{"nodeid": skipped_nodeid, "outcome": "xpassed"}],
+            )
+            with (scenario_dir / "report.json").open("w") as f:
+                json.dump(report, f)
+
+        for lib_name in ["ruby", "python"]:
+            manifest_content = create_manifest_yaml({"tests/feature/test_feature.py::Test_Feature": "missing_feature"})
+            (manifest_dir / f"{lib_name}.yml").write_text(manifest_content)
+
+        skip_data = {"ruby": [skipped_nodeid]}
+
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby", "python"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby", "python"])
+
+        logger = update_manifest(manifest_editor, test_data, skip_data)
+
+        assert logger.tests_per_language.get("ruby", 0) == 0
+        assert logger.unique_tests_per_language_count.get("ruby", 0) == 0
+        assert logger.tests_per_language.get("python", 0) == 1
+        assert logger.unique_tests_per_language_count.get("python", 0) == 1
+
+
+# =============================================================================
+# Tests for build_manifest_entry
+# =============================================================================
+
+
+def test_build_manifest_entry_no_existing_rule():
+    """Adding a condition when the rule does not exist in raw_manifest yields only the new condition."""
+    condition: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["flask"],
+    }
+    result = ManifestEditor.build_manifest_entry("tests/test.py::Test", condition, {}, [condition])
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0] == {"weblog_declaration": {"flask": "missing_feature"}}
+
+
+def test_build_manifest_entry_inline_string_missing_feature():
+    """When raw is a string inline declaration (missing_feature), it gets sanitized to a list then appended."""
+    condition: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["django"],
+    }
+    base: Condition = {"component": "python", "declaration": SkipDeclaration("missing_feature")}
+    result = ManifestEditor.build_manifest_entry(
+        "tests/test.py::Test",
+        condition,
+        {"tests/test.py::Test": "missing_feature"},
+        [base],
+    )
+    assert isinstance(result, list)
+    assert result[0] == {"declaration": "missing_feature"}
+    assert result[1] == {"weblog_declaration": {"django": "missing_feature"}}
+
+
+def test_build_manifest_entry_inline_string_excluded_version():
+    """When raw is a string with excluded_component_version, sanitize produces weblog_declaration with '*'."""
+    condition: Condition = {"component": "python", "declaration": SkipDeclaration("missing_feature")}
+    entry: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "excluded_component_version": SemverRange(">=2.0.0"),
+    }
+    result = ManifestEditor.build_manifest_entry(
+        "tests/test.py::Test",
+        condition,
+        {"tests/test.py::Test": ">=2.0.0"},
+        [entry],
+    )
+    assert isinstance(result, list)
+    assert result[0] == {"weblog_declaration": {"*": ">=2.0.0"}}
+
+
+def test_build_manifest_entry_compress_single_declaration():
+    """When output has a single dict with only 'declaration', compress returns the string."""
+    condition: Condition = {
+        "component": "ruby",
+        "declaration": SkipDeclaration("bug"),
+        "weblog": ["rails70"],
+        "component_version": SemverRange(">=1.0.0"),
+    }
+    other: Condition = {"component": "python", "declaration": SkipDeclaration("bug")}
+    result = ManifestEditor.build_manifest_entry("tests/test.py::Test", condition, {}, [other])
+    assert isinstance(result, list)
+
+
+def test_build_manifest_entry_appends_to_existing_list():
+    """When raw_manifest already has a list of conditions, the new condition is appended."""
+    existing_raw = [{"declaration": "bug (TICKET-1)", "component_version": ">=1.0.0"}]
+    condition: Condition = {
+        "component": "ruby",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["rails70"],
+    }
+    entry: Condition = {"component": "ruby", "declaration": SkipDeclaration("bug")}
+    result = ManifestEditor.build_manifest_entry(
+        "tests/test.py::Test",
+        condition,
+        {"tests/test.py::Test": existing_raw},
+        [entry],
+    )
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0] == existing_raw[0]
+    assert result[1] == {"weblog_declaration": {"rails70": "missing_feature"}}
+
+
+def test_build_manifest_entry_compress_to_inline_string():
+    """When the output is a single condition with only 'declaration', it is compressed to a string."""
+    condition: Condition = {"component": "ruby", "declaration": SkipDeclaration("bug")}
+    result = ManifestEditor.build_manifest_entry("tests/test.py::Test", condition, {}, [])
+    assert result == "bug"

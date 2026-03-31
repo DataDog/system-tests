@@ -23,6 +23,7 @@ from .docker_ssi import DockerSSIScenario
 from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
@@ -123,6 +124,13 @@ class _Scenarios:
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    sampling_rate_capping = EndToEndScenario(
+        "SAMPLING_RATE_CAPPING",
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test that tracers cap sampling rate increases to 2x per interval when agent restarts",
         scenario_groups=[scenario_groups.sampling],
     )
 
@@ -535,7 +543,10 @@ class _Scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
         },
+        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )
@@ -573,7 +584,7 @@ class _Scenarios:
         "APM_TRACING_EFFICIENT_PAYLOAD",
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
-            "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
         },
         agent_env={
             "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
@@ -674,7 +685,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
@@ -722,7 +733,7 @@ class _Scenarios:
             # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
             "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         doc="Check pii redaction",
@@ -856,7 +867,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -870,7 +881,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -1175,7 +1186,7 @@ class _Scenarios:
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )
 
-    ai_guard = EndToEndScenario(
+    ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
         weblog_env={

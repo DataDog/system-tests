@@ -14,7 +14,7 @@ from utils.docker_fixtures.spec.trace import (
     find_span,
     find_first_span_in_trace_payload,
 )
-from utils import missing_feature, context, scenarios, features
+from utils import context, scenarios, features
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -314,10 +314,6 @@ class Test_Span_Sampling:
         assert len(sampled) in range(30, 70)
         assert len(unsampled) in range(30, 70)
 
-    @missing_feature(
-        context.library == "*",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [

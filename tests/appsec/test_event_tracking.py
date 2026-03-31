@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, features
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 from tests.appsec.utils import find_series
 
 HEADERS = {
@@ -48,7 +49,7 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
-        def validate_user_login_success_tags(span: dict):
+        def validate_user_login_success_tags(span: DataDogLibrarySpan):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "usr.id": "system_tests_user",
@@ -60,7 +61,7 @@ class Test_UserLoginSuccessEvent:
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if value != expected_value:
+                if not is_same_boolean(actual=value, expected=expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -73,7 +74,7 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
-        def validate_user_login_success_header_collection(span: dict) -> bool:
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan) -> bool:
             if span.get("parent_id") not in (0, None):
                 return False
 
@@ -117,7 +118,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_user_login_failure_tags(span: dict):
+        def validate_user_login_failure_tags(span: DataDogLibrarySpan):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.users.login.failure.usr.id": "system_tests_user",
@@ -126,11 +127,10 @@ class Test_UserLoginFailureEvent:
                 "appsec.events.users.login.failure.metadata0": "value0",
                 "appsec.events.users.login.failure.metadata1": "value1",
             }
-
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if value != expected_value:
+                if not is_same_boolean(actual=value, expected=expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
@@ -143,7 +143,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
-        def validate_user_login_failure_header_collection(span: dict):
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -186,18 +186,18 @@ class Test_CustomEvent:
     def test_custom_event_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_custom_event_tags(span: dict):
+        def validate_custom_event_tags(span: DataDogLibrarySpan):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.system_tests_event.track": "true",
                 "appsec.events.system_tests_event.metadata0": "value0",
                 "appsec.events.system_tests_event.metadata1": "value1",
             }
-
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
                 value = span["meta"][tag]
-                if value != expected_value:
+
+                if not is_same_boolean(actual=value, expected=expected_value):
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
             return True
