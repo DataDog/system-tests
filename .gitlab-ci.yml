@@ -1,6 +1,11 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+  - local: "/.gitlab/mock.yml"
+    inputs:
+      test: "Hello world!"
+      stage: "test"
 stages:
+  - test
   - configure
   - nodejs
   - java
