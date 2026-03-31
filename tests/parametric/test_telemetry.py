@@ -1316,23 +1316,24 @@ class Test_ExtendedHeartbeat:
         "library_env",
         [
             {
-                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "1",
             }
         ],
     )
     def test_extended_heartbeat_config_matches(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Test that app-extended-heartbeat config matches app-started and app-client-configuration-change"""
+        """Test that app-extended-heartbeat configuration is a superset of app-started
+        and includes any updates from app-client-configuration-change."""
 
         with test_library.dd_start_span("test"):
             pass
 
-        time.sleep(1.5)
+        time.sleep(2.5)
 
         events = test_agent.telemetry(clear=False)
 
         app_started = None
         extended_hb = None
-        config_change = None
+        config_changes = []
 
         for event in events:
             if test_agent._get_telemetry_event(event, "app-started"):
@@ -1340,7 +1341,7 @@ class Test_ExtendedHeartbeat:
             if test_agent._get_telemetry_event(event, "app-extended-heartbeat"):
                 extended_hb = test_agent._get_telemetry_event(event, "app-extended-heartbeat")
             if test_agent._get_telemetry_event(event, "app-client-configuration-change"):
-                config_change = test_agent._get_telemetry_event(event, "app-client-configuration-change")
+                config_changes.append(test_agent._get_telemetry_event(event, "app-client-configuration-change"))
 
         assert app_started is not None, "app-started event not found"
         assert extended_hb is not None, "app-extended-heartbeat event not found"
@@ -1348,17 +1349,21 @@ class Test_ExtendedHeartbeat:
         started_config = {c["name"]: c.get("value") for c in app_started["payload"].get("configuration", [])}
         extended_config = {c["name"]: c.get("value") for c in extended_hb["payload"].get("configuration", [])}
 
-        assert started_config == extended_config, (
-            f"Configuration should match between app-started and app-extended-heartbeat. "
-            f"app-started: {started_config}, "
-            f"app-extended-heartbeat: {extended_config}"
-        )
+        # Build expected config: start with app-started, then apply any config changes on top
+        expected_config = dict(started_config)
+        for change_event in config_changes:
+            change_config = {c["name"]: c.get("value") for c in change_event["payload"].get("configuration", [])}
+            expected_config.update(change_config)
 
-        if config_change is not None:
-            change_config = {c["name"]: c.get("value") for c in config_change["payload"].get("configuration", [])}
-            for name, value in change_config.items():
-                assert extended_config.get(name) == value, (
-                    f"Configuration '{name}' should match between app-client-configuration-change and app-extended-heartbeat. "
-                    f"app-client-configuration-change: {value}, "
-                    f"app-extended-heartbeat: {extended_config.get(name)}"
-                )
+        # All expected configs should be present in app-extended-heartbeat with matching values
+        for name, value in expected_config.items():
+            assert name in extended_config, (
+                f"Config '{name}' missing in app-extended-heartbeat. "
+                f"Expected keys: {sorted(expected_config.keys())}, "
+                f"Got keys: {sorted(extended_config.keys())}"
+            )
+            assert extended_config[name] == value, (
+                f"Config '{name}' value mismatch. "
+                f"Expected: {value}, "
+                f"Got: {extended_config[name]}"
+            )
