@@ -133,10 +133,26 @@ class Event(TypedDict):
 
 
 class _TestSpan:
-    def __init__(self, client: "ParametricTestClientApi", span_id: int, trace_id: int):
+    def __init__(self, client: "ParametricTestClientApi", span_id: int | str, trace_id: int):
         self._client = client
-        self.span_id = span_id
         self.trace_id = trace_id
+        self.span_id = span_id
+        """
+        span id can be:
+        * an integer
+        * a string starting with a 0x -> an hexadecimal integer
+        * a string not starting with a 0x -> an decimal integer
+        """
+
+        if isinstance(span_id, str):
+            # check that if a string is sent, then either :
+            # it startss with 0x and it's hexadicmal
+            # or it's an decimal integer
+            if span_id.startswith("0x"):
+                assert all(c in "0123456789abcdefABCDEF" for c in span_id[2:]), f"{span_id} is not hexadecimal"
+            else:
+                assert span_id.isdigit(), f"{span_id} is not decimal"
+
 
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
@@ -186,11 +202,21 @@ class _TestOtelSpan:
         self._client = client
         self.trace_id = trace_id
         self.span_id = span_id
+        """
+        span id can be:
+        * an integer
+        * a string starting with a 0x -> an hexadecimal integer
+        * a string not starting with a 0x -> an decimal integer
+        """
 
         if isinstance(span_id, str):
-            assert span_id.startswith("0x")
-
-    # API methods
+            # check that if a string is sent, then either :
+            # it startss with 0x and it's hexadicmal
+            # or it's an decimal integer
+            if span_id.startswith("0x"):
+                assert all(c in "0123456789abcdefABCDEF" for c in span_id[2:]), f"{span_id} is not hexadecimal"
+            else:
+                assert span_id.isdigit(), f"{span_id} is not decimal"
 
     def set_attributes(self, attributes: dict):
         self._client.otel_set_attributes(self.span_id, attributes)

@@ -333,13 +333,7 @@ def id_to_int(value: str | int) -> int:
     if value.startswith("0x"):
         return int(value, 16)
 
-    try:
-        # This is a best effort to convert hex span/trace id to an integer.
-        # This is temporary solution until all parametric applications return trace/span ids
-        # as stringified integers (ids will be stringified to workaround percision issues in some languages)
-        return int(value)
-    except ValueError:
-        return int(value, 16)
+    return int(value)
 
 
 def extract_trace_id_from_otel_span(span: dict) -> str:

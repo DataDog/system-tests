@@ -339,7 +339,7 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
 
     /** @var SDK\Span $span */
     $span = $spanBuilder->startSpan();
-    $spanId = "0x{$span->getContext()->getSpanId()}";
+    $spanId = convertBase16ToBase10($span->getContext()->getSpanId());
     $traceId = convertBase16ToBase10($span->getContext()->getTraceId());
     $scopes[$spanId] = $span->activate();
     $otelSpans[$spanId] = $span;
@@ -446,7 +446,7 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
 
         return jsonResponse([
             'trace_id' => $spanContext->getTraceId(),
-            'span_id' => "0x{$spanContext->getSpanId()}",
+            'span_id' => convertBase16ToBase10($spanContext->getSpanId()),
             'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
             'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
             'remote' => $spanContext->isRemote()
@@ -460,7 +460,7 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
     $span = Span::getCurrent();
     $otelSpanId = $span->getContext()->getSpanId();
     $otelTraceId = $span->getContext()->getTraceId();
-    $spanId = "0x$otelSpanId";
+    $spanId = convertBase16ToBase10($otelSpanId);
     $traceId = convertBase16ToBase10($otelTraceId);
 
     if ($otelSpanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $otelTraceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
