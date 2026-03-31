@@ -1316,7 +1316,6 @@ class Test_ExtendedHeartbeat:
         "library_env",
         [
             {
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                 "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",
             }
         ],

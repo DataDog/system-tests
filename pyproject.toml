@@ -216,9 +216,6 @@ ignore = [
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
 ]
-"tests/parametric/test_telemetry.py" = [
-    "SLF001",    # private-member-access: _get_telemetry_event is the standard way to access telemetry events
-]
 "tests/perfs/*" = [
     "ANN001",   # missing-type-function-argument: TODO   
     "T201",     # print: perfs use prints...
