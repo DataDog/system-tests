@@ -1506,6 +1506,25 @@ manifest:
     - weblog_declaration:
         "*": v1.60.3
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        vertx3: missing_feature (APPSEC-55781)
+        vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
   ? tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0
   : - weblog_declaration:
         akka-http: bug (APPSEC-55001)

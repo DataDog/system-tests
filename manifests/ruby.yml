@@ -399,6 +399,15 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
   tests/appsec/test_apm_standalone.py: v2.31.0
   tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp: missing_feature
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
