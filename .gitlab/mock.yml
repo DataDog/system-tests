@@ -1,11 +1,14 @@
 spec:
   inputs:
-    test:
     stage:
 ---
 
-echo:
+load:
   tags:
     - arch:amd64
   stage: $[[ inputs.stage ]]
-  script: echo $[[ inputs.test ]]
+  parallel:
+    matrix:
+      - A: [0, 1, 2]
+      - B: [0, 1, 2]
+  script: echo "A $A, B $B"

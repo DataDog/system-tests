@@ -1,7 +1,6 @@
 include:
   - local: "/.gitlab/mock.yml"
     inputs:
-      test: "Hello world!"
       stage: "test"
 stages:
   - test
