@@ -95,7 +95,7 @@ def main() -> None:
             manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
             logger = update_manifest(manifest_editor, test_data, skipped_nodes, owner)
             created_rules_count = len(manifest_editor.added_rules)
-            activations_per_owner[owner or "No code owner"] = logger.total_tests_activated
+            activations_per_owner[owner] = logger.total_tests_activated
             owner_has_changes = logger.total_modified_rules > 0 or created_rules_count > 0
             has_updates = has_updates or owner_has_changes
 

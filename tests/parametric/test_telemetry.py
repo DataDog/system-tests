@@ -1324,7 +1324,8 @@ class Test_ExtendedHeartbeat:
     )
     def test_extended_heartbeat_config_matches(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that app-extended-heartbeat configuration is a superset of app-started
-        and includes any updates from app-client-configuration-change."""
+        and includes any updates from app-client-configuration-change.
+        """
 
         with test_library.dd_start_span("test"):
             pass
@@ -1338,12 +1339,12 @@ class Test_ExtendedHeartbeat:
         config_changes = []
 
         for event in events:
-            if test_agent._get_telemetry_event(event, "app-started"):
-                app_started = test_agent._get_telemetry_event(event, "app-started")
-            if test_agent._get_telemetry_event(event, "app-extended-heartbeat"):
-                extended_hb = test_agent._get_telemetry_event(event, "app-extended-heartbeat")
-            if test_agent._get_telemetry_event(event, "app-client-configuration-change"):
-                config_changes.append(test_agent._get_telemetry_event(event, "app-client-configuration-change"))
+            if test_agent._get_telemetry_event(event, "app-started"):  # noqa: SLF001
+                app_started = test_agent._get_telemetry_event(event, "app-started")  # noqa: SLF001
+            if test_agent._get_telemetry_event(event, "app-extended-heartbeat"):  # noqa: SLF001
+                extended_hb = test_agent._get_telemetry_event(event, "app-extended-heartbeat")  # noqa: SLF001
+            if test_agent._get_telemetry_event(event, "app-client-configuration-change"):  # noqa: SLF001
+                config_changes.append(test_agent._get_telemetry_event(event, "app-client-configuration-change"))  # noqa: SLF001
 
         assert app_started is not None, "app-started event not found"
         assert extended_hb is not None, "app-extended-heartbeat event not found"
@@ -1365,7 +1366,5 @@ class Test_ExtendedHeartbeat:
                 f"Got keys: {sorted(extended_config.keys())}"
             )
             assert extended_config[name] == value, (
-                f"Config '{name}' value mismatch. "
-                f"Expected: {value}, "
-                f"Got: {extended_config[name]}"
+                f"Config '{name}' value mismatch. Expected: {value}, Got: {extended_config[name]}"
             )

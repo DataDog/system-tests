@@ -382,7 +382,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.31.0-dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v2.20.0-dev
@@ -1535,12 +1535,12 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.31.0-dev
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1631)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature (Temporarily disabled to move to environment variables as telemetry keys)
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.31.0-dev
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.18.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
@@ -1554,8 +1554,7 @@ manifest:
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script

@@ -10,5 +10,5 @@ class LogLevel(Enum):
 
 
 class Link(TypedDict):
-    parent_id: int
+    parent_id: str | int
     attributes: NotRequired[dict]

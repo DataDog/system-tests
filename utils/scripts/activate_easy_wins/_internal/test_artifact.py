@@ -94,7 +94,7 @@ def parse_artifact_data(
 ) -> tuple[dict[Context, TestData], dict[str, set[str]], set[str]]:
     test_data: dict[Context, TestData] = {}
     weblogs: dict[str, set[str]] = {}
-    owners: set[str] = {""}
+    owners: set[str] = set()
 
     for directory in data_dir.iterdir():
         is_dev = "_dev_" in directory.name
@@ -132,8 +132,6 @@ def parse_artifact_data(
                 if "metadata" in test and "owners" in test["metadata"]:
                     test_owners = set(test["metadata"]["owners"])
 
-                # Store nodeid to owners mapping
-                test_data[context].nodeid_to_owners[test["nodeid"]] = test_owners
                 # Store owners
                 owners |= test_owners
 
@@ -143,6 +141,9 @@ def parse_artifact_data(
                     outcome = "xfailed"
 
                 nodeid = test["nodeid"].split("[")[0]
+
+                # Store nodeid to owners mapping
+                test_data[context].nodeid_to_owners[nodeid] = test_owners
 
                 if nodeid not in test_data[context].xfail_nodes:
                     if outcome == "xpassed":
