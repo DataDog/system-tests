@@ -196,6 +196,9 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
             attrs_dict[k_str] = v["intValue"]
         elif "bytesValue" in v:
             raw_b = v["bytesValue"]
+            if isinstance(raw_b, str):
+                # MessageToDict encodes bytes as base64 strings
+                raw_b = base64.b64decode(raw_b)
             attrs_dict[k_str] = decode_v1_bytes_value_attribute(raw_b) if isinstance(raw_b, bytes) else raw_b
         elif "arrayValue" in v:
             attrs_dict[k_str] = v["arrayValue"]
