@@ -847,7 +847,8 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
-  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: '>=1.17.0'  # TODO: a lower version might be supported
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_inject_force: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_injection_enabled: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_instrumentation_source_non_ssi: '>=1.16.0'
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
