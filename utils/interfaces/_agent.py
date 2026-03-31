@@ -4,13 +4,10 @@
 
 """Validate data flow between agent and backend"""
 
-import base64
 import copy
 import threading
 from collections.abc import Callable, Generator, Iterable
 from typing import Any
-
-import msgpack
 
 from utils._logger import logger
 from utils._weblog import HttpResponse
@@ -34,28 +31,17 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         self, request: HttpResponse
     ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
         for data, span in self.get_spans(request):
-            json_payload = span.meta.get("_dd.appsec.json")
-            if json_payload is not None:
-                yield data, span, json_payload
+            json_data = span.meta.get("_dd.appsec.json")
+            if json_data is not None:
+                yield data, span, json_data
 
-            legacy_metastruct = span.get("metaStruct", {}).get("appsec")
-            v1_metastruct = span.meta.get("appsec")
-            payload = legacy_metastruct or v1_metastruct
+            legacy_metastruct_data = span.get("metaStruct", {}).get("appsec")
+            if legacy_metastruct_data is not None:
+                yield data, span, legacy_metastruct_data
 
-            if isinstance(payload, str):
-                try:
-                    b64_decoded = base64.b64decode(payload)
-                    msgpack_decoded = msgpack.loads(
-                        b64_decoded, raw=False, strict_map_key=False, unicode_errors="replace"
-                    )
-                    yield data, span, msgpack_decoded
-                except Exception:
-                    logger.warning(
-                        "Failed to decode appsec payload for request %s on span %s",
-                        request.get_rid(),
-                        span.get_span_name(),
-                        exc_info=True,
-                    )
+            v1_metastruct_data = span.meta.get("appsec")
+            if v1_metastruct_data is not None:
+                yield data, span, v1_metastruct_data
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
