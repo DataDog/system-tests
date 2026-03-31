@@ -3732,7 +3732,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
-  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: v1.0.0  # Java supports configurable extended heartbeat interval
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: v1.23.0  # Java supports configurable extended heartbeat interval
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: 1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id: 1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case

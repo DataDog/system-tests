@@ -84,6 +84,7 @@ refs:
   - &ref_5_87_0 '>=5.87.0'  # Debugger: Capture expressions support
   - &ref_5_89_0 '>=5.89.0'
   - &ref_5_90_0 '>=5.90.0'
+  - &ref_5_94_0 '>=5.94.0'
   - &ref_6_0_0 '>=6.0.0-pre'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
@@ -2093,7 +2094,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Defaults: *ref_5_6_0
   tests/parametric/test_telemetry.py::Test_Environment: *ref_5_6_0
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (does not collect otel_env.invalid metrics for otel_resource_attributes)
-  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: '>=5.0.0'
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: *ref_5_94_0
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: *ref_5_41_0
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id: missing_feature (Not implemented)
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case

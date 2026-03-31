@@ -1316,7 +1316,8 @@ class Test_ExtendedHeartbeat:
         "library_env",
         [
             {
-                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "1",
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
             }
         ],
     )
@@ -1327,7 +1328,7 @@ class Test_ExtendedHeartbeat:
         with test_library.dd_start_span("test"):
             pass
 
-        time.sleep(2.5)
+        time.sleep(5)
 
         events = test_agent.telemetry(clear=False)
 
