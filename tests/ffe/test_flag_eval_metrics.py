@@ -6,8 +6,6 @@ from utils import (
     scenarios,
     features,
     remote_config as rc,
-    context,
-    irrelevant,
 )
 
 
@@ -789,10 +787,6 @@ class Test_FFE_Eval_Metric_Numeric_To_Integer:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-@irrelevant(
-    context.library == "golang",
-    reason="Go validates regex at config load time and rejects invalid patterns upfront",
-)
 class Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex:
     """Test that an invalid regex pattern produces error.type=parse_error.
 
@@ -949,9 +943,6 @@ class Test_FFE_Eval_No_Config_Loaded:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-@irrelevant(
-    context.library == "nodejs", reason="JS SDK requires targeting key and returns TARGETING_KEY_MISSING when missing"
-)
 class Test_FFE_Eval_Targeting_Key_Optional:
     """Test that flag evaluation succeeds without a targeting key.
 
@@ -1011,14 +1002,6 @@ class Test_FFE_Eval_Targeting_Key_Optional:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-@irrelevant(
-    context.library == "python",
-    reason="Python returns INVALID_CONTEXT for nested attributes (FFL-1980). Should be fixed to silently ignore per OF.3.",
-)
-@irrelevant(
-    context.library == "golang",
-    reason="Go transforms nested attributes to dot notation (FFL-1980). Should be fixed to silently ignore per OF.3.",
-)
 class Test_FFE_Eval_Nested_Attributes_Ignored:
     """Test that nested attributes are ignored without raising an error (OF.3).
 
