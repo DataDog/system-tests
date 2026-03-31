@@ -132,6 +132,59 @@ class Test_Client_Stats:
             f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
         )
 
+@features.client_side_stats_supported # FIXME: create a new feature ?
+@scenarios.trace_stats_computation
+class Test_Client_Stats_With_Client_Obfuscation:
+    """Test client-side stats do the obfuscation before-hand when available"""
+
+    def setup_obfuscation(self):
+        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_obfuscation(self):
+        """Test that SQL resources are obfuscated before stats aggregation.
+
+        Validates:
+        - Datadog-Obfuscation-Version header is present on stats payloads
+        - SQL resource names are obfuscated (literals replaced with ?)
+        - All 4 distinct queries are aggregated into a single obfuscated resource bucket
+        """
+        want = "SELECT * FROM users WHERE id = ?"
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+                assert headers["datadog-obfuscation-version"] == "1", (
+                    f"Expected obfuscation version '1', got '{headers['datadog-obfuscation-version']}'"
+                )
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql":
+                        sql_stats.append(stat)
+
+        assert obfuscation_header_found, (
+            "Datadog-Obfuscation-Version header not found on any stats payload"
+        )
+
+        assert len(sql_stats) > 0, "Expected at least one SQL stats entry"
+        total_hits = 0
+        for stat in sql_stats:
+            assert stat["Resource"] == want, (
+                f"Expected obfuscated resource '{want}', got '{stat['Resource']}'"
+            )
+            total_hits += stat["Hits"]
+
+        assert total_hits == 4, (
+            f"Expected 4 SQL hits (one per query), got {total_hits}"
+        )
+
 
 @features.service_override_source
 @scenarios.trace_stats_computation
