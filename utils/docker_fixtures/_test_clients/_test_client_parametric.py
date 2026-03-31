@@ -181,7 +181,7 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict | None = None):
+    def add_link(self, parent_id: int | str, attributes: dict | None = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
 
     def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
@@ -425,52 +425,52 @@ class ParametricTestClientApi:
             return None
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
-    def finish_span(self, span_id: int) -> None:
+    def finish_span(self, span_id: int | str) -> None:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id})
 
-    def span_set_resource(self, span_id: int, resource: str) -> None:
+    def span_set_resource(self, span_id: int | str, resource: str) -> None:
         self._session.post(
             self._url("/trace/span/set_resource"),
             json={"span_id": span_id, "resource": resource},
         )
 
-    def span_set_meta(self, span_id: int, key: str, *, value: str | bool | list[str | list[str]] | None) -> None:
+    def span_set_meta(self, span_id: int | str, key: str, *, value: str | bool | list[str | list[str]] | None) -> None:
         self._session.post(
             self._url("/trace/span/set_meta"),
             json={"span_id": span_id, "key": key, "value": value},
         )
 
-    def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
+    def span_set_baggage(self, span_id: int | str, key: str, value: str) -> None:
         self._session.post(
             self._url("/trace/span/set_baggage"),
             json={"span_id": span_id, "key": key, "value": value},
         )
 
-    def span_remove_baggage(self, span_id: int, key: str) -> None:
+    def span_remove_baggage(self, span_id: int | str, key: str) -> None:
         self._session.post(
             self._url("/trace/span/remove_baggage"),
             json={"span_id": span_id, "key": key},
         )
 
-    def span_remove_all_baggage(self, span_id: int) -> None:
+    def span_remove_all_baggage(self, span_id: int | str) -> None:
         self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
-    def span_set_metric(self, span_id: int, key: str, value: float | list[int] | None) -> None:
+    def span_set_metric(self, span_id: int | str, key: str, value: float | list[int] | None) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
-    def span_manual_keep(self, span_id: int) -> None:
+    def span_manual_keep(self, span_id: int | str) -> None:
         self._session.post(
             self._url("/trace/span/manual_keep"),
             json={"span_id": span_id},
         )
 
-    def span_manual_drop(self, span_id: int) -> None:
+    def span_manual_drop(self, span_id: int | str) -> None:
         self._session.post(
             self._url("/trace/span/manual_drop"),
             json={"span_id": span_id},
         )
 
-    def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
+    def span_set_error(self, span_id: int | str, typestr: str, message: str, stack: str) -> None:
         self._session.post(
             self._url("/trace/span/error"),
             json={
@@ -481,7 +481,7 @@ class ParametricTestClientApi:
             },
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict | None = None):
+    def span_add_link(self, span_id: int | str, parent_id: int | str, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_link"),
             json={
@@ -491,7 +491,7 @@ class ParametricTestClientApi:
             },
         )
 
-    def span_add_event(self, span_id: int, name: str, time_unix_nano: int, attributes: dict | None = None):
+    def span_add_event(self, span_id: int | str, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_event"),
             json={
@@ -502,12 +502,12 @@ class ParametricTestClientApi:
             },
         )
 
-    def span_get_baggage(self, span_id: int, key: str) -> str:
+    def span_get_baggage(self, span_id: int | str, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key})
         data = resp.json()
         return data["baggage"]
 
-    def span_get_all_baggage(self, span_id: int) -> dict:
+    def span_get_all_baggage(self, span_id: int | str) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
         data = resp.json()
         return data["baggage"]
@@ -521,7 +521,7 @@ class ParametricTestClientApi:
             headers = self.dd_inject_headers(span.span_id)
             return {k.lower(): v for k, v in headers}
 
-    def dd_inject_headers(self, span_id: int):
+    def dd_inject_headers(self, span_id: int | str):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id})
         # TODO: translate json into list within list
         # so server.xx do not have to

@@ -176,7 +176,7 @@ def find_span(trace: Trace, span_id: str | int) -> Span:
     raise AssertionError(f"Span with id={span_id} not found. Trace={trace}")
 
 
-def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int) -> Span:
+def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int | str) -> Span:
     """Return a span from a list of traces by `trace_id` and `span_id`."""
     trace = find_trace(traces, trace_id)
     return find_span(trace, span_id)
