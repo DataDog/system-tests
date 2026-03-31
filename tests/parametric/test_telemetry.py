@@ -1317,6 +1317,7 @@ class Test_ExtendedHeartbeat:
         [
             {
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+                "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
                 "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
             }
         ],
