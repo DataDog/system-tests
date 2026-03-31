@@ -165,7 +165,7 @@ def find_trace(traces: list[Trace], trace_id: int) -> Trace:
     raise AssertionError(f"Trace with 64bit trace_id={trace_id} not found. Traces={traces}")
 
 
-def find_span(trace: Trace, span_id: int) -> Span:
+def find_span(trace: Trace, span_id: str | int) -> Span:
     """Return a span from the trace matches a `span_id`."""
     assert len(trace) > 0
     # TODO: Ensure all parametric applications return uint64 span ids (not strings)
@@ -176,7 +176,7 @@ def find_span(trace: Trace, span_id: int) -> Span:
     raise AssertionError(f"Span with id={span_id} not found. Trace={trace}")
 
 
-def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int) -> Span:
+def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int | str) -> Span:
     """Return a span from a list of traces by `trace_id` and `span_id`."""
     trace = find_trace(traces, trace_id)
     return find_span(trace, span_id)
@@ -330,13 +330,10 @@ def id_to_int(value: str | int) -> int:
     if isinstance(value, int):
         return value
 
-    try:
-        # This is a best effort to convert hex span/trace id to an integer.
-        # This is temporary solution until all parametric applications return trace/span ids
-        # as stringified integers (ids will be stringified to workaround percision issues in some languages)
-        return int(value)
-    except ValueError:
+    if value.startswith("0x"):
         return int(value, 16)
+
+    return int(value)
 
 
 def extract_trace_id_from_otel_span(span: dict) -> str:
