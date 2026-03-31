@@ -4,9 +4,11 @@
 
 """AppSec smoke tests for the appsec_apm_standalone scenario."""
 
-from utils import features, interfaces, remote_config as rc, weblog, scenarios
+from utils import interfaces, remote_config as rc, weblog
+from utils._weblog import HttpResponse
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
+SMOKE_RC_RASP_RULE_ID = "rasp-930-100"
 SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
     "datadog/2/ASM_DD/rules/config",
     {
@@ -36,50 +38,155 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
                     }
                 ],
                 "transformers": [],
-            }
+            },
+            {
+                "id": SMOKE_RC_RASP_RULE_ID,
+                "name": "Local file inclusion exploit",
+                "tags": {
+                    "type": "lfi",
+                    "category": "vulnerability_trigger",
+                    "confidence": "0",
+                    "module": "rasp",
+                },
+                "conditions": [
+                    {
+                        "parameters": {
+                            "resource": [{"address": "server.io.fs.file"}],
+                            "params": [
+                                {"address": "server.request.query"},
+                                {"address": "server.request.body"},
+                                {"address": "server.request.path_params"},
+                            ],
+                        },
+                        "operator": "lfi_detector",
+                    }
+                ],
+                "transformers": [],
+                "on_match": ["block"],
+            },
         ],
     },
 )
 
 
-class AgentLevelSmokeTests:
+def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
+    """Walk agent appsec data and assert the expected RASP rule triggered."""
+    for _, _, appsec_data in interfaces.agent.get_appsec_data(response):
+        for trigger in appsec_data.get("triggers", []):
+            if trigger.get("rule", {}).get("id") != expected_rule:
+                continue
+            for match in trigger.get("rule_matches", []):
+                for params in match.get("parameters", []):
+                    if not isinstance(params, dict):
+                        continue
+                    if all(
+                        isinstance(params.get(name), dict)
+                        and params[name].get("address") == fields.get("address")
+                        and ("value" not in fields or params[name].get("value") == fields["value"])
+                        for name, fields in expected_params.items()
+                    ):
+                        return
+
+    raise AssertionError(f"No RASP attack found for rule {expected_rule}")
+
+
+# ---------------------------------------------------------------------------
+# Threats
+# ---------------------------------------------------------------------------
+
+
+class ThreatsSmokeTests:
+    """Verify basic WAF attack detection is forwarded by the agent."""
+
+    def setup_attack_detection_smoke(self) -> None:
+        rc.tracer_rc_state.reset().apply()
+        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
+
+    def test_attack_detection_smoke(self) -> None:
+        found_attack = False
+        has_appsec_data = False
+
+        for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r):
+            span_meta = span.get("meta", {}) or span.get("attributes", {})
+            if span_meta.get("appsec.event") == "true":
+                found_attack = True
+
+                if appsec_data is not None:
+                    has_appsec_data = True
+                    break
+
+        assert found_attack, "Agent should forward detected attacks in span metadata"
+        assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
+
+
+# ---------------------------------------------------------------------------
+# RASP
+# ---------------------------------------------------------------------------
+
+
+class RaspSmokeTests:
+    """Verify RASP attacks are detected and forwarded by the agent."""
+
     def setup_lfi_smoke(self) -> None:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_smoke(self) -> None:
-        assert self.r.status_code == 200
-
-        expected_rule = "rasp-930-100"
-        expected_params = {
-            "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
-            "params": {"address": "server.request.query", "value": "../etc/passwd"},
-        }
-
-        for _, _, appsec_data in interfaces.agent.get_appsec_data(self.r):
-            for trigger in appsec_data.get("triggers", []):
-                if trigger.get("rule", {}).get("id") != expected_rule:
-                    continue
-                for match in trigger.get("rule_matches", []):
-                    for params in match.get("parameters", []):
-                        if not isinstance(params, dict):
-                            continue
-                        if all(
-                            isinstance(params.get(name), dict)
-                            and params[name].get("address") == fields.get("address")
-                            and ("value" not in fields or params[name].get("value") == fields["value"])
-                            for name, fields in expected_params.items()
-                        ):
-                            return
-
-        raise AssertionError(f"No RASP attack found for rule {expected_rule}")
-
-    def setup_api_security_smoke(self) -> None:
-        self.r = weblog.get("/waf")
-
-    def test_api_security_smoke(self) -> None:
-        assert any(
-            any(key.startswith("_dd.appsec.s.") for key in span.meta) for _, span in interfaces.agent.get_spans(self.r)
+        _assert_rasp_attack(
+            self.r,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
         )
+
+    def setup_ssrf_smoke(self) -> None:
+        self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
+
+    def test_ssrf_smoke(self) -> None:
+        _assert_rasp_attack(
+            self.r,
+            "rasp-934-100",
+            {
+                "resource": {"address": "server.io.net.url"},
+                "params": {"address": "server.request.query", "value": "169.254.169.254"},
+            },
+        )
+
+    def setup_sqli_smoke(self) -> None:
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1=1 --"})
+
+    def test_sqli_smoke(self) -> None:
+        _assert_rasp_attack(
+            self.r,
+            "rasp-942-100",
+            {
+                "resource": {"address": "server.db.statement"},
+                "params": {"address": "server.request.query", "value": "' OR 1=1 --"},
+            },
+        )
+
+    def setup_shi_smoke(self) -> None:
+        self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd)"})
+
+    def test_shi_smoke(self) -> None:
+        _assert_rasp_attack(
+            self.r,
+            "rasp-932-100",
+            {
+                "resource": {"address": "server.sys.shell.cmd"},
+                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd)"},
+            },
+        )
+
+
+# ---------------------------------------------------------------------------
+# Telemetry
+# ---------------------------------------------------------------------------
+
+
+class TelemetrySmokeTests:
+    """Verify telemetry metrics are forwarded by the agent."""
 
     def setup_telemetry_smoke(self) -> None:
         weblog.get("/")
@@ -115,6 +222,15 @@ class AgentLevelSmokeTests:
         assert found_metrics
         assert found_waf_metric
 
+
+# ---------------------------------------------------------------------------
+# Remote Config
+# ---------------------------------------------------------------------------
+
+
+class RemoteConfigSmokeTests:
+    """Verify remote config rules are acknowledged, applied, and can block."""
+
     def setup_remote_config_smoke(self) -> None:
         self.config_state = rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply().state
         self.r = weblog.get("/waf", headers={"X-Smoke-Test": "rc-smoke"})
@@ -132,29 +248,63 @@ class AgentLevelSmokeTests:
             for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r)
         ), "Agent should forward AppSec events for the RC-updated rule"
 
-    def setup_attack_detection_smoke(self) -> None:
-        rc.tracer_rc_state.reset().apply()
-        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
+    def setup_rasp_blocking_smoke(self) -> None:
+        """Push RASP LFI blocking rule via RC, then trigger the attack."""
+        rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply()
+        self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-    def test_attack_detection_smoke(self) -> None:
-        found_attack = False
-        has_appsec_data = False
+    def test_rasp_blocking_smoke(self) -> None:
+        assert self.r.status_code == 403
 
-        for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r):
-            span_meta = span.get("meta", {}) or span.get("attributes", {})
-            if span_meta.get("appsec.event") == "true":
-                found_attack = True
+    def setup_ip_blocking_smoke(self) -> None:
+        config = {
+            "rules_data": [
+                {
+                    "id": "blocked_ips",
+                    "type": "ip_with_expiration",
+                    "data": [{"value": "10.10.10.1", "expiration": 9999999999}],
+                }
+            ]
+        }
+        rc.tracer_rc_state.reset().set_config("datadog/2/ASM_DATA/blocked_ips/config", config).apply()
+        self.r = weblog.get("/waf", headers={"X-Forwarded-For": "10.10.10.1"})
 
-                if appsec_data is not None:
-                    has_appsec_data = True
-                    break
-
-        assert found_attack, "Agent should forward detected attacks in span metadata"
-        assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
+    def test_ip_blocking_smoke(self) -> None:
+        assert self.r.status_code == 403
 
 
-@features.appsec_apm_standalone
-@scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone(AgentLevelSmokeTests):
-    pass
+# ---------------------------------------------------------------------------
+# API Security
+# ---------------------------------------------------------------------------
+
+
+class ApiSecuritySmokeTests:
+    """Verify API security schemas are collected and forwarded."""
+
+    def setup_api_security_smoke(self) -> None:
+        self.r = weblog.get("/waf")
+
+    def test_api_security_smoke(self) -> None:
+        assert any(
+            any(key.startswith("_dd.appsec.s.") for key in span.meta) for _, span in interfaces.agent.get_spans(self.r)
+        )
+
+
+# ---------------------------------------------------------------------------
+# User Events
+# ---------------------------------------------------------------------------
+
+
+class UserEventsSmokeTests:
+    """Verify user login events are tracked in standalone mode."""
+
+    def setup_login_success_smoke(self) -> None:
+        self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
+
+    def test_login_success_smoke(self) -> None:
+        for _, span in interfaces.agent.get_spans(self.r):
+            meta = span.meta
+            if meta.get("_dd.appsec.usr.login") or meta.get("appsec.events.users.login.success.usr.login"):
+                return
+
+        raise AssertionError("Agent spans should include user login event tags")
