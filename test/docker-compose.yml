@@ -1,0 +1,9 @@
+services:
+  ubuntu:
+    image: ubuntu
+  postgres:
+    image: postgres
+  python:
+    image: python
+  node:
+    image: node
