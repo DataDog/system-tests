@@ -3474,6 +3474,7 @@ manifest:
         spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
