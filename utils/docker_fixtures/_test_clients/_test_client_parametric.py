@@ -21,6 +21,8 @@ from utils.docker_fixtures.spec.llm_observability import (
     LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
     DatasetResponse,
+    ExperimentCreateRequest,
+    ExperimentRunResponse,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
@@ -1013,6 +1015,15 @@ class ParametricTestClientApi:
 
         return resp.json()
 
+    def llmobs_experiment_run(self, experiment_request: ExperimentCreateRequest) -> ExperimentRunResponse:
+        resp = self._session.post(
+            self._url("/llm_observability/experiment/run"),
+            json=experiment_request,
+        )
+        resp.raise_for_status()
+
+        return cast("ExperimentRunResponse", resp.json())
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -1246,6 +1257,9 @@ class APMLibrary:
 
     def llmobs_dataset_delete(self, dataset_id: str) -> dict | str | None:
         return self._client.llmobs_dataset_delete(dataset_id=dataset_id)
+
+    def llmobs_experiment_run(self, experiment_request: ExperimentCreateRequest) -> ExperimentRunResponse:
+        return self._client.llmobs_experiment_run(experiment_request)
 
     @property
     def container(self) -> Container:

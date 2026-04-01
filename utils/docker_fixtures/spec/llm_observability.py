@@ -77,3 +77,16 @@ class DatasetResponse(TypedDict, total=False):
     version: int
     latest_version: int
     records: list[dict[str, Any]]
+
+
+class ExperimentCreateRequest(TypedDict, total=False):
+    experiment_name: str
+    dataset_name: str
+    description: str
+    task_code: str
+    evaluator_codes: list[str]
+
+
+class ExperimentRunResponse(TypedDict, total=False):
+    experiment_name: str
+    rows: list[dict[str, Any]]

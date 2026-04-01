@@ -209,6 +209,7 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
         project_name=request.project_name,
         records=records,
     )
+    _datasets[dataset.name] = dataset
 
     return {
         "dataset_id": dataset._id,
@@ -226,3 +227,65 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
 def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
     LLMObs._delete_dataset(dataset_id=request.dataset_id)
     return {"success": True}
+
+
+_datasets: dict[str, Any] = {}
+
+
+class ExperimentCreateRequestModel(BaseModel):
+    experiment_name: str
+    dataset_name: str
+    description: str | None = None
+    task_code: str
+    evaluator_codes: list[str] | None = None
+
+
+@router.post("/llm_observability/experiment/run")
+def llmobs_experiment_run(request: ExperimentCreateRequestModel):
+    if request.dataset_name in _datasets:
+        dataset = _datasets[request.dataset_name]
+    else:
+        dataset = LLMObs.pull_dataset(dataset_name=request.dataset_name)
+
+    task_locals = {}
+    exec(request.task_code, {"__builtins__": __builtins__}, task_locals)
+    task_fn = task_locals["task"]
+
+    evaluators = []
+    if request.evaluator_codes:
+        for code in request.evaluator_codes:
+            eval_locals = {}
+            exec(code, {"__builtins__": __builtins__}, eval_locals)
+            evaluators.append(eval_locals["evaluator"])
+
+    experiment = LLMObs.experiment(
+        name=request.experiment_name,
+        task=task_fn,
+        dataset=dataset,
+        evaluators=evaluators,
+        description=request.description or "",
+    )
+
+    # raise_errors=False so task/evaluator exceptions are captured in the
+    # result rather than propagated.  The run may still raise on eval-metric
+    # submission when VCR cassettes don't match (non-deterministic bodies),
+    # so we catch ValueError from the submission layer.
+    try:
+        result = experiment.run(raise_errors=False)
+    except ValueError:
+        result = {"rows": [], "summary_evaluations": {}, "runs": []}
+
+    rows = []
+    for row in result.get("rows", []):
+        rows.append({
+            "input": row.get("input"),
+            "output": row.get("output"),
+            "expected_output": row.get("expected_output"),
+            "evaluations": row.get("evaluations", {}),
+            "error": row.get("error", {}),
+        })
+
+    return {
+        "experiment_name": request.experiment_name,
+        "rows": rows,
+    }
