@@ -189,6 +189,7 @@ class _Scenarios:
     telemetry_extended_heartbeat = EndToEndScenario(
         "TELEMETRY_EXTENDED_HEARTBEAT",
         weblog_env={
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
             "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
             "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
         },
