@@ -14,9 +14,8 @@ spec:
         B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   script:
-    - ./build.sh -i runner
-    - cd test && docker compose up
-    - echo "A $A, B $B, C $C"
+    - ./build.sh python
+    - ./run.sh
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
