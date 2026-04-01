@@ -9,7 +9,51 @@ load:
   stage: $[[ inputs.stage ]]
   parallel:
     matrix:
-      - A: [0, 1, 2, 3, 4, 5, 6]
+      - A: [0, 1]
+        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  script: echo "A $A, B $B, C $C"
+
+load1:
+  tags:
+    - arch:amd64
+  stage: $[[ inputs.stage ]]
+  parallel:
+    matrix:
+      - A: [0, 1]
+        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  script: echo "A $A, B $B, C $C"
+
+load2:
+  tags:
+    - arch:amd64
+  stage: $[[ inputs.stage ]]
+  parallel:
+    matrix:
+      - A: [0, 1]
+        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  script: echo "A $A, B $B, C $C"
+
+load3:
+  tags:
+    - arch:amd64
+  stage: $[[ inputs.stage ]]
+  parallel:
+    matrix:
+      - A: [0, 1]
+        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  script: echo "A $A, B $B, C $C"
+
+load4:
+  tags:
+    - arch:amd64
+  stage: $[[ inputs.stage ]]
+  parallel:
+    matrix:
+      - A: [0, 1]
         B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   script: echo "A $A, B $B, C $C"
