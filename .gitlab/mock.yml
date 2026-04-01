@@ -3,7 +3,7 @@ spec:
     stage:
 ---
 
-load:
+.load:
   tags:
     - arch:amd64
   stage: $[[ inputs.stage ]]
@@ -12,48 +12,19 @@ load:
       - A: [0, 1]
         B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  script: echo "A $A, B $B, C $C"
+  script: sleep 120; echo "A $A, B $B, C $C"
+
+load:
+  extends: .load
 
 load1:
-  tags:
-    - arch:amd64
-  stage: $[[ inputs.stage ]]
-  parallel:
-    matrix:
-      - A: [0, 1]
-        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  script: echo "A $A, B $B, C $C"
+  extends: .load
 
 load2:
-  tags:
-    - arch:amd64
-  stage: $[[ inputs.stage ]]
-  parallel:
-    matrix:
-      - A: [0, 1]
-        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  script: echo "A $A, B $B, C $C"
+  extends: .load
 
 load3:
-  tags:
-    - arch:amd64
-  stage: $[[ inputs.stage ]]
-  parallel:
-    matrix:
-      - A: [0, 1]
-        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  script: echo "A $A, B $B, C $C"
+  extends: .load
 
 load4:
-  tags:
-    - arch:amd64
-  stage: $[[ inputs.stage ]]
-  parallel:
-    matrix:
-      - A: [0, 1]
-        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  script: echo "A $A, B $B, C $C"
+  extends: .load
