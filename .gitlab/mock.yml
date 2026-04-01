@@ -3,35 +3,28 @@ spec:
     stage:
 ---
 
-.load:
+build_test_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags:
-    - docker-in-docker:amd64
-  stage: $[[ inputs.stage ]]
-  parallel:
-    matrix:
-      - A: [0, 1]
-        B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    - arch:amd64
+  stage: build
   script:
-    - ./build.sh python
-    - ./run.sh
-  before_script:
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - pip install Jinja2
+    - python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] > generated-pipeline.yml
+  artifacts:
+    paths:
+      - generated-pipeline.yml
 
-load:
-  extends: .load
+run_test_pipeline:
+  stage: run
+  needs:
+    - job: build_test_pipeline
+      artifacts: true
+  trigger:
+    include:
+      - artifact: generated-pipeline.yml
+        job: build_test_pipeline
+    strategy: depend
 
-load1:
-  extends: .load
-
-load2:
-  extends: .load
-
-load3:
-  extends: .load
-
-load4:
-  extends: .load
