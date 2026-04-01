@@ -1061,3 +1061,50 @@ class Test_TelemetrySCAEnvVar:
         assert found, (
             f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
         )
+
+
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event in end-to-end scenario"""
+
+    def test_extended_heartbeat_config_matches(self):
+        """Test that app-extended-heartbeat configuration is a superset of app-started
+        and includes any updates from app-client-configuration-change.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        app_started = None
+        extended_hb = None
+        config_changes = []
+
+        for data in telemetry_data:
+            request_type = get_request_type(data)
+            if request_type == "app-started":
+                app_started = data
+            elif request_type == "app-extended-heartbeat":
+                extended_hb = data
+            elif request_type == "app-client-configuration-change":
+                config_changes.append(data)
+
+        assert app_started is not None, "app-started event not found"
+        assert extended_hb is not None, "app-extended-heartbeat event not found"
+
+        started_config = {c["name"]: c.get("value") for c in get_configurations(app_started) or []}
+        extended_config = {c["name"]: c.get("value") for c in get_configurations(extended_hb) or []}
+
+        # Build expected config: start with app-started, then apply any config changes on top
+        expected_config = dict(started_config)
+        for change_data in config_changes:
+            change_config = {c["name"]: c.get("value") for c in get_configurations(change_data) or []}
+            expected_config.update(change_config)
+
+        # All expected configs should be present in app-extended-heartbeat with matching values
+        for name, value in expected_config.items():
+            assert name in extended_config, (
+                f"Config '{name}' missing in app-extended-heartbeat. "
+                f"Expected keys: {sorted(expected_config.keys())}, "
+                f"Got keys: {sorted(extended_config.keys())}"
+            )
+            assert extended_config[name] == value, (
+                f"Config '{name}' value mismatch. Expected: {value}, Got: {extended_config[name]}"
+            )
