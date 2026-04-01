@@ -1304,4 +1304,3 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled[0].get("value") is None
         else:
             assert all(config_name not in configuration_by_name for config_name in dd_appsec_sca_enabled_names)
-
