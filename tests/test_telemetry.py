@@ -1063,6 +1063,7 @@ class Test_TelemetrySCAEnvVar:
         )
 
 
+@scenarios.telemetry_extended_heartbeat
 @features.app_extended_heartbeat_event
 class Test_ExtendedHeartbeat:
     """Test app-extended-heartbeat telemetry event in end-to-end scenario"""

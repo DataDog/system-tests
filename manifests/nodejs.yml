@@ -2350,7 +2350,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.9.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_ExtendedHeartbeat: *ref_5_94_0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature (dd-trace-js does not expose DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL; extended heartbeat is tested locally via unit tests)
   tests/test_telemetry.py::Test_Log_Generation:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
