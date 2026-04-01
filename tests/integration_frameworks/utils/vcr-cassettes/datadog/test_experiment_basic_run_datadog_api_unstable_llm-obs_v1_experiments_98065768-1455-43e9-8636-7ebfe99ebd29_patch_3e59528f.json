@@ -1,14 +1,14 @@
 {
   "request": {
     "method": "PATCH",
-    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/experiments/e9ef6b5e-8c36-412f-8ff1-b42c3a1a75ea",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/experiments/98065768-1455-43e9-8636-7ebfe99ebd29",
     "headers": {
       "Accept-Encoding": "identity",
-      "Content-Length": "72",
+      "Content-Length": "70",
       "Content-Type": "application/json",
-      "Datadog-Entity-ID": "in-1742"
+      "Datadog-Entity-ID": "in-4236"
     },
-    "body": "{\"data\": {\"type\": \"experiments\", \"attributes\": {\"status\": \"completed\"}}}"
+    "body": "{\"data\": {\"type\": \"experiments\", \"attributes\": {\"status\": \"running\"}}}"
   },
   "response": {
     "status": {
@@ -20,7 +20,7 @@
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
       "content-length": "0",
-      "date": "Wed, 01 Apr 2026 12:37:44 GMT",
+      "date": "Wed, 01 Apr 2026 13:23:21 GMT",
       "x-content-type-options": "nosniff",
       "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
     },

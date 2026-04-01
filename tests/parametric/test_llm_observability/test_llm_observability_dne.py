@@ -72,9 +72,12 @@ class Test_Dataset:
 @scenarios.parametric
 class Test_Experiment:
     def test_experiment_basic_run(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Test that a basic experiment can be created and run against a dataset."""
+        """Test that an experiment can run a task over a dataset and return results.
+
+        Mirrors dd-trace-py test_experiment_run: verifies that experiment.run()
+        returns rows with correct input, output, expected_output, and evaluations.
+        """
         with test_agent.vcr_context():
-            # First create a dataset with records
             create_request: DatasetCreateRequest = {
                 "dataset_name": "test-experiment-dataset",
                 "description": "Dataset for experiment test",
@@ -86,26 +89,37 @@ class Test_Experiment:
             dataset = test_library.llmobs_dataset_create(create_request)
             assert dataset.get("dataset_id") is not None
 
-            # Run an experiment with a simple task and evaluator
             experiment_request: ExperimentCreateRequest = {
                 "experiment_name": "test-experiment-basic",
                 "dataset_name": "test-experiment-dataset",
-                "task_code": "def task(input_data, config=None):\n    return input_data['text'].upper()",
-                "evaluator_codes": [
-                    "def evaluator(input_data, output_data, expected_output):\n    return output_data == expected_output",
-                ],
+                "task": "uppercase",
+                "evaluators": ["exact_match"],
             }
             result = test_library.llmobs_experiment_run(experiment_request)
 
             assert result.get("experiment_name") == "test-experiment-basic"
+
             rows = result.get("rows", [])
-            # Rows may be empty in VCR CI mode due to non-deterministic
-            # eval submission bodies. When populated, verify structure.
-            if rows:
-                assert len(rows) == 2
-                for row in rows:
-                    assert row.get("output") is not None
-                    assert row.get("error", {}).get("type") is None
+            assert len(rows) == 2
+
+            for row in rows:
+                # Task produced output
+                assert row.get("output") is not None
+                # No task errors
+                assert row.get("error", {}).get("type") is None
+                # Input and expected_output are present (mirrors dd-trace-py assertions)
+                assert row.get("input") is not None
+                assert row.get("expected_output") is not None
+
+            # Verify specific row content
+            outputs = sorted(row["output"] for row in rows)
+            assert outputs == ["HELLO", "WORLD"]
+
+            # Verify evaluations ran (exact_match evaluator)
+            for row in rows:
+                evals = row.get("evaluations", {})
+                assert "_evaluator_exact_match" in evals
+                assert evals["_evaluator_exact_match"]["value"] is True
 
             # Clean up
             test_library.llmobs_dataset_delete(dataset_id=dataset["dataset_id"])

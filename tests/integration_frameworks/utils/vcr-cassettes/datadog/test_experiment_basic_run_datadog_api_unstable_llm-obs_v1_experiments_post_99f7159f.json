@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/experiments",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "494",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-4236"
+    },
+    "body": "{\"data\": {\"type\": \"experiments\", \"attributes\": {\"name\": \"test-experiment-basic\", \"description\": \"\", \"dataset_id\": \"55388929-34b8-405b-b717-8e0511b91456\", \"project_id\": \"dc4158e7-c60f-446e-bcf1-540aa68ffa0f\", \"dataset_version\": 1, \"config\": {}, \"metadata\": {\"tags\": [\"ddtrace.version:4.6.4\", \"project_name:test-project\", \"dataset_name:test-experiment-dataset\", \"experiment_name:test-experiment-basic\", \"project_id:dc4158e7-c60f-446e-bcf1-540aa68ffa0f\"]}, \"ensure_unique\": true, \"run_count\": 1}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "689",
+      "date": "Wed, 01 Apr 2026 13:23:21 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"98065768-1455-43e9-8636-7ebfe99ebd29\",\"type\":\"experiments\",\"attributes\":{\"author\":{\"id\":\"0dd9d379-c1a3-11ed-b4e0-566658a732f8\"},\"config\":{},\"created_at\":\"2026-04-01T13:23:21.037533235Z\",\"dataset_id\":\"55388929-34b8-405b-b717-8e0511b91456\",\"dataset_version\":1,\"description\":\"\",\"experiment\":\"test-experiment-basic\",\"metadata\":{\"tags\":[\"ddtrace.version:4.6.4\",\"project_name:test-project\",\"dataset_name:test-experiment-dataset\",\"experiment_name:test-experiment-basic\",\"project_id:dc4158e7-c60f-446e-bcf1-540aa68ffa0f\"]},\"name\":\"test-experiment-basic-1775049801037\",\"project_id\":\"dc4158e7-c60f-446e-bcf1-540aa68ffa0f\",\"run_count\":1,\"updated_at\":\"2026-04-01T13:23:21.037533309Z\"}}}"
+  }
+}

@@ -6,7 +6,7 @@
       "Accept-Encoding": "identity",
       "Content-Length": "89",
       "Content-Type": "application/json",
-      "Datadog-Entity-ID": "in-1742"
+      "Datadog-Entity-ID": "in-4236"
     },
     "body": "{\"data\": {\"type\": \"projects\", \"attributes\": {\"name\": \"test-project\", \"description\": \"\"}}}"
   },
@@ -20,7 +20,7 @@
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
       "content-length": "250",
-      "date": "Wed, 01 Apr 2026 12:37:42 GMT",
+      "date": "Wed, 01 Apr 2026 13:23:20 GMT",
       "x-content-type-options": "nosniff",
       "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
     },

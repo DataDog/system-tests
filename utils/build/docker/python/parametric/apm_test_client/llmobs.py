@@ -232,12 +232,38 @@ def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
 _datasets: dict[str, Any] = {}
 
 
+# Pre-defined tasks and evaluators that tests can reference by name.
+def _task_echo(input_data, config=None):
+    """Returns input_data unchanged (mirrors dd-trace-py dummy_task)."""
+    return input_data
+
+
+def _task_uppercase(input_data, config=None):
+    """Uppercases the 'text' field of input_data."""
+    return input_data["text"].upper()
+
+
+def _evaluator_exact_match(input_data, output_data, expected_output):
+    """Returns True if output matches expected output exactly."""
+    return output_data == expected_output
+
+
+TASKS = {
+    "echo": _task_echo,
+    "uppercase": _task_uppercase,
+}
+
+EVALUATORS = {
+    "exact_match": _evaluator_exact_match,
+}
+
+
 class ExperimentCreateRequestModel(BaseModel):
     experiment_name: str
     dataset_name: str
     description: str | None = None
-    task_code: str
-    evaluator_codes: list[str] | None = None
+    task: str
+    evaluators: list[str]
 
 
 @router.post("/llm_observability/experiment/run")
@@ -247,33 +273,27 @@ def llmobs_experiment_run(request: ExperimentCreateRequestModel):
     else:
         dataset = LLMObs.pull_dataset(dataset_name=request.dataset_name)
 
-    task_locals = {}
-    exec(request.task_code, {"__builtins__": __builtins__}, task_locals)
-    task_fn = task_locals["task"]
-
-    evaluators = []
-    if request.evaluator_codes:
-        for code in request.evaluator_codes:
-            eval_locals = {}
-            exec(code, {"__builtins__": __builtins__}, eval_locals)
-            evaluators.append(eval_locals["evaluator"])
+    task_fn = TASKS[request.task]
+    evaluator_fns = [EVALUATORS[name] for name in request.evaluators]
 
     experiment = LLMObs.experiment(
         name=request.experiment_name,
         task=task_fn,
         dataset=dataset,
-        evaluators=evaluators,
+        evaluators=evaluator_fns,
         description=request.description or "",
     )
-
-    # raise_errors=False so task/evaluator exceptions are captured in the
-    # result rather than propagated.  The run may still raise on eval-metric
-    # submission when VCR cassettes don't match (non-deterministic bodies),
-    # so we catch ValueError from the submission layer.
+    # The experiment SDK posts evaluation metrics to the Datadog API after
+    # running. In VCR playback these calls fail because their request bodies
+    # contain non-deterministic data (timestamps, span IDs) producing
+    # different cassette hashes. Stub the submission so the local task and
+    # evaluator results are still returned.
+    original_eval_post = LLMObs._instance._dne_client.experiment_eval_post
+    LLMObs._instance._dne_client.experiment_eval_post = lambda *a, **kw: None
     try:
         result = experiment.run(raise_errors=False)
-    except ValueError:
-        result = {"rows": [], "summary_evaluations": {}, "runs": []}
+    finally:
+        LLMObs._instance._dne_client.experiment_eval_post = original_eval_post
 
     rows = []
     for row in result.get("rows", []):
