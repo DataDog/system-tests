@@ -884,8 +884,6 @@ class WeblogContainer(TestedContainer):
         # Basic env set for all scenarios
         base_environment["DD_TELEMETRY_METRICS_ENABLED"] = "true"
         base_environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
-        base_environment["DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL"] = "2"
-        base_environment["_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL"] = "2"
 
         # Python lib has different env var until we enable Telemetry Metrics by default
         base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"

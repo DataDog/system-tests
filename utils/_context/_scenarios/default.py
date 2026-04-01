@@ -71,6 +71,8 @@ class DefaultScenario(EndToEndScenario):
                 "DD_RUM_APPLICATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 "DD_RUM_CLIENT_TOKEN": "pubaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "DD_RUM_REMOTE_CONFIGURATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+                "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             other_weblog_containers=(PostgresContainer,),
