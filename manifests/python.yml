@@ -127,10 +127,16 @@ manifest:
         tornado: v4.3.1  # Modified by easy win activation script
   tests/appsec/iast/sink:  # Created by easy win activation script
     - weblog_declaration:
+        tornado: v4.6.4  # TODO: a lower version might be supported
+  tests/appsec/iast/sink/test_code_injection.py:
+    - weblog_declaration:
         tornado: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: v2.20.0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_command_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection:
     - weblog_declaration:
         "*": v2.10.0
@@ -138,16 +144,28 @@ manifest:
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection::test_secure: v3.0.0
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_email_html_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection: missing_feature
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_passwords.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_secrets.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_header_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection:
     - weblog_declaration:
         "*": irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
@@ -164,9 +182,15 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
         *django: v3.10.0.dev
+  tests/appsec/iast/sink/test_hsts_missing_header.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_insecure_auth_protocol.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: missing_feature
@@ -174,10 +198,37 @@ manifest:
     - weblog_declaration:
         "*": v1.19.0
         fastapi: v2.16.0
-  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink: v3.1.0
-  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: missing_feature
-  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_insecure:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_secure:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_executed_sink:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink:
+    - weblog_declaration:
+        '*': '>=3.1.0'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter:
+    - declaration: missing_feature
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation:
+    - weblog_declaration:
+        '*': '>=3.1.0-dev'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace:
+    - weblog_declaration:
+        '*': '>=3.9.0-dev'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_ldap_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
@@ -185,30 +236,90 @@ manifest:
     - weblog_declaration:
         "*": v1.19.0
         fastapi: v2.16.0-dev
-  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink: v3.1.0
-  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: missing_feature
-  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_insecure:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_secure:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_executed_sink:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink:
+    - weblog_declaration:
+        '*': '>=3.1.0'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter:
+    - declaration: missing_feature
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation:
+    - weblog_declaration:
+        '*': '>=3.1.0-dev'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace:
+    - weblog_declaration:
+        '*': '>=3.9.0-dev'
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
         "*": v1.19.0
         fastapi: v2.16.0-dev
-  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink: v3.1.0
-  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: missing_feature
-  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_insecure:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_secure:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_executed_sink:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink:
+    - weblog_declaration:
+        '*': '>=3.1.0'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter:
+    - declaration: missing_feature
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation:
+    - weblog_declaration:
+        '*': '>=3.1.0-dev'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace:
+    - weblog_declaration:
+        '*': '>=3.9.0-dev'
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_nosql_mongodb_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_path_traversal.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal:
     - weblog_declaration:
         "*": v2.10.0
         fastapi: v2.15.0
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_reflection_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection: missing_feature
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_sql_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
     - weblog_declaration:
         '*': v1.18.0
@@ -218,40 +329,61 @@ manifest:
       weblog: [fastapi, flask-poc, uwsgi-poc, uds-flask]
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_ssrf.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: v3.1.0.dev
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak::test_telemetry_metric_instrumented_sink: missing_feature
+  tests/appsec/iast/sink/test_template_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation: missing_feature
+  tests/appsec/iast/sink/test_trust_boundary_violation.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_untrusted_deserialization.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: missing_feature
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+  tests/appsec/iast/sink/test_unvalidated_redirect_forward.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
@@ -269,17 +401,29 @@ manifest:
         "*": v1.18.0
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_weak_randomness.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness:
     - weblog_declaration:
         "*": v2.0.0
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_xcontent_sniffing.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_xpath_injection.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection: missing_feature
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_xss.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_xss.py::TestXSS:
     - weblog_declaration:
         "*": v3.0.0.dev
@@ -488,12 +632,12 @@ manifest:
       weblog: *django
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
-  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
+  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:  # Easy win for flask-poc and version 4.6.4
     - weblog_declaration:
         "*": v3.2.0.dev
         flask-poc: v4.7.0-rc1 (is v3.2.0.dev but weblog was flaky before fix)
         uds-flask: v4.7.0-rc1 (is v3.2.0.dev but weblog was flaky before fix)
-        tornado: missing_feature
+        tornado: v4.6.4  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
