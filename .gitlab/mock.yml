@@ -12,7 +12,8 @@ build_test_pipeline:
     - ./build.sh -i runner
     - source venv/bin/activate
     - pip install Jinja2
-    - python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] > generated-pipeline.yml
+    - python3 utils/scripts/compute-workflow-parameters.py python --format json -g all --output params.json
+    - python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] --params params.json > generated-pipeline.yml
   artifacts:
     paths:
       - generated-pipeline.yml
