@@ -1099,15 +1099,13 @@ class Test_ExtendedHeartbeat:
             change_config = {c["name"]: c.get("value") for c in get_configurations(change_data) or []}
             expected_config.update(change_config)
 
-        # Configs present in app-extended-heartbeat should have matching values
-        # Note: extended heartbeat may not include every config from app-started due to
-        # tracer-specific tracking differences, so we only validate configs that are present
-        missing_keys = sorted(set(expected_config) - set(extended_config))
-        if missing_keys:
-            logger.debug(f"Configs in app-started but missing from app-extended-heartbeat: {missing_keys}")
-
-        for name, value in extended_config.items():
-            if name in expected_config:
-                assert value == expected_config[name], (
-                    f"Config '{name}' value mismatch. Expected: {expected_config[name]}, Got: {value}"
-                )
+        # All expected configs should be present in app-extended-heartbeat with matching values
+        for name, value in expected_config.items():
+            assert name in extended_config, (
+                f"Config '{name}' missing in app-extended-heartbeat. "
+                f"Expected keys: {sorted(expected_config.keys())}, "
+                f"Got keys: {sorted(extended_config.keys())}"
+            )
+            assert extended_config[name] == value, (
+                f"Config '{name}' value mismatch. Expected: {value}, Got: {extended_config[name]}"
+            )
