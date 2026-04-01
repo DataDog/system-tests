@@ -43,7 +43,7 @@ default_libs_with_dev = [
     "python",
     "python_lambda",
     "ruby",
-    # "rust",
+    "rust",
 ]
 default_otel_libs = ["java_otel", "python_otel"]
 

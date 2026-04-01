@@ -620,6 +620,7 @@ manifest:
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: v1.9.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault: v1.9.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -859,18 +860,17 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.2.0
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: '>=1.16.0'
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_telemetry_app_started: '>=1.16.0'
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD:
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD:  # Easy win for apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-8.0, apache-mod-8.0-zts, apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5 and version 1.17.0
     - declaration: bug (APPSEC-55129)
       component_version: '>1.3.2'
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures:
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures:  # Easy win for apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-8.0, apache-mod-8.0-zts, apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5 and version 1.17.0
     - declaration: bug (APPSEC-55129)
       component_version: '>1.3.2'
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
@@ -909,8 +909,18 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.4.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v1.4.0
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: missing_feature (not implemented yet)
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: missing_feature (not implemented yet)
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (not implemented yet)
+      component_version: <1.17.0
+      weblog: [php-fpm-8.5]
+    - declaration: missing_feature (not implemented yet)
+      excluded_weblog: [php-fpm-8.5]
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:  # TODO: a lower version might be supported
+    - declaration: missing_feature (not implemented yet)
+      component_version: <1.17.0
+      weblog: [php-fpm-8.5]
+    - declaration: missing_feature (not implemented yet)
+      excluded_weblog: [php-fpm-8.5]
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
@@ -1036,15 +1046,393 @@ manifest:
       component_version: '>=0.93.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.75.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        php-fpm-8.0: '>=1.17.0'
+        php-fpm-7.1: '>=1.17.0'
+        php-fpm-8.5: '>=1.17.0'
+        apache-mod-7.2-zts: '>=1.17.0'
+        apache-mod-7.4-zts: '>=1.17.0'
+        apache-mod-7.0: '>=1.17.0'
+        php-fpm-8.1: '>=1.17.0'
+        apache-mod-7.3: '>=1.17.0'
+        php-fpm-7.0: '>=1.17.0'
+        apache-mod-8.2: '>=1.17.0'
+        apache-mod-7.1: '>=1.17.0'
+        php-fpm-8.2: '>=1.17.0'
+        apache-mod-8.1-zts: '>=1.17.0'
+        apache-mod-8.2-zts: '>=1.17.0'
+        apache-mod-7.0-zts: '>=1.17.0'
+        apache-mod-7.3-zts: '>=1.17.0'
+        php-fpm-7.4: '>=1.17.0'
+        apache-mod-7.2: '>=1.17.0'
+        php-fpm-7.2: '>=1.17.0'
+        apache-mod-7.1-zts: '>=1.17.0'
+        apache-mod-7.4: '>=1.17.0'
+        php-fpm-7.3: '>=1.17.0'
+        apache-mod-8.0: '>=1.17.0'
+        apache-mod-8.0-zts: '>=1.17.0'
+        apache-mod-8.1: '>=1.17.0'
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
   tests/test_telemetry.py::Test_MessageBatch: v0.90
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        php-fpm-8.0: '>=1.17.0'
+        php-fpm-7.1: '>=1.17.0'
+        php-fpm-8.5: '>=1.17.0'
+        apache-mod-7.2-zts: '>=1.17.0'
+        apache-mod-7.4-zts: '>=1.17.0'
+        apache-mod-7.0: '>=1.17.0'
+        php-fpm-8.1: '>=1.17.0'
+        apache-mod-7.3: '>=1.17.0'
+        php-fpm-7.0: '>=1.17.0'
+        apache-mod-8.2: '>=1.17.0'
+        apache-mod-7.1: '>=1.17.0'
+        php-fpm-8.2: '>=1.17.0'
+        apache-mod-8.1-zts: '>=1.17.0'
+        apache-mod-8.2-zts: '>=1.17.0'
+        apache-mod-7.0-zts: '>=1.17.0'
+        apache-mod-7.3-zts: '>=1.17.0'
+        php-fpm-7.4: '>=1.17.0'
+        apache-mod-7.2: '>=1.17.0'
+        php-fpm-7.2: '>=1.17.0'
+        apache-mod-7.1-zts: '>=1.17.0'
+        apache-mod-7.4: '>=1.17.0'
+        php-fpm-7.3: '>=1.17.0'
+        apache-mod-8.0: '>=1.17.0'
+        apache-mod-8.0-zts: '>=1.17.0'
+        apache-mod-8.1: '>=1.17.0'
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created:
+    - weblog_declaration:
+        apache-mod-8.0: missing_feature
+        php-fpm-8.0: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        apache-mod-7.0: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        php-fpm-8.5: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-7.3: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        php-fpm-8.2: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: missing_feature
   tests/test_telemetry.py::Test_Telemetry: v0.90
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:
+  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:  # Easy win for apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-8.0, apache-mod-8.0-zts, apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5 and version 1.17.0
     - declaration: bug (APMAPI-971)
       component_version: '>1.5.1'
     - declaration: flaky (APMRP-360)

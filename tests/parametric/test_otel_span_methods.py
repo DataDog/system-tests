@@ -7,6 +7,7 @@ from opentelemetry.trace import SpanKind
 from utils.docker_fixtures.parametric import Link
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_trace
+from utils.docker_fixtures.spec.trace import id_to_int
 from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
@@ -333,17 +334,7 @@ class Test_Otel_Span_Methods:
                 span.end_span()
                 context = span.span_context()
                 assert context.get("trace_id") == parent.span_context().get("trace_id")
-                if (
-                    isinstance(span.span_id, str)
-                    and len(span.span_id) == 16
-                    and all(c in "0123456789abcdef" for c in span.span_id)
-                ):
-                    # Some languages e.g. PHP return a hexadecimal span id
-                    assert context.get("span_id") == span.span_id
-                else:
-                    # Some languages e.g. Node.js using express need to return as a string value
-                    # due to 64-bit integers being too large.
-                    assert context.get("span_id") == f"{int(span.span_id):016x}"
+                assert context.get("span_id") == span.span_id
                 assert context.get("trace_flags") == "01"
 
         # compare the values of the span context with the values of the trace sent to the agent
@@ -351,7 +342,7 @@ class Test_Otel_Span_Methods:
         trace = find_trace(traces, span.trace_id)
         op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
-        assert op2["span_id"] == int(context["span_id"], 16)
+        assert id_to_int(op2["span_id"]) == id_to_int(context["span_id"])
         first_span = find_first_span_in_trace_payload(trace)
         op2_tidhex = first_span["meta"].get("_dd.p.tid", "") + "{:016x}".format(first_span["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)

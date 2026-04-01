@@ -95,15 +95,20 @@ def main() -> None:
             manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
             logger = update_manifest(manifest_editor, test_data, skipped_nodes, owner)
             created_rules_count = len(manifest_editor.added_rules)
-            activations_per_owner[owner or "No code owner"] = logger.total_tests_activated
+            activations_per_owner[owner] = logger.total_tests_activated
             owner_has_changes = logger.total_modified_rules > 0 or created_rules_count > 0
             has_updates = has_updates or owner_has_changes
 
-            manifest_editor.write(dry_run=args.dry_run)
             if not args.dry_run and owner_has_changes:
                 branch = _owner_to_branch(owner, args.components)
-                _git("checkout", "-B", branch, base_branch)
-                subprocess.run(["./format.sh"], check=True)
+                _git("checkout", "-B", branch, "main")
+                manifest_editor.write()
+                try:
+                    subprocess.run(["yamlfmt", "manifests/"], check=True)
+                    subprocess.run(["yamllint", "-s", "manifests/"], check=True)
+                    subprocess.run(["python", "utils/manifest/format.py"], check=True)
+                except (FileNotFoundError, subprocess.CalledProcessError) as _:
+                    subprocess.run(["./format.sh"], check=True)
                 _git("add", str(MANIFESTS_DIR))
                 _git("commit", "-m", f"chore: activate easy wins for {owner or 'no code owner'}")
                 _git("checkout", base_branch)
