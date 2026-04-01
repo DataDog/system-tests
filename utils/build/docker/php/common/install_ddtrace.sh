@@ -75,7 +75,7 @@ fi
 if [ -f $DDTRACE_SO ]; then
   echo "Overriding package ddtrace.so with custom binary from $DDTRACE_SO"
   # Find and replace the installed ddtrace.so with custom one
-  INSTALLED_DDTRACE=$(find /root /opt -name ddtrace.so 2>/dev/null | grep -v /binaries | head -1)
+  INSTALLED_DDTRACE=$(find /root /opt /usr/lib/php -name ddtrace.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_DDTRACE" ]; then
     echo "Found installed ddtrace.so at $INSTALLED_DDTRACE, replacing with custom binary"
     cp -f $DDTRACE_SO $INSTALLED_DDTRACE
@@ -88,7 +88,7 @@ fi
 if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
   echo "Overriding package ddappsec.so and helper with custom binaries"
   # Find and replace the installed ddappsec.so
-  INSTALLED_DDAPPSEC=$(find /root /opt -name ddappsec.so 2>/dev/null | grep -v /binaries | head -1)
+  INSTALLED_DDAPPSEC=$(find /root /opt /usr/lib/php -name ddappsec.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_DDAPPSEC" ]; then
     echo "Found installed ddappsec.so at $INSTALLED_DDAPPSEC, replacing with custom binary"
     cp -f $DDAPPSEC_SO $INSTALLED_DDAPPSEC

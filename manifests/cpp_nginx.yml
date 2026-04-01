@@ -292,6 +292,7 @@ manifest:
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: irrelevant (library does not implement OpenTelemetry)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant

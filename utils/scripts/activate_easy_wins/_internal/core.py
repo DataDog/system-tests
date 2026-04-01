@@ -54,7 +54,7 @@ def update_manifest(
         for node in test_data_item.xpass_nodes:
             if node in skipped_nodes.get(context.library, []) + skipped_nodes.get("*", []):
                 continue
-            ref_owner = [*sorted(test_data_item.nodeid_to_owners.get(node, set())), ""][0]
+            ref_owner = [*sorted(test_data_item.nodeid_to_owners[node]), ""][0]
             if code_owner is not None and code_owner != ref_owner:
                 continue
 
