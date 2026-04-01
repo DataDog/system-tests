@@ -4,15 +4,16 @@ spec:
 ---
 
 .load:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   tags:
-    - arch:amd64
+    - docker-in-docker:amd64
   stage: $[[ inputs.stage ]]
   parallel:
     matrix:
       - A: [0, 1]
         B: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         C: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  script: sleep 120; echo "A $A, B $B, C $C"
+  script: docker pull datadog/system-tests:flask-poc.base-v13; docker pull registry.ddbuild.io/system-tests/base-image-builder:latest; echo "A $A, B $B, C $C"
 
 load:
   extends: .load
