@@ -1,6 +1,8 @@
 spec:
   inputs:
     stage:
+    libraries:
+      default: "java python nodejs"
 ---
 
 build_test_pipeline:
@@ -12,9 +14,11 @@ build_test_pipeline:
     - ./build.sh -i runner
     - source venv/bin/activate
     - pip install Jinja2
-    - python3 utils/scripts/compute-workflow-parameters.py java --format json -g all --output params.json
-    - cat params.json
-    - python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] --params params.json > generated-pipeline.yml
+    - >
+      for library in $[[ inputs.libraries ]]; do
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json -g all --output params_${library}.json;
+        python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json >> generated-pipeline.yml;
+      done
   artifacts:
     paths:
       - generated-pipeline.yml

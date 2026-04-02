@@ -1,6 +1,6 @@
-{% for scenario in scenarios %}{% for variant in python_variants %}
+{% for scenario in scenarios %}{% for variant in weblog_variants %}
 
-run_{{scenario}}_{{variant}}:
+run_{{library}}_{{scenario}}_{{variant}}:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags:
     - docker-in-docker:amd64
@@ -8,7 +8,7 @@ run_{{scenario}}_{{variant}}:
   variables:
     WEBLOG_VARIANT: {{variant}}
   script:
-    - ./build.sh
+    - ./build.sh {{library}}
     - ./run.sh {{scenario}}
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
