@@ -1077,40 +1077,46 @@ class Test_ExtendedHeartbeat:
 
     def test_extended_heartbeat_config_matches(self):
         """Test that app-extended-heartbeat configuration is a superset of app-started
-        and includes any updates from app-client-configuration-change.
+        and includes any updates from app-client-configuration-change that occurred
+        before or at the same time as the extended heartbeat.
         """
         telemetry_data = list(interfaces.library.get_telemetry_data())
 
-        app_started = None
-        config_changes = []
-        last_config_change_idx = -1
+        def get_tracer_time(data: dict) -> int:
+            return data["request"]["content"].get("tracer_time", 0)
 
-        for idx, data in enumerate(telemetry_data):
-            request_type = get_request_type(data)
-            if request_type == "app-started":
-                app_started = data
-            elif request_type == "app-client-configuration-change":
-                config_changes.append(data)
-                last_config_change_idx = idx
-
-        # Some tracers register configs lazily (e.g. Python registers DD_LLMOBS_EVALUATOR_SAMPLING_RULES
-        # during LLMObs.enable(), not at startup). These late configs appear in config-change events
-        # but may not be in an earlier extended heartbeat. Find the last extended heartbeat that
-        # appeared after the last config-change to ensure it includes all flushed configs.
+        # Find the last extended heartbeat event
         extended_hb = None
-        for idx, data in enumerate(telemetry_data):
-            if get_request_type(data) == "app-extended-heartbeat" and idx > last_config_change_idx:
+        for data in telemetry_data:
+            if get_request_type(data) == "app-extended-heartbeat":
                 extended_hb = data
 
+        assert extended_hb is not None, "app-extended-heartbeat event not found"
+
+        hb_time = get_tracer_time(extended_hb)
+
+        # Collect app-started and config-change events that occurred at or before the
+        # extended heartbeat's tracer_time. Some tracers register configs lazily (e.g.
+        # Python registers DD_LLMOBS_EVALUATOR_SAMPLING_RULES during LLMObs.enable()),
+        # so config-change events arriving after the heartbeat should not be compared.
+        app_started = None
+        config_changes = []
+
+        for data in telemetry_data:
+            request_type = get_request_type(data)
+            event_time = get_tracer_time(data)
+            if request_type == "app-started" and event_time <= hb_time:
+                app_started = data
+            elif request_type == "app-client-configuration-change" and event_time <= hb_time:
+                config_changes.append(data)
+
         assert app_started is not None, "app-started event not found"
-        assert extended_hb is not None, (
-            "No app-extended-heartbeat event found after the last app-client-configuration-change"
-        )
 
         started_config = {c["name"]: c.get("value") for c in get_configurations(app_started) or []}
         extended_config = {c["name"]: c.get("value") for c in get_configurations(extended_hb) or []}
 
-        # Build expected config: start with app-started, then apply any config changes on top
+        # Build expected config: start with app-started, then apply config changes that
+        # the extended heartbeat would have seen (same or earlier tracer_time)
         expected_config = dict(started_config)
         for change_data in config_changes:
             change_config = {c["name"]: c.get("value") for c in get_configurations(change_data) or []}
