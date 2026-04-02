@@ -12,6 +12,7 @@ class IPV6Scenario(EndToEndScenario):
             scenario_groups=[scenario_groups.ipv6],
             use_proxy_for_agent=True,
             use_proxy_for_weblog=False,
+            agent_interface_timeout=15,
             doc=(
                 "Test the agent/lib communication using an IPv6 address. We do not use the proxy between "
                 "the lib and the agent to check that the agent correctly accept IPv6 traffic"

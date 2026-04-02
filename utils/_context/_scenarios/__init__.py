@@ -651,6 +651,7 @@ class _Scenarios:
         iast_enabled=False,
         other_weblog_containers=(PostgresContainer, KafkaContainer),
         rc_api_enabled=True,
+        agent_interface_timeout=15,
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
