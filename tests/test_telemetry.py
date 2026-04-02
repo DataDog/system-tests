@@ -1068,11 +1068,15 @@ class Test_TelemetrySCAEnvVar:
 class Test_ExtendedHeartbeat:
     """Test app-extended-heartbeat telemetry event in end-to-end scenario"""
 
-    def setup_test_extended_heartbeat_config_matches(self):
+    def setup_extended_heartbeat_config_matches(self):
         weblog.get("/")
-        # Wait long enough for all lazy configs to be registered and for an extended heartbeat
-        # to fire after the last config-change event (extended heartbeat interval is 2s)
-        time.sleep(10)
+        # Wait for at least one extended heartbeat event, then allow extra time for
+        # lazily registered configs to flush and a subsequent extended heartbeat to fire.
+        interfaces.library.wait_for(
+            lambda data: get_request_type(data) == "app-extended-heartbeat",
+            timeout=15,
+        )
+        time.sleep(5)
 
     def test_extended_heartbeat_config_matches(self):
         """Test that app-extended-heartbeat configuration is a superset of app-started
