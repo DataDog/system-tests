@@ -22,6 +22,7 @@ jobs:
           - python_lambda
           - ruby
           - cpp_nginx
+          - rust
         version:
           - prod
         include:
