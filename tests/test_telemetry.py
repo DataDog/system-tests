@@ -1081,13 +1081,8 @@ class Test_ExtendedHeartbeat:
         """
         telemetry_data = list(interfaces.library.get_telemetry_data())
 
-        def get_tracer_time(data: dict) -> int:
-            return data["request"]["content"].get("tracer_time", 0)
-
-        # Collect all configs reported in app-started and config-change events,
-        # tagged with the tracer_time they were reported at.
-        # config_name -> (value, tracer_time)
-        expected_configs: dict[str, tuple] = {}
+        # Collect all config names reported in app-started and config-change events
+        expected_config_names: set[str] = set()
         found_app_started = False
 
         for data in telemetry_data:
@@ -1095,39 +1090,28 @@ class Test_ExtendedHeartbeat:
             if request_type in ("app-started", "app-client-configuration-change"):
                 if request_type == "app-started":
                     found_app_started = True
-                event_time = get_tracer_time(data)
                 for c in get_configurations(data) or []:
-                    expected_configs[c["name"]] = (c.get("value"), event_time)
+                    expected_config_names.add(c["name"])
 
         assert found_app_started, "app-started event not found"
 
-        # Collect all configs ever reported across all extended heartbeats,
-        # keyed by (config_name, heartbeat_tracer_time).
-        # For each config, track the earliest heartbeat tracer_time it appeared in.
-        # config_name -> (value, earliest_hb_tracer_time)
-        heartbeat_configs: dict[str, tuple] = {}
+        # Collect all config names ever reported across all extended heartbeats
+        heartbeat_config_names: set[str] = set()
         found_extended_hb = False
 
         for data in telemetry_data:
             if get_request_type(data) == "app-extended-heartbeat":
                 found_extended_hb = True
-                hb_time = get_tracer_time(data)
                 for c in get_configurations(data) or []:
-                    name = c["name"]
-                    if name not in heartbeat_configs or hb_time < heartbeat_configs[name][1]:
-                        heartbeat_configs[name] = (c.get("value"), hb_time)
+                    heartbeat_config_names.add(c["name"])
 
         assert found_extended_hb, "app-extended-heartbeat event not found"
 
-        # For each expected config, verify it was reported by at least one extended
-        # heartbeat whose tracer_time >= the event that reported the config.
-        for name, (_value, reported_at) in expected_configs.items():
-            assert name in heartbeat_configs, (
-                f"Config '{name}' (reported at tracer_time={reported_at}) was never "
-                f"included in any app-extended-heartbeat event."
-            )
-            _hb_value, hb_time = heartbeat_configs[name]
-            assert hb_time >= reported_at, (
-                f"Config '{name}' was reported at tracer_time={reported_at} but the "
-                f"extended heartbeat containing it has tracer_time={hb_time} (earlier)."
-            )
+        # For each expected config, verify it was reported by at least one extended heartbeat.
+        # Configs may appear in heartbeats before or after they are (re-)reported in
+        # config-change events (e.g. remote config updates re-report existing configs).
+        missing = sorted(expected_config_names - heartbeat_config_names)
+        assert not missing, (
+            f"{len(missing)} config(s) reported in app-started or config-change but never "
+            f"included in any app-extended-heartbeat event: {missing}"
+        )
