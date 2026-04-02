@@ -1070,10 +1070,6 @@ class Test_ExtendedHeartbeat:
 
     def setup_extended_heartbeat_config_matches(self):
         weblog.get("/")
-        # Wait long enough for all lazy configs to be registered, flushed via config-change
-        # events, and for an extended heartbeat to fire after the last config-change.
-        # The extended heartbeat interval is set to 2s in the scenario.
-        time.sleep(15)
 
     def test_extended_heartbeat_config_matches(self):
         """Test that every config reported in app-started or app-client-configuration-change
