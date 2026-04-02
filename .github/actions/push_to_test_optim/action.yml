@@ -19,19 +19,19 @@ runs:
       run: echo "Skipping TestOptim push for dependabot PRs"
 
     - name: Install datadog-ci
-      if: github.event.pull_request.user.login != 'dependabot[bot]'
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.datadog_api_key != ''
       shell: bash
       run: npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
 
     - name: checkout owner repo
-      if: github.event.pull_request.user.login != 'dependabot[bot]'
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.datadog_api_key != ''
       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         path: repo
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
-      if: github.event.pull_request.user.login != 'dependabot[bot]'
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.datadog_api_key != ''
       shell: bash
       run: |
         cd repo
