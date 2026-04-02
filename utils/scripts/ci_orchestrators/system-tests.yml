@@ -8,7 +8,7 @@ run_{{scenario}}_{{variant}}:
   variables:
     WEBLOG_VARIANT: {{variant}}
   script:
-    - ./build.sh python
+    - ./build.sh
     - ./run.sh {{scenario}}
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
