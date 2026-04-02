@@ -1070,13 +1070,10 @@ class Test_ExtendedHeartbeat:
 
     def setup_extended_heartbeat_config_matches(self):
         weblog.get("/")
-        # Wait for at least one extended heartbeat event, then allow extra time for
-        # lazily registered configs to flush and a subsequent extended heartbeat to fire.
-        interfaces.library.wait_for(
-            lambda data: data.get("request", {}).get("content", {}).get("request_type") == "app-extended-heartbeat",
-            timeout=15,
-        )
-        time.sleep(5)
+        # Wait long enough for all lazy configs to be registered, flushed via config-change
+        # events, and for an extended heartbeat to fire after the last config-change.
+        # The extended heartbeat interval is set to 2s in the scenario.
+        time.sleep(15)
 
     def test_extended_heartbeat_config_matches(self):
         """Test that app-extended-heartbeat configuration is a superset of app-started
