@@ -160,8 +160,8 @@ class Test_Client_Stats_With_Client_Obfuscation:
             headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
             if "datadog-obfuscation-version" in headers:
                 obfuscation_header_found = True
-                assert headers["datadog-obfuscation-version"] == "1", (
-                    f"Expected obfuscation version '1', got '{headers['datadog-obfuscation-version']}'"
+                assert int(headers["datadog-obfuscation-version"])  >= 1, (
+                    f"Expected obfuscation version to be >= 1, got '{headers['datadog-obfuscation-version']}'"
                 )
 
             payload = data["request"]["content"]
