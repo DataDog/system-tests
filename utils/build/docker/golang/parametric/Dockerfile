@@ -15,4 +15,11 @@ RUN mkdir /parametric-tracer-logs
 
 RUN go install
 
+# Disable client-side p0 trace dropping so the test agent receives all traces
+# regardless of sampling priority. Without this, Go drops p0 traces before
+# transport (DD_TRACE_STATS_COMPUTATION_ENABLED defaults to true in dd-trace-go,
+# and the test agent advertises client_drop_p0s:true), causing parametric tests
+# with very low sampling rates to receive 0 traces.
+ENV DD_TRACE_STATS_COMPUTATION_ENABLED=false
+
 CMD ["main"]
