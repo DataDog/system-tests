@@ -277,6 +277,7 @@ class Test_Knuth_Sample_Rate:
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
                     "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
                 },
                 "1",
             ),
@@ -284,6 +285,7 @@ class Test_Knuth_Sample_Rate:
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
                     "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.000001}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
                 },
                 "0.000001",
             ),
@@ -291,6 +293,7 @@ class Test_Knuth_Sample_Rate:
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
                     "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.0000001}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
                 },
                 "0",
             ),
@@ -298,6 +301,7 @@ class Test_Knuth_Sample_Rate:
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
                     "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.00000051}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
                 },
                 "0.000001",
             ),
