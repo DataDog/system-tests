@@ -1082,35 +1082,46 @@ class Test_ExtendedHeartbeat:
         """
         telemetry_data = list(interfaces.library.get_telemetry_data())
 
+        def get_runtime_id(data: dict) -> str:
+            return data["request"]["content"].get("runtime_id", "")
+
         def get_tracer_time(data: dict) -> int:
             return data["request"]["content"].get("tracer_time", 0)
 
-        # Find the last extended heartbeat event
+        # Find the app-started event to determine the runtime_id to filter on.
+        # Some weblogs (e.g. gunicorn) fork workers that each have their own telemetry
+        # writer with a different runtime_id. We must compare events from the same process.
+        app_started = None
+        for data in telemetry_data:
+            if get_request_type(data) == "app-started":
+                app_started = data
+                break
+
+        assert app_started is not None, "app-started event not found"
+        runtime_id = get_runtime_id(app_started)
+
+        # Find the last extended heartbeat from the same runtime
         extended_hb = None
         for data in telemetry_data:
-            if get_request_type(data) == "app-extended-heartbeat":
+            if get_request_type(data) == "app-extended-heartbeat" and get_runtime_id(data) == runtime_id:
                 extended_hb = data
 
-        assert extended_hb is not None, "app-extended-heartbeat event not found"
+        assert extended_hb is not None, f"app-extended-heartbeat event not found for runtime_id {runtime_id}"
 
         hb_time = get_tracer_time(extended_hb)
 
-        # Collect app-started and config-change events that occurred at or before the
+        # Collect config-change events from the same runtime that occurred at or before the
         # extended heartbeat's tracer_time. Some tracers register configs lazily (e.g.
         # Python registers DD_LLMOBS_EVALUATOR_SAMPLING_RULES during LLMObs.enable()),
         # so config-change events arriving after the heartbeat should not be compared.
-        app_started = None
         config_changes = []
-
         for data in telemetry_data:
-            request_type = get_request_type(data)
-            event_time = get_tracer_time(data)
-            if request_type == "app-started" and event_time <= hb_time:
-                app_started = data
-            elif request_type == "app-client-configuration-change" and event_time <= hb_time:
+            if (
+                get_request_type(data) == "app-client-configuration-change"
+                and get_runtime_id(data) == runtime_id
+                and get_tracer_time(data) <= hb_time
+            ):
                 config_changes.append(data)
-
-        assert app_started is not None, "app-started event not found"
 
         started_config = {c["name"]: c.get("value") for c in get_configurations(app_started) or []}
         extended_config = {c["name"]: c.get("value") for c in get_configurations(extended_hb) or []}
