@@ -2046,7 +2046,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: bug (APMLP-270)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v5.93.0
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # Manual keep did not override the upstream drop decision
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=5.93.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_0_sst008: bug (APMAPI-737)
