@@ -106,12 +106,20 @@ jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
     runs-on: ${{ inputs.runs_on }}
+    permissions:
+      id-token: write
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
     steps:
+    - name: Get Datadog credentials via dd-sts
+      id: dd-sts
+      uses: DataDog/dd-sts-action@2e8187910199bd93129520183c093e19aa585c75
+      with:
+        policy: datadog-system-tests
+
     - name: Compute ref
       id: compute_ref
       run: |
@@ -212,7 +220,7 @@ jobs:
         sudo sysctl -p
         ./run.sh PROFILING
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
@@ -226,14 +234,14 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run APM_TRACING_E2E_SINGLE_SPAN scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
       run: ./run.sh APM_TRACING_E2E_SINGLE_SPAN
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run APM_TRACING_OTLP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_OTLP"')
@@ -415,14 +423,14 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: ./run.sh OTEL_INTEGRATIONS
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run OTEL_TRACING_E2E scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
       run: ./run.sh OTEL_TRACING_E2E
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
@@ -433,7 +441,7 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
       run: ./run.sh OTEL_METRIC_E2E
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
@@ -444,7 +452,7 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
       run: ./run.sh OTEL_LOG_E2E
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
@@ -479,7 +487,7 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
       run: ./run.sh OTEL_COLLECTOR_E2E
       env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
+        DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
     - name: Run AI_GUARD scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
@@ -528,6 +536,6 @@ jobs:
       if: always() && inputs.push_to_test_optimization
       uses: ./.github/actions/push_to_test_optim
       with:
-        datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
+        datadog_api_key: ${{ steps.dd-sts.outputs.api_key }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
         ci_environment: ${{ inputs.ci_environment }}
