@@ -15,7 +15,7 @@ build_test_pipeline:
     - source venv/bin/activate
     - pip install Jinja2
     - >
-      EXCLUDED_SCENARIOS="APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E";
+      EXCLUDED_SCENARIOS="APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS";
       for library in $[[ inputs.libraries ]]; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json -g all --excluded-scenarios $EXCLUDED_SCENARIOS --output params_${library}.json;
         python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json >> generated-pipeline.yml;
