@@ -1073,7 +1073,7 @@ class Test_ExtendedHeartbeat:
         # Wait for at least one extended heartbeat event, then allow extra time for
         # lazily registered configs to flush and a subsequent extended heartbeat to fire.
         interfaces.library.wait_for(
-            lambda data: get_request_type(data) == "app-extended-heartbeat",
+            lambda data: data.get("request", {}).get("content", {}).get("request_type") == "app-extended-heartbeat",
             timeout=15,
         )
         time.sleep(5)
