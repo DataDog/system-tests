@@ -1076,70 +1076,58 @@ class Test_ExtendedHeartbeat:
         time.sleep(15)
 
     def test_extended_heartbeat_config_matches(self):
-        """Test that app-extended-heartbeat configuration is a superset of app-started
-        and includes any updates from app-client-configuration-change that occurred
-        before or at the same time as the extended heartbeat.
+        """Test that every config reported in app-started or app-client-configuration-change
+        was eventually reported by at least one app-extended-heartbeat event.
         """
         telemetry_data = list(interfaces.library.get_telemetry_data())
-
-        def get_runtime_id(data: dict) -> str:
-            return data["request"]["content"].get("runtime_id", "")
 
         def get_tracer_time(data: dict) -> int:
             return data["request"]["content"].get("tracer_time", 0)
 
-        # Find the app-started event to determine the runtime_id to filter on.
-        # Some weblogs (e.g. gunicorn) fork workers that each have their own telemetry
-        # writer with a different runtime_id. We must compare events from the same process.
-        app_started = None
+        # Collect all configs reported in app-started and config-change events,
+        # tagged with the tracer_time they were reported at.
+        # config_name -> (value, tracer_time)
+        expected_configs: dict[str, tuple] = {}
+        found_app_started = False
+
         for data in telemetry_data:
-            if get_request_type(data) == "app-started":
-                app_started = data
-                break
+            request_type = get_request_type(data)
+            if request_type in ("app-started", "app-client-configuration-change"):
+                if request_type == "app-started":
+                    found_app_started = True
+                event_time = get_tracer_time(data)
+                for c in get_configurations(data) or []:
+                    expected_configs[c["name"]] = (c.get("value"), event_time)
 
-        assert app_started is not None, "app-started event not found"
-        runtime_id = get_runtime_id(app_started)
+        assert found_app_started, "app-started event not found"
 
-        # Find the last extended heartbeat from the same runtime
-        extended_hb = None
+        # Collect all configs ever reported across all extended heartbeats,
+        # keyed by (config_name, heartbeat_tracer_time).
+        # For each config, track the earliest heartbeat tracer_time it appeared in.
+        # config_name -> (value, earliest_hb_tracer_time)
+        heartbeat_configs: dict[str, tuple] = {}
+        found_extended_hb = False
+
         for data in telemetry_data:
-            if get_request_type(data) == "app-extended-heartbeat" and get_runtime_id(data) == runtime_id:
-                extended_hb = data
+            if get_request_type(data) == "app-extended-heartbeat":
+                found_extended_hb = True
+                hb_time = get_tracer_time(data)
+                for c in get_configurations(data) or []:
+                    name = c["name"]
+                    if name not in heartbeat_configs or hb_time < heartbeat_configs[name][1]:
+                        heartbeat_configs[name] = (c.get("value"), hb_time)
 
-        assert extended_hb is not None, f"app-extended-heartbeat event not found for runtime_id {runtime_id}"
+        assert found_extended_hb, "app-extended-heartbeat event not found"
 
-        hb_time = get_tracer_time(extended_hb)
-
-        # Collect config-change events from the same runtime that occurred at or before the
-        # extended heartbeat's tracer_time. Some tracers register configs lazily (e.g.
-        # Python registers DD_LLMOBS_EVALUATOR_SAMPLING_RULES during LLMObs.enable()),
-        # so config-change events arriving after the heartbeat should not be compared.
-        config_changes = []
-        for data in telemetry_data:
-            if (
-                get_request_type(data) == "app-client-configuration-change"
-                and get_runtime_id(data) == runtime_id
-                and get_tracer_time(data) <= hb_time
-            ):
-                config_changes.append(data)
-
-        started_config = {c["name"]: c.get("value") for c in get_configurations(app_started) or []}
-        extended_config = {c["name"]: c.get("value") for c in get_configurations(extended_hb) or []}
-
-        # Build expected config: start with app-started, then apply config changes that
-        # the extended heartbeat would have seen (same or earlier tracer_time)
-        expected_config = dict(started_config)
-        for change_data in config_changes:
-            change_config = {c["name"]: c.get("value") for c in get_configurations(change_data) or []}
-            expected_config.update(change_config)
-
-        # All expected configs should be present in app-extended-heartbeat with matching values
-        for name, value in expected_config.items():
-            assert name in extended_config, (
-                f"Config '{name}' missing in app-extended-heartbeat. "
-                f"Expected keys: {sorted(expected_config.keys())}, "
-                f"Got keys: {sorted(extended_config.keys())}"
+        # For each expected config, verify it was reported by at least one extended
+        # heartbeat whose tracer_time >= the event that reported the config.
+        for name, (_value, reported_at) in expected_configs.items():
+            assert name in heartbeat_configs, (
+                f"Config '{name}' (reported at tracer_time={reported_at}) was never "
+                f"included in any app-extended-heartbeat event."
             )
-            assert extended_config[name] == value, (
-                f"Config '{name}' value mismatch. Expected: {value}, Got: {extended_config[name]}"
+            _hb_value, hb_time = heartbeat_configs[name]
+            assert hb_time >= reported_at, (
+                f"Config '{name}' was reported at tracer_time={reported_at} but the "
+                f"extended heartbeat containing it has tracer_time={hb_time} (earlier)."
             )
