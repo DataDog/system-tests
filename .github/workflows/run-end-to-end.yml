@@ -207,6 +207,7 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         cat /proc/sys/kernel/perf_event_paranoid
         sudo sysctl kernel.perf_event_paranoid=1
         sudo sysctl -p
@@ -417,7 +418,9 @@ jobs:
       run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
-      run: ./run.sh OTEL_INTEGRATIONS
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -487,7 +490,9 @@ jobs:
       run: ./run.sh OTEL_COLLECTOR
     - name: Run OTEL_COLLECTOR_E2E scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
-      run: ./run.sh OTEL_COLLECTOR_E2E
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run AI_GUARD scenario
