@@ -350,6 +350,31 @@ class SetClientDropP0s(_InternalMockedTracerResponse):
         }
 
 
+class SetObfuscationVersion(_InternalMockedTracerResponse):
+    """Override the obfuscation_version field in the agent's /info response.
+
+    This controls which obfuscation version the agent advertises. When set to a version
+    higher than what the SDK supports, the SDK should skip client-side obfuscation and
+    omit the Datadog-Obfuscation-Version header from stats payloads.
+    """
+
+    def __init__(self, *, obfuscation_version: int):
+        super().__init__(path="/info")
+        self.obfuscation_version = obfuscation_version
+
+    def execute(self, flow: HTTPFlow) -> None:
+        if flow.response.status_code == HTTPStatus.OK:
+            c = json.loads(flow.response.content)
+            c["obfuscation_version"] = self.obfuscation_version
+            flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "obfuscation_version": self.obfuscation_version,
+        }
+
+
 class MockedBackendResponse(MockedResponse):
     """Base class for mocking responses from backend to agent.
 

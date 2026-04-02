@@ -177,6 +177,51 @@ class Test_Client_Stats_With_Client_Obfuscation:
             assert stat["Resource"] == want, f"Expected obfuscated resource '{want}', got '{stat['Resource']}'"
 
 
+@features.client_side_stats_supported  # FIXME: create a new feature ?
+@scenarios.trace_stats_computation_future_obfuscation_version
+class Test_Client_Stats_Future_Obfuscation_Version:
+    """Test that the SDK skips client-side obfuscation when the agent advertises a future/unknown obfuscation version"""
+
+    def setup_no_obfuscation(self):
+        """Setup for future obfuscation version test - generates SQL spans"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_no_obfuscation(self):
+        """Test that the SDK does not obfuscate stats and does not send the obfuscation header
+        when the agent reports an obfuscation_version higher than what the SDK supports (99).
+
+        Validates:
+        - Datadog-Obfuscation-Version header is NOT present on any stats payload
+        - SQL resource names are NOT obfuscated (raw literals still present)
+        """
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql":
+                        sql_stats.append(stat)
+
+        assert not obfuscation_header_found, (
+            "Datadog-Obfuscation-Version header should NOT be present when agent reports a future obfuscation version"
+        )
+
+        assert len(sql_stats) > 0, "Expected at least one SQL stats entry"
+        for stat in sql_stats:
+            assert "?" not in stat["Resource"], (
+                f"SQL resource should NOT be obfuscated when agent reports a future obfuscation version, "
+                f"but got: '{stat['Resource']}'"
+            )
+
+
 @features.service_override_source
 @scenarios.trace_stats_computation
 class Test_Stats_Service_Source:
