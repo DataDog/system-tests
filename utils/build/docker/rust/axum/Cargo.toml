@@ -20,6 +20,7 @@ datadog-opentelemetry = { version = "0.3.2", features = [
 opentelemetry = "0.31.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0" }
+reqwest = { version = "0.12", default-features = false }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tower = "0.5.3"
 tower-otel = { version = "0.9.0", features = ["axum"] }
