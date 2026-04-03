@@ -1502,7 +1502,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (Go does not support fork; use test_session_id_headers_across_spawned instead)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
-        '*': missing_feature
+        '*': irrelevant
         net-http: '>=2.8.0'
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature

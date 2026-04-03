@@ -2209,7 +2209,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
     - weblog_declaration:
         flask-poc: missing_feature (not implemented yet)
-        "*": missing_feature (spawn_child endpoint not implemented)
+        "*": '>=4.8.0' (spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
         flask-poc: missing_feature (not implemented yet)

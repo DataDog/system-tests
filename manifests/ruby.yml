@@ -2271,11 +2271,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
     - weblog_declaration:
         '*': missing_feature
-        rails72: missing_feature (not implemented yet)
+        rails72: '>=2.31.0'
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
         '*': missing_feature
-        rails72: missing_feature (not implemented yet)
+        rails72: '>=2.31.0'
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # Modified by easy win activation script
     - weblog_declaration:
