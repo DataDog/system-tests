@@ -855,7 +855,7 @@ class TestAgentAPI:
         raise AssertionError("RemoteConfig capabilities were empty")
 
     def assert_rc_capabilities(self, expected_capabilities: set[Capabilities], wait_loops: int = 100) -> None:
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        """Assert that the tracer reports all expected RC capabilities, polling up to wait_loops cycles."""
         seen_capabilities = self.wait_for_rc_capabilities(wait_loops)
         missing_capabilities = expected_capabilities.difference(seen_capabilities)
         if missing_capabilities:
