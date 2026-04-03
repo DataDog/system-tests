@@ -73,7 +73,7 @@ jobs:
               fi
             done
       - name: Upload test report
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: test-report
           path: |
@@ -229,7 +229,7 @@ jobs:
 
             if [[ -n "$PR_NUMBER" ]]; then
               # Skip if the PR has any activity (comments, reviews, or extra commits)
-              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq 'length')
+              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq '[.[] | select(.user.login | endswith("[bot]") | not)] | length')
               REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq 'length')
               COMMITS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/commits" --jq 'length')
 
@@ -244,11 +244,13 @@ jobs:
             MAIN_SHA=$(git rev-parse main)
 
             if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-              SIGNED_COMMIT=$(HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
+              SIGNED_COMMIT=$(git log --reverse --format="%H" "$MAIN_SHA..HEAD" | \
+                HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
                 -T "${{ github.repository }}" --branch "$BRANCH_NAME" \
                 --head-sha "$MAIN_SHA" --force)
             else
-              SIGNED_COMMIT=$(HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
+              SIGNED_COMMIT=$(git log --reverse --format="%H" "$MAIN_SHA..HEAD" | \
+                HEADLESS_TOKEN="$GITHUB_TOKEN" $COMMIT_HEADLESS push \
                 -T "${{ github.repository }}" --branch "$BRANCH_NAME" \
                 --head-sha "$MAIN_SHA" --create-branch)
             fi

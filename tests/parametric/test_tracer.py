@@ -233,6 +233,25 @@ class Test_TracerServiceNameSource:
         assert root_span is not None, "Root span not found"
         assert "_dd.svc_src" not in root_span.get("meta", {})
 
+    def test_tracer_srv_src_inherited_on_child_span(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a parent span has a manually set service name
+        A child span that inherits the same service should also have _dd.svc_src set to "m"
+        """
+        with (
+            test_library,
+            test_library.dd_start_span("parent", service="my-service") as parent,
+            test_library.dd_start_span("child", parent_id=parent.span_id),
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+
+        child_span = next(s for s in trace if s["name"] == "child")
+        assert child_span["meta"].get("_dd.svc_src") == "m", (
+            f"Expected _dd.svc_src='m' on child span, got: {child_span['meta'].get('_dd.svc_src')!r}"
+        )
+
 
 @scenarios.parametric
 @features.base_service
