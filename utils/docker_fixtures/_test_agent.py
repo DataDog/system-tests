@@ -838,9 +838,7 @@ class TestAgentAPI:
                     int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
 
                     if int_capabilities >= (1 << 64):
-                        raise AssertionError(
-                            f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}"
-                        )
+                        raise AssertionError(f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}")
 
                     valid_bits = sum(1 << c for c in Capabilities)
                     if int_capabilities & ~valid_bits != 0:
