@@ -9,10 +9,10 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (_dd.top_level metric not set on spans; requires stats computation)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
-  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (_dd.tags.process field not populated in PHP tracer agent payloads)
+  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (_dd.top_level metric not set on spans; requires stats computation)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v1.6.2
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v1.6.2
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: v1.11.0
@@ -575,10 +575,24 @@ manifest:
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql: v1.17.0
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string: missing_feature (PDO integration does not emit db.connection_string)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (PDO integration does not extract the SQL verb into db.operation)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres: v1.17.0
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (PDO integration does not emit db.connection_string)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (PDO integration uses legacy db.name key, not the OTel db.instance alias)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (PDO integration does not extract the SQL verb into db.operation)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (row count is stored in span metrics, not meta, so span_meta lookup fails)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (PDO integration does not parse the table name from SQL into db.sql.table)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (PDO integration uses legacy sql.query key, not the OTel db.statement key)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (runtime-id is only set on the root HTTP span, not on child PDO spans)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm: v0.91.1
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
@@ -612,10 +626,11 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context: v1.8.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v1.8.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
-  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
-  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/integrations/test_mongo.py::Test_Mongo: v1.17.0
+  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: v1.17.0
+  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
-  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_sql.py::Test_Sql: v1.17.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
@@ -923,7 +938,7 @@ manifest:
       weblog: [php-fpm-8.5]
     - declaration: missing_feature (not implemented yet)
       excluded_weblog: [php-fpm-8.5]
-  tests/test_distributed.py::Test_DistributedHttp: missing_feature
+  tests/test_distributed.py::Test_DistributedHttp: v1.17.0
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
