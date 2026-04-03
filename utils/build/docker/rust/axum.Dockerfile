@@ -11,18 +11,6 @@ COPY binaries/ /binaries/
 
 RUN /binaries/install_ddtrace.sh
 
-# Patch crates.io deps to use the local libdatadog sources, avoiding duplicate
-# crate versions that arise when libdd-data-pipeline (path dep) and
-# datadog-opentelemetry (crates.io dep) each pull a different copy of libdd-trace-utils.
-RUN cat >> Cargo.toml <<'EOF'
-
-[patch.crates-io]
-libdd-trace-utils  = { path = "/binaries/libdatadog/libdd-trace-utils" }
-libdd-common       = { path = "/binaries/libdatadog/libdd-common" }
-libdd-tinybytes    = { path = "/binaries/libdatadog/libdd-tinybytes" }
-libdd-telemetry    = { path = "/binaries/libdatadog/libdd-telemetry" }
-EOF
-
 RUN --mount=type=cache,target=/usr/app/target/ \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release && cp ./target/release/weblog /usr/app/weblog

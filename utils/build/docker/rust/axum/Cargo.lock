@@ -2125,6 +2125,7 @@ dependencies = [
  "axum",
  "datadog-opentelemetry",
  "opentelemetry",
+ "reqwest",
  "serde",
  "serde_json",
  "tokio",
