@@ -139,6 +139,23 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_obfuscation_disabled = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION",
+        # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
+        # the SDK correctly reads the obfuscation config from agent's /info and respects it.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
