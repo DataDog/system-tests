@@ -3474,7 +3474,41 @@ manifest:
         spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-3-native: '>=1.60.4'
+        jersey-grizzly2: '>=1.60.4'
+        vertx3: '>=1.60.4'
+        spring-boot-openliberty: '>=1.60.4'
+        spring-boot-wildfly: '>=1.60.4'
+        akka-http: '>=1.60.4'
+        spring-boot: '>=1.60.4'
+        spring-boot-jetty: '>=1.60.4'
+        uds-spring-boot: '>=1.60.4'
+        play: '>=1.60.4'
+        spring-boot-undertow: '>=1.60.4'
+        resteasy-netty3: '>=1.60.4'
+        ratpack: '>=1.60.4'
+        spring-boot-payara: '>=1.60.4'
+        vertx4: '>=1.60.4'
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
+    - weblog_declaration:
+        akka-http: missing_feature
+        vertx3: missing_feature
+        resteasy-netty3: missing_feature
+        uds-spring-boot: missing_feature
+        spring-boot-wildfly: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-3-native: missing_feature
+        spring-boot-openliberty: missing_feature
+        spring-boot: missing_feature
+        jersey-grizzly2: missing_feature
+        vertx4: missing_feature
+        play: missing_feature
+        ratpack: missing_feature
+        spring-boot-undertow: missing_feature
+        spring-boot-payara: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -3703,7 +3737,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: v1.59.0-SNAPSHOT+419da213f7
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=1.61.0'
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=1.61.0'  # Easy win for all weblogs and version 1.60.4
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001:
     - declaration: bug (APMAPI-737)
