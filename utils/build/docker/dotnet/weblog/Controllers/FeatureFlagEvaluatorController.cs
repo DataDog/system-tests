@@ -7,6 +7,7 @@ using OpenFeature;
 using OpenFeature.Model;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -79,8 +80,16 @@ namespace weblog
             {
                 foreach (var attr in request.Attributes)
                 {
-                    builder.Set(attr.Key, attr.Value as string);
-                    // builder.Set(attr.Key, Value.FromObject(attr.Value));
+                    // System.Text.Json deserializes to JsonElement, not string
+                    var value = attr.Value switch
+                    {
+                        JsonElement jsonElement => jsonElement.ValueKind == JsonValueKind.String
+                            ? jsonElement.GetString()
+                            : jsonElement.ToString(),
+                        string s => s,
+                        _ => attr.Value?.ToString()
+                    };
+                    builder.Set(attr.Key, value);
                 }
             }
             return builder.Build();
