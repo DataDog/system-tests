@@ -53,22 +53,74 @@ namespace weblog
             {
                 value = request.VariationType?.ToUpper() switch
                 {
-                    "BOOLEAN" => await _client.GetBooleanValueAsync(request.Flag, Convert.ToBoolean(request.DefaultValue), context),
-                    "STRING" => await _client.GetStringValueAsync(request.Flag, request.DefaultValue?.ToString(), context),
-                    "INTEGER" => await _client.GetIntegerValueAsync(request.Flag, Convert.ToInt32(request.DefaultValue), context),
-                    "NUMERIC" => await _client.GetDoubleValueAsync(request.Flag, Convert.ToDouble(request.DefaultValue), context),
-                    // "JSON" => (await _client.GetObjectValueAsync(request.Flag, Value.FromObject(request.DefaultValue), context)).AsStructure(),
+                    "BOOLEAN" => await _client.GetBooleanValueAsync(request.Flag, GetDefaultValueAsBool(request.DefaultValue), context),
+                    "STRING" => await _client.GetStringValueAsync(request.Flag, GetDefaultValueAsString(request.DefaultValue), context),
+                    "INTEGER" => await _client.GetIntegerValueAsync(request.Flag, GetDefaultValueAsInt(request.DefaultValue), context),
+                    "NUMERIC" => await _client.GetDoubleValueAsync(request.Flag, GetDefaultValueAsDouble(request.DefaultValue), context),
                     _ => request.DefaultValue
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // _logger.LogError(ex, "Error on resolution");
                 value = request.DefaultValue;
                 reason = "ERROR";
             }
 
             return Ok(new { reason, value });
+        }
+
+        private static bool GetDefaultValueAsBool(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.String => bool.Parse(jsonElement.GetString()),
+                    _ => false
+                };
+            }
+            return Convert.ToBoolean(defaultValue);
+        }
+
+        private static string GetDefaultValueAsString(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind == JsonValueKind.String
+                    ? jsonElement.GetString()
+                    : jsonElement.ToString();
+            }
+            return defaultValue?.ToString();
+        }
+
+        private static int GetDefaultValueAsInt(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.Number => jsonElement.GetInt32(),
+                    JsonValueKind.String => int.Parse(jsonElement.GetString()),
+                    _ => 0
+                };
+            }
+            return Convert.ToInt32(defaultValue);
+        }
+
+        private static double GetDefaultValueAsDouble(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.Number => jsonElement.GetDouble(),
+                    JsonValueKind.String => double.Parse(jsonElement.GetString()),
+                    _ => 0.0
+                };
+            }
+            return Convert.ToDouble(defaultValue);
         }
 
         private static EvaluationContext CreateContext(EvaluateRequest request)
