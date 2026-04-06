@@ -229,7 +229,7 @@ jobs:
 
             if [[ -n "$PR_NUMBER" ]]; then
               # Skip if the PR has any activity (comments, reviews, or extra commits)
-              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq 'length')
+              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq '[.[] | select(.user.login | endswith("[bot]") | not)] | length')
               REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq 'length')
               COMMITS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/commits" --jq 'length')
 

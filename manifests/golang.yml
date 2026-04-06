@@ -829,6 +829,8 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
   tests/ffe/test_flag_eval_metrics.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex: irrelevant (Go validates regex at config load time)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
@@ -1160,8 +1162,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature (partial flushing not enabled by default)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.2.3
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.5.0'  # Modified by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.8.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
