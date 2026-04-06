@@ -593,6 +593,7 @@ class Test_Blocking_request_body_multipart:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body_filenames:
     """Test if blocking is supported on server.request.body.filenames address"""
