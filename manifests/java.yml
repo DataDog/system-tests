@@ -1843,6 +1843,11 @@ manifest:
         jersey-grizzly2: irrelevant (Blocks on text/plain if parsed to a String)
         play: irrelevant (Blocks on text/plain if parsed to a String)
         resteasy-netty3: irrelevant (Blocks on text/plain if parsed to a String)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.61.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.15.0

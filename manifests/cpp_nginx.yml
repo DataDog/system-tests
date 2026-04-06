@@ -99,6 +99,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_non_blocking_plain_text:
     - weblog_declaration:
         nginx: irrelevant (Blocks on text/plain if parsed to a String)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.4.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.2.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: irrelevant (Tag adding happens before WAF run)
