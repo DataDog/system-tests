@@ -858,6 +858,7 @@
     "llmobs.agentlessEnabled": "llmobs_agentless_enabled",
     "llmobs.enabled": "llmobs_enabled",
     "llmobs.mlApp": "llmobs_ml_app",
+    "llmobs_oneclick_supported": "llmobs_oneclick_supported",
     "logInjection": "logs_injection_enabled",
     "logInjection_enabled": "logs_injection_enabled",
     "logLevel": "trace_log_level",
