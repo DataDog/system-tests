@@ -5,7 +5,7 @@ ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
 ADD . /src
 
-RUN pip install django protobuf==3.17.0
+RUN pip install django==4.2.29 protobuf==3.17.0
 
 # Many users run a non-root user, ensure this is supported by the injection mechanism
 USER 1000
