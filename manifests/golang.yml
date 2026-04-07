@@ -1413,7 +1413,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.39.0
   tests/test_telemetry.py::Test_DependencyEnable: v1.73.0-dev
-  tests/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature (extended heartbeat does not include configs from app-client-configuration-change)
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v2.9.0-dev
   tests/test_telemetry.py::Test_Log_Generation: v1.73.0-dev
   tests/test_telemetry.py::Test_MessageBatch: v1.73.0-dev
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: v1.73.0-dev
