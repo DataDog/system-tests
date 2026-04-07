@@ -76,13 +76,13 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert len(spans) == 1, "Library received the incorrect amount of spans"
         span = spans[0]
-        assert span.get_span_type() == "web"
-        span_meta = span.meta
+        assert span.get("type") == "web"
+        span_meta = span.get("meta", {})
         assert span_meta["http.status_code"] == "200"
-        assert span["error"]
+        assert span.get("error")
 
     def setup_status_code_202(self):
         self.r = weblog.get("/status?code=202")
@@ -91,11 +91,11 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert len(spans) == 1, "Library received the incorrect amount of spans"
         span = spans[0]
-        assert span.get_span_type() == "web"
-        span_meta = span.meta
+        assert span.get("type") == "web"
+        span_meta = span.get("meta", {})
         assert span_meta.get("http.status_code") == "202"
         assert span.get("error")
 
@@ -388,9 +388,9 @@ class Test_Config_UnifiedServiceTagging_CustomService:
 
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, f"Agent received the incorrect amount of spans, Spans: {spans}"
-        assert spans[0].get_span_service() == "service_test"
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert len(spans) == 1, f"Library received the incorrect amount of spans, Spans: {spans}"
+        assert spans[0].get("service") == "service_test"
 
 
 @scenarios.default
