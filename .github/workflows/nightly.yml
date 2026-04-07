@@ -30,16 +30,9 @@ jobs:
       fail-fast: false
     uses:  DataDog/system-tests/.github/workflows/system-tests.yml@main
     secrets:
-      TEST_OPTIMIZATION_API_KEY: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-      DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-      DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-      DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-      DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     permissions:
       contents: read
       packages: write
