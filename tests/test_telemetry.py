@@ -634,7 +634,8 @@ class Test_Telemetry:
         assert len(root_runtime_ids) == 1, f"Expected 1 root runtime_id, got {root_runtime_ids}"
 
         if len(runtime_ids) > 1:
-            # Multiple runtimes (per-process tracers): parent + child from spawn_child
+            # Multiple runtimes (per-process tracers): root must be consistent
+            # across all payloads from all processes
             if parent_runtime_ids:
                 # DD-Parent-Session-ID is optional but must reference a known runtime if present
                 missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
@@ -642,8 +643,8 @@ class Test_Telemetry:
                     f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
                 )
         else:
-            # Single runtime (shared tracer, e.g. nginx): all events must report
-            # the same session ID consistently
+            # Single runtime (e.g. nginx workers sharing one tracer): session ID
+            # must be consistent across all events
             sole_rid = next(iter(runtime_ids))
             sole_root = next(iter(root_runtime_ids))
             assert sole_rid == sole_root, (
