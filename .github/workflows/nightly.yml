@@ -32,7 +32,6 @@ jobs:
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
     permissions:
       contents: read
       packages: write

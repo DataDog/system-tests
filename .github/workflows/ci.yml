@@ -74,7 +74,6 @@ jobs:
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
     with:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
