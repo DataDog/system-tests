@@ -602,6 +602,10 @@ class Test_Telemetry:
         if not telemetry_data:
             raise ValueError("No telemetry data to validate on")
 
+        assert len(telemetry_data) > 1, (
+            f"Expected multiple telemetry events to verify consistency, got {len(telemetry_data)}"
+        )
+
         runtime_ids = set[str]()
         parent_runtime_ids = set[str]()
         root_runtime_ids = set[str]()
@@ -626,15 +630,24 @@ class Test_Telemetry:
                 # If dd-root-session-id is not set, dd-session-id is treated as root
                 root_runtime_ids.add(curr_id)
 
-        # At least two runtimes: parent (root) and child from spawn_child
-        assert len(runtime_ids) > 1, f"Expected at least 2 runtime_ids, got {runtime_ids}"
-        # One root per app instance: all children share the same DD-Root-Session-ID
+        # One root per app instance: all processes share the same root session ID
         assert len(root_runtime_ids) == 1, f"Expected 1 root runtime_id, got {root_runtime_ids}"
-        if parent_runtime_ids:
-            # DD-Parent-Session-ID is optional but must reference a known runtime if present
-            missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
-            assert not missing_parent_runtime_ids, (
-                f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
+
+        if len(runtime_ids) > 1:
+            # Multiple runtimes (per-process tracers): parent + child from spawn_child
+            if parent_runtime_ids:
+                # DD-Parent-Session-ID is optional but must reference a known runtime if present
+                missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
+                assert not missing_parent_runtime_ids, (
+                    f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
+                )
+        else:
+            # Single runtime (shared tracer, e.g. nginx): all events must report
+            # the same session ID consistently
+            sole_rid = next(iter(runtime_ids))
+            sole_root = next(iter(root_runtime_ids))
+            assert sole_rid == sole_root, (
+                f"Single runtime_id {sole_rid} does not match root {sole_root}"
             )
 
     def test_session_id_headers_across_forks(self):
