@@ -77,7 +77,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r)]
-        assert len(spans) == 1, "Library received the incorrect amount of spans"
+        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
         span = spans[0]
         assert span["type"] == "web"
         assert span["meta"]["http.status_code"] == "200"
@@ -91,7 +91,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r)]
-        assert len(spans) == 1, "Library received the incorrect amount of spans"
+        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
         span = spans[0]
         assert span["type"] == "web"
         assert span["meta"]["http.status_code"] == "202"
@@ -387,7 +387,7 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r)]
-        assert len(spans) == 1, f"Library received the incorrect amount of spans, Spans: {spans}"
+        assert len(spans) == 1, f"Agent received the incorrect amount of spans, Spans: {spans}"
         assert spans[0]["service"] == "service_test"
 
 
