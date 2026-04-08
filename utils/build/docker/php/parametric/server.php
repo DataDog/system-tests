@@ -3,6 +3,12 @@
 ini_set("datadog.trace.generate_root_span", "0");
 ini_set("datadog.trace.revolt_enabled", "0");
 
+// Set OTLP endpoint before autoload so SdkAutoloader sees it
+$_agentHost = getenv('DD_AGENT_HOST') ?: 'localhost';
+if (!getenv('OTEL_EXPORTER_OTLP_ENDPOINT')) {
+    putenv('OTEL_EXPORTER_OTLP_ENDPOINT=http://' . $_agentHost . ':4318');
+}
+
 require __DIR__ . "/vendor/autoload.php";
 
 use Amp\ByteStream;
@@ -20,10 +26,18 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Logs\LogRecord;
+use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
+use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
+use OpenTelemetry\SDK\Common\Configuration\Configuration;
+use OpenTelemetry\SDK\Common\Configuration\Variables;
+use OpenTelemetry\SDK\Common\Time\ClockFactory;
+use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -111,6 +125,22 @@ $scopes = [];
 $activeSpan = null;
 /** @var array[] $spansDistributedTracingHeaders */
 $spansDistributedTracingHeaders = [];
+/** @var \OpenTelemetry\API\Logs\LoggerInterface[] $loggerDict */
+$loggerDict = [];
+// Build OTLP HTTP export pipeline for logs when enabled.
+// LogsExporterFactory reads all OTEL_EXPORTER_OTLP_* env vars (endpoint, headers, protocol, timeout).
+$_ddLogsOtelEnabled = strtolower(getenv('DD_LOGS_OTEL_ENABLED') ?: 'false') === 'true';
+if ($_ddLogsOtelEnabled) {
+    // Explicitly read OTEL_EXPORTER_OTLP_LOGS_TIMEOUT so it is tracked for dd-trace telemetry
+    // (LogsExporterFactory only reads this when it's explicitly set, falling back to OTEL_EXPORTER_OTLP_TIMEOUT).
+    Configuration::getInt(Variables::OTEL_EXPORTER_OTLP_LOGS_TIMEOUT);
+    $_logExporter = (new LogsExporterFactory())->create();
+    $sdkLoggerProvider = SDKLoggerProvider::builder()
+        ->addLogRecordProcessor(new BatchLogRecordProcessor($_logExporter, ClockFactory::getDefault()))
+        ->build();
+} else {
+    $sdkLoggerProvider = SDKLoggerProvider::builder()->build();
+}
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
@@ -500,6 +530,64 @@ $router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHand
     }
 
     return jsonResponse([]);
+}));
+$router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$sdkLoggerProvider) {
+    $name = arg($req, 'name');
+
+    if (isset($loggerDict[$name])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    $version = arg($req, 'version');
+    $schemaUrl = arg($req, 'schema_url');
+    $attributes = arg($req, 'attributes') ?? [];
+
+    $loggerDict[$name] = $sdkLoggerProvider->getLogger($name, $version, $schemaUrl, $attributes);
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$otelSpans, &$spans) {
+    $loggerName = arg($req, 'logger_name');
+    $level = arg($req, 'level');
+    $message = arg($req, 'message');
+    $spanId = arg($req, 'span_id');
+
+    if (!isset($loggerDict[$loggerName])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    $levelUpper = strtoupper((string)$level);
+    $severityMap = [
+        'TRACE' => ['number' => 1,  'text' => 'TRACE'],
+        'DEBUG' => ['number' => 5,  'text' => 'DEBUG'],
+        'INFO'  => ['number' => 9,  'text' => 'INFO'],
+        'WARN'  => ['number' => 13, 'text' => 'WARN'],
+        'ERROR' => ['number' => 17, 'text' => 'ERROR'],
+        'FATAL' => ['number' => 21, 'text' => 'FATAL'],
+    ];
+    $severity = $severityMap[$levelUpper] ?? $severityMap['INFO'];
+
+    $logRecord = (new LogRecord($message))
+        ->setSeverityNumber($severity['number'])
+        ->setSeverityText($severity['text']);
+
+    if ($spanId !== null) {
+        if (isset($otelSpans[$spanId])) {
+            $context = $otelSpans[$spanId]->storeInContext(Context::getCurrent());
+            $logRecord->setContext($context);
+        } elseif (isset($spans[$spanId])) {
+            \DDTrace\switch_stack($spans[$spanId]);
+            $logRecord->setContext(Context::getCurrent());
+        }
+    }
+
+    $loggerDict[$loggerName]->emit($logRecord);
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$sdkLoggerProvider) {
+    $sdkLoggerProvider->forceFlush();
+    return jsonResponse(['success' => true, 'message' => 'DDTrace']);
 }));
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
