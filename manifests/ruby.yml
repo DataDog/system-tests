@@ -3,7 +3,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
-        "*": v2.25.0-dev
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
