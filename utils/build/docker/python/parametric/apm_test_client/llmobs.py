@@ -297,13 +297,15 @@ def llmobs_experiment_run(request: ExperimentCreateRequestModel):
 
     rows = []
     for row in result.get("rows", []):
-        rows.append({
-            "input": row.get("input"),
-            "output": row.get("output"),
-            "expected_output": row.get("expected_output"),
-            "evaluations": row.get("evaluations", {}),
-            "error": row.get("error", {}),
-        })
+        rows.append(
+            {
+                "input": row.get("input"),
+                "output": row.get("output"),
+                "expected_output": row.get("expected_output"),
+                "evaluations": row.get("evaluations", {}),
+                "error": row.get("error", {}),
+            }
+        )
 
     return {
         "experiment_name": request.experiment_name,
