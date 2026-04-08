@@ -280,12 +280,19 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_none(key: str, value: dict | list, parent: dict):  # noqa: ARG001
             return __scrub(value)
 
+        def __scrub_php(key: str, value: dict | list, parent: dict):  # noqa: ARG001
+            if key == "_SERVER" and isinstance(value, dict):
+                return {k: v for k, v in value.items() if k != "entries"}
+            return __scrub(value)
+
         if self.get_tracer()["language"] == "java":
             scrub_language = __scrub_java
         elif self.get_tracer()["language"] == "dotnet":
             scrub_language = __scrub_dotnet
         elif self.get_tracer()["language"] == "python":
             scrub_language = __scrub_python
+        elif self.get_tracer()["language"] == "php":
+            scrub_language = __scrub_php
         else:
             scrub_language = __scrub_none
 
@@ -371,22 +378,21 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             self._write_approval(spans, test_name, "spans_received")
 
-            if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
-                self._write_approval(spans, test_name, expected_suffix)
-
-            expected = self._read_approval(test_name, expected_suffix)
-
             # Normalize spans for comparison based on format:
             # - JSON serializes tuples as lists, so convert in-memory tuples to lists
             # - Legacy expected files don't include format, so extract just span dicts for comparison
+            normalized_for_approval: dict
             if is_v1_format:
-                # V1 format: convert tuples to lists for comparison (matches JSON serialization)
-                normalized_spans_v1 = {key: [span, str(fmt)] for key, (span, fmt) in spans.items()}
-                assert expected == normalized_spans_v1
+                normalized_for_approval = {key: [span, str(fmt)] for key, (span, fmt) in spans.items()}
             else:
-                # Legacy format: expected files contain just span dicts without format tuple
-                normalized_spans_legacy = {key: span for key, (span, _) in spans.items()}
-                assert expected == normalized_spans_legacy
+                normalized_for_approval = {key: span for key, (span, _) in spans.items()}
+
+            if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
+                self._write_approval(normalized_for_approval, test_name, expected_suffix)
+
+            expected = self._read_approval(test_name, expected_suffix)
+
+            assert expected == normalized_for_approval
 
             missing_keys_dict = {}
 
@@ -428,7 +434,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         helper_method = "exceptionReplayRecursionHelper"
 
         def get_frames(snapshot: dict) -> list[dict]:
-            if self.get_tracer()["language"] in ["java", "dotnet"]:
+            if self.get_tracer()["language"] in ["java", "dotnet", "php"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
                     return [{"function": method}]

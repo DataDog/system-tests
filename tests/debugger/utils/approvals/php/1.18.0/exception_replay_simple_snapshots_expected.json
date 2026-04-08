@@ -1,0 +1,115 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "414427d8f61da6d7",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "locals": {
+          "_POST": {
+            "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/simple"
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "simple"
+              }
+            ]
+          },
+          "_GET": {
+            "type": "array"
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "queryParams": {
+            "type": "array"
+          },
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "query": {
+            "type": "null",
+            "isNull": true
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "simple exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {}
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "414427d8f61da6d7",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "simple exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplaySimple",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]

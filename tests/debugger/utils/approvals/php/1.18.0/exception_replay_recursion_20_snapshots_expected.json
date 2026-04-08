@@ -1,0 +1,462 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "depth": {
+            "type": "int",
+            "value": "0"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "arguments": {
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          },
+          "depth": {
+            "type": "int",
+            "value": "1"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "2",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "depth": {
+            "type": "int",
+            "value": "2"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "3",
+    "captures": {
+      "return": {
+        "arguments": {
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          },
+          "depth": {
+            "type": "int",
+            "value": "3"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "4",
+    "captures": {
+      "return": {
+        "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "4"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "5",
+    "captures": {
+      "return": {
+        "arguments": {
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "depth": {
+            "type": "int",
+            "value": "5"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "6",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "depth": {
+            "type": "int",
+            "value": "6"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "7",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "depth": {
+            "type": "int",
+            "value": "7"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "8",
+    "captures": {
+      "return": {
+        "arguments": {
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "depth": {
+            "type": "int",
+            "value": "8"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "fb550dd55c0b3efc",
+    "frameIndex": "9",
+    "captures": {
+      "return": {
+        "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "9"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "recursion exception depth 20"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]
