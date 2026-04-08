@@ -1,0 +1,115 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "15dded4dced0ba8d",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "locals": {
+          "_SERVER": {
+            "type": "array"
+          },
+          "_GET": {
+            "type": "array"
+          },
+          "queryParams": {
+            "type": "array"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          },
+          "_POST": {
+            "type": "array"
+          },
+          "query": {
+            "type": "null",
+            "isNull": true
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "inner"
+              }
+            ]
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/inner"
+          },
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "outer exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {}
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "15dded4dced0ba8d",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "outer exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayInner",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]

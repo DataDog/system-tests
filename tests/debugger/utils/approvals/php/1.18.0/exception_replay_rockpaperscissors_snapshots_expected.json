@@ -1,0 +1,437 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "f6bf0b1fd36a3e00",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "locals": {
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/rps"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "queryParams": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "paper"
+                }
+              ]
+            ]
+          },
+          "_GET": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "paper"
+                }
+              ]
+            ]
+          },
+          "shape": {
+            "type": "string",
+            "value": "paper"
+          },
+          "query": {
+            "type": "string",
+            "value": "shape=paper"
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "rps"
+              }
+            ]
+          },
+          "_SERVER": {
+            "type": "array"
+          },
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_POST": {
+            "type": "array"
+          }
+        },
+        "throwable": {
+          "type": "ExceptionReplayPaper",
+          "message": "paper exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {}
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "f6bf0b1fd36a3e00",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          },
+          "shape": {
+            "type": "string",
+            "value": "paper"
+          }
+        },
+        "throwable": {
+          "type": "ExceptionReplayPaper",
+          "message": "paper exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRps",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "12b9e25582b7b9f1",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "locals": {
+          "_POST": {
+            "type": "array"
+          },
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_SERVER": {
+            "type": "array"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/rps"
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "query": {
+            "type": "string",
+            "value": "shape=rock"
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "rps"
+              }
+            ]
+          },
+          "queryParams": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "rock"
+                }
+              ]
+            ]
+          },
+          "_GET": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "rock"
+                }
+              ]
+            ]
+          },
+          "shape": {
+            "type": "string",
+            "value": "rock"
+          }
+        },
+        "throwable": {
+          "type": "ExceptionReplayRock",
+          "message": "rock exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {}
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "12b9e25582b7b9f1",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "shape": {
+            "type": "string",
+            "value": "rock"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "ExceptionReplayRock",
+          "message": "rock exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRps",
+        "type": "DebuggerController"
+      }
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "baf98b8eeea8d7b4",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "locals": {
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              },
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              }
+            }
+          },
+          "_GET": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "scissors"
+                }
+              ]
+            ]
+          },
+          "_POST": {
+            "type": "array"
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "rps"
+              }
+            ]
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/rps"
+          },
+          "query": {
+            "type": "string",
+            "value": "shape=scissors"
+          },
+          "queryParams": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "scissors"
+                }
+              ]
+            ]
+          },
+          "shape": {
+            "type": "string",
+            "value": "scissors"
+          },
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
+          }
+        },
+        "throwable": {
+          "type": "ExceptionReplayScissors",
+          "message": "scissors exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {}
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "baf98b8eeea8d7b4",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "shape": {
+            "type": "string",
+            "value": "scissors"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "ExceptionReplayScissors",
+          "message": "scissors exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayRps",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]
