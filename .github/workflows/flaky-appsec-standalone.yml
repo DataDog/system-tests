@@ -1,0 +1,65 @@
+name: Flaky test - APPSEC_STANDALONE_APM_STANDALONE
+
+on:
+  push:
+    branches:
+      - florentinl/flaky-test-debug
+
+concurrency:
+  group: flaky-appsec-standalone-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build weblog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/install_runner
+      - name: Build weblog
+        run: ./build.sh java -i weblog -w spring-boot-wildfly -s
+        env:
+          SYSTEM_TEST_BUILD_ATTEMPTS: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weblog-image
+          path: binaries/
+          retention-days: 1
+
+  test:
+    name: "Run #${{ matrix.batch }}"
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/install_runner
+      - uses: actions/download-artifact@v4
+        with:
+          name: weblog-image
+          path: binaries/
+      - name: Load weblog image
+        run: ./build.sh java -i weblog -w spring-boot-wildfly
+      - name: Pull images
+        uses: ./.github/actions/pull_images
+        with:
+          library: java
+          weblog: spring-boot-wildfly
+          scenarios: '["APPSEC_STANDALONE_APM_STANDALONE"]'
+      - name: Run scenario (10 iterations)
+        run: |
+          for i in $(seq 1 10); do
+            echo "::group::Iteration $i"
+            ./run.sh APPSEC_STANDALONE_APM_STANDALONE
+            echo "::endgroup::"
+          done
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-batch-${{ matrix.batch }}
+          path: logs_appsec_standalone_apm_standalone/
+          retention-days: 7
