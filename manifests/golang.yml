@@ -295,23 +295,23 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v2.0.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v1.65.1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.0.0
+  tests/appsec/smoke_tests/test_apm_standalone.py: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.34.0
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
-  tests/appsec/test_apm_standalone.py: v2.7.0
-  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke:
-    - weblog_declaration:
-        "*": irrelevant (LFi detection requires orchestrion)
-        net-http-orchestrion: v2.7.0
-  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
-  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
-    - weblog_declaration:
-        "*": irrelevant (LFi detection requires orchestrion)
-        net-http-orchestrion: v2.7.0
-  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded: irrelevant (Go does not support dynamic dependency loading)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:  # Modified by easy win activation script
     - weblog_declaration:

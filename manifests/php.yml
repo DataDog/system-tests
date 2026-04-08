@@ -285,9 +285,9 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v1.7.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v1.7.0
-  tests/appsec/test_apm_standalone.py: v1.18.0
-  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: missing_feature
-  tests/appsec/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py: v1.18.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke: missing_feature
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
