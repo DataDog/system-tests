@@ -1285,10 +1285,18 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.3.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.0.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: bug (APMAPI-867)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: bug (APMAPI-867)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: bug (APMAPI-867)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: bug (APMAPI-868)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-868)
+      component_version: <2.30.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
@@ -1297,9 +1305,15 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
     - declaration: bug (APMAPI-867)
       component_version: <2.27.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default: bug (APMAPI-867)  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: bug (APMAPI-867)  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: bug (APMAPI-867)  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:  # Created by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env:  # Created by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules:  # Created by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.30.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
@@ -1451,11 +1465,15 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_get_span_context:
     - declaration: bug (APMRP-360)
       component_version: <2.2.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+      component_version: <2.30.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error:
     - declaration: missing_feature (Not implemented)
       component_version: <2.3.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Newer agents/testagents enabled native span event serialization by default)
+      component_version: <2.30.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:
     - declaration: missing_feature (Not implemented)
       component_version: <2.3.0
@@ -1555,7 +1573,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <2.30.0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
@@ -2268,7 +2288,26 @@ manifest:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+      component_version: <2.30.0
+      weblog: [sinatra32, sinatra41, sinatra22, rails42, uds-sinatra, rails72, rails80, uds-rails, sinatra14, rack, rails61, rails52]
+    - declaration: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+      excluded_weblog: [sinatra32, sinatra41, sinatra22, rails42, uds-sinatra, rails72, rails80, uds-rails, sinatra14, rack, rails61, rails52]
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence:
+    - weblog_declaration:
+        rails80: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        rails61: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        rails72: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        sinatra14: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        rack: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        sinatra32: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        uds-sinatra: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        sinatra22: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        sinatra41: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        rails52: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        rails42: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
+        uds-rails: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
   tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
