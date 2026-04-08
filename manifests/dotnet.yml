@@ -853,26 +853,26 @@ manifest:
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : bug (APMAPI-914)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:  # Easy win for all weblogs and version 3.36.0
-    - declaration: bug (APMSP-2074)
+    - declaration: bug (missing_feature)
       component_version: '>=3.19.0'
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
