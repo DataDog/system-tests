@@ -95,7 +95,7 @@ def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_par
 # ---------------------------------------------------------------------------
 
 
-class ThreatsSmokeTests:
+class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
     def setup_attack_detection_smoke(self) -> None:
@@ -124,7 +124,7 @@ class ThreatsSmokeTests:
 # ---------------------------------------------------------------------------
 
 
-class RaspSmokeTests:
+class BaseRaspSmokeTests:
     """Verify RASP attacks are detected and forwarded by the agent."""
 
     def setup_lfi_smoke(self) -> None:
@@ -185,7 +185,7 @@ class RaspSmokeTests:
 # ---------------------------------------------------------------------------
 
 
-class TelemetrySmokeTests:
+class BaseTelemetrySmokeTests:
     """Verify telemetry metrics are forwarded by the agent."""
 
     def setup_telemetry_smoke(self) -> None:
@@ -228,7 +228,7 @@ class TelemetrySmokeTests:
 # ---------------------------------------------------------------------------
 
 
-class RemoteConfigSmokeTests:
+class BaseRemoteConfigSmokeTests:
     """Verify remote config rules are acknowledged, applied, and can block."""
 
     def setup_remote_config_smoke(self) -> None:
@@ -278,7 +278,7 @@ class RemoteConfigSmokeTests:
 # ---------------------------------------------------------------------------
 
 
-class ApiSecuritySmokeTests:
+class BaseApiSecuritySmokeTests:
     """Verify API security schemas are collected and forwarded."""
 
     def setup_api_security_smoke(self) -> None:
@@ -295,7 +295,7 @@ class ApiSecuritySmokeTests:
 # ---------------------------------------------------------------------------
 
 
-class UserEventsSmokeTests:
+class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:

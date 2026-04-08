@@ -6,53 +6,53 @@
 
 from utils import features, scenarios
 
-from tests.appsec.test_agent_level_smoke_tests import (
-    ApiSecuritySmokeTests,
-    RaspSmokeTests,
-    RemoteConfigSmokeTests,
-    TelemetrySmokeTests,
-    ThreatsSmokeTests,
-    UserEventsSmokeTests,
+from tests.appsec.smoke_tests.utils import (
+    BaseApiSecuritySmokeTests,
+    BaseRaspSmokeTests,
+    BaseRemoteConfigSmokeTests,
+    BaseTelemetrySmokeTests,
+    BaseThreatsSmokeTests,
+    BaseUserEventsSmokeTests,
 )
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_Threats(ThreatsSmokeTests):
+class Test_AppSecAPMStandalone_Threats(BaseThreatsSmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_Rasp(RaspSmokeTests):
+class Test_AppSecAPMStandalone_Rasp(BaseRaspSmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_Telemetry(TelemetrySmokeTests):
+class Test_AppSecAPMStandalone_Telemetry(BaseTelemetrySmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_RemoteConfig(RemoteConfigSmokeTests):
+class Test_AppSecAPMStandalone_RemoteConfig(BaseRemoteConfigSmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_ApiSecurity(ApiSecuritySmokeTests):
+class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_UserEvents(UserEventsSmokeTests):
+class Test_AppSecAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
     pass
