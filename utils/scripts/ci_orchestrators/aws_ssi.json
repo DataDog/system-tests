@@ -350,6 +350,9 @@
                 "name": "test-app-nodejs-container",
                 "excluded_os_branches": [
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {

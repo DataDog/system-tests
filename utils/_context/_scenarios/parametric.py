@@ -109,7 +109,13 @@ class ParametricScenario(DockerFixturesScenario):
             # we are in the main worker, not in a xdist sub-worker
             # self._build_apm_test_server_image(config.option.github_token_file)
             self._test_agent_factory.pull()
-            self._test_client_factory.build(github_token_file=config.option.github_token_file)
+            skip_build = getattr(config.option, "skip_parametric_build", False)
+            if skip_build and len(get_docker_client().images.list(name=self._test_client_factory.tag)) > 0:
+                logger.stdout(
+                    "Skipping parametric build (image already exists, --skip-parametric-build or SKIP_PARAMETRIC_BUILD)"
+                )
+            else:
+                self._test_client_factory.build(github_token_file=config.option.github_token_file)
             self._clean()
 
         # https://github.com/DataDog/system-tests/issues/2799

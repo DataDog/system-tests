@@ -8,6 +8,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v3.34.0
@@ -756,6 +757,7 @@ manifest:
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.36.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.36.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: v3.9.0
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -959,8 +961,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature (partial flushing not enabled by default)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature  # Created by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=3.36.0'  # Modified by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=3.41.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -1014,6 +1015,7 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v2.48.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: v3.40.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: v3.40.0
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_srv_src_inherited_on_child_span: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v2.48.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: v2.36.0

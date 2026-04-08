@@ -19,6 +19,7 @@ require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
   if c.respond_to?(:tracing)
     c.tracing.instrument :rack
   else

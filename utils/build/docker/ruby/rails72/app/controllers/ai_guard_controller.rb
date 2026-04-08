@@ -29,10 +29,12 @@ class AiGuardController < ApplicationController
       tags: result.tags,
       is_blocking_enabled: result.blocking_enabled?
     }
+    response_data[:tag_probs] = result.tag_probs if result.respond_to?(:tag_probs)
     response_data[:sds] = result.sds if result.respond_to?(:sds)
     render json: response_data
   rescue Datadog::AIGuard::AIGuardAbortError => e
     error_data = { action: e.action, reason: e.reason, tags: e.tags }
+    error_data[:tag_probs] = e.tag_probs if e.respond_to?(:tag_probs)
     error_data[:sds] = e.sds if e.respond_to?(:sds)
     render json: error_data, status: 403
   rescue => e

@@ -28,7 +28,7 @@ jobs:
       contents: read # need to read releases
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       - name: Install runner
         uses: ./.github/actions/install_runner
       # force /bin/bash in order to test against bash 3.2 on macOS
@@ -74,14 +74,6 @@ jobs:
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      TEST_OPTIMIZATION_API_KEY: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
-      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-      DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-      DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-      DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-      DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     with:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
