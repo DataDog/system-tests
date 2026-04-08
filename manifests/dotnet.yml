@@ -373,6 +373,7 @@ manifest:
         uds: missing_feature
         poc: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v2.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v2.29.0
