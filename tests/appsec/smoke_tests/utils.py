@@ -4,6 +4,8 @@
 
 """AppSec smoke tests for the appsec_apm_standalone scenario."""
 
+import time
+
 from utils import interfaces, remote_config as rc, weblog
 from utils._weblog import HttpResponse
 
@@ -100,6 +102,10 @@ class BaseThreatsSmokeTests:
 
     def setup_attack_detection_smoke(self) -> None:
         rc.tracer_rc_state.reset().apply()
+        # After an RC reset the WAF/RASP rules may still be re-initialising
+        # for a few dozen milliseconds, causing the next requests to miss
+        # appsec detection (and their traces to be dropped in standalone mode).
+        time.sleep(0.5)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
