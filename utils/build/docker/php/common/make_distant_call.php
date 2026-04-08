@@ -31,7 +31,7 @@ $rawRequestHeaders = curl_getinfo($ch, CURLINFO_HEADER_OUT);
 if ($rawRequestHeaders) {
     foreach (explode("\r\n", $rawRequestHeaders) as $line) {
         if (strpos($line, ':') !== false) {
-            [$key, $value] = explode(':', $line, 2);
+            list($key, $value) = explode(':', $line, 2);
             $requestHeaders[strtolower(trim($key))] = trim($value);
         }
     }
