@@ -35,6 +35,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.6.0-rc1
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature (APPSEC-61898)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
@@ -708,6 +709,7 @@ manifest:
         *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.16.1
@@ -1226,7 +1228,8 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_exposures.py: v4.2.0-dev
-  tests/ffe/test_flag_eval_metrics.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: v4.8.0-dev
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create: missing_feature  # ephemeral cache TTL metrics not yet released
@@ -1863,7 +1866,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: flaky (APMAPI-734)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.8.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v3.14.0.dev
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v4.7.0
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: v2.8.0
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
@@ -1940,6 +1943,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v4.7.0
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName::test_process_tag_svc_auto: bug (APMLP-6275)
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant

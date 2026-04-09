@@ -96,7 +96,7 @@ Each language implements a `POST /ai_guard/evaluate` endpoint that:
 1. Reads messages from the request JSON body
 2. Reads the `X-AI-Guard-Block` header to determine blocking behavior
 3. Calls the AI Guard SDK `evaluate` method
-4. Returns the evaluation result (action, reason, tags)
+4. Returns the evaluation result (action, reason, tags, tag probabilities)
 
 See [weblogs](../weblogs/README.md) for details on weblog implementations.
 

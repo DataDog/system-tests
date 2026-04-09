@@ -101,6 +101,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      dd_sts_policy:
+        description: "dd-sts policy to use to get a Datadog API key for Test Optimization"
+        default: ""
+        required: false
+        type: string
 
 jobs:
   main:
@@ -207,6 +212,7 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         cat /proc/sys/kernel/perf_event_paranoid
         sudo sysctl kernel.perf_event_paranoid=1
         sudo sysctl -p
@@ -224,14 +230,18 @@ jobs:
       run: ./run.sh INTEGRATIONS_AWS
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
-      run: ./run.sh APM_TRACING_E2E_OTEL
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run APM_TRACING_E2E_SINGLE_SPAN scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
-      run: ./run.sh APM_TRACING_E2E_SINGLE_SPAN
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh APM_TRACING_E2E_SINGLE_SPAN
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -413,14 +423,18 @@ jobs:
       run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
-      run: ./run.sh OTEL_INTEGRATIONS
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_INTEGRATIONS
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run OTEL_TRACING_E2E scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
-      run: ./run.sh OTEL_TRACING_E2E
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_TRACING_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -431,7 +445,9 @@ jobs:
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run OTEL_METRIC_E2E scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
-      run: ./run.sh OTEL_METRIC_E2E
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_METRIC_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -442,7 +458,9 @@ jobs:
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run OTEL_LOG_E2E scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
-      run: ./run.sh OTEL_LOG_E2E
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_LOG_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -477,7 +495,9 @@ jobs:
       run: ./run.sh OTEL_COLLECTOR
     - name: Run OTEL_COLLECTOR_E2E scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
-      run: ./run.sh OTEL_COLLECTOR_E2E
+      run: |
+        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
+        ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run AI_GUARD scenario
@@ -531,3 +551,4 @@ jobs:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
         ci_environment: ${{ inputs.ci_environment }}
+        dd_sts_policy: ${{ inputs.dd_sts_policy }}
