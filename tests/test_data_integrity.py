@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, rfc, features, scenarios, logger
+from utils import weblog, interfaces, rfc, features, scenarios, logger, missing_feature, context
 from utils.dd_constants import SamplingPriority
 from utils.dd_types import DataDogLibraryTrace, LibraryTraceFormat, AgentTraceFormat
 from utils.cgroup_info import get_container_id
@@ -72,7 +72,7 @@ class Test_TraceHeaders:
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/")
 
-        code, (stdout, stderr) = scenarios.default.weblog_container.exec_run("cat /proc/self/cgroup", demux=True)
+        _, (stdout, _) = scenarios.default.weblog_container.exec_run("cat /proc/self/cgroup", demux=True)
 
         infos = stdout.decode().split("\n")
 
