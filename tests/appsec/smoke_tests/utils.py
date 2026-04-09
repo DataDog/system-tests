@@ -101,12 +101,6 @@ class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
     def setup_attack_detection_smoke(self) -> None:
-        rc.tracer_rc_state.reset().apply()
-        # After an RC reset the WAF/RASP rules may still be re-initialising,
-        # causing the next requests to miss appsec detection (and their traces
-        # to be dropped in standalone mode).  On loaded CI runners the window
-        # can exceed 500 ms, so give it ample headroom.
-        time.sleep(2)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
@@ -289,10 +283,12 @@ class BaseApiSecuritySmokeTests:
     """Verify API security schemas are collected and forwarded."""
 
     def setup_api_security_smoke(self) -> None:
-        # Allow the API security sampler to reset its rate budget after the
-        # preceding /waf traffic from other test setups.
-        time.sleep(1)
-        self.r = weblog.get("/waf")
+        # The preceding setup (ip_blocking_smoke) performs an RC reset that can
+        # briefly disrupt API security schema collection.  Send a few requests
+        # so the sampler has time to stabilise after the RC transition.
+        for _ in range(3):
+            self.r = weblog.get("/waf")
+            time.sleep(0.5)
 
     def test_api_security_smoke(self) -> None:
         assert any(
