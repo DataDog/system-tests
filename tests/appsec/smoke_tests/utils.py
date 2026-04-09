@@ -309,6 +309,8 @@ class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:
+        # Same lazy-init pattern as RASP: first invocation may not fire.
+        weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
         self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
 
     def test_login_success_smoke(self) -> None:
