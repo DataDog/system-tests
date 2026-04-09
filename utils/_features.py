@@ -2807,5 +2807,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=546, owner=_Owner.idm)
 
+    @staticmethod
+    def runtime_sca_reachability(test_object):
+        """SCA Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=553
+        """
+        return _mark_test_object(test_object, feature_id=553, owner=_Owner.asm)
+
 
 features = _Features()
