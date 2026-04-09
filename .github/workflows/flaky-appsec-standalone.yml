@@ -48,12 +48,12 @@ jobs:
         with:
           library: java
           weblog: spring-boot-wildfly
-          scenarios: '["APPSEC_STANDALONE_APM_STANDALONE"]'
+          scenarios: '["APPSEC_APM_STANDALONE"]'
       - name: Run scenario (10 iterations)
         run: |
           for i in $(seq 1 10); do
             echo "::group::Iteration $i"
-            ./run.sh APPSEC_STANDALONE_APM_STANDALONE
+            ./run.sh APPSEC_APM_STANDALONE
             echo "::endgroup::"
           done
       - name: Upload logs on failure
@@ -61,5 +61,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: logs-batch-${{ matrix.batch }}
-          path: logs_appsec_standalone_apm_standalone/
+          path: logs_appsec_apm_standalone/
           retention-days: 7

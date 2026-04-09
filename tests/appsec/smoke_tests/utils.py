@@ -101,10 +101,6 @@ class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
     def setup_attack_detection_smoke(self) -> None:
-        # In APM standalone the Java tracer drops traces without appsec data.
-        # The very first request may not be instrumented (lazy servlet init on
-        # spring-boot-wildfly).  Must use /waf — / bypasses the servlet filter.
-        weblog.get("/waf")
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
@@ -133,9 +129,6 @@ class BaseRaspSmokeTests:
     """Verify RASP attacks are detected and forwarded by the agent."""
 
     def setup_lfi_smoke(self) -> None:
-        # The Java tracer's RASP hooks load lazily per code-path; the first
-        # request may not trigger detection.  A throwaway primes the hook.
-        weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_smoke(self) -> None:
@@ -149,7 +142,6 @@ class BaseRaspSmokeTests:
         )
 
     def setup_ssrf_smoke(self) -> None:
-        weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_smoke(self) -> None:
@@ -163,7 +155,6 @@ class BaseRaspSmokeTests:
         )
 
     def setup_sqli_smoke(self) -> None:
-        weblog.get("/rasp/sqli", params={"user_id": "' OR 1=1 --"})
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1=1 --"})
 
     def test_sqli_smoke(self) -> None:
@@ -309,8 +300,6 @@ class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:
-        # Same lazy-init pattern as RASP: first invocation may not fire.
-        weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
         self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
 
     def test_login_success_smoke(self) -> None:
