@@ -3132,12 +3132,8 @@ manifest:
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Basic::test_ffe_eval_metric_basic: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Different_Flags::test_ffe_eval_metric_different_flags: bug (FFL-1972)
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Numeric_To_Integer::test_ffe_eval_metric_numeric_to_integer: bug (FFL-1972)
   ? tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex::test_ffe_eval_metric_parse_error_invalid_regex
   : bug (FFL-1972)
-  ? tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch::test_ffe_eval_metric_parse_error_variant_type_mismatch
-  : bug (FFL-1972)
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Type_Mismatch::test_ffe_eval_metric_type_mismatch: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored::test_ffe_eval_nested_attributes_ignored: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_No_Config_Loaded::test_ffe_eval_no_config_loaded: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Default::test_ffe_eval_reason_default: bug (FFL-1972)
