@@ -103,11 +103,12 @@ class BaseThreatsSmokeTests:
     def setup_attack_detection_smoke(self) -> None:
         # The very first HTTP request to the weblog may not be fully
         # instrumented by the Java tracer in APM standalone mode (lazy
-        # servlet init).  A throwaway to a neutral endpoint + pause lets
-        # WAF and RASP finish loading for all subsequent test classes.
-        # Uses / instead of /waf to avoid consuming the API-security
-        # per-endpoint schema sampling slot.
-        weblog.get("/")
+        # servlet init).  A throwaway request through the WAF-instrumented
+        # path + pause lets WAF and RASP finish loading for all subsequent
+        # test classes.  Must use /waf (not /): the root endpoint on
+        # spring-boot-wildfly bypasses the servlet filter chain and does not
+        # trigger WAF initialisation.
+        weblog.get("/waf")
         time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
