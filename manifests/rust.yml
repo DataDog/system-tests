@@ -85,15 +85,15 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature  # Created by easy win activation script
   tests/parametric/test_crashtracking.py: missing_feature
   tests/parametric/test_dynamic_configuration.py: '>=0.2.1'  # Modified by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: '>=0.3.2'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: missing_feature  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_apply_state: missing_feature  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_apply_state: '>=0.3.2'  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: '>=0.3.2'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: missing_feature  # Created by easy win activation script
@@ -186,7 +186,9 @@ manifest:
     - declaration: incomplete_test_app
   tests/parametric/test_otel_logs.py: v0.3.0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)
+      component_version: <0.3.2
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature (OpenTelemetry Rust SDK limitation - scope version not exported by opentelemetry-otlp)
@@ -229,9 +231,13 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: v0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: '>=0.3.2'  # TODO: a lower version might be supported
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+      component_version: <0.3.2
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+      component_version: <0.3.2
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
@@ -294,7 +300,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <0.3.2
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
