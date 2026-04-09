@@ -1505,6 +1505,8 @@ manifest:
     - weblog_declaration:
         vertx3: missing_feature (APPSEC-55781)
         vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:
+    - declaration: flaky (APPSEC-60872)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         spring-boot-payara: missing_feature (APPSEC-54966)

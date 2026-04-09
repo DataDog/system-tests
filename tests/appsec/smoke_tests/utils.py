@@ -290,13 +290,15 @@ class BaseApiSecuritySmokeTests:
     def setup_api_security_smoke(self) -> None:
         # This class must be collected FIRST in the test file:
         #  1. The warmup + sleep initialises WAF/RASP for all later classes.
-        #  2. The Java tracer only generates API-security schemas on the first
-        #     request to an endpoint, so this must be the first GET /waf.
+        #  2. The API-security sampler generates schemas once per endpoint then
+        #     enters a cooldown (DD_API_SECURITY_SAMPLE_DELAY=0.0 is unreliable
+        #     in the Java tracer).  The warmup must hit a DIFFERENT endpoint so
+        #     it does not consume /waf's schema sampling slot.
         #  3. RC operations (RemoteConfig tests) permanently disable schema
         #     generation, so this must also run before those tests.
         # Arachni UA ensures the trace carries WAF data and is not silently
         # dropped in APM standalone mode.
-        weblog.get("/waf")
+        weblog.get("/")
         time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
