@@ -101,13 +101,6 @@ class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
     def setup_attack_detection_smoke(self) -> None:
-        # The very first HTTP request to a cold weblog may not receive full
-        # AppSec instrumentation in APM standalone mode (the servlet
-        # integration initialises lazily).  A throwaway request followed by a
-        # short pause lets both the WAF and RASP modules finish initialising
-        # before the real test requests (including those in later classes).
-        weblog.get("/waf")
-        time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
@@ -136,6 +129,9 @@ class BaseRaspSmokeTests:
     """Verify RASP attacks are detected and forwarded by the agent."""
 
     def setup_lfi_smoke(self) -> None:
+        # The Java tracer's RASP hooks load lazily per code-path; the first
+        # request may not trigger detection.  A throwaway primes the hook.
+        weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_smoke(self) -> None:
@@ -149,6 +145,7 @@ class BaseRaspSmokeTests:
         )
 
     def setup_ssrf_smoke(self) -> None:
+        weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_smoke(self) -> None:
@@ -162,6 +159,7 @@ class BaseRaspSmokeTests:
         )
 
     def setup_sqli_smoke(self) -> None:
+        weblog.get("/rasp/sqli", params={"user_id": "' OR 1=1 --"})
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1=1 --"})
 
     def test_sqli_smoke(self) -> None:
@@ -290,10 +288,16 @@ class BaseApiSecuritySmokeTests:
     """Verify API security schemas are collected and forwarded."""
 
     def setup_api_security_smoke(self) -> None:
-        # This test class must be collected BEFORE RemoteConfig tests — RC
-        # operations permanently disrupt API-security schema generation in the
-        # Java tracer.  The Arachni UA ensures the trace carries WAF data and
-        # is not silently dropped in APM standalone mode.
+        # This class must be collected FIRST in the test file:
+        #  1. The warmup + sleep initialises WAF/RASP for all later classes.
+        #  2. The Java tracer only generates API-security schemas on the first
+        #     request to an endpoint, so this must be the first GET /waf.
+        #  3. RC operations (RemoteConfig tests) permanently disable schema
+        #     generation, so this must also run before those tests.
+        # Arachni UA ensures the trace carries WAF data and is not silently
+        # dropped in APM standalone mode.
+        weblog.get("/waf")
+        time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_api_security_smoke(self) -> None:

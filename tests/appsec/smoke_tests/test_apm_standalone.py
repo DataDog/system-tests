@@ -16,6 +16,22 @@ from tests.appsec.smoke_tests.utils import (
 )
 
 
+# ── Class order matters ──────────────────────────────────────────────────────
+# ApiSecurity must be FIRST: its setup contains the warmup request that
+# initialises WAF/RASP for all subsequent classes, and the Java tracer only
+# produces API-security schemas on the first request to an endpoint.
+# RemoteConfig must come AFTER ApiSecurity: RC operations permanently disable
+# schema generation for the rest of the run.
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
+    pass
+
+
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
@@ -34,15 +50,6 @@ class Test_AppSecAPMStandalone_Rasp(BaseRaspSmokeTests):
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_Telemetry(BaseTelemetrySmokeTests):
-    pass
-
-
-@features.appsec_apm_standalone
-@scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
-    # Must be collected BEFORE RemoteConfig: RC operations permanently disable
-    # API-security schema generation in the Java tracer for the rest of the run.
     pass
 
 
