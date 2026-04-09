@@ -93,7 +93,6 @@ jobs:
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch_map: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch-map }}
       push_to_test_optimization: true
-      dd_sts_policy: system-tests
 
   exotics:
     name: Exotics scenarios
