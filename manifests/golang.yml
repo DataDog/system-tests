@@ -306,6 +306,16 @@ manifest:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.7.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.34.0

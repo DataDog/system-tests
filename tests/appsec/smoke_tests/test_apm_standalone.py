@@ -16,43 +16,79 @@ from tests.appsec.smoke_tests.utils import (
 )
 
 
+# --- APPSEC_APM_STANDALONE (DD_APM_TRACING_ENABLED=true) ---------------------
+
+
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_Threats(BaseThreatsSmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_Rasp(BaseRaspSmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_Telemetry(BaseTelemetrySmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_RemoteConfig(BaseRemoteConfigSmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
+    pass
+
+
+# --- APPSEC_STANDALONE_APM_STANDALONE (DD_APM_TRACING_ENABLED=false) ---------
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_Threats(BaseThreatsSmokeTests):
+    pass
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_Rasp(BaseRaspSmokeTests):
+    pass
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_Telemetry(BaseTelemetrySmokeTests):
+    pass
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_RemoteConfig(BaseRemoteConfigSmokeTests):
+    pass
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
+    pass
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecStandaloneAPMStandalone_UserEvents(BaseUserEventsSmokeTests):
     pass

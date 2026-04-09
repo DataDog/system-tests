@@ -407,6 +407,15 @@ manifest:
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - weblog_declaration:
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
