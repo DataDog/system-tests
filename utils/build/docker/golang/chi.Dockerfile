@@ -1,4 +1,6 @@
-FROM golang:1.25-alpine AS build
+ARG GO_VERSION=1.25
+FROM golang:${GO_VERSION}-alpine AS build
+ARG GO_VERSION
 
 RUN apk add --no-cache jq curl bash gcc musl-dev git
 
@@ -8,6 +10,7 @@ RUN go version && curl --version
 # build application binary
 COPY utils/build/docker/golang/app/ /app/
 WORKDIR /app
+RUN go mod edit -go=${GO_VERSION}
 
 ENV GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/go/pkg/mod
@@ -22,7 +25,7 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 # ==============================================================================
 
-FROM golang:1.25-alpine
+FROM golang:${GO_VERSION}-alpine
 
 RUN apk add --no-cache curl bash gcc musl-dev
 
