@@ -283,17 +283,36 @@ def llmobs_experiment_run(request: ExperimentCreateRequestModel):
         evaluators=evaluator_fns,
         description=request.description or "",
     )
-    # The experiment SDK posts evaluation metrics to the Datadog API after
-    # running. In VCR playback these calls fail because their request bodies
-    # contain non-deterministic data (timestamps, span IDs) producing
-    # different cassette hashes. Stub the submission so the local task and
-    # evaluator results are still returned.
-    original_eval_post = LLMObs._instance._dne_client.experiment_eval_post
-    LLMObs._instance._dne_client.experiment_eval_post = lambda *a, **kw: None
+    # The experiment SDK makes API calls during run() whose request bodies
+    # contain non-deterministic data (ddtrace version, timestamps, span IDs).
+    # This breaks VCR cassette matching across ddtrace releases. Stub the
+    # network-facing methods so only the local task/evaluator execution runs.
+    import json as _json
+    from ddtrace.internal.utils.http import Response as _Response
+
+    dne = LLMObs._instance._dne_client
+    original_request = dne.request
+
+    def _stub_request(method, path, body=None, timeout=None):
+        if "/projects" in path:
+            resp_body = _json.dumps({
+                "data": {"id": "mock-project-id", "type": "projects", "attributes": {"name": "test-project"}}
+            }).encode()
+        elif "/experiments" in path and method == "POST":
+            resp_body = _json.dumps({
+                "data": {"id": "mock-experiment-id", "type": "experiments", "attributes": {"name": "mock-run"}}
+            }).encode()
+        else:
+            resp_body = b'{"data":{}}'
+        return _Response(status=200, body=resp_body)
+
+    dne.request = _stub_request
+    dne.experiment_eval_post = lambda *a, **kw: None
     try:
         result = experiment.run(raise_errors=False)
     finally:
-        LLMObs._instance._dne_client.experiment_eval_post = original_eval_post
+        dne.request = original_request
+        del dne.experiment_eval_post  # remove instance override, restore class method
 
     rows = []
     for row in result.get("rows", []):
