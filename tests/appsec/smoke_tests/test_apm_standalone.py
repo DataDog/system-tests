@@ -17,11 +17,10 @@ from tests.appsec.smoke_tests.utils import (
 
 
 # ── Class order matters ──────────────────────────────────────────────────────
-# ApiSecurity must be FIRST: its setup contains the warmup request that
-# initialises WAF/RASP for all subsequent classes, and the Java tracer only
-# produces API-security schemas on the first request to an endpoint.
-# RemoteConfig must come AFTER ApiSecurity: RC operations permanently disable
-# schema generation for the rest of the run.
+# ApiSecurity must come BEFORE RemoteConfig: RC operations permanently disable
+# API-security schema generation for the rest of the run.  ApiSecurity is
+# marked flaky in the Java manifest and may be skipped; the WAF/RASP warmup
+# therefore lives in Threats.setup_attack_detection_smoke (always runs).
 # ─────────────────────────────────────────────────────────────────────────────
 
 

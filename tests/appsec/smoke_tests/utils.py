@@ -101,6 +101,14 @@ class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
     def setup_attack_detection_smoke(self) -> None:
+        # The very first HTTP request to the weblog may not be fully
+        # instrumented by the Java tracer in APM standalone mode (lazy
+        # servlet init).  A throwaway to a neutral endpoint + pause lets
+        # WAF and RASP finish loading for all subsequent test classes.
+        # Uses / instead of /waf to avoid consuming the API-security
+        # per-endpoint schema sampling slot.
+        weblog.get("/")
+        time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
@@ -288,18 +296,10 @@ class BaseApiSecuritySmokeTests:
     """Verify API security schemas are collected and forwarded."""
 
     def setup_api_security_smoke(self) -> None:
-        # This class must be collected FIRST in the test file:
-        #  1. The warmup + sleep initialises WAF/RASP for all later classes.
-        #  2. The API-security sampler generates schemas once per endpoint then
-        #     enters a cooldown (DD_API_SECURITY_SAMPLE_DELAY=0.0 is unreliable
-        #     in the Java tracer).  The warmup must hit a DIFFERENT endpoint so
-        #     it does not consume /waf's schema sampling slot.
-        #  3. RC operations (RemoteConfig tests) permanently disable schema
-        #     generation, so this must also run before those tests.
         # Arachni UA ensures the trace carries WAF data and is not silently
-        # dropped in APM standalone mode.
-        weblog.get("/")
-        time.sleep(1)
+        # dropped in APM standalone mode.  This class should be collected
+        # before RemoteConfig: RC operations permanently disable schema
+        # generation for the rest of the run.
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_api_security_smoke(self) -> None:
@@ -317,6 +317,10 @@ class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:
+        # Like RASP hooks, user-event instrumentation in the Java tracer may
+        # not fire on the first invocation of a code path.  A throwaway
+        # request primes the hook.
+        weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
         self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
 
     def test_login_success_smoke(self) -> None:
