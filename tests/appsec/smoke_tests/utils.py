@@ -103,9 +103,11 @@ class BaseThreatsSmokeTests:
     def setup_attack_detection_smoke(self) -> None:
         # The very first HTTP request to a cold weblog may not receive full
         # AppSec instrumentation in APM standalone mode (the servlet
-        # integration initialises lazily).  A throwaway request ensures the
-        # tracer is fully active before the real test request.
+        # integration initialises lazily).  A throwaway request followed by a
+        # short pause lets both the WAF and RASP modules finish initialising
+        # before the real test requests (including those in later classes).
         weblog.get("/waf")
+        time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
@@ -288,15 +290,10 @@ class BaseApiSecuritySmokeTests:
     """Verify API security schemas are collected and forwarded."""
 
     def setup_api_security_smoke(self) -> None:
-        # The preceding RC operations (ip_blocking_smoke) can disrupt the API
-        # security module.  Reset RC to a clean state so the module
-        # re-initialises with the env-var configuration.  apply() waits for
-        # acknowledgement + 2 s for the tracer to settle.
-        rc.tracer_rc_state.reset().apply()
-        time.sleep(1)  # extra buffer for API-security sampler warm-up
-        # Use an attack header so the trace carries appsec data even if
-        # schemas are not yet produced — prevents the trace from being
-        # silently dropped in APM standalone mode.
+        # This test class must be collected BEFORE RemoteConfig tests — RC
+        # operations permanently disrupt API-security schema generation in the
+        # Java tracer.  The Arachni UA ensures the trace carries WAF data and
+        # is not silently dropped in APM standalone mode.
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_api_security_smoke(self) -> None:

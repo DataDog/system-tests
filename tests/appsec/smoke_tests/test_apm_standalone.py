@@ -40,14 +40,16 @@ class Test_AppSecAPMStandalone_Telemetry(BaseTelemetrySmokeTests):
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_RemoteConfig(BaseRemoteConfigSmokeTests):
+class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
+    # Must be collected BEFORE RemoteConfig: RC operations permanently disable
+    # API-security schema generation in the Java tracer for the rest of the run.
     pass
 
 
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
+class Test_AppSecAPMStandalone_RemoteConfig(BaseRemoteConfigSmokeTests):
     pass
 
 
