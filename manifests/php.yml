@@ -1070,6 +1070,7 @@ manifest:
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace: irrelevant (Trace method does not reach php-land)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62222)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v1.9.0
   tests/test_standard_tags.py::Test_StandardTagsRoute: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.75.0

@@ -2202,6 +2202,7 @@ manifest:
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: bug (APPSEC-62204)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
