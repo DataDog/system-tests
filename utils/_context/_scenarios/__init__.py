@@ -452,8 +452,6 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_TELEMETRY_METRICS_ENABLED": "true",
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
         },
