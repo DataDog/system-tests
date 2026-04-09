@@ -101,15 +101,10 @@ class BaseThreatsSmokeTests:
     """Verify basic WAF attack detection is forwarded by the agent."""
 
     def setup_attack_detection_smoke(self) -> None:
-        # The very first HTTP request to the weblog may not be fully
-        # instrumented by the Java tracer in APM standalone mode (lazy
-        # servlet init).  A throwaway request through the WAF-instrumented
-        # path + pause lets WAF and RASP finish loading for all subsequent
-        # test classes.  Must use /waf (not /): the root endpoint on
-        # spring-boot-wildfly bypasses the servlet filter chain and does not
-        # trigger WAF initialisation.
+        # In APM standalone the Java tracer drops traces without appsec data.
+        # The very first request may not be instrumented (lazy servlet init on
+        # spring-boot-wildfly).  Must use /waf — / bypasses the servlet filter.
         weblog.get("/waf")
-        time.sleep(1)
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_attack_detection_smoke(self) -> None:
@@ -297,11 +292,7 @@ class BaseApiSecuritySmokeTests:
     """Verify API security schemas are collected and forwarded."""
 
     def setup_api_security_smoke(self) -> None:
-        # Arachni UA ensures the trace carries WAF data and is not silently
-        # dropped in APM standalone mode.  This class should be collected
-        # before RemoteConfig: RC operations permanently disable schema
-        # generation for the rest of the run.
-        self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
+        self.r = weblog.get("/waf")
 
     def test_api_security_smoke(self) -> None:
         assert any(
@@ -318,10 +309,6 @@ class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:
-        # Like RASP hooks, user-event instrumentation in the Java tracer may
-        # not fire on the first invocation of a code path.  A throwaway
-        # request primes the hook.
-        weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
         self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
 
     def test_login_success_smoke(self) -> None:

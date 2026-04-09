@@ -16,21 +16,6 @@ from tests.appsec.smoke_tests.utils import (
 )
 
 
-# ── Class order matters ──────────────────────────────────────────────────────
-# ApiSecurity must come BEFORE RemoteConfig: RC operations permanently disable
-# API-security schema generation for the rest of the run.  ApiSecurity is
-# marked flaky in the Java manifest and may be skipped; the WAF/RASP warmup
-# therefore lives in Threats.setup_attack_detection_smoke (always runs).
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-@features.appsec_apm_standalone
-@scenarios.appsec_apm_standalone
-@scenarios.appsec_standalone_apm_standalone
-class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
-    pass
-
-
 @features.appsec_apm_standalone
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
@@ -49,6 +34,13 @@ class Test_AppSecAPMStandalone_Rasp(BaseRaspSmokeTests):
 @scenarios.appsec_apm_standalone
 @scenarios.appsec_standalone_apm_standalone
 class Test_AppSecAPMStandalone_Telemetry(BaseTelemetrySmokeTests):
+    pass
+
+
+@features.appsec_apm_standalone
+@scenarios.appsec_apm_standalone
+@scenarios.appsec_standalone_apm_standalone
+class Test_AppSecAPMStandalone_ApiSecurity(BaseApiSecuritySmokeTests):
     pass
 
 
