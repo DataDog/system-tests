@@ -7,7 +7,14 @@ IS_APACHE=${1:-0}
 cd /binaries
 
 ARCH=$(uname -m)
-PKG=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKGS=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKG_COUNT=$(echo "$PKGS" | grep -c . || true)
+if [ "$PKG_COUNT" -gt 1 ]; then
+  echo "ERROR: multiple dd-library-php tarballs found for ${ARCH} in /binaries — keep only one:"
+  echo "$PKGS"
+  exit 1
+fi
+PKG=$PKGS
 SETUP=/binaries/datadog-setup.php
 
 DDTRACE_SO=/binaries/ddtrace.so
