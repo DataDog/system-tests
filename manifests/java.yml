@@ -1908,6 +1908,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.61.0-SNAPSHOT
+        spring-boot-jetty: v1.62.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
