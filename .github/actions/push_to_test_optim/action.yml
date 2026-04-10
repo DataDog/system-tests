@@ -19,19 +19,27 @@ runs:
       run: echo "Skipping TestOptim push for dependabot PRs"
 
     - name: Install datadog-ci
-      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.datadog_api_key != ''
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
       shell: bash
       run: npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
 
     - name: checkout owner repo
-      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.datadog_api_key != ''
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         path: repo
 
+    - name: Get Datadog credentials
+      id: dd-sts
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
+      continue-on-error: true
+      uses: DataDog/dd-sts-action@2e8187910199bd93129520183c093e19aa585c75 # v1.0.0
+      with:
+        policy: system-tests 
+
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
-      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.datadog_api_key != ''
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
       shell: bash
       run: |
         cd repo
@@ -43,5 +51,5 @@ runs:
           --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
-        DATADOG_API_KEY:  ${{ inputs.datadog_api_key }}
+        DATADOG_API_KEY:  ${{ inputs.datadog_api_key != '' && inputs.datadog_api_key || steps.dd-sts.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
