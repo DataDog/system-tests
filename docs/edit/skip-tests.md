@@ -65,8 +65,6 @@ def test_crash_prone(self):
     ...
 ```
 
-These decorators replace the `force_skip=True` parameter on declaration decorators, which is being deprecated in favor of manifests. Since manifests cannot carry a `force_skip` flag, `@slow` and `@scenario_crash` let you decouple the declaration (in the manifest) from the force-skip behavior (on the test).
-
 ## Declaration Decorator Parameters
 
 The declaration decorators take several arguments:
@@ -75,7 +73,6 @@ The declaration decorators take several arguments:
 * `library`: Target library with optional version, e.g. `library="java@1.2.4"`. See [versions.md](./versions.md) for more details on semantic versioning
 * `weblog_variant`: Skip the test for a specific weblog
 * `reason`: Explanation for the skip. Always include a JIRA ticket for `@bug` and `@flaky`
-* `force_skip`: **(Deprecated, prefer `@slow` or `@scenario_crash`)** Set to `True` to completely prevent test execution
 
 ### Version Format in Decorators
 

@@ -279,6 +279,9 @@ patterns:
 # This section contains rules to apply to files in the utils directory.
 ################################################################################
 
+    utils/interfaces/_library/*:
+        scenario_groups: [end_to_end, open_telemetry, go_proxies]
+
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
 
@@ -491,7 +494,7 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: rust
     utils/build/docker/rust/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenarios: [ PARAMETRIC ]
         libraries: rust
     lib-injection/build/docker/rust/*:
         libraries: rust

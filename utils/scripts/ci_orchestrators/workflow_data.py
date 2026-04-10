@@ -287,6 +287,7 @@ def _get_endtoend_weblogs(
         # openai
         "openai-py": ["2.0.0"],
         "openai-js": ["6.0.0"],
+        "openai-java": ["4.29.0"],
         # anthropic
         "anthropic-js": ["0.71.0"],
         "anthropic-py": ["0.75.0"],
@@ -591,6 +592,7 @@ if __name__ == "__main__":
         "endtoend": [
             "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
             "APM_TRACING_E2E_OTEL",
+            "APM_TRACING_OTLP",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
             "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
@@ -640,6 +642,7 @@ if __name__ == "__main__":
             "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
             "RUNTIME_METRICS_ENABLED",
             "SAMPLING",
+            "SAMPLING_RATE_CAPPING",
             "SCA_STANDALONE",
             "SCA_STANDALONE_V2",
             "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",

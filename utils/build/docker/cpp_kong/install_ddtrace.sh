@@ -19,7 +19,7 @@ elif [ -d dd-trace-cpp ]; then
   echo "Build libdd_trace_c.so from local binaries/dd-trace-cpp"
   cd dd-trace-cpp
   cmake -S . -B build \
-      -DBUILD_C_BINDING=ON \
+      -DDD_TRACE_BUILD_C_BINDING=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DCMAKE_CXX_FLAGS="-Wno-error=unused-variable"
@@ -35,7 +35,7 @@ elif [ -f cpp-load-from-git ]; then
   git clone --depth 1 --branch "$BRANCH" "$URL" dd-trace-cpp
   cd dd-trace-cpp
   cmake -S . -B build \
-      -DBUILD_C_BINDING=ON \
+      -DDD_TRACE_BUILD_C_BINDING=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DCMAKE_CXX_FLAGS="-Wno-error=unused-variable"
@@ -44,16 +44,15 @@ elif [ -f cpp-load-from-git ]; then
   cd /binaries
 
 else
-  # The C binding is currently on the dmehala/c-binding branch, not in any
-  # release yet.  Once it merges and ships in a release, switch back to
-  # get_latest_release.
-  DD_TRACE_CPP_BRANCH="${DD_TRACE_CPP_BRANCH:-dmehala/c-binding}"
+  # The C binding is on main but not yet in a release.  Once a release
+  # ships with it, switch to get_latest_release.
+  DD_TRACE_CPP_BRANCH="${DD_TRACE_CPP_BRANCH:-main}"
   echo "Build libdd_trace_c.so from dd-trace-cpp branch ${DD_TRACE_CPP_BRANCH}"
   git clone --depth 1 --branch "$DD_TRACE_CPP_BRANCH" \
       https://github.com/DataDog/dd-trace-cpp.git dd-trace-cpp
   cd dd-trace-cpp
   cmake -S . -B build \
-      -DBUILD_C_BINDING=ON \
+      -DDD_TRACE_BUILD_C_BINDING=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DCMAKE_CXX_FLAGS="-Wno-error=unused-variable"
@@ -65,6 +64,8 @@ fi
 # ---------------------------------------------------------------------------
 # 2. Get Kong plugin files
 # ---------------------------------------------------------------------------
+KONG_IS_RELEASE=false
+
 rock_file=""
 for f in kong-plugin-ddtrace*.rock; do
   if [ -e "$f" ]; then
@@ -96,10 +97,12 @@ elif [ -d kong-plugin-ddtrace ]; then
   echo "Using Kong plugin from binaries/kong-plugin-ddtrace"
 
 else
-  KONG_PLUGIN_BRANCH="${KONG_PLUGIN_BRANCH:-main}"
-  echo "Cloning kong-plugin-ddtrace branch ${KONG_PLUGIN_BRANCH}"
-  git clone --depth 1 --branch "$KONG_PLUGIN_BRANCH" \
-      https://github.com/DataDog/kong-plugin-ddtrace.git kong-plugin-ddtrace
+  TAG=$(get_latest_release "DataDog/kong-plugin-ddtrace")
+  echo "Installing kong-plugin-ddtrace from latest release ${TAG}"
+  curl -sL "https://github.com/DataDog/kong-plugin-ddtrace/archive/refs/tags/${TAG}.tar.gz" \
+      | tar -xz
+  mv "kong-plugin-ddtrace-${TAG#v}" kong-plugin-ddtrace
+  KONG_IS_RELEASE=true
 fi
 
 # ---------------------------------------------------------------------------
@@ -107,6 +110,16 @@ fi
 # ---------------------------------------------------------------------------
 PLUGIN_VERSION=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' \
     kong-plugin-ddtrace/kong/plugins/ddtrace/handler.lua)
+
+if [ "$KONG_IS_RELEASE" = "false" ]; then
+  auth_header=$(get_authentication_header)
+  COMMIT_SHA=$(eval "curl --silent --fail --retry 3 $auth_header \
+      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" \
+      | grep '"sha"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+  if [ -n "$COMMIT_SHA" ]; then
+    PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
+  fi
+fi
 
 echo "${PLUGIN_VERSION}" > /builds/SYSTEM_TESTS_LIBRARY_VERSION
 printf '{"status":"ok","library":{"name":"cpp_kong","version":"%s"}}' \

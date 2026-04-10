@@ -190,7 +190,7 @@ class _BaseSQS:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def validate_sqs_spans(
         self,

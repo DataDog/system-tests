@@ -1,7 +1,16 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
+    - weblog_declaration:
+        "*": v2.31.0-dev
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": v2.25.0-dev
@@ -42,6 +51,16 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
+    - weblog_declaration:
+        "*": missing_feature
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
         "*": missing_feature
@@ -52,6 +71,7 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature (APPSEC-61897)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
@@ -372,7 +392,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.13.0
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.31.0-dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v2.20.0-dev
@@ -459,6 +479,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.23.0.dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v2.22.0.dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v1.0.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.0.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.0.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v1.0.0
@@ -742,7 +763,11 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
-  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py:
+    - weblog_declaration:
+        "*": v2.30.0-dev
+        graphql23: irrelevant
+        rails42: missing_feature  # Old Rack does not support to_ary for content-length computation
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.22.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.22.0-dev
@@ -1053,7 +1078,6 @@ manifest:
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_install_supported_runtime:
-    - declaration: bug (INPLAT-876)
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
@@ -1075,7 +1099,10 @@ manifest:
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: bug (APPSEC-60983)
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: bug (APPSEC-60983)
+      component_version: '<2.29.0-dev'
+      weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-884)
     - declaration: missing_feature (Not implemented)
@@ -1089,6 +1116,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.23.0-dev
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
@@ -1139,6 +1167,7 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, Ruby does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_consume_trace_equality: missing_feature (Expected to fail, Ruby does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_produce_trace_equality: missing_feature (Expected to fail, Ruby does not propagate context)
+  tests/integrations/test_base_service.py::Test_BaseService_SqlSpan: irrelevant (/rasp/sqli endpoint is not available)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
@@ -1223,6 +1252,7 @@ manifest:
         "*": incomplete_test_app (endpoint not implemented)
         rails72: v2.0.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Ruby extract seems to fail even though it should be supported)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -1476,10 +1506,8 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
-  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature (Not yet implemented)
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.27.0'  # Modified by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.31.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -1517,12 +1545,12 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.18.0
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.31.0-dev
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1631)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.1.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.31.0-dev
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.18.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
@@ -1534,9 +1562,9 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.4.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
@@ -1584,6 +1612,7 @@ manifest:
         sinatra14: missing_feature
         rails52: missing_feature
         sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:  # Created by easy win activation script
     - weblog_declaration:
         rails80: missing_feature
@@ -1606,6 +1635,8 @@ manifest:
         uds-sinatra: missing_feature
         sinatra41: missing_feature
         sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Ruby does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
         rails80: missing_feature
@@ -1743,13 +1774,13 @@ manifest:
         rails42: missing_feature (Missing endpoint)
         rails52: missing_feature (Missing endpoint)
         rails61: missing_feature (Missing endpoint)
-        rails72: missing_feature (Missing endpoint)
-        rails80: missing_feature (Missing endpoint)
+        rails72: v2.30.0  # TODO: a lower version might be supported
+        rails80: v2.30.0  # TODO: a lower version might be supported
         sinatra14: missing_feature (Missing endpoint)
         sinatra22: missing_feature (Missing endpoint)
         sinatra32: missing_feature (Missing endpoint)
         sinatra41: missing_feature (Missing endpoint)
-        uds-rails: missing_feature (Missing endpoint)
+        uds-rails: v2.30.0  # TODO: a lower version might be supported
         uds-sinatra: missing_feature (Missing endpoint)
   tests/test_distributed.py::Test_DistributedHttp: v2.22.1-dev
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -2247,35 +2278,7 @@ manifest:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        rails52: '>=2.24.0'
-        rails80: '>=2.24.0'
-        uds-rails: '>=2.24.0'
-        rails61: '>=2.24.0'
-        uds-sinatra: '>=2.24.0'
-        rails72: '>=2.24.0'
-        sinatra41: '>=2.24.0'
-        sinatra14: '>=2.24.0'
-        rack: '>=2.24.0'
-        sinatra32: '>=2.24.0'
-        sinatra22: '>=2.24.0'
-        rails42: '>=2.24.0'
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence:  # Created by easy win activation script
-    - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails72: missing_feature
-        rails61: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
   tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)

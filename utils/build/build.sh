@@ -34,7 +34,6 @@ readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
-readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
 readonly DEFAULT_cpp_kong=kong
@@ -59,21 +58,21 @@ print_usage() {
     echo -e "  ${SCRIPT_NAME} [options...]"
     echo
     echo -e "${WHITE_BOLD}OPTIONS${NC}"
-    echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
-    echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
-    echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
-    echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
-    echo -e "  ${CYAN}--github-token-file <file>${NC} Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
-    echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
-    echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
-    echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
-    echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
-    echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
-    echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
-    echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
-    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
-    echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
+    echo -e "  ${CYAN}--library <lib>${NC}              Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
+    echo -e "  ${CYAN}--weblog-variant <var>${NC}       Weblog variant (env: WEBLOG_VARIANT)."
+    echo -e "  ${CYAN}--images <images>${NC}            Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
+    echo -e "  ${CYAN}--docker${NC}                     Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
+    echo -e "  ${CYAN}--github-token-file <file>${NC}   Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
+    echo -e "  ${CYAN}--extra-docker-args <args>${NC}   Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
+    echo -e "  ${CYAN}--cache-mode <mode>${NC}          Cache mode (env: DOCKER_CACHE_MODE)."
+    echo -e "  ${CYAN}--docker-platform <platform>${NC} Target Docker platform."
+    echo -e "  ${CYAN}--list-libraries${NC}             Lists all available libraries and exits."
+    echo -e "  ${CYAN}--list-weblogs${NC}               Lists all available weblogs for a library and exits."
+    echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
     echo -e "  Build default images:"
@@ -105,6 +104,10 @@ list-weblogs() {
 
 default-weblog() {
     local var="DEFAULT_${TEST_LIBRARY}"
+    if [[ -z "${!var:-}" ]]; then
+        echo "ERROR: This script should not be run for the ${TEST_LIBRARY} library because it has no default weblog." >&2
+        exit 1
+    fi
     echo -n "${!var}"
 }
 
@@ -145,6 +148,14 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+                # Homebrew/Python upgrades can invalidate an existing venv.
+                # If the interpreter is broken, recreate the venv automatically.
+                if [ -d "venv/" ] && ! venv/bin/python -V >/dev/null 2>&1
+                then
+                    echo "Existing venv is broken. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"

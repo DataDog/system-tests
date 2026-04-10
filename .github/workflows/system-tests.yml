@@ -99,8 +99,8 @@ on:
         default: false
         required: false
         type: boolean
-      _system_tests_library_target_branch:
-        description: "If system-tests dev mode, the branch to use for the library"
+      _system_tests_library_target_branch_map:
+        description: "If system-tests dev mode, JSON map of library to branch (e.g. {\"java\":\"b1\",\"dotnet\":\"b2\"})"
         default: ''
         required: false
         type: string
@@ -122,6 +122,11 @@ on:
       test_optimization_datadog_site:
         description: "DataDog site to use for test optimization"
         default: "datadoghq.com"
+        required: false
+        type: string
+      dd_sts_policy:
+        description: "dd-sts policy to use to get a Datadog API key for Test Optimization"
+        default: ""
         required: false
         type: string
 
@@ -162,7 +167,7 @@ jobs:
       desired_execution_time: ${{ inputs.desired_execution_time }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
-      _system_tests_library_target_branch: ${{ inputs._system_tests_library_target_branch }}
+      _system_tests_library_target_branch_map: ${{ inputs._system_tests_library_target_branch_map }}
 
   parametric:
     needs:
@@ -205,7 +210,7 @@ jobs:
             echo "ref=main" >> $GITHUB_OUTPUT
           fi
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
@@ -238,7 +243,7 @@ jobs:
             echo "Token file not found — nothing to clean up"
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ matrix.weblog.artifact_name }}
           path: binaries/
@@ -287,14 +292,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ inputs.ref }}
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Download logs artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           merge-multiple: false
           pattern: logs_*_${{ needs.compute_parameters.outputs.unique_id }}

@@ -18,7 +18,7 @@ add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
 apt-get update
 
-apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml
+apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-mongodb
 apt-get install -y
 
 find /var/www/html -mindepth 1 -delete
@@ -63,6 +63,15 @@ if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; the
 fi
 echo "Using composer config: $COMPOSER"
 composer install --prefer-dist
+
+# Install OTel SDK for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
+# DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
+# with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
+PHP_MINOR_VERSION=$(echo $PHP_VERSION | cut -d. -f2)
+if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
+fi
+
 
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor

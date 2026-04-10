@@ -1236,7 +1236,10 @@ Successful evaluation:
 {
   "action": "ALLOW",
   "reason": "All looks good",
-  "tags": []
+  "tags": [],
+  "tag_probs": {
+    "jailbreak": 0.0
+  }
 }
 ```
 

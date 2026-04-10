@@ -251,3 +251,169 @@ def test_custom_spec():
     check(declaration, "3.4.5", should_be_inside=True)
     check(declaration, "3.9.9", should_be_inside=True)
     check(declaration, "4.0.0", should_be_inside=True)
+
+
+def test_semver():
+    assert ComponentVersion("nodejs", "v2.7.0-rc.4") > ComponentVersion("nodejs", "v2.7.0-dev")
+    assert Version("2.7.0-rc.4") not in CustomSpec("<2.7.0-dev")
+    assert ComponentVersion("nodejs", "v2.7.0-a") < ComponentVersion("nodejs", "v2.7.0-dev")
+    assert Version("2.7.0-a") not in CustomSpec(">2.7.0-dev")
+
+
+@pytest.mark.parametrize(
+    ("spec", "version", "expected"),
+    [
+        # Equality operator
+        ("1.0.0", "1.0.0", True),
+        ("1.0.0", "1.0.1", False),
+        ("1.0.0", "0.9.9", False),
+        ("1.0.0", "1.0.0-alpha", False),
+        ("1.0.0-alpha", "1.0.0-alpha", True),
+        ("1.0.0-alpha", "1.0.0-beta", False),
+        ("1.0.0-alpha", "1.0.0", False),
+        ("1.0.0-alpha.1", "1.0.0-alpha.1", True),
+        ("1.0.0-alpha.1", "1.0.0-alpha.2", False),
+        # Build metadata ignored in precedence (semver rule 11.1)
+        ("1.0.0", "1.0.0+build123", True),
+        (">=1.0.0", "1.0.0+build", True),
+        (">0.9.0", "1.0.0+build", True),
+        ("<2.0.0", "1.0.0+build", True),
+        (">1.0.0", "1.0.0+build", False),
+        ("1.0.0", "1.0.0+other", True),
+        (">=1.0.0-alpha", "1.0.0-alpha+build", True),
+        ("<1.0.0", "1.0.0-alpha+build", True),
+        ("^1.2.3", "1.5.0+build", True),
+        ("1.0.0 - 2.0.0", "1.5.0+build", True),
+        # Build metadata in the range spec is also ignored
+        (">=1.0.0+build", "1.0.0", True),
+        (">=1.0.0+build", "1.0.0+other", True),
+        ("<2.0.0+build", "1.9.9", True),
+        # Basic operators without prerelease
+        (">1.0.0", "1.0.1", True),
+        (">1.0.0", "1.0.0", False),
+        (">1.0.0", "0.9.9", False),
+        (">=1.0.0", "1.0.0", True),
+        (">=1.0.0", "0.9.9", False),
+        ("<2.0.0", "1.9.9", True),
+        ("<2.0.0", "2.0.0", False),
+        ("<=2.0.0", "2.0.0", True),
+        ("<=2.0.0", "2.0.1", False),
+        # Prereleases included in non-prerelease specs (different major.minor.patch)
+        (">=1.0.0", "1.0.1-alpha", True),
+        ("<2.0.0", "1.9.9-beta", True),
+        (">1.0.0", "1.0.1-rc.1", True),
+        # Prerelease has lower precedence than its normal version (semver rule 11.3)
+        (">=1.0.0", "1.0.0-alpha", False),
+        (">1.0.0", "1.0.0-rc.1", False),
+        ("<1.0.0", "1.0.0-alpha", True),
+        # GT/GTE with prerelease target: lexical prerelease comparison
+        (">2.7.0-dev", "2.7.0", True),
+        (">2.7.0-dev", "2.8.0", True),
+        (">2.7.0-dev", "2.7.0-rc.4", True),
+        (">2.7.0-dev", "2.7.0-dev", False),
+        (">2.7.0-dev", "2.7.0-alpha", False),
+        (">2.7.0-dev", "2.6.0", False),
+        (">=2.7.0-dev", "2.7.0", True),
+        (">=2.7.0-dev", "2.7.0-dev", True),
+        (">=2.7.0-dev", "2.7.0-rc.4", True),
+        (">=2.7.0-dev", "2.7.0-alpha", False),
+        (">=2.7.0-dev", "2.6.9", False),
+        # LT/LTE with prerelease target: lexical prerelease comparison
+        ("<2.7.0-dev", "2.7.0-alpha", True),
+        ("<2.7.0-dev", "2.7.0-beta", True),
+        ("<2.7.0-dev", "2.6.0", True),
+        ("<2.7.0-dev", "2.7.0-dev", False),
+        ("<2.7.0-dev", "2.7.0-rc.4", False),
+        ("<2.7.0-dev", "2.7.0", False),
+        ("<=2.7.0-dev", "2.7.0-dev", True),
+        ("<=2.7.0-dev", "2.7.0-alpha", True),
+        ("<=2.7.0-dev", "2.7.0-rc.4", False),
+        ("<=2.7.0-dev", "2.7.0", False),
+        # Semver precedence chain (semver rule 11.4)
+        (">1.0.0-alpha", "1.0.0-alpha.1", True),
+        (">1.0.0-alpha.1", "1.0.0-alpha.beta", True),
+        (">1.0.0-alpha.beta", "1.0.0-beta", True),
+        (">1.0.0-beta", "1.0.0-beta.2", True),
+        (">1.0.0-beta.2", "1.0.0-beta.11", True),
+        (">1.0.0-beta.11", "1.0.0-rc.1", True),
+        (">1.0.0-rc.1", "1.0.0", True),
+        # Numeric prerelease identifiers compared numerically, not lexically (semver rule 11.4.1)
+        ("<1.0.0-beta.11", "1.0.0-beta.2", True),
+        # Numeric identifiers have lower precedence than non-numeric (semver rule 11.4.3)
+        (">1.0.0-1", "1.0.0-alpha", True),
+        # AND clauses (space-separated)
+        (">=1.0.0 <2.0.0", "1.5.0", True),
+        (">=1.0.0 <2.0.0", "2.0.0", False),
+        (">=1.0.0 <2.0.0", "0.9.0", False),
+        (">=1.0.0 <2.0.0", "1.5.0-beta", True),
+        # OR clauses (||)
+        (">=1.0.0 <2.0.0 || >=3.0.0", "1.5.0", True),
+        (">=1.0.0 <2.0.0 || >=3.0.0", "3.0.0", True),
+        (">=1.0.0 <2.0.0 || >=3.0.0", "2.5.0", False),
+        # Caret (^) ranges: ^1.2.3 means >=1.2.3 <2.0.0
+        ("^1.2.3", "1.2.3", True),
+        ("^1.2.3", "1.9.9", True),
+        ("^1.2.3", "1.2.2", False),
+        ("^1.2.3", "2.0.0", False),
+        ("^1.2.3", "1.5.0-alpha", True),
+        ("^1.2.3", "1.2.3-alpha", False),
+        ("^1.2.3", "2.0.0-alpha", False),
+        # Caret with prerelease target: ^1.2.3-beta means >=1.2.3-beta <2.0.0-0
+        ("^1.2.3-beta", "1.2.3-alpha", False),
+        ("^1.2.3-beta", "1.2.3-beta", True),
+        ("^1.2.3-beta", "1.2.3-rc.1", True),
+        ("^1.2.3-beta", "1.2.3", True),
+        ("^1.2.3-beta", "1.9.9", True),
+        ("^1.2.3-beta", "2.0.0", False),
+        # Caret with 0.x: ^0.2.3 means >=0.2.3 <0.3.0-0 (minor is locked)
+        ("^0.2.3", "0.2.3", True),
+        ("^0.2.3", "0.2.9", True),
+        ("^0.2.3", "0.2.3-alpha", False),
+        ("^0.2.3", "0.2.4-alpha", True),
+        ("^0.2.3", "0.3.0", False),
+        ("^0.2.3", "0.3.0-alpha", False),
+        # Caret with 0.0.x: ^0.0.3 means >=0.0.3 <0.0.4-0 (patch is locked)
+        ("^0.0.3", "0.0.3", True),
+        ("^0.0.3", "0.0.3-alpha", False),
+        ("^0.0.3", "0.0.4", False),
+        ("^0.0.3", "0.0.4-alpha", False),
+        # Caret with 0.0.x and prerelease: ^0.0.3-beta means >=0.0.3-beta <0.0.4-0
+        ("^0.0.3-beta", "0.0.3-alpha", False),
+        ("^0.0.3-beta", "0.0.3-beta", True),
+        ("^0.0.3-beta", "0.0.3-rc.1", True),
+        ("^0.0.3-beta", "0.0.3", True),
+        ("^0.0.3-beta", "0.0.4", False),
+        # Hyphen ranges: 1.0.0 - 2.0.0 means >=1.0.0 <=2.0.0
+        ("1.0.0 - 2.0.0", "1.5.0", True),
+        ("1.0.0 - 2.0.0", "1.0.0", True),
+        ("1.0.0 - 2.0.0", "2.0.0", True),
+        ("1.0.0 - 2.0.0", "2.0.1", False),
+        ("1.0.0 - 2.0.0", "0.9.9", False),
+        ("1.0.0 - 2.0.0", "1.0.0-alpha", False),
+        ("1.0.0 - 2.0.0", "1.0.1-alpha", True),
+        ("1.0.0 - 2.0.0", "2.0.0-rc.1", True),
+        ("1.0.0 - 2.0.0", "2.0.1-alpha", False),
+        # Hyphen with prerelease lower bound
+        ("1.0.0-beta - 2.0.0", "1.0.0-alpha", False),
+        ("1.0.0-beta - 2.0.0", "1.0.0-beta", True),
+        ("1.0.0-beta - 2.0.0", "1.0.0-rc.1", True),
+        ("1.0.0-beta - 2.0.0", "1.0.0", True),
+        # Hyphen with prerelease upper bound
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0-alpha", True),
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0-rc.1", True),
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0-rc.2", False),
+        ("1.0.0 - 2.0.0-rc.1", "2.0.0", False),
+        ("1.0.0 - 2.0.0-rc.1", "1.9.9", True),
+        # Hyphen with prerelease on both bounds
+        ("1.0.0-alpha - 2.0.0-beta", "1.0.0-alpha", True),
+        ("1.0.0-alpha - 2.0.0-beta", "1.0.0", True),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0-alpha", True),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0-beta", True),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0-rc.1", False),
+        ("1.0.0-alpha - 2.0.0-beta", "2.0.0", False),
+        ("1.0.0-alpha - 2.0.0-beta", "0.9.9", False),
+    ],
+)
+def test_semver_ranges(spec: str, version: str, *, expected: bool) -> None:
+    result = Version(version) in CustomSpec(spec)
+    assert result == expected, f"Version('{version}') in CustomSpec('{spec}') = {result}, expected {expected}"

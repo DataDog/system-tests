@@ -23,6 +23,7 @@ from .docker_ssi import DockerSSIScenario
 from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
@@ -542,7 +543,11 @@ class _Scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
         },
+        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )
@@ -575,12 +580,23 @@ class _Scenarios:
         require_api_key=True,
         doc="",
     )
+    apm_tracing_otlp = EndToEndScenario(
+        "APM_TRACING_OTLP",
+        weblog_env={
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="",
+    )
 
     apm_tracing_efficient_payload = EndToEndScenario(
         "APM_TRACING_EFFICIENT_PAYLOAD",
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
-            "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
         },
         agent_env={
             "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
@@ -863,7 +879,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -877,7 +893,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -1182,7 +1198,7 @@ class _Scenarios:
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )
 
-    ai_guard = EndToEndScenario(
+    ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
         weblog_env={

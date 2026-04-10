@@ -47,8 +47,8 @@ on:
         default: false
         required: false
         type: boolean
-      _system_tests_library_target_branch:
-        description: "If system-tests dev mode, the branch to use for the library"
+      _system_tests_library_target_branch_map:
+        description: "If system-tests dev mode, JSON map of library to branch (e.g. {\"java\":\"b1\",\"dotnet\":\"b2\"})"
         default: ''
         required: false
         type: string
@@ -118,7 +118,7 @@ jobs:
           echo "ref=main" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
-      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
@@ -152,19 +152,46 @@ jobs:
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
           --format json | jq
 
+    - name: Extract library target branch
+      if: ${{ inputs._system_tests_dev_mode }}
+      id: extract_branch
+      shell: python
+      run: |
+        import json
+        import os
+
+        branch_map_str = os.environ.get("TARGET_BRANCH_MAP", "")
+        library = os.environ.get("LIBRARY", "")
+
+        library_branch = ""
+        agent_branch = ""
+
+        if branch_map_str:
+            branch_map = json.loads(branch_map_str)
+            library_branch = branch_map.get(library, "")
+            agent_branch = branch_map.get("agent", "")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"library_branch={library_branch}\n")
+            f.write(f"agent_branch={agent_branch}\n")
+      env:
+        TARGET_BRANCH_MAP: ${{ inputs._system_tests_library_target_branch_map }}
+        LIBRARY: ${{ inputs.library }}
+
     - name: Get dev artifacts
       if: ${{ inputs._system_tests_dev_mode }}
       run: |
         ./utils/scripts/load-binary.sh agent
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
-        LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
+        LIBRARY_TARGET_BRANCH: "${{ steps.extract_branch.outputs.library_branch }}"
+        AGENT_TARGET_BRANCH: "${{ steps.extract_branch.outputs.agent_branch }}"
         CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/

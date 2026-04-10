@@ -9,6 +9,7 @@
         "DD_PROFILING_EXCEPTION_SAMPLING_INTERVAL": "profiling_exception_sampling_interval",
         "DD_PROFILING_PYTORCH_ENABLED": "profiling_pytorch_enabled",
         "DD_PROFILING_PYTORCH_EVENTS_LIMIT": "profiling_pytorch_events_limit",
+        "DD_TRACER_ATEXIT_HOOKS": "tracer_atexit_hooks",
         "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_FLUSH_INTERVAL": "trace_experimental_long_running_flush_interval",
         "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_INITIAL_FLUSH_INTERVAL": "trace_experimental_long_running_initial_flush_interval",
         "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level",

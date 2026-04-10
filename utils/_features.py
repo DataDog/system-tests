@@ -2567,6 +2567,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=535, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_eval_metrics(test_object):
+        """Feature Flags Evaluation Metrics
+
+        https://feature-parity.us1.prod.dog/#/?feature=548
+        """
+        return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
@@ -2596,7 +2604,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=493
         """
-        return _mark_test_object(test_object, feature_id=493, owner=_Owner.agent_apm)
+        return _mark_test_object(test_object, feature_id=493, owner=_Owner.asm)
 
     @staticmethod
     def b3multi_headers_propagation(test_object):
@@ -2789,6 +2797,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=545
         """
         return _mark_test_object(test_object, feature_id=545, owner=_Owner.language_platform)
+
+    @staticmethod
+    def base_service(test_object):
+        """_dd.base_service meta tag is set on spans whose service name differs from the global service.
+        Preserves the originating service context when integrations override the service name.
+
+        https://feature-parity.us1.prod.dog/#/?feature=546
+        """
+        return _mark_test_object(test_object, feature_id=546, owner=_Owner.idm)
 
 
 features = _Features()

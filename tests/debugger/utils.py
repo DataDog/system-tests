@@ -9,7 +9,8 @@ import os.path
 from pathlib import Path
 import uuid
 from urllib.parse import parse_qs
-from typing import TypedDict, Literal, Any
+from typing import Any, Literal, TypedDict
+from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
@@ -65,6 +66,26 @@ def extract_probe_ids(probes: dict | list) -> list:
         return list(probes.keys())
 
     return [probe["id"] for probe in probes]
+
+
+def _iter_snapshot_content_items(content_list: list) -> Iterator[Any]:
+    """Yield content items from request content, unwrapping multipart structure (part['content']).
+
+    The agent /api/v2/debugger endpoint can send content as multipart where each part has a
+    'content' key holding the actual snapshot/diagnostics payloads. This matches the handling
+    in _process_diagnostics_data and in the schema validator for the debugger endpoint.
+    """
+    if not content_list:
+        return
+    for part in content_list:
+        if isinstance(part, dict) and "content" in part:
+            inner = part["content"]
+            if isinstance(inner, list):
+                yield from inner
+            else:
+                yield inner
+        else:
+            yield part
 
 
 def _get_path(test_name: str, suffix: str, version: str) -> str:
@@ -133,7 +154,7 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
@@ -221,6 +242,11 @@ class BaseDebuggerTest:
                             source_file = "debugger/index.ts"
                         else:
                             source_file = "debugger/index.js"
+                    elif language == "golang":
+                        variant = context.weblog_variant or "net-http"
+                        # Some variants share a build directory (e.g. uds-echo builds from echo/)
+                        go_build_dir = {"uds-echo": "echo"}.get(variant, variant)
+                        source_file = f"{go_build_dir}/debugger.go"
                     elif language == "php":
                         source_file = "debugger.php"
 
@@ -232,6 +258,18 @@ class BaseDebuggerTest:
                         source_file = source_file.replace("/", "\\")
 
                     probe["where"]["sourceFile"] = source_file
+
+                    # Go system-probe requires methodName for line probes to identify the function.
+                    # Other languages resolve this from sourceFile+line, but the eBPF-based
+                    # system-probe needs the fully qualified method name explicitly.
+                    if language == "golang" and probe["where"].get("lines"):
+                        golang_line_to_method = {
+                            "20": "main.(*DebuggerController).logProbe",
+                            "71": "main.(*DebuggerController).expression",
+                        }
+                        line = probe["where"]["lines"][0]
+                        if line in golang_line_to_method:
+                            probe["where"]["methodName"] = golang_line_to_method[line]
 
                 probe["type"] = __get_probe_type(probe["id"])
 
@@ -496,7 +534,7 @@ class BaseDebuggerTest:
 
         contents = data["request"].get("content", []) or []
 
-        for content in contents:
+        for content in _iter_snapshot_content_items(contents):
             # Filter out snapshots from before the test start time for multiple tests using the same file.
             if "timestamp" in content and self.start_time is not None:
                 if content["timestamp"] < self.start_time:
@@ -732,7 +770,7 @@ class BaseDebuggerTest:
             for request in agent_logs_endpoint_requests:
                 content = request["request"]["content"]
                 if content:
-                    for item in content:
+                    for item in _iter_snapshot_content_items(content):
                         snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
                         item["query"] = parse_qs(request["query"])
                         if snapshot:

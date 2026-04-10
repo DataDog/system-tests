@@ -9,7 +9,7 @@ from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
 from utils import context, weblog, interfaces, scenarios, features, rfc, logger
-from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, LibraryTraceFormat
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, LibraryTraceFormat, is_same_boolean
 
 USER = "test"
 NEW_USER = "testnew"
@@ -42,7 +42,10 @@ def assert_tags(
             if value is None:
                 assert tag not in struct
             elif tag == SAMPLING_PRIORITY_KEY:  # special case, it's a lambda to check for a condition
-                assert value(struct[tag])  # type: ignore[operator]
+                sampling_priority = span.get_sampling_priority()
+                if sampling_priority is None:
+                    raise KeyError(SAMPLING_PRIORITY_KEY)
+                assert value(sampling_priority)  # type: ignore[operator]
             else:
                 assert struct[tag] == value
 
@@ -734,9 +737,17 @@ class BaseSCAStandaloneTelemetry:
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)
         assert configuration_by_name
 
-        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
+        dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
 
-        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
+        cfg_appsec_enabled = next(
+            (
+                configuration_by_name.get(config_name)
+                for config_name in dd_appsec_sca_enabled_names
+                if config_name in configuration_by_name
+            ),
+            None,
+        )
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         outcome_value: bool | str = True
@@ -1026,8 +1037,8 @@ class Test_UserEventsStandalone_Automated:
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == trace_id
-            assert trace[0]["trace_id"] == trace_id
+            assert span.trace_id_equals(trace_id)
+            assert trace.trace_id_equals(trace_id)
 
             # Some tracers use true while others use yes
             assert any(
@@ -1099,8 +1110,8 @@ class Test_UserEventsStandalone_SDK_V1:
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == trace_id
-            assert trace[0]["trace_id"] == trace_id
+            assert span.trace_id_equals(trace_id)
+            assert trace.trace_id_equals(trace_id)
 
             # Some tracers use true while others use yes
             assert any(
@@ -1125,7 +1136,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
         assert "appsec.events.users.login.success.usr.login" in meta
 
     def setup_user_login_failure_event_generates_asm_event(self):
@@ -1136,7 +1147,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
         assert "appsec.events.users.login.failure.usr.exists" in meta
 
 
@@ -1163,8 +1174,8 @@ class Test_UserEventsStandalone_SDK_V2:
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == trace_id
-            assert trace[0]["trace_id"] == trace_id
+            assert span.trace_id_equals(trace_id)
+            assert trace.trace_id_equals(trace_id)
 
             # Some tracers use true while others use yes
             assert any(
@@ -1187,7 +1198,7 @@ class Test_UserEventsStandalone_SDK_V2:
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
         assert "appsec.events.users.login.success.usr.login" in meta
 
     def setup_user_login_failure_event_generates_asm_event(self):
@@ -1199,5 +1210,5 @@ class Test_UserEventsStandalone_SDK_V2:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+        assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
         assert "appsec.events.users.login.failure.usr.exists" in meta

@@ -130,6 +130,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default="",
         help="An file containing a valid Github token to perform API calls",
     )
+    parser.addoption(
+        "--skip-parametric-build",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip building the parametric library image when it already exists "
+            "(faster re-runs when only test code changes)"
+        ),
+    )
 
     # Integration frameworks scenario options
     parser.addoption(
@@ -175,6 +184,13 @@ def pytest_configure(config: pytest.Config) -> None:
         and os.environ.get("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", "").lower() == "true"
     ):
         config.option.skip_empty_scenario = True
+
+    if not config.option.skip_parametric_build and os.environ.get("SKIP_PARAMETRIC_BUILD", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        config.option.skip_parametric_build = True
 
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
@@ -295,9 +311,12 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     must_pass_item_count = 0
     for item in items:
-        marker_names = [marker.name for marker in item.iter_markers()]
-        if "skip_if_xfail" in marker_names and "declaration" in marker_names:
-            item.add_marker(pytest.mark.skip())
+        markers = {marker.name: marker for marker in item.iter_markers()}
+        if "skip_if_xfail" in markers and "declaration" in markers:
+            marker = markers["declaration"]
+            declaration, details = marker.kwargs["declaration"], marker.kwargs["details"]
+            # mark as inconditional skip and rebuild the skip message
+            item.add_marker(pytest.mark.skip(f"{declaration} ({details})"))
 
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents
