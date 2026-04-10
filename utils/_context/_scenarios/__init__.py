@@ -413,8 +413,10 @@ class _Scenarios:
     )
 
     runtime_sca_reachability = EndToEndScenario(
-        "APPSEC_SCA_REACHABILITY",
-        weblog_env={"DD_APPSEC_SCA_ENABLED": "true"},
+        "RUNTIME_SCA_REACHABILITY",
+        weblog_env={
+            "DD_APPSEC_SCA_ENABLED": "true",
+        },
         doc="""
             Scenario to test SCA telemetry events
         """,
