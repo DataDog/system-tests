@@ -10,12 +10,49 @@ RFC: https://docs.google.com/document/d/1xDw9iG6h41VCEgJGTqoJdruRaNS4pYgNifO6nhi
 import json
 from typing import Any
 
-from utils import weblog, interfaces, scenarios, features, rfc
+from utils import weblog, interfaces, scenarios, features, rfc, context
 
 SCA_REACHABILITY_RFC = "https://docs.google.com/document/d/1xDw9iG6h41VCEgJGTqoJdruRaNS4pYgNifO6nhiizWA/edit"
 
-CVE_ID = "CVE-2024-35195"
-VULNERABLE_DEP = "requests"
+# Per-language expected values for SCA reachability tests.
+# Only populate entries once the language's tracer supports SCA reachability
+# and the expected values are confirmed. Missing languages gracefully
+# degrade: structural assertions still run, but value comparisons are skipped.
+_LANG_CONFIG: dict[str, dict[str, str]] = {
+    "python": {
+        "cve_id": "CVE-2024-35195",
+        "vulnerable_dep": "requests",
+        "path": "app.py",
+        "symbol": "sca_requests_vulnerable_call",
+    },
+}
+
+
+def _get_lang_config() -> dict[str, str]:
+    """Return per-language SCA reachability config, or empty dict if not configured."""
+    return _LANG_CONFIG.get(context.library.name, {})
+
+
+def _cve_id() -> str:
+    val = _get_lang_config().get("cve_id")
+    assert val is not None, f"No cve_id configured for '{context.library.name}'. Add entry to _LANG_CONFIG."
+    return val
+
+
+def _vulnerable_dep() -> str:
+    val = _get_lang_config().get("vulnerable_dep")
+    assert val is not None, f"No vulnerable_dep configured for '{context.library.name}'. Add entry to _LANG_CONFIG."
+    return val
+
+
+def _expected_path() -> str | None:
+    """Return expected caller path, or None if not yet configured for this language."""
+    return _get_lang_config().get("path")
+
+
+def _expected_symbol() -> str | None:
+    """Return expected caller symbol (symbol), or None if not yet configured for this language."""
+    return _get_lang_config().get("symbol")
 
 
 def get_request_content(data: dict[str, Any]) -> dict[str, Any]:
@@ -71,8 +108,8 @@ class Test_SCA_Reachability_Dependencies_Have_Metadata:
 
     def test_dependencies_have_metadata_key(self) -> None:
         deps_with_metadata = _get_deps_with_reachability_metadata()
-        assert VULNERABLE_DEP in deps_with_metadata, (
-            f"Expected '{VULNERABLE_DEP}' to have reachability metadata. "
+        assert _vulnerable_dep() in deps_with_metadata, (
+            f"Expected '{_vulnerable_dep()}' to have reachability metadata. "
             f"Dependencies with metadata: {deps_with_metadata}"
         )
 
@@ -87,12 +124,12 @@ class Test_SCA_Reachability_CVE_Registered_At_Load_Time:
         self.r = weblog.get("/")
 
     def test_cve_registered_at_load_time(self) -> None:
-        cve_entries = _get_dependency_cve_metadata(VULNERABLE_DEP, CVE_ID)
-        assert len(cve_entries) >= 1, f"{CVE_ID} not found in {VULNERABLE_DEP} dependency metadata at load time"
+        cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
+        assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} dependency metadata at load time"
         # At least one event should have reached=[] (the initial registration before any call)
         empty_reached = [e for e in cve_entries if e["reached"] == []]
         assert len(empty_reached) >= 1, (
-            f"Expected at least one {CVE_ID} entry with reached=[] (load-time registration). Got: {cve_entries}"
+            f"Expected at least one {_cve_id()} entry with reached=[] (load-time registration). Got: {cve_entries}"
         )
 
 
@@ -107,20 +144,31 @@ class Test_SCA_Reachability_CVE_After_Vulnerable_Call:
         self.r1 = weblog.get("/sca/requests/vulnerable-call")
 
     def test_cve_metadata_after_vulnerable_call(self) -> None:
-        cve_entries = _get_dependency_cve_metadata(VULNERABLE_DEP, CVE_ID)
-        assert len(cve_entries) >= 1, f"{CVE_ID} not found in {VULNERABLE_DEP} metadata"
+        cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
+        assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
         # Find an entry with a non-empty reached array (after the vulnerable call)
         reached_entries = [e for e in cve_entries if len(e.get("reached", [])) > 0]
         assert len(reached_entries) >= 1, (
-            f"Expected at least one {CVE_ID} entry with non-empty reached array. Got: {cve_entries}"
+            f"Expected at least one {_cve_id()} entry with non-empty reached array. Got: {cve_entries}"
         )
 
-        caller = reached_entries[0]["reached"][0]
+        entry = reached_entries[0]
+        assert len(entry["reached"]) == 1, (
+            f"Expected exactly 1 reached entry, got {len(entry['reached'])}: {entry['reached']}"
+        )
+
+        caller = entry["reached"][0]
         assert "path" in caller, f"Expected 'path' in caller info, got: {caller}"
-        assert "method" in caller, f"Expected 'method' in caller info, got: {caller}"
-        assert "line" in caller, f"Expected 'line' in caller info, got: {caller}"
-        assert caller.get("line", 0) > 0, f"Expected non-zero line number, got: {caller}"
+        assert "symbol" in caller, f"Expected 'symbol' in caller info, got: {caller}"
+
+        expected_path = _expected_path()
+        if expected_path is not None:
+            assert caller["path"] == expected_path, f"Expected path '{expected_path}', got '{caller['path']}'"
+
+        expected_symbol = _expected_symbol()
+        if expected_symbol is not None:
+            assert caller["symbol"] == expected_symbol, f"Expected symbol '{expected_symbol}', got '{caller['symbol']}'"
 
 
 @rfc(SCA_REACHABILITY_RFC)
@@ -135,8 +183,8 @@ class Test_SCA_Reachability_First_Hit_Wins:
         self.r2 = weblog.get("/sca/requests/vulnerable-call-alt")
 
     def test_same_cve_first_hit_wins(self) -> None:
-        cve_entries = _get_dependency_cve_metadata(VULNERABLE_DEP, CVE_ID)
-        assert len(cve_entries) >= 1, f"{CVE_ID} not found in {VULNERABLE_DEP} metadata"
+        cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
+        assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
         for entry in cve_entries:
             assert isinstance(entry["reached"], list)
@@ -158,8 +206,8 @@ class Test_SCA_Reachability_Deduplication:
             weblog.get("/sca/requests/vulnerable-call")
 
     def test_deduplication_repeated_calls(self) -> None:
-        cve_entries = _get_dependency_cve_metadata(VULNERABLE_DEP, CVE_ID)
-        assert len(cve_entries) >= 1, f"{CVE_ID} not found in {VULNERABLE_DEP} metadata"
+        cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
+        assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
         for entry in cve_entries:
             assert len(entry.get("reached", [])) <= 1, (
