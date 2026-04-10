@@ -15,6 +15,17 @@ class AiGuardController < ApplicationController
         end
       elsif message_data[:tool_call_id]
         Datadog::AIGuard.tool(tool_call_id: message_data[:tool_call_id], content: message_data[:content])
+      elsif message_data[:content].is_a?(Array)
+        Datadog::AIGuard.message(role: message_data[:role]) do |m|
+          message_data[:content].each do |part|
+            case part[:type]
+            when "text"
+              m.text(part[:text])
+            when "image_url"
+              m.image_url(part.dig(:image_url, :url))
+            end
+          end
+        end
       else
         Datadog::AIGuard.message(role: message_data[:role], content: message_data[:content])
       end
