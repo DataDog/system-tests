@@ -392,12 +392,11 @@ class BaseDebuggerTest:
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
         logger.debug("Wating for all probes")
         self._wait_successful = False
+        self._wait_found_ids: set[str] = set()
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
 
     def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus]):
-        found_ids = set()
-
         def _check_all_probes_status(probe_diagnostics: ProbeDiagnosticsCollection, statuses: list[ProbeStatus]):
             statuses = statuses + ["ERROR"]
             logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")
@@ -410,17 +409,17 @@ class BaseDebuggerTest:
                 logger.debug(f"Probe {expected_id} observed status is {probe_status}")
 
                 if probe_status in statuses:
-                    found_ids.add(expected_id)
+                    self._wait_found_ids.add(expected_id)
                     continue
 
                 if self.get_tracer()["language"] == "dotnet" and statuses[0] == "INSTALLED":
                     probe = next(p for p in self.probe_definitions if p["id"] == expected_id)
                     # EMITTING is not implemented for dotnet span probe
                     if probe["type"] == "SPAN_PROBE":
-                        found_ids.add(expected_id)
+                        self._wait_found_ids.add(expected_id)
                         continue
 
-            return set(self.probe_ids).issubset(found_ids)
+            return set(self.probe_ids).issubset(self._wait_found_ids)
 
         log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
         if not log_filename_found:
