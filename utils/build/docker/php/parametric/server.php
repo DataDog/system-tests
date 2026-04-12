@@ -52,8 +52,11 @@ function arg($req, $arg) {
 }
 
 // Source: https://magp.ie/2015/09/30/convert-large-integer-to-hexadecimal-without-php-math-extension/
-function largeBaseConvert($numString, $fromBase, $toBase)
+function convertBase16ToBase10($numString)
 {
+    // convert a base 16 string to a base 10 string
+    $fromBase = 16;
+    $toBase = 10;
     $chars = "0123456789abcdefghijklmnopqrstuvwxyz";
     $toString = substr($chars, 0, $toBase);
 
@@ -336,8 +339,8 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
 
     /** @var SDK\Span $span */
     $span = $spanBuilder->startSpan();
-    $spanId = largeBaseConvert($span->getContext()->getSpanId(), 16, 10);
-    $traceId = largeBaseConvert($span->getContext()->getTraceId(), 16, 10);
+    $spanId = convertBase16ToBase10($span->getContext()->getSpanId());
+    $traceId = convertBase16ToBase10($span->getContext()->getTraceId());
     $scopes[$spanId] = $span->activate();
     $otelSpans[$spanId] = $span;
     $spans[$spanId] = $span->getDDSpan();
@@ -443,7 +446,7 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
 
         return jsonResponse([
             'trace_id' => $spanContext->getTraceId(),
-            'span_id' => $spanContext->getSpanId(),
+            'span_id' => convertBase16ToBase10($spanContext->getSpanId()),
             'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
             'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
             'remote' => $spanContext->isRemote()
@@ -457,8 +460,8 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
     $span = Span::getCurrent();
     $otelSpanId = $span->getContext()->getSpanId();
     $otelTraceId = $span->getContext()->getTraceId();
-    $spanId = largeBaseConvert($otelSpanId, 16, 10);
-    $traceId = largeBaseConvert($otelTraceId, 16, 10);
+    $spanId = convertBase16ToBase10($otelSpanId);
+    $traceId = convertBase16ToBase10($otelTraceId);
 
     if ($otelSpanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $otelTraceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
         $otelSpans[$spanId] = $span;

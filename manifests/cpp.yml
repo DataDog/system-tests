@@ -231,8 +231,7 @@ manifest:
       component_version: '>=2.0.0'
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: ">1.0.0"
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # Manual keep did not override the upstream drop decision
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.0.0'  # Modified by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.1.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -287,8 +286,7 @@ manifest:
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes: missing_feature (metrics cannot be set manually)
   tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script

@@ -544,6 +544,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
         },
         agent_interface_timeout=30,
@@ -577,6 +578,17 @@ class _Scenarios:
         },
         backend_interface_timeout=5,
         require_api_key=True,
+        doc="",
+    )
+    apm_tracing_otlp = EndToEndScenario(
+        "APM_TRACING_OTLP",
+        weblog_env={
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
         doc="",
     )
 
