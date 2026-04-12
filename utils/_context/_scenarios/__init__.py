@@ -140,7 +140,7 @@ class _Scenarios:
     )
 
     trace_stats_computation_obfuscation_disabled = EndToEndScenario(
-        name="TRACE_STATS_COMPUTATION",
+        name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
         # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
         # the SDK correctly reads the obfuscation config from agent's /info and respects it.
         weblog_env={

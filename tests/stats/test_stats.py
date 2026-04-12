@@ -167,7 +167,7 @@ class Test_Client_Stats_With_Client_Obfuscation:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql":
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
                         sql_stats.append(stat)
 
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
@@ -210,7 +210,7 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql":
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
                         sql_stats.append(stat)
 
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
@@ -253,7 +253,7 @@ class Test_Client_Stats_Future_Obfuscation_Version:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql":
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (

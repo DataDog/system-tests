@@ -180,6 +180,9 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
       run: ./run.sh TRACE_STATS_COMPUTATION
+    - name: Run TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
