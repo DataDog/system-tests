@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""AppSec smoke tests for the appsec_apm_standalone scenario."""
+"""AppSec smoke tests at the agent interface level"""
 
 from utils import interfaces, remote_config as rc, weblog
 from utils._weblog import HttpResponse
