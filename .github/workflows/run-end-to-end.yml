@@ -101,11 +101,6 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
-      dd_sts_policy:
-        description: "dd-sts policy to use to get a Datadog API key for Test Optimization"
-        default: ""
-        required: false
-        type: string
 
 jobs:
   main:
@@ -551,4 +546,3 @@ jobs:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
         ci_environment: ${{ inputs.ci_environment }}
-        dd_sts_policy: ${{ inputs.dd_sts_policy }}
