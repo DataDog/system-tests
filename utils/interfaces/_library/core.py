@@ -22,6 +22,15 @@ from utils.interfaces._library.telemetry import (
 from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
+LIFECYCLE_EVENTS = [
+    "app-started",
+    "app-closing",
+    "app-integrations-change",
+    "app-dependencies-loaded",
+    "app-client-configuration-change",
+    "app-product-change",
+]
+
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
@@ -216,6 +225,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                         yield copied
                 else:
                     yield data
+
+    def get_lifecycle_events(self):
+        for data in self.get_telemetry_data(flatten_message_batches=True):
+            content = data["request"]["content"]
+            if content.get("request_type") not in LIFECYCLE_EVENTS:
+                continue
+            yield data
 
     def get_telemetry_configurations(self) -> list[dict]:
         """Extract and sort configuration entries from telemetry events."""

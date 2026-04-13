@@ -899,6 +899,21 @@ It supports the following body fields:
 
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/edit/flushing.md`.
 
+### GET /spawn_child
+
+This endpoint is used for telemetry session ID header tests (Stable Service Instance Identifier RFC). It must fork or exec a child process, pass in the required arguments, wait for the child, and return a response. Used to validate `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers in instrumentation telemetry across process forks.
+RFC: https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit?tab=t.0#heading=h.ojliy5oytqgg
+
+Required query parameters:
+
+- `sleep`: number of seconds the child process should sleep before exiting
+- `crash`: boolean (required) — `true` to kill the child with SIGSEGV after sleep, `false` to let it exit gracefully
+- `fork`: boolean (required) — `true` to use fork (parent-child), `false` to use exec. Runtimes that do not support fork (e.g. Java, C#) return 400 if `fork=true` is passed.
+
+Returns 200 status code on success. Response body may contain a message such as `Child process {pid} exited`. Returns 400 if `sleep`, `crash`, or `fork` is missing or invalid, or if `fork=true` is passed on a runtime that does not support forking.
+
+Note: `/fork_and_crash` exists only in lib-injection weblogs, not in end-to-end weblogs.
+
 ### \[GET,POST\] /rasp/lfi
 
 This endpoint is used to test for local file inclusion / path traversal attacks, consequently it must perform an operation on a file or directory, e.g. `open` with a relative path. The chosen operation must be injected with the `GET` or `POST` parameter.

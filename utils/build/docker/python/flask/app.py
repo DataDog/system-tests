@@ -14,6 +14,8 @@ import http.client
 import json
 import logging
 import os
+import signal
+import time
 import random
 import shlex
 import subprocess
@@ -320,6 +322,43 @@ def healthcheck():
             "version": ddtrace.__version__,
         },
     }
+
+
+@app.route("/spawn_child")
+def spawn_child():
+    """Spawn child via fork or exec. Params: sleep, crash, fork. Used for telemetry session ID header tests."""
+    sleep_arg = request.args.get("sleep", type=int)
+    crash_arg = request.args.get("crash", "").lower()
+    fork_arg = (request.args.get("fork") or "").lower()
+    if sleep_arg is None:
+        return "sleep required", 400
+    if crash_arg not in ("true", "false"):
+        return "crash required (boolean)", 400
+    if fork_arg not in ("true", "false"):
+        return "fork required (boolean)", 400
+    crash = crash_arg == "true"
+    use_fork = fork_arg == "true"
+
+    if use_fork:
+        pid = os.fork()
+        if pid > 0:
+            _, status = os.waitpid(pid, 0)
+            return f"Child process {pid} exited with status {status}"
+        time.sleep(sleep_arg)
+        if crash:
+            os.kill(os.getpid(), signal.SIGSEGV)
+        sys.exit(0)
+
+    # exec path: spawn subprocess
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"import time, sys, os, signal; time.sleep({sleep_arg}); os.kill(os.getpid(), signal.SIGSEGV) if {crash} else sys.exit(0)",
+        ],
+        timeout=sleep_arg + 5,
+    )
+    return f"Child process exited with status {proc.returncode}"
 
 
 @app.route("/sample_rate_route/<i>")

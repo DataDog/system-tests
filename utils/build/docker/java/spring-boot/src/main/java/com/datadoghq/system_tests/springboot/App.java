@@ -321,6 +321,39 @@ public class App {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
+    @GetMapping("/spawn_child")
+    ResponseEntity<String> spawnChild(
+            @RequestParam(required = false) Integer sleep,
+            @RequestParam(required = false) String crash,
+            @RequestParam(required = false) String fork) {
+        if (sleep == null || sleep < 0) {
+            return ResponseEntity.badRequest().body("sleep required");
+        }
+        if (crash == null || (!crash.equalsIgnoreCase("true") && !crash.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("crash required (boolean)");
+        }
+        if (fork == null || (!fork.equalsIgnoreCase("true") && !fork.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("fork required (boolean)");
+        }
+        if (fork.equalsIgnoreCase("true")) {
+            return ResponseEntity.badRequest().body("fork not supported");
+        }
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "java", "-Xmx128m",
+                    "-javaagent:/app/dd-java-agent.jar",
+                    "-jar", "/app/app.jar");
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_SLEEP", String.valueOf(sleep));
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_CRASH", crash.toLowerCase());
+            pb.inheritIO();
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+            return ResponseEntity.ok("Process " + p.pid() + " has exited with code " + exitCode);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed: " + e.getMessage());
+        }
+    }
+
     @RequestMapping("/stats-unique")
     ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
@@ -1440,7 +1473,16 @@ public class App {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        String childSleep = System.getenv("DD_SYSTEM_TEST_CHILD_SLEEP");
+        if (childSleep != null) {
+            int sleep = Integer.parseInt(childSleep);
+            Thread.sleep(sleep * 1000L);
+            if ("true".equals(System.getenv("DD_SYSTEM_TEST_CHILD_CRASH"))) {
+                Runtime.getRuntime().halt(139);
+            }
+            return;
+        }
         SpringApplication.run(App.class, args);
     }
 

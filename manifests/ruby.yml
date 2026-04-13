@@ -2277,6 +2277,14 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.31.0'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.31.0'
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature

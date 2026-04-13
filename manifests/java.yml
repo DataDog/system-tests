@@ -4338,6 +4338,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_seq_id:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (Java does not support fork)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: '>=1.61.0'
   tests/test_telemetry.py::Test_Telemetry::test_status_ok:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
