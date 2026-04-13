@@ -35,7 +35,7 @@ runs:
       continue-on-error: true
       uses: DataDog/dd-sts-action@2e8187910199bd93129520183c093e19aa585c75 # v1.0.0
       with:
-        policy: system-tests 
+        policy: system-tests
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
