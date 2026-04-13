@@ -34,13 +34,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             json_data = span.meta.get("_dd.appsec.json")
             if json_data is not None:
                 yield data, span, json_data
-
-            legacy_metastruct_data = span.get("metaStruct", {}).get("appsec")
-            if legacy_metastruct_data is not None:
+            elif (legacy_metastruct_data := span.get("metaStruct", {}).get("appsec")) is not None:
                 yield data, span, legacy_metastruct_data
-
-            v1_metastruct_data = span.meta.get("appsec")
-            if v1_metastruct_data is not None:
+            elif (v1_metastruct_data := span.meta.get("appsec")) is not None:
                 yield data, span, v1_metastruct_data
 
     def get_profiling_data(self):

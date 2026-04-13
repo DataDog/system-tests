@@ -106,14 +106,11 @@ class BaseThreatsSmokeTests:
         found_attack = False
         has_appsec_data = False
 
-        for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r):
-            span_meta = span.get("meta", {}) or span.get("attributes", {})
-            if span_meta.get("appsec.event") == "true":
+        for _, span, _ in interfaces.agent.get_appsec_data(self.r):
+            if span.meta.get("appsec.event") == "true":
                 found_attack = True
-
-                if appsec_data is not None:
-                    has_appsec_data = True
-                    break
+                has_appsec_data = True
+                break
 
         assert found_attack, "Agent should forward detected attacks in span metadata"
         assert has_appsec_data, "Agent spans should include AppSec payload (JSON or metastruct)"
