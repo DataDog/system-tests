@@ -216,11 +216,17 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
 
         assert len(sql_stats) > 0, "Expected at least one SQL stats entry"
+        # NormalizeOnly mode preserves string literals including surrounding single quotes.
+        # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
+        # suffix appears as e.g. "'1'" (with quotes). Accept both quoted and unquoted forms
+        # to be compatible with tracers that may strip the quotes.
+        quoted_user_ids = {f"'{uid}'" for uid in self.TEST_USER_IDS}
+        accepted_suffixes = set(self.TEST_USER_IDS) | quoted_user_ids
         for stat in sql_stats:
             query = stat["Resource"]
             # assert that query is in the form SELECT * FROM users WHERE id = [one of the user ids]
             assert query.startswith(want_prefix)
-            assert query.removeprefix(want_prefix) in self.TEST_USER_IDS
+            assert query.removeprefix(want_prefix) in accepted_suffixes
 
 
 @features.client_side_stats_supported  # FIXME: create a new feature ?

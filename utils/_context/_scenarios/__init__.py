@@ -148,11 +148,11 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        agent_env={
             "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
         },
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."
-        ),
+        doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
         scenario_groups=[scenario_groups.appsec],
     )
 
