@@ -1,8 +1,6 @@
 package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.iast.utils.*;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,37 +69,21 @@ public class AppSecIast {
 
     @RequestMapping("/insecure_hashing/test_secure_algorithm")
     String secureHashing() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.secureHashing(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_hashing/test_md5_algorithm")
     String insecureMd5Hashing() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.insecureMd5Hashing(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_cipher/test_secure_algorithm")
     String secureCipher() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.secureCipher(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_cipher/test_insecure_algorithm")
     String insecureCipher() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.insecureCipher(superSecretAccessKey);
     }
 
@@ -146,10 +128,6 @@ public class AppSecIast {
 
     @PostMapping("/sqli/test_insecure")
     Object insecureSql(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return sqlExamples.insecureSql(username, password);
@@ -157,10 +135,6 @@ public class AppSecIast {
 
     @PostMapping("/sqli/test_secure")
     Object secureSql(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return sqlExamples.secureSql(username, password);
@@ -168,20 +142,12 @@ public class AppSecIast {
 
     @PostMapping("/cmdi/test_insecure")
     String insecureCmd(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String cmd = request.getParameter("cmd");
         return cmdExamples.insecureCmd(cmd);
     }
 
     @PostMapping("/ldapi/test_insecure")
     String insecureLDAP(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return getOrCreateLdapExamples().injection(username, password);
@@ -189,20 +155,12 @@ public class AppSecIast {
 
     @PostMapping("/ldapi/test_secure")
     String secureLDAP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return getOrCreateLdapExamples().secure();
     }
 
 
     @PostMapping("/path_traversal/test_insecure")
     String insecurePathTraversal(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String path = request.getParameter("path");
         return pathExamples.insecurePathTraversal(path);
     }

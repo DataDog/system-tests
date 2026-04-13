@@ -592,6 +592,30 @@ class Test_Blocking_request_body_multipart:
         assert self.rbmp_req.status_code == 403
 
 
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@features.appsec_request_blocking
+class Test_Blocking_request_body_filenames:
+    """Test if blocking is supported on server.request.body.filenames address"""
+
+    def setup_blocking(self):
+        self.rbf_req = weblog.post("/waf", files={"upload": ("malicious_file.jsp", b"harmless content")})
+
+    def test_blocking(self):
+        """Can block on server.request.body.filenames"""
+        interfaces.library.assert_waf_attack(self.rbf_req, rule="tst-037-014")
+        assert self.rbf_req.status_code == 403
+
+    def setup_non_blocking(self):
+        self.setup_blocking()
+        self.rbf_safe = weblog.post("/waf", files={"upload": ("safe_file.txt", b"harmless content")})
+
+    def test_non_blocking(self):
+        """Does not block on server.request.body.filenames when filename is safe"""
+        self.test_blocking()
+        assert self.rbf_safe.status_code == 200
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
 @scenarios.go_proxies_appsec_blocking

@@ -14,4 +14,8 @@ class Test_Mongo:
         self.r = weblog.get("/trace/mongo")
 
     def test_main(self):
-        interfaces.library.assert_trace_exists(self.r, span_type="mongo")
+        # PHP uses "mongodb" (Type::MONGO = 'mongodb'); other tracers use "mongo"
+        for _, _, span in interfaces.library.get_spans(request=self.r):
+            if span.get("type") in ("mongo", "mongodb"):
+                return
+        raise ValueError(f"No mongo/mongodb trace found for request {self.r.get_rid()}")
