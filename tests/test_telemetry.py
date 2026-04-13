@@ -647,9 +647,7 @@ class Test_Telemetry:
             # must be consistent across all events
             sole_rid = next(iter(runtime_ids))
             sole_root = next(iter(root_runtime_ids))
-            assert sole_rid == sole_root, (
-                f"Single runtime_id {sole_rid} does not match root {sole_root}"
-            )
+            assert sole_rid == sole_root, f"Single runtime_id {sole_rid} does not match root {sole_root}"
 
     def test_session_id_headers_across_forks(self):
         """Test session ID headers in telemetry (fork=true). Stable Service Instance Identifier RFC."""
