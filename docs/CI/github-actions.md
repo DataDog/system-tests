@@ -32,6 +32,7 @@ jobs:
       secrets: inherit
       permissions:
         contents: read
+        id-token: write
       with:
         library: java
         binaries_artifact: binaries
@@ -52,12 +53,21 @@ jobs:
 | `force_execute`                  | Comma-separated list of tests to run even if they are skipped by manifest or decorators         | string  | false    | *empty*       |
 | `library`                        | Library to test                                                                                 | string  | true     | —             |
 | `parametric_job_count`           | How many jobs should be used to run PARAMETRIC scenario                                         | number  | false    | 1             |
-| `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Requires TEST_OPTIMIZATION_API_KEY secrets     | boolean | false    | false         |
+| `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Uses `TEST_OPTIMIZATION_API_KEY` secret if set, otherwise fetches credentials automatically via dd-sts (recommended) | boolean | false    | false         |
 | `test_optimization_datadog_site` | DataDog site to use for test optimization                                                       | string  | false    | datadoghq.com |
 | `ref`                            | system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo) | string  | false    | main          |
 | `scenarios`                      | Comma-separated list scenarios to run                                                           | string  | false    | DEFAULT       |
 | `scenarios_groups`               | Comma-separated list of scenarios groups to run                                                 | string  | false    | *empty*       |
 | `skip_empty_scenarios`           | Skip scenarios that contain only xfail or irrelevant tests                                      | boolean | false    | false         |
+
+## Permissions
+
+The following permissions are always required:
+
+| Permission       | Reason                                                      |
+| ---------------- | ----------------------------------------------------------- |
+| `contents: read` | Checkout the repository                                     |
+| `id-token: write` | Required by downstream workflows to fetch Datadog credentials via dd-sts. GitHub validates this upfront, so it must be granted even if test optimization is disabled |
 
 ## Secrets
 
@@ -73,7 +83,7 @@ For some purposes, secrets are used in the workflow:
 | DD_API_KEY_3                           |
 | DD_APP_KEY_3                           |
 | DOCKERHUB_USERNAME and DOCKERHUB_TOKEN | If both are set, all docker pull are authenticated, which offer higher rate limit
-| TEST_OPTIMIZATION_API_KEY              | The DD_API_KEY to use to push tests runs to DataDog Test Optimization
+| TEST_OPTIMIZATION_API_KEY              | The DD_API_KEY to use to push tests runs to DataDog Test Optimization. **Deprecated**: prefer not setting this and letting dd-sts fetch credentials automatically
 
 
 You can sends them ,either by using `secrets: inherit` ([doc](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretsinherit)), or [use explicit secret ids](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretssecret_id)
