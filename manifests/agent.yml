@@ -13,7 +13,25 @@ manifest:
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
         uds-echo: bug (DEBUG-5421)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_log_line_snapshot:
+    - component_version: ">=7.79.0-devel"
+      weblog_declaration:
+        chi: bug (DEBUG-5421)
+        echo: bug (DEBUG-5421)
+        gin: bug (DEBUG-5421)
+        net-http: bug (DEBUG-5421)
+        net-http-orchestrion: bug (DEBUG-5421)
+        uds-echo: bug (DEBUG-5421)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_log_method_snapshot:
+    - component_version: ">=7.79.0-devel"
+      weblog_declaration:
+        chi: bug (DEBUG-5421)
+        echo: bug (DEBUG-5421)
+        gin: bug (DEBUG-5421)
+        net-http: bug (DEBUG-5421)
+        net-http-orchestrion: bug (DEBUG-5421)
+        uds-echo: bug (DEBUG-5421)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_log_method_snapshot:
     - component_version: ">=7.79.0-devel"
       weblog_declaration:
         chi: bug (DEBUG-5421)
