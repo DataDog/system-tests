@@ -41,13 +41,13 @@ class AiGuardController < ApplicationController
       tags: result.tags,
       is_blocking_enabled: result.blocking_enabled?
     }
-    response_data[:tag_probs] = result.tag_probs if result.respond_to?(:tag_probs)
-    response_data[:sds] = result.sds if result.respond_to?(:sds)
+    response_data[:tag_probs] = result.tag_probabilities if result.respond_to?(:tag_probabilities)
+    response_data[:sds] = result.sds_findings if result.respond_to?(:sds_findings)
     render json: response_data
   rescue Datadog::AIGuard::AIGuardAbortError => e
     error_data = { action: e.action, reason: e.reason, tags: e.tags }
-    error_data[:tag_probs] = e.tag_probs if e.respond_to?(:tag_probs)
-    error_data[:sds] = e.sds if e.respond_to?(:sds)
+    error_data[:tag_probabilities] = e.tag_probabilities if e.respond_to?(:tag_probabilities)
+    error_data[:sds_findings] = e.sds_findings if e.respond_to?(:sds_findings)
     render json: error_data, status: 403
   rescue => e
     render json: {error: e.to_s, type: e.class.name}, status: 500
