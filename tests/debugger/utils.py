@@ -392,12 +392,13 @@ class BaseDebuggerTest:
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
         logger.debug("Wating for all probes")
         self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
+        found_ids: set[str] = set()
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_all_probes(data, statuses=statuses, found_ids=found_ids), timeout=timeout
+        )
         return self._wait_successful
 
-    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus]):
-        found_ids = set()
-
+    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus], found_ids: set[str]):
         def _check_all_probes_status(probe_diagnostics: ProbeDiagnosticsCollection, statuses: list[ProbeStatus]):
             statuses = statuses + ["ERROR"]
             logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")

@@ -29,7 +29,7 @@ class Test_Otel_Span:
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
         parent_meta = parent.meta
-        if parent_meta["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
+        if parent_meta["language"] not in ("jvm", "php"):  # Java and PHP OTel API does not provide Span ID override
             assert parent.get("spanID") == "10000"
         assert parent_meta.get("attributes") == "values"
         assert parent_meta.get("error.message") == "testing_end_span_options"
