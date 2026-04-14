@@ -592,6 +592,8 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
         },
+        # nodejs needs some time to submit the metrics to the agent
+        library_interface_timeout=10,
         agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
