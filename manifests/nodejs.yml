@@ -87,6 +87,7 @@ refs:
   - &ref_5_88_0 '>=5.88.0'
   - &ref_5_89_0 '>=5.89.0'
   - &ref_5_90_0 '>=5.90.0'
+  - &ref_5_98_0 '>=5.98.0'
   - &ref_6_0_0 '>=6.0.0-pre'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
@@ -1358,10 +1359,10 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: *ref_4_1_0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: *ref_5_17_0
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: *ref_5_15_0
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: missing_feature
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: *ref_5_98_0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: *ref_5_98_0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: *ref_5_88_0
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: missing_feature
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: *ref_5_98_0
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
         "*": *ref_4_1_0

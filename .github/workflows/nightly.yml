@@ -20,6 +20,7 @@ jobs:
           - php
           - python
           - python_lambda
+          - nodejs_lambda
           - ruby
           - cpp_nginx
         version:
@@ -90,6 +91,7 @@ jobs:
           - php
           - python
           - python_lambda
+          - nodejs_lambda
           - ruby
           - rust
         include:
@@ -121,6 +123,9 @@ jobs:
             exclude_owners: ""
             use_dev: ""
           - library: python_lambda
+            exclude_owners: ""
+            use_dev: ""
+          - library: nodejs_lambda
             exclude_owners: ""
             use_dev: ""
           - library: ruby
