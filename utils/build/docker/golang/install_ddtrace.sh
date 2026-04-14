@@ -2,8 +2,8 @@
 
 set -euvo pipefail
 
-export GONOSUMDB=github.com/DataDog/*
-export GONOSUMCHECK=github.com/DataDog/*
+export GONOSUMDB="github.com/DataDog/*"
+export GONOSUMCHECK="github.com/DataDog/*"
 
 # Run go mod tidy once to make sure go list does not fail.
 go mod tidy
