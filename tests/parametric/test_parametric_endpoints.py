@@ -3,7 +3,7 @@ The results of these unit tests are reported to the feature parity dashboard.
 Parametric endpoints that are not tested in this file are not yet supported.
 Avoid using those endpoints in the parametric tests.
 When in doubt refer to the python implementation as the source of truth via
-the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/scenarios/parametric.md#shared-interface
+the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/understand/scenarios/parametric.md#shared-interface
 """
 
 import pytest
@@ -12,7 +12,7 @@ import time
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 
-from utils import incomplete_test_app, scenarios, features, context
+from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_span_in_traces
@@ -750,55 +750,44 @@ class Test_Parametric_Otel_Trace_Flush:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Write_Log:
-    @incomplete_test_app(
-        context.library not in ["python", "nodejs"],
-        reason="Logs endpoint is only implemented in python and node.js app",
-    )
     def test_write_log(self, test_library: APMLibrary):
         """Validates that /otel/logger/write creates a log message with the specified parameters.
 
         Supported Parameters:
-        - message: str
-        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         - logger_name: str
-        - span_id: Union[int, str]  (optional)
+        - level: LogLevel enum (DEBUG, INFO, WARN, ERROR)
+        - message: str
+        - span_id: int (optional)
 
         Supported Return Values:
         - success: bool
         """
-        # Test with different log levels
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", create_logger=True)
-        assert result is True
+        # Test with all parameters including span_id
+        with test_library.otel_start_span("test_span") as span:
+            test_library.create_logger("test_logger", LogLevel.INFO)
+            result = test_library.write_log("test_logger", LogLevel.INFO, "Test message", span_id=span.span_id)
+            assert result is True
 
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", create_logger=True)
-        assert result is True
-
-        # Test with custom logger name
-        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger", create_logger=True)
-        assert result is True
-
-    def test_write_log_with_span_id(self, test_library: APMLibrary):
-        """Validates that /otel/logger/write creates a log message with the specified parameters.
+    def test_create_logger(self, test_library: APMLibrary):
+        """Validates that /otel/logger/create creates a logger with the specified parameters.
 
         Supported Parameters:
-        - message: str
-        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        - logger_name: str
-        - span_id: Union[int, str]  (optional)
+        - name: str
+        - level: LogLevel enum (DEBUG, INFO, WARN, ERROR)
+        - version: str (optional)
+        - schema_url: str (optional)
+        - attributes: dict (optional)
+
+        Supported Return Values:
+        - success: bool
         """
-        with test_library.otel_start_span("otel_span") as s1:
-            pass
-
-        with test_library.dd_start_span("dd_span") as s2:
-            pass
-
-        result = test_library.write_log(
-            "Warning message", LogLevel.WARNING, "warning_logger", create_logger=True, span_id=s1.span_id
-        )
-        assert result is True
-
-        result = test_library.write_log(
-            "Error message", LogLevel.ERROR, "error_logger", create_logger=True, span_id=s2.span_id
+        # Test with all parameters
+        result = test_library.create_logger(
+            "test_logger",
+            LogLevel.INFO,
+            version="1.0.0",
+            schema_url="https://opentelemetry.io/schemas/1.21.0",
+            attributes={"app.name": "test_app", "app.version": "1.0"},
         )
         assert result is True
 

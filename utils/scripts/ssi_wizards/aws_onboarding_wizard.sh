@@ -146,14 +146,8 @@ verify_aws_environment() {
         spacer
         echo "🔍 Checking AWS environment..."
 
-        # Run AWS environment check
-        if ! aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- aws s3 ls &>/dev/null; then
-            echo "❌ AWS environment check failed!"
-            echo "🔗 Please follow the AWS SSO setup guide:"
-            echo "   👉 https://datadoghq.atlassian.net/wiki/spaces/ENG/pages/2498068557/AWS+SSO+Getting+Started"
-            echo "⚠️ Exiting wizard to prevent further issues."
-            exit 1
-        fi
+        # Check AWS account access
+        check_aws_account_access "dev-apm-dcs-system-tests"
 
         echo "✅ AWS environment verified successfully!"
     fi
@@ -286,7 +280,7 @@ if [[ -z "$ONBOARDING_KEEP_VMS" ]]; then
     echo -e "${YELLOW}📌 Step: Keep alive the AWS machine ${NC}"
     echo "🖥️ Keep Virtual Machines Alive?"
     echo "By default, VMs shut down after tests. You can keep them running for debugging."
-    echo "Refer to the guide: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#how-to-debug-a-virtual-machine-at-runtime"
+    echo "Refer to the guide: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-a-virtual-machine-at-runtime"
     read -p "Do you want to keep VMs running after tests? (y/n): " keep_vms_choice
 
     if [[ "$keep_vms_choice" =~ ^[Yy]$ ]]; then

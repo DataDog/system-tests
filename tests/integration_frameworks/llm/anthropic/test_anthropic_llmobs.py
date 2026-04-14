@@ -1,5 +1,5 @@
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
-from utils import bug, context, features, missing_feature, scenarios
+from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from .utils import BaseAnthropicTest
@@ -184,7 +184,6 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
             },
         )
 
-    @bug(reason="MLOB-1234")  # behavior is not consistent across llmobs sdks
     @pytest.mark.parametrize("stream", [True, False])
     def test_create_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):
@@ -322,10 +321,6 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
             },
         )
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Node.js LLM Observability Anthropic integration does not submit tool definitions",
-    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_create_with_tools(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):

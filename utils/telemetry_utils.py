@@ -17,12 +17,11 @@ class TelemetryUtils:
         return TelemetryUtils.test_loaded_dependencies[library]
 
     @staticmethod
-    def get_dd_appsec_sca_enabled_str(library: ComponentVersion) -> str:
-        result = "DD_APPSEC_SCA_ENABLED"
-        if library == "java":
-            result = "appsec_sca_enabled"
-        elif library == "nodejs":
-            result = "appsec.sca.enabled"
-        elif library in ("php", "ruby"):
-            result = "appsec.sca_enabled"
-        return result
+    def get_dd_appsec_sca_enabled_names(library: ComponentVersion) -> list[str]:
+        if library == "nodejs":
+            # Temporary compatibility for dd-trace-js PR #7734.
+            # Remove "appsec.sca.enabled" once Node.js only reports the canonical env name.
+            return ["DD_APPSEC_SCA_ENABLED", "appsec.sca.enabled"]
+        if library == "php":
+            return ["appsec.sca_enabled"]
+        return ["DD_APPSEC_SCA_ENABLED"]

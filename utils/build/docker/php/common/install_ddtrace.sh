@@ -6,12 +6,21 @@ IS_APACHE=${1:-0}
 
 cd /binaries
 
-PKG=$(find /binaries -maxdepth 1 -name 'dd-library-php-*-linux-gnu.tar.gz')
+ARCH=$(uname -m)
+PKGS=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKG_COUNT=$(echo "$PKGS" | grep -c . || true)
+if [ "$PKG_COUNT" -gt 1 ]; then
+  echo "ERROR: multiple dd-library-php tarballs found for ${ARCH} in /binaries — keep only one:"
+  echo "$PKGS"
+  exit 1
+fi
+PKG=$PKGS
 SETUP=/binaries/datadog-setup.php
 
 DDTRACE_SO=/binaries/ddtrace.so
 DDAPPSEC_SO=/binaries/ddappsec.so
 APPSEC_HELPER_SO=/binaries/libddappsec-helper.so
+APPSEC_RUST_HELPER_SO=/binaries/libddappsec-helper-rust.so
 LIBDDWAF_SO=/binaries/libddwaf.so
 
 # Determine INI file location
@@ -42,7 +51,21 @@ fi
 EXTRA_ARGS=""
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; then
-  EXTRA_ARGS="--enable-profiling"
+  # Only enable profiling if the bundle actually contains a profiling extension.
+  # When installing from a local package that was built without profiling support,
+  # passing --enable-profiling causes datadog-setup.php to exit with an error.
+  PKG_HAS_PROFILING=0
+  if [ -n "${PKG:-}" ]; then
+    if tar -tzf "$PKG" 2>/dev/null | grep -q "datadog-profiling"; then
+      PKG_HAS_PROFILING=1
+    fi
+  else
+    # Downloading from GitHub releases always includes profiling
+    PKG_HAS_PROFILING=1
+  fi
+  if [ "$PKG_HAS_PROFILING" = "1" ]; then
+    EXTRA_ARGS="--enable-profiling"
+  fi
 fi
 
 INI_FILE=/etc/php/php.ini
@@ -59,7 +82,7 @@ fi
 if [ -f $DDTRACE_SO ]; then
   echo "Overriding package ddtrace.so with custom binary from $DDTRACE_SO"
   # Find and replace the installed ddtrace.so with custom one
-  INSTALLED_DDTRACE=$(find /root /opt -name ddtrace.so 2>/dev/null | grep -v /binaries | head -1)
+  INSTALLED_DDTRACE=$(find /root /opt /usr/lib/php -name ddtrace.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_DDTRACE" ]; then
     echo "Found installed ddtrace.so at $INSTALLED_DDTRACE, replacing with custom binary"
     cp -f $DDTRACE_SO $INSTALLED_DDTRACE
@@ -72,7 +95,7 @@ fi
 if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
   echo "Overriding package ddappsec.so and helper with custom binaries"
   # Find and replace the installed ddappsec.so
-  INSTALLED_DDAPPSEC=$(find /root /opt -name ddappsec.so 2>/dev/null | grep -v /binaries | head -1)
+  INSTALLED_DDAPPSEC=$(find /root /opt /usr/lib/php -name ddappsec.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_DDAPPSEC" ]; then
     echo "Found installed ddappsec.so at $INSTALLED_DDAPPSEC, replacing with custom binary"
     cp -f $DDAPPSEC_SO $INSTALLED_DDAPPSEC
@@ -87,6 +110,17 @@ if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
     cp -f $APPSEC_HELPER_SO $INSTALLED_HELPER
   else
     echo "Warning: Could not find installed libddappsec-helper.so to replace"
+  fi
+fi
+
+# Install the Rust helper alongside the C++ helper so DD_APPSEC_HELPER_RUST_REDIRECTION works
+if [ -f $APPSEC_RUST_HELPER_SO ]; then
+  INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
+  if [ -n "$INSTALLED_HELPER" ]; then
+    echo "Installing Rust helper at $(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
+    cp -f $APPSEC_RUST_HELPER_SO "$(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
+  else
+    echo "Warning: Could not find installed libddappsec-helper.so to install Rust helper alongside"
   fi
 fi
 

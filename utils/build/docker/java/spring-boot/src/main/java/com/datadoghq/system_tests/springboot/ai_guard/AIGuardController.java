@@ -2,8 +2,12 @@ package com.datadoghq.system_tests.springboot.ai_guard;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import datadog.trace.api.aiguard.AIGuard;
 import datadog.trace.api.aiguard.AIGuard.Evaluation;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,12 +15,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 @RestController
 public class AIGuardController {
+
+    @Configuration
+    public static class JacksonConfig {
+        @Bean
+        public Jackson2ObjectMapperBuilderCustomizer mixInCustomizer() {
+            return builder -> builder
+                    .mixIn(AIGuard.AIGuardAbortError.class, AIGuardAbortErrorMixIn.class)
+                    .mixIn(AIGuard.Evaluation.class, AIGuardEvaluationMixIn.class);
+        }
+    }
 
     @PostMapping("/ai_guard/evaluate")
     public ResponseEntity<?> evaluate(
@@ -33,14 +51,13 @@ public class AIGuardController {
         }
     }
 
-
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Message {
         @JsonProperty("role")
         private String role;
 
         @JsonProperty("content")
-        private String content;
+        private JsonNode content;  // Can be String or Array of content parts
 
         @JsonProperty("tool_calls")
         private List<ToolCall> toolCalls;
@@ -55,7 +72,7 @@ public class AIGuardController {
 
         public Message(String role, String content) {
             this.role = role;
-            this.content = content;
+            this.content = null;  // Will be handled by Jackson
         }
 
         public String getRole() {
@@ -66,11 +83,11 @@ public class AIGuardController {
             this.role = role;
         }
 
-        public String getContent() {
+        public JsonNode getContent() {
             return content;
         }
 
-        public void setContent(String content) {
+        public void setContent(JsonNode content) {
             this.content = content;
         }
 
@@ -100,13 +117,32 @@ public class AIGuardController {
 
         public AIGuard.Message toAIGuard() {
             if (toolCallId != null) {
-                return AIGuard.Message.tool(toolCallId, content);
+                String contentStr = content != null && content.isTextual() ? content.asText() : null;
+                return AIGuard.Message.tool(toolCallId, contentStr);
             }
             if (toolCalls != null && !toolCalls.isEmpty()) {
                 return AIGuard.Message.assistant(
                         toolCalls.stream().map(ToolCall::toAIGuard).toArray(AIGuard.ToolCall[]::new));
             }
-            return AIGuard.Message.message(role, content);
+            // Handle content parts vs string content
+            if (content != null && content.isArray()) {
+                // Content parts format
+                List<AIGuard.ContentPart> parts = new ArrayList<>();
+                for (JsonNode partNode : content) {
+                    String type = partNode.get("type").asText();
+                    if ("text".equals(type)) {
+                        parts.add(AIGuard.ContentPart.text(partNode.get("text").asText()));
+                    } else if ("image_url".equals(type)) {
+                        String url = partNode.get("image_url").get("url").asText();
+                        parts.add(AIGuard.ContentPart.imageUrl(url));
+                    }
+                }
+                return AIGuard.Message.message(role, parts);
+            } else {
+                // String content format
+                String contentStr = content != null && content.isTextual() ? content.asText() : null;
+                return AIGuard.Message.message(role, contentStr);
+            }
         }
     }
 
@@ -171,6 +207,18 @@ public class AIGuardController {
         public void setArguments(String arguments) {
             this.arguments = arguments;
         }
+    }
+
+    public static abstract class AIGuardAbortErrorMixIn {
+
+        @JsonProperty("tag_probs")
+        abstract Object getTagProbabilities();
+    }
+
+    public static abstract class AIGuardEvaluationMixIn {
+
+        @JsonProperty("tag_probs")
+        abstract Object getTagProbabilities();
     }
 
 }

@@ -32,7 +32,6 @@ const SEVERITY_MAP = {
   'DEBUG': { text: 'DEBUG', number: 5 },
   'INFO': { text: 'INFO', number: 9 },
   'WARN': { text: 'WARN', number: 13 },
-  'WARNING': { text: 'WARN', number: 13 },
   'ERROR': { text: 'ERROR', number: 17 },
   'FATAL': { text: 'FATAL', number: 21 }
 }
@@ -277,7 +276,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
-    const span_id = ctx._spanId.toString(10)
+    const span_id = "0x" + ctx._spanId.toString(16)
     const trace_id = ctx._traceId.toString(10)
 
     otelSpans[span_id] = span
@@ -322,7 +321,7 @@ app.post('/trace/otel/span_context', (req, res) => {
   const span = otelSpans[span_id]
   const ctx = span.spanContext()
   res.json({
-    span_id: ctx.spanId,
+    span_id: `0x${ctx.spanId}`,
     trace_id: ctx.traceId,
     // Node.js official OTel API uses a number, not a string
     trace_flags: `0${ctx.traceFlags}`,
@@ -406,17 +405,11 @@ app.post("/otel/logger/create", (req, res) => {
 
 app.post("/otel/logger/write", (req, res) => {
   const { logs } = require('@opentelemetry/api-logs')
-  const { logger_name, level, message, create_logger, span_id } = req.body
+  const { logger_name, level, message, span_id } = req.body
 
-  let logger = loggerDict[logger_name]
+  const logger = loggerDict[logger_name]
   if (!logger) {
-    if (create_logger) {
-      const loggerProvider = logs.getLoggerProvider()
-      logger = loggerProvider.getLogger(logger_name)
-      loggerDict[logger_name] = logger
-    } else {
-      return res.status(400).json({ error: `Logger ${logger_name} not found` })
-    }
+    return res.status(400).json({ error: `Logger ${logger_name} not found` })
   }
 
   let otelContext = undefined

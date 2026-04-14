@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as debugger
 import re
 import json
+
+import tests.debugger.utils as debugger
 from utils import scenarios, features
 
 
@@ -20,11 +21,16 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
         self.wait_for_all_probes(statuses=["EMITTING"])
-        self.wait_for_snapshot_received()
+        self.wait_for_all_snapshots()
 
     ############ assert ############
     def _assert(self, expected_response: int):
         self.collect()
+
+        assert len(self.probe_ids) > 0, (
+            "Expected probes to be created for validation. "
+            "Check if the language supports the required probe type for this test."
+        )
 
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_emitting()
@@ -942,7 +948,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             elif value_type == "string":
                 instance_type = "java.lang.String"
             elif value_type == "pii":
-                instance_type = "com.datadoghq.system_tests.springboot.PiiBase"
+                instance_type = "com.datadoghq.system_tests.springboot.debugger.PiiBase"
             else:
                 instance_type = value_type
         elif self.get_tracer()["language"] == "python":

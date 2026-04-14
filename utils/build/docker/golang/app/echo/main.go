@@ -58,7 +58,9 @@ func main() {
 	r.Use(echotrace.Middleware())
 
 	r.Any("/", func(c echo.Context) error {
-		return c.NoContent(http.StatusOK)
+		c.Response().Header().Set("Content-Type", "text/plain")
+		c.Response().Header().Set("Content-Length", "13")
+		return c.String(http.StatusOK, "Hello world!\n")
 	})
 
 	r.GET("/healthcheck", func(c echo.Context) error {
@@ -378,6 +380,7 @@ func main() {
 	var d DebuggerController
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
+	r.Any("/debugger/expression", echoHandleFunc(d.expression))
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
@@ -422,14 +425,4 @@ func waf(c echo.Context) error {
 		appsec.MonitorParsedHTTPBody(req.Context(), body)
 	}
 	return c.String(http.StatusOK, "Hello, WAF!\n")
-}
-
-type DebuggerController struct{}
-
-func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Log probe"))
-}
-
-func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Mix probe"))
 }

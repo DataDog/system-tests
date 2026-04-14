@@ -3,15 +3,25 @@
     "method": "POST",
     "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
     "headers": {
-      "DD-AI-GUARD-LANGUAGE": "jvm",
-      "DD-AI-GUARD-SOURCE": "SDK",
-      "DD-AI-GUARD-VERSION": "1.57.0-SNAPSHOT~c6297d4615",
+      "Connection": "keep-alive",
       "Content-Type": "application/json",
-      "Connection": "Keep-Alive",
-      "Accept-Encoding": "gzip",
-      "User-Agent": "okhttp/3.12.15"
+      "DD-AI-GUARD-VERSION": "6.0.0-pre",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "nodejs",
+      "x-datadog-trace-id": "5441438796493162292",
+      "x-datadog-parent-id": "8916148999181282935",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.tid=69b2c73a00000000,_dd.p.dm=-0",
+      "traceparent": "00-69b2c73a000000004b83dfc164010734-7bbc864664a7ae77-01",
+      "tracestate": "dd=t.dm:-0;t.tid:69b2c73a00000000;s:1;p:7bbc864664a7ae77",
+      "Accept": "*/*",
+      "Accept-Language": "*",
+      "sec-fetch-mode": "cors",
+      "User-Agent": "node",
+      "Accept-Encoding": "gzip, deflate",
+      "Content-Length": "147"
     },
-    "body": "{\"data\":{\"attributes\":{\"messages\":[{\"role\":\"user\",\"content\":\"What is the weather like today?\"}],\"meta\":{\"env\":\"system-tests\",\"service\":\"weblog\"}}}}"
+    "body": "{\"data\":{\"attributes\":{\"messages\":[{\"role\":\"user\",\"content\":\"What is the weather like today?\"}],\"meta\":{\"service\":\"weblog\",\"env\":\"system-tests\"}}}}"
   },
   "response": {
     "status": {
@@ -19,15 +29,19 @@
       "message": "OK"
     },
     "headers": {
-      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pub293163a918901030b79492fe1ab424cf&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatad0g.com",
       "content-type": "application/vnd.api+json",
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
-      "content-length": "170",
-      "date": "Thu, 11 Dec 2025 08:49:27 GMT",
+      "content-length": "632",
+      "date": "Thu, 12 Mar 2026 14:01:32 GMT",
       "x-content-type-options": "nosniff",
-      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "x-ratelimit-limit": "2000",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "1998",
+      "x-ratelimit-reset": "29",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org"
     },
-    "body": "{\"data\":{\"id\":\"71926018-57cb-474d-8113-436ba98a24c8\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"tags\":[]}}}"
+    "body": "{\"data\":{\"id\":\"d578df5c-dba7-458b-9049-cf6387c1f78f\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"tag_probs\":{\"authority-override\":3.12816276770711e-7,\"data-exfiltration\":3.12816276770711e-7,\"denial-of-service-tool-call\":0.000001147241302068558,\"destructive-tool-call\":1.9361263070560852e-7,\"indirect-prompt-injection\":0,\"instruction-override\":1.9361263070560852e-7,\"jailbreak\":3.12816276770711e-7,\"obfuscation\":1.9361263070560852e-7,\"role-play\":1.9361263070560852e-7,\"security-exploit\":1.9361263070560852e-7,\"system-prompt-extraction\":1.9361263070560852e-7},\"tags\":[]}}}"
   }
 }

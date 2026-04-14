@@ -34,10 +34,12 @@ readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
-readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
+readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
+readonly DEFAULT_java_lambda=java-apigw-rest
+readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
 readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
@@ -47,6 +49,8 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 readonly WHITE_BOLD='\033[1;37m'
 
+VALID_LIBRARIES=$(python3 utils/const/__main__.py COMPONENT_GROUPS buildable)
+
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
     echo -e "  Builds Docker images for weblog variants with tracers."
@@ -55,21 +59,21 @@ print_usage() {
     echo -e "  ${SCRIPT_NAME} [options...]"
     echo
     echo -e "${WHITE_BOLD}OPTIONS${NC}"
-    echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
-    echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
-    echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
-    echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
-    echo -e "  ${CYAN}--github-token-file <file>${NC} Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
-    echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
-    echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
-    echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
-    echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
-    echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
-    echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
-    echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
-    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
-    echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
+    echo -e "  ${CYAN}--library <lib>${NC}              Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
+    echo -e "  ${CYAN}--weblog-variant <var>${NC}       Weblog variant (env: WEBLOG_VARIANT)."
+    echo -e "  ${CYAN}--images <images>${NC}            Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
+    echo -e "  ${CYAN}--docker${NC}                     Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
+    echo -e "  ${CYAN}--github-token-file <file>${NC}   Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
+    echo -e "  ${CYAN}--extra-docker-args <args>${NC}   Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
+    echo -e "  ${CYAN}--cache-mode <mode>${NC}          Cache mode (env: DOCKER_CACHE_MODE)."
+    echo -e "  ${CYAN}--docker-platform <platform>${NC} Target Docker platform."
+    echo -e "  ${CYAN}--list-libraries${NC}             Lists all available libraries and exits."
+    echo -e "  ${CYAN}--list-weblogs${NC}               Lists all available weblogs for a library and exits."
+    echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
     echo -e "  Build default images:"
@@ -101,6 +105,10 @@ list-weblogs() {
 
 default-weblog() {
     local var="DEFAULT_${TEST_LIBRARY}"
+    if [[ -z "${!var:-}" ]]; then
+        echo "ERROR: This script should not be run for the ${TEST_LIBRARY} library because it has no default weblog." >&2
+        exit 1
+    fi
     echo -n "${!var}"
 }
 
@@ -141,6 +149,14 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+                # Homebrew/Python upgrades can invalidate an existing venv.
+                # If the interpreter is broken, recreate the venv automatically.
+                if [ -d "venv/" ] && ! venv/bin/python -V >/dev/null 2>&1
+                then
+                    echo "Existing venv is broken. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
@@ -163,7 +179,9 @@ build() {
                 python -m pip install --upgrade pip setuptools==75.8.0
             fi
             python -m pip install -e .
-            cp requirements.txt venv/requirements.txt
+            if [[ -d "venv/" ]]; then
+                cp requirements.txt venv/requirements.txt
+            fi
 
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
@@ -229,11 +247,14 @@ build() {
                         flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
                             PYTHON_VERSION="3.11"
                             ;;
+                        python3.12)
+                            PYTHON_VERSION="3.12"
+                            ;;
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        python3.12)
-                            PYTHON_VERSION="3.12"
+                        tornado)
+                            PYTHON_VERSION="3.14"
                             ;;
                         *)
                             echo "Error: Unknown weblog variant, python version could not be determined" >&2
@@ -313,7 +334,6 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
@@ -330,7 +350,13 @@ while [[ "$#" -gt 0 ]]; do
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
         --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;  # deprecated
-        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+        *)
+            if [[ "$1" =~ ^(${VALID_LIBRARIES})$ ]]; then
+                TEST_LIBRARY="$1"
+            else
+                echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1
+            fi
+            ;;
     esac
     shift
 done

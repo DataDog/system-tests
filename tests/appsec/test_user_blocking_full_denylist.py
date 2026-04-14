@@ -1,4 +1,5 @@
-from utils import context, interfaces, scenarios, weblog, bug, features
+from utils import interfaces, scenarios, weblog, features
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 from .utils import BaseFullDenyListTest
 
@@ -15,7 +16,7 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         self.r_nonblock = weblog.get("/users", params={"user": self.NOT_BLOCKED_USER})
 
     def test_nonblocking_test(self):
-        def validate_nonblock_user(span: dict):
+        def validate_nonblock_user(span: DataDogLibrarySpan):
             assert span["meta"]["usr.id"] == self.NOT_BLOCKED_USER
             return True
 
@@ -31,7 +32,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             weblog.get("/users", params={"user": self.NUM_OF_BLOCKED_USERS - 1}),
         ]
 
-    @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 
@@ -41,6 +41,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
             span = interfaces.library.get_root_span(r)
-            assert span["meta"]["appsec.event"] == "true"
-            assert span["meta"]["appsec.blocked"] == "true"
+            assert is_same_boolean(actual=span["meta"]["appsec.event"], expected="true")
+            assert is_same_boolean(actual=span["meta"]["appsec.blocked"], expected="true")
             assert span["meta"]["http.status_code"] == "403"

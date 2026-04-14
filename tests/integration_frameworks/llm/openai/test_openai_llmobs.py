@@ -1,5 +1,5 @@
 import json
-from utils import context, features, missing_feature, scenarios
+from utils import features, scenarios
 
 import pytest
 from unittest import mock
@@ -187,10 +187,6 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             ignore_values=["meta.output.messages"],
         )
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Node.js LLM Observability OpenAI integration does not submit tool definitions",
-    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -297,7 +293,6 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
             metrics=mock.ANY,
         )
         assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
-        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
         assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
 
     def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -730,10 +725,6 @@ class TestOpenAiResponses(BaseOpenaiTest):
             ignore_values=["meta.output.messages"],
         )
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Node.js LLM Observability OpenAI integration does not submit tool definitions",
-    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool

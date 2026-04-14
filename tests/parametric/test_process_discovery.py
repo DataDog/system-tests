@@ -25,7 +25,7 @@ def find_dd_memfds(test_library: APMLibrary, pid: int) -> list[str]:
 
 def validate_schema(payload: str) -> bool:
     schema = None
-    with open("utils/interfaces/schemas/library/process-discovery.json", "r") as f:
+    with open("tests/schemas/utils/library/process-discovery.json", "r") as f:
         schema = json.load(f)
 
     try:
@@ -84,6 +84,10 @@ def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str
 
     if context.library.name == "java":
         rc, out = test_library.container_exec_run("pidof java")
+        assert rc
+        pid = int(out)
+    elif context.library.name == "nodejs":
+        rc, out = test_library.container_exec_run("pidof node")
         assert rc
         pid = int(out)
     memfds = find_dd_memfds(test_library, pid)

@@ -1,4 +1,4 @@
-from utils import context, interfaces, scenarios, weblog, features, missing_feature
+from utils import interfaces, scenarios, weblog, features
 
 
 @scenarios.appsec_custom_rules
@@ -10,10 +10,6 @@ class Test_Exclusions:
         self.r_iexnt1 = weblog.get("/waf/", params={"excluded_key": "true"})
         self.r_iexnt2 = weblog.get("/waf/", params={"excluded_key": "true", "activate_exclusion": "false"})
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
     def test_input_exclusion_negative_test(self):
         assert self.r_iexnt1.status_code == 200, "Request failed"
         assert self.r_iexnt2.status_code == 200, "Request failed"
@@ -34,10 +30,6 @@ class Test_Exclusions:
         self.r_rent1 = weblog.get("/waf/", params={"foo": "bbbb"})
         self.r_rent2 = weblog.get("/waf/", params={"foo": "bbbb", "activate_exclusion": "false"})
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
     def test_rule_exclusion_negative_test(self):
         assert self.r_rent1.status_code == 200, "Request failed"
         assert self.r_rent2.status_code == 200, "Request failed"

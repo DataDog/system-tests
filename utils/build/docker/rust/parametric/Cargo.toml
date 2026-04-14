@@ -28,11 +28,11 @@ tower                   = { version = "0.5.2", features = [ "timeout" ] }
 tower-http              = { version = "0.6.6", features = [ "trace" ] }
 tracing                 = { version = "0.1", default-features = false }
 tracing-subscriber      = { version = "0.3", default-features = false, features = [ "env-filter", "fmt", "json" ] }
-opentelemetry           = { version = "0.31.0" }
-opentelemetry_sdk       = { version = "0.31.0" }
+opentelemetry           = { version = "0.31.0", features = ["logs"] }
+opentelemetry_sdk       = { version = "0.31.0", features = ["logs"] }
 opentelemetry-http      = { version = "0.31.0" }
 opentelemetry-stdout    = { version = "0.31.0", features = ["trace", "logs"] }
 opentelemetry-semantic-conventions = { version = "0.31.0" }
 
 
-# datadog-opentelemetry  = { git = "https://github.com/Datadog/dd-trace-rs", rev = "main" }
+datadog-opentelemetry  = { path = "../../../../../binaries/dd-trace-rs/datadog-opentelemetry", features = ["logs-grpc", "logs-http"] }

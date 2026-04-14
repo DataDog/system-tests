@@ -5,9 +5,8 @@
 import re
 
 from utils.dd_constants import Capabilities
+from utils.dd_types import DataDogLibrarySpan
 from tests.appsec.utils import find_series
-from utils import context
-from utils import bug
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
@@ -160,21 +159,18 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.tracer_rc_state.reset().apply()
 
-    @bug(
-        context.library < "nodejs@5.25.0", reason="APMRP-360"
-    )  # rules version was not correctly reported after an RC update
     def test_update_rules(self):
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
-        def validate_waf_rule_version_tag(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_waf_rule_version_tag(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack"""
             meta = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
             assert re.match(expected_version_regex, meta[expected_rules_version_tag])
             return True
 
-        def validate_waf_rule_version_tag_by_rc(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_waf_rule_version_tag_by_rc(span: DataDogLibrarySpan, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack with expected rc version"""
             meta: dict = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
@@ -525,8 +521,6 @@ EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
-# Empty RC updates were incorrectly sent to waf
-@bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")
 class Test_Empty_Config:
     def setup_empty_config(self):
         self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()

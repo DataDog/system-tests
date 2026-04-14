@@ -39,6 +39,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -146,12 +147,15 @@ public class App {
     int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
-    String home(HttpServletResponse response) {
+    ResponseEntity<String> home() {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
         // waiting for that, just set a random value
-        response.setHeader("Content-Language", "not-set");
-        return "Hello World!";
+        return ResponseEntity.ok()
+            .contentType(MediaType.TEXT_PLAIN)
+            .header("Content-Language", "not-set")
+            .contentLength(13)
+            .body("Hello world!\n");
     }
 
     @RequestMapping("/healthcheck")
@@ -436,11 +440,6 @@ public class App {
 
     @RequestMapping("/trace/sql")
     String traceSQL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         // NOTE: see README.md for setting up the docker image to quickly test this
 
         String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
@@ -465,11 +464,6 @@ public class App {
 
     @RequestMapping("/trace/http")
     String traceHTTP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         try {
             URL server = new URL("http://example.com");
             HttpURLConnection connection = (HttpURLConnection)server.openConnection();
@@ -484,11 +478,6 @@ public class App {
 
     @RequestMapping("/trace/cassandra")
     String traceCassandra() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         cassandra.getSession().execute("SELECT * FROM \"table\" WHERE id = 1").all();
 
         return "hi Cassandra";
@@ -496,11 +485,6 @@ public class App {
 
     @RequestMapping("/trace/mongo")
     String traceMongo() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         MongoCollection<Document> collection = mongoClient.getDatabase("mydb").getCollection("test");
         Document doc = collection.find(eq("id", 3)).first();
         if (doc != null) {
@@ -1012,11 +996,6 @@ public class App {
 
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
         try {
@@ -1089,11 +1068,6 @@ public class App {
 
     @RequestMapping("/experimental/redirect")
     RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         if (redirect == null) {
             return new RedirectView("https://datadoghq.com");
         }
@@ -1320,6 +1294,67 @@ public class App {
         return jsonString;
     }
 
+    @RequestMapping("/otel_drop_in_baggage_api_otel")
+    DistantCallResponse otelDropInBaggageApiOTel(@RequestParam String url, @RequestParam String baggage_remove, @RequestParam String baggage_set) throws Exception {
+        // Insert baggage operations here
+        BaggageBuilder baggageBuilder = Baggage.current().toBuilder();
+
+        // for each
+        if (baggage_remove != null) {
+            for (String key : baggage_remove.split(",")) {
+                baggageBuilder = baggageBuilder.remove(key.trim());
+            }
+        }
+
+        if (baggage_set != null) {
+            for (String key : baggage_set.split(",")) {
+                String[] keyValue = key.split("=");
+                baggageBuilder =baggageBuilder.put(keyValue[0].trim(), keyValue[1].trim());
+            }
+        }
+
+        Baggage newBaggage = baggageBuilder.build();
+        try (Scope scope = newBaggage.makeCurrent()) {
+            HashMap<String, String> request_headers = new HashMap<>();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    request_headers.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            Response response = client.newCall(request).execute();
+
+            // Save response headers and status code
+            int status_code = response.code();
+            HashMap<String, String> response_headers = new HashMap<String, String>();
+            Headers headers = response.headers();
+            for (String name : headers.names()) {
+                response_headers.put(name, headers.get(name));
+            }
+
+            DistantCallResponse result = new DistantCallResponse();
+            result.url = url;
+            result.status_code = status_code;
+            result.request_headers = request_headers;
+            result.response_headers = response_headers;
+
+            return result;
+        }
+    }
+
     @GetMapping(value = "/requestdownstream")
     public String requestdownstream(HttpServletResponse response) throws IOException {
         String url = "http://localhost:7777/returnheaders";
@@ -1370,6 +1405,11 @@ public class App {
             return ResponseEntity.badRequest().body(e.toString());
         }
         return ResponseEntity.ok("ok");
+    }
+
+    @GetMapping("/resource_renaming/{*path}")
+    public String resourceRenaming(@PathVariable(required = false) String path) {
+        return "ok";
     }
 
     @Bean

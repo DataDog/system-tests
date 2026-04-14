@@ -1,8 +1,8 @@
-from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant, logger
+from utils import interfaces, scenarios, weblog, features, context, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseSQS:
@@ -17,7 +17,7 @@ class _BaseSQS:
     @classmethod
     def get_span(
         cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], queue: str, operation: str
-    ) -> dict | None:
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -25,7 +25,6 @@ class _BaseSQS:
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
-                assert isinstance(span, dict), f"Span is not a dict: {data['log_filename']}"
                 if not span.get("meta"):
                     continue
 
@@ -61,14 +60,14 @@ class _BaseSQS:
                 elif queue != cls.get_queue(span):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
         return None
 
     @staticmethod
-    def get_queue(span: dict) -> str | None:
+    def get_queue(span: DataDogLibrarySpan) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
@@ -114,10 +113,6 @@ class _BaseSQS:
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
         )
 
-    @missing_feature(
-        library="java",
-        reason="Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work",
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -195,7 +190,7 @@ class _BaseSQS:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def validate_sqs_spans(
         self,
@@ -238,7 +233,6 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-@irrelevant(condition=True, reason="Localstack SQS does not support AWS Xray Header parsing")
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
@@ -248,11 +242,6 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy_{unique_id}"
     BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog_{unique_id}"
 
-    @missing_feature(
-        library="nodejs",
-        reason="Expected to fail, Node.js will not create a response span \
-                     propagating context since it cannot extract AWSTracerHeader context that Java injects",
-    )
     def test_consume(self):
         super().test_consume()
 

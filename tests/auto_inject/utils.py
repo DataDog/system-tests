@@ -2,6 +2,7 @@ import time
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context, logger
 from threading import Timer
@@ -30,7 +31,7 @@ class AutoInjectBaseTest:
 
     def _check_install(
         self,
-        virtual_machine,
+        virtual_machine: _VirtualMachine,
         vm_context_url,
         *,
         profile: bool = False,
@@ -84,16 +85,22 @@ class AutoInjectBaseTest:
 
         if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
             logger.error(
-                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found",
+                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found %s",
                 metrics.get("_dd.appsec.enabled"),
             )
             return False
 
-        if "appsec.event" not in meta or meta["appsec.event"] != "true":
-            logger.error("expected 'appsec.event' to be true in trace meta but found", meta.get("appsec.event"))
-            return False
+        # Check for v0.4 protocol
+        if meta.get("appsec.event") == "true":
+            return True
 
-        return True
+        # Check for v1.4 protocol
+        appsec_payload = meta.get("_dd.appsec.json")
+        if appsec_payload and appsec_payload.get("triggers"):
+            return True
+
+        logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
+        return False
 
     def _container_tags_validator(self, _, trace_data):
         root_id = trace_data["trace"]["root_id"]

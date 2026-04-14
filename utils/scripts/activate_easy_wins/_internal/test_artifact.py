@@ -79,7 +79,8 @@ class ActivationStatus(enum.Enum):
 
 @dataclass
 class TestData:
-    xpass_nodes: list[str] = field(default_factory=list)
+    xpass_nodes: set[str] = field(default_factory=set)
+    xfail_nodes: set[str] = field(default_factory=set)
     trie: StringTrie = field(default_factory=StringTrie)
     nodeid_to_owners: dict[str, set[str]] = field(default_factory=dict)
 
@@ -89,13 +90,15 @@ class TestData:
 
 
 def parse_artifact_data(
-    data_dir: Path, libraries: list[str], excluded_owners: set[str] | None = None
-) -> tuple[dict[Context, TestData], dict[str, set[str]]]:
+    data_dir: Path, libraries: list[str], *, excluded_owners: set[str] | None = None, use_dev: bool = False
+) -> tuple[dict[Context, TestData], dict[str, set[str]], set[str]]:
     test_data: dict[Context, TestData] = {}
     weblogs: dict[str, set[str]] = {}
+    owners: set[str] = set()
 
     for directory in data_dir.iterdir():
-        if "_dev_" in directory.name in directory.name:
+        is_dev = "_dev_" in directory.name
+        if is_dev != use_dev:
             continue
 
         for scenario_dir in directory.iterdir():
@@ -129,8 +132,8 @@ def parse_artifact_data(
                 if "metadata" in test and "owners" in test["metadata"]:
                     test_owners = set(test["metadata"]["owners"])
 
-                # Store nodeid to owners mapping
-                test_data[context].nodeid_to_owners[test["nodeid"]] = test_owners
+                # Store owners
+                owners |= test_owners
 
                 # If test is xpassed and has excluded owners, treat it as xfailed instead
                 outcome = test["outcome"]
@@ -138,8 +141,18 @@ def parse_artifact_data(
                     outcome = "xfailed"
 
                 nodeid = test["nodeid"].split("[")[0]
-                if outcome == "xpassed":
-                    test_data[context].xpass_nodes.append(nodeid)
+
+                # Store nodeid to owners mapping
+                test_data[context].nodeid_to_owners[nodeid] = test_owners
+
+                if nodeid not in test_data[context].xfail_nodes:
+                    if outcome == "xpassed":
+                        test_data[context].xpass_nodes.add(nodeid)
+                    else:
+                        test_data[context].xfail_nodes.add(nodeid)
+                        if nodeid in test_data[context].xpass_nodes:
+                            test_data[context].xpass_nodes.remove(nodeid)
+
                 nodeid = nodeid.replace("::", "/") + "/"
                 parts = re.finditer("/", nodeid)
                 for part in parts:
@@ -168,4 +181,4 @@ def parse_artifact_data(
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.PASS
 
-    return test_data, weblogs
+    return test_data, weblogs, owners

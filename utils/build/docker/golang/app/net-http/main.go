@@ -74,7 +74,10 @@ func main() {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Length", "13")
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Hello world!\n"))
 	})
 
 	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
@@ -763,6 +766,7 @@ func main() {
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
+	mux.HandleFunc("/debugger/expression", d.expression)
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -916,18 +920,4 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 			return timedOutMessage, 408, nil
 		}
 	}
-}
-
-// The below handler functions are used to test the live debugging feature.
-// They need to be free-standing functions to avoid inlining and to make sure
-// make sure the debugger can probe them.
-
-type DebuggerController struct{}
-
-func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Log probe"))
-}
-
-func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Mix probe"))
 }

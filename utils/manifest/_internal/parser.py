@@ -304,11 +304,16 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "agent",
         "cpp",
         "cpp_httpd",
+        "cpp_kong",
         "cpp_nginx",
         "dotnet",
         "golang",
         "java",
+        "java_lambda",
+        "java_otel",
         "nodejs",
+        "nodejs_lambda",
+        "nodejs_otel",
         "php",
         "python",
         "python_otel",
@@ -317,6 +322,8 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "dd_apm_inject",
         "k8s_cluster_agent",
         "python_lambda",
+        "envoy",
+        "haproxy",
     ):
         data = _load_file(base_dir.joinpath(f"{component}.yml"), component)
 

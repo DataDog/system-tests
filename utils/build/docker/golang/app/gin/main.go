@@ -57,7 +57,10 @@ func main() {
 	r.Use(gintrace.Middleware("weblog"))
 
 	r.Any("/", func(ctx *gin.Context) {
+		ctx.Writer.Header().Set("Content-Type", "text/plain")
+		ctx.Writer.Header().Set("Content-Length", "13")
 		ctx.Writer.WriteHeader(http.StatusOK)
+		ctx.Writer.Write([]byte("Hello world!\n"))
 	})
 	r.Any("/stats-unique", func(ctx *gin.Context) {
 		if c := ctx.Request.URL.Query().Get("code"); c != "" {
@@ -364,6 +367,7 @@ func main() {
 	var d DebuggerController
 	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
+	r.Any("/debugger/expression", ginHandleFunc(d.expression))
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -401,14 +405,4 @@ func headers(ctx *gin.Context) {
 	ctx.Writer.Header().Set("content-length", "42")
 	ctx.Writer.Header().Set("content-language", "en-US")
 	ctx.Writer.Write([]byte("Hello, headers!"))
-}
-
-type DebuggerController struct{}
-
-func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Log probe"))
-}
-
-func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Mix probe"))
 }

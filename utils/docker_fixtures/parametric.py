@@ -5,10 +5,10 @@ from typing import TypedDict, NotRequired
 class LogLevel(Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
-    WARNING = "WARNING"
+    WARN = "WARN"
     ERROR = "ERROR"
 
 
 class Link(TypedDict):
-    parent_id: int
+    parent_id: str | int
     attributes: NotRequired[dict]

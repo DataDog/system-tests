@@ -1,3 +1,4 @@
 [
-    "appsec.rules"
+    "appsec.rules",
+    "DD_APPSEC_RULES"
 ]

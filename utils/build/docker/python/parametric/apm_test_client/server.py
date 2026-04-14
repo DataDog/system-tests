@@ -713,7 +713,7 @@ class OtelSpanContextArgs(BaseModel):
 
 
 class OtelSpanContextReturn(BaseModel):
-    span_id: str
+    span_id: int
     trace_id: str
     trace_flags: str
     trace_state: str
@@ -730,7 +730,7 @@ def otel_span_context(args: OtelSpanContextArgs):
     # as integers and are converted to hex when the trace is submitted to the collector.
     # https://github.com/open-telemetry/opentelemetry-python/blob/v1.17.0/opentelemetry-api/src/opentelemetry/trace/span.py#L424-L425
     return OtelSpanContextReturn(
-        span_id="{:016x}".format(ctx.span_id),
+        span_id=ctx.span_id,
         trace_id="{:032x}".format(ctx.trace_id),
         trace_flags="{:02x}".format(ctx.trace_flags),
         trace_state=ctx.trace_state.to_header(),
@@ -1194,7 +1194,6 @@ class LogGenerateArgs(BaseModel):
     message: str
     level: str
     logger_name: str
-    create_logger: bool
     span_id: Optional[int] = None
 
 
@@ -1205,9 +1204,7 @@ class LogGenerateReturn(BaseModel):
 @app.post("/otel/logger/write")
 def write_log(args: LogGenerateArgs) -> LogGenerateReturn:
     """Write a log message using the specified logger."""
-    if args.create_logger:
-        _create_logger(args.logger_name, args.level)
-    elif args.logger_name not in logger_dict:
+    if args.logger_name not in logger_dict:
         raise ValueError(f"Logger {args.logger_name} not found in registered loggers {list(logger_dict.keys())}")
 
     logger = logger_dict[args.logger_name]

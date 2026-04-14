@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, scenarios, weblog, features, irrelevant, missing_feature, context
+from utils import interfaces, rfc, scenarios, weblog, features
 
 from utils.telemetry import validate_app_endpoints_schema
 
@@ -119,11 +119,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional request body type test."""
         self.main_setup()
 
-    @irrelevant(
-        context.library in ["dotnet", "nodejs", "ruby"],
-        reason="Not supported",
-    )
-    @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
     def test_optional_request_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -138,7 +133,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional response body type test."""
         self.main_setup()
 
-    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -153,14 +147,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional response code test."""
         self.main_setup()
 
-    @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("java", "spring-boot"),
-        ],
-        reason="Not applicable to weblog variant",
-    )
-    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -176,14 +162,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional authentication test."""
         self.main_setup()
 
-    @irrelevant(
-        (context.library, context.weblog_variant) in [("java", "spring-boot")],
-        reason="Not applicable to weblog variant",
-    )
-    @irrelevant(
-        context.library in ["dotnet", "nodejs", "ruby"],
-        reason="Not supported",
-    )
     def test_optional_authentication(self):
         endpoints = self._get_endpoints()
         allowed = {"JWT", "basic", "oauth", "OIDC", "api_key", "session", "mTLS", "SAML", "LDAP", "Form", "other"}
@@ -199,10 +177,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional metadata test."""
         self.main_setup()
 
-    @irrelevant(
-        context.library in ["dotnet", "nodejs", "ruby"],
-        reason="Not supported",
-    )
     def test_optional_metadata(self):
         endpoints = self._get_endpoints()
         found = False

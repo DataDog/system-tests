@@ -37,6 +37,8 @@ class _VagrantConfig:
 
 
 class _KrunVmConfig:
+    stdin: str | None
+
     def __init__(self, oci_image_name: str) -> None:
         self.oci_image_name = oci_image_name
         # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
@@ -147,7 +149,8 @@ class _VirtualMachine:
 
     def _check_provsion_install_error(self):
         assert self.provision_install_error is None, (
-            f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
+            f"❌ There are previous errors in the virtual machine provisioning steps. "
+            f"Check this file in the logs scenario folder: {self.name}.log"
         )
 
     def add_provision(self, provision: Provision) -> None:

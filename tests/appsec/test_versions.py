@@ -6,7 +6,7 @@ from utils import interfaces, features, scenarios
 
 
 @features.appsec_miscs_internals
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_Events:
