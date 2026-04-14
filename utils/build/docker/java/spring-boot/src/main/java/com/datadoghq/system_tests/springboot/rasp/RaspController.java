@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import javax.sql.DataSource;
 import java.net.MalformedURLException;
@@ -125,6 +127,12 @@ public class RaspController {
             e.printStackTrace();
             return "http connection failed";
         }
+    }
+
+    @GetMapping("/lfi_write")
+    public ResponseEntity<String> lfiWrite(@RequestParam("file") final String file) throws IOException {
+        new FileOutputStream(file).close();
+        return ResponseEntity.ok("OK");
     }
 
     private ResponseEntity<String> execLfi(final String file)  {
