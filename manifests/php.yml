@@ -455,7 +455,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (PHP normalizes into dashes; additionally, matching on keys is not supported)
-  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: irrelevant (Java-only address: server.io.fs.file_write)
+  tests/appsec/waf/test_addresses.py::Test_Zipslip: irrelevant (Java-only address: server.io.fs.file_write)
   tests/appsec/waf/test_addresses.py::Test_PathParams: v0.71.0
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0

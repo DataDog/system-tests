@@ -135,6 +135,19 @@ public class RaspController {
         return ResponseEntity.ok("OK");
     }
 
+    @PostMapping(value = "/lfi_write", consumes = APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<String> lfiWritePost(@RequestParam("file") final String file) throws IOException {
+        new FileOutputStream(file).close();
+        return ResponseEntity.ok("OK");
+    }
+
+    @PostMapping(value = "/lfi_write", consumes = "multipart/form-data")
+    public ResponseEntity<String> lfiWriteMultipart(
+        @RequestParam("file") final String file) throws IOException {
+        new FileOutputStream(file).close();
+        return ResponseEntity.ok("OK");
+    }
+
     private ResponseEntity<String> execLfi(final String file)  {
         new File(file);
         return ResponseEntity.ok("OK");

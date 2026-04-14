@@ -27,6 +27,8 @@ GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
 GET  /rasp/lfi                 controllers.RaspController.lfi
 POST /rasp/lfi                 controllers.RaspController.lfi
+GET  /rasp/lfi_write           controllers.RaspController.lfiWrite
+POST /rasp/lfi_write           controllers.RaspController.lfiWrite
 GET  /rasp/ssrf                controllers.RaspController.ssrf
 POST /rasp/ssrf                controllers.RaspController.ssrf
 GET  /rasp/shi                controllers.RaspController.shi

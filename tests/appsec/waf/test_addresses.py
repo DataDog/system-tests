@@ -423,18 +423,18 @@ class Test_GrpcServerMethod:
 
 @features.appsec_request_blocking
 @scenarios.appsec_rasp
-class Test_IoFsFileWrite:
-    """Appsec supports server.io.fs.file_write address (Zipslip detection via dog-920-110)"""
+class Test_Zipslip:
+    """Appsec WAF detects Zipslip attacks via dog-920-110 (server.io.fs.file_write + server.request.body.filenames)"""
 
     def setup_zipslip(self):
-        self.r = weblog.get(
+        self.r = weblog.post(
             "/rasp/lfi_write",
             params={"file": "../etc/passwd"},
-            headers={"x-filename": "archive.zip"},
+            files={"archive": ("evil.zip", b"PK\x03\x04", "application/zip")},
         )
 
     def test_zipslip(self):
-        """AppSec WAF detects Zipslip attack using server.io.fs.file_write and x-filename header"""
+        """AppSec WAF detects Zipslip attack: zip filename in body.filenames + path traversal in file write"""
         interfaces.library.assert_waf_attack(
             self.r,
             rule="dog-920-110",
