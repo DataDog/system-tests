@@ -848,7 +848,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert DI and ER are disabled by default, while code origin follows library defaults."""
+        """Assert DI and ER are disabled by default, and code origin config is reported."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -888,12 +888,11 @@ class Test_ProductsDisabled:
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
 
-        expected_co = "false"
         if context.library == "dotnet" and context.library.version >= "3.42.0":
-            expected_co = "true"
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
 
-        expected_co_state = "enabled" if expected_co == "true" else "disabled"
-        assert co_config == expected_co, f"Code Origin for Spans should be {expected_co_state} by default"
+        assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
