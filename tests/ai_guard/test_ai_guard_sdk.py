@@ -464,8 +464,8 @@ class Test_AIGuardEvent_Tag:
     def _assert_trace(self, trace: DataDogLibraryTrace):
         for span in trace.spans:
             parent_id = span.get("parent_id", 0)
-            event = span["meta"].get("ai_guard.event", False)
-            if parent_id == 0:
+            event = span["meta"].get("ai_guard.event", False) in (True, "true")
+            if parent_id in (None, 0):
                 assert event, f"Expected ai_guard.event to be set on root span, but it was not (meta: {span['meta']})"
             else:
                 assert not event, (
@@ -473,11 +473,11 @@ class Test_AIGuardEvent_Tag:
                 )
         return True
 
-    def setup_tag_probabilities(self):
+    def setup_ai_guard_event(self):
         self.messages = MESSAGES["DENY"]
         self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
 
-    def test_tag_probabilities(self):
+    def test_ai_guard_event(self):
         """Test AI Guard sets ai_guard.event:true tag in the local root span of the trace."""
         assert self.r.status_code == 200
         interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
