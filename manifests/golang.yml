@@ -270,7 +270,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.0.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: irrelevant (Java-only address: server.io.fs.file_write)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/rasp/test_shi.py: irrelevant (there is no equivalent to system(3) in go)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: v1.66.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded: v1.66.0
@@ -648,7 +648,6 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
-  tests/appsec/waf/test_addresses.py::Test_Zipslip: irrelevant (Java-only address: server.io.fs.file_write)
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v1.36.0
@@ -670,6 +669,7 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_Zipslip: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_gRPC: v1.36.0
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:

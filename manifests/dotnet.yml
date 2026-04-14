@@ -259,7 +259,7 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: v3.26.3
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v2.51.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v3.4.1
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: irrelevant (Java-only address: server.io.fs.file_write)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: v3.2.0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: v3.2.0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: v3.2.0
@@ -532,12 +532,12 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.28.6
-  tests/appsec/waf/test_addresses.py::Test_Zipslip: irrelevant (Java-only address: server.io.fs.file_write)
   tests/appsec/waf/test_addresses.py::Test_PathParams: v2.5.1
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: v2.3.0
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v1.28.6
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v2.7.0
   tests/appsec/waf/test_addresses.py::Test_UrlRaw: v1.28.6
+  tests/appsec/waf/test_addresses.py::Test_Zipslip: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v2.27.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)

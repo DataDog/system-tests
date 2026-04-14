@@ -773,7 +773,7 @@ manifest:
         fastify: *ref_5_66_0
         nextjs: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: *ref_5_25_0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: irrelevant (Java-only address: server.io.fs.file_write)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
     - weblog_declaration:
         "*": *ref_5_25_0
@@ -1332,7 +1332,6 @@ manifest:
         nextjs: irrelevant  # nextjs is not related with graphql
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v2.0.0
-  tests/appsec/waf/test_addresses.py::Test_Zipslip: irrelevant (Java-only address: server.io.fs.file_write)
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v2.0.0
@@ -1351,6 +1350,7 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: *ref_4_17_0
   tests/appsec/waf/test_addresses.py::Test_UrlRaw: v2.0.0
+  tests/appsec/waf/test_addresses.py::Test_Zipslip: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: *ref_3_19_0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)

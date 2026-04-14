@@ -248,7 +248,7 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v1.6.2
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: irrelevant (Java-only address: server.io.fs.file_write)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: missing_feature
@@ -455,11 +455,11 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (PHP normalizes into dashes; additionally, matching on keys is not supported)
-  tests/appsec/waf/test_addresses.py::Test_Zipslip: irrelevant (Java-only address: server.io.fs.file_write)
   tests/appsec/waf/test_addresses.py::Test_PathParams: v0.71.0
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0
   tests/appsec/waf/test_addresses.py::Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
+  tests/appsec/waf/test_addresses.py::Test_Zipslip: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.15.0  # v0.86.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
