@@ -1052,12 +1052,12 @@ class Test_TelemetrySCAEnvVar:
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] == "DD_APPSEC_SCA_ENABLED":
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration DD_APPSEC_SCA_ENABLED"
         )
