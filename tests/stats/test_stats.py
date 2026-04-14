@@ -1,5 +1,6 @@
 import contextlib
 import pytest
+
 from utils import features, interfaces, logger, scenarios, weblog
 
 """
@@ -134,7 +135,7 @@ class Test_Client_Stats:
         )
 
 
-@features.client_side_stats_supported  # FIXME: create a new feature ?
+@features.client_side_stats_supported
 @scenarios.trace_stats_computation
 class Test_Client_Stats_With_Client_Obfuscation:
     """Test client-side stats do the obfuscation before-hand when available"""
@@ -178,10 +179,11 @@ class Test_Client_Stats_With_Client_Obfuscation:
             assert stat["Resource"] == want, f"Expected obfuscated resource '{want}', got '{stat['Resource']}'"
 
 
-@features.client_side_stats_supported  # FIXME: create a new feature ?
+@features.client_side_stats_supported
 @scenarios.trace_stats_computation_obfuscation_disabled
 class Test_Client_Stats_With_Client_Obfuscation_Disabled:
     """Test that libraries read the agent /info to respect the obfuscation config"""
+
     TEST_USER_IDS = ["1", "2", "admin", "test"]
 
     def setup_obfuscation(self):
@@ -230,7 +232,7 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
             assert query.removeprefix(want_prefix) in accepted_suffixes
 
 
-@features.client_side_stats_supported  # FIXME: create a new feature ?
+@features.client_side_stats_supported
 @scenarios.trace_stats_computation_future_obfuscation_version
 class Test_Client_Stats_Future_Obfuscation_Version:
     """Test that the SDK skips client-side obfuscation when the agent advertises a future/unknown obfuscation version"""
