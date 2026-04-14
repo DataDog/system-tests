@@ -3128,8 +3128,10 @@ manifest:
   tests/ffe/test_flag_eval_metrics.py: v1.60.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Basic::test_ffe_eval_metric_basic: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Numeric_To_Integer::test_ffe_eval_metric_numeric_to_integer: bug (FFL-1972)
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex::test_ffe_eval_metric_parse_error_invalid_regex: bug (FFL-1972)
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch::test_ffe_eval_metric_parse_error_variant_type_mismatch: bug (FFL-1972)
+  ? tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex::test_ffe_eval_metric_parse_error_invalid_regex
+  : bug (FFL-1972)
+  ? tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch::test_ffe_eval_metric_parse_error_variant_type_mismatch
+  : bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Type_Mismatch::test_ffe_eval_metric_type_mismatch: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Split::test_ffe_eval_reason_split: bug (FFL-1972)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
