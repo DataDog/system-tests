@@ -173,7 +173,7 @@ class Test_Client_Stats_With_Client_Obfuscation:
 
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
 
-        assert len(sql_stats) > 0, "Expected at least one SQL stats entry"
+        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
         for stat in sql_stats:
             assert stat["Resource"] == want, f"Expected obfuscated resource '{want}', got '{stat['Resource']}'"
 
@@ -217,7 +217,7 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
 
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
 
-        assert len(sql_stats) > 0, "Expected at least one SQL stats entry"
+        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
         # NormalizeOnly mode preserves string literals including surrounding single quotes.
         # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
         # suffix appears as e.g. "'1'" (with quotes). Accept both quoted and unquoted forms
@@ -268,7 +268,7 @@ class Test_Client_Stats_Future_Obfuscation_Version:
             "Datadog-Obfuscation-Version header should NOT be present when agent reports a future obfuscation version"
         )
 
-        assert len(sql_stats) > 0, "Expected at least one SQL stats entry"
+        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
                 f"SQL resource should NOT be obfuscated when agent reports a future obfuscation version, "
