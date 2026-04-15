@@ -18,6 +18,4 @@ class TelemetryUtils:
 
     @staticmethod
     def get_dd_appsec_sca_enabled_names(library: ComponentVersion) -> list[str]:
-        if library == "php":
-            return ["appsec.sca_enabled"]
         return ["DD_APPSEC_SCA_ENABLED"]
