@@ -10,8 +10,7 @@ WORKDIR /app
 
 ENV GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/go/pkg/mod \
-    GONOSUMDB=github.com/DataDog/* \
-    GONOSUMCHECK=github.com/DataDog/*
+    GONOSUMDB=github.com/DataDog/*
 RUN --mount=type=cache,target=${GOMODCACHE}                                     \
     --mount=type=cache,target=${GOCACHE}                                        \
     --mount=type=tmpfs,target=/tmp                                              \
