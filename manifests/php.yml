@@ -296,6 +296,9 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v1.8.0
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_telemetry_sca_enabled_propagated:
+    - component_version: ">=1.19.0-dev"
+      declaration: bug (APPSEC-62349)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
