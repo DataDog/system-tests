@@ -804,13 +804,15 @@ class AgentContainer(TestedContainer):
             self.agent_version = ComponentVersion("agent", version_str).version
 
     def post_start(self):
+        already_known = self.agent_version is not None
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
         self.agent_version = ComponentVersion("agent", data["version"]).version
 
-        logger.stdout(f"Agent: {self.agent_version}")
-        logger.stdout(f"Backend: {self.dd_site}")
+        if not already_known:
+            logger.stdout(f"Agent: {self.agent_version}")
+            logger.stdout(f"Backend: {self.dd_site}")
 
     @property
     def dd_site(self):

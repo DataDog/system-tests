@@ -89,6 +89,7 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            self.warmups.append(self._log_starting_containers)
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
 
@@ -128,6 +129,9 @@ class DockerScenario(Scenario):
 
         observer.start()
 
+    def _log_starting_containers(self):
+        logger.stdout("Starting containers...")
+
     def _create_network(self) -> None:
         name = "system-tests-ipv6" if self.enable_ipv6 else "system-tests-ipv4"
 
@@ -153,7 +157,6 @@ class DockerScenario(Scenario):
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
     def _start_containers(self):
-        logger.stdout("Starting containers...")
         threads = []
 
         for container in self._containers:
@@ -340,6 +343,7 @@ class EndToEndScenario(DockerScenario):
             # Both versions known from image labels: defer container startup to post-collection
             # so containers are skipped entirely when no tests are selected
             self._set_library_component()
+            self.warmups.append(self._log_agent_info)
             self.warmups.append(self._log_weblog_info)
             self._defer_container_startup()
         elif self.weblog_container._library is not None:
@@ -400,6 +404,10 @@ class EndToEndScenario(DockerScenario):
     def _set_weblog_domain(self):
         if self.enable_ipv6:
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
+
+    def _log_agent_info(self):
+        logger.stdout(f"Agent: {self.agent_container.agent_version}")
+        logger.stdout(f"Backend: {self.agent_container.dd_site}")
 
     def _log_weblog_info(self):
         logger.stdout(f"Library: {self.library}")
