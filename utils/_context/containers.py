@@ -797,6 +797,12 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        version_str = self.image.labels.get("org.opencontainers.image.version")
+        if version_str:
+            self.agent_version = ComponentVersion("agent", version_str).version
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)

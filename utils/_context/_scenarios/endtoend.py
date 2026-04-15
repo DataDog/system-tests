@@ -89,14 +89,14 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
-            self.post_collection_warmups.append(self._create_network)
-            self.post_collection_warmups.append(self._start_containers)
+            self.warmups.append(self._create_network)
+            self.warmups.append(self._start_containers)
 
         for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
         for container in self._containers:
-            self.post_collection_warmups.append(container.post_start)
+            self.warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._containers:
@@ -332,12 +332,28 @@ class EndToEndScenario(DockerScenario):
             self.post_collection_warmups.append(self._wait_for_app_readiness)
             self.post_collection_warmups.append(self._set_weblog_domain)
 
-        if self.weblog_container._library is not None:
+        if (
+            not self.replay
+            and self.weblog_container._library is not None
+            and self.agent_container.agent_version is not None
+        ):
+            # Both versions known from image labels: defer container startup to post-collection
+            # so containers are skipped entirely when no tests are selected
             self._set_library_component()
+            self._defer_container_startup()
+        elif self.weblog_container._library is not None:
+            self._set_library_component()
+            self.warmups.append(self._set_agent_component)
         else:
-            self.post_collection_warmups.append(self._set_library_component)
+            self.warmups.append(self._set_library_component)
+            self.warmups.append(self._set_agent_component)
 
-        self.post_collection_warmups.append(self._set_agent_component)
+    def _defer_container_startup(self):
+        """Move container startup warmups to post_collection_warmups (inserted before interface warmups)."""
+        container_warmups = [self._create_network, self._start_containers] + [c.post_start for c in self._containers]
+        for w in container_warmups:
+            self.warmups.remove(w)
+        self.post_collection_warmups[0:0] = container_warmups + [self._set_agent_component]
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
