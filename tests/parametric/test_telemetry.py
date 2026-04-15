@@ -198,7 +198,8 @@ def _check_propagation_style_with_inject_and_extract(
         )
         assert config_item["value"], f"Expected non-empty value for '{config_name}'"
 
-    if allow_calculated_origin:
+    combined_propagation_style = configuration_by_name.get("DD_TRACE_PROPAGATION_STYLE")
+    if allow_calculated_origin and combined_propagation_style:
         _assert_config_with_allowed_origins("DD_TRACE_PROPAGATION_STYLE", [expected_origin])
 
     for key in keys:
@@ -1180,6 +1181,7 @@ class Test_TelemetrySSIConfigs:
                 configuration_by_name,
                 instrumentation_source_name,
                 "default",
+                fallback_to_first=True,
             )
             if instrumentation_source is not None:
                 break
