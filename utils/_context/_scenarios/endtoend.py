@@ -89,14 +89,14 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
-            self.warmups.append(self._create_network)
-            self.warmups.append(self._start_containers)
+            self.post_collection_warmups.append(self._create_network)
+            self.post_collection_warmups.append(self._start_containers)
 
         for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
         for container in self._containers:
-            self.warmups.append(container.post_start)
+            self.post_collection_warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._containers:
@@ -327,11 +327,17 @@ class EndToEndScenario(DockerScenario):
             self.library_interface_timeout = self._library_interface_timeout
 
         if not self.replay:
-            self.warmups.insert(1, self._start_interfaces_watchdog)
-            self.warmups.append(self._get_weblog_system_info)
-            self.warmups.append(self._wait_for_app_readiness)
-            self.warmups.append(self._set_weblog_domain)
-        self.warmups.append(self._set_components)
+            self.post_collection_warmups.append(self._start_interfaces_watchdog)
+            self.post_collection_warmups.append(self._get_weblog_system_info)
+            self.post_collection_warmups.append(self._wait_for_app_readiness)
+            self.post_collection_warmups.append(self._set_weblog_domain)
+
+        if self.weblog_container._library is not None:
+            self._set_library_component()
+        else:
+            self.post_collection_warmups.append(self._set_library_component)
+
+        self.post_collection_warmups.append(self._set_agent_component)
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
@@ -377,10 +383,16 @@ class EndToEndScenario(DockerScenario):
         if self.enable_ipv6:
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
-    def _set_components(self):
-        self.components["agent"] = self.agent_version
+    def _set_library_component(self):
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
+
+    def _set_agent_component(self):
+        self.components["agent"] = self.agent_version
+
+    def _set_components(self):
+        self._set_library_component()
+        self._set_agent_component()
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
