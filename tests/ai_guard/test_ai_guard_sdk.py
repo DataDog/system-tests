@@ -3,7 +3,7 @@ import math
 
 from utils import context, interfaces, scenarios, weblog, features
 from utils.dd_constants import SamplingMechanism, SamplingPriority
-from utils.dd_types import DataDogLibrarySpan, is_same_boolean
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -456,3 +456,28 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(location, "start_index") is not None
             assert _assert_key(location, "end_index_exclusive") is not None
             assert _assert_key(location, "path")
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_AIGuardEvent_Tag:
+    def _assert_trace(self, trace: DataDogLibraryTrace):
+        for span in trace.spans:
+            parent_id = span.get("parent_id", 0)
+            event = span["meta"].get("ai_guard.event", False) in (True, "true")
+            if parent_id in (None, 0):
+                assert event, f"Expected ai_guard.event to be set on root span, but it was not (meta: {span['meta']})"
+            else:
+                assert not event, (
+                    f"Expected ai_guard.event to not be set on non-root span, but it was (parent_id: {parent_id}, meta: {span['meta']})"
+                )
+        return True
+
+    def setup_ai_guard_event(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+
+    def test_ai_guard_event(self):
+        """Test AI Guard sets ai_guard.event:true tag in the local root span of the trace."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
