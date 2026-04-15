@@ -2,6 +2,7 @@ from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
+import time
 from typing import TYPE_CHECKING
 
 
@@ -189,22 +190,30 @@ class Scenario:
 
         logger.terminal.write_sep("=", "test context", bold=True)
 
+        _t0 = time.perf_counter()
         try:
             for warmup in self.warmups:
                 logger.info(f"Executing warmup {warmup}")
+                _wt = time.perf_counter()
                 warmup()
+                logger.stdout(f"  [timing] {warmup.__name__}: {time.perf_counter() - _wt:.2f}s")
         except:
             self.close_targets()
             raise
+        logger.stdout(f"[timing] pre-collection warmups total: {time.perf_counter() - _t0:.2f}s")
 
     def execute_post_collection_warmups(self):
+        _t0 = time.perf_counter()
         try:
             for warmup in self.post_collection_warmups:
                 logger.info(f"Executing post-collection warmup {warmup}")
+                _wt = time.perf_counter()
                 warmup()
+                logger.stdout(f"  [timing] {warmup.__name__}: {time.perf_counter() - _wt:.2f}s")
         except:
             self.close_targets()
             raise
+        logger.stdout(f"[timing] post-collection warmups total: {time.perf_counter() - _t0:.2f}s")
 
     def post_setup(self, session: pytest.Session):
         """Called after test setup"""
