@@ -340,9 +340,11 @@ class EndToEndScenario(DockerScenario):
             # Both versions known from image labels: defer container startup to post-collection
             # so containers are skipped entirely when no tests are selected
             self._set_library_component()
+            self.warmups.append(self._log_weblog_info)
             self._defer_container_startup()
         elif self.weblog_container._library is not None:
             self._set_library_component()
+            self.warmups.append(self._log_weblog_info)
             self.warmups.append(self._set_agent_component)
         else:
             self.warmups.append(self._set_library_component)
@@ -398,6 +400,14 @@ class EndToEndScenario(DockerScenario):
     def _set_weblog_domain(self):
         if self.enable_ipv6:
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
+
+    def _log_weblog_info(self):
+        logger.stdout(f"Library: {self.library}")
+        if self.weblog_container.appsec_rules_file:
+            logger.stdout("Using a custom appsec rules file")
+        if self.weblog_container.uds_mode:
+            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
+        logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
     def _set_library_component(self):
         self.components["library"] = self.library.version

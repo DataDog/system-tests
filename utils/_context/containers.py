@@ -1135,16 +1135,15 @@ class WeblogContainer(TestedContainer):
 
             self._library = ComponentVersion(lib["name"], lib["version"])
             logger.warning("Library version read from healthcheck endpoint — add system-tests-library-version label to the image to speed up startup")
+            logger.stdout(f"Library: {self.library}")
 
-        logger.stdout(f"Library: {self.library}")
+            if self.appsec_rules_file:
+                logger.stdout("Using a custom appsec rules file")
 
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
+            if self.uds_mode:
+                logger.stdout(f"UDS socket: {self.uds_socket}")
 
-        if self.uds_mode:
-            logger.stdout(f"UDS socket: {self.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_variant}")
+            logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
         self.stdout_interface.init_patterns(self.library)
 
