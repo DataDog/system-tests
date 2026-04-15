@@ -223,7 +223,9 @@ def _postprocess_attribute_values(attrs_dict: dict[str, Any]) -> None:
             if isinstance(val, bytes):
                 attrs_dict[key] = unpack_trace_bytes_msgpack(val)
         elif key in _json_meta_values:
-            attrs_dict[key] = json.loads(attrs_dict[key])
+            val = attrs_dict[key]
+            if isinstance(val, (str, bytes, bytearray)):
+                attrs_dict[key] = json.loads(val)
 
 
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
