@@ -1506,6 +1506,7 @@ manifest:
         "*": *ref_5_83_0
         nextjs: irrelevant
     - declaration: flaky (DEBUG-5169)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": *ref_5_83_0

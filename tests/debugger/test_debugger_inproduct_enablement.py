@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, irrelevant, logger, scenarios, slow
+from utils import context, features, logger, scenarios, slow
 import json
 import time
 
@@ -213,7 +213,6 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
 
 @features.debugger_code_origins
 @scenarios.debugger_inproduct_enablement
-@irrelevant(context.library != "dotnet", reason="Only applicable to dotnet")
 @slow
 class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
     def setup_code_origin_enabled_by_default(self):
