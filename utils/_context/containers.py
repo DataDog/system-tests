@@ -1014,6 +1014,10 @@ class WeblogContainer(TestedContainer):
 
         library = self.image.labels["system-tests-library"]
 
+        version_from_label = self.image.labels.get("system-tests-library-version")
+        if version_from_label:
+            self._library = ComponentVersion(library, version_from_label)
+
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
@@ -1118,11 +1122,13 @@ class WeblogContainer(TestedContainer):
     def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
 
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
+        if self._library is None:
+            with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                data = json.load(f)
+                lib = data["library"]
 
-        self._library = ComponentVersion(lib["name"], lib["version"])
+            self._library = ComponentVersion(lib["name"], lib["version"])
+            logger.warning("Library version read from healthcheck endpoint — add system-tests-library-version label to the image to speed up startup")
 
         logger.stdout(f"Library: {self.library}")
 
