@@ -637,6 +637,7 @@ manifest:
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : bug (DEBUG-2560)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: missing_feature (Temporarily disabled; enable from v3.42.0 later)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig

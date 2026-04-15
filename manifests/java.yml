@@ -2909,6 +2909,7 @@ manifest:
         spring-boot-wildfly: v1.48.0
         uds-spring-boot: v1.48.0
     - declaration: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
