@@ -198,8 +198,12 @@ def _check_propagation_style_with_inject_and_extract(
         )
         assert config_item["value"], f"Expected non-empty value for '{config_name}'"
 
-    combined_propagation_style = configuration_by_name.get("DD_TRACE_PROPAGATION_STYLE")
-    if allow_calculated_origin and combined_propagation_style:
+    combined_propagation_style = test_agent.get_telemetry_config_by_origin(
+        configuration_by_name,
+        "DD_TRACE_PROPAGATION_STYLE",
+        expected_origin,
+    )
+    if allow_calculated_origin and combined_propagation_style is not None:
         _assert_config_with_allowed_origins("DD_TRACE_PROPAGATION_STYLE", [expected_origin])
 
     for key in keys:
