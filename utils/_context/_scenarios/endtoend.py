@@ -349,11 +349,13 @@ class EndToEndScenario(DockerScenario):
             self._set_library_component()
             self.warmups.append(self._log_weblog_info)
             self.warmups.append(self._set_agent_component)
-            self.warmups.append(self._get_weblog_system_info)
+            if not self.replay:
+                self.warmups.append(self._get_weblog_system_info)
         else:
             self.warmups.append(self._set_library_component)
             self.warmups.append(self._set_agent_component)
-            self.warmups.append(self._get_weblog_system_info)
+            if not self.replay:
+                self.warmups.append(self._get_weblog_system_info)
 
     def _defer_container_startup(self):
         """Move container startup warmups to post_collection_warmups (inserted before interface warmups)."""
@@ -424,10 +426,6 @@ class EndToEndScenario(DockerScenario):
 
     def _set_agent_component(self):
         self.components["agent"] = self.agent_version
-
-    def _set_components(self):
-        self._set_library_component()
-        self._set_agent_component()
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
