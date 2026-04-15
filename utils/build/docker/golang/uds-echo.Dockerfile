@@ -9,7 +9,8 @@ RUN go version && curl --version
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
-ENV GONOSUMDB=github.com/DataDog/*
+ENV GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 RUN go mod download && go mod verify
 
 # copy the app code

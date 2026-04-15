@@ -3,6 +3,7 @@
 set -euo pipefail
 
 export GONOSUMDB="github.com/DataDog/*"
+export GOPRIVATE="github.com/DataDog/*"
 
 if [ -e "/binaries/orchestrion" ]; then
     echo "Install from folder /binaries/orchestrion"

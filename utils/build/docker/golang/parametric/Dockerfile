@@ -3,7 +3,8 @@ FROM golang:1.25
 
 # install jq
 RUN apt-get update && apt-get -y install jq
-ENV GONOSUMDB=github.com/DataDog/*
+ENV GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 WORKDIR /app
 COPY utils/build/docker/golang/parametric/go.mod /app
 COPY utils/build/docker/golang/parametric/go.sum /app
