@@ -53,6 +53,7 @@ go mod tidy
 lib_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/dd-trace-go/v2)
 version=$(sed -nrE 's#.*"v(.*)".*#\1#p' "${lib_mod_dir}/internal/version/version.go") # Parse the version string content "v.*"
 echo "${version}" > SYSTEM_TESTS_LIBRARY_VERSION
+echo "${version}" > /system-tests-library-version
 
 # Output the version of dd-trace-go (per go.mod, as well as the built-in tag).
 echo "dd-trace-go go.mod version: $(go list -f '{{ .Version }}' -m github.com/DataDog/dd-trace-go/v2)"
