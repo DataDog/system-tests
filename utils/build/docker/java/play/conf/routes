@@ -11,6 +11,7 @@ GET  /resource_renaming/*path  controllers.MainController.resourceRenaming(path:
 GET  /waf                      controllers.AppSecController.waf
 GET  /waf/                      controllers.AppSecController.waf
 GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
+POST /waf/zipslip               controllers.AppSecController.wafZipslip
 POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)

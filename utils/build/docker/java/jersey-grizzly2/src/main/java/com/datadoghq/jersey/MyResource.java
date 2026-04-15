@@ -34,9 +34,16 @@ import java.util.HashMap;
 import java.util.List;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -238,6 +245,23 @@ public class MyResource {
     @Consumes(MediaType.TEXT_PLAIN)
     public String postWafString(String data) {
         return data;
+    }
+
+    @POST
+    @Path("/waf/zipslip")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public String wafZipslip(@FormDataParam("file") InputStream fileStream) throws Exception {
+        File baseDir = new File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract");
+        baseDir.mkdirs();
+        try (ZipInputStream zis = new ZipInputStream(fileStream)) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    new FileOutputStream(new File(baseDir, entry.getName())).close();
+                }
+            }
+        }
+        return "OK";
     }
 
     @GET

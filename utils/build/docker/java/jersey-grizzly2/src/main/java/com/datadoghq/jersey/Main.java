@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.naming.directory.InitialDirContext;
@@ -43,6 +44,7 @@ public class Main {
         final ResourceConfig rc = new ResourceConfig().packages("com.datadoghq.jersey");
 
         // Register resources
+        rc.register(MultiPartFeature.class);
         rc.register(MyResource.class);
         rc.register(RaspResource.class);
         rc.register(IastSinkResource.class);

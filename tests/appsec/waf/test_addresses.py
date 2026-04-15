@@ -1,7 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import io
 import json
+import zipfile
+
 import pytest
 from utils import weblog, interfaces, rfc, scenarios, features, logger
 from utils.dd_types import DataDogLibrarySpan
@@ -427,10 +430,14 @@ class Test_Zipslip:
     """Appsec WAF detects Zipslip attacks via dog-920-110 (server.io.fs.file_write + server.request.body.filenames)"""
 
     def setup_zipslip(self):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            zf.writestr("../../evil.jsp", "evil content")
+        zip_bytes = zip_buffer.getvalue()
+
         self.r = weblog.post(
-            "/rasp/lfi_write",
-            params={"file": "../etc/passwd"},
-            files={"archive": ("evil.zip", b"PK\x03\x04", "application/zip")},
+            "/waf/zipslip",
+            files={"file": ("zipslip.zip", zip_bytes, "application/zip")},
         )
 
     def test_zipslip(self):

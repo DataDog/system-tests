@@ -1311,10 +1311,6 @@ manifest:
     - weblog_declaration:
         "*": v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery:
-    - weblog_declaration:
-        "*": missing_feature (APPSEC-61874, requires ddwaf support for server.io.fs.file_write as RASP address)
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -2570,7 +2566,8 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_Zipslip:
     - weblog_declaration:
-        "*": missing_feature (APPSEC-61874, requires ddwaf to evaluate WAF rules against ephemeral server.io.fs.file_write data)
+        "*": missing_feature
+        spring-boot: v1.62.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_gRPC:
     - weblog_declaration:

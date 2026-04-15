@@ -773,7 +773,6 @@ manifest:
         fastify: *ref_5_66_0
         nextjs: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: *ref_5_25_0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
     - weblog_declaration:
         "*": *ref_5_25_0

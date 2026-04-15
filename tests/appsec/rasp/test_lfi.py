@@ -332,25 +332,3 @@ class Test_Lfi_Waf_Version(BaseWAFVersion):
     """Test lfi WAF version"""
 
     min_version = "1.20.1"
-
-
-@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3nydvvu7sn93")
-@features.rasp_local_file_inclusion
-@scenarios.appsec_rasp
-class Test_Lfi_Write_UrlQuery:
-    """Local file inclusion via FileOutputStream write through query parameters"""
-
-    def setup_lfi_write_get(self):
-        self.r = weblog.get("/rasp/lfi_write", params={"file": "../etc/passwd"})
-
-    def test_lfi_write_get(self):
-        assert self.r.status_code == 403
-
-        interfaces.library.assert_rasp_attack(
-            self.r,
-            "rasp-930-100",
-            {
-                "resource": {"address": "server.io.fs.file_write", "value": "../etc/passwd"},
-                "params": {"address": "server.request.query", "value": "../etc/passwd"},
-            },
-        )

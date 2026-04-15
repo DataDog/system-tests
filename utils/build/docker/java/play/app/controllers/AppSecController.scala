@@ -178,6 +178,28 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     }
   }
 
+  def wafZipslip = Action(parse.multipartFormData) { request =>
+    val baseDir = new java.io.File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract")
+    baseDir.mkdirs()
+    request.body.file("file").foreach { filePart =>
+      val zipFile = filePart.ref.path.toFile
+      try {
+        val zis = new java.util.zip.ZipInputStream(new java.io.FileInputStream(zipFile))
+        var entry = zis.getNextEntry()
+        while (entry != null) {
+          if (!entry.isDirectory) {
+            new java.io.FileOutputStream(new java.io.File(baseDir, entry.getName)).close()
+          }
+          entry = zis.getNextEntry()
+        }
+        zis.close()
+      } catch {
+        case _: Exception => // expected to be blocked
+      }
+    }
+    Results.Ok("OK")
+  }
+
   def distantCall(url: String) = Action.async {
     val remoteReq: WSRequest = ws.url(url).withMethod("GET")
 

@@ -259,7 +259,6 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: v3.26.3
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v2.51.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v3.4.1
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Write_UrlQuery: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: v3.2.0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: v3.2.0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: v3.2.0
