@@ -390,6 +390,18 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
+    appsec_auto_events_disabled = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_DISABLED",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "disabled",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "disabled",
+        },
+        appsec_enabled=True,
+        doc="Scenario for checking disabled mode in automatic user events",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
         weblog_env={

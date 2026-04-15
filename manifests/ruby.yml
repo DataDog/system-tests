@@ -405,6 +405,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v2.20.0-dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v2.20.0-dev
   tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: irrelevant
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended::test_login_failure_headers: missing_feature
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended::test_login_success_headers: missing_feature

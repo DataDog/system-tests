@@ -956,6 +956,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_Login_Events::test_login_wrong_user_failure_local:
     - declaration: bug (APMRP-360)
       component_version: <4.9.0
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: irrelevant
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: irrelevant
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: irrelevant
