@@ -396,6 +396,14 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "true",
             "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "disabled",
             "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "disabled",
+            "DD_APPSEC_RULES": "/appsec_rules_no_processors.json",
+            "DD_API_SECURITY_ENABLED": "false",
+        },
+        weblog_volumes={
+            "./tests/appsec/rules_no_processors.json": {
+                "bind": "/appsec_rules_no_processors.json",
+                "mode": "ro",
+            }
         },
         appsec_enabled=True,
         doc="Scenario for checking disabled mode in automatic user events",

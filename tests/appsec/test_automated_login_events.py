@@ -564,7 +564,7 @@ class Test_Login_Events_Disabled:
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
             assert "appsec.events.users.login.success.track" not in meta
             assert "usr.id" not in meta
             assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
@@ -580,7 +580,7 @@ class Test_Login_Events_Disabled:
         assert self.r_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
             assert "appsec.events.users.login.success.track" not in meta
             assert "usr.id" not in meta
             assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
@@ -596,7 +596,7 @@ class Test_Login_Events_Disabled:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.failure.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
             assert "appsec.events.users.login.failure.track" not in meta
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert "appsec.events.users.login.failure.usr.exists" not in meta
@@ -615,7 +615,7 @@ class Test_Login_Events_Disabled:
         assert self.r_wrong_user_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.failure.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
             assert "appsec.events.users.login.failure.track" not in meta
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert "appsec.events.users.login.failure.usr.exists" not in meta
@@ -632,7 +632,7 @@ class Test_Login_Events_Disabled:
         assert self.r_wrong_pw_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_pw_failure):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.failure.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
             assert "appsec.events.users.login.failure.track" not in meta
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert "appsec.events.users.login.failure.usr.exists" not in meta
@@ -651,7 +651,7 @@ class Test_Login_Events_Disabled:
         assert self.r_wrong_pw_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_wrong_pw_failure):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.failure.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
             assert "appsec.events.users.login.failure.track" not in meta
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert "appsec.events.users.login.failure.usr.exists" not in meta
@@ -665,13 +665,13 @@ class Test_Login_Events_Disabled:
 
     def test_login_sdk_success_local(self):
         """Validates that SDK-triggered login success events still fire when auto-tracking
-        is disabled (R8). The auto.mode tag must be absent (no automated event), but SDK
+        is disabled (R8). The auto.mode tag must be absent or 'disabled' (auto-tracking never ran), SDK
         tags and force-keep priority must be present.
         """
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
@@ -685,13 +685,13 @@ class Test_Login_Events_Disabled:
 
     def test_login_sdk_success_basic(self):
         """Validates that SDK-triggered login success events still fire when auto-tracking
-        is disabled (R8), using basic auth. The auto.mode tag must be absent (no automated
-        event), but SDK tags and force-keep priority must be present.
+        is disabled (R8), using basic auth. The auto.mode tag must be absent (auto-tracking
+        never ran), SDK tags and force-keep priority must be present.
         """
         assert self.r_sdk_success.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
@@ -705,13 +705,13 @@ class Test_Login_Events_Disabled:
 
     def test_login_sdk_failure_local(self):
         """Validates that SDK-triggered login failure events still fire when auto-tracking
-        is disabled (R8). The auto.mode tag must be absent (no automated event), but SDK
+        is disabled (R8). The auto.mode tag must be absent or 'disabled' (auto-tracking never ran), SDK
         tags, failure info, and force-keep priority must be present.
         """
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.failure.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
@@ -726,13 +726,13 @@ class Test_Login_Events_Disabled:
 
     def test_login_sdk_failure_basic(self):
         """Validates that SDK-triggered login failure events still fire when auto-tracking
-        is disabled (R8), using basic auth. The auto.mode tag must be absent (no automated
-        event), but SDK tags, failure info, and force-keep priority must be present.
+        is disabled (R8), using basic auth. The auto.mode tag must be absent (auto-tracking
+        never ran), SDK tags, failure info, and force-keep priority must be present.
         """
         assert self.r_sdk_failure.status_code == 401
         for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
-            assert "_dd.appsec.events.users.login.failure.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
@@ -1329,7 +1329,7 @@ class Test_V2_Login_Events_RC:
 
     def test_rc(self):
         def validate_disabled(meta: dict):
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
 
         def validate_anon(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
@@ -1969,7 +1969,7 @@ class Test_V3_Login_Events_RC:
 
     def test_rc(self):
         def validate_disabled(meta: dict):
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
 
         def validate_anon(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
