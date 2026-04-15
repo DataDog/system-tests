@@ -1048,16 +1048,22 @@ class Test_TelemetrySCAEnvVar:
 
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
+        expected_configuration_names = (
+            {"appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"}
+            if context.library.name == "php"
+            else {"DD_APPSEC_SCA_ENABLED"}
+        )
         found = False
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] == "DD_APPSEC_SCA_ENABLED":
+                if c["name"] in expected_configuration_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration DD_APPSEC_SCA_ENABLED"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{sorted(expected_configuration_names)}"
         )
