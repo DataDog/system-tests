@@ -232,7 +232,6 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     # if only collect tests, do not start the scenario
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
-        logger.stdout(f"[timing] collection starts at t={time.perf_counter():.2f}s")
 
 
     if session.config.option.sleep:
@@ -283,12 +282,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-    _t0 = time.perf_counter()
     manifest_components: dict[str, Version] = {
         name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
     }
     manifest = Manifest(manifest_components, context.weblog_variant)
-    logger.stdout(f"  [timing] manifest load: {time.perf_counter() - _t0:.2f}s")
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
@@ -394,7 +391,6 @@ def _item_is_skipped(item: pytest.Item):
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
-    logger.stdout(f"[timing] collection ends at t={time.perf_counter():.2f}s")
     if session.config.option.collectonly:
         return
 
