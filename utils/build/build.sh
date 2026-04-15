@@ -296,7 +296,11 @@ build() {
                     .
 
                 CID=$(docker create system_tests/weblog)
-                LIBRARY_VERSION=$(docker cp "${CID}:/system-tests-library-version" - 2>/dev/null | tar -xO || true)
+                LIBRARY_VERSION=""
+                for _path in /system-tests-library-version /app/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION /builds/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VERSION; do
+                    LIBRARY_VERSION=$(docker cp "${CID}:${_path}" - 2>/dev/null | tar -xO 2>/dev/null | tr -d '[:space:]')
+                    [ -n "${LIBRARY_VERSION}" ] && break
+                done
                 docker rm "${CID}" > /dev/null
                 if [ -n "${LIBRARY_VERSION}" ]; then
                     docker build \
