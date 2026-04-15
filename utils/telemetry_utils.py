@@ -22,6 +22,4 @@ class TelemetryUtils:
             # Temporary compatibility for dd-trace-js PR #7734.
             # Remove "appsec.sca.enabled" once Node.js only reports the canonical env name.
             return ["DD_APPSEC_SCA_ENABLED", "appsec.sca.enabled"]
-        if library == "php":
-            return ["appsec.sca_enabled"]
         return ["DD_APPSEC_SCA_ENABLED"]
