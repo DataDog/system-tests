@@ -741,7 +741,7 @@ class LambdaProxyContainer(TestedContainer):
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
-    agent_version: Version
+    agent_version: Version | None = None
 
     def __init__(
         self,
