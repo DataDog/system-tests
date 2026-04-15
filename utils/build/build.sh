@@ -295,6 +295,15 @@ build() {
                     $EXTRA_DOCKER_ARGS \
                     .
 
+                CID=$(docker create system_tests/weblog)
+                LIBRARY_VERSION=$(docker cp "${CID}:/system-tests-library-version" - 2>/dev/null | tar -xO || true)
+                docker rm "${CID}" > /dev/null
+                if [ -n "${LIBRARY_VERSION}" ]; then
+                    docker build \
+                        --label "system-tests-library-version=${LIBRARY_VERSION}" \
+                        -t system_tests/weblog - <<< "FROM system_tests/weblog"
+                fi
+
                 if test -f "binaries/waf_rule_set.json"; then
 
                     docker buildx build \
