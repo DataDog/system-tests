@@ -206,10 +206,24 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
             attrs_dict[k_str] = v["keyValueList"]
         else:
             raise ValueError(f"Unknown attribute value: {v}")
+    _postprocess_attribute_values(attrs_dict)
     return attrs_dict
 
 
 _json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json", "_dd.span_links"])
+
+
+def _postprocess_attribute_values(attrs_dict: dict[str, Any]) -> None:
+    # Protocol v1 may carry structured AppSec/IAST payloads as serialized strings.
+    for key in list(attrs_dict):
+        if key.startswith("_dd.appsec.s."):
+            attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
+        elif key in ("appsec", "_dd.stack"):
+            val = attrs_dict[key]
+            if isinstance(val, bytes):
+                attrs_dict[key] = unpack_trace_bytes_msgpack(val)
+        elif key in _json_meta_values:
+            attrs_dict[key] = json.loads(attrs_dict[key])
 
 
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
@@ -234,16 +248,7 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
 
         attrs_dict[k] = v
 
-    for key in list(attrs_dict):
-        if key.startswith("_dd.appsec.s."):
-            attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
-        elif key in ("appsec", "_dd.stack"):
-            val = attrs_dict[key]
-            if isinstance(val, bytes):
-                attrs_dict[key] = unpack_trace_bytes_msgpack(val)
-        elif key in _json_meta_values:
-            attrs_dict[key] = json.loads(attrs_dict[key])
-
+    _postprocess_attribute_values(attrs_dict)
     return attrs_dict
 
 
