@@ -124,6 +124,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      dd_sts_policy:
+        description: "dd-sts policy to use to get a Datadog API key for Test Optimization"
+        default: ""
+        required: false
+        type: string
 
     secrets:
       DOCKERHUB_USERNAME:

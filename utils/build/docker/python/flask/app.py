@@ -436,7 +436,7 @@ def rasp_sqli(*args, **kwargs):
         DB = sqlite3.connect(":memory:")
         print(f"SELECT * FROM users WHERE id='{user_id}'")
         cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
-        print("DB request with {len(list(cursor))} results")
+        print(f"DB request with {len(list(cursor))} results")
         return f"DB request with {len(list(cursor))} results"
     except Exception as e:
         print(f"DB request failure: {e!r}", file=sys.stderr)

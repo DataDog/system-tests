@@ -1064,7 +1064,7 @@ class WeblogContainer(TestedContainer):
                     path_str = str(Path(path).resolve())
                     self.volumes[path_str] = {
                         "bind": "/volumes/dd-trace-js",
-                        "mode": "ro",
+                        "mode": "rw",
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
@@ -1364,10 +1364,17 @@ class MySqlContainer(SqlDbTestedContainer):
 
 class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self) -> None:
+        options = "-S 127.0.0.1 -U sa -P 'yourStrong(!)Password' -Q 'SELECT 1' -b -C"
         healthcheck = {
             # Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             # -C : trust self signed certificates
-            "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
+            # Fall back to mssql-tools (arm64) if mssql-tools18 (x86_64) is absent
+            "test": (
+                'bash -c "'
+                f"(/opt/mssql-tools18/bin/sqlcmd {options}) 2>/dev/null || "
+                f"/opt/mssql-tools/bin/sqlcmd {options}"
+                '"'
+            ),
             "retries": 20,
         }
 
