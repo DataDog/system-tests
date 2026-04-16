@@ -336,7 +336,7 @@ class EndToEndScenario(DockerScenario):
 
         if (
             not self.replay
-            and self.weblog_container._library is not None
+            and self.weblog_container._library is not None  # noqa: SLF001
             and self.agent_container.agent_version is not None
         ):
             # Both versions known from image labels: defer container startup to post-collection
@@ -345,7 +345,7 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._log_agent_info)
             self.warmups.append(self._log_weblog_info)
             self._defer_container_startup()
-        elif self.weblog_container._library is not None:
+        elif self.weblog_container._library is not None:  # noqa: SLF001
             self._set_library_component()
             self.warmups.append(self._log_weblog_info)
             self.warmups.append(self._set_agent_component)
@@ -359,10 +359,14 @@ class EndToEndScenario(DockerScenario):
 
     def _defer_container_startup(self):
         """Move container startup warmups to post_collection_warmups (inserted before interface warmups)."""
-        container_warmups = [self._create_network, self._start_containers] + [c.post_start for c in self._containers]
+        container_warmups = [self._create_network, self._start_containers, *[c.post_start for c in self._containers]]
         for w in container_warmups:
             self.warmups.remove(w)
-        self.post_collection_warmups[0:0] = container_warmups + [self._set_agent_component, self._get_weblog_system_info]
+        self.post_collection_warmups[0:0] = [
+            *container_warmups,
+            self._set_agent_component,
+            self._get_weblog_system_info,
+        ]
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:

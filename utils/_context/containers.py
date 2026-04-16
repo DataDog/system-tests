@@ -1136,7 +1136,9 @@ class WeblogContainer(TestedContainer):
                 lib = data["library"]
 
             self._library = ComponentVersion(lib["name"], lib["version"])
-            logger.warning("Library version read from healthcheck endpoint — add system-tests-library-version label to the image to speed up startup")
+            logger.warning(
+                "Library version from healthcheck — add system-tests-library-version label to speed up startup"
+            )
             logger.stdout(f"Library: {self.library}")
 
             if self.appsec_rules_file:

@@ -233,6 +233,14 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
+    # The canonical way of adding Junit properties to testsuite is not working with xdist
+    # Workaround to tackle this issue
+    # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
+    xml = session.config._store.get(xml_key, None)  # noqa: SLF001
+    if xml:
+        properties = context.scenario.get_junit_properties()
+        for key, value in properties.items():
+            xml.add_global_property(key, value or "")
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -412,15 +420,6 @@ def pytest_collection_finish(session: pytest.Session) -> None:
         return
 
     context.scenario.execute_post_collection_warmups()
-
-    # The canonical way of adding Junit properties to testsuite is not working with xdist
-    # Workaround to tackle this issue
-    # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
-    xml = session.config._store.get(xml_key, None)  # noqa: SLF001
-    if xml:
-        properties = context.scenario.get_junit_properties()
-        for key, value in properties.items():
-            xml.add_global_property(key, value or "")
 
     last_item_file = ""
     for item in session.items:
