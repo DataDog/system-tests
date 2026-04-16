@@ -3125,7 +3125,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
-  tests/ffe/test_flag_eval_metrics.py: v1.62.0-SNAPSHOT+42f154d2
+  tests/ffe/test_flag_eval_metrics.py: missing_feature (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Config_Exists_Flag_Missing::test_ffe_eval_config_exists_flag_missing: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Lowercase_Consistency::test_ffe_lowercase_error_type: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Lowercase_Consistency::test_ffe_lowercase_reason: bug (FFL-1972)
