@@ -8,6 +8,7 @@ import uuid
 import pytest
 
 from .conftest import StableConfigWriter
+from utils.telemetry_utils import TelemetryUtils
 
 from utils import context, scenarios, rfc, features, logger
 from utils.docker_fixtures import TestAgentAPI
@@ -1244,17 +1245,26 @@ class Test_TelemetrySCAEnvVar:
     ):
         assert test_library.is_alive(), "Library container is not running"
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        dd_appsec_sca_enabled = "DD_APPSEC_SCA_ENABLED"
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
 
         logger.info(f"""Check that:
     * the env var DD_APPSEC_SCA_ENABLED={library_env["DD_APPSEC_SCA_ENABLED"]}
-    * is reported in telemetry configuration {dd_appsec_sca_enabled} as value={outcome_value}""")
+    * is reported in telemetry configuration {" or ".join(dd_appsec_sca_enabled_names)} as value={outcome_value}""")
 
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
-        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
-        logger.info(f"Oberved {dd_appsec_sca_enabled}: {cfg_appsec_enabled}")
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+        cfg_appsec_enabled = next(
+            (
+                configuration_by_name.get(config_name)
+                for config_name in dd_appsec_sca_enabled_names
+                if config_name in configuration_by_name
+            ),
+            None,
+        )
+        logger.info(f"Observed {' / '.join(dd_appsec_sca_enabled_names)}: {cfg_appsec_enabled}")
+        assert cfg_appsec_enabled is not None, (
+            f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+        )
 
         # Backend implementation accepts both boolean and string representations
         assert cfg_appsec_enabled[0].get("value") in (outcome_value, str(outcome_value).lower())
@@ -1266,11 +1276,20 @@ class Test_TelemetrySCAEnvVar:
 
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
-        dd_appsec_sca_enabled = "DD_APPSEC_SCA_ENABLED"
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
 
         if context.library in ("java", "nodejs", "python", "ruby"):
-            cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
-            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+            cfg_appsec_enabled = next(
+                (
+                    configuration_by_name.get(config_name)
+                    for config_name in dd_appsec_sca_enabled_names
+                    if config_name in configuration_by_name
+                ),
+                None,
+            )
+            assert cfg_appsec_enabled is not None, (
+                f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+            )
             assert cfg_appsec_enabled[0].get("value") is None
         else:
-            assert dd_appsec_sca_enabled not in configuration_by_name
+            assert all(config_name not in configuration_by_name for config_name in dd_appsec_sca_enabled_names)

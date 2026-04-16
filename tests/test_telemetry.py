@@ -10,6 +10,7 @@ from dateutil.parser import isoparse
 from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -1054,10 +1055,11 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] == "DD_APPSEC_SCA_ENABLED":
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
@@ -1065,5 +1067,5 @@ class Test_TelemetrySCAEnvVar:
 
         assert found, (
             f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
-            "DD_APPSEC_SCA_ENABLED"
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
         )
