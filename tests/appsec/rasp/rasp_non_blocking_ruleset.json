@@ -301,8 +301,7 @@
             ]
           },
           "operator": "exact_match"
-        },
-        {
+        }, {
           "parameters": {
             "inputs": [
               {
