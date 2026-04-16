@@ -759,6 +759,7 @@ class AgentContainer(TestedContainer):
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_APM_FEATURES": "convert-traces",
             }
         )
 
