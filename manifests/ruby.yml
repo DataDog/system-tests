@@ -851,6 +851,7 @@ manifest:
         sinatra41: v2.24.0  # Modified by easy win activation script
         uds-sinatra: v2.24.0  # Modified by easy win activation script
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (Rack transforms underscores into dashes)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v1.8.0

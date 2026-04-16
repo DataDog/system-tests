@@ -188,6 +188,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: irrelevant
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (Header rejected by nginx ('client sent invalid header line)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams: irrelevant (path params waf address unfilled)
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.2.0

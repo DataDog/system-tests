@@ -949,6 +949,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.6
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         *django: v1.1.0
@@ -972,7 +973,6 @@ manifest:
     - weblog_declaration:
         "*": v0.58.5
         fastapi: v2.4.0
-  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking:
     - weblog_declaration:
