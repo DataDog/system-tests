@@ -5,6 +5,7 @@
 """AppSec smoke tests at the agent interface level"""
 
 from utils import interfaces, remote_config as rc, weblog
+from utils.dd_types import is_same_boolean
 from utils._weblog import HttpResponse
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
@@ -107,7 +108,7 @@ class BaseThreatsSmokeTests:
         has_appsec_data = False
 
         for _, span, _ in interfaces.agent.get_appsec_data(self.r):
-            if span.meta.get("appsec.event") == "true":
+            if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
                 found_attack = True
                 has_appsec_data = True
                 break
@@ -238,7 +239,7 @@ class BaseRemoteConfigSmokeTests:
         )
 
         assert any(
-            span.meta.get("appsec.event") == "true"
+            is_same_boolean(actual=span.meta.get("appsec.event"), expected="true")
             and any(
                 trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in appsec_data.get("triggers", [])
             )
