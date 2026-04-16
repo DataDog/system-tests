@@ -21,14 +21,10 @@ import ratpack.jackson.Jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.util.logging.LogManager;
@@ -252,26 +248,6 @@ public class Main {
                             .get("api_security_sampling/:i", ctx -> {
                                 final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
                                 ctx.getResponse().status(200).send("OK!\n");
-                            })
-                            .post("waf/zipslip", ctx -> {
-                                ctx.parse(ratpack.form.Form.class).then(form -> {
-                                    File baseDir = new File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract");
-                                    baseDir.mkdirs();
-                                    ratpack.form.UploadedFile upload = form.file("file");
-                                    if (upload != null) {
-                                        try (ZipInputStream zis = new ZipInputStream(upload.getInputStream())) {
-                                            ZipEntry entry;
-                                            while ((entry = zis.getNextEntry()) != null) {
-                                                if (!entry.isDirectory()) {
-                                                    new FileOutputStream(new File(baseDir, entry.getName())).close();
-                                                }
-                                            }
-                                        } catch (IOException e) {
-                                            // expected to be blocked
-                                        }
-                                    }
-                                    ctx.getResponse().send("text/plain", "OK");
-                                });
                             })
                             .path("waf/:params?", ctx -> {
                                 HttpMethod method = ctx.getRequest().getMethod();

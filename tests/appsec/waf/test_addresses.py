@@ -1,9 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import io
 import json
-import zipfile
 
 import pytest
 from utils import weblog, interfaces, rfc, scenarios, features, logger
@@ -424,26 +422,17 @@ class Test_GrpcServerMethod:
         )
 
 
-@features.appsec_request_blocking
-@scenarios.appsec_rasp
-class Test_Zipslip:
-    """Appsec WAF detects Zipslip attacks via dog-920-110 (server.io.fs.file_write + server.request.body.filenames)"""
+@scenarios.appsec_custom_rules
+class Test_IoFsFileWrite:
+    """Appsec WAF detects path traversal via server.io.fs.file_write address"""
 
-    def setup_zipslip(self):
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, "w") as zf:
-            zf.writestr("../../evil.jsp", "evil content")
-        zip_bytes = zip_buffer.getvalue()
+    def setup_file_write(self):
+        self.r = weblog.get("/rasp/lfi_write", params={"file": "../../evil.txt"})
 
-        self.r = weblog.post(
-            "/waf/zipslip",
-            files={"file": ("zipslip.zip", zip_bytes, "application/zip")},
-        )
-
-    def test_zipslip(self):
-        """AppSec WAF detects Zipslip attack: zip filename in body.filenames + path traversal in file write"""
+    def test_file_write(self):
+        """AppSec WAF detects path traversal in server.io.fs.file_write via custom rule"""
         interfaces.library.assert_waf_attack(
             self.r,
-            rule="dog-920-110",
+            rule="custom-test-file-write",
             address="server.io.fs.file_write",
         )

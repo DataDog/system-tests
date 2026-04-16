@@ -177,31 +177,6 @@ object AppSecRoutes {
               }
           }
       } ~
-      path("waf" / "zipslip") {
-        post {
-          fileUpload("file") {
-            case (_, byteSource) =>
-              extractMaterializer { implicit mat =>
-                extractExecutionContext { implicit ec =>
-                  onSuccess(byteSource.runFold(akka.util.ByteString.empty)(_ ++ _)) { bytes =>
-                    val baseDir = new java.io.File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract")
-                    baseDir.mkdirs()
-                    val zis = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(bytes.toArray))
-                    var entry = zis.getNextEntry()
-                    while (entry != null) {
-                      if (!entry.isDirectory) {
-                        new java.io.FileOutputStream(new java.io.File(baseDir, entry.getName)).close()
-                      }
-                      entry = zis.getNextEntry()
-                    }
-                    zis.close()
-                    complete("OK")
-                  }
-                }
-              }
-          }
-        }
-      } ~
       path("waf" / RemainingPath) { remaining: Path =>
         get {
           complete(remaining.toString())

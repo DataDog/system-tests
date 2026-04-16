@@ -41,14 +41,9 @@ import java.util.stream.Stream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import io.vertx.ext.web.FileUpload;
 
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
@@ -155,28 +150,6 @@ public class Main {
             ctx.pathParams().toString();
             ctx.response().end("ok");
         });
-        router.post("/waf/zipslip")
-                .handler(BodyHandler.create())
-                .handler(ctx -> {
-                    File baseDir = new File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract");
-                    baseDir.mkdirs();
-                    for (FileUpload upload : ctx.fileUploads()) {
-                        if ("file".equals(upload.name())) {
-                            try (ZipInputStream zis = new ZipInputStream(new FileInputStream(upload.uploadedFileName()))) {
-                                ZipEntry entry;
-                                while ((entry = zis.getNextEntry()) != null) {
-                                    if (!entry.isDirectory()) {
-                                        new FileOutputStream(new File(baseDir, entry.getName())).close();
-                                    }
-                                }
-                            } catch (Exception e) {
-                                // expected to be blocked
-                            }
-                            break;
-                        }
-                    }
-                    ctx.response().end("OK");
-                });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
                 .produces("text/plain")

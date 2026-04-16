@@ -30,20 +30,12 @@ import java.util.Map;
 import java.util.List;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
-
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
 import static datadog.appsec.api.user.User.setUser;
 import static java.util.Collections.emptyMap;
@@ -296,26 +288,6 @@ public class MyResource {
     @Consumes(MediaType.TEXT_PLAIN)
     public String postWafString(String data) {
         return data;
-    }
-
-    @POST
-    @Path("/waf/zipslip")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public String wafZipslip(MultipartFormDataInput input) throws Exception {
-        File baseDir = new File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract");
-        baseDir.mkdirs();
-        List<InputPart> parts = input.getFormDataMap().get("file");
-        if (parts != null && !parts.isEmpty()) {
-            try (ZipInputStream zis = new ZipInputStream(parts.get(0).getBody(InputStream.class, null))) {
-                ZipEntry entry;
-                while ((entry = zis.getNextEntry()) != null) {
-                    if (!entry.isDirectory()) {
-                        new FileOutputStream(new File(baseDir, entry.getName())).close();
-                    }
-                }
-            }
-        }
-        return "OK";
     }
 
     @GET

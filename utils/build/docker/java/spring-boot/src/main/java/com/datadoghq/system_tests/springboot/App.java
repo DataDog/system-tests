@@ -33,10 +33,6 @@ import datadog.trace.api.interceptor.MutableSpan;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import org.springframework.web.multipart.MultipartFile;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
@@ -305,21 +301,6 @@ public class App {
     @PostMapping(value = "/waf", consumes = MediaType.APPLICATION_XML_VALUE)
     String postWafXml(@RequestBody XmlObject object) {
         return object.toString();
-    }
-
-    @PostMapping(value = "/waf/zipslip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<String> postWafZipslip(@RequestParam("file") MultipartFile file) throws Exception {
-        File baseDir = new File(System.getProperty("java.io.tmpdir"), "dd-zipslip-extract");
-        baseDir.mkdirs();
-        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                if (!entry.isDirectory()) {
-                    new FileOutputStream(new File(baseDir, entry.getName())).close();
-                }
-            }
-        }
-        return ResponseEntity.ok("OK");
     }
 
     @GetMapping(value = "/session/new")

@@ -467,7 +467,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0
   tests/appsec/waf/test_addresses.py::Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
-  tests/appsec/waf/test_addresses.py::Test_Zipslip: "irrelevant (Java-only address: server.io.fs.file_write)"
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.15.0  # v0.86.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)

@@ -2613,10 +2613,9 @@ manifest:
     - weblog_declaration:
         "*": v0.87.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/waf/test_addresses.py::Test_Zipslip:
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite:
     - weblog_declaration:
-        "*": missing_feature
-        spring-boot: v1.62.0-SNAPSHOT
+        "*": v1.62.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_gRPC:
     - weblog_declaration:
