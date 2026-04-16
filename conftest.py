@@ -417,6 +417,8 @@ def pytest_collection_finish(session: pytest.Session) -> None:
         setup_properties.load(context.scenario.host_log_folder)
 
     if len(session.items) == 0:
+        if not session.config.option.replay:
+            setup_properties.dump(context.scenario.host_log_folder)
         return
 
     context.scenario.execute_post_collection_warmups()
