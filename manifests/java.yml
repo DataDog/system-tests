@@ -3075,7 +3075,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
-  tests/ffe/test_flag_eval_metrics.py: v1.60.0
+  tests/ffe/test_flag_eval_metrics.py: 42f154d2f63d6dac689776702554a20a34424c35
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Basic::test_ffe_eval_metric_basic: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Numeric_To_Integer::test_ffe_eval_metric_numeric_to_integer: bug (FFL-1972)
