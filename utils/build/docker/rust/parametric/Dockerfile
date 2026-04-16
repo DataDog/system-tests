@@ -4,7 +4,7 @@ COPY utils/build/docker/rust/parametric .
 COPY utils/build/docker/rust/parametric/../install_ddtrace.sh ./binaries/ /binaries/
 COPY utils/build/docker/rust/parametric/Cargo.toml /usr/app/
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git gcc
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git gcc libc6-dev
 
 RUN /binaries/install_ddtrace.sh
 

@@ -29,7 +29,7 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl locales gcc \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl locales gcc libc6-dev \
     && echo "de_DE.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen \
     && printf '#include <locale.h>\n#include <stdlib.h>\n__attribute__((constructor)) static void init_locale(void){const char*l=getenv("TEST_LOCALE");if(l&&*l)setlocale(LC_ALL,l);}' > /tmp/li.c \
     && gcc -shared -fPIC -o /locale_init.so /tmp/li.c \

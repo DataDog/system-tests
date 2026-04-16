@@ -1,7 +1,7 @@
 
 FROM node:18.10-slim
-RUN apt-get update && apt-get -y install bash curl git jq locales gcc \
-  || sleep 60 && apt-get update && apt-get -y install bash curl git jq locales gcc
+RUN apt-get update && apt-get -y install bash curl git jq locales gcc libc6-dev \
+  || sleep 60 && apt-get update && apt-get -y install bash curl git jq locales gcc libc6-dev
 WORKDIR /usr/app
 COPY utils/build/docker/nodejs/parametric/package.json /usr/app/
 COPY utils/build/docker/nodejs/parametric/package-lock.json /usr/app/
