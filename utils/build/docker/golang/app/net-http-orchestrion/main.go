@@ -152,6 +152,11 @@ func main() {
 		}
 
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after Do (the instrumented client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			log.Fatalln("client.Do", err)
