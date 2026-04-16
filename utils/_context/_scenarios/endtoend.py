@@ -362,8 +362,14 @@ class EndToEndScenario(DockerScenario):
         container_warmups = [self._create_network, self._start_containers, *[c.post_start for c in self._containers]]
         for w in container_warmups:
             self.warmups.remove(w)
+        # Watchdog must start after network creation but before containers to capture early output
+        watchdog = self._start_interfaces_watchdog
+        self.post_collection_warmups.remove(watchdog)
         self.post_collection_warmups[0:0] = [
-            *container_warmups,
+            self._create_network,
+            watchdog,
+            self._start_containers,
+            *[c.post_start for c in self._containers],
             self._set_agent_component,
             self._get_weblog_system_info,
         ]
