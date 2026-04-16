@@ -1,3 +1,5 @@
+use datadog_opentelemetry::configuration::Config;
+use datadog_opentelemetry::log::LevelFilter;
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
 
@@ -162,6 +164,92 @@ impl StartSpanResult {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FlushResult {
     pub success: bool,
+}
+
+/// Body for `GET /trace/config` — matches Python `TraceConfigReturn` (`config` key).
+#[derive(Debug, Serialize)]
+pub struct TraceConfigResponse {
+    pub config: ConfigResult,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ConfigResult {
+    pub dd_service: Option<String>,
+    pub dd_log_level: Option<String>,
+    pub dd_trace_sample_rate: Option<String>,
+    pub dd_trace_enabled: Option<String>,
+    pub dd_runtime_metrics_enabled: Option<String>,
+    pub dd_tags: Option<String>,
+    pub dd_trace_propagation_style: Option<String>,
+    pub dd_trace_debug: Option<String>,
+    pub dd_trace_otel_enabled: Option<String>,
+    pub dd_trace_sample_ignore_parent: Option<String>,
+    pub dd_env: Option<String>,
+    pub dd_version: Option<String>,
+    pub dd_trace_agent_url: Option<String>,
+    pub dd_trace_rate_limit: Option<String>,
+    pub dd_dogstatsd_host: Option<String>,
+    pub dd_dogstatsd_port: Option<String>,
+    pub dd_logs_injection: Option<String>,
+    pub dd_profiling_enabled: Option<String>,
+    pub dd_data_streams_enabled: Option<String>,
+}
+
+fn format_global_tags(config: &Config) -> String {
+    config
+        .global_tags()
+        .map(|(k, v)| format!("{k}:{v}"))
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+fn format_trace_propagation_extract(config: &Config) -> String {
+    config
+        .trace_propagation_style_extract()
+        .map(|styles| {
+            styles
+                .iter()
+                .map(std::string::ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(",")
+        })
+        .unwrap_or_default()
+}
+
+fn bool_str(on: bool) -> String {
+    if on {
+        "true".to_string()
+    } else {
+        "false".to_string()
+    }
+}
+
+impl From<Config> for ConfigResult {
+    fn from(config: Config) -> Self {
+        let dd_trace_debug = matches!(*config.log_level_filter(), LevelFilter::Debug);
+
+        Self {
+            dd_service: Some(config.service().to_string()),
+            dd_log_level: Some(config.log_level_filter().to_string().to_lowercase()),
+            dd_trace_sample_rate: None,
+            dd_trace_enabled: Some(bool_str(config.enabled())),
+            dd_runtime_metrics_enabled: Some(bool_str(config.metrics_otel_enabled())),
+            dd_tags: Some(format_global_tags(&config)),
+            dd_trace_propagation_style: Some(format_trace_propagation_extract(&config)),
+            dd_trace_debug: Some(bool_str(dd_trace_debug)),
+            dd_trace_otel_enabled: None,
+            dd_trace_sample_ignore_parent: None,
+            dd_env: config.env().map(str::to_string),
+            dd_version: config.version().map(str::to_string),
+            dd_trace_agent_url: Some(config.trace_agent_url().to_string()),
+            dd_trace_rate_limit: Some(config.trace_rate_limit().to_string()),
+            dd_dogstatsd_host: Some(config.dogstatsd_agent_host().to_string()),
+            dd_dogstatsd_port: Some(config.dogstatsd_agent_port().to_string()),
+            dd_logs_injection: None,
+            dd_profiling_enabled: None,
+            dd_data_streams_enabled: None,
+        }
+    }
 }
 
 // Custom serialization: as [["key", "value"], ...]

@@ -79,7 +79,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_dd_service_override: missing_feature  # Created by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: '>0.3.2'  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature  # Created by easy win activation script
