@@ -16,10 +16,33 @@ fi
 
 if [ -e /binaries/dd-trace-rs ]; then
     echo "install from /binaries/datadog-opentelemetry with metrics-http and metrics-grpc features"
-    cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc
+
+    cd /binaries/dd-trace-rs
+
+    # get the version from the cargo.lock
+    current_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "datadog-opentelemetry") | .version')
+    
+    # bump minor (middle segment); reset patch to 0 — expects MAJOR.MINOR.PATCH
+    IFS=. read -r major minor patch <<<"$current_version"
+    if [[ -z "${minor:-}" || -z "${patch:-}" ]]; then
+        echo "expected semver MAJOR.MINOR.PATCH, got: $current_version" >&2
+        exit 1
+    fi
+    new_version="${major}.$((minor + 1)).0"
+
+    if [ -e /binaries/dd-trace-rs/.git ]; then
+        dev_version="${new_version}-dev+$(git -C /binaries/dd-trace-rs rev-parse HEAD)"
+    else
+        dev_version="${new_version}-dev"
+    fi
+    
+    echo "generating dev version $dev_version from $current_version"
+    cargo release version -p datadog-opentelemetry "$dev_version" -x --no-confirm
+
+    cd /usr/app
+    cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc
 else
-    # TODO: add lastest release from crates.io
-    echo "install from --git $REPO_URL --tag $PROD_TAG with metrics-http and metrics-grpc features"
-    cargo add --git "$REPO_URL" --tag "$PROD_TAG" datadog-opentelemetry --features metrics-http,metrics-grpc
+    echo "install from crates.io with metrics-http and metrics-grpc features"
+    cargo add datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc
 fi
 
