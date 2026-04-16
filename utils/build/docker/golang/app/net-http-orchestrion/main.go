@@ -611,6 +611,21 @@ func main() {
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
 
+	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
+		span, ok := tracer.SpanFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`span not found in context`))
+			return
+		}
+		span.AddEvent("span.event", tracer.WithSpanEventAttributes(map[string]any{
+			"string": "value",
+			"int":    1,
+		}))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[Event added]`))
+	})
+
 	mux.HandleFunc("/ffe", common.FFeEval())
 
 	var d DebuggerController
