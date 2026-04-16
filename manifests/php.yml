@@ -914,8 +914,10 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
-  tests/stats/test_stats.py: missing_feature
+  tests/stats/test_stats.py: v1.19.0
   tests/stats/test_stats.py::Test_Client_Stats::test_disable: v1.17.0
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (PHP does not support gRPC)
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
