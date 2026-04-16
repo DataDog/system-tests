@@ -425,13 +425,13 @@ class Test_GrpcServerMethod:
 @features.appsec_request_blocking
 @scenarios.appsec_custom_rules
 class Test_IoFsFileWrite:
-    """Appsec WAF detects path traversal via server.io.fs.file_write address"""
+    """Appsec WAF receives the server.io.fs.file_write address"""
 
     def setup_file_write(self):
         self.r = weblog.get("/rasp/lfi_write", params={"file": "../../evil.txt"})
 
     def test_file_write(self):
-        """AppSec WAF detects path traversal in server.io.fs.file_write via custom rule"""
+        """AppSec WAF receives the server.io.fs.file_write address"""
         interfaces.library.assert_waf_attack(
             self.r,
             rule="custom-test-file-write",
