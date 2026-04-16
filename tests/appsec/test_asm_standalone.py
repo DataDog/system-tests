@@ -737,17 +737,9 @@ class BaseSCAStandaloneTelemetry:
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)
         assert configuration_by_name
 
-        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
-        dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
+        dd_appsec_sca_enabled = "DD_APPSEC_SCA_ENABLED"
 
-        cfg_appsec_enabled = next(
-            (
-                configuration_by_name.get(config_name)
-                for config_name in dd_appsec_sca_enabled_names
-                if config_name in configuration_by_name
-            ),
-            None,
-        )
+        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         outcome_value: bool | str = True
