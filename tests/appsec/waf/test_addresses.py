@@ -422,6 +422,7 @@ class Test_GrpcServerMethod:
         )
 
 
+@features.appsec_request_blocking
 @scenarios.appsec_custom_rules
 class Test_IoFsFileWrite:
     """Appsec WAF detects path traversal via server.io.fs.file_write address"""
