@@ -213,13 +213,10 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         cat /proc/sys/kernel/perf_event_paranoid
         sudo sysctl kernel.perf_event_paranoid=1
         sudo sysctl -p
         ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
