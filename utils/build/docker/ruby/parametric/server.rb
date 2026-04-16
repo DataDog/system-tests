@@ -3,6 +3,19 @@ require 'webrick'
 require 'rack/handler/webrick'
 require 'json'
 
+# Set locale from TEST_LOCALE env var. Called here (after Ruby's own Init_ruby)
+# rather than via LD_PRELOAD, because Ruby calls setlocale(LC_ALL, "") during
+# startup which would reset any locale set by a constructor function earlier.
+# LC_ALL = 6 on Linux glibc (POSIX constant, stable across Debian/Ubuntu).
+if (test_locale = ENV['TEST_LOCALE'])
+  require 'fiddle'
+  Fiddle::Function.new(
+    Fiddle::Handle::DEFAULT['setlocale'],
+    [Fiddle::TYPE_INT, Fiddle::TYPE_VOIDP],
+    Fiddle::TYPE_VOIDP
+  ).call(6, test_locale)
+end
+
 # Add current folder to the search path
 current_dir = Dir.pwd
 $LOAD_PATH.unshift(current_dir) unless $LOAD_PATH.include?(current_dir)

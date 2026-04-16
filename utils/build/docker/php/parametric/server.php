@@ -3,6 +3,13 @@
 ini_set("datadog.trace.generate_root_span", "0");
 ini_set("datadog.trace.revolt_enabled", "0");
 
+// Set locale from TEST_LOCALE env var. PHP's own setlocale() is called here
+// (after PHP runtime init) as a belt-and-suspenders complement to the
+// LD_PRELOAD locale_init.so approach.
+if (($testLocale = getenv('TEST_LOCALE')) !== false) {
+    setlocale(LC_ALL, $testLocale);
+}
+
 require __DIR__ . "/vendor/autoload.php";
 
 use Amp\ByteStream;
