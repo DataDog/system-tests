@@ -32,6 +32,10 @@ DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
 # Limit JIT to tier one as the client application is a short-lived process that frequently killed / restarted
 OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
 
+if [ -n "${TEST_LOCALE:-}" ]; then
+    export LD_PRELOAD="${LD_PRELOAD:+$LD_PRELOAD:}/locale_init.so"
+fi
+
 # Start client application
 # shellcheck disable=SC2086
 java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \

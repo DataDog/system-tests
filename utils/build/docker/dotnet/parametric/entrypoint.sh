@@ -8,4 +8,8 @@ if [ -f /opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so ]; then
   export LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
 fi
 
+if [ -n "${TEST_LOCALE:-}" ]; then
+  export LD_PRELOAD="${LD_PRELOAD:+$LD_PRELOAD:}/locale_init.so"
+fi
+
 exec "$@"

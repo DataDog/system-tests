@@ -8,4 +8,11 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 
-CMD ["ddtrace-run", "python3.11", "-m", "apm_test_client"]
+# Build locale_init.so: sets LC_ALL from TEST_LOCALE at process startup via LD_PRELOAD
+RUN apt-get update && apt-get install -y --no-install-recommends locales gcc \
+    && echo "de_DE.UTF-8 UTF-8" >> /etc/locale.gen && locale-gen \
+    && printf '#include <locale.h>\n#include <stdlib.h>\n__attribute__((constructor)) static void init_locale(void){const char*l=getenv("TEST_LOCALE");if(l&&*l)setlocale(LC_ALL,l);}' > /tmp/li.c \
+    && gcc -shared -fPIC -o /locale_init.so /tmp/li.c \
+    && rm /tmp/li.c && rm -rf /var/lib/apt/lists/*
+
+CMD ["bash", "-c", "[ -n \"${TEST_LOCALE:-}\" ] && export LD_PRELOAD=/locale_init.so; exec ddtrace-run python3.11 -m apm_test_client"]

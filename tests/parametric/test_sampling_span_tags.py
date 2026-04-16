@@ -409,6 +409,40 @@ class Test_Knuth_Sample_Rate:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     @pytest.mark.parametrize(
+        ("library_env", "expected_ksr"),
+        [
+            (
+                {
+                    "TEST_LOCALE": "de_DE.UTF-8",
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.3}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+                },
+                "0.3",
+            ),
+        ],
+        ids=["locale_de_DE_uses_period_not_comma"],
+    )
+    def test_sampling_knuth_sample_rate_locale_invariant(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, expected_ksr: str
+    ):
+        """_dd.p.ksr must use a period as decimal separator regardless of the process
+        locale. Verified by activating de_DE.UTF-8 (comma decimal separator) via
+        LD_PRELOAD before the tracer initialises. Regression test for dd-trace-php#3796.
+        """
+        with test_library:
+            with test_library.dd_start_span("span"):
+                pass
+            test_library.dd_flush()
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert span["meta"].get("_dd.p.ksr") == expected_ksr, (
+            f"Expected _dd.p.ksr='{expected_ksr}' with de_DE locale active, "
+            f"got: {span['meta'].get('_dd.p.ksr')!r} — locale-sensitive formatting (e.g. comma decimal) detected"
+        )
+
+    @pytest.mark.parametrize(
         "library_env",
         [
             {
