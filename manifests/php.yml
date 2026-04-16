@@ -838,8 +838,6 @@ manifest:
   tests/parametric/test_process_discovery.py: missing_feature
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=1.18.0'
-  ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_locale_invariant[locale_de_DE_uses_period_not_comma]
-  : missing_feature (Fix pending in dd-trace-php#3797 - snprintf uses locale-sensitive formatting)
   ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog
   : '>=1.16.0'
   ? tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext
