@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -1497,6 +1498,54 @@ manifest:
     - weblog_declaration:
         "*": v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_apm_standalone.py:
+    - weblog_declaration:
+        "*": v1.60.3
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        vertx3: missing_feature (APPSEC-55781)
+        vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
+    - declaration: flaky (APPSEC-60872)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
+    - declaration: flaky (APPSEC-60872)
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        vertx3: missing_feature (APPSEC-55781)
+        vertx4: missing_feature (APPSEC-55781)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        spring-boot-payara: missing_feature (APPSEC-54966)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
+    - declaration: flaky (APPSEC-60872)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - declaration: flaky (APPSEC-60872)
+    - weblog_declaration:
+        akka-http: missing_feature (login endpoints not implemented)
+        jersey-grizzly2: missing_feature (login endpoints not implemented)
+        play: missing_feature (login endpoints not implemented)
+        ratpack: missing_feature (login endpoints not implemented)
+        resteasy-netty3: missing_feature (login endpoints not implemented)
+        vertx3: missing_feature (login endpoints not implemented)
+        vertx4: missing_feature (login endpoints not implemented)
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v0.87.0
@@ -2913,6 +2962,7 @@ manifest:
         spring-boot-wildfly: v1.48.0
         uds-spring-boot: v1.48.0
     - declaration: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
