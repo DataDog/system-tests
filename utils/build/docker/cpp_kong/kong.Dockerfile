@@ -1,19 +1,11 @@
-FROM ubuntu:22.04 AS build
+# ubuntu:24.04 ships with cmake 3.28 (minimum version required by dd-trace-cpp)
+FROM ubuntu:24.04 AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install cmake >= 3.28 from Kitware APT repo (dd-trace-cpp requires it;
-# Ubuntu 22.04 only ships cmake 3.22).
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        gpg wget ca-certificates software-properties-common && \
-    wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc \
-        | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main" \
-        > /etc/apt/sources.list.d/kitware.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        cmake g++ make libcurl4-openssl-dev git jq curl unzip && \
+        ca-certificates cmake g++ make libcurl4-openssl-dev git jq curl unzip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /builds /binaries
