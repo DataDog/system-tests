@@ -330,7 +330,6 @@ class EndToEndScenario(DockerScenario):
             self.library_interface_timeout = self._library_interface_timeout
 
         if not self.replay:
-            self.post_collection_warmups.append(self._start_interfaces_watchdog)
             self.post_collection_warmups.append(self._wait_for_app_readiness)
             self.post_collection_warmups.append(self._set_weblog_domain)
 
@@ -350,24 +349,30 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._log_weblog_info)
             self.warmups.append(self._set_agent_component)
             if not self.replay:
+                self.warmups.insert(1, self._start_interfaces_watchdog)
                 self.warmups.append(self._get_weblog_system_info)
         else:
             self.warmups.append(self._set_library_component)
             self.warmups.append(self._set_agent_component)
             if not self.replay:
+                self.warmups.insert(1, self._start_interfaces_watchdog)
                 self.warmups.append(self._get_weblog_system_info)
 
     def _defer_container_startup(self):
         """Move container startup warmups to post_collection_warmups (inserted before interface warmups)."""
-        container_warmups = [self._create_network, self._start_containers, *[c.post_start for c in self._containers]]
+        container_warmups = [
+            self._log_starting_containers,
+            self._create_network,
+            self._start_containers,
+            *[c.post_start for c in self._containers],
+        ]
         for w in container_warmups:
             self.warmups.remove(w)
         # Watchdog must start after network creation but before containers to capture early output
-        watchdog = self._start_interfaces_watchdog
-        self.post_collection_warmups.remove(watchdog)
         self.post_collection_warmups[0:0] = [
+            self._log_starting_containers,
             self._create_network,
-            watchdog,
+            self._start_interfaces_watchdog,
             self._start_containers,
             *[c.post_start for c in self._containers],
             self._set_agent_component,
