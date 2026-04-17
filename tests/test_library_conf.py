@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import pytest
+from typing import Any
+
 from utils import weblog, interfaces, scenarios, features
 from utils.dd_types import DataDogAgentSpan, AgentTraceFormat
 from utils._context.header_tag_vars import (
@@ -430,30 +432,48 @@ class Test_HeaderTags_Wildcard_Response_Headers:
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
-def retrieve_span_links(span: DataDogAgentSpan) -> list[dict] | None:
-    """Retrieves span links from a span.
-    Returns the format of the span links as it may differ from the trace format emitted by the agent
-    """
-    if span.get("spanLinks") is not None:
-        return span["spanLinks"]
-
-    if span.trace.format == AgentTraceFormat.efficient_trace_payload_format and span.get("links") is not None:
-        return span["links"]
-
-    span_meta = span.meta
-
-    if span_meta.get("_dd.span_links") is None:
+def _non_empty_agent_span_links(span: DataDogAgentSpan) -> list[dict[str, Any]] | None:
+    """Agent v1 / idx payloads may use `links` or `spanLinks`, and may include empty lists when no links exist."""
+    if span.trace.format != AgentTraceFormat.efficient_trace_payload_format:
         return None
+    for key in ("spanLinks", "links"):
+        raw = span.get(key)
+        if isinstance(raw, list) and len(raw) > 0:
+            return [link for link in raw if isinstance(link, dict)]
+    return None
 
-    # Convert span_links tags into msgpack v0.4 format
-    json_links = json.loads(span_meta["_dd.span_links"])
-    links = []
+
+def _dd_span_links_meta_entries(raw: object | None) -> list[dict[str, Any]]:
+    """Tracer `_dd.span_links` is usually a JSON string; v1 / convert-traces may store a decoded list on the span."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        parsed: object = json.loads(raw)
+    elif isinstance(raw, list):
+        parsed = raw
+    else:
+        raise TypeError(f"Unexpected _dd.span_links type: {type(raw).__name__}")
+    if not isinstance(parsed, list):
+        return []
+    return [entry for entry in parsed if isinstance(entry, dict)]
+
+
+def _span_links_from_dd_meta(json_links: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Convert span_links tags into msgpack v0.4-style dicts used by this file's assertions."""
+    links: list[dict[str, Any]] = []
     for json_link in json_links:
-        link = {}
-        link["traceID"] = int(json_link["trace_id"][-16:], base=16)
-        link["spanID"] = int(json_link["span_id"], base=16)
-        if len(json_link["trace_id"]) > 16:
-            link["traceIDHigh"] = int(json_link["trace_id"][:16], base=16)
+        link: dict[str, Any] = {}
+        trace_id_val = json_link["trace_id"]
+        if isinstance(trace_id_val, str):
+            link["traceID"] = int(trace_id_val[-16:], base=16)
+            if len(trace_id_val) > 16:
+                link["traceIDHigh"] = int(trace_id_val[:16], base=16)
+        else:
+            link["traceID"] = int(trace_id_val) & 0xFFFFFFFFFFFFFFFF
+            if "trace_id_high" in json_link:
+                link["traceIDHigh"] = int(json_link["trace_id_high"])
+        span_id_val = json_link["span_id"]
+        link["spanID"] = int(span_id_val, base=16) if isinstance(span_id_val, str) else int(span_id_val)
         if "attributes" in json_link:
             link["attributes"] = json_link.get("attributes")
         if "tracestate" in json_link:
@@ -461,11 +481,27 @@ def retrieve_span_links(span: DataDogAgentSpan) -> list[dict] | None:
         elif "trace_state" in json_link:
             link["tracestate"] = json_link.get("trace_state")
         if "flags" in json_link:
-            link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
+            link["flags"] = int(json_link["flags"]) | TRACECONTEXT_FLAGS_SET
         else:
             link["flags"] = 0
         links.append(link)
     return links
+
+
+def retrieve_span_links(span: DataDogAgentSpan) -> list[dict] | None:
+    """Retrieves span links from a span.
+    Returns the format of the span links as it may differ from the trace format emitted by the agent
+    """
+    from_raw = _non_empty_agent_span_links(span)
+    if from_raw is not None:
+        return from_raw
+
+    span_meta = span.meta
+    meta_entries = _dd_span_links_meta_entries(span_meta.get("_dd.span_links"))
+    if not meta_entries:
+        return None
+
+    return _span_links_from_dd_meta(meta_entries)
 
 
 @scenarios.default
@@ -721,8 +757,14 @@ class Test_ExtractBehavior_Restart:
 def _get_span_link_trace_id(link: dict, span_format: AgentTraceFormat) -> tuple[int, int]:
     """Returns the trace ID of a span link according to its format split into high and low 64 bits"""
     if span_format == AgentTraceFormat.efficient_trace_payload_format:
-        trace_id_low = int(link["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
-        trace_id_high = (int(link["traceID"], 16) >> 64) & 0xFFFFFFFFFFFFFFFF
+        tid = link["traceID"]
+        if isinstance(tid, str):
+            full = int(tid, 16)
+            trace_id_low = full & 0xFFFFFFFFFFFFFFFF
+            trace_id_high = (full >> 64) & 0xFFFFFFFFFFFFFFFF
+        else:
+            trace_id_low = int(tid) & 0xFFFFFFFFFFFFFFFF
+            trace_id_high = int(link.get("traceIDHigh", 0))
     else:
         trace_id_low = int(link["traceID"])
         trace_id_high = int(link["traceIDHigh"])
