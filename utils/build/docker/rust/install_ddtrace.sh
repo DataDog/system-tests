@@ -13,6 +13,9 @@ if [ -e /binaries/rust-load-from-git ]; then
     git clone -b "$rev_or_branch" "$REPO_URL" /binaries/dd-trace-rs
 fi
 
+# remove previous depedency on datadog-opentelemetry
+cargo remove datadog-opentelemetry
+
 if [ -e /binaries/dd-trace-rs ]; then
     echo "install from /binaries/datadog-opentelemetry with metrics-http and metrics-grpc features"
 
