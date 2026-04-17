@@ -27,7 +27,7 @@ default_libs_with_prod = [
     "python",
     "python_lambda",
     "ruby",
-    "rust"
+    "rust",
 ]
 default_libs_with_dev = [
     "cpp",
