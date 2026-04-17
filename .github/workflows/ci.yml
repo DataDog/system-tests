@@ -70,7 +70,7 @@ jobs:
     uses: ./.github/workflows/system-tests.yml
     permissions:
       contents: read
-      packages: write
+      id-token: write
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
