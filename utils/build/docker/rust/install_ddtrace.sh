@@ -30,7 +30,7 @@ if [ -e /binaries/dd-trace-rs ]; then
     new_version="${major}.$((minor + 1)).0"
 
     if [ -e /binaries/dd-trace-rs/.git ]; then
-        dev_version="${new_version}-dev+$(git -C /binaries/dd-trace-rs rev-parse HEAD)"
+        dev_version="${new_version}-dev+$(git -C /binaries/dd-trace-rs rev-parse --short HEAD)"
     else
         dev_version="${new_version}-dev"
     fi
