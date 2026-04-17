@@ -5,7 +5,6 @@ set -eu
 cd /usr/app
 
 REPO_URL=https://github.com/DataDog/dd-trace-rs
-PROD_TAG=datadog-opentelemetry-v0.3.1
 
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
@@ -21,7 +20,7 @@ if [ -e /binaries/dd-trace-rs ]; then
 
     # get the version from the cargo.lock
     current_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "datadog-opentelemetry") | .version')
-    
+
     # bump minor (middle segment); reset patch to 0 — expects MAJOR.MINOR.PATCH
     IFS=. read -r major minor patch <<<"$current_version"
     if [[ -z "${minor:-}" || -z "${patch:-}" ]]; then
@@ -35,7 +34,7 @@ if [ -e /binaries/dd-trace-rs ]; then
     else
         dev_version="${new_version}-dev"
     fi
-    
+
     echo "generating dev version $dev_version from $current_version"
     cargo release version -p datadog-opentelemetry "$dev_version" -x --no-confirm
 
