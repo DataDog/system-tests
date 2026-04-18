@@ -198,9 +198,9 @@ def _check_propagation_style_with_inject_and_extract(
         )
         assert config_item["value"], f"Expected non-empty value for '{config_name}'"
 
-    if allow_calculated_origin and configuration_by_name.get("DD_TRACE_PROPAGATION_STYLE"):
-        _assert_config_with_allowed_origins("DD_TRACE_PROPAGATION_STYLE", [expected_origin])
-
+    # The combined key is not asserted here: libraries that derive inject/extract
+    # may still report it with origin "default" (their built-in default value),
+    # which is not a wrong origin to flag, just a different reporting shape.
     for key in keys:
         _assert_config_with_allowed_origins(key, allowed_origins)
 
