@@ -7,6 +7,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+import time
 from http import HTTPStatus
 from typing import Any, ClassVar
 from urllib.parse import parse_qs
@@ -875,6 +876,7 @@ class FlushHandler(BaseHandler):
         #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
         tracer.flush()
         telemetry.telemetry_writer.periodic(force_flush=True)
+        time.sleep(0.2)
         self.write("OK")
 
 

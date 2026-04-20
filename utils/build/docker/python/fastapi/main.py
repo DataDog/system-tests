@@ -6,6 +6,7 @@ import random
 import shlex
 import subprocess
 import sys
+import time
 import typing
 
 import fastapi
@@ -1410,4 +1411,5 @@ def flush():
     #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
     tracer.flush()
     telemetry.telemetry_writer.periodic(force_flush=True)
+    time.sleep(0.2)
     return "OK"

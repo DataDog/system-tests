@@ -5,8 +5,9 @@ import os
 import random
 import shlex
 import subprocess
-import xmltodict
 import sys
+import time
+import xmltodict
 import boto3
 import django
 import httpx
@@ -1199,6 +1200,7 @@ def flush(request):
     #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
     tracer.flush()
     telemetry.telemetry_writer.periodic(force_flush=True)
+    time.sleep(0.2)
     return HttpResponse("OK")
 
 

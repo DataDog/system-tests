@@ -19,6 +19,7 @@ import shlex
 import subprocess
 import sys
 import threading
+import time
 import urllib.request
 
 import boto3
@@ -2244,4 +2245,5 @@ def flush():
     #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
     tracer.flush()
     telemetry.telemetry_writer.periodic(force_flush=True)
+    time.sleep(0.2)
     return Response("OK")
