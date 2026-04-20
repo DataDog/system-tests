@@ -122,8 +122,8 @@ def assert_versions_not_ahead_of_current(
             current_version = components[component]
 
             semver_ranges = (
-                condition["component_version"],
-                condition["excluded_component_version"],
+                condition.get("component_version"),
+                condition.get("excluded_component_version"),
             )
 
             for sem_range in semver_ranges:
