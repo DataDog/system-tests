@@ -43,7 +43,6 @@ class IntegrationsScenario(EndToEndScenario):
             "INTEGRATIONS",
             weblog_env={
                 "DD_DBM_PROPAGATION_MODE": "full",
-                "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
@@ -51,6 +50,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_IAST_CONTEXT_MODE": "GLOBAL",
                 "INCLUDE_OTEL_DROP_IN": "true",
+                "DD_TRACE_OTEL_ENABLED": "1",
             },
             other_weblog_containers=(
                 ElasticMQContainer,

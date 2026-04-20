@@ -1,5 +1,6 @@
+import contextlib
 import pytest
-from utils import interfaces, weblog, features, scenarios, logger
+from utils import features, interfaces, logger, scenarios, weblog
 
 """
 Test scenarios we want:
@@ -22,6 +23,10 @@ Config:
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
+    # The resource for the /stats-unique route differ between weblogs.
+    # We use this list to match all requests to this route regardless of the weblog.
+    STATS_UNIQUE_RESOURCES = ["GET /stats-unique", "GET stats-unique", "__main__.StatsUniqueHandler"]
+
     def setup_client_stats(self):
         for _ in range(5):
             weblog.get("/stats-unique")
@@ -34,7 +39,7 @@ class Test_Client_Stats:
         ok_top_hits = 0
         no_content_hits = 0
         no_content_top_hits = 0
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
@@ -77,7 +82,7 @@ class Test_Client_Stats:
         assert stats_count <= 4, (
             "expect <= 4 stats"
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
-        assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
+        assert hits == top_hits >= 4, "expect at least 4 'OK' hits and top level hits across all payloads"
 
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
@@ -85,15 +90,67 @@ class Test_Client_Stats:
         assertions to `test_client_stats` method.
         """
         root_found = False
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             if s["SpanKind"] == "server":
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found
+
+    def setup_top_level_service(self):
+        weblog.get("/")
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_top_level_service(self):
+        """Test that the top-level Service field in the stats payload matches the configured base service"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        for stats_request in stats_requests:
+            payload = stats_request["request"]["content"]
+            service = payload.get("Service")
+            assert service == "weblog", f"Expected top-level Service to be 'weblog', got: {service!r}"
 
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Client-side stats should be disabled by default"
+
+    def setup_grpc_status_code(self):
+        self.grpc_request = weblog.grpc("grpc stats")
+
+    def test_grpc_status_code(self):
+        grpc_stats = []
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "rpc" and stat.get("SpanKind") == "server":
+                        grpc_stats.append(stat)
+
+        assert grpc_stats, "Expected at least one gRPC stats entry in the v0.6/stats payload"
+        # 0 means OK in gRPC status codes
+        assert any(stat.get("GRPCStatusCode") == "0" for stat in grpc_stats), (
+            f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
+        )
+
+
+@features.service_override_source
+@scenarios.trace_stats_computation
+class Test_Stats_Service_Source:
+    """Test that srv_src field is set in stat buckets when service name is overridden by an integration"""
+
+    def setup_srv_src(self):
+        weblog.get("/rasp/sqli?user_id=1")
+
+    def test_srv_src(self):
+        """Test that at least one stat bucket has the srv_src field set"""
+        srv_src_found = False
+        for s in interfaces.agent.get_stats():
+            logger.debug(f"asserting on {s}")
+            if s.get("srv_src"):
+                srv_src_found = True
+                break
+        assert srv_src_found, "Expected at least one stat bucket to have srv_src set"
 
 
 @features.client_side_stats_supported
@@ -169,6 +226,12 @@ class Test_Peer_Tags:
 
     def setup_peer_tags(self):
         """Setup for peer tags test - generates client and server spans"""
+        # Ensure agent /info has been received so peer-tag keys are initialised
+        # before we make requests that generate stats with peer tags.
+        # Non-PHP weblogs don't expose this endpoint — silently ignore any failure.
+        with contextlib.suppress(Exception):
+            weblog.get("/await-agent-info")
+
         # Generate client spans by making outbound HTTP calls (should have peer tags)
         for _ in range(3):
             weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")

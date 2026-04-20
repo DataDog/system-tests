@@ -23,12 +23,15 @@ Each component has its own manifest file in the `manifests/` directory.
 ### Library Manifests
 - `manifests/cpp.yml` - C++ library
 - `manifests/cpp_httpd.yml` - C++ Apache httpd module
+- `manifests/cpp_kong.yml` - C++ Kong module
 - `manifests/cpp_nginx.yml` - C++ Nginx module
 - `manifests/dotnet.yml` - .NET library
 - `manifests/golang.yml` - Go library
 - `manifests/java.yml` - Java library
+- `manifests/java_lambda.yml` - Java AWS Lambda library
 - `manifests/java_otel.yml` - Java OpenTelemetry
 - `manifests/nodejs.yml` - Node.js library
+- `manifests/nodejs_lambda.yml` - Node.js AWS Lambda
 - `manifests/nodejs_otel.yml` - Node.js OpenTelemetry
 - `manifests/php.yml` - PHP library
 - `manifests/python.yml` - Python library
@@ -390,6 +393,7 @@ The manifest system addresses these challenges by providing:
 - **Manifest declarations**: Use manifests to declare at which version of your library a feature should be working
 - **When to use decorators**: Decorators still have their place for:
   - Complex skip conditions that cannot be expressed with simple version requirements
+  - Force-skip behavior via [`@slow` or `@scenario_crash`](./skip-tests.md#force-skip-decorators), combined with a manifest declaration
 
 ### In Practice
 

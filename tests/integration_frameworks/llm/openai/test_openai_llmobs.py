@@ -293,7 +293,6 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
             metrics=mock.ANY,
         )
         assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
-        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
         assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
 
     def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):

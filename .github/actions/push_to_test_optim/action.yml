@@ -6,6 +6,9 @@ inputs:
     default: datadoghq.com
   datadog_api_key:
     description: "A valid DD_API_KEY"
+  ci_environment:
+    description: "CI environment running the tests (dev/prod/custom), used for Test Optimization tagging"
+    default: ""
 
 runs:
   using: composite
@@ -22,9 +25,17 @@ runs:
 
     - name: checkout owner repo
       if: github.event.pull_request.user.login != 'dependabot[bot]'
-      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         path: repo
+
+    - name: Get Datadog credentials
+      id: dd-sts
+      if: github.event.pull_request.user.login != 'dependabot[bot]'
+      continue-on-error: true
+      uses: DataDog/dd-sts-action@2e8187910199bd93129520183c093e19aa585c75 # v1.0.0
+      with:
+        policy: system-tests
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
@@ -40,4 +51,5 @@ runs:
           --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
-        DATADOG_API_KEY:  ${{ inputs.datadog_api_key }}
+        DATADOG_API_KEY:  ${{ inputs.datadog_api_key != '' && inputs.datadog_api_key || steps.dd-sts.outputs.api_key }}
+        DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}

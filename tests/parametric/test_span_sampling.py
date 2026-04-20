@@ -14,7 +14,7 @@ from utils.docker_fixtures.spec.trace import (
     find_span,
     find_first_span_in_trace_payload,
 )
-from utils import missing_feature, context, scenarios, features
+from utils import context, scenarios, features
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -294,13 +294,17 @@ class Test_Span_Sampling:
         """Test sample rate comes close to expected number of spans sampled. We do this by setting the
         sample_rate to 0.5, and then making sure that about half of the spans have span sampling tags and
         half do not.
+
+        With 200 traces and a 0.5 sample rate, the expected number of sampled spans is 100
+        (std dev ~7.07). The acceptable range [60, 140] is ~5.7 standard deviations from the
+        mean, giving a theoretical failure probability of ~1 in 85 million.
         """
-        # make 100 new traces, each with one span
-        for _ in range(100):
+        # make 200 new traces, each with one span
+        for _ in range(200):
             with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
                 pass
-        traces = test_agent.wait_for_num_traces(num=100)
-        assert len(traces) == 100
+        traces = test_agent.wait_for_num_traces(num=200)
+        assert len(traces) == 200
         sampled = []
         unsampled = []
 
@@ -311,13 +315,9 @@ class Test_Span_Sampling:
             else:
                 unsampled.append(trace)
 
-        assert len(sampled) in range(30, 70)
-        assert len(unsampled) in range(30, 70)
+        assert len(sampled) in range(60, 141)
+        assert len(unsampled) in range(60, 141)
 
-    @missing_feature(
-        context.library == "*",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [

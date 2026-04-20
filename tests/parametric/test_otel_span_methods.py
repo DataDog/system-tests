@@ -7,11 +7,12 @@ from opentelemetry.trace import SpanKind
 from utils.docker_fixtures.parametric import Link
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_trace
+from utils.docker_fixtures.spec.trace import id_to_int
 from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures import TestAgentAPI
-from utils import features, missing_feature, context, scenarios
+from utils import features, context, scenarios
 from .conftest import APMLibrary
 
 # this global mark applies to all tests in this file.
@@ -333,17 +334,7 @@ class Test_Otel_Span_Methods:
                 span.end_span()
                 context = span.span_context()
                 assert context.get("trace_id") == parent.span_context().get("trace_id")
-                if (
-                    isinstance(span.span_id, str)
-                    and len(span.span_id) == 16
-                    and all(c in "0123456789abcdef" for c in span.span_id)
-                ):
-                    # Some languages e.g. PHP return a hexadecimal span id
-                    assert context.get("span_id") == span.span_id
-                else:
-                    # Some languages e.g. Node.js using express need to return as a string value
-                    # due to 64-bit integers being too large.
-                    assert context.get("span_id") == f"{int(span.span_id):016x}"
+                assert context.get("span_id") == span.span_id
                 assert context.get("trace_flags") == "01"
 
         # compare the values of the span context with the values of the trace sent to the agent
@@ -351,7 +342,7 @@ class Test_Otel_Span_Methods:
         trace = find_trace(traces, span.trace_id)
         op2 = find_span(trace, span.span_id)
         assert op2["resource"] == "op2"
-        assert op2["span_id"] == int(context["span_id"], 16)
+        assert id_to_int(op2["span_id"]) == id_to_int(context["span_id"])
         first_span = find_first_span_in_trace_payload(trace)
         op2_tidhex = first_span["meta"].get("_dd.p.tid", "") + "{:016x}".format(first_span["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
@@ -619,10 +610,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(
-        context.library in ("dotnet", "golang", "ruby"),
-        reason="Newer agents/testagents enabled native span event serialization by default",
-    )
     def test_otel_add_event_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.AddEvent API and its serialization into the meta tag 'events'"""
         # Since timestamps may not be standardized across languages, use microseconds as the input
@@ -688,10 +675,6 @@ class Test_Otel_Span_Methods:
         root_span = find_span(trace, span.span_id)
         assert "error" not in root_span or root_span["error"] == 0
 
-    @missing_feature(
-        context.library in ("dotnet", "golang", "ruby"),
-        reason="Newer agents/testagents enabled native span event serialization by default",
-    )
     def test_otel_record_exception_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.RecordException API (requires Span.AddEvent API support)
         and its serialization into the Datadog error tags and the 'events' tag
@@ -732,10 +715,6 @@ class Test_Otel_Span_Methods:
         if context.library != "php":
             assert "error.type" in root_span["meta"]
 
-    @missing_feature(
-        context.library in ("dotnet", "golang", "ruby"),
-        reason="Newer agents/testagents enabled native span event serialization by default",
-    )
     def test_otel_record_exception_attributes_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.RecordException API (requires Span.AddEvent API support)
         and its serialization into the Datadog error tags and the 'events' tag
@@ -790,6 +769,26 @@ class Test_Otel_Span_Methods:
 
         assert root_span["error"] == 1
         assert "error.stack" in root_span["meta"]
+        assert "error.message" in root_span["meta"]
+        assert "error.type" in root_span["meta"]
+
+    def test_otel_record_exception_sets_handling_stack_in_go(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """For dd-trace-go > v2.5.0, we set the throw stack (if available) in error.details and the handling stack in error.stack (always)
+        For dd-trace-go >= v2.7.0, we set the throw stack (if available) in error.stack and the handling stack in error.handling_stack (always)
+        https://github.com/DataDog/dd-trace-go/pull/4322
+        """
+        with test_library, test_library.otel_start_span("operation") as span:
+            span.set_status(StatusCode.ERROR, "error_desc")
+            span.record_exception(
+                message="woof1", attributes={"string_val": "value", "exception.stacktrace": "stacktrace1"}
+            )
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
+
+        assert root_span["error"] == 1
+        assert "error.handling_stack" in root_span["meta"]
         assert "error.message" in root_span["meta"]
         assert "error.type" in root_span["meta"]
 

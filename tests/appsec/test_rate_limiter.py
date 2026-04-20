@@ -5,12 +5,11 @@
 import datetime
 import time
 
-from utils import weblog, context, interfaces, rfc, bug, scenarios, features, logger
+from utils import weblog, interfaces, rfc, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@bug(context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427")
 @scenarios.appsec_rate_limiter
 @features.appsec_rate_limiter
 class Test_Main:
@@ -47,11 +46,12 @@ class Test_Main:
                 # the logic is to set USER_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
 
-                assert "_sampling_priority_v1" in span["metrics"], (
+                sampling_priority = span.get_sampling_priority()
+                assert sampling_priority is not None, (
                     f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
                 )
 
-                if span["metrics"]["_sampling_priority_v1"] == SamplingPriority.USER_KEEP:
+                if sampling_priority == SamplingPriority.USER_KEEP:
                     trace_count += 1
 
         message = f"Sent 50 requests in 10 s. Expecting to see less than 10 events but saw {trace_count} events"

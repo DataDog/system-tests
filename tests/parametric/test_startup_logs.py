@@ -39,7 +39,6 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
     """Get startup logs from container, handling language-specific differences.
 
     - .NET: Reads from dotnet-tracer-managed* file
-    - Node.js/Ruby: Reads from stdout
     - Other libraries: Reads from stderr
 
     Args:
@@ -52,13 +51,6 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
     """
     if context.library == "dotnet":
         return _get_dotnet_startup_logs(test_library, required=required)
-    elif context.library in ("nodejs", "ruby"):
-        try:
-            logs = test_library.container.logs(stderr=True, stdout=True).decode("utf-8")
-        except Exception as e:
-            if required:
-                pytest.fail(f"Failed to retrieve container logs: {e}")
-            return None
     else:
         try:
             logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
@@ -78,12 +70,6 @@ class Test_Startup_Logs:
     def test_startup_logs_default(self, test_library: APMLibrary):
         """Verify default startup log behavior when DD_TRACE_STARTUP_LOGS is not set."""
         with test_library:
-            # For Node.js, startup logs are emitted when the tracer tries to send its first trace
-            if context.library == "nodejs":
-                with test_library.dd_start_span("test_operation", service="test_service"):
-                    pass
-                test_library.dd_flush()
-
             logs = _get_startup_logs(test_library, required=True)
 
             assert logs is not None
@@ -101,12 +87,6 @@ class Test_Startup_Logs:
     def test_startup_logs_enabled(self, test_library: APMLibrary):
         """Verify startup logs are emitted when DD_TRACE_STARTUP_LOGS=true."""
         with test_library:
-            # For Node.js, startup logs are emitted when the tracer tries to send its first trace
-            if context.library == "nodejs":
-                with test_library.dd_start_span("test_operation", service="test_service"):
-                    pass
-                test_library.dd_flush()
-
             logs = _get_startup_logs(test_library, required=True)
 
             assert logs is not None
@@ -129,12 +109,6 @@ class Test_Startup_Logs:
     def test_startup_logs_disabled(self, test_library: APMLibrary):
         """Verify startup logs are suppressed when DD_TRACE_STARTUP_LOGS=false."""
         with test_library:
-            # For Node.js, trigger a trace to ensure startup logs would be emitted if enabled
-            if context.library == "nodejs":
-                with test_library.dd_start_span("test_operation", service="test_service"):
-                    pass
-                test_library.dd_flush()
-
             logs = _get_startup_logs(test_library, required=False)
             if logs is not None:
                 match = re.search(STARTUP_LOG_PATTERN, logs, re.IGNORECASE)

@@ -599,6 +599,7 @@ app.get('/flush', (req, res) => {
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  tracer._tracer?._processor?._stats?.onInterval()
 
   // does have a callback :)
   const promises = []
@@ -754,14 +755,16 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
+  // eslint-disable-next-line camelcase
+  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
-    res.status(200).json(evaluation)
+    res.status(200).json(renameAttrs(evaluation))
   } catch (e) {
     if (e.name === 'AIGuardAbortError') {
-      res.status(403).json(e)
+      res.status(403).json(renameAttrs(e))
     } else {
       res.status(500).json(e)
     }

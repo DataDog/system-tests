@@ -1,3 +1,4 @@
+import itertools
 import json
 from typing import Any
 from collections import defaultdict
@@ -6,9 +7,10 @@ from datetime import timedelta
 from http import HTTPStatus
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -49,7 +51,33 @@ def is_v1_payload(data: dict):
     return get_request_content(data).get("api_version") == "v1"
 
 
-@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
+def _first_lifecycle_per_runtime(
+    telemetry_data: list[dict[str, Any]],
+    skip_request_types: frozenset[str],
+) -> list[tuple[str, str]]:
+    """Extract (runtime_id, request_type) for the first lifecycle message per runtime.
+
+    Sorts by (runtime_id, seq_id, batch_index) so the first per runtime is correct.
+    """
+    messages: list[tuple[str, int, int, str]] = []
+    for data in telemetry_data:
+        content: dict[str, Any] = data["request"]["content"]
+        runtime_id: str = content.get("runtime_id", "")
+        seq_id: int = content.get("seq_id", 0)
+        if content.get("request_type") == "message-batch":
+            for i, msg in enumerate(content.get("payload", [])):
+                rt: str | None = msg.get("request_type")
+                if rt and rt not in skip_request_types:
+                    messages.append((runtime_id, seq_id, i, rt))
+        else:
+            rt = content.get("request_type")
+            if rt and rt not in skip_request_types:
+                messages.append((runtime_id, seq_id, 0, rt))
+
+    messages.sort(key=lambda m: (m[0], m[1], m[2]))
+    return [(rid, next(grp)[3]) for rid, grp in itertools.groupby(messages, key=lambda m: m[0])]
+
+
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -97,8 +125,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @bug(context.agent_version >= "7.36.0" and context.agent_version < "7.37.0", reason="APMRP-360")
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -114,7 +140,6 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -214,40 +239,24 @@ class Test_Telemetry:
             assert count == 1, f"runtime id {runtime_id} did not reported exactly one app-started event"
 
     @features.telemetry_app_started_event
-    def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message or the first message in the first batch"""
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-        assert len(telemetry_data) > 0, "No telemetry messages"
-        for batch in telemetry_data:
-            if batch["request"]["content"].get("request_type") == "message-batch":
-                if all(
-                    message.get("request_type") in ["sketches", "generate-metrics", "logs"]
-                    for message in batch["request"]["content"]["payload"]
-                ):
-                    # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
-                    # If the batch contains only messages not related to app-lifecycle we can ignore it.
-                    continue
-                first_message = batch["request"]["content"]["payload"][0]
-                assert first_message.get("request_type") == "app-started", (
-                    "app-started was not the first message in the first batch"
-                )
-                return
-            else:
-                # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
-                # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-                telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
-                app_started = [
-                    d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"
-                ]
-                assert app_started, "app-started message not found"
-                min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-                assert app_started[0]["request"]["content"]["seq_id"] == min_seq_id, (
-                    "app-started is not the first message by seq_id"
-                )
-                return
-        raise ValueError("app-started message not found")
+    def test_app_started_is_first_message(self) -> None:
+        """Request type app-started is the first telemetry message by seq_id (per runtime_id).
 
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
+        Uses seq_id ordering for deterministic testing, where the first captured batch has to be the first one sent.
+        """
+        skip_request_types: frozenset[str] = frozenset({"sketches", "generate-metrics", "logs", "distributions"})
+        telemetry_data: list[dict[str, Any]] = list(
+            interfaces.library.get_telemetry_data(flatten_message_batches=False)
+        )
+        assert len(telemetry_data) > 0, "No telemetry messages"
+
+        first_per_runtime: list[tuple[str, str]] = _first_lifecycle_per_runtime(telemetry_data, skip_request_types)
+        assert first_per_runtime, "No lifecycle telemetry messages found (only sketches/generate-metrics/logs?)"
+        for runtime_id, first_type in first_per_runtime:
+            assert first_type == "app-started", (
+                f"runtime_id {runtime_id}: first lifecycle message is {first_type!r}, expected app-started"
+            )
+
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
@@ -457,18 +466,23 @@ class Test_Telemetry:
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
-        test_configuration: dict[str, dict] = {
+        test_configuration: dict[str, dict[str, object]] = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
+            "nodejs": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port, "DD_APPSEC_ENABLED": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
-            "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
+            "java": {"DD_TRACE_AGENT_PORT": trace_agent_port, "DD_TELEMETRY_HEARTBEAT_INTERVAL": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]
+        nodejs_legacy_config_names = {
+            "DD_AGENT_HOST": ["DD_AGENT_HOST", "hostname"],
+            "DD_TRACE_AGENT_PORT": ["DD_TRACE_AGENT_PORT", "port"],
+            "DD_APPSEC_ENABLED": ["DD_APPSEC_ENABLED", "appsec.enabled"],
+        }
 
         def validator(data: dict):
             if get_request_type(data) == "app-started":
@@ -478,10 +492,14 @@ class Test_Telemetry:
 
                 # validator is updated to handle tracers sending configuration chaining data
                 for expected_config_name, expected_value in configuration_map.items():
-                    config_name_to_check = expected_config_name
+                    config_names_to_check = [expected_config_name]
                     if context.library.name == "java":
                         # support for older versions of Java Tracer
-                        config_name_to_check = expected_config_name.replace(".", "_")
+                        config_names_to_check = [expected_config_name.replace(".", "_")]
+                    elif context.library.name == "nodejs":
+                        config_names_to_check = nodejs_legacy_config_names.get(
+                            expected_config_name, [expected_config_name]
+                        )
 
                     expected_value_str = str(expected_value).lower()
 
@@ -489,17 +507,20 @@ class Test_Telemetry:
                     config_found = False
                     for cnf in configurations:
                         # Handle different configuration structures - some might not have 'value' key
-                        if cnf.get("name") == config_name_to_check:
+                        if cnf.get("name") in config_names_to_check:
                             config_value = cnf.get("value")
                             # Accept both the expected value and its float version for telemetry_heartbeat_interval
-                            if expected_config_name == "telemetry_heartbeat_interval":
+                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL" and isinstance(
+                                expected_value, str | int | float
+                            ):
                                 try:
                                     expected_float = float(expected_value)
-                                    config_float = float(config_value)
-                                    if config_float == expected_float:
-                                        config_found = True
-                                        configurations_present.append(expected_config_name)
-                                        break
+                                    if isinstance(config_value, str | int | float):
+                                        config_float = float(config_value)
+                                        if config_float == expected_float:
+                                            config_found = True
+                                            configurations_present.append(expected_config_name)
+                                            break
                                 except Exception as e:
                                     logger.debug(
                                         f"Could not compare as float for config '{expected_config_name}': {e}"
@@ -511,7 +532,7 @@ class Test_Telemetry:
 
                     if not config_found:
                         # For debugging, show all entries with this config name
-                        matching_entries = [cnf for cnf in configurations if cnf.get("name") == config_name_to_check]
+                        matching_entries = [cnf for cnf in configurations if cnf.get("name") in config_names_to_check]
                         if matching_entries:
                             values_found = [
                                 f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})"
@@ -524,7 +545,7 @@ class Test_Telemetry:
                         else:
                             raise Exception(
                                 f"Client Configuration information is not accurately reported, "
-                                f"{expected_config_name} is not present in configuration on app-started event"
+                                f"none of {config_names_to_check} are present in configuration on app-started event"
                             )
 
         self.validate_library_telemetry_data(validator)
@@ -568,7 +589,7 @@ class Test_TelemetryEnhancedConfigReporting:
     # Expected configuration precedence: default -> env_var -> code
     EXPECTED_CONFIGS: dict[str, dict[str, Any]] = {
         "nodejs": {
-            "name": "DD_LOG_INJECTION",
+            "names": ["DD_LOGS_INJECTION", "DD_LOG_INJECTION"],
             "precedence": [
                 {"origin": "default", "value": True},
                 {"origin": "env_var", "value": False},
@@ -592,7 +613,7 @@ class Test_TelemetryEnhancedConfigReporting:
             ],
         },
         "java": {
-            "name": "logs_injection_enabled",
+            "name": "DD_LOGS_INJECTION_ENABLED",
             "precedence": [
                 {"origin": "default", "value": "true"},
                 {
@@ -600,6 +621,14 @@ class Test_TelemetryEnhancedConfigReporting:
                     "value": "true",
                 },  # File-based properties differ from sysprops, but still report with origin:jvm_prop, even though they have a lower precedence than env_var: https://github.com/DataDog/dd-trace-java/blob/5c66a150ff3b16ebf9626c0f0170fc9715461a6b/utils/config-utils/src/main/java/datadog/trace/bootstrap/config/provider/ConfigProvider.java#L507-L514
                 {"origin": "env_var", "value": "false"},
+            ],
+        },
+        "ruby": {
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
             ],
         },
     }
@@ -616,15 +645,17 @@ class Test_TelemetryEnhancedConfigReporting:
     def test_telemetry_enhanced_config_reporting_precedence(self):
         """Verify configuration precedence order matches expected sequence."""
         expected_config = self.EXPECTED_CONFIGS[context.library.name]
-        config_name = expected_config["name"]
+        config_names = expected_config.get("names")
+        if config_names is None:
+            config_names = [expected_config["name"]]
         expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
         # Get configurations from telemetry events
         all_configs = interfaces.library.get_telemetry_configurations()
         assert all_configs, "No configurations found"
 
-        matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
-        assert matching_configs, f"No configurations found for {config_name}"
+        matching_configs = [cfg for cfg in all_configs if cfg["name"] in config_names]
+        assert matching_configs, f"No configurations found for any of {config_names}"
 
         # Group configurations by origin and keep the latest (highest seq_id) for each origin
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
@@ -638,7 +669,7 @@ class Test_TelemetryEnhancedConfigReporting:
         # Verify each configuration matches expected precedence
         for i, expected in enumerate(expected_precedence):
             actual = sorted_configs[i]
-            assert actual["name"] == config_name, f"Config: {actual}, Expected Name: {config_name}"
+            assert actual["name"] in config_names, f"Config: {actual}, Expected Name in: {config_names}"
             assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
             assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
 
@@ -661,9 +692,9 @@ class Test_APMOnboardingInstallID:
         """Assert that at least one trace carries APM onboarding info"""
 
         def validate_at_least_one_span_with_tag(tag: str):
-            for _, chunk, chunk_format in interfaces.agent.get_traces():
-                for span in chunk.get("spans", []):
-                    span_meta = interfaces.agent.get_span_meta(span, chunk_format)
+            for _, chunk in interfaces.agent.get_traces():
+                for span in chunk.spans:
+                    span_meta = span.meta
                     if tag in span_meta:
                         return
             raise Exception(f"Did not find tag {tag} in any spans")
@@ -818,7 +849,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert that the debugger products are disabled by default including DI, and ER"""
+        """Assert DI and ER are disabled by default, and code origin config is reported."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -857,6 +888,11 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
+
+        if context.library == "dotnet" and context.library.version >= "3.42.0":
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
+
         assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
@@ -1019,15 +1055,17 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
         )

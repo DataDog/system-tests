@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, context, logger, bug, missing_feature
+from utils import context, features, logger, scenarios, slow
 import json
 import time
 
@@ -154,7 +154,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
-    @bug(context.library == "java", reason="DEBUG-4736", force_skip=True)
+    @slow
     def test_inproduct_enablement_exception_replay_apm_multiconfig(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -167,8 +167,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "java", force_skip=True)
-@missing_feature(context.library == "python", force_skip=True)
+@slow
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def _check_code_origin(self):
@@ -210,3 +209,19 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         assert self.co_explicit_enabled, "Expected spans with code origin after explicit enable"
         assert self.co_empty_config, "Expected spans to continue emitting with empty config"
         assert self.co_explicit_disabled, "Expected spans to stop emitting after explicit disable"
+
+
+@features.debugger_code_origins
+@scenarios.debugger_inproduct_enablement
+@slow
+class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
+    def setup_code_origin_enabled_by_default(self):
+        self.initialize_weblog_remote_config()
+        self.send_weblog_request("/")
+        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(TIMEOUT)
+
+    def test_code_origin_enabled_by_default(self):
+        self.assert_setup_ok()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.code_origin_enabled_by_default, "Expected code origin enabled by default"

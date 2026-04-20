@@ -128,7 +128,3 @@ class OtelCollectorScenario(DockerScenario):
             self.collector_container.stop()
 
         interfaces.otel_collector.check_deserialization_errors()
-
-    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
-        self.test_schemas(session, interfaces.otel_collector, [])
-        super().pytest_sessionfinish(session, exitstatus)

@@ -13,6 +13,7 @@
         export agent_version="${agent_path##*/}"
         export agent_version="${agent_version%-1}"
       fi
+      agent_version="${agent_version#*:}"
 
       if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)" ]; then 
         export inject_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject);
@@ -22,6 +23,7 @@
         export inject_version="${inject_path##*/}"
         export inject_version="${inject_version%-1}"
       fi
+      inject_version="${inject_version#*:}"
 
       if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)" ]; then 
         export tracer_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG);
@@ -31,6 +33,7 @@
         export tracer_version="${tracer_path##*/}"
         export tracer_version="${tracer_version%-1}"
       fi
+      tracer_version="${tracer_version#*:}"
 
       export installer_version="${agent_version}" # Installer is now shipped with the Agent
 
@@ -67,6 +70,7 @@
         export agent_version="${agent_path##*/}"
         export agent_version="${agent_version%-1}"
       fi
+      agent_version="${agent_version#*:}"
 
       if dpkg -s datadog-apm-inject &> /dev/null; then 
         export inject_version=$(dpkg -s datadog-apm-inject | grep Version);
@@ -77,6 +81,7 @@
         export inject_version="${inject_path##*/}"
         export inject_version="${inject_version%-1}"
       fi
+      inject_version="${inject_version#*:}"
 
       if dpkg -s datadog-apm-library-$DD_LANG &> /dev/null; then 
         export tracer_version=$(dpkg -s datadog-apm-library-$DD_LANG | grep Version);
@@ -87,6 +92,7 @@
         export tracer_version="${tracer_path##*/}"
         export tracer_version="${tracer_version%-1}"
       fi
+      tracer_version="${tracer_version#*:}"
 
       installer_version="${agent_version}" # Installer is now shipped with the Agent
       

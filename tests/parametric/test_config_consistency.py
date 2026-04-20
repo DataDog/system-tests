@@ -8,9 +8,7 @@ from utils import (
     scenarios,
     features,
     context,
-    missing_feature,
     rfc,
-    incomplete_test_app,
     logger,
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
@@ -354,9 +352,6 @@ class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
     )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
-    @incomplete_test_app(
-        reason="PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer"
-    )
     def test_dogstatsd_default(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
@@ -383,7 +378,7 @@ class Test_Config_Dogstatsd:
 
 
 SDK_DEFAULT_STABLE_CONFIG = {
-    "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
+    "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
     "dd_profiling_enabled": "1"
     if context.library == "php"
     else "true"
@@ -533,10 +528,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
-    )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
     )
     def test_extended_configs(
         self,

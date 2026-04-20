@@ -6,7 +6,7 @@ import random
 from utils.docker_fixtures.spec.trace import find_only_span, find_span_in_traces
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
 from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
-from utils import rfc, scenarios, features, bug, context
+from utils import rfc, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -450,7 +450,12 @@ def tag_sampling_env(tag_glob_pattern: str) -> dict:
 @features.adaptive_sampling
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def assert_matching_span(
-        self, test_agent: TestAgentAPI, trace_id: int, span_id: int, name: str | None = None, service: str | None = None
+        self,
+        test_agent: TestAgentAPI,
+        trace_id: int,
+        span_id: int | str,
+        name: str | None = None,
+        service: str | None = None,
     ):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
@@ -464,7 +469,12 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             assert matching_span["service"] == service
 
     def assert_mismatching_span(
-        self, test_agent: TestAgentAPI, trace_id: int, span_id: int, name: str | None = None, service: str | None = None
+        self,
+        test_agent: TestAgentAPI,
+        trace_id: int,
+        span_id: int | str,
+        name: str | None = None,
+        service: str | None = None,
     ):
         mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
@@ -625,7 +635,6 @@ class Test_Trace_Sampling_With_W3C:
             },
         ],
     )
-    @bug(context.library in ("cpp", "golang", "ruby"), reason="APMAPI-1563")
     def test_distributed_headers_synthetics_sampling_decision(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that trace sampling rules does not override sampling priority from distributed headers
         even when sampling priority is set via synthetics.

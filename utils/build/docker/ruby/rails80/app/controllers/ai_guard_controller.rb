@@ -16,6 +16,17 @@ class AiGuardController < ApplicationController
         end
       elsif message_data[:tool_call_id]
         Datadog::AIGuard.tool(tool_call_id: message_data[:tool_call_id], content: message_data[:content])
+      elsif message_data[:content].is_a?(Array)
+        Datadog::AIGuard.message(role: message_data[:role]) do |m|
+          message_data[:content].each do |part|
+            case part[:type]
+            when "text"
+              m.text(part[:text])
+            when "image_url"
+              m.image_url(part.dig(:image_url, :url))
+            end
+          end
+        end
       else
         Datadog::AIGuard.message(role: message_data[:role], content: message_data[:content])
       end
@@ -24,14 +35,20 @@ class AiGuardController < ApplicationController
     allow_raise = request.headers['X-AI-Guard-Block']&.downcase == "true"
     result = Datadog::AIGuard.evaluate(*messages, allow_raise: allow_raise)
 
-    render json: {
+    response_data = {
       action: result.action,
       reason: result.reason,
       tags: result.tags,
       is_blocking_enabled: result.blocking_enabled?
     }
+    response_data[:tag_probs] = result.tag_probabilities if result.respond_to?(:tag_probabilities)
+    response_data[:sds] = result.sds_findings if result.respond_to?(:sds_findings)
+    render json: response_data
   rescue Datadog::AIGuard::AIGuardAbortError => e
-    render json: { action: e.action, reason: e.reason, tags: e.tags }, status: 403
+    error_data = { action: e.action, reason: e.reason, tags: e.tags }
+    error_data[:tag_probabilities] = e.tag_probabilities if e.respond_to?(:tag_probabilities)
+    error_data[:sds_findings] = e.sds_findings if e.respond_to?(:sds_findings)
+    render json: error_data, status: 403
   rescue => e
     render json: {error: e.to_s, type: e.class.name}, status: 500
   end

@@ -19,17 +19,20 @@ Read and follow these rules in EVERY interaction:
 5. **`.cursor/rules/code-format-standards.mdc`** - Code formatting requirements (shellcheck, mypy, YAML)
 6. **`.cursor/rules/aws-ssi-testing.mdc`** - AWS SSI testing guidelines
 7. **`.cursor/rules/end-to-end-testing.mdc`** - End-to-end testing guidelines
-8. **`.cursor/rules/k8s-ssi.mdc`** - Kubernetes library injection testing
-9. **`.cursor/rules/test-activation.mdc`** - Test activation/deactivation rules
-10. **`.cursor/rules/doc.mdc`** - Rules for editing the documentation
+8. **`.cursor/rules/parametric-testing.mdc`** - Parametric scenario testing; use `--skip-parametric-build` when re-running parametric tests without image changes
+9. **`.cursor/rules/k8s-ssi.mdc`** - Kubernetes library injection testing
+10. **`.cursor/rules/test-activation.mdc`** - Test activation/deactivation rules
+11. **`.cursor/rules/doc.mdc`** - Rules for editing the documentation
+12. **`.cursor/rules/devtools.mdc`** - Developer tools: MCP, GitHub (gh), GitLab (glab) usage
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 
-11. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
+13. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
+14. **`.cursor/rules/promptfoo-llm.mdc`** - Promptfoo LLM testing guidelines
 
 ## Pull request review guidelines
 
-12. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
+15. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
 
 ---
 

@@ -1,9 +1,9 @@
 import json
 import time
-from typing import Any, Literal
+from typing import Literal
 
-from utils import weblog, scenarios, features, interfaces, logger
-
+from utils import weblog, scenarios, features, interfaces, logger, context
+from utils.dd_types import DataDogLibrarySpan
 
 DISTRIBUTED_TRACE_ID = 1
 DISTRIBUTED_PARENT_ID = 2
@@ -115,7 +115,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error(_BaseTestCase):
         )
 
 
-def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> dict | None:
+def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> DataDogLibrarySpan | None:
     logger.debug(f"Trying to find API Gateway span for interface: {interface}")
 
     for data, trace in interface.get_traces():
@@ -129,7 +129,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
             if span["resource"] != resource:
                 continue
 
-            logger.debug(f"Span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+            logger.debug(f"Span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
             return span
 
     logger.debug("No span found")
@@ -138,7 +138,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
 
 def assert_api_gateway_span(
     test_case: _BaseTestCase,
-    span: dict,
+    span: DataDogLibrarySpan,
     path: str,
     status_code: str,
     *,
@@ -175,14 +175,17 @@ def assert_api_gateway_span(
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
     assert span["meta"]["http.method"] == "GET", "Inferred AWS API Gateway span meta expected HTTP method to be 'GET'"
 
-    # Skip http.url and http.status_code assertions for Java (language='jvm') - these fields are not properly set
+    # http.url expected value in this test lacks the https:// scheme that Java correctly sets;
+    # the v2 tests (mandatory_tags_validator_factory) validate the full URL for all languages.
     is_java = span["meta"].get("language") == "jvm" or span["meta"].get("language") == "java"
     if not is_java:
-        assert "http.url" in span["meta"], "Inferred AWS API Gateway span eta should contain 'http.url'"
+        assert "http.url" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.url'"
         assert span["meta"]["http.url"] == "system-tests-api-gateway.com" + path, (
             f"Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com{path}'"
         )
-        assert "http.status_code" in span["meta"], "Inferred AWS API Gateway span eta should contain 'http.status_code'"
+    # http.status_code is only guaranteed in newer tracer versions; skip if absent to stay compatible
+    # with older releases. The v2 tests (mandatory_tags_validator_factory) strictly validate this tag.
+    if "http.status_code" in span["meta"]:
         assert span["meta"]["http.status_code"] == status_code, (
             f"Inferred AWS API Gateway span meta expected HTTP Status Code of '{status_code}'"
         )
@@ -194,11 +197,11 @@ def assert_api_gateway_span(
         )
 
     if is_distributed:
-        assert span["trace_id"] == DISTRIBUTED_TRACE_ID
+        assert span.trace_id_equals(DISTRIBUTED_TRACE_ID)
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
-        assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
+        assert span.get_sampling_priority() == DISTRIBUTED_SAMPLING_PRIORITY
 
-    if is_error and not is_java:
+    if is_error and "http.status_code" in span["meta"]:
         assert span["error"] == 1
         assert span["meta"]["http.status_code"] == "500"
 
@@ -216,7 +219,7 @@ def mandatory_tags_validator_factory(
     else:
         expected_component = "aws-httpapi"
 
-    def validate_api_gateway_span(span: dict[str, Any]) -> bool:
+    def validate_api_gateway_span(span: DataDogLibrarySpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 
@@ -274,13 +277,12 @@ def mandatory_tags_validator_factory(
             raise ValueError(f"Expected http.status_code to be '{expected_status_code}', found '{status_code}'")
 
         if distributed:
-            trace_id = span.get("trace_id")
-            if trace_id != DISTRIBUTED_TRACE_ID:
+            if not span.trace_id_equals(DISTRIBUTED_TRACE_ID):
                 raise ValueError(f"Expected trace_id to be '{DISTRIBUTED_TRACE_ID}', found '{span['trace_id']}'")
             parent_id = span.get("parent_id")
             if parent_id != DISTRIBUTED_PARENT_ID:
                 raise ValueError(f"Expected parent_id to be '{DISTRIBUTED_PARENT_ID}', found '{span['parent_id']}'")
-            sampling_priority = span.get("metrics", {}).get("_sampling_priority_v1")
+            sampling_priority = span.get_sampling_priority()
             if sampling_priority != DISTRIBUTED_SAMPLING_PRIORITY:
                 raise ValueError(f"Expected sampling_id to be '{DISTRIBUTED_PARENT_ID}', found '{span['parent_id']}'")
 
@@ -300,7 +302,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
     else:
         expected_arn = "arn:aws:apigateway:eu-west-3::/apis/a1b2c3d4e5f"
 
-    def validate_api_gateway_span(span: dict[str, Any]) -> bool:
+    def validate_api_gateway_span(span: DataDogLibrarySpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 
@@ -320,9 +322,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
         if region != "eu-west-3":
             raise ValueError(f"Expected 'region' tag to be 'eu-west-3', found '{region}'")
 
-        user = meta.get("aws_user")
-        if user != "aws-user":
-            raise ValueError(f"Expected 'aws_user' tag to be 'aws-user', found '{user}'")
+        # Note: aws_user is NOT validated - RFC states it should not be implemented without explicit approval (PII concerns)
 
         dd_resource_key = meta.get("dd_resource_key")
         if dd_resource_key != expected_arn:
@@ -417,6 +417,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 self.start_time_ns,
                 distributed=True,
             ),
+            full_trace=(context.library == "nodejs"),
         )
 
     def setup_api_gateway_rest_inferred_span_creation_with_error(self):

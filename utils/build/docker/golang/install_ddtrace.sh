@@ -1,12 +1,15 @@
 #!/bin/bash
 
-set -euv
+set -euvo pipefail
 
-# Run go mod tidy once to make sure go list does not fail
+export GONOSUMDB="github.com/DataDog/*"
+export GOPRIVATE="github.com/DataDog/*"
+
+# Run go mod tidy once to make sure go list does not fail.
 go mod tidy
 
 MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
-CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ')"
+CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ' || true)"
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"

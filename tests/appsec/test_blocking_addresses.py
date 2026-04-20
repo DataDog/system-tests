@@ -5,10 +5,8 @@
 import json
 
 from utils import (
-    bug,
     context,
     interfaces,
-    irrelevant,
     missing_feature,
     rfc,
     scenarios,
@@ -16,10 +14,11 @@ from utils import (
     features,
     HttpResponse,
 )
+from utils.dd_types import DataDogLibrarySpan
 
 
 def _assert_custom_event_tag_presence(expected_value: str):
-    def wrapper(span: dict):
+    def wrapper(span: DataDogLibrarySpan):
         tag = "appsec.events.system_tests_appsec_event.value"
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
@@ -30,7 +29,7 @@ def _assert_custom_event_tag_presence(expected_value: str):
 
 
 def _assert_custom_event_tag_absence():
-    def wrapper(span: dict):
+    def wrapper(span: DataDogLibrarySpan):
         tag = "appsec.events.system_tests_appsec_event.value"
         assert tag not in span["meta"], f"Found {tag} in span's meta"
         return True
@@ -553,10 +552,6 @@ class Test_Blocking_request_body:
             "/waf", data=b'{"value4": "bsldhkuqwgervf"}', headers={"content-type": "text/plain"}
         )
 
-    @irrelevant(
-        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3", "nginx"),
-        reason="Blocks on text/plain if parsed to a String",
-    )
     def test_non_blocking_plain_text(self):
         self.test_blocking()
         # TODO: This test is pending a better definition of when text/plain is considered parsed body,
@@ -595,6 +590,30 @@ class Test_Blocking_request_body_multipart:
 
         interfaces.library.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
         assert self.rbmp_req.status_code == 403
+
+
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@features.appsec_request_blocking
+class Test_Blocking_request_body_filenames:
+    """Test if blocking is supported on server.request.body.filenames address"""
+
+    def setup_blocking(self):
+        self.rbf_req = weblog.post("/waf", files={"upload": ("malicious_file.jsp", b"harmless content")})
+
+    def test_blocking(self):
+        """Can block on server.request.body.filenames"""
+        interfaces.library.assert_waf_attack(self.rbf_req, rule="tst-037-014")
+        assert self.rbf_req.status_code == 403
+
+    def setup_non_blocking(self):
+        self.setup_blocking()
+        self.rbf_safe = weblog.post("/waf", files={"upload": ("safe_file.txt", b"harmless content")})
+
+    def test_non_blocking(self):
+        """Does not block on server.request.body.filenames when filename is safe"""
+        self.test_blocking()
+        assert self.rbf_safe.status_code == 200
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -636,10 +655,6 @@ class Test_Blocking_response_status:
     def setup_not_found(self):
         self.rnf_req = weblog.get(path="/finger_print")
 
-    @missing_feature(
-        (context.library == "java" and context.weblog_variant == "spring-boot-openliberty"),
-        reason="Happens on a subsequent WAF run",
-    )
     @missing_feature(
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /finger_print is not implemented in the weblog",
@@ -700,17 +715,6 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
-    @irrelevant(
-        library="python_lambda",
-        condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
-        reason="function-url event type does not support path params",
-    )
-    @irrelevant(
-        context.library == "ruby" and context.weblog_variant == "rack",
-        reason="Rack don't send anything to the server.request.path_params WAF address",
-    )
-    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
-    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -728,17 +732,6 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
-    @irrelevant(
-        library="python_lambda",
-        condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
-        reason="function-url event type does not support path params",
-    )
-    @irrelevant(
-        context.library == "ruby" and context.weblog_variant == "rack",
-        reason="Rack don't send anything to the server.request.path_params WAF address",
-    )
-    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
-    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly

@@ -4,4 +4,4 @@ echo "--- PIP FREEZE ---"
 python -m pip freeze
 echo "------------------"
 
-ddtrace-run python main.py
+exec ddtrace-run python main.py
