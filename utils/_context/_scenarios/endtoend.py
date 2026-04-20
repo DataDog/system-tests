@@ -341,6 +341,7 @@ class EndToEndScenario(DockerScenario):
             # Both versions known from image labels: defer container startup to post-collection
             # so containers are skipped entirely when no tests are selected
             self._set_library_component()
+            self._set_agent_component()
             self.warmups.append(self._log_agent_info)
             self.warmups.append(self._log_weblog_info)
             self._defer_container_startup()
@@ -375,7 +376,6 @@ class EndToEndScenario(DockerScenario):
             self._start_interfaces_watchdog,
             self._start_containers,
             *[c.post_start for c in self._containers],
-            self._set_agent_component,
             self._get_weblog_system_info,
         ]
 
