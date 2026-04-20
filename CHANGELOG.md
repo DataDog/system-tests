@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-03 (196 PR merged)
+
+* 2026-03-19 [Deprecate force_skip argument](https://github.com/DataDog/system-tests/pull/6515) by @cbeauchesne
+* 2026-03-23 [Support multiple lang-branch overrides in PR title](https://github.com/DataDog/system-tests/pull/6468) by @bm1549
+* 2026-03-05 [revamp: use a classic test for schema validation](https://github.com/DataDog/system-tests/pull/6437) by @cbeauchesne
+* 2026-03-02 [AI devx tools](https://github.com/DataDog/system-tests/pull/6391) by @robertomonteromiguel
+* 2026-03-09 [Centralized constant handling: list of all components grouped by use case](https://github.com/DataDog/system-tests/pull/6359) by @nccatoni
+* 2026-03-10 [README improvement and restructuration of the documentation](https://github.com/DataDog/system-tests/pull/6290) by @nccatoni
+
+
 ### 2026-02 (156 PR merged)
 
 * 2026-02-26 [Adding the datadog mcp to system-tests cursor configuration](https://github.com/DataDog/system-tests/pull/6380) by @nccatoni

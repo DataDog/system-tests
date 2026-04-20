@@ -1,7 +1,17 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62218)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
+    - weblog_declaration:
+        "*": v2.31.0-dev
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": v2.25.0-dev
@@ -24,7 +34,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -44,7 +54,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -54,7 +64,17 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.31.0-dev
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities:
+    - weblog_declaration:
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -378,6 +398,27 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/smoke_tests/test_apm_standalone.py: missing_feature  # was inccorectly declared as v2.31.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - weblog_declaration:
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
@@ -469,6 +510,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.23.0.dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v2.22.0.dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v1.0.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.0.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.0.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v1.0.0
@@ -948,6 +990,7 @@ manifest:
     - declaration: missing_feature (Hash length not implemented)
       component_version: <=2.22.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
@@ -1496,8 +1539,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.27.0'  # Modified by easy win activation script
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.31.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)

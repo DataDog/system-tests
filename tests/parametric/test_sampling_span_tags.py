@@ -271,51 +271,67 @@ class Test_Sampling_Span_Tags:
 @features.trace_sampling
 class Test_Knuth_Sample_Rate:
     @pytest.mark.parametrize(
-        ("library_env", "sample_rate"),
+        ("library_env", "expected_ksr"),
         [
             (
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
                     "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
                 },
                 "1",
             ),
             (
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
-                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.7654321}]',
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.000001}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
                 },
-                "0.765432",
+                "0.000001",
+            ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.0000001}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+                },
+                "0",
+            ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.00000051}]',
+                    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+                },
+                "0.000001",
             ),
         ],
-        ids=["truncate_trailing_zeros", "percision_of_6_digits"],
+        ids=[
+            "rate_1_strips_trailing_zeros",
+            "six_decimal_precision_boundary",
+            "below_precision_rounds_to_zero",
+            "rounds_up_to_one_millionth",
+        ],
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, sample_rate: str
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, expected_ksr: str
     ):
         """When a trace is sampled via a sampling rule, the knuth sample rate
-        is sent to the agent on the chunk root span with the _dd.p.ksr key in the meta field.
+        is sent to the agent on the root span with the _dd.p.ksr key in the meta field.
+        The value is formatted with up to 6 decimal digits of precision, with trailing
+        zeros stripped.
         """
 
         with test_library:
-            with test_library.dd_start_span("span") as span1:
+            with test_library.dd_start_span("span"):
                 pass
             test_library.dd_flush()
 
-            with test_library.dd_start_span("span", parent_id=span1.span_id) as span2:
-                pass
-            test_library.dd_flush()
-
-            with test_library.dd_start_span("span", parent_id=span2.span_id):
-                pass
-            test_library.dd_flush()
-
-        traces = test_agent.wait_for_num_traces(3)
-        assert len(traces) == 3, f"Expected 3 traces: {traces}"
-        for trace in traces:
-            assert len(trace) == 1, f"Expected 1 span in the trace: {trace}"
-            span = trace[0]
-            assert span["meta"].get("_dd.p.ksr") == sample_rate, f"Expected {sample_rate} for span {span}"
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        assert span["meta"].get("_dd.p.ksr") == expected_ksr, (
+            f"Expected _dd.p.ksr='{expected_ksr}', got: {span['meta'].get('_dd.p.ksr')}"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -325,7 +341,13 @@ class Test_Knuth_Sample_Rate:
                 # Ensure sampling configurationations are not set.
                 "DD_TRACE_SAMPLE_RATE": None,
                 "DD_TRACE_SAMPLING_RULES": None,
-            }
+            },
+            {
+                "DD_TRACE_PROPAGATION_STYLE": "Datadog",
+                "DD_TRACE_SAMPLE_RATE": None,
+                # Verify upstream ksr is propagated unchanged even with local sampling rules set.
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
+            },
         ],
     )
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(
@@ -333,7 +355,8 @@ class Test_Knuth_Sample_Rate:
     ):
         """When a trace is extracted from datadog headers, the sampling decision
         and rate is extracted from X-Datadog-Sampling-Priority and X-Datadog-Tags
-        headers. These values are stored in the span's meta fields.
+        headers. These values are stored in the span's meta fields. The upstream
+        ksr is propagated unchanged even when local sampling rules are configured.
         """
         with test_library:
             incoming_headers = [
@@ -384,3 +407,27 @@ class Test_Knuth_Sample_Rate:
         assert span["meta"].get("_dd.p.dm") == "-1"
         assert span["meta"].get("_dd.p.ksr") == "0.1"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": None,
+            }
+        ],
+    )
+    def test_sampling_knuth_sample_rate_not_set_for_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When no sampling rules or agent rates are explicitly configured, _dd.p.ksr
+        may or may not be present depending on how the tracer classifies the default
+        agent rate. If present, it must be "1" (the default rate of 1.0).
+        """
+        with test_library:
+            with test_library.dd_start_span("span"):
+                pass
+            test_library.dd_flush()
+
+        traces = test_agent.wait_for_num_traces(1)
+        span = find_only_span(traces)
+        ksr = span.get("meta", {}).get("_dd.p.ksr")
+        assert ksr is None or ksr == "1", f"If _dd.p.ksr is set for default sampling, it should be '1', got: {ksr}"

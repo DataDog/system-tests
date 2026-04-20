@@ -124,6 +124,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      dd_sts_policy:
+        description: "dd-sts policy to use to get a Datadog API key for Test Optimization"
+        default: ""
+        required: false
+        type: string
 
     secrets:
       DOCKERHUB_USERNAME:
@@ -170,6 +175,8 @@ jobs:
     if: needs.compute_parameters.outputs.parametric_enable == 'true'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
+    permissions:
+      id-token: write
     with:
       library: ${{ inputs.library }}
       ref: ${{ inputs.ref }}
@@ -256,6 +263,8 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
+    permissions:
+      id-token: write
     with:
       runs_on: ${{ matrix.job.runs_on }}
       library: ${{ matrix.job.library }}
