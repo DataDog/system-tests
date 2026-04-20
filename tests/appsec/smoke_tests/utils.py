@@ -275,6 +275,14 @@ class BaseRemoteConfigSmokeTests:
 
     def test_rasp_blocking_smoke(self) -> None:
         assert self.r.status_code == 403
+        _assert_rasp_attack(
+            self.r,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
+        )
 
     def setup_ip_blocking_smoke(self) -> None:
         config = {
