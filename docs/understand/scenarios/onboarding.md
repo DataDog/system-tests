@@ -1009,16 +1009,18 @@ expected '_dd.appsec.enabled' to be 1 in trace span metrics but found ...
 - `[MACHINE_IP]` — IP address of the target machine.
 - `{request_uuid}` — request/trace identifier printed by the tests.
 
-### Quick commands
+**What to do**
 
-```bash
-# Find diagnostics markers
-grep -n "Diagnostics:" tests.log
-grep -n "Diagnostics:" [vm_name].log
-
-# Scan for exceptions in the VM log
-grep -n "Exception" [vm_name].log
-```
+1. **Build logs:** open `[vm_name].log` and scroll to the end; you should find the application build output there. Fix any build failures first.
+2. **Runtime logs:** if the build succeeded, check the app runtime logs looking for exceptions/errors. Any type of error can impact the functionality of AppSec
+   - **Host-based apps:**
+     ```
+     /var/log/datadog_weblog/app.log
+     ```
+   - **Containerized apps:**
+     ```
+     /var/log/datadog_weblog/docker_logs.log
+     /var/log/datadog_weblog/journalctl_docker.log
 
 # Troubleshooting: Quick Fixes for CI SSI Pipeline Issues
 
