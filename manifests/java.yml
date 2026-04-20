@@ -3785,8 +3785,8 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: v1.59.0-SNAPSHOT+419da213f7
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=1.61.0'
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: '>=1.61.1'
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v1.61.0-SNAPSHOT  # https://github.com/DataDog/dd-trace-java/pull/10802
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: v1.62.0-SNAPSHOT  # https://github.com/DataDog/dd-trace-java/pull/11068
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001:
     - declaration: bug (APMAPI-737)
