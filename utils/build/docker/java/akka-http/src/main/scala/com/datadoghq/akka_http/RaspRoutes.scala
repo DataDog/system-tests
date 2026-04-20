@@ -67,6 +67,18 @@ object RaspRoutes {
           }
         }
     } ~
+      pathPrefix("lfi_write") {
+        get {
+          parameter("file") { file =>
+            complete(executeLfiWrite(file))
+          }
+        } ~
+          post {
+            formFieldMap { fields: Map[String, String] =>
+              complete(executeLfiWrite(fields("file")))
+            }
+          }
+      } ~
       pathPrefix("lfi") {
         get {
           parameter("file") { file =>
@@ -81,18 +93,6 @@ object RaspRoutes {
                 complete(executeFli(file.file))
               } ~ entity(as[FileDTO]) { file =>
               complete(executeFli(file.file))
-            }
-          }
-      } ~
-      pathPrefix("lfi_write") {
-        get {
-          parameter("file") { file =>
-            complete(executeLfiWrite(file))
-          }
-        } ~
-          post {
-            formFieldMap { fields: Map[String, String] =>
-              complete(executeLfiWrite(fields("file")))
             }
           }
       } ~
