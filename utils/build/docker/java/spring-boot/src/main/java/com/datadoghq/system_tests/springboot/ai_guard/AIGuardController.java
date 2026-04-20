@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import datadog.trace.api.aiguard.AIGuard;
 import datadog.trace.api.aiguard.AIGuard.Evaluation;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,13 +15,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 @RestController
 public class AIGuardController {
+
+    @Configuration
+    public static class JacksonConfig {
+        @Bean
+        public Jackson2ObjectMapperBuilderCustomizer mixInCustomizer() {
+            return builder -> builder
+                    .mixIn(AIGuard.AIGuardAbortError.class, AIGuardAbortErrorMixIn.class)
+                    .mixIn(AIGuard.Evaluation.class, AIGuardEvaluationMixIn.class);
+        }
+    }
 
     @PostMapping("/ai_guard/evaluate")
     public ResponseEntity<?> evaluate(
@@ -34,7 +50,6 @@ public class AIGuardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
         }
     }
-
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Message {
@@ -192,6 +207,18 @@ public class AIGuardController {
         public void setArguments(String arguments) {
             this.arguments = arguments;
         }
+    }
+
+    public static abstract class AIGuardAbortErrorMixIn {
+
+        @JsonProperty("tag_probs")
+        abstract Object getTagProbabilities();
+    }
+
+    public static abstract class AIGuardEvaluationMixIn {
+
+        @JsonProperty("tag_probs")
+        abstract Object getTagProbabilities();
     }
 
 }

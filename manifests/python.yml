@@ -7,6 +7,7 @@ manifest:
   tests/:  # Easy win for tornado and version 4.3.1
     - weblog_declaration:
         tornado: v4.4.0-rc2
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -621,6 +622,7 @@ manifest:
         "*": v2.10.0
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
+  tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.1.0-rc2
@@ -1118,6 +1120,7 @@ manifest:
         "*": missing_feature
         *flask: v3.5.0
     - declaration: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
@@ -1946,7 +1949,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v4.7.0
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName::test_process_tag_svc_auto: bug (APMLP-6275)
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName::test_process_tag_svc_auto: v4.8.0
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant

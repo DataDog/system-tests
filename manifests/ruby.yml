@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62218)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": v2.31.0-dev
@@ -33,7 +34,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -53,7 +54,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -63,7 +64,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.31.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -71,7 +72,16 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature (APPSEC-61897)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities:
+    - weblog_declaration:
+        "*": v2.31.0-dev
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
@@ -388,6 +398,27 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/smoke_tests/test_apm_standalone.py: missing_feature  # was inccorectly declared as v2.31.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - weblog_declaration:
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
@@ -960,6 +991,7 @@ manifest:
     - declaration: missing_feature (Hash length not implemented)
       component_version: <=2.22.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
