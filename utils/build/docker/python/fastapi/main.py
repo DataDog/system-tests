@@ -37,6 +37,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.internal import telemetry
 from openfeature import api
 from ddtrace.openfeature import DataDogProvider
 from openfeature.evaluation_context import EvaluationContext
@@ -1400,3 +1401,13 @@ async def stripe_webhook(request: Request):
         return JSONResponse(event.data.object)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=403)
+
+
+@app.get("/flush", response_class=PlainTextResponse)
+def flush():
+    # NOTE: If anything needs to be flushed here before the test suite ends,
+    #       this is the place to do it.
+    #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
+    tracer.flush()
+    telemetry.telemetry_writer.periodic(force_flush=True)
+    return "OK"

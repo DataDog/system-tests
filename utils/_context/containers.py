@@ -1089,9 +1089,9 @@ class WeblogContainer(TestedContainer):
     def flush(self) -> None:
         if self.library.name not in (
             "nodejs",
+            "python",
             "ruby",
         ):
-            # only nodejs and ruby supports it
             return
 
         try:

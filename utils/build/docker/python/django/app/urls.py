@@ -34,6 +34,7 @@ from iast import (
 import ddtrace
 
 from ddtrace.appsec import trace_utils as ato_user_sdk_v1
+from ddtrace.internal import telemetry
 
 try:
     from ddtrace.appsec import track_user_sdk
@@ -1192,6 +1193,15 @@ def stripe_webhook(request):
         return JsonResponse({"error": str(e)}, status=403)
 
 
+def flush(request):
+    # NOTE: If anything needs to be flushed here before the test suite ends,
+    #       this is the place to do it.
+    #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
+    tracer.flush()
+    telemetry.telemetry_writer.periodic(force_flush=True)
+    return HttpResponse("OK")
+
+
 urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
@@ -1294,4 +1304,5 @@ urlpatterns = [
     path("stripe/create_checkout_session", stripe_create_checkout_session),
     path("stripe/create_payment_intent", stripe_create_payment_intent),
     path("stripe/webhook", stripe_webhook),
+    path("flush", flush),
 ]
