@@ -26,8 +26,7 @@ from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
-from utils.manifest import Manifest
-from utils.manifest._internal.validate import assert_versions_not_ahead_of_current
+from utils.manifest import Manifest, assert_versions_not_ahead_of_current
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report

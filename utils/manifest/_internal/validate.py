@@ -2,7 +2,6 @@ import ast
 import importlib.util
 import inspect
 import json
-import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -10,11 +9,9 @@ from typing import TYPE_CHECKING
 import yaml
 from jsonschema import validate
 
-from utils._context.component_version import Version
 from utils._context.core import context
 
 from .parser import _load_file
-from .types import ManifestData
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -223,51 +220,6 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
 #         stack.append((key, val))
 #
 #     return errors
-
-
-_LOWER_BOUND_RE = re.compile(r"(?:>=?|\^)(\d+\.\d+(?:\.\d+)?[.\w+-]*)")
-
-_VERSION_FIELDS = ("component_version", "excluded_component_version")
-
-
-def assert_versions_not_ahead_of_current(
-    manifest_data: ManifestData,
-    components: dict[str, Version],
-) -> list[str]:
-    """Check that no manifest condition declares a version higher than the current component version.
-
-    In dev mode, any version boundary declared in the manifest must not exceed the version currently being tested.
-    Both component_version and excluded_component_version fields are checked. Prerelease versions of the current
-    version are not treated as equivalent to the release: 5.2.0-dev is strictly below 5.2.0.
-    """
-    errors = []
-
-    for nodeid, conditions in manifest_data.items():
-        for condition in conditions:
-            component = condition["component"]
-            if component not in components:
-                continue
-
-            current_version = components[component]
-
-            for field in _VERSION_FIELDS:
-                sem_range = condition.get(field)
-                if sem_range is None:
-                    continue
-
-                for match in _LOWER_BOUND_RE.finditer(sem_range.expression):
-                    try:
-                        declared = Version(match.group(1))
-                    except (ValueError, TypeError):
-                        continue
-
-                    if declared > current_version:
-                        errors.append(
-                            f"{nodeid} [{component}]: declared version {declared}"
-                            f" exceeds current version {current_version}"
-                        )
-
-    return errors
 
 
 def pretty(name: str, errors: dict[str, list]) -> str:

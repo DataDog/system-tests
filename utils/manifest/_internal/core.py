@@ -1,6 +1,9 @@
 from pathlib import Path
-from .parser import load
+import re
+
 from utils._context.component_version import Version
+
+from .parser import load
 from .rule import get_rules, match_rule
 from .types import ManifestData, SkipDeclaration
 from .validate import validate_manifest_files as validate
@@ -26,6 +29,7 @@ class Manifest:
         """
         self.data = load(path)
         self.rules = None
+        self._components = components
         if components is not None:
             self.update_rules(components, weblog)
 
@@ -92,3 +96,50 @@ class Manifest:
 
         """
         yml_sort(path)
+
+
+_LOWER_BOUND_RE = re.compile(r"(?:>=?|\^)(\d+\.\d+(?:\.\d+)?[.\w+-]*)")
+
+
+def assert_versions_not_ahead_of_current(
+    manifest_data: ManifestData,
+    components: dict[str, Version],
+) -> list[str]:
+    """Check that no manifest condition declares a version higher than the current component version.
+
+    In dev mode, any version boundary declared in the manifest must not exceed the version currently being tested.
+    Both component_version and excluded_component_version fields are checked. Prerelease versions of the current
+    version are not treated as equivalent to the release: 5.2.0-dev is strictly below 5.2.0.
+    """
+    errors = []
+
+    for nodeid, conditions in manifest_data.items():
+        for condition in conditions:
+            component = condition["component"]
+            if component not in components:
+                continue
+
+            current_version = components[component]
+
+            semver_ranges = (
+                condition["component_version"],
+                condition["excluded_component_version"],
+            )
+
+            for sem_range in semver_ranges:
+                if sem_range is None:
+                    continue
+
+                for match in _LOWER_BOUND_RE.finditer(sem_range.expression):
+                    try:
+                        declared = Version(match.group(1))
+                    except (ValueError, TypeError):
+                        continue
+
+                    if declared > current_version:
+                        errors.append(
+                            f"{nodeid} [{component}]: declared version {declared}"
+                            f" exceeds current version {current_version}"
+                        )
+
+    return errors

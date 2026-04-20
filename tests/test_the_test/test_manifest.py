@@ -5,9 +5,9 @@ import textwrap
 import pytest
 from utils import scenarios
 from utils._context.component_version import Version
-from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
+from utils.manifest import Manifest, SkipDeclaration, TestDeclaration, assert_versions_not_ahead_of_current
 from utils.manifest._internal.types import ManifestData, SemverRange as CustomSpec
-from utils.manifest._internal.validate import assert_nodeids_exist, assert_versions_not_ahead_of_current
+from utils.manifest._internal.validate import assert_nodeids_exist
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.types import Context
 
@@ -474,9 +474,7 @@ class Test_VersionsNotAheadOfCurrent:
     def test_no_excluded_component_version_is_ok(self):
         """Conditions without excluded_component_version (plain skip declarations) are ignored."""
         data = ManifestData()
-        data["tests/foo.py::TestFoo"] = [
-            {"component": "nodejs", "declaration": SkipDeclaration("missing_feature")}
-        ]
+        data["tests/foo.py::TestFoo"] = [{"component": "nodejs", "declaration": SkipDeclaration("missing_feature")}]
         errors = assert_versions_not_ahead_of_current(data, {"nodejs": Version("5.2.0")})
         assert errors == []
 
