@@ -586,6 +586,21 @@ class _Scenarios:
         scenario_groups=[scenario_groups.ffe],
     )
 
+    feature_flagging_and_experimentation_backend = EndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_BACKEND",
+        rc_api_enabled=True,
+        rc_backend_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+        },
+        agent_env={
+            "DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL": "60s",
+        },
+        doc="FFE with real Agent RC path and 60s refresh — demonstrates FFE_FLAGS is not delivered quickly without product-aware bypass",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
