@@ -4,7 +4,7 @@
 
 """AppSec smoke tests at the agent interface level"""
 
-from utils import interfaces, remote_config as rc, weblog
+from utils import context, interfaces, remote_config as rc, weblog
 from utils.dd_types import is_same_boolean
 from utils._weblog import HttpResponse
 
@@ -322,7 +322,9 @@ class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:
-        self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
+        username_key = "user[username]" if "rails" in context.weblog_variant else "username"
+        password_key = "user[password]" if "rails" in context.weblog_variant else "password"
+        self.r = weblog.post("/login?auth=local", data={username_key: "test", password_key: "1234"})
 
     def test_login_success_smoke(self) -> None:
         for _, span in interfaces.agent.get_spans(self.r):
