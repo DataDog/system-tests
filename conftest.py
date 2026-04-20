@@ -405,6 +405,12 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.declaration_report:
         return
 
+    # In pytest 7.1.3, session.testscollected is not yet set when this hook runs
+    # (it's assigned on the line after the hook call in Session.perform_collect).
+    # Use len(session.items) instead, which reflects the filtered items list.
+    if len(session.items) == 0 and not session.config.option.sleep and not session.config.option.skip_empty_scenario:
+        pytest.exit("No tests were selected — check scenario name and test filters", returncode=1)
+
     if session.config.option.sleep:  # on this mode, we simply sleep, not running any test or setup
         try:
             while True:
