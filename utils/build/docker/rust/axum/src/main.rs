@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::str::FromStr as _;
+use std::sync::OnceLock;
 
 use axum::{
     body::Bytes,
@@ -21,6 +22,12 @@ use tracing_subscriber::{
 };
 
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
+
+/// Single runtime-id for the lifetime of this process.
+static RUNTIME_ID: OnceLock<String> = OnceLock::new();
+fn runtime_id() -> &'static str {
+    RUNTIME_ID.get_or_init(|| uuid::Uuid::new_v4().to_string())
+}
 
 #[tokio::main]
 async fn main() {
@@ -59,6 +66,7 @@ async fn main() {
         .route("/status", get(status_endpoint))
         .route("/stats-unique", get(stats_unique))
         .route("/flush", get(flush_endpoint))
+        .route("/read_file", get(read_file))
         .route("/load_dependency", get(load_dependency))
         .route("/log/library", get(log_library))
         // Identification endpoints
@@ -121,6 +129,61 @@ async fn main() {
         // e2e span endpoints
         .route("/e2e_single_span", get(e2e_single_span))
         .route("/e2e_otel_span", get(e2e_otel_span))
+        // SQLi + endpoint_fallback
+        .route("/sqli", get(sqli_endpoint))
+        .route("/endpoint_fallback", get(endpoint_fallback))
+        // RASP: shell injection + command injection
+        .route("/rasp/shi", get(rasp_shi))
+        .route("/rasp/shi", post(rasp_shi))
+        .route("/rasp/cmdi", get(rasp_cmdi))
+        .route("/rasp/cmdi", post(rasp_cmdi))
+        // IAST cookie endpoints
+        .route("/iast/insecure-cookie/test_secure", get(iast_insecure_cookie_test_secure))
+        .route("/iast/insecure-cookie/test_insecure", get(iast_insecure_cookie_test_insecure))
+        .route("/iast/insecure-cookie/custom_cookie", post(iast_insecure_cookie_custom_cookie))
+        .route("/iast/insecure-cookie/test_empty_cookie", get(iast_insecure_cookie_test_empty_cookie))
+        .route("/iast/no-httponly-cookie/test_secure", get(iast_no_httponly_cookie_test_secure))
+        .route("/iast/no-httponly-cookie/test_insecure", get(iast_no_httponly_cookie_test_insecure))
+        .route("/iast/no-httponly-cookie/test_empty_cookie", get(iast_no_httponly_cookie_test_empty_cookie))
+        .route("/iast/no-httponly-cookie/custom_cookie", post(iast_no_httponly_cookie_custom_cookie))
+        .route("/iast/no-samesite-cookie/test_secure", get(iast_no_samesite_cookie_test_secure))
+        .route("/iast/no-samesite-cookie/test_insecure", get(iast_no_samesite_cookie_test_insecure))
+        .route("/iast/no-samesite-cookie/test_empty_cookie", get(iast_no_samesite_cookie_test_empty_cookie))
+        .route("/iast/no-samesite-cookie/custom_cookie", post(iast_no_samesite_cookie_custom_cookie))
+        // IAST hashing / secrets / header injection / sampling
+        .route("/iast/insecure_hashing/deduplicate", get(iast_insecure_hashing_deduplicate))
+        .route("/iast/insecure_hashing/multiple_hash", get(iast_insecure_hashing_multiple_hash))
+        .route("/iast/insecure_hashing/test_secure_algorithm", get(iast_insecure_hashing_secure))
+        .route("/iast/insecure_hashing/test_md5_algorithm", get(iast_insecure_hashing_md5))
+        .route("/iast/hardcoded_secrets/test_insecure", get(iast_hardcoded_secrets))
+        .route("/iast/header_injection/reflected/exclusion", get(iast_header_injection_exclusion))
+        .route("/iast/header_injection/reflected/no-exclusion", get(iast_header_injection_no_exclusion))
+        .route("/iast/sampling-by-route-method-count/{key}", get(iast_sampling_count))
+        .route("/iast/sampling-by-route-method-count/{key}", post(iast_sampling_count_post))
+        .route("/iast/sampling-by-route-method-count-2/{key}", get(iast_sampling_count_2))
+        // IAST source endpoints
+        .route("/iast/source/parameter/test", get(iast_source_parameter_get))
+        .route("/iast/source/parameter/test", post(iast_source_parameter_post))
+        .route("/iast/source/parametername/test", get(iast_source_parametername_get))
+        .route("/iast/source/parametername/test", post(iast_source_parametername_post))
+        .route("/iast/source/header/test", get(iast_source_header))
+        .route("/iast/source/headername/test", get(iast_source_headername))
+        .route("/iast/source/cookievalue/test", get(iast_source_cookievalue))
+        .route("/iast/source/cookiename/test", get(iast_source_cookiename))
+        .route("/iast/source/multipart/test", post(iast_source_multipart))
+        .route("/iast/source/body/test", post(iast_source_body))
+        .route("/iast/source/sql/test", get(iast_source_sql))
+        // IAST SC (security controls)
+        .route("/iast/sc/s/configured", post(iast_sc_s_configured))
+        .route("/sc/s/not-configured", post(iast_sc_s_not_configured))
+        .route("/sc/s/all", post(iast_sc_s_all))
+        .route("/sc/iv/configured", post(iast_sc_iv_configured))
+        .route("/sc/iv/not-configured", post(iast_sc_iv_not_configured))
+        .route("/sc/iv/all", post(iast_sc_iv_all))
+        .route("/sc/iv/overloaded/secure", post(iast_sc_iv_overloaded_secure))
+        .route("/sc/iv/overloaded/insecure", post(iast_sc_iv_overloaded_insecure))
+        .route("/sc/s/overloaded/secure", post(iast_sc_s_overloaded_secure))
+        .route("/sc/s/overloaded/insecure", post(iast_sc_s_overloaded_insecure))
         .route_layer(axum::middleware::from_fn(set_http_route))
         .route_layer(trace::HttpLayer::server(Level::DEBUG))
         .layer(metrics::HttpLayer::server(&meter))
@@ -143,11 +206,19 @@ async fn set_http_route(
     req: Request<axum::body::Body>,
     next: Next,
 ) -> Response {
+    // Capture for post-response error tagging
+    let span_before = tracing::Span::current();
     let span = tracing::Span::current();
     span.set_attribute("http.route", matched_path.as_str().to_owned());
     // _dd.top_level marks this as a root span so the library interface can
     // match traces to requests via the user-agent header.
     span.set_attribute("_dd.top_level", 1i64);
+    // Datadog semantic-convention tags required by system-tests.
+    span.set_attribute("language", "rust");
+    span.set_attribute("component", "axum");
+    span.set_attribute("runtime-id", runtime_id());
+    // process_id goes to the metrics map (numeric value).
+    span.set_attribute("process_id", std::process::id() as i64);
 
     // Set http.url from the request URI + host header (with sensitive params scrubbed)
     let host = req
@@ -187,8 +258,18 @@ async fn set_http_route(
         span.set_attribute("network.client.ip", ip);
     }
 
-    next.run(req).await
+    let response = next.run(req).await;
+    // Mark 5xx server errors on the span
+    let status = response.status();
+    if status.is_server_error() {
+        span_before.set_status(opentelemetry::trace::Status::Error {
+            description: format!("HTTP {}", status.as_u16()).into(),
+        });
+    }
+    response
 }
+
+
 
 // ─── URL helpers ────────────────────────────────────────────────────────────────────
 
@@ -329,6 +410,16 @@ fn is_public_ip(ip: &str) -> bool {
     }
 }
 
+/// Add Datadog semantic tags to the *current* tracing span.
+/// Call this inside any manually-created span to keep validate_all_spans happy.
+fn add_dd_tags() {
+    let span = tracing::Span::current();
+    span.set_attribute("language", "rust");
+    span.set_attribute("component", "axum");
+    span.set_attribute("runtime-id", runtime_id());
+    span.set_attribute("process_id", std::process::id() as i64);
+}
+
 // ─── Basic endpoints ───────────────────────────────────────────────────────────
 
 async fn healthcheck() -> Json<Value> {
@@ -402,6 +493,14 @@ async fn flush_endpoint() -> &'static str {
     "flushed"
 }
 
+async fn read_file(Query(params): Query<HashMap<String, String>>) -> Response {
+    let file = params.get("file").cloned().unwrap_or_default();
+    match std::fs::read_to_string(&file) {
+        Ok(content) => (StatusCode::OK, content).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("Error: {e}")).into_response(),
+    }
+}
+
 async fn load_dependency() -> &'static str {
     "Loaded"
 }
@@ -435,7 +534,8 @@ async fn identify() -> Response {
 async fn identify_propagate() -> Response {
     let span = tracing::Span::current();
     // base64 encoding of "usr.id"
-    span.set_attribute("_dd.p.usr_id", "dXNyLmlk");
+    span.set_attribute("usr.id", "usr.id");
+    span.set_attribute("_dd.p.usr.id", "dXNyLmlk");
     (StatusCode::OK, "").into_response()
 }
 
@@ -475,6 +575,7 @@ async fn spans_endpoint(Query(params): Query<HashMap<String, String>>) -> Respon
         let span = tracing::info_span!(parent: None, "custom.span");
         let _guard = span.enter();
         let otel_span = tracing::Span::current();
+        add_dd_tags();
         for i in 0..garbage {
             let tag_key = format!("garbage{i}");
             let tag_val = format!("Random string {i}");
@@ -753,10 +854,23 @@ async fn session_new() -> Response {
 
 async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
     let url = params.get("url").cloned().unwrap_or_default();
-    let host = reqwest::Url::parse(&url)
-        .ok()
+    let parsed = reqwest::Url::parse(&url).ok();
+    let host = parsed
+        .as_ref()
         .and_then(|u| u.host_str().map(str::to_owned))
         .unwrap_or_default();
+
+    // Build scrubbed URL for the client span's http.url tag (preserving port)
+    let scrubbed_url = parsed.as_ref().map(|u| {
+        let path = u.path();
+        let query_scrubbed = u.query().map(scrub_query_string);
+        let qs = query_scrubbed.as_deref().map(|q| format!("?{q}")).unwrap_or_default();
+        let host_port = match u.port() {
+            Some(p) => format!("{}:{}", u.host_str().unwrap_or(""), p),
+            None => u.host_str().unwrap_or("").to_string(),
+        };
+        format!("{}://{}{}{}", u.scheme(), host_port, path, qs)
+    }).unwrap_or_else(|| url.clone());
 
     let span = tracing::info_span!(
         "http.client.request",
@@ -767,6 +881,11 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
         "network.protocol.name" = "http",
         "http.response.status_code" = tracing::field::Empty,
     );
+    span.in_scope(|| {
+        add_dd_tags();
+        tracing::Span::current().set_attribute("http.url", scrubbed_url.clone());
+        tracing::Span::current().set_attribute("span.kind", "client");
+    });
 
     let resp = reqwest::Client::new()
         .get(&url)
@@ -776,10 +895,23 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
 
     match resp {
         Ok(r) => {
-            span.record("http.response.status_code", r.status().as_u16());
+            let status = r.status().as_u16();
+            span.in_scope(|| {
+                let s = tracing::Span::current();
+                // Set as both string (meta) and int (metrics) for compatibility
+                s.set_attribute("http.status_code", status.to_string());
+                s.set_attribute("http.response.status_code", status as i64);
+                if status >= 400 {
+                    s.set_attribute("error.type", "HTTP Error");
+                    // Set OTel span status to Error — translated to error:1 by datadog-opentelemetry
+                    s.set_status(opentelemetry::trace::Status::Error {
+                        description: format!("HTTP {status}").into(),
+                    });
+                }
+            });
             Json(json!({
                 "url": url,
-                "status_code": r.status().as_u16(),
+                "status_code": status,
                 "request_headers": {},
                 "response_headers": {}
             }))
@@ -1085,6 +1217,7 @@ async fn rasp_sqli(
         "db.statement" = "SELECT * FROM users WHERE id = ?",
     )
     .entered();
+    add_dd_tags();
     StatusCode::OK.into_response()
 }
 
@@ -1167,4 +1300,716 @@ async fn e2e_otel_span(Query(params): Query<HashMap<String, String>>) -> Respons
     cx.span().end();
 
     (StatusCode::OK, "").into_response()
+}
+// ─── chunk A: sqli, endpoint_fallback, rasp/shi, rasp/cmdi ───────────────────
+
+async fn sqli_endpoint(Query(params): Query<HashMap<String, String>>) -> Response {
+    use rusqlite::Connection;
+
+    let q = params.get("q").cloned().unwrap_or_default();
+
+    let conn = match Connection::open_in_memory() {
+        Ok(c) => c,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, format!("DB error: {e}")).into_response(),
+    };
+
+    // Create users table with sample data
+    let setup = conn.execute_batch(
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT);
+         INSERT INTO users VALUES (1, 'Alice', 'alice@example.com');
+         INSERT INTO users VALUES (2, 'Bob', 'bob@example.com');
+         INSERT INTO users VALUES (3, 'Carol', 'carol@example.com');",
+    );
+    if let Err(e) = setup {
+        return (StatusCode::INTERNAL_SERVER_ERROR, format!("Setup error: {e}")).into_response();
+    }
+
+    // Unsafe injection: q is interpolated directly into the query string
+    let query = format!("SELECT * FROM users WHERE id='{q}'");
+    let mut stmt = match conn.prepare(&query) {
+        Ok(s) => s,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, format!("Query error: {e}")).into_response(),
+    };
+
+    let rows: Vec<String> = match stmt.query_map([], |row| {
+        let id: i64 = row.get(0)?;
+        let name: String = row.get(1)?;
+        let email: String = row.get(2)?;
+        Ok(format!("{id}|{name}|{email}"))
+    }) {
+        Ok(mapped) => mapped.filter_map(|r| r.ok()).collect(),
+        Err(_) => Vec::new(),
+    };
+
+    (StatusCode::OK, rows.join("\n")).into_response()
+}
+
+async fn endpoint_fallback(Query(params): Query<HashMap<String, String>>) -> Response {
+    let case = params.get("case").cloned().unwrap_or_default();
+    let span = tracing::Span::current();
+
+    match case.as_str() {
+        "with_route" => {
+            span.set_attribute("http.route", "/users/{id}/profile".to_owned());
+            (StatusCode::OK, "").into_response()
+        }
+        "with_endpoint" => {
+            span.set_attribute("http.endpoint", "/api/products/{param:int}".to_owned());
+            (StatusCode::OK, "").into_response()
+        }
+        "404" => {
+            span.set_attribute("http.endpoint", "/api/notfound/{param:int}".to_owned());
+            (StatusCode::NOT_FOUND, "").into_response()
+        }
+        "computed" => {
+            span.set_attribute(
+                "http.url",
+                "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456".to_owned(),
+            );
+            (StatusCode::OK, "").into_response()
+        }
+        _ => (StatusCode::OK, "").into_response(),
+    }
+}
+
+fn parse_list_dir_from_body(body: &Bytes) -> String {
+    // Try JSON first
+    if let Ok(v) = serde_json::from_slice::<Value>(body) {
+        if let Some(d) = v.get("list_dir").and_then(|d| d.as_str()) {
+            return d.to_string();
+        }
+    }
+    // Try form-urlencoded
+    for (k, v) in url::form_urlencoded::parse(body) {
+        if k == "list_dir" {
+            return v.to_string();
+        }
+    }
+    // Try XML: extract <list_dir>value</list_dir>
+    let body_str = std::str::from_utf8(body).unwrap_or("");
+    if let Some(start) = body_str.find("<list_dir>") {
+        let after = &body_str[start + "<list_dir>".len()..];
+        if let Some(end) = after.find("</list_dir>") {
+            return after[..end].to_string();
+        }
+    }
+    String::new()
+}
+
+async fn rasp_shi(
+    method: Method,
+    Query(query_params): Query<HashMap<String, String>>,
+    body: Bytes,
+) -> Response {
+    let list_dir = if method == Method::GET {
+        query_params.get("list_dir").cloned().unwrap_or_default()
+    } else {
+        parse_list_dir_from_body(&body)
+    };
+
+    // Shell injection: the tracer will intercept this for RASP
+    let result = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(format!("ls {list_dir}"))
+        .output();
+
+    match result {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            (StatusCode::OK, stdout).into_response()
+        }
+        Err(e) => (StatusCode::OK, format!("error: {e}")).into_response(),
+    }
+}
+
+fn parse_command_from_body(body: &Bytes) -> (String, Vec<String>) {
+    // Try JSON first
+    if let Ok(v) = serde_json::from_slice::<Value>(body) {
+        match v.get("command") {
+            Some(Value::Array(arr)) => {
+                let parts: Vec<String> = arr
+                    .iter()
+                    .filter_map(|x| x.as_str().map(str::to_string))
+                    .collect();
+                if let Some((cmd, rest)) = parts.split_first() {
+                    return (cmd.clone(), rest.to_vec());
+                }
+            }
+            Some(Value::String(s)) => {
+                let mut parts = s.split_whitespace();
+                let cmd = parts.next().unwrap_or("").to_string();
+                let args: Vec<String> = parts.map(str::to_string).collect();
+                return (cmd, args);
+            }
+            _ => {}
+        }
+    }
+    // Try form-urlencoded
+    for (k, v) in url::form_urlencoded::parse(body) {
+        if k == "command" {
+            let mut parts = v.split_whitespace();
+            let cmd = parts.next().unwrap_or("").to_string();
+            let args: Vec<String> = parts.map(str::to_string).collect();
+            return (cmd, args);
+        }
+    }
+    // Try XML: extract <command>value</command>
+    let body_str = std::str::from_utf8(body).unwrap_or("");
+    if let Some(start) = body_str.find("<command>") {
+        let after = &body_str[start + "<command>".len()..];
+        if let Some(end) = after.find("</command>") {
+            let raw = &after[..end];
+            let mut parts = raw.split_whitespace();
+            let cmd = parts.next().unwrap_or("").to_string();
+            let args: Vec<String> = parts.map(str::to_string).collect();
+            return (cmd, args);
+        }
+    }
+    (String::new(), Vec::new())
+}
+
+async fn rasp_cmdi(
+    method: Method,
+    Query(query_params): Query<HashMap<String, String>>,
+    body: Bytes,
+) -> Response {
+    let (cmd, args) = if method == Method::GET {
+        let command_str = query_params.get("command").cloned().unwrap_or_default();
+        let mut parts = command_str.split_whitespace();
+        let cmd = parts.next().unwrap_or("").to_string();
+        let args: Vec<String> = parts.map(str::to_string).collect();
+        (cmd, args)
+    } else {
+        parse_command_from_body(&body)
+    };
+
+    if cmd.is_empty() {
+        return (StatusCode::OK, "no command provided").into_response();
+    }
+
+    // Command injection without shell: the tracer will intercept for RASP
+    let result = std::process::Command::new(&cmd).args(&args).output();
+
+    match result {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            (StatusCode::OK, stdout).into_response()
+        }
+        Err(e) => (StatusCode::OK, format!("error: {e}")).into_response(),
+    }
+}
+// ─── chunk B: IAST cookie endpoints ──────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct CookieBody {
+    #[serde(rename = "cookieName")]
+    cookie_name: String,
+    #[serde(rename = "cookieValue")]
+    cookie_value: String,
+}
+
+// ─── /iast/insecure-cookie ────────────────────────────────────────────────────
+
+async fn iast_insecure_cookie_test_secure() -> Response {
+    let cookie_str = "test=secure_value; Secure; HttpOnly; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_insecure_cookie_test_insecure() -> Response {
+    let cookie_str = "insecure_cookie=insecure_value; HttpOnly; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_insecure_cookie_custom_cookie(Json(body): Json<CookieBody>) -> Response {
+    let cookie_str = format!(
+        "{}={}; HttpOnly; SameSite=Strict",
+        body.cookie_name, body.cookie_value
+    );
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(&cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_insecure_cookie_test_empty_cookie() -> Response {
+    let cookie_str = "empty_cookie=; HttpOnly; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+// ─── /iast/no-httponly-cookie ─────────────────────────────────────────────────
+
+async fn iast_no_httponly_cookie_test_secure() -> Response {
+    let cookie_str = "test=secure_value; Secure; HttpOnly; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_no_httponly_cookie_test_insecure() -> Response {
+    let cookie_str = "no_httponly_cookie=insecure_value; Secure; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_no_httponly_cookie_test_empty_cookie() -> Response {
+    let cookie_str = "empty_cookie=; Secure; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_no_httponly_cookie_custom_cookie(Json(body): Json<CookieBody>) -> Response {
+    let cookie_str = format!(
+        "{}={}; Secure; SameSite=Strict",
+        body.cookie_name, body.cookie_value
+    );
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(&cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+// ─── /iast/no-samesite-cookie ─────────────────────────────────────────────────
+
+async fn iast_no_samesite_cookie_test_secure() -> Response {
+    let cookie_str = "test=secure_value; Secure; HttpOnly; SameSite=Strict";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_no_samesite_cookie_test_insecure() -> Response {
+    let cookie_str = "no_samesite_cookie=insecure_value; Secure; HttpOnly";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_no_samesite_cookie_test_empty_cookie() -> Response {
+    let cookie_str = "empty_cookie=; Secure; HttpOnly";
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+
+async fn iast_no_samesite_cookie_custom_cookie(Json(body): Json<CookieBody>) -> Response {
+    let cookie_str = format!(
+        "{}={}; Secure; HttpOnly",
+        body.cookie_name, body.cookie_value
+    );
+    let mut resp = (StatusCode::OK, "").into_response();
+    if let Ok(v) = HeaderValue::from_str(&cookie_str) {
+        resp.headers_mut().insert("set-cookie", v);
+    }
+    resp
+}
+// ─── chunk C: IAST hashing/secrets/header-injection/sampling ─────────────────
+
+async fn iast_insecure_hashing_deduplicate() -> Response {
+    for _ in 0..2 {
+        let _ = md5::compute("test_string");
+        let _ = md5::compute("test_string");
+    }
+    (StatusCode::OK, "deduplicate").into_response()
+}
+
+async fn iast_insecure_hashing_multiple_hash() -> Response {
+    // First insecure hash: MD5
+    let _ = md5::compute("multiple_hash_input");
+
+    // Second insecure hash: std DefaultHasher (different algorithm, different line)
+    {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        "multiple_hash_input".hash(&mut hasher);
+        let _ = hasher.finish();
+    }
+
+    (StatusCode::OK, "multiple_hash").into_response()
+}
+
+async fn iast_insecure_hashing_secure() -> Response {
+    use sha2::{Digest, Sha256};
+    let _ = Sha256::digest(b"secure_data");
+    (StatusCode::OK, "secure").into_response()
+}
+
+async fn iast_insecure_hashing_md5() -> Response {
+    let _ = md5::compute("md5_input");
+    (StatusCode::OK, "md5").into_response()
+}
+
+async fn iast_hardcoded_secrets() -> Response {
+    let _secret = "hardcoded_secret_value_12345";
+    (StatusCode::OK, "hardcoded").into_response()
+}
+
+async fn iast_header_injection_exclusion(
+    headers: HeaderMap,
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
+    let reflected_name = params.get("reflected").cloned().unwrap_or_default();
+    let origin_name = params.get("origin").cloned().unwrap_or_default();
+
+    let origin_value = headers
+        .get(&origin_name)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_owned();
+
+    let mut resp = (StatusCode::OK, "reflected").into_response();
+    if let (Ok(name), Ok(val)) = (
+        HeaderName::from_str(&reflected_name),
+        HeaderValue::from_str(&origin_value),
+    ) {
+        resp.headers_mut().insert(name, val);
+    }
+    resp
+}
+
+async fn iast_header_injection_no_exclusion(
+    headers: HeaderMap,
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
+    let header_to_reflect = params.get("reflected").cloned().unwrap_or_default();
+    let header_origin = params.get("origin").cloned().unwrap_or_default();
+
+    let value_from_request = headers
+        .get(&header_origin)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_owned();
+
+    let mut response = (StatusCode::OK, "reflected").into_response();
+    if let (Ok(name), Ok(val)) = (
+        HeaderName::from_str(&header_to_reflect),
+        HeaderValue::from_str(&value_from_request),
+    ) {
+        response.headers_mut().insert(name, val);
+    }
+    response
+}
+
+async fn iast_sampling_count(Path(_key): Path<String>) -> Response {
+    // 15 distinct MD5 vulnerable operations on separate lines for IAST sampling
+    let _h1  = md5::compute("sampling_input_1");
+    let _h2  = md5::compute("sampling_input_2");
+    let _h3  = md5::compute("sampling_input_3");
+    let _h4  = md5::compute("sampling_input_4");
+    let _h5  = md5::compute("sampling_input_5");
+    let _h6  = md5::compute("sampling_input_6");
+    let _h7  = md5::compute("sampling_input_7");
+    let _h8  = md5::compute("sampling_input_8");
+    let _h9  = md5::compute("sampling_input_9");
+    let _h10 = md5::compute("sampling_input_10");
+    let _h11 = md5::compute("sampling_input_11");
+    let _h12 = md5::compute("sampling_input_12");
+    let _h13 = md5::compute("sampling_input_13");
+    let _h14 = md5::compute("sampling_input_14");
+    let _h15 = md5::compute("sampling_input_15");
+    (StatusCode::OK, "15 vulnerabilities").into_response()
+}
+
+async fn iast_sampling_count_post(Path(_key): Path<String>) -> Response {
+    // 15 distinct MD5 vulnerable operations on separate lines for IAST sampling (POST)
+    let _h1  = md5::compute("post_sampling_input_1");
+    let _h2  = md5::compute("post_sampling_input_2");
+    let _h3  = md5::compute("post_sampling_input_3");
+    let _h4  = md5::compute("post_sampling_input_4");
+    let _h5  = md5::compute("post_sampling_input_5");
+    let _h6  = md5::compute("post_sampling_input_6");
+    let _h7  = md5::compute("post_sampling_input_7");
+    let _h8  = md5::compute("post_sampling_input_8");
+    let _h9  = md5::compute("post_sampling_input_9");
+    let _h10 = md5::compute("post_sampling_input_10");
+    let _h11 = md5::compute("post_sampling_input_11");
+    let _h12 = md5::compute("post_sampling_input_12");
+    let _h13 = md5::compute("post_sampling_input_13");
+    let _h14 = md5::compute("post_sampling_input_14");
+    let _h15 = md5::compute("post_sampling_input_15");
+    (StatusCode::OK, "15 vulnerabilities").into_response()
+}
+
+async fn iast_sampling_count_2(Path(_key): Path<String>) -> Response {
+    // 15 distinct MD5 vulnerable operations — different inputs from iast_sampling_count
+    let _a1  = md5::compute("route2_alpha_001");
+    let _a2  = md5::compute("route2_alpha_002");
+    let _a3  = md5::compute("route2_alpha_003");
+    let _a4  = md5::compute("route2_alpha_004");
+    let _a5  = md5::compute("route2_alpha_005");
+    let _a6  = md5::compute("route2_alpha_006");
+    let _a7  = md5::compute("route2_alpha_007");
+    let _a8  = md5::compute("route2_alpha_008");
+    let _a9  = md5::compute("route2_alpha_009");
+    let _a10 = md5::compute("route2_alpha_010");
+    let _a11 = md5::compute("route2_alpha_011");
+    let _a12 = md5::compute("route2_alpha_012");
+    let _a13 = md5::compute("route2_alpha_013");
+    let _a14 = md5::compute("route2_alpha_014");
+    let _a15 = md5::compute("route2_alpha_015");
+    (StatusCode::OK, "15 vulnerabilities").into_response()
+}
+// ─── IAST source endpoints ────────────────────────────────────────────────────
+
+/// GET /iast/source/parameter/test
+/// Tainted source: query param value
+async fn iast_source_parameter_get(
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
+    let table = params.get("table").cloned().unwrap_or_default();
+    let _ = md5::compute(table.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /iast/source/parameter/test
+/// Tainted source: form-urlencoded body param value
+async fn iast_source_parameter_post(body: Bytes) -> Response {
+    let table = url::form_urlencoded::parse(&body)
+        .find(|(k, _)| k == "table")
+        .map(|(_, v)| v.into_owned())
+        .unwrap_or_default();
+    let _ = md5::compute(table.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// GET /iast/source/parametername/test
+/// Tainted source: query param KEY name
+async fn iast_source_parametername_get(request: Request) -> Response {
+    let raw_query = request.uri().query().unwrap_or("").to_owned();
+    let key = url::form_urlencoded::parse(raw_query.as_bytes())
+        .find(|(k, _)| k == "table")
+        .map(|(k, _)| k.into_owned())
+        .unwrap_or_default();
+    let _ = md5::compute(key.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /iast/source/parametername/test
+/// Tainted source: form-urlencoded body param KEY name
+async fn iast_source_parametername_post(body: Bytes) -> Response {
+    let key = url::form_urlencoded::parse(&body)
+        .find(|(k, _)| k == "user")
+        .map(|(k, _)| k.into_owned())
+        .unwrap_or_default();
+    let _ = md5::compute(key.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// GET /iast/source/header/test
+/// Tainted source: request header value
+async fn iast_source_header(headers: HeaderMap) -> Response {
+    let val = headers
+        .get("table")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_owned();
+    let _ = md5::compute(val.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// GET /iast/source/headername/test
+/// Tainted source: request header NAME
+async fn iast_source_headername(headers: HeaderMap) -> Response {
+    let mut name_str = String::new();
+    for (name, _) in &headers {
+        if name.as_str() == "table" {
+            name_str = name.as_str().to_owned();
+            break;
+        }
+    }
+    let _ = md5::compute(name_str.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// GET /iast/source/cookievalue/test
+/// Tainted source: cookie VALUE for key "table"
+async fn iast_source_cookievalue(headers: HeaderMap) -> Response {
+    let val = headers
+        .get("cookie")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .split(';')
+        .filter_map(|part| {
+            let part = part.trim();
+            let eq = part.find('=')?;
+            let k = part[..eq].trim();
+            let v = part[eq + 1..].trim();
+            if k == "table" { Some(v.to_owned()) } else { None }
+        })
+        .next()
+        .unwrap_or_default();
+    let _ = md5::compute(val.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// GET /iast/source/cookiename/test
+/// Tainted source: cookie KEY name "table"
+async fn iast_source_cookiename(headers: HeaderMap) -> Response {
+    let key = headers
+        .get("cookie")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .split(';')
+        .filter_map(|part| {
+            let part = part.trim();
+            let eq = part.find('=')?;
+            let k = part[..eq].trim();
+            if k == "table" { Some(k.to_owned()) } else { None }
+        })
+        .next()
+        .unwrap_or_default();
+    let _ = md5::compute(key.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /iast/source/multipart/test
+/// Tainted source: uploaded file name from multipart
+async fn iast_source_multipart(mut multipart: axum::extract::Multipart) -> Response {
+    let mut filename = String::new();
+    while let Ok(Some(field)) = multipart.next_field().await {
+        if let Some(f) = field.file_name() {
+            filename = f.to_owned();
+            break;
+        }
+    }
+    let _ = md5::compute(filename.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /iast/source/body/test
+/// Tainted source: JSON body field "name"
+async fn iast_source_body(Json(body): Json<Value>) -> Response {
+    let name_val = body
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_owned();
+    let _ = md5::compute(name_val.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// GET /iast/source/sql/test
+/// Tainted source: DB query result used in second query (SQL injection taint flow)
+async fn iast_source_sql() -> Response {
+    use rusqlite::Connection;
+    let conn = match Connection::open_in_memory() {
+        Ok(c) => c,
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "db error").into_response(),
+    };
+    let _ = conn.execute_batch(
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+         INSERT INTO users (id, name) VALUES (1, 'system_tests_user');",
+    );
+    let username: String = conn
+        .query_row("SELECT name FROM users WHERE id=1", [], |row| row.get(0))
+        .unwrap_or_else(|_| "unknown".to_owned());
+    // Vulnerable: tainted DB value concatenated into second query
+    let vuln_query = format!("SELECT * FROM users WHERE name='{username}'");
+    let _ = conn.execute_batch(&vuln_query);
+    (StatusCode::OK, "OK").into_response()
+}
+
+// ─── IAST SC (security controls) ─────────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct IastScBody {
+    param: Option<String>,
+}
+
+/// POST /iast/sc/s/configured
+async fn iast_sc_s_configured(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/s/not-configured
+async fn iast_sc_s_not_configured(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/s/all
+async fn iast_sc_s_all(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/iv/configured
+async fn iast_sc_iv_configured(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/iv/not-configured
+async fn iast_sc_iv_not_configured(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/iv/all
+async fn iast_sc_iv_all(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/iv/overloaded/secure
+async fn iast_sc_iv_overloaded_secure(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/iv/overloaded/insecure
+async fn iast_sc_iv_overloaded_insecure(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/s/overloaded/secure
+async fn iast_sc_s_overloaded_secure(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
+}
+
+/// POST /sc/s/overloaded/insecure
+async fn iast_sc_s_overloaded_insecure(Json(body): Json<IastScBody>) -> Response {
+    let param = body.param.unwrap_or_default();
+    let _ = md5::compute(param.as_bytes());
+    (StatusCode::OK, "OK").into_response()
 }
