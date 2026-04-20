@@ -27,6 +27,7 @@ from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 from utils.manifest import Manifest
+from utils.manifest._internal.validate import assert_versions_not_ahead_of_current
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -294,6 +295,14 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
     }
     manifest = Manifest(manifest_components, context.weblog_variant)
+
+    if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
+        version_errors = assert_versions_not_ahead_of_current(manifest.data, manifest_components)
+        if version_errors:
+            message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
+            message += "\n".join(f"  - {e}" for e in version_errors)
+            pytest.exit(message, 1)
+
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
