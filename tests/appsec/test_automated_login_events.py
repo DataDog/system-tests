@@ -6,7 +6,6 @@ from collections.abc import Callable
 from utils import context
 from utils import features
 from utils import interfaces
-from utils import missing_feature
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
@@ -704,7 +703,6 @@ class Test_Login_Events_Disabled:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(library="python", reason="Python tracer does not set usr.id tag for SDK login failure events when auto-tracking mode is disabled")
     def test_login_sdk_failure_local(self):
         """Validates that SDK-triggered login failure events still fire when auto-tracking
         is disabled (R8). The auto.mode tag must be absent or 'disabled' (auto-tracking never ran), SDK
@@ -726,7 +724,6 @@ class Test_Login_Events_Disabled:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(library="python", reason="Python tracer does not set usr.id tag for SDK login failure events when auto-tracking mode is disabled")
     def test_login_sdk_failure_basic(self):
         """Validates that SDK-triggered login failure events still fire when auto-tracking
         is disabled (R8), using basic auth. The auto.mode tag must be absent (auto-tracking
