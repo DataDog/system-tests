@@ -1064,7 +1064,7 @@ class WeblogContainer(TestedContainer):
                     path_str = str(Path(path).resolve())
                     self.volumes[path_str] = {
                         "bind": "/volumes/dd-trace-js",
-                        "mode": "ro",
+                        "mode": "rw",
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")

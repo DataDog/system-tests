@@ -1,3 +1,4 @@
+import contextlib
 import pytest
 from utils import features, interfaces, logger, scenarios, weblog
 
@@ -225,6 +226,12 @@ class Test_Peer_Tags:
 
     def setup_peer_tags(self):
         """Setup for peer tags test - generates client and server spans"""
+        # Ensure agent /info has been received so peer-tag keys are initialised
+        # before we make requests that generate stats with peer tags.
+        # Non-PHP weblogs don't expose this endpoint — silently ignore any failure.
+        with contextlib.suppress(Exception):
+            weblog.get("/await-agent-info")
+
         # Generate client spans by making outbound HTTP calls (should have peer tags)
         for _ in range(3):
             weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")
