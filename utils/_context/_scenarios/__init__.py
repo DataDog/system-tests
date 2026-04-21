@@ -1188,6 +1188,20 @@ class _Scenarios:
         doc="Test runtime metrics",
     )
 
+    otlp_runtime_metrics = EndToEndScenario(
+        "OTLP_RUNTIME_METRICS",
+        weblog_env={
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
+            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        runtime_metrics_enabled=True,
+        include_opentelemetry=True,
+        library_interface_timeout=20,
+        doc="Test runtime metrics exported via OTLP with OTel semantic convention names",
+    )
+
     # Appsec Lambda Scenarios
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
