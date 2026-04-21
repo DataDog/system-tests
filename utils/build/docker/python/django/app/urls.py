@@ -901,7 +901,7 @@ def login(request):
             track_user_sdk.track_login_success(login=sdk_user, user_id=sdk_user, metadata={"email": sdk_mail})
             is_logged_in = True
         elif sdk_event == "failure":
-            track_user_sdk.track_login_failure(login=sdk_user, exists=sdk_user_exists, metadata={"email": sdk_mail})
+            track_user_sdk.track_login_failure(login=sdk_user, user_id=sdk_user, exists=sdk_user_exists, metadata={"email": sdk_mail})
     if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
