@@ -233,7 +233,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
-    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    # The canonical way of adding Junit properties to testsuite is not working with xdist
     # Workaround to tackle this issue
     # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
     xml = session.config._store.get(xml_key, None)  # noqa: SLF001
@@ -246,6 +246,19 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
+
+    if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
+        manifest_components: dict[str, Version] = {
+            name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
+        }
+        manifest = Manifest(manifest_components, context.weblog_variant)
+
+        logger.info("Checking that no version is ahead of main branch")
+        errors = assert_versions_not_ahead_of_current(manifest.data, manifest_components)
+        if errors:
+            message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
+            message += "\n".join(f"  - {e}" for e in errors)
+            pytest.exit(message, 1)
 
 
 # called when each test item is collected
@@ -294,13 +307,6 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
     }
     manifest = Manifest(manifest_components, context.weblog_variant)
-
-    if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
-        version_errors = assert_versions_not_ahead_of_current(manifest.data, manifest_components)
-        if version_errors:
-            message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
-            message += "\n".join(f"  - {e}" for e in version_errors)
-            pytest.exit(message, 1)
 
     for item in items:
         assert isinstance(item, pytest.Function)
@@ -407,6 +413,8 @@ def _item_is_skipped(item: pytest.Item):
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
+    logger.debug("pytest_collection_finish")
+
     if session.config.option.collectonly:
         return
 
