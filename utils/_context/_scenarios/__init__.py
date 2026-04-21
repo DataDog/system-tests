@@ -1256,7 +1256,9 @@ class _Scenarios:
     ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
         weblog_env={
+            "DD_APPSEC_ENABLED": "false",
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
             "DD_API_KEY": "mock_api_key",

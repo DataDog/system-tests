@@ -2,6 +2,10 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": missing_feature (APPSEC-62199)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -4295,6 +4299,11 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace:
     - weblog_declaration:
         spring-boot-payara: missing_feature (This weblog variant is currently not accepting TRACE)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp:
+    - weblog_declaration:
+        "*": v0.93.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62219)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:

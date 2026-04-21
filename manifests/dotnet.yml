@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -1151,6 +1152,7 @@ manifest:
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.26.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v2.0.0-prerelease
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v0.1  # unknown initial version
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute: v2.13.0
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.0.0-prerelease
