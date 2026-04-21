@@ -40,6 +40,18 @@ class InternalController < ApplicationController
       worker.send(:send_events, *worker.dequeue)
     end
 
+    # Flush OTel metrics
+    begin
+      if defined?(::OpenTelemetry) && defined?(::OpenTelemetry::SDK::Metrics::MeterProvider)
+        meter_provider = ::OpenTelemetry.meter_provider
+        if meter_provider.is_a?(::OpenTelemetry::SDK::Metrics::MeterProvider)
+          meter_provider.force_flush
+        end
+      end
+    rescue => e
+      Rails.logger.warn("Failed to flush OTel metrics: #{e.class}: #{e}")
+    end
+
     render plain: 'OK'
   end
 end
