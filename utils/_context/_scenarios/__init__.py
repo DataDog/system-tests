@@ -398,6 +398,7 @@ class _Scenarios:
             "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "disabled",
             "DD_APPSEC_RULES": "/appsec_rules_no_processors.json",
             "DD_API_SECURITY_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
         },
         weblog_volumes={
             "./tests/appsec/rules_no_processors.json": {
