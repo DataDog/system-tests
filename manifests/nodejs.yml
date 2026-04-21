@@ -1360,6 +1360,7 @@ manifest:
         nextjs: irrelevant  # nextjs is not related with graphql
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v2.0.0
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v2.0.0
@@ -2372,6 +2373,7 @@ manifest:
         nextjs: missing_feature  # nextjs makes some internal requests, so we have more than 1 rootspans
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers: *ref_4_19_0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v2.11.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62220)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:

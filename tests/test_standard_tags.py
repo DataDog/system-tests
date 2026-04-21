@@ -206,6 +206,52 @@ class Test_StandardTagsRoute:
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
+@features.security_events_metadata
+@scenarios.go_proxies_default
+@scenarios.default
+class Test_StandardTagsNetworkClientIp:
+    """Tests to verify that libraries annotate spans with correct network.client.ip tags.
+    This can run on any scenario with either DD_APPSEC_ENABLED=true or DD_TRACE_CLIENT_IP_ENABLED=true.
+    """
+
+    PUBLIC_IP = "43.43.43.43"
+
+    def _setup(self, endpoint: str = "/", extra_headers: dict[str, str] | None = None):
+        headers = {"x-client-ip": self.PUBLIC_IP}
+        if extra_headers:
+            headers.update(extra_headers)
+        self.r = weblog.get(endpoint, headers=headers)
+
+    def _test(self):
+        span = interfaces.library.get_root_span(self.r)
+        assert span
+        meta = span.get("meta", {})
+        assert meta
+        assert "network.client.ip" in meta
+        network_client_ip = meta["network.client.ip"]
+        assert network_client_ip
+        assert network_client_ip != self.PUBLIC_IP
+        # http.client_ip resolves proxy headers, while network.client.ip does not, so both should be different here.
+        http_client_ip = meta.get("http.client_ip")
+        assert http_client_ip
+        assert network_client_ip != http_client_ip
+        assert http_client_ip == self.PUBLIC_IP
+
+    def setup_network_client_ip(self):
+        self._setup()
+
+    def test_network_client_ip(self):
+        """Test network.client.ip is reported and different from http.client_ip."""
+        self._test()
+
+    def setup_network_client_ip_with_attack(self):
+        self._setup(endpoint="/waf", extra_headers={"user-agent": "Arachni/v1"})
+
+    def test_network_client_ip_with_attack(self):
+        """Test network.client.ip is reported on ASM attacks. This is a special case to map the legacy behavior where this header would only be added on attacks, and not the general case."""
+        self._test()
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @features.security_events_metadata
 @scenarios.go_proxies_default

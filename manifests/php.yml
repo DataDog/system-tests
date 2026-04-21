@@ -464,6 +464,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (PHP normalizes into dashes; additionally, matching on keys is not supported)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams: v0.71.0
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0
@@ -1070,6 +1071,7 @@ manifest:
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace: irrelevant (Trace method does not reach php-land)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62222)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v1.9.0
   tests/test_standard_tags.py::Test_StandardTagsRoute: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.75.0
