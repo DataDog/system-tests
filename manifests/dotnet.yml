@@ -1151,6 +1151,7 @@ manifest:
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.26.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v2.0.0-prerelease
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v0.1  # unknown initial version
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute: v2.13.0
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.0.0-prerelease
