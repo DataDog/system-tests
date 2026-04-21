@@ -9,12 +9,21 @@
     "captures": {
       "return": {
         "locals": {
-          "queryParams": {
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
             "type": "array"
           },
-          "path": {
-            "type": "string",
-            "value": "/exceptionreplay/async"
+          "_GET": {
+            "type": "array"
+          },
+          "_POST": {
+            "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
           },
           "controller": {
             "type": "DebuggerController",
@@ -29,12 +38,6 @@
               }
             }
           },
-          "_SERVER": {
-            "type": "array"
-          },
-          "_GET": {
-            "type": "array"
-          },
           "parts": {
             "type": "array",
             "elements": [
@@ -48,19 +51,16 @@
               }
             ]
           },
-          "_FILES": {
-            "type": "array"
-          },
-          "_POST": {
-            "type": "array"
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/async"
           },
           "query": {
             "type": "null",
             "isNull": true
           },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
+          "queryParams": {
+            "type": "array"
           }
         },
         "throwable": {

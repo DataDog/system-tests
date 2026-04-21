@@ -9,11 +9,14 @@
     "captures": {
       "return": {
         "locals": {
-          "query": {
-            "type": "string",
-            "value": "depth=3"
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
           },
-          "queryParams": {
+          "_FILES": {
+            "type": "array"
+          },
+          "_GET": {
             "type": "array",
             "entries": [
               [
@@ -28,16 +31,11 @@
               ]
             ]
           },
-          "depth": {
-            "type": "int",
-            "value": "3"
-          },
           "_POST": {
             "type": "array"
           },
-          "path": {
-            "type": "string",
-            "value": "/exceptionreplay/recursion"
+          "_SERVER": {
+            "type": "array"
           },
           "controller": {
             "type": "DebuggerController",
@@ -52,8 +50,9 @@
               }
             }
           },
-          "_SERVER": {
-            "type": "array"
+          "depth": {
+            "type": "int",
+            "value": "3"
           },
           "parts": {
             "type": "array",
@@ -68,14 +67,15 @@
               }
             ]
           },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/recursion"
           },
-          "_FILES": {
-            "type": "array"
+          "query": {
+            "type": "string",
+            "value": "depth=3"
           },
-          "_GET": {
+          "queryParams": {
             "type": "array",
             "entries": [
               [
@@ -112,6 +112,10 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "3"
+          },
           "originalDepth": {
             "type": "int",
             "value": "3"
@@ -119,19 +123,15 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "depth": {
-            "type": "int",
-            "value": "3"
           }
         },
         "throwable": {
@@ -158,6 +158,10 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "0"
+          },
           "originalDepth": {
             "type": "int",
             "value": "3"
@@ -165,19 +169,15 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "depth": {
-            "type": "int",
-            "value": "0"
           }
         },
         "throwable": {
@@ -204,6 +204,14 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "1"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "3"
+          },
           "this": {
             "type": "DebuggerController",
             "fields": {
@@ -216,14 +224,6 @@
                 "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "originalDepth": {
-            "type": "int",
-            "value": "3"
-          },
-          "depth": {
-            "type": "int",
-            "value": "1"
           }
         },
         "throwable": {
@@ -250,13 +250,13 @@
     "captures": {
       "return": {
         "arguments": {
-          "originalDepth": {
-            "type": "int",
-            "value": "3"
-          },
           "depth": {
             "type": "int",
             "value": "2"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "3"
           },
           "this": {
             "type": "DebuggerController",

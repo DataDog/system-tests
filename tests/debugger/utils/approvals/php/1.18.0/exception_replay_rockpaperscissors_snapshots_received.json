@@ -9,27 +9,14 @@
     "captures": {
       "return": {
         "locals": {
-          "path": {
-            "type": "string",
-            "value": "/exceptionreplay/rps"
-          },
-          "controller": {
-            "type": "DebuggerController",
-            "fields": {
-              "DebuggerController::intLocal": {
-                "type": "int",
-                "value": "0"
-              },
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              }
-            }
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
           },
           "_FILES": {
             "type": "array"
           },
-          "queryParams": {
+          "_GET": {
             "type": "array",
             "entries": [
               [
@@ -44,7 +31,47 @@
               ]
             ]
           },
-          "_GET": {
+          "_POST": {
+            "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "rps"
+              }
+            ]
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/rps"
+          },
+          "query": {
+            "type": "string",
+            "value": "shape=paper"
+          },
+          "queryParams": {
             "type": "array",
             "entries": [
               [
@@ -62,33 +89,6 @@
           "shape": {
             "type": "string",
             "value": "paper"
-          },
-          "query": {
-            "type": "string",
-            "value": "shape=paper"
-          },
-          "parts": {
-            "type": "array",
-            "elements": [
-              {
-                "type": "string",
-                "value": "exceptionreplay"
-              },
-              {
-                "type": "string",
-                "value": "rps"
-              }
-            ]
-          },
-          "_SERVER": {
-            "type": "array"
-          },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
-          },
-          "_POST": {
-            "type": "array"
           }
         },
         "throwable": {
@@ -112,22 +112,22 @@
     "captures": {
       "return": {
         "arguments": {
-          "this": {
-            "type": "DebuggerController",
-            "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
-              "DebuggerController::intLocal": {
-                "type": "int",
-                "value": "0"
-              }
-            }
-          },
           "shape": {
             "type": "string",
             "value": "paper"
+          },
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
           }
         },
         "throwable": {
@@ -154,12 +154,30 @@
     "captures": {
       "return": {
         "locals": {
-          "_POST": {
-            "type": "array"
-          },
           "_COOKIE": {
             "type": "array",
             "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "_GET": {
+            "type": "array",
+            "entries": [
+              [
+                {
+                  "type": "string",
+                  "value": "shape"
+                },
+                {
+                  "type": "string",
+                  "value": "rock"
+                }
+              ]
+            ]
+          },
+          "_POST": {
+            "type": "array"
           },
           "_SERVER": {
             "type": "array"
@@ -177,17 +195,6 @@
               }
             }
           },
-          "path": {
-            "type": "string",
-            "value": "/exceptionreplay/rps"
-          },
-          "_FILES": {
-            "type": "array"
-          },
-          "query": {
-            "type": "string",
-            "value": "shape=rock"
-          },
           "parts": {
             "type": "array",
             "elements": [
@@ -201,22 +208,15 @@
               }
             ]
           },
-          "queryParams": {
-            "type": "array",
-            "entries": [
-              [
-                {
-                  "type": "string",
-                  "value": "shape"
-                },
-                {
-                  "type": "string",
-                  "value": "rock"
-                }
-              ]
-            ]
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/rps"
           },
-          "_GET": {
+          "query": {
+            "type": "string",
+            "value": "shape=rock"
+          },
+          "queryParams": {
             "type": "array",
             "entries": [
               [
@@ -264,13 +264,13 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
           }
@@ -299,18 +299,12 @@
     "captures": {
       "return": {
         "locals": {
-          "controller": {
-            "type": "DebuggerController",
-            "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
-              "DebuggerController::intLocal": {
-                "type": "int",
-                "value": "0"
-              }
-            }
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
+            "type": "array"
           },
           "_GET": {
             "type": "array",
@@ -329,6 +323,22 @@
           },
           "_POST": {
             "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
           },
           "parts": {
             "type": "array",
@@ -369,16 +379,6 @@
           "shape": {
             "type": "string",
             "value": "scissors"
-          },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
-          },
-          "_FILES": {
-            "type": "array"
-          },
-          "_SERVER": {
-            "type": "array"
           }
         },
         "throwable": {
