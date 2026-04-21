@@ -433,12 +433,15 @@ TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
 def _non_empty_agent_span_links(span: DataDogAgentSpan) -> list[dict[str, Any]] | None:
-    """Agent v1 / idx payloads may use `links` or `spanLinks`, and may include empty lists when no links exist."""
-    if span.trace.format != AgentTraceFormat.efficient_trace_payload_format:
-        return None
-    for key in ("spanLinks", "links"):
-        raw = span.get(key)
-        if isinstance(raw, list) and len(raw) > 0:
+    """Agent payloads may use `spanLinks` (all formats) or `links` (v1/idx only), and may include empty lists."""
+    # spanLinks is present in both legacy and v1 payloads
+    raw = span.get("spanLinks")
+    if isinstance(raw, list) and raw:
+        return [link for link in raw if isinstance(link, dict)]
+    # `links` is v1/idx-only
+    if span.trace.format == AgentTraceFormat.efficient_trace_payload_format:
+        raw = span.get("links")
+        if isinstance(raw, list) and raw:
             return [link for link in raw if isinstance(link, dict)]
     return None
 
