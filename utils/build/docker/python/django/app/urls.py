@@ -6,7 +6,6 @@ import random
 import shlex
 import subprocess
 import sys
-import time
 import xmltodict
 import boto3
 import django
@@ -1199,8 +1198,10 @@ def flush(request):
     #       this is the place to do it.
     #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
     tracer.flush()
-    telemetry.telemetry_writer.periodic(force_flush=True)
-    time.sleep(0.2)
+    # app_shutdown() sends a force flush with an app-closing event so the agent
+    # finalises the telemetry batch, then disables the writer (safe: /flush is
+    # called only once, at the end of the test suite).
+    telemetry.telemetry_writer.app_shutdown()
     return HttpResponse("OK")
 
 
