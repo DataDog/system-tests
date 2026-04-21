@@ -9,6 +9,14 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "0"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
           "this": {
             "type": "DebuggerController",
             "fields": {
@@ -21,14 +29,6 @@
                 "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "originalDepth": {
-            "type": "int",
-            "value": "20"
-          },
-          "depth": {
-            "type": "int",
-            "value": "0"
           }
         },
         "throwable": {
@@ -55,6 +55,10 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "1"
+          },
           "originalDepth": {
             "type": "int",
             "value": "20"
@@ -62,19 +66,15 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "depth": {
-            "type": "int",
-            "value": "1"
           }
         },
         "throwable": {
@@ -101,6 +101,14 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "2"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
           "this": {
             "type": "DebuggerController",
             "fields": {
@@ -113,14 +121,6 @@
                 "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "originalDepth": {
-            "type": "int",
-            "value": "20"
-          },
-          "depth": {
-            "type": "int",
-            "value": "2"
           }
         },
         "throwable": {
@@ -147,6 +147,10 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "3"
+          },
           "originalDepth": {
             "type": "int",
             "value": "20"
@@ -154,19 +158,15 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "depth": {
-            "type": "int",
-            "value": "3"
           }
         },
         "throwable": {
@@ -239,13 +239,13 @@
     "captures": {
       "return": {
         "arguments": {
-          "originalDepth": {
-            "type": "int",
-            "value": "20"
-          },
           "depth": {
             "type": "int",
             "value": "5"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
           },
           "this": {
             "type": "DebuggerController",
@@ -285,6 +285,14 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "6"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
           "this": {
             "type": "DebuggerController",
             "fields": {
@@ -297,14 +305,6 @@
                 "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "originalDepth": {
-            "type": "int",
-            "value": "20"
-          },
-          "depth": {
-            "type": "int",
-            "value": "6"
           }
         },
         "throwable": {
@@ -331,6 +331,14 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "7"
+          },
+          "originalDepth": {
+            "type": "int",
+            "value": "20"
+          },
           "this": {
             "type": "DebuggerController",
             "fields": {
@@ -343,14 +351,6 @@
                 "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "originalDepth": {
-            "type": "int",
-            "value": "20"
-          },
-          "depth": {
-            "type": "int",
-            "value": "7"
           }
         },
         "throwable": {
@@ -377,6 +377,10 @@
     "captures": {
       "return": {
         "arguments": {
+          "depth": {
+            "type": "int",
+            "value": "8"
+          },
           "originalDepth": {
             "type": "int",
             "value": "20"
@@ -393,10 +397,6 @@
                 "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "depth": {
-            "type": "int",
-            "value": "8"
           }
         },
         "throwable": {
@@ -434,13 +434,13 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
           }

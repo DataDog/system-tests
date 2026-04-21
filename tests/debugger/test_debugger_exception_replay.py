@@ -280,9 +280,24 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_none(key: str, value: dict | list, parent: dict):  # noqa: ARG001
             return __scrub(value)
 
+        def __normalize_php_fields(data: dict | list | str) -> dict | list | str:
+            if isinstance(data, list):
+                return [__normalize_php_fields(item) for item in data]
+            if isinstance(data, dict):
+                result = {}
+                for k, v in data.items():
+                    normalized_v = __normalize_php_fields(v)
+                    if k in ("fields", "locals", "arguments") and isinstance(normalized_v, dict):
+                        normalized_v = dict(sorted(normalized_v.items()))
+                    result[k] = normalized_v
+                return result
+            return data
+
         def __scrub_php(key: str, value: dict | list, parent: dict):  # noqa: ARG001
             if key == "_SERVER" and isinstance(value, dict):
                 return {k: v for k, v in value.items() if k != "entries"}
+            if key in ("fields", "locals", "arguments") and isinstance(value, dict):
+                return dict(sorted(__scrub_dict(value).items()))
             return __scrub(value)
 
         if self.get_tracer()["language"] == "java":
@@ -303,6 +318,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self._write_approval(snapshots, test_name, "snapshots_expected")
 
             expected_snapshots = self._read_approval(test_name, "snapshots_expected")
+            if self.get_tracer()["language"] == "php":
+                expected_snapshots = __normalize_php_fields(expected_snapshots)  # type: ignore[assignment]
             assert expected_snapshots == snapshots
             assert all("exceptionId" in snapshot for snapshot in snapshots), (
                 "One or more snapshots don't have 'exceptionId' field"

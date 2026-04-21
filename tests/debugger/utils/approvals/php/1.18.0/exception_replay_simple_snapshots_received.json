@@ -9,41 +9,21 @@
     "captures": {
       "return": {
         "locals": {
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "_GET": {
+            "type": "array"
+          },
           "_POST": {
             "type": "array"
           },
           "_SERVER": {
             "type": "array"
-          },
-          "path": {
-            "type": "string",
-            "value": "/exceptionreplay/simple"
-          },
-          "parts": {
-            "type": "array",
-            "elements": [
-              {
-                "type": "string",
-                "value": "exceptionreplay"
-              },
-              {
-                "type": "string",
-                "value": "simple"
-              }
-            ]
-          },
-          "_GET": {
-            "type": "array"
-          },
-          "_FILES": {
-            "type": "array"
-          },
-          "queryParams": {
-            "type": "array"
-          },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
           },
           "controller": {
             "type": "DebuggerController",
@@ -58,9 +38,29 @@
               }
             }
           },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "simple"
+              }
+            ]
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/simple"
+          },
           "query": {
             "type": "null",
             "isNull": true
+          },
+          "queryParams": {
+            "type": "array"
           }
         },
         "throwable": {
@@ -87,13 +87,13 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
           }

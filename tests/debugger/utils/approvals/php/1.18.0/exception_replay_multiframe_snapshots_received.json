@@ -9,34 +9,34 @@
     "captures": {
       "return": {
         "locals": {
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
           "_FILES": {
-            "type": "array"
-          },
-          "_SERVER": {
-            "type": "array"
-          },
-          "_POST": {
             "type": "array"
           },
           "_GET": {
             "type": "array"
           },
+          "_POST": {
+            "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
+          },
           "controller": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
           },
           "parts": {
             "type": "array",
@@ -51,16 +51,16 @@
               }
             ]
           },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/multiframe"
+          },
           "query": {
             "type": "null",
             "isNull": true
           },
           "queryParams": {
             "type": "array"
-          },
-          "path": {
-            "type": "string",
-            "value": "/exceptionreplay/multiframe"
           }
         },
         "throwable": {
@@ -87,13 +87,13 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
           }
@@ -125,13 +125,13 @@
           "this": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
           }

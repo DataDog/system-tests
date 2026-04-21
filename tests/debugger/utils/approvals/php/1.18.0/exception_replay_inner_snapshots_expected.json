@@ -9,34 +9,34 @@
     "captures": {
       "return": {
         "locals": {
-          "_SERVER": {
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
             "type": "array"
           },
           "_GET": {
             "type": "array"
           },
-          "queryParams": {
+          "_POST": {
+            "type": "array"
+          },
+          "_SERVER": {
             "type": "array"
           },
           "controller": {
             "type": "DebuggerController",
             "fields": {
-              "DebuggerController::intMixLocal": {
-                "type": "int",
-                "notCapturedReason": "redactedIdent"
-              },
               "DebuggerController::intLocal": {
                 "type": "int",
                 "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
               }
             }
-          },
-          "_POST": {
-            "type": "array"
-          },
-          "query": {
-            "type": "null",
-            "isNull": true
           },
           "parts": {
             "type": "array",
@@ -51,16 +51,16 @@
               }
             ]
           },
-          "_FILES": {
-            "type": "array"
-          },
           "path": {
             "type": "string",
             "value": "/exceptionreplay/inner"
           },
-          "_COOKIE": {
-            "type": "array",
-            "notCapturedReason": "redactedIdent"
+          "query": {
+            "type": "null",
+            "isNull": true
+          },
+          "queryParams": {
+            "type": "array"
           }
         },
         "throwable": {
