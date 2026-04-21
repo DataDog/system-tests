@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -295,6 +297,27 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v2.0.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v1.65.1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.0.0
+  tests/appsec/smoke_tests/test_apm_standalone.py: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.34.0
@@ -788,6 +811,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature (feature not implemented)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
@@ -1408,6 +1432,7 @@ manifest:
     - declaration: missing_feature (missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6)
       component_version: <1.69.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.39.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v0.1  # unknown initial version
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute: v1.39.0
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v1.39.0

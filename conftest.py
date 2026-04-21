@@ -575,6 +575,16 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
                     del testcase.attrib["classname"]
 
+                if testcase.attrib["name"] == "pytest.internal":
+                    properties = ET.Element("properties")
+                    testcase.append(properties)
+                    properties.append(
+                        ET.Element(
+                            "property",
+                            {"name": "test.codeowners", "value": '["@DataDog/apm-reliability-and-performance"]'},
+                        )
+                    )
+
                 if context.weblog_variant:
                     name = testcase.attrib["name"]
                     if name.endswith("]"):

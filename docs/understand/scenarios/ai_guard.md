@@ -106,6 +106,7 @@ The scenario sets the following environment variables on the weblog:
 
 | Variable | Value | Description |
 |---|---|---|
+| `DD_APPSEC_ENABLED` | `false` | Explicitly disables AppSec so AI Guard client IP coverage does not rely on ASM behavior |
 | `DD_AI_GUARD_ENABLED` | `true` | Enables the AI Guard SDK |
 | `DD_AI_GUARD_ENDPOINT` | `http://vcr_cassettes:<port>/vcr/aiguard` | Points to VCR container instead of real API |
 | `DD_API_KEY` | `mock_api_key` | Mock key (real key not needed with VCR) |
