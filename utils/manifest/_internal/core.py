@@ -32,11 +32,10 @@ class Manifest:
         """
         self.data = load(path)
         self.rules = None
-        components = components or {}
-        self._components: dict[str, Version] = {
-            name: version for name, version in components.items() if isinstance(version, Version)
-        }
-        if self._components:
+        if components is not None:
+            self._components: dict[str, Version] = {
+                name: version for name, version in components.items() if isinstance(version, Version)
+            }
             self.update_rules(self._components, weblog)
 
     def update_rules(
