@@ -11,6 +11,9 @@ from .const import default_manifests_path
 from .format import yml_sort
 
 
+_LOWER_BOUND_RE = re.compile(r"(?:>=?|\^)(\d+\.\d+(?:\.\d+)?[.\w+-]*)")
+
+
 class Manifest:
     """Provides a simple way to get information from the manifests"""
 
@@ -20,7 +23,7 @@ class Manifest:
 
     def __init__(
         self,
-        components: dict[str, Version] | None = None,
+        components: dict[str, Version | str] | None = None,  # TODO : remove str versions from scenario.components
         weblog: str | None = None,
         path: Path = default_manifests_path,
     ):
@@ -29,9 +32,12 @@ class Manifest:
         """
         self.data = load(path)
         self.rules = None
-        self._components = components
-        if components is not None:
-            self.update_rules(components, weblog)
+        components = components or {}
+        self._components: dict[str, Version] = {
+            name: version for name, version in components.items() if isinstance(version, Version)
+        }
+        if self._components:
+            self.update_rules(self._components, weblog)
 
     def update_rules(
         self,
@@ -97,49 +103,42 @@ class Manifest:
         """
         yml_sort(path)
 
+    def assert_versions_not_ahead_of_current(self) -> list[str]:
+        """Check that no manifest condition declares a version higher than the current component version.
 
-_LOWER_BOUND_RE = re.compile(r"(?:>=?|\^)(\d+\.\d+(?:\.\d+)?[.\w+-]*)")
+        In dev mode, any version boundary declared in the manifest must not exceed the version currently being tested.
+        Both component_version and excluded_component_version fields are checked. Prerelease versions of the current
+        version are not treated as equivalent to the release: 5.2.0-dev is strictly below 5.2.0.
+        """
+        errors = []
 
-
-def assert_versions_not_ahead_of_current(
-    manifest_data: ManifestData,
-    components: dict[str, Version],
-) -> list[str]:
-    """Check that no manifest condition declares a version higher than the current component version.
-
-    In dev mode, any version boundary declared in the manifest must not exceed the version currently being tested.
-    Both component_version and excluded_component_version fields are checked. Prerelease versions of the current
-    version are not treated as equivalent to the release: 5.2.0-dev is strictly below 5.2.0.
-    """
-    errors = []
-
-    for nodeid, conditions in manifest_data.items():
-        for condition in conditions:
-            component = condition["component"]
-            if component not in components:
-                continue
-
-            current_version = components[component]
-
-            semver_ranges = (
-                condition.get("component_version"),
-                condition.get("excluded_component_version"),
-            )
-
-            for sem_range in semver_ranges:
-                if sem_range is None:
+        for nodeid, conditions in self.data.items():
+            for condition in conditions:
+                component = condition["component"]
+                if component not in self._components:
                     continue
 
-                for match in _LOWER_BOUND_RE.finditer(sem_range.expression):
-                    try:
-                        declared = Version(match.group(1))
-                    except (ValueError, TypeError):
+                current_version = self._components[component]
+
+                semver_ranges = (
+                    condition.get("component_version"),
+                    condition.get("excluded_component_version"),
+                )
+
+                for sem_range in semver_ranges:
+                    if sem_range is None:
                         continue
 
-                    if declared > current_version:
-                        errors.append(
-                            f"{nodeid} [{component}]: declared version {declared}"
-                            f" exceeds current version {current_version}"
-                        )
+                    for match in _LOWER_BOUND_RE.finditer(sem_range.expression):
+                        try:
+                            declared = Version(match.group(1))
+                        except (ValueError, TypeError):
+                            continue
 
-    return errors
+                        if declared > current_version:
+                            errors.append(
+                                f"{nodeid} [{component}]: declared version {declared}"
+                                f" exceeds current version {current_version}"
+                            )
+
+        return errors

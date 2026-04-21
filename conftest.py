@@ -20,13 +20,13 @@ from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
-from utils._context.component_version import ComponentVersion, Version
+from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
-from utils.manifest import Manifest, assert_versions_not_ahead_of_current
+from utils.manifest import Manifest
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -248,13 +248,9 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         logger.terminal.write("\n ********************************************************** \n\n")
 
     if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
-        manifest_components: dict[str, Version] = {
-            name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
-        }
-        manifest = Manifest(manifest_components, context.weblog_variant)
-
         logger.info("Checking that no version is ahead of main branch")
-        errors = assert_versions_not_ahead_of_current(manifest.data, manifest_components)
+        manifest = Manifest(context.scenario.components, context.weblog_variant)
+        errors = manifest.assert_versions_not_ahead_of_current()
         if errors:
             message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
             message += "\n".join(f"  - {e}" for e in errors)
@@ -303,10 +299,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-    manifest_components: dict[str, Version] = {
-        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
-    }
-    manifest = Manifest(manifest_components, context.weblog_variant)
+    manifest = Manifest(context.scenario.components, context.weblog_variant)
 
     for item in items:
         assert isinstance(item, pytest.Function)

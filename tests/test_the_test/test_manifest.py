@@ -5,19 +5,26 @@ import textwrap
 import pytest
 from utils import scenarios
 from utils._context.component_version import Version
-from utils.manifest import Manifest, SkipDeclaration, TestDeclaration, assert_versions_not_ahead_of_current
-from utils.manifest._internal.types import ManifestData, SemverRange as CustomSpec
+from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
+from utils.manifest._internal.types import ManifestData, SemverRange as CustomSpec, Condition
 from utils.manifest._internal.validate import assert_nodeids_exist
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.types import Context
 
 
 def manifest_init(
-    components: dict[str, Version],
+    components: dict[str, Version | str],
     weblog: str = "some_variant",
     path: Path = Path("tests/test_the_test/manifests/manifests_parser_test/"),
-):
-    return Manifest(components, weblog, path)
+    manifest_data: dict[str, list[Condition]] | None = None,
+) -> Manifest:
+    result = Manifest(components, weblog, path)
+    if manifest_data:
+        result.data = ManifestData()
+        for key, value in manifest_data.items():
+            result.data[key] = value
+
+    return result
 
 
 @scenarios.test_the_test
@@ -405,50 +412,59 @@ class Test_ManifestEditor_WriteNewRules:
             assert "excluded_component_version" not in first_entry
 
 
-def _make_manifest(component: str, *, declared_version: str) -> ManifestData:
-    data = ManifestData()
-    data["tests/foo.py::TestFoo"] = [
-        {
-            "component": component,
-            "component_version": CustomSpec(declared_version),
-            "excluded_component_version": CustomSpec(declared_version),
-            "declaration": SkipDeclaration("missing_feature"),
-        }
-    ]
-    return data
+def _get_manifest_errors(component: str, *, declared_version: str, components: dict[str, Version | str]) -> list[str]:
+    manifest = manifest_init(
+        components,
+        manifest_data={
+            "tests/foo.py::TestFoo": [
+                {
+                    "component": component,
+                    "component_version": CustomSpec(declared_version),
+                    "excluded_component_version": CustomSpec(declared_version),
+                    "declaration": SkipDeclaration("missing_feature"),
+                }
+            ]
+        },
+    )
+
+    return manifest.assert_versions_not_ahead_of_current()
 
 
 @scenarios.test_the_test
 class Test_VersionsNotAheadOfCurrent:
     def test_declared_version_below_current_is_ok(self):
         """A declared version lower than the current version produces no errors."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("nodejs", declared_version=">=5.0.0"),
-            {"nodejs": Version("5.2.0")},
+        errors = _get_manifest_errors(
+            "nodejs",
+            declared_version=">=5.0.0",
+            components={"nodejs": Version("5.2.0")},
         )
         assert errors == []
 
     def test_declared_version_equals_current_is_ok(self):
         """A declared version equal to the current version produces no errors."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("nodejs", declared_version=">=5.2.0"),
-            {"nodejs": Version("5.2.0")},
+        errors = _get_manifest_errors(
+            "nodejs",
+            declared_version=">=5.2.0",
+            components={"nodejs": Version("5.2.0")},
         )
         assert errors == []
 
     def test_declared_version_with_prerelease(self):
         """Declaring v5.2.0 while testing 5.2.0-dev is not allowed."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("nodejs", declared_version=">=5.2.0"),
-            {"nodejs": Version("5.2.0-dev")},
+        errors = _get_manifest_errors(
+            "nodejs",
+            declared_version=">=5.2.0",
+            components={"nodejs": Version("5.2.0-dev")},
         )
         assert len(errors) == 2
 
     def test_declared_version_above_current_is_an_error(self):
         """A declared version higher than the current version produces an error per field."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("nodejs", declared_version=">=6.0.0"),
-            {"nodejs": Version("5.2.0-dev")},
+        errors = _get_manifest_errors(
+            "nodejs",
+            declared_version=">=6.0.0",
+            components={"nodejs": Version("5.2.0-dev")},
         )
         assert len(errors) == 2
         assert all("nodejs" in e for e in errors)
@@ -457,51 +473,63 @@ class Test_VersionsNotAheadOfCurrent:
 
     def test_caret_notation_above_current_is_an_error(self):
         """^X.Y.Z is treated as a lower bound; flagged for each field when it exceeds current version."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("nodejs", declared_version="^6.0.0"),
-            {"nodejs": Version("5.2.0")},
+        errors = _get_manifest_errors(
+            "nodejs",
+            declared_version="^6.0.0",
+            components={"nodejs": Version("5.2.0")},
         )
         assert len(errors) == 2
 
     def test_or_expression_is_treated(self):
         """Multi-branch OR expressions are not ignored."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("nodejs", declared_version=">=6.0.0 || ^3.0.0"),
-            {"nodejs": Version("5.2.0-dev")},
+        errors = _get_manifest_errors(
+            "nodejs",
+            declared_version=">=6.0.0 || ^3.0.0",
+            components={"nodejs": Version("5.2.0-dev")},
         )
         assert len(errors) == 2
 
     def test_no_excluded_component_version_is_ok(self):
         """Conditions without excluded_component_version (plain skip declarations) are ignored."""
-        data = ManifestData()
-        data["tests/foo.py::TestFoo"] = [{"component": "nodejs", "declaration": SkipDeclaration("missing_feature")}]
-        errors = assert_versions_not_ahead_of_current(data, {"nodejs": Version("5.2.0")})
+        manifest = manifest_init(
+            components={"nodejs": Version("5.2.0")},
+            manifest_data={
+                "tests/foo.py::TestFoo": [{"component": "nodejs", "declaration": SkipDeclaration("missing_feature")}]
+            },
+        )
+
+        errors = manifest.assert_versions_not_ahead_of_current()
         assert errors == []
 
     def test_unknown_component_is_skipped(self):
         """Conditions for components not in the tested set are ignored."""
-        errors = assert_versions_not_ahead_of_current(
-            _make_manifest("java", declared_version=">=6.0.0"),
-            {"nodejs": Version("5.2.0")},
+        errors = _get_manifest_errors(
+            "java",
+            declared_version=">=6.0.0",
+            components={"nodejs": Version("5.2.0")},
         )
         assert errors == []
 
     def test_multiple_violations_are_all_reported(self):
         """Every offending condition is reported, not just the first."""
-        data = ManifestData()
-        data["tests/foo.py::TestFoo"] = [
-            {
-                "component": "nodejs",
-                "excluded_component_version": CustomSpec(">=6.0.0"),
-                "declaration": SkipDeclaration("missing_feature"),
-            }
-        ]
-        data["tests/bar.py::TestBar"] = [
-            {
-                "component": "nodejs",
-                "component_version": CustomSpec(">=7.0.0"),
-                "declaration": SkipDeclaration("missing_feature"),
-            }
-        ]
-        errors = assert_versions_not_ahead_of_current(data, {"nodejs": Version("5.2.0")})
+        manifest = manifest_init(
+            components={"nodejs": Version("5.2.0")},
+            manifest_data={
+                "tests/foo.py::TestFoo": [
+                    {
+                        "component": "nodejs",
+                        "excluded_component_version": CustomSpec(">=6.0.0"),
+                        "declaration": SkipDeclaration("missing_feature"),
+                    }
+                ],
+                "tests/bar.py::TestBar": [
+                    {
+                        "component": "nodejs",
+                        "component_version": CustomSpec(">=7.0.0"),
+                        "declaration": SkipDeclaration("missing_feature"),
+                    }
+                ],
+            },
+        )
+        errors = manifest.assert_versions_not_ahead_of_current()
         assert len(errors) == 2
