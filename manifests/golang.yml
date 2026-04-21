@@ -677,6 +677,7 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v1.36.0

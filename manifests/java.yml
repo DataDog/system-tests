@@ -2585,6 +2585,10 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_wrong_key:
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite:
+    - weblog_declaration:
+        "*": v1.62.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v0.95.1
