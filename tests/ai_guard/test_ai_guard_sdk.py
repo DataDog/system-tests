@@ -1,7 +1,7 @@
 import json
 import math
 
-from utils import context, interfaces, scenarios, weblog, features
+from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import SamplingMechanism, SamplingPriority
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
@@ -223,6 +223,41 @@ class Test_RootSpanUserKeep:
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
                 "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism"
             )
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/x/x4DVhAE")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_ClientIPTagsCollected:
+    PUBLIC_IP = "5.6.7.9"
+
+    def setup_client_ip_tags(self):
+        self.r = weblog.post(
+            "/ai_guard/evaluate",
+            headers={"X-Forwarded-For": self.PUBLIC_IP},
+            json=MESSAGES["ALLOW"],
+        )
+
+    def test_client_ip_tags(self):
+        """Test AI Guard collects client IP tags on the local root span with AppSec disabled."""
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        span = interfaces.library.get_root_span(self.r)
+        assert span
+        meta = span.get("meta", {})
+        assert meta
+        assert "network.client.ip" in meta
+        network_client_ip = meta["network.client.ip"]
+        assert network_client_ip
+        assert network_client_ip != self.PUBLIC_IP
+
+        http_client_ip = meta.get("http.client_ip")
+        assert http_client_ip
+        assert http_client_ip == self.PUBLIC_IP
+        assert network_client_ip != http_client_ip
 
 
 @features.ai_guard
