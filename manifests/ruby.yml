@@ -2,6 +2,16 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62218)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
+    - weblog_declaration:
+        "*": missing_feature (APPSEC-62200)
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": v2.31.0-dev
@@ -398,21 +408,43 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
-  tests/appsec/smoke_tests/test_apm_standalone.py: missing_feature  # was inccorectly declared as v2.31.0
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py: v2.30.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke:
+    - weblog_declaration:
+        "*": v2.30.0
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
     - weblog_declaration:
+        "*": v2.30.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_lfi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke:
+    - weblog_declaration:
+        "*": v2.30.0
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
     - weblog_declaration:
+        "*": v2.30.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -851,6 +883,7 @@ manifest:
         sinatra41: v2.24.0  # Modified by easy win activation script
         uds-sinatra: v2.24.0  # Modified by easy win activation script
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (Rack transforms underscores into dashes)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v1.8.0
@@ -1539,7 +1572,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.31.0'
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v2.31.0-dev
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -1984,6 +2017,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v1.10.1
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers: missing_feature (missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.8.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62224)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:

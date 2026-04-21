@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -38,7 +39,14 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: missing_feature
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
+    - weblog_declaration:
+        "*": missing_feature
+        echo: v2.7.0-dev  # Automatic with orchestrion, semi-manual without
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.0.0
@@ -669,6 +677,7 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v1.36.0
@@ -1359,12 +1368,7 @@ manifest:
         gqlgen: v1.73.0
         graph-gophers: v1.73.0
         graphql-go: v1.73.0
-  tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - weblog_declaration:
-        "*": missing_feature
-        gqlgen: missing_feature
-        graph-gophers: missing_feature
-        graphql-go: missing_feature
+  tests/test_graphql.py::Test_GraphQLOperationErrorTracking: missing_feature
   tests/test_identify.py::Test_Basic: v1.37.0
   tests/test_identify.py::Test_Basic::test_identify_tags:
     - declaration: bug (APMRP-360)
@@ -1431,6 +1435,7 @@ manifest:
     - declaration: missing_feature (missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6)
       component_version: <1.69.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.39.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v0.1  # unknown initial version
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute: v1.39.0
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v1.39.0

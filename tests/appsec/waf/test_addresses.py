@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+
 import pytest
 from utils import weblog, interfaces, rfc, scenarios, features, logger
 from utils.dd_types import DataDogLibrarySpan
@@ -418,4 +419,21 @@ class Test_GrpcServerMethod:
     def test_streaming_grpc_server_method_rule(self):
         interfaces.library.assert_waf_attack(
             self.request_streaming, address="grpc.server.method", span_validator=self.validate_span
+        )
+
+
+@features.appsec_request_blocking
+@scenarios.appsec_custom_rules
+class Test_IoFsFileWrite:
+    """Appsec WAF receives the server.io.fs.file_write address"""
+
+    def setup_file_write(self):
+        self.r = weblog.get("/rasp/lfi_write", params={"file": "../../evil.txt"})
+
+    def test_file_write(self):
+        """AppSec WAF receives the server.io.fs.file_write address"""
+        interfaces.library.assert_waf_attack(
+            self.r,
+            rule="custom-test-file-write",
+            address="server.io.fs.file_write",
         )
