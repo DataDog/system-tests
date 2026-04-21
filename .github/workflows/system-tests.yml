@@ -287,6 +287,7 @@ jobs:
       _build_proxy_image: ${{ inputs._build_proxy_image }}
       _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
+      _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
 
   display_summary:
     name: Report failures
