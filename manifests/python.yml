@@ -1778,6 +1778,7 @@ manifest:
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0
+  tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Experiment: v4.2.0
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_in_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_nested_dd_root: missing_feature  # Created by easy win activation script

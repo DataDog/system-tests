@@ -3666,6 +3666,7 @@ manifest:
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_updates_existing_prompt: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_with_string_template: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset::test_dataset_create_delete: incomplete_test_app (Java parametric app does not implement /llm_observability/dataset endpoints)
+  tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Experiment: missing_feature
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)

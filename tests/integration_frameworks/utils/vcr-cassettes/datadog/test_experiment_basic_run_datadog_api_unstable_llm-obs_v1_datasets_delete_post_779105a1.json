@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/datasets/delete",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "119",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-4236"
+    },
+    "body": "{\"data\": {\"type\": \"datasets\", \"attributes\": {\"type\": \"soft\", \"dataset_ids\": [\"55388929-34b8-405b-b717-8e0511b91456\"]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "444",
+      "date": "Wed, 01 Apr 2026 13:23:21 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":[{\"id\":\"55388929-34b8-405b-b717-8e0511b91456\",\"type\":\"datasets\",\"attributes\":{\"author\":{\"id\":\"0dd9d379-c1a3-11ed-b4e0-566658a732f8\"},\"created_at\":\"2026-04-01T13:23:20.799012Z\",\"current_version\":1,\"dataset_type\":\"user\",\"deleted_at\":\"2026-04-01T13:23:21.401087Z\",\"description\":\"Dataset for experiment test\",\"name\":\"test-experiment-dataset\",\"project_id\":\"dc4158e7-c60f-446e-bcf1-540aa68ffa0f\",\"updated_at\":\"2026-04-01T13:23:20.926904Z\"}}]}"
+  }
+}

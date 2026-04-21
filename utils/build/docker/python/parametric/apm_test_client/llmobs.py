@@ -209,6 +209,7 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
         project_name=request.project_name,
         records=records,
     )
+    _datasets[dataset.name] = dataset
 
     return {
         "dataset_id": dataset._id,
@@ -226,3 +227,106 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
 def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
     LLMObs._delete_dataset(dataset_id=request.dataset_id)
     return {"success": True}
+
+
+_datasets: dict[str, Any] = {}
+
+
+# Pre-defined tasks and evaluators that tests can reference by name.
+def _task_echo(input_data, config=None):
+    """Returns input_data unchanged (mirrors dd-trace-py dummy_task)."""
+    return input_data
+
+
+def _task_uppercase(input_data, config=None):
+    """Uppercases the 'text' field of input_data."""
+    return input_data["text"].upper()
+
+
+def _evaluator_exact_match(input_data, output_data, expected_output):
+    """Returns True if output matches expected output exactly."""
+    return output_data == expected_output
+
+
+TASKS = {
+    "echo": _task_echo,
+    "uppercase": _task_uppercase,
+}
+
+EVALUATORS = {
+    "exact_match": _evaluator_exact_match,
+}
+
+
+class ExperimentCreateRequestModel(BaseModel):
+    experiment_name: str
+    dataset_name: str
+    description: str | None = None
+    task: str
+    evaluators: list[str]
+
+
+@router.post("/llm_observability/experiment/run")
+def llmobs_experiment_run(request: ExperimentCreateRequestModel):
+    if request.dataset_name in _datasets:
+        dataset = _datasets[request.dataset_name]
+    else:
+        dataset = LLMObs.pull_dataset(dataset_name=request.dataset_name)
+
+    task_fn = TASKS[request.task]
+    evaluator_fns = [EVALUATORS[name] for name in request.evaluators]
+
+    experiment = LLMObs.experiment(
+        name=request.experiment_name,
+        task=task_fn,
+        dataset=dataset,
+        evaluators=evaluator_fns,
+        description=request.description or "",
+    )
+    # The experiment SDK makes API calls during run() whose request bodies
+    # contain non-deterministic data (ddtrace version, timestamps, span IDs).
+    # This breaks VCR cassette matching across ddtrace releases. Stub the
+    # network-facing methods so only the local task/evaluator execution runs.
+    import json as _json
+    from ddtrace.internal.utils.http import Response as _Response
+
+    dne = LLMObs._instance._dne_client
+    original_request = dne.request
+
+    def _stub_request(method, path, body=None, timeout=None):
+        if "/projects" in path:
+            resp_body = _json.dumps({
+                "data": {"id": "mock-project-id", "type": "projects", "attributes": {"name": "test-project"}}
+            }).encode()
+        elif "/experiments" in path and method == "POST":
+            resp_body = _json.dumps({
+                "data": {"id": "mock-experiment-id", "type": "experiments", "attributes": {"name": "mock-run"}}
+            }).encode()
+        else:
+            resp_body = b'{"data":{}}'
+        return _Response(status=200, body=resp_body)
+
+    dne.request = _stub_request
+    dne.experiment_eval_post = lambda *a, **kw: None
+    try:
+        result = experiment.run(raise_errors=False)
+    finally:
+        dne.request = original_request
+        del dne.experiment_eval_post  # remove instance override, restore class method
+
+    rows = []
+    for row in result.get("rows", []):
+        rows.append(
+            {
+                "input": row.get("input"),
+                "output": row.get("output"),
+                "expected_output": row.get("expected_output"),
+                "evaluations": row.get("evaluations", {}),
+                "error": row.get("error", {}),
+            }
+        )
+
+    return {
+        "experiment_name": request.experiment_name,
+        "rows": rows,
+    }
