@@ -77,8 +77,9 @@ class OtelCollectorScenario(DockerScenario):
         self.components["otel_collector"] = self.otel_collector_version
         # Extract version from image name
         image_name = self.postgres_container.image.name
-        postgres_version = image_name.split(":", 1)[1] if ":" in image_name else "unknown"
-        self.components["postgresql"] = postgres_version
+        if ":" in image_name:
+            postgres_version = image_name.split(":", 1)[1]
+            self.components["postgresql"] = Version(postgres_version)
 
         self.warmups.append(self._print_otel_collector_version)
 
