@@ -21,6 +21,7 @@ from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
 from ddtrace.contrib.trace_utils import set_user
+from ddtrace.internal import telemetry
 from ddtrace.openfeature import DataDogProvider
 from ddtrace.trace import tracer
 from iast import (
@@ -867,6 +868,19 @@ class StripeWebhookHandler(BaseHandler):
             self.write(json.dumps({"error": str(e)}))
 
 
+class FlushHandler(BaseHandler):
+    def get(self) -> None:
+        # NOTE: If anything needs to be flushed here before the test suite ends,
+        #       this is the place to do it.
+        #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
+        tracer.flush()
+        # app_shutdown() sends a force flush with an app-closing event so the agent
+        # finalises the telemetry batch, then disables the writer (safe: /flush is
+        # called only once, at the end of the test suite).
+        telemetry.telemetry_writer.app_shutdown()
+        self.write("OK")
+
+
 class ExternalRequestHandler(BaseHandler):
     SUPPORTED_METHODS = ("GET", "POST", "PUT", "TRACE")
 
@@ -1115,6 +1129,8 @@ def make_app() -> Application:
             (r"/stripe/create_checkout_session", StripeCreateCheckoutSessionHandler),
             (r"/stripe/create_payment_intent", StripeCreatePaymentIntentHandler),
             (r"/stripe/webhook", StripeWebhookHandler),
+            # Flush endpoint
+            (r"/flush", FlushHandler),
         ],
         debug=False,
         cookie_secret="just_for_tests",  # noqa: S106

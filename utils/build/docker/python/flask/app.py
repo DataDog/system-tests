@@ -97,6 +97,7 @@ if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
     config._logs_injection = True
 
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.internal import telemetry
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -2234,3 +2235,16 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/flush")
+def flush():
+    # NOTE: If anything needs to be flushed here before the test suite ends,
+    #       this is the place to do it.
+    #       See https://github.com/DataDog/system-tests/blob/main/docs/edit/flushing.md
+    tracer.flush()
+    # app_shutdown() sends a force flush with an app-closing event so the agent
+    # finalises the telemetry batch, then disables the writer (safe: /flush is
+    # called only once, at the end of the test suite).
+    telemetry.telemetry_writer.app_shutdown()
+    return Response("OK")
