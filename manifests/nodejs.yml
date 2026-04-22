@@ -2166,7 +2166,71 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
-  tests/stats/test_stats.py: missing_feature
+  tests/stats/test_stats.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.93.0'
+        fastify: '>=5.93.0'
+        express4: '>=5.93.0'
+        express4-typescript: '>=5.93.0'
+        nextjs: '>=5.93.0'
+        express5: '>=5.93.0'
+  tests/stats/test_stats.py::Test_Agent_Info_Endpoint:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
+  tests/stats/test_stats.py::Test_Peer_Tags:
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        nextjs: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
