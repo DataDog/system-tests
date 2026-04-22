@@ -58,6 +58,11 @@ EXPECTED_METRICS = {
         "v8js.memory.heap.space.physical_size",
         "v8js.memory.heap.used",
     ],
+    # Per OTel semconv, jvm.system.cpu.utilization, jvm.system.cpu.load_1m,
+    # jvm.file_descriptor.count and jvm.file_descriptor.limit are Opt-In and are
+    # intentionally not emitted yet — gating those behind a future
+    # DD_METRICS_OTEL_OPTIN_ENABLED flag is tracked separately.
+    # https://opentelemetry.io/docs/specs/semconv/general/metric-requirement-level/#opt-in
     "java": [
         "jvm.buffer.count",
         "jvm.buffer.memory.limit",
@@ -68,14 +73,11 @@ EXPECTED_METRICS = {
         "jvm.cpu.count",
         "jvm.cpu.recent_utilization",
         "jvm.cpu.time",
-        "jvm.file_descriptor.count",
-        "jvm.file_descriptor.limit",
         "jvm.memory.committed",
         "jvm.memory.init",
         "jvm.memory.limit",
         "jvm.memory.used",
         "jvm.memory.used_after_last_gc",
-        "jvm.system.cpu.utilization",
         "jvm.thread.count",
     ],
 }
