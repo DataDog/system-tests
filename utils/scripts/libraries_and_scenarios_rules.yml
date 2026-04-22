@@ -195,6 +195,9 @@ patterns:
     .github/workflows/stale-prs.yml:
         scenario_groups: null
         libraries: null
+    .github/workflows/update-agent-protobuf.yml:
+        scenario_groups: null
+        libraries: null
     .github/*:
         scenario_groups: null
 
