@@ -101,6 +101,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      _system_tests_dev_mode:
+        description: "Shall we run system tests in dev mode (library and agent dev binary)"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   main:
@@ -111,6 +116,7 @@ jobs:
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
+      SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
     steps:
     - name: Compute ref
       id: compute_ref

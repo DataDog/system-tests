@@ -973,6 +973,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.6
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         *django: v1.1.0
@@ -1970,7 +1971,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v4.7.0
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName::test_process_tag_svc_auto: v4.8.0
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName::test_process_tag_svc_auto: v4.8.0-dev
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
@@ -2222,6 +2223,7 @@ manifest:
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: bug (APPSEC-62204)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
