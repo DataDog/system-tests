@@ -3164,11 +3164,6 @@ manifest:
   #   REASON-23 DEFAULT multi-alloc active window (Java returns targeting_match)
   #   REASON-24 DEFAULT multi-alloc inactive window (Java returns targeting_match)
   #   REASON-26 DEFAULT via window+rule-fail (Java returns targeting_match)
-  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_2_ProviderFatal::test_ffe_reason_2_provider_fatal: missing_feature
-  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_3_DisabledFlagNotFound::test_ffe_reason_3_disabled_flag_not_found: v1.61.0
-  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_7_TargetingKeyMissing::test_ffe_reason_7_targeting_key_missing: v1.61.0
-  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_8_RuleOnlyNoKey::test_ffe_reason_8_rule_only_no_key: v1.61.0
-  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_9_ZeroAllocations::test_ffe_reason_9_zero_allocations: missing_feature
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_10_NoDefaultAlloc::test_ffe_reason_10_no_default_alloc: v1.61.0
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_11_StaticNoSplit::test_ffe_reason_11_static_no_split: missing_feature
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_13_MultiAllocRuleMatch::test_ffe_reason_13_multi_alloc_rule_match: v1.61.0
@@ -3184,6 +3179,11 @@ manifest:
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_24_InactiveWindowMulti::test_ffe_reason_24_inactive_window_multi: missing_feature
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_25_WindowActiveRuleMatch::test_ffe_reason_25_window_active_rule_match: v1.61.0
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_26_WindowRuleFail::test_ffe_reason_26_window_rule_fail: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_2_ProviderFatal::test_ffe_reason_2_provider_fatal: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_3_DisabledFlagNotFound::test_ffe_reason_3_disabled_flag_not_found: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_7_TargetingKeyMissing::test_ffe_reason_7_targeting_key_missing: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_8_RuleOnlyNoKey::test_ffe_reason_8_rule_only_no_key: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_9_ZeroAllocations::test_ffe_reason_9_zero_allocations: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
