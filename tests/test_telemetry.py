@@ -10,6 +10,7 @@ from dateutil.parser import isoparse
 from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -465,9 +466,9 @@ class Test_Telemetry:
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
-        test_configuration: dict[str, dict] = {
+        test_configuration: dict[str, dict[str, object]] = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
+            "nodejs": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port, "DD_APPSEC_ENABLED": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
@@ -477,6 +478,11 @@ class Test_Telemetry:
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]
+        nodejs_legacy_config_names = {
+            "DD_AGENT_HOST": ["DD_AGENT_HOST", "hostname"],
+            "DD_TRACE_AGENT_PORT": ["DD_TRACE_AGENT_PORT", "port"],
+            "DD_APPSEC_ENABLED": ["DD_APPSEC_ENABLED", "appsec.enabled"],
+        }
 
         def validator(data: dict):
             if get_request_type(data) == "app-started":
@@ -486,10 +492,14 @@ class Test_Telemetry:
 
                 # validator is updated to handle tracers sending configuration chaining data
                 for expected_config_name, expected_value in configuration_map.items():
-                    config_name_to_check = expected_config_name
+                    config_names_to_check = [expected_config_name]
                     if context.library.name == "java":
                         # support for older versions of Java Tracer
-                        config_name_to_check = expected_config_name.replace(".", "_")
+                        config_names_to_check = [expected_config_name.replace(".", "_")]
+                    elif context.library.name == "nodejs":
+                        config_names_to_check = nodejs_legacy_config_names.get(
+                            expected_config_name, [expected_config_name]
+                        )
 
                     expected_value_str = str(expected_value).lower()
 
@@ -497,17 +507,20 @@ class Test_Telemetry:
                     config_found = False
                     for cnf in configurations:
                         # Handle different configuration structures - some might not have 'value' key
-                        if cnf.get("name") == config_name_to_check:
+                        if cnf.get("name") in config_names_to_check:
                             config_value = cnf.get("value")
                             # Accept both the expected value and its float version for telemetry_heartbeat_interval
-                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL":
+                            if expected_config_name == "DD_TELEMETRY_HEARTBEAT_INTERVAL" and isinstance(
+                                expected_value, str | int | float
+                            ):
                                 try:
                                     expected_float = float(expected_value)
-                                    config_float = float(config_value)
-                                    if config_float == expected_float:
-                                        config_found = True
-                                        configurations_present.append(expected_config_name)
-                                        break
+                                    if isinstance(config_value, str | int | float):
+                                        config_float = float(config_value)
+                                        if config_float == expected_float:
+                                            config_found = True
+                                            configurations_present.append(expected_config_name)
+                                            break
                                 except Exception as e:
                                     logger.debug(
                                         f"Could not compare as float for config '{expected_config_name}': {e}"
@@ -519,7 +532,7 @@ class Test_Telemetry:
 
                     if not config_found:
                         # For debugging, show all entries with this config name
-                        matching_entries = [cnf for cnf in configurations if cnf.get("name") == config_name_to_check]
+                        matching_entries = [cnf for cnf in configurations if cnf.get("name") in config_names_to_check]
                         if matching_entries:
                             values_found = [
                                 f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})"
@@ -532,7 +545,7 @@ class Test_Telemetry:
                         else:
                             raise Exception(
                                 f"Client Configuration information is not accurately reported, "
-                                f"{expected_config_name} is not present in configuration on app-started event"
+                                f"none of {config_names_to_check} are present in configuration on app-started event"
                             )
 
         self.validate_library_telemetry_data(validator)
@@ -576,7 +589,7 @@ class Test_TelemetryEnhancedConfigReporting:
     # Expected configuration precedence: default -> env_var -> code
     EXPECTED_CONFIGS: dict[str, dict[str, Any]] = {
         "nodejs": {
-            "name": "DD_LOG_INJECTION",
+            "names": ["DD_LOGS_INJECTION", "DD_LOG_INJECTION"],
             "precedence": [
                 {"origin": "default", "value": True},
                 {"origin": "env_var", "value": False},
@@ -610,6 +623,14 @@ class Test_TelemetryEnhancedConfigReporting:
                 {"origin": "env_var", "value": "false"},
             ],
         },
+        "ruby": {
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
+        },
     }
 
     def test_telemetry_events_seq_id(self):
@@ -624,15 +645,17 @@ class Test_TelemetryEnhancedConfigReporting:
     def test_telemetry_enhanced_config_reporting_precedence(self):
         """Verify configuration precedence order matches expected sequence."""
         expected_config = self.EXPECTED_CONFIGS[context.library.name]
-        config_name = expected_config["name"]
+        config_names = expected_config.get("names")
+        if config_names is None:
+            config_names = [expected_config["name"]]
         expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
         # Get configurations from telemetry events
         all_configs = interfaces.library.get_telemetry_configurations()
         assert all_configs, "No configurations found"
 
-        matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
-        assert matching_configs, f"No configurations found for {config_name}"
+        matching_configs = [cfg for cfg in all_configs if cfg["name"] in config_names]
+        assert matching_configs, f"No configurations found for any of {config_names}"
 
         # Group configurations by origin and keep the latest (highest seq_id) for each origin
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
@@ -646,7 +669,7 @@ class Test_TelemetryEnhancedConfigReporting:
         # Verify each configuration matches expected precedence
         for i, expected in enumerate(expected_precedence):
             actual = sorted_configs[i]
-            assert actual["name"] == config_name, f"Config: {actual}, Expected Name: {config_name}"
+            assert actual["name"] in config_names, f"Config: {actual}, Expected Name in: {config_names}"
             assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
             assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
 
@@ -826,7 +849,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert that the debugger products are disabled by default including DI, and ER"""
+        """Assert DI and ER are disabled by default, and code origin config is reported."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -865,6 +888,11 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
+
+        if context.library == "dotnet" and context.library.version >= "3.42.0":
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
+
         assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
@@ -1027,15 +1055,17 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
         )

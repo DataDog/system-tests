@@ -287,6 +287,7 @@ def _get_endtoend_weblogs(
         # openai
         "openai-py": ["2.0.0"],
         "openai-js": ["6.0.0"],
+        "openai-java": ["4.29.0"],
         # anthropic
         "anthropic-js": ["0.71.0"],
         "anthropic-py": ["0.75.0"],
@@ -499,6 +500,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     is_lambda_library = library in (
         "python_lambda",
         "java_lambda",
+        "nodejs_lambda",
     )
     is_lambda_scenario = scenario in (
         "APPSEC_LAMBDA_DEFAULT",
@@ -591,6 +593,7 @@ if __name__ == "__main__":
         "endtoend": [
             "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
             "APM_TRACING_E2E_OTEL",
+            "APM_TRACING_OTLP",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
             "APPSEC_API_SECURITY_NO_RESPONSE_BODY",

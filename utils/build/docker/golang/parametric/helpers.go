@@ -151,7 +151,7 @@ type OtelSpanContextArgs struct {
 }
 
 type OtelSpanContextReturn struct {
-	SpanId     string `json:"span_id"`
+	SpanId     uint64 `json:"span_id"`
 	TraceId    string `json:"trace_id"`
 	TraceFlags string `json:"trace_flags"`
 	TraceState string `json:"trace_state"`

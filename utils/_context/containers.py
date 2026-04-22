@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import stat
 import sys
@@ -527,6 +528,24 @@ class ImageInfo:
         self.name = image_name
         self.local_image_only = local_image_only
 
+    def _pull_with_retries(self, max_retries: int = 4, delay: int = 4):
+        """Pull a docker image with retries on transient errors (500s, timeouts, etc.)."""
+        for attempt in range(max_retries):
+            try:
+                kwargs: dict[str, str] = {}
+                if sys.platform == "darwin" and platform.machine() == "arm64":
+                    kwargs["platform"] = "linux/amd64"
+                return get_docker_client().images.pull(self.name, **kwargs)
+            except (docker.errors.APIError, requests.exceptions.ConnectionError) as e:
+                if attempt < max_retries - 1:
+                    logger.stdout(f"Failed to pull {self.name} (attempt {attempt + 1}/{max_retries}): {e}")
+                    time.sleep(delay)
+                    delay *= 2
+                else:
+                    raise
+
+        return None  # unreachable, but satisfies linter
+
     def load(self):
         try:
             self._image = get_docker_client().images.get(self.name)
@@ -535,12 +554,7 @@ class ImageInfo:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
-            try:
-                self._image = get_docker_client().images.pull(self.name)
-            except docker.errors.ImageNotFound:
-                # Sometimes pull returns ImageNotFound, internal race?
-                time.sleep(5)
-                self._image = get_docker_client().images.pull(self.name)
+            self._image = self._pull_with_retries()
 
         self._init_from_attrs(self._image.attrs)
 
@@ -939,18 +953,6 @@ class WeblogContainer(TestedContainer):
     def trace_agent_port(self):
         return ProxyPorts.weblog
 
-    @staticmethod
-    def _get_image_list_from_dockerfile(dockerfile: str) -> list[str]:
-        result = []
-
-        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
-        with open(dockerfile, encoding="utf-8") as f:
-            for line in f:
-                if match := pattern.match(line):
-                    result.append(match.group("image_name"))
-
-        return result
-
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Returns images needed to build the weblog"""
 
@@ -1050,7 +1052,7 @@ class WeblogContainer(TestedContainer):
                     path_str = str(Path(path).resolve())
                     self.volumes[path_str] = {
                         "bind": "/volumes/dd-trace-js",
-                        "mode": "ro",
+                        "mode": "rw",
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
@@ -1350,10 +1352,17 @@ class MySqlContainer(SqlDbTestedContainer):
 
 class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self) -> None:
+        options = "-S 127.0.0.1 -U sa -P 'yourStrong(!)Password' -Q 'SELECT 1' -b -C"
         healthcheck = {
             # Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             # -C : trust self signed certificates
-            "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
+            # Fall back to mssql-tools (arm64) if mssql-tools18 (x86_64) is absent
+            "test": (
+                'bash -c "'
+                f"(/opt/mssql-tools18/bin/sqlcmd {options}) 2>/dev/null || "
+                f"/opt/mssql-tools/bin/sqlcmd {options}"
+                '"'
+            ),
             "retries": 20,
         }
 

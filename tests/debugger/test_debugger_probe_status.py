@@ -57,7 +57,8 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"])
+        if not self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"]):
+            self.setup_failures.append(f"Timed out waiting for probe diagnostics: {self.probe_ids}")
 
     def _assert(self):
         self.collect()
@@ -92,9 +93,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 @features.debugger_method_probe
 @scenarios.debugger_probes_status
 @slow
-@missing_feature(
-    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
-)
+@missing_feature(context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented")
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
 
@@ -109,7 +108,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_metric_status(self):
         self._setup("probe_status_metric", probe_type="metric")
 
-    @slow
     def test_metric_status(self):
         self._assert()
 
@@ -117,7 +115,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_method_status(self):
         self._setup("probe_status_span", probe_type="span")
 
-    @slow
     def test_span_method_status(self):
         self._assert()
 
@@ -125,7 +122,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_method_status(self):
         self._setup("probe_status_spandecoration", probe_type="decor")
 
-    @slow
     def test_span_decoration_method_status(self):
         self._assert()
 

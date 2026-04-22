@@ -1,0 +1,49 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "User-Agent": "OpenAIClientImpl/Java unknown",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Lang": "java",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-OS-Version": "6.12.65-linuxkit",
+      "X-Stainless-Package-Version": "unknown",
+      "X-Stainless-Retry-Count": "0",
+      "X-Stainless-Runtime": "JRE",
+      "X-Stainless-Runtime-Version": "17.0.9",
+      "X-Stainless-Read-Timeout": "600",
+      "X-Stainless-Timeout": "600",
+      "Content-Type": "application/json",
+      "Content-Length": "151",
+      "Connection": "Keep-Alive",
+      "Accept-Encoding": "gzip"
+    },
+    "body": "{\"input\":\"Where is the nearest Dunkin' Donuts?\",\"instructions\":\"Talk with a Boston accent.\",\"max_output_tokens\":50,\"model\":\"gpt-4.1\",\"temperature\":0.1}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Fri, 20 Feb 2026 00:01:31 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "Server": "cloudflare",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_796176c9da464aaf8c000e63907a2bf7",
+      "openai-processing-ms": "1286",
+      "cf-cache-status": "DYNAMIC",
+      "set-cookie": "__cf_bm=HilBezoeGvyXngzMc0Hg5DN6LG9wn_W3H8k.lG1Jz20-1771545689.5935988-1.0.1.1-bWm4zCWS6C.HmOejInX98jG7KXqlhLKGLxZlPVQtSvp_ZVUH8sbSxIOSCmYHzImhWSX55AD1yIc.F4swLEWMcUUtZPrBalOmf3KSpx75d.0DPU0BD_n4nstlZ1bNu0LX; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 20 Feb 2026 00:31:31 GMT",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Encoding": "gzip",
+      "CF-RAY": "9d09bacffb441760-SEA",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"resp_081d29a052f49e9a016997a459f6fc819681f5286582acecea\",\n  \"object\": \"response\",\n  \"created_at\": 1771545690,\n  \"status\": \"incomplete\",\n  \"background\": false,\n  \"billing\": {\n    \"payer\": \"developer\"\n  },\n  \"completed_at\": null,\n  \"error\": null,\n  \"frequency_penalty\": 0.0,\n  \"incomplete_details\": {\n    \"reason\": \"max_output_tokens\"\n  },\n  \"instructions\": \"Talk with a Boston accent.\",\n  \"max_output_tokens\": 50,\n  \"max_tool_calls\": null,\n  \"model\": \"gpt-4.1-2025-04-14\",\n  \"output\": [\n    {\n      \"id\": \"msg_081d29a052f49e9a016997a45a44608196a2d157dfe2ab47ff\",\n      \"type\": \"message\",\n      \"status\": \"incomplete\",\n      \"content\": [\n        {\n          \"type\": \"output_text\",\n          \"annotations\": [],\n          \"logprobs\": [],\n          \"text\": \"Ah, ya lookin\\u2019 for a Dunkies, huh? Classic! In Boston, ya can\\u2019t throw a rock without hittin\\u2019 a Dunkin\\u2019. There\\u2019s prob\\u2019ly one on the next block, right next to the T stop.\"\n        }\n      ],\n      \"role\": \"assistant\"\n    }\n  ],\n  \"parallel_tool_calls\": true,\n  \"presence_penalty\": 0.0,\n  \"previous_response_id\": null,\n  \"prompt_cache_key\": null,\n  \"prompt_cache_retention\": null,\n  \"reasoning\": {\n    \"effort\": null,\n    \"summary\": null\n  },\n  \"safety_identifier\": null,\n  \"service_tier\": \"default\",\n  \"store\": false,\n  \"temperature\": 0.1,\n  \"text\": {\n    \"format\": {\n      \"type\": \"text\"\n    },\n    \"verbosity\": \"medium\"\n  },\n  \"tool_choice\": \"auto\",\n  \"tools\": [],\n  \"top_logprobs\": 0,\n  \"top_p\": 1.0,\n  \"truncation\": \"disabled\",\n  \"usage\": {\n    \"input_tokens\": 27,\n    \"input_tokens_details\": {\n      \"cached_tokens\": 0\n    },\n    \"output_tokens\": 50,\n    \"output_tokens_details\": {\n      \"reasoning_tokens\": 0\n    },\n    \"total_tokens\": 77\n  },\n  \"user\": null,\n  \"metadata\": {}\n}"
+  }
+}

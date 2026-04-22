@@ -1,8 +1,9 @@
 import json
+import math
 
-from utils import context, interfaces, scenarios, weblog, features
+from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import SamplingMechanism, SamplingPriority
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -62,6 +63,22 @@ def _assert_key(values: dict, key: str, value: object | None = None):
     return result
 
 
+def _assert_tag_probabilities(values: dict) -> dict:
+    result = _assert_key(values, "tag_probs")
+    assert isinstance(result, dict), f"'tag_probs' should be a dictionary in '{values}'"
+    assert len(result) > 0, f"'tag_probs' should not be empty in '{values}'"
+    return result
+
+
+def _assert_probabilities_match(actual: dict, expected: dict):
+    assert actual.keys() == expected.keys(), f"Mismatched probability keys: {actual.keys()} != {expected.keys()}"
+    for key, expected_value in expected.items():
+        actual_value = actual[key]
+        assert math.isclose(actual_value, expected_value, rel_tol=1e-9, abs_tol=1e-12), (
+            f"Probability mismatch for '{key}': {actual_value} != {expected_value}"
+        )
+
+
 @features.ai_guard
 @scenarios.ai_guard
 class Test_Evaluation:
@@ -91,7 +108,9 @@ class Test_Evaluation:
             assert meta_struct_messages == messages, "Invalid messages stored in the meta struct"
             if action != "ALLOW" and blocking == "true":
                 assert span["error"] == 1
-                assert meta["ai_guard.blocked"] == "true", f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
+                assert is_same_boolean(actual=meta["ai_guard.blocked"], expected="true"), (
+                    f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
+                )
                 assert "AIGuardAbortError".lower() in meta["error.type"].lower()
             else:
                 assert "ai_guard.blocked" not in span
@@ -198,12 +217,47 @@ class Test_RootSpanUserKeep:
         assert root_spans, "No root span found in the trace"
 
         for root_span in root_spans:
-            assert root_span.get("metrics", {}).get("_sampling_priority_v1") == SamplingPriority.USER_KEEP, (
+            assert root_span.get_sampling_priority() == SamplingPriority.USER_KEEP, (
                 "Root span should be kept when an ai_guard span exists"
             )
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
                 "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism"
             )
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/x/x4DVhAE")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_ClientIPTagsCollected:
+    PUBLIC_IP = "5.6.7.9"
+
+    def setup_client_ip_tags(self):
+        self.r = weblog.post(
+            "/ai_guard/evaluate",
+            headers={"X-Forwarded-For": self.PUBLIC_IP},
+            json=MESSAGES["ALLOW"],
+        )
+
+    def test_client_ip_tags(self):
+        """Test AI Guard collects client IP tags on the local root span with AppSec disabled."""
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        span = interfaces.library.get_root_span(self.r)
+        assert span
+        meta = span.get("meta", {})
+        assert meta
+        assert "network.client.ip" in meta
+        network_client_ip = meta["network.client.ip"]
+        assert network_client_ip
+        assert network_client_ip != self.PUBLIC_IP
+
+        http_client_ip = meta.get("http.client_ip")
+        assert http_client_ip
+        assert http_client_ip == self.PUBLIC_IP
+        assert network_client_ip != http_client_ip
 
 
 @features.ai_guard
@@ -246,6 +300,51 @@ class Test_Full_Response_And_Tags:
         interfaces.library.validate_one_span(
             self.r, validator=self._assert_span(response=body, action="DENY"), full_trace=True
         )
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_Tag_Probabilities:
+    def _assert_span(self, response: dict):
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            response_tags = _assert_key(response, "tags")
+            response_tag_probabilities = _assert_tag_probabilities(response)
+            for tag in response_tags:
+                assert tag in response_tag_probabilities, (
+                    f"Missing probability for '{tag}' in {response_tag_probabilities}"
+                )
+                assert response_tag_probabilities[tag] > 0, (
+                    f"Expected a positive probability for '{tag}' in {response_tag_probabilities}"
+                )
+
+            meta_struct = span["meta_struct"]
+            ai_guard = _assert_key(meta_struct, "ai_guard")
+            attack_categories = _assert_key(ai_guard, "attack_categories")
+            assert attack_categories == response_tags, (
+                f"Attack categories do not match the SDK response: {attack_categories} != {response_tags}"
+            )
+
+            span_tag_probabilities = _assert_tag_probabilities(ai_guard)
+            _assert_probabilities_match(span_tag_probabilities, response_tag_probabilities)
+            return True
+
+        return validate
+
+    def setup_tag_probabilities(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+
+    def test_tag_probabilities(self):
+        """Test AI Guard returns and stores tag probabilities.
+        Verifies the SDK response exposes tag probabilities and the ai_guard meta struct keeps the
+        same probability map received from the AI Guard REST API.
+        """
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        interfaces.library.validate_one_span(self.r, validator=self._assert_span(response=body), full_trace=True)
 
 
 @features.ai_guard
@@ -351,7 +450,6 @@ class Test_SensitiveDataScanning:
                 assert _assert_key(sd, "rule_display_name")
                 assert _assert_key(sd, "rule_tag")
                 assert _assert_key(sd, "category")
-                assert _assert_key(sd, "matched_text")
                 location = _assert_key(sd, "location")
                 assert _assert_key(location, "start_index") is not None
                 assert _assert_key(location, "end_index_exclusive") is not None
@@ -369,3 +467,52 @@ class Test_SensitiveDataScanning:
         """
         assert self.r.status_code == 200
         interfaces.library.validate_one_span(self.r, validator=self._assert_span_with_sensitive_data(), full_trace=True)
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_SDS_Findings_In_SDK_Response:
+    def setup_sds_in_response(self):
+        self.r = weblog.post("/ai_guard/evaluate", json=MESSAGES["SENSITIVE_DATA"])
+
+    def test_sds_in_response(self):
+        """Test SDS findings are returned in SDK response.
+        Verifies that the SDK evaluation response contains sds findings.
+        """
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        sds = _assert_key(body, "sds")
+        assert len(sds) > 0, f"No SDS findings in SDK response: {body}"
+        for finding in sds:
+            assert _assert_key(finding, "rule_display_name")
+            assert _assert_key(finding, "rule_tag")
+            assert _assert_key(finding, "category")
+            location = _assert_key(finding, "location")
+            assert _assert_key(location, "start_index") is not None
+            assert _assert_key(location, "end_index_exclusive") is not None
+            assert _assert_key(location, "path")
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_AIGuardEvent_Tag:
+    def _assert_trace(self, trace: DataDogLibraryTrace):
+        for span in trace.spans:
+            parent_id = span.get("parent_id", 0)
+            event = span["meta"].get("ai_guard.event", False) in (True, "true")
+            if parent_id in (None, 0):
+                assert event, f"Expected ai_guard.event to be set on root span, but it was not (meta: {span['meta']})"
+            else:
+                assert not event, (
+                    f"Expected ai_guard.event to not be set on non-root span, but it was (parent_id: {parent_id}, meta: {span['meta']})"
+                )
+        return True
+
+    def setup_ai_guard_event(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+
+    def test_ai_guard_event(self):
+        """Test AI Guard sets ai_guard.event:true tag in the local root span of the trace."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)

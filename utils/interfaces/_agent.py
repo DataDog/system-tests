@@ -4,15 +4,16 @@
 
 """Validate data flow between agent and backend"""
 
-from collections.abc import Callable, Generator, Iterable
 import copy
 import threading
+from collections.abc import Callable, Generator, Iterable
+from typing import Any
 
-from utils.dd_types import DataDogAgentTrace, DataDogAgentSpan, AgentTraceFormat
 from utils._logger import logger
+from utils._weblog import HttpResponse
+from utils.dd_types import AgentTraceFormat, DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
-from utils._weblog import HttpResponse
 
 
 class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -25,6 +26,18 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def ingest_file(self, src_path: str):
         self.ready.set()
         return super().ingest_file(src_path)
+
+    def get_appsec_data(
+        self, request: HttpResponse
+    ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
+        for data, span in self.get_spans(request):
+            json_data = span.meta.get("_dd.appsec.json")
+            if json_data is not None:
+                yield data, span, json_data
+            elif (legacy_metastruct_data := span.get("metaStruct", {}).get("appsec")) is not None:
+                yield data, span, legacy_metastruct_data
+            elif (v1_metastruct_data := span.meta.get("appsec")) is not None:
+                yield data, span, v1_metastruct_data
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")

@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Select agent image
@@ -78,7 +78,7 @@ jobs:
             echo "Token file not found — nothing to clean up"
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: weblog
           path: binaries/
@@ -93,7 +93,7 @@ jobs:
         n: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
     - name: Install runner
       uses: ./.github/actions/install_runner
 
@@ -116,7 +116,7 @@ jobs:
 
     - name: Upload artifact
       if: always() && steps.build.outcome == 'success'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: logs_${{ matrix.n }}
         path: logs_*
