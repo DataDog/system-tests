@@ -248,16 +248,30 @@ class BaseDebuggerTest:
                         go_build_dir = {"uds-echo": "echo"}.get(variant, variant)
                         source_file = f"{go_build_dir}/debugger.go"
                     elif language == "php":
-                        source_file = "debugger.php"
+                        # PHP does not support line probes; convert to a method probe.
+                        php_line_to_method = {
+                            "20": "LogProbe",
+                            "71": "expression",
+                        }
+                        lines = probe["where"].get("lines", [])
+                        method = next((php_line_to_method[line] for line in lines if line in php_line_to_method), None)
+                        if method:
+                            probe["where"]["typeName"] = "DebuggerController"
+                            probe["where"]["methodName"] = method
+                            probe["where"]["sourceFile"] = None
+                            probe["where"]["lines"] = []
+                            probe["evaluateAt"] = "EXIT"
+                        else:
+                            source_file = "debugger.php"
 
-                    if uppercase_source_files:
-                        source_file = source_file.upper()
-                    if path_prefix:
-                        source_file = os.path.join(path_prefix, source_file)
-                    if use_backslashes:
-                        source_file = source_file.replace("/", "\\")
-
-                    probe["where"]["sourceFile"] = source_file
+                    if source_file != "":
+                        if uppercase_source_files:
+                            source_file = source_file.upper()
+                        if path_prefix:
+                            source_file = os.path.join(path_prefix, source_file)
+                        if use_backslashes:
+                            source_file = source_file.replace("/", "\\")
+                        probe["where"]["sourceFile"] = source_file
 
                     # Go system-probe requires methodName for line probes to identify the function.
                     # Other languages resolve this from sourceFile+line, but the eBPF-based
@@ -295,7 +309,9 @@ class BaseDebuggerTest:
         )
 
         # PHP tracer requires a request to /debugger/* to start logging the probe information.
+        # Two calls ensure the sidecar has had time to poll the new RC (poll interval: 100ms).
         if context.library == "php":
+            weblog.get("/debugger/init")
             weblog.get("/debugger/init")
 
     def send_rc_apm_tracing(
@@ -372,6 +388,12 @@ class BaseDebuggerTest:
                 env=env,
             )
         )
+
+        # PHP tracer requires a request to /debugger/* to process RC before the test request.
+        # Two calls ensure the sidecar has had time to poll the new RC (poll interval: 100ms).
+        if context.library == "php":
+            weblog.get("/debugger/init")
+            weblog.get("/debugger/init")
 
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
