@@ -13,7 +13,7 @@ from utils.scripts.activate_easy_wins._internal.types import Context
 
 
 def manifest_init(
-    components: dict[str, Version | str],
+    components: dict[str, Version],
     weblog: str = "some_variant",
     path: Path = Path("tests/test_the_test/manifests/manifests_parser_test/"),
     manifest_data: dict[str, list[Condition]] | None = None,
@@ -412,7 +412,7 @@ class Test_ManifestEditor_WriteNewRules:
             assert "excluded_component_version" not in first_entry
 
 
-def _get_manifest_errors(component: str, *, declared_version: str, components: dict[str, Version | str]) -> list[str]:
+def _get_manifest_errors(component: str, *, declared_version: str, components: dict[str, Version]) -> list[str]:
     manifest = manifest_init(
         components,
         manifest_data={

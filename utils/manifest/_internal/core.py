@@ -23,7 +23,7 @@ class Manifest:
 
     def __init__(
         self,
-        components: dict[str, Version | str] | None = None,  # TODO : remove str versions from scenario.components
+        components: dict[str, Version] | None = None,
         weblog: str | None = None,
         path: Path = default_manifests_path,
     ):
@@ -33,9 +33,7 @@ class Manifest:
         self.data = load(path)
         self.rules = None
         if components is not None:
-            self._components: dict[str, Version] = {
-                name: version for name, version in components.items() if isinstance(version, Version)
-            }
+            self._components: dict[str, Version] = components
             self.update_rules(self._components, weblog)
 
     def update_rules(
