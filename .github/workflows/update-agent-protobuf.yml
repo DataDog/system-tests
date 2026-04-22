@@ -29,3 +29,4 @@ jobs:
           title: Update protobuf descriptors
           body: Please check locally that everything is ok before merging
           token: ${{ steps.octo-sts.outputs.token }}
+          sign-commits: true
