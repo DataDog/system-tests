@@ -186,12 +186,37 @@ class Test_SCA_Reachability_First_Hit_Wins:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
         assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
+        expected_path = _expected_path()
+        expected_symbol = _expected_symbol()
+
+        reached_entries = [e for e in cve_entries if len(e.get("reached", [])) > 0]
+        assert len(reached_entries) >= 1, (
+            f"Expected at least one {_cve_id()} entry with non-empty reached array after vulnerable calls. "
+            f"Got: {cve_entries}"
+        )
+
         for entry in cve_entries:
             assert isinstance(entry["reached"], list)
             assert len(entry["reached"]) <= 1, (
                 f"Expected max 1 reached entry per CVE (first hit wins), "
                 f"got {len(entry['reached'])}: {entry['reached']}"
             )
+
+            # First-hit-wins: the recorded caller must match the FIRST call site
+            # (/sca/requests/vulnerable-call), never be overwritten by the second
+            # call site (/sca/requests/vulnerable-call-alt).
+            if len(entry["reached"]) == 1:
+                caller = entry["reached"][0]
+                if expected_path is not None:
+                    assert caller.get("path") == expected_path, (
+                        f"First-hit-wins violated: expected path '{expected_path}' "
+                        f"(first call site), got '{caller.get('path')}'"
+                    )
+                if expected_symbol is not None:
+                    assert caller.get("symbol") == expected_symbol, (
+                        f"First-hit-wins violated: expected symbol '{expected_symbol}' "
+                        f"(first call site), got '{caller.get('symbol')}'"
+                    )
 
 
 @rfc(SCA_REACHABILITY_RFC)
