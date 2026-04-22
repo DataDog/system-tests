@@ -90,8 +90,14 @@ refs:
   - &ref_5_94_0 '>=5.94.0'
   - &ref_5_97_0 '>=5.97.0'
   - &ref_5_98_0 '>=5.98.0'
+  - &ref_5_99_0 '>=5.99.0'
   - &ref_6_0_0 '>=6.0.0-pre'
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62217)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_5_99_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -120,7 +126,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_89_0
-  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature (APPSEC-61899)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_5_98_0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
@@ -914,6 +923,27 @@ manifest:
         fastify: *ref_5_66_0
         nextjs: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: *ref_5_25_0
+  tests/appsec/smoke_tests/test_apm_standalone.py: v5.92.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents:
+    - weblog_declaration:
+        fastify: missing_feature
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents:
+    - weblog_declaration:
+        fastify: missing_feature
+        nextjs: missing_feature
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:
     - weblog_declaration:
@@ -1333,6 +1363,7 @@ manifest:
         nextjs: irrelevant  # nextjs is not related with graphql
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v2.0.0
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v2.0.0
@@ -1508,6 +1539,7 @@ manifest:
         "*": *ref_5_83_0
         nextjs: irrelevant
     - declaration: flaky (DEBUG-5169)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": *ref_5_83_0
@@ -2344,6 +2376,7 @@ manifest:
         nextjs: missing_feature  # nextjs makes some internal requests, so we have more than 1 rootspans
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers: *ref_4_19_0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v2.11.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62220)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:

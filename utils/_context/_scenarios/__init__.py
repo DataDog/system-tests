@@ -438,6 +438,40 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    appsec_apm_standalone = EndToEndScenario(
+        "APPSEC_APM_STANDALONE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec with APM Standalone (infra opt out)",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    appsec_standalone_apm_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE_APM_STANDALONE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     # Combined scenario for API Security in standalone mode
     appsec_standalone_api_security = EndToEndScenario(
         "APPSEC_STANDALONE_API_SECURITY",
@@ -1211,7 +1245,10 @@ class _Scenarios:
     ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
         weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
             "DD_API_KEY": "mock_api_key",

@@ -101,6 +101,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      _system_tests_dev_mode:
+        description: "Shall we run system tests in dev mode (library and agent dev binary)"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   main:
@@ -111,6 +116,7 @@ jobs:
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
+      SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -174,6 +180,12 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
+    - name: Run APPSEC_APM_STANDALONE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_APM_STANDALONE"')
+      run: ./run.sh APPSEC_APM_STANDALONE
+    - name: Run APPSEC_STANDALONE_APM_STANDALONE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_APM_STANDALONE"')
+      run: ./run.sh APPSEC_STANDALONE_APM_STANDALONE
     - name: Run APPSEC_STANDALONE_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_API_SECURITY"')
       run: ./run.sh APPSEC_STANDALONE_API_SECURITY
@@ -207,13 +219,10 @@ jobs:
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         cat /proc/sys/kernel/perf_event_paranoid
         sudo sysctl kernel.perf_event_paranoid=1
         sudo sysctl -p
         ./run.sh PROFILING
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C

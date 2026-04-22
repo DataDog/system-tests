@@ -175,6 +175,9 @@ jobs:
     if: needs.compute_parameters.outputs.parametric_enable == 'true'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
     with:
       library: ${{ inputs.library }}
       ref: ${{ inputs.ref }}
@@ -261,6 +264,9 @@ jobs:
       fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
     with:
       runs_on: ${{ matrix.job.runs_on }}
       library: ${{ matrix.job.library }}
@@ -281,6 +287,7 @@ jobs:
       _build_proxy_image: ${{ inputs._build_proxy_image }}
       _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
+      _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
 
   display_summary:
     name: Report failures

@@ -10,6 +10,7 @@ from dateutil.parser import isoparse
 from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -848,7 +849,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert that the debugger products are disabled by default including DI, and ER"""
+        """Assert DI and ER are disabled by default, and code origin config is reported."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -887,6 +888,11 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
+
+        if context.library == "dotnet" and context.library.version >= "3.42.0":
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
+
         assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
@@ -1049,17 +1055,19 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
         )
 
 

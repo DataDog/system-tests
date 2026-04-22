@@ -1,9 +1,9 @@
 import json
 import math
 
-from utils import context, interfaces, scenarios, weblog, features
+from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import SamplingMechanism, SamplingPriority
-from utils.dd_types import DataDogLibrarySpan, is_same_boolean
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -223,6 +223,41 @@ class Test_RootSpanUserKeep:
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
                 "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism"
             )
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/x/x4DVhAE")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_ClientIPTagsCollected:
+    PUBLIC_IP = "5.6.7.9"
+
+    def setup_client_ip_tags(self):
+        self.r = weblog.post(
+            "/ai_guard/evaluate",
+            headers={"X-Forwarded-For": self.PUBLIC_IP},
+            json=MESSAGES["ALLOW"],
+        )
+
+    def test_client_ip_tags(self):
+        """Test AI Guard collects client IP tags on the local root span with AppSec disabled."""
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        span = interfaces.library.get_root_span(self.r)
+        assert span
+        meta = span.get("meta", {})
+        assert meta
+        assert "network.client.ip" in meta
+        network_client_ip = meta["network.client.ip"]
+        assert network_client_ip
+        assert network_client_ip != self.PUBLIC_IP
+
+        http_client_ip = meta.get("http.client_ip")
+        assert http_client_ip
+        assert http_client_ip == self.PUBLIC_IP
+        assert network_client_ip != http_client_ip
 
 
 @features.ai_guard
@@ -456,3 +491,28 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(location, "start_index") is not None
             assert _assert_key(location, "end_index_exclusive") is not None
             assert _assert_key(location, "path")
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_AIGuardEvent_Tag:
+    def _assert_trace(self, trace: DataDogLibraryTrace):
+        for span in trace.spans:
+            parent_id = span.get("parent_id", 0)
+            event = span["meta"].get("ai_guard.event", False) in (True, "true")
+            if parent_id in (None, 0):
+                assert event, f"Expected ai_guard.event to be set on root span, but it was not (meta: {span['meta']})"
+            else:
+                assert not event, (
+                    f"Expected ai_guard.event to not be set on non-root span, but it was (parent_id: {parent_id}, meta: {span['meta']})"
+                )
+        return True
+
+    def setup_ai_guard_event(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+
+    def test_ai_guard_event(self):
+        """Test AI Guard sets ai_guard.event:true tag in the local root span of the trace."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
