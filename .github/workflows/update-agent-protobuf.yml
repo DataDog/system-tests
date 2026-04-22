@@ -12,9 +12,11 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
       - name: Generate descriptor
         run: docker run --rm -v "$(pwd):/work" -w /work golang:1.24.5 /work/utils/scripts/update_protobuf.sh
-      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+      - uses: DataDog/dd-octo-sts-action@96a25462dbcb10ebf0bfd6e2ccc917d2ab235b9a # v1.0.4
         id: octo-sts
         with:
           scope: DataDog/system-tests
