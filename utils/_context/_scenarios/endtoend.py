@@ -435,9 +435,10 @@ class EndToEndScenario(DockerScenario):
                 interfaces.open_telemetry.check_deserialization_errors()
 
         else:
-            self._wait_interface(
-                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
-            )
+            # Step 0 of PLAN.md is intentionally exploratory: force the legacy
+            # post-setup library sleep to zero so CI shows which
+            # scenario/library pairs still depend on it.
+            self._wait_interface(interfaces.library, 0)
 
             self.weblog_infra.stop()
             interfaces.library.check_deserialization_errors()
