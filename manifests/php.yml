@@ -395,7 +395,7 @@ manifest:
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_no_extended_data_collection_without_event
   : v1.17.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
-  tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
+  tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: v1.19.0
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint: v1.6.2
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: v1.12.0
@@ -1075,7 +1075,7 @@ manifest:
       component_version: '>=0.93.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.75.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature (PHP telemetry runs via sidecar which does not emit app-extended-heartbeat yet)
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v1.19.0
   tests/test_telemetry.py::Test_Log_Generation:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
