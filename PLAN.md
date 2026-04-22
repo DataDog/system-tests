@@ -1,4 +1,4 @@
-# Wait Conditions — Incremental Reintroduction Plan
+# Wait Conditions
 
 ## 1. Context
 
@@ -155,24 +155,22 @@ This plan aims to deliver the same end state as PR #1292, but:
 
 ### 2.1 Module layout
 
+We start with one file:
+
 ```
 utils/
-  wait_conditions/
-    __init__.py          # public API: WaitConditions, Condition
-    _watermark.py        # one watermark request + per-interface observation
-    _telemetry.py        # "N heartbeats after watermark" barrier
-    _remote_config.py    # RC-count barrier, driven by proxy_state
-    _otel.py             # /basic/trace watermark
-    README.md            # why each condition is sufficient
+  wait_conditions.py     # public API + built-in conditions
 ```
 
-A package, not a single module. Each condition is isolated and
-independently testable. No module-level mutable state.
+That keeps the first PRs small and easy to review. If the file becomes
+too crowded once the built-in conditions land, we can split it later
+without changing the rollout strategy. The important constraint is **no
+module-level mutable state**.
 
 ### 2.2 Public API
 
 ```python
-# utils/wait_conditions/__init__.py
+# utils/wait_conditions.py
 
 @dataclass(frozen=True)
 class Condition:
@@ -245,8 +243,9 @@ primary mechanism. We do **not** delete them in the first steps.
 
 ### 2.4 Why each condition is sufficient
 
-This section is the one that was missing from PR #1292. It goes into
-`utils/wait_conditions/README.md`.
+This section is the one that was missing from PR #1292. In our version,
+the rationale lives next to the implementation as docstrings and
+comments in `utils/wait_conditions.py`, not in a separate README.
 
 - **Watermark trace**: We issue `GET /` after setup requests are done and
   wait until the tracer has flushed a trace containing the resulting `rid`.
@@ -320,33 +319,40 @@ Each step is small enough to review and run CI in isolation. Each step
 **leaves the tree green and the behavior unchanged for anything not
 explicitly opted in**.
 
-### Step 0 — Baseline measurements
+### Step 0 — Map what actually depends on the legacy wait
 
-Before any change, record current `post_setup` durations per scenario
-from a main-branch CI run (dashboard or pytest log scrape). This is the
-number we are trying to beat. Commit nothing; file an internal note.
+Before introducing any new wait-condition code, make one exploratory
+change: force `library_interface_timeout=0`, push it to CI, and collect
+the failures.
 
-**Deliverable**: a list of "scenario → median post_setup wait time on
-main" numbers we can use as the before/after baseline.
+The goal is not to keep that change. The goal is to learn which
+scenarios, libraries, and tests genuinely depend on the current fixed
+library wait, so we can prioritize the first built-in conditions around
+real failures instead of guessing.
 
-### Step 1 — Skeleton `wait_conditions` package, no behavior change
+**Deliverable**: a short failure map such as "scenario/library → what
+arrived too late" (library traces, agent traces, telemetry, remote
+config, OTel, or something unexpected).
 
-- Create `utils/wait_conditions/__init__.py` with `WaitConditions` and
+### Step 1 — Skeleton `wait_conditions` module, no behavior change
+
+- Create `utils/wait_conditions.py` with `WaitConditions` and
   `Condition` as described in §2.2.
 - `WaitConditions.run()` is a no-op in this step (returns `[]`).
 - No other file changes, no scenario integration.
-- Unit tests in `utils/wait_conditions/test_wait_conditions.py`:
+- Unit tests in a small dedicated test file (for example
+  `tests/internal/test_wait_conditions.py`):
   - Adding and iterating conditions.
   - `run()` with trivially-true / trivially-false predicates and a 100 ms
     deadline.
   - Thread safety: `add()` concurrent with `run()`.
 
-**Acceptance**: `pytest utils/wait_conditions` passes in CI; default
-scenario still runs identically.
+**Acceptance**: the dedicated wait-conditions unit tests pass in CI;
+default scenario still runs identically.
 
 ### Step 2 — Watermark condition on the tracer interface
 
-- Add `_watermark.py` with `make_tracer_watermark(*, library_name,
+- Add `make_tracer_watermark(*, library_name,
   tracer_sampling_rate, weblog, interfaces) -> Condition`.
 - Implementation uses `interfaces.library.wait_for(predicate,
   timeout)` — event-driven, no polling.
@@ -364,13 +370,13 @@ scenario still runs identically.
   test using the lightest existing scenario (`DEFAULT` on one library,
   e.g. python) — enable the flag locally in the test only.
 
-**Acceptance**: with the flag on, setup completes faster than baseline
-on python DEFAULT; with the flag off (everywhere else), zero behavior
-change.
+**Acceptance**: with the flag on, setup converges on python DEFAULT;
+with the flag off (everywhere else), zero behavior change.
 
 ### Step 3 — Watermark condition on the agent interface
 
-- Add `make_agent_watermark(...)` in `_watermark.py`. Predicate reads
+- Add `make_agent_watermark(...)` in `utils/wait_conditions.py`.
+  Predicate reads
   from `interfaces.agent.get_spans(request=rid)`.
 - Runs after the tracer watermark (composition: the agent predicate only
   starts checking once tracer `rid` is known).
@@ -381,7 +387,7 @@ flag on; no change otherwise.
 
 ### Step 4 — Telemetry heartbeat barrier
 
-- Add `_telemetry.py` with `make_telemetry_barrier(*, interfaces,
+- Add `make_telemetry_barrier(*, interfaces,
   watermark_index) -> Condition`.
 - "Watermark index" is the `n` returned in §2.4. We expose it from the
   tracer-watermark condition via a shared mutable container (`dict` or
@@ -408,13 +414,13 @@ stall.
   not affected.
 
 **Acceptance**: full default-scenario CI passes across every library and
-weblog. Compare `post_setup` times to Step 0 baseline; expected drop on
-libraries with short actual flush times (nodejs, go) and roughly equal
-on ones that were already tight (java, python-at-25s).
+weblog. Correctness is the gate. If the logs make it easy to compare
+post-setup duration before vs after on DEFAULT, note it, but do not make
+that a requirement for this step.
 
 ### Step 6 — Remote-config condition
 
-- Add `_remote_config.py` with `make_rc_barrier(*, proxy_state,
+- Add `make_rc_barrier(*, proxy_state,
   interfaces) -> Condition | None`. Returns `None` if there is no
   `mock_remote_config_backend` — caller filters out `None`.
 - Opt in on one RC scenario:
@@ -430,7 +436,7 @@ on ones that were already tight (java, python-at-25s).
 
 ### Step 7 — OTel watermark
 
-- Add `_otel.py` with `make_otel_watermark(...)`.
+- Add `make_otel_watermark(...)` in `utils/wait_conditions.py`.
 - Opt in on `OpenTelemetryScenario` via `use_wait_conditions=True`.
 - `backend_interface_timeout` still applies for the OTel collector →
   backend path that OTel scenarios use.
@@ -463,7 +469,8 @@ speedup only on passing runs.
   `backend_interface_timeout` and their role as fallback.
 
 **Acceptance**: full CI green across all scenarios. Dashboard-level
-post-setup time compared against Step 0.
+correctness is the main gate; any timing improvement is a bonus, not a
+hard requirement.
 
 ### Step 10 — Retire the fallbacks (optional, only if Steps 5–9 are stable for at least two weeks)
 
@@ -491,16 +498,18 @@ original code). Use `1.0s` and note the justification.
 
 ## 4. Test strategy
 
-- **Unit**: `utils/wait_conditions/test_*.py` — pure-Python, no docker,
-  mock the interfaces.
+- **Unit**: one small pure-Python test file for `utils/wait_conditions.py`
+  — no docker, mock the interfaces.
 - **Integration** per step: one minimal scenario, one library, flag
   on, behavior verified in isolation. Run in `run-default-scenario` only
   at first.
 - **Full**: once a step flips a default, the `run-default-scenario`
   label is removed on that PR so every scenario runs.
+- **Exploration first**: Step 0 gives us the initial failure map that
+  tells us which waits matter most.
 - **Measurement**: grep pytest output for the `[post_setup]` log lines
-  we emit from `WaitConditions.run()` and compare medians per
-  (scenario, library, weblog) to Step 0 baseline.
+  we emit from `WaitConditions.run()` when useful, but correctness and
+  failure reduction come before timing analysis in the first rollout.
 
 ---
 
@@ -531,7 +540,7 @@ original code). Use `1.0s` and note the justification.
 
 ## 7. What PR #1292 got wrong and we should not repeat
 
-- One big module with global state.
+- Module-level global state.
 - Busy polling instead of using `Interface.wait_for`.
 - Merging unrelated container/cgroup changes.
 - Deleting `backend_interface` wait semantics without a replacement.
