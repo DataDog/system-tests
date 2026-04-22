@@ -22,14 +22,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Get image list
-      shell: bash
-      run: |
-        source venv/bin/activate
-        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' -l=${{ inputs.library }} -w=${{ inputs.weblog }} > compose.yaml
-      env:
-        PYTHONPATH: "."
-
     - name: Login to Docker Hub
       if: inputs.dockerhub_username != '' && inputs.dockerhub_token != ''
       uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
@@ -41,15 +33,13 @@ runs:
       shell: bash
       run: sudo rm -rf /usr/local/lib/android
 
-#retry
-    - name: Pull
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
-      with:
-        shell: bash
-        command: docker compose pull
-        timeout_minutes: 15
-        retry_wait_seconds: 10
-        max_attempts: 3
+    - name: Pull images
+      shell: bash
+      run: |
+        source venv/bin/activate
+        python utils/scripts/pull-images.py '${{ inputs.scenarios }}' -l=${{ inputs.library }} -w=${{ inputs.weblog }}
+      env:
+        PYTHONPATH: "."
 
     - name: Disk space usage
       shell: bash
