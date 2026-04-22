@@ -355,6 +355,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         "_dd.appsec.fp.http.network",
                         "_dd.appsec.fp.session",
                         "_dd.svc_src",
+                        "_dd.tags.process",  # varies by PHP SAPI (apache vs fpm)
                     }:
                         keys_to_remove.append(meta_key)
                     elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
