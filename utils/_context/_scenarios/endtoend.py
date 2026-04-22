@@ -185,6 +185,7 @@ class EndToEndScenario(DockerScenario):
         github_workflow: str = "endtoend",
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
+        library_weblog_env: dict[str, dict[str, str | None]] | None = None,
         weblog_volumes: dict | None = None,
         agent_env: dict[str, str | None] | None = None,
         enable_ipv6: bool = False,
@@ -240,6 +241,7 @@ class EndToEndScenario(DockerScenario):
         self._weblog_env = dict(weblog_env) if weblog_env else {}
         self.weblog_infra = EndToEndWeblogInfra(
             environment=self._weblog_env,
+            library_environment=library_weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
             iast_enabled=iast_enabled,

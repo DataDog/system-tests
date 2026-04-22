@@ -400,6 +400,14 @@ class _Scenarios:
             "DD_API_SECURITY_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
         },
+        library_weblog_env={
+            # PHP AppSec 1.18.0 crashes (SIGSEGV via null TSRM mutex) when
+            # DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE=disabled is set during
+            # MINIT — it does not recognise "disabled" as a valid V2 mode.
+            # The V1 env var (DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING) is
+            # sufficient for PHP to enter disabled mode.
+            "php": {"DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": None},
+        },
         weblog_volumes={
             "./tests/appsec/rules_no_processors.json": {
                 "bind": "/appsec_rules_no_processors.json",
