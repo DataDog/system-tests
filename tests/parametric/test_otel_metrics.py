@@ -43,6 +43,7 @@ NON_DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "non_default_value"}
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 DEFAULT_ENVVARS = {
     "DD_METRICS_OTEL_ENABLED": "true",
+    "DD_RUNTIME_METRICS_ENABLED": "false",  # Prevent runtime metrics (System.Runtime, Microsoft.AspNetCore.*) from leaking into custom metric tests
     "OTEL_METRIC_EXPORT_INTERVAL": "60000",  # Mitigate test flake by increasing the interval so that the only time new metrics are exported are when we manually flush them
     "CORECLR_ENABLE_PROFILING": "1",
 }
