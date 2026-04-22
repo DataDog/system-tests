@@ -3153,6 +3153,40 @@ manifest:
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Split::test_ffe_eval_reason_split: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Targeting::test_ffe_eval_reason_targeting: bug (FFL-1972)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Targeting_Key_Optional::test_ffe_eval_targeting_key_optional: bug (FFL-1972)
+  # REASON-3, REASON-7, REASON-8, REASON-10, REASON-13, REASON-19, REASON-22, REASON-25 pass against Java ≥ v1.61.0.
+  # The remaining 12 tests cover RFC Appendix B paths not yet implemented in Java:
+  #   REASON-2  PROVIDER_FATAL (RC 401 not treated as fatal by Java's FFE provider)
+  #   REASON-9  ADR-001: empty waterfall → DEFAULT (Java returns error/general instead)
+  #   REASON-11 STATIC (Java returns targeting_match for any matched allocation)
+  #   REASON-14 DEFAULT via unconditional alloc (Java returns targeting_match)
+  #   REASON-16 DEFAULT via shard-miss (Java returns targeting_match for default-alloc)
+  #   REASON-17 SPLIT overrides TARGETING_MATCH (ADR-004 not implemented in Java)
+  #   REASON-18 DEFAULT via rule-fail (Java returns targeting_match for default-alloc)
+  #   REASON-20 DEFAULT via split-miss + rule-fail (Java returns targeting_match)
+  #   REASON-21 DEFAULT with active window (Java returns targeting_match)
+  #   REASON-23 DEFAULT multi-alloc active window (Java returns targeting_match)
+  #   REASON-24 DEFAULT multi-alloc inactive window (Java returns targeting_match)
+  #   REASON-26 DEFAULT via window+rule-fail (Java returns targeting_match)
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_2_ProviderFatal::test_ffe_reason_2_provider_fatal: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_3_DisabledFlagNotFound::test_ffe_reason_3_disabled_flag_not_found: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_7_TargetingKeyMissing::test_ffe_reason_7_targeting_key_missing: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_8_RuleOnlyNoKey::test_ffe_reason_8_rule_only_no_key: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_9_ZeroAllocations::test_ffe_reason_9_zero_allocations: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_10_NoDefaultAlloc::test_ffe_reason_10_no_default_alloc: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_11_StaticNoSplit::test_ffe_reason_11_static_no_split: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_13_MultiAllocRuleMatch::test_ffe_reason_13_multi_alloc_rule_match: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_14_MultiAllocRuleFail::test_ffe_reason_14_multi_alloc_rule_fail: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_16_RulePassShardMiss::test_ffe_reason_16_rule_pass_shard_miss: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_17_RulePassShardWin::test_ffe_reason_17_rule_pass_shard_win: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_18_RuleFail::test_ffe_reason_18_rule_fail: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_19_SplitMissRuleMatch::test_ffe_reason_19_split_miss_rule_match: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_20_SplitMissDefault::test_ffe_reason_20_split_miss_default: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_21_ActiveWindowSingle::test_ffe_reason_21_active_window_single: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_22_InactiveWindowSingle::test_ffe_reason_22_inactive_window_single: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_23_ActiveWindowMulti::test_ffe_reason_23_active_window_multi: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_24_InactiveWindowMulti::test_ffe_reason_24_inactive_window_multi: missing_feature
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_25_WindowActiveRuleMatch::test_ffe_reason_25_window_active_rule_match: v1.61.0
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_26_WindowRuleFail::test_ffe_reason_26_window_rule_fail: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
