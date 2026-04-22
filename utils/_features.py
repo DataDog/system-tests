@@ -41,6 +41,7 @@ class _OwnerDef:
 
 
 class _Owner(Enum):
+    # fmt: off
     agent_apm            = _OwnerDef("@DataDog/agent-apm")
     apm_serverless       = _OwnerDef("@DataDog/apm-serverless")
     asm                  = _OwnerDef("@DataDog/asm-libraries")
@@ -66,6 +67,7 @@ class _Owner(Enum):
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
     sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities")
+    # fmt: on
 
 
 def _mark_test_object(test_object, feature_id: int, owner: _Owner):
