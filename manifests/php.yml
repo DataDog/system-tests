@@ -395,7 +395,7 @@ manifest:
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_no_extended_data_collection_without_event
   : v1.17.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
-  tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: v1.19.0
+  tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint: v1.6.2
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: v1.12.0
