@@ -6,7 +6,7 @@
 
 import re
 from collections.abc import Callable
-from utils import weblog, interfaces, scenarios, features, logger
+from utils import weblog, interfaces, scenarios, features, logger, wait_conditions
 from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
@@ -22,6 +22,31 @@ class Test_Profile:
     _is_set_up = False  # used to do the setup only once
 
     @staticmethod
+    def _register_wait_condition() -> None:
+        def wait_for_library_profiling_input(effective_timeout: float) -> bool:
+            def has_profiling_input() -> bool:
+                return bool(list(interfaces.library.get_data(path_filters="/profiling/v1/input")))
+
+            if has_profiling_input():
+                return True
+
+            if effective_timeout > 0:
+                interfaces.library.wait_for(
+                    lambda data: data.get("request", {}).get("path") == "/profiling/v1/input",
+                    effective_timeout,
+                )
+
+            return has_profiling_input()
+
+        wait_conditions.add(
+            wait_conditions.Condition(
+                wait=wait_for_library_profiling_input,
+                description="at least one library profiling request on /profiling/v1/input",
+                timeout=120.0,
+            )
+        )
+
+    @staticmethod
     def _common_setup() -> None:
         if Test_Profile._is_set_up:
             return
@@ -33,6 +58,7 @@ class Test_Profile:
 
     def setup_library(self):
         self._common_setup()
+        self._register_wait_condition()
 
     def test_library(self):
         """All profiling libraries payload have start and end fields"""

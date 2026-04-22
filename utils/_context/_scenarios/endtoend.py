@@ -1,5 +1,6 @@
 import os
 import pytest
+import time
 
 from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
@@ -8,6 +9,8 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from utils import interfaces
+from utils import wait_conditions
+from utils._weblog import weblog
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
@@ -442,9 +445,8 @@ class EndToEndScenario(DockerScenario):
                 interfaces.open_telemetry.check_deserialization_errors()
 
         else:
-            self._wait_interface(
-                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
-            )
+            if not force_interface_timout_to_zero:
+                self._wait_for_setup_conditions(self.library_interface_timeout)
 
             self.weblog_infra.stop()
             interfaces.library.check_deserialization_errors()
@@ -475,6 +477,31 @@ class EndToEndScenario(DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
+
+    def _wait_for_setup_conditions(self, timeout: int) -> None:
+        if not self._use_proxy_for_weblog:
+            return
+
+        logger.terminal.write_sep("-", f"Wait for setup conditions ({timeout}s)")
+        logger.terminal.flush()
+
+        wait_conditions.add(
+            wait_conditions.make_tracer_watermark(
+                weblog=weblog,
+                interfaces=interfaces,
+                timeout=timeout,
+            )
+        )
+
+        failed_conditions = wait_conditions.run(deadline=time.time() + timeout)
+        if failed_conditions:
+            logger.terminal.write_sep("-", "Setup conditions that timed out")
+            for condition in failed_conditions:
+                logger.terminal.write(f"- {condition.description}\n")
+            logger.terminal.flush()
+
+        for condition in failed_conditions:
+            logger.warning(f"Setup condition did not complete before timeout: {condition.description}")
 
     @property
     def weblog_container(self) -> WeblogContainer:
