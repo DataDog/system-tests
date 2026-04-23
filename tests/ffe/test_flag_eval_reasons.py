@@ -18,8 +18,7 @@ Coverage map (B-N = Appendix B row N):
   REASON-8  TARGETING_MATCH (no key)  → Test_FFE_REASON_8_RuleOnlyNoKey
   REASON-9  zero allocations → DEFAULT → Test_FFE_REASON_9_ZeroAllocations
   REASON-10 no-default-alloc → DEFAULT → Test_FFE_REASON_10_NoDefaultAlloc
-  REASON-11 STATIC (no split/rules)   → Test_FFE_REASON_11_StaticNoSplit (uses vacuous split in UFC,
-                                     structurally same as REASON-12; see fixture docstring)
+  REASON-11 splits:[] → alloc skipped → DEFAULT → Test_FFE_REASON_11_StaticNoSplit
   REASON-12 STATIC (vacuous split)    → test_flag_eval_metrics.py :: Test_FFE_Eval_Metric_Basic
   REASON-13 TARGETING_MATCH multi     → Test_FFE_REASON_13_MultiAllocRuleMatch
   REASON-14 DEFAULT multi (rule fails) → Test_FFE_REASON_14_MultiAllocRuleFail
@@ -164,12 +163,13 @@ def make_no_default_alloc_fixture(flag_key: str, attribute: str, match_value: st
 
 
 def make_pure_static_fixture(flag_key: str) -> dict:
-    """REASON-11: Single allocation, no rules, no date window → STATIC.
+    """REASON-11: Single allocation, no rules, no date window, splits:[].
 
-    Uses the RFC canonical form: splits:[] (empty array, no split entries at all).
-    This is intentionally different from the vacuous-split form used elsewhere
-    (splits:[{variationKey:"on", shards:[]}]). SDKs that reject an empty splits
-    array will fail this test, surfacing a parse/evaluation bug to be fixed.
+    Uses RFC canonical form: splits:[] (empty array). An allocation with no split
+    entries cannot produce a variant — the allocation is skipped even if rules pass.
+    With no subsequent allocation, the waterfall is exhausted → coded default / DEFAULT.
+    This is distinct from the vacuous-split form (splits:[{shards:[]}]) which does
+    resolve a variation (STATIC). See REASON-12 for the vacuous-split path.
     """
     fd = _base_flag(flag_key)
     fd["allocations"] = [
@@ -784,13 +784,14 @@ class Test_FFE_REASON_10_NoDefaultAlloc:
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
 class Test_FFE_REASON_11_StaticNoSplit:
-    """REASON-11: Single allocation; no targeting rules, no date window → STATIC.
+    """REASON-11: Single allocation; no rules, no date window; splits:[] → DEFAULT (coded default).
 
-    Uses RFC canonical form splits:[] (empty array). This is the structural distinction
-    from REASON-12 which uses splits:[{variationKey:"on", shards:[]}] (vacuous split).
-    Both produce STATIC per ADR-003. SDKs that fail to parse or evaluate an empty splits
-    array will surface a bug here; that is the intent — failures are expected to be fixed
-    in the SDK, not papered over by switching to the vacuous-split form.
+    An allocation with splits:[] cannot produce a variant — no split entry exists to
+    resolve a variation key. The allocation is skipped even though rules pass. With no
+    subsequent allocation, the waterfall is exhausted → coded default / DEFAULT / no error.
+
+    This is the structural distinction from REASON-12 (splits:[{shards:[]}]), where a
+    split entry exists and resolves vacuously → STATIC with a platform value.
     """
 
     def setup_ffe_reason_11_static_no_split(self):
@@ -812,7 +813,7 @@ class Test_FFE_REASON_11_StaticNoSplit:
         )
 
     def test_ffe_reason_11_static_no_split(self):
-        """REASON-11: Single alloc, no rules, no split → STATIC (platform value)."""
+        """REASON-11: Single alloc, splits:[] → allocation skipped → DEFAULT (coded default)."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
@@ -824,14 +825,15 @@ class Test_FFE_REASON_11_StaticNoSplit:
         assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
             f"REASON-11: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
         )
-        assert get_tag_value(tags, "feature_flag.result.reason") == "static", (
-            f"REASON-11: Expected reason=static, got tags: {tags}"
+        assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
+            f"REASON-11: Expected reason=default (splits:[] → alloc skipped → waterfall exhausted), got tags: {tags}"
         )
-        assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
-            f"REASON-11: Expected variant=on (static-alloc fired), got tags: {tags}"
+        assert get_tag_value(tags, "error.type") is None, (
+            f"REASON-11: Expected no error.type (ADR-001: not an SDK error), got tags: {tags}"
         )
-        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "static-alloc", (
-            f"REASON-11: Expected allocation_key=static-alloc, got tags: {tags}"
+        # No split entry → no variation resolved → no platform variant. Absent or sentinel.
+        assert get_tag_value(tags, "feature_flag.result.variant") in (None, "n/a"), (
+            f"REASON-11: Expected no platform variant (allocation skipped, coded default returned), got tags: {tags}"
         )
 
 

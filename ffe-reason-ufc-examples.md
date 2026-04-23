@@ -311,25 +311,21 @@ Result:       coded default / DEFAULT / no error code
 
 ---
 
-## REASON-11 — STATIC (no split entry)
+## REASON-11 — DEFAULT (no split entry → allocation skipped → waterfall exhausted)
 
 Single allocation. No targeting rules. No date window.
 **No split entries** (`splits: []` — empty array, not a split entry with empty shards).
 
+An allocation with `splits: []` cannot produce a variant — there is no split entry to resolve a
+variation key. The allocation is skipped even though rules pass. With no subsequent allocation, the
+waterfall is exhausted → coded default / DEFAULT / no error code.
+
 > **REASON-11 vs REASON-12:** The structural difference is whether a split *entry* exists at all.
-> - REASON-11: `splits: []` — no split entries in the array (RFC canonical form)
-> - REASON-12: `splits: [{"variationKey": "on", "shards": []}]` — one entry with an empty `shards` array
+> - REASON-11: `splits: []` — no split entries; allocation cannot resolve a variant; allocation skipped → DEFAULT (coded default)
+> - REASON-12: `splits: [{"variationKey": "on", "shards": []}]` — one entry with empty `shards`; resolves vacuously → STATIC (platform value)
 >
-> Both produce STATIC (ADR-003). The mechanism differs: with `splits: []` the SDK finds no split
-> entries and skips shard evaluation entirely. With `splits: [{shards:[]}]` the SDK enters split
-> evaluation but the empty `shards` array means no hash bucket exists to check, so it matches
-> vacuously without computing a hash. An SDK that processes split entries one by one will take a
-> different code path for each form; both paths must produce STATIC.
->
-> **Note on test code:** The REASON-11 system test (`Test_FFE_REASON_11_StaticNoSplit`) sends the
-> RFC canonical form `splits: []` shown below. SDKs that fail to parse or evaluate an empty splits
-> array will fail this test; such failures are bugs to be fixed in the SDK. REASON-12 covers the
-> vacuous-split form (`splits: [{variationKey: "on", shards: []}]`).
+> These produce **different results**. REASON-11 exhausts the waterfall without selecting a variant.
+> REASON-12 selects the variation from the split entry without hashing.
 
 ```json
 {
@@ -354,7 +350,8 @@ Single allocation. No targeting rules. No date window.
 ```
 targetingKey: "user-1"
 attributes:   {}
-Result:       platform value / STATIC / allocationKey=static-alloc
+Result:       coded default / DEFAULT / no error code
+              variant tag: absent or "n/a"  (allocation skipped; no variation resolved)
 ```
 
 ---
@@ -980,7 +977,7 @@ Return value key: **Platform** = variant from flag config; **Coded** = developer
 | 8 | Yes | Platform | Single alloc, rule, vacuous split | TARGETING_MATCH | — |
 | 9 | Yes | **Coded** ¹ | `allocations: []` | DEFAULT | — |
 | 10 | Yes | **Coded** ¹ | Rule alloc only, no default alloc | DEFAULT | — |
-| 11 | Yes | Platform | Single alloc, `splits: []`, no rules, no window | STATIC | — |
+| 11 | Yes | **Coded** ¹ | Single alloc, `splits: []`, no rules, no window — alloc skipped, waterfall exhausted | DEFAULT | — |
 | 12 | Yes | Platform | Single alloc, `splits: [{shards:[]}]`, no rules, no window | STATIC | — |
 | 13 | Yes | Platform | Rule alloc + default alloc; rule matches | TARGETING_MATCH | — |
 | 14 | Yes | Platform | Rule alloc + default alloc; rule fails | DEFAULT | — |
