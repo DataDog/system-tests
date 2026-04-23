@@ -795,16 +795,18 @@ Expected query parameters:
 This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
 
-### GET /sca/requests/vulnerable-call
+### GET /sca/vulnerable-call
 
-This endpoint triggers a call to `requests.Session.send()`, which is the function tracked by CVE-2024-35195.
-It is used by SCA runtime reachability tests to verify that calling a vulnerable function reports CVE metadata
-with caller information in the telemetry `app-dependencies-loaded` payload.
+This endpoint triggers a call to a function tracked as vulnerable by a CVE in one of the application's
+dependencies. Each language picks a suitable vulnerable dependency and target function for its ecosystem.
+It is used by SCA runtime reachability tests to verify that calling a vulnerable function reports CVE
+metadata with caller information in the telemetry `app-dependencies-loaded` payload.
 
-### GET /sca/requests/vulnerable-call-alt
+### GET /sca/vulnerable-call-alt
 
-Alternate call site for the same CVE-2024-35195 target. Used to test first-hit-wins deduplication: when the
-same CVE is triggered from two different call sites, only the first occurrence is reported in the `reached` array.
+Alternate call site for the same vulnerable function targeted by `/sca/vulnerable-call`. Used to
+test first-hit-wins deduplication: when the same CVE is triggered from two different call sites, only the
+first occurrence is reported in the `reached` array.
 
 ### GET /log/library
 

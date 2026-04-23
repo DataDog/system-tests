@@ -141,7 +141,7 @@ class Test_SCA_Reachability_CVE_After_Vulnerable_Call:
 
     def setup_cve_metadata_after_vulnerable_call(self) -> None:
         self.r0 = weblog.get("/")
-        self.r1 = weblog.get("/sca/requests/vulnerable-call")
+        self.r1 = weblog.get("/sca/vulnerable-call")
 
     def test_cve_metadata_after_vulnerable_call(self) -> None:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
@@ -179,8 +179,8 @@ class Test_SCA_Reachability_First_Hit_Wins:
 
     def setup_same_cve_first_hit_wins(self) -> None:
         self.r0 = weblog.get("/")
-        self.r1 = weblog.get("/sca/requests/vulnerable-call")
-        self.r2 = weblog.get("/sca/requests/vulnerable-call-alt")
+        self.r1 = weblog.get("/sca/vulnerable-call")
+        self.r2 = weblog.get("/sca/vulnerable-call-alt")
 
     def test_same_cve_first_hit_wins(self) -> None:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
@@ -203,8 +203,8 @@ class Test_SCA_Reachability_First_Hit_Wins:
             )
 
             # First-hit-wins: the recorded caller must match the FIRST call site
-            # (/sca/requests/vulnerable-call), never be overwritten by the second
-            # call site (/sca/requests/vulnerable-call-alt).
+            # (/sca/vulnerable-call), never be overwritten by the second
+            # call site (/sca/vulnerable-call-alt).
             if len(entry["reached"]) == 1:
                 caller = entry["reached"][0]
                 if expected_path is not None:
@@ -228,7 +228,7 @@ class Test_SCA_Reachability_Deduplication:
     def setup_deduplication_repeated_calls(self) -> None:
         self.r0 = weblog.get("/")
         for _ in range(5):
-            weblog.get("/sca/requests/vulnerable-call")
+            weblog.get("/sca/vulnerable-call")
 
     def test_deduplication_repeated_calls(self) -> None:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())

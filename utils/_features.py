@@ -2817,7 +2817,8 @@ class _Features:
 
     @staticmethod
     def runtime_sca_reachability(test_object):
-        """SCA Standalone Billing V2
+        """SCA Runtime Reachability: report CVE metadata and caller information
+        for vulnerable dependencies when DD_APPSEC_SCA_ENABLED=true.
 
         https://feature-parity.us1.prod.dog/#/?feature=553
         """
