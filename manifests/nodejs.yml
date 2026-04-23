@@ -1691,44 +1691,125 @@ manifest:
         express4: v1.0.0
         express5: v1.0.0
         fastify: v1.0.0
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name: missing_feature (Not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system: missing_feature (not implemented yet)
+        uds-express4: v5.93.0  # TODO: a lower version might be supported
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:
+    - declaration: missing_feature (Apply only java)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
+    - declaration: missing_feature (Not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         express4: v1.0.0
         express5: v1.0.0
         fastify: v1.0.0
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_system: missing_feature (not implemented yet)
+        uds-express4: v5.93.0  # TODO: a lower version might be supported
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:
+    - declaration: missing_feature (Apply only java)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_system:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         express4: v1.0.0
         express5: v1.0.0
         fastify: v1.0.0
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_system: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_type: bug (APMAPI-913)
+        uds-express4: v5.93.0  # TODO: a lower version might be supported
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:
+    - declaration: missing_feature (Apply only java)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_system:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-express4: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_type:
+    - declaration: bug (APMAPI-913)
+    - weblog_declaration:
+        uds-express4: missing_feature
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_instance: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
