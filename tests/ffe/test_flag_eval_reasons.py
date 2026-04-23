@@ -166,19 +166,17 @@ def make_no_default_alloc_fixture(flag_key: str, attribute: str, match_value: st
 def make_pure_static_fixture(flag_key: str) -> dict:
     """REASON-11: Single allocation, no rules, no date window → STATIC.
 
-    Uses shards:[] (vacuous split) which, like an absent shards key, means no
-    hash computation is performed. Both forms produce STATIC per ADR-003. We use
-    the vacuous-split form (shards:[]) because it is the established pattern across
-    the codebase and is guaranteed parseable by all SDK implementations. A split
-    entry with a missing shards field is not tested in any other fixture and may
-    trigger a parse error in strict-deserialisation SDKs.
+    Uses the RFC canonical form: splits:[] (empty array, no split entries at all).
+    This is intentionally different from the vacuous-split form used elsewhere
+    (splits:[{variationKey:"on", shards:[]}]). SDKs that reject an empty splits
+    array will fail this test, surfacing a parse/evaluation bug to be fixed.
     """
     fd = _base_flag(flag_key)
     fd["allocations"] = [
         {
             "key": "static-alloc",
             "rules": [],
-            "splits": [{"variationKey": "on", "shards": []}],
+            "splits": [],
             "doLog": True,
         }
     ]
@@ -788,14 +786,11 @@ class Test_FFE_REASON_10_NoDefaultAlloc:
 class Test_FFE_REASON_11_StaticNoSplit:
     """REASON-11: Single allocation; no targeting rules, no date window → STATIC.
 
-    The RFC distinguishes REASON-11 ("no split") from REASON-12 ("vacuous split, shards:[]"),
-    but in the UFC format used by this framework both are represented as a split entry
-    with an empty shards array — omitting the shards key entirely is not tested across
-    SDKs and may trigger strict-deserialisation errors. The fixture therefore uses the
-    same vacuous-split form as REASON-12. Both forms produce STATIC per ADR-003 (no hash
-    computation, no targeting rules, no date window). This test exercises the STATIC
-    path via a distinct config ID and flag key, providing independent signal from the
-    REASON-12 coverage in test_flag_eval_metrics.py :: Test_FFE_Eval_Metric_Basic.
+    Uses RFC canonical form splits:[] (empty array). This is the structural distinction
+    from REASON-12 which uses splits:[{variationKey:"on", shards:[]}] (vacuous split).
+    Both produce STATIC per ADR-003. SDKs that fail to parse or evaluate an empty splits
+    array will surface a bug here; that is the intent — failures are expected to be fixed
+    in the SDK, not papered over by switching to the vacuous-split form.
     """
 
     def setup_ffe_reason_11_static_no_split(self):
