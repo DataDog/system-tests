@@ -18,9 +18,12 @@ elif [ "$(ls *.whl | wc -l)" = "1" ]; then
 elif [ $(ls python-load-from-s3 | wc -l) = 1 ]; then
     GIT_REF=$(cat python-load-from-s3)
     echo "Install ddtrace from S3, git ref: ${GIT_REF}"
-    # Try to fetch `metadata.txt` to display, but don't fail if we cannot
+    # Try to fetch `metadata.txt` and save it so test output can display it, but don't fail if we cannot
     # This includes commit sha, pipeline id, etc that was used to build the artifact
-    curl -s https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/metadata.txt || true
+    curl -s https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/metadata.txt > metadata.txt || true
+    if [ -s metadata.txt ]; then
+        cat metadata.txt
+    fi
     # Install from S3 bucket
     # NOTE: Artifacts age out after 2 weeks, if this fails then you need to first run the dd-trace-py GitLab CI for the desired commit again
     # NOTE: Must have `--no-index` otherwise `pip` will look for the highest available version between S3 and PyPI
