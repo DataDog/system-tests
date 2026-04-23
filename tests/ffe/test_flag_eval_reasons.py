@@ -446,7 +446,7 @@ class Test_FFE_REASON_2_ProviderFatal:
             # Wrapped in try/except so a cleanup failure does not mask the primary exception.
             try:
                 StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
 
     def test_ffe_reason_2_provider_fatal(self):
