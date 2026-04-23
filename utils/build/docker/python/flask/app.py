@@ -2234,3 +2234,25 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/sca/vulnerable-call")
+def sca_requests_vulnerable_call():
+    """Trigger a call to requests.sessions.Session.send (CVE-2024-35195 target)."""
+    session = requests.Session()
+    try:
+        session.get("http://localhost:1")
+    except Exception:
+        pass
+    return "OK"
+
+
+@app.route("/sca/vulnerable-call-alt")
+def sca_requests_vulnerable_call_alt():
+    """Alternate call site for same CVE-2024-35195 target (first-hit-wins test)."""
+    session = requests.Session()
+    try:
+        session.post("http://localhost:1", data="x")
+    except Exception:
+        pass
+    return "OK"

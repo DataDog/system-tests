@@ -198,6 +198,9 @@ jobs:
     - name: Run SCA_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
+    - name: Run RUNTIME_SCA_REACHABILITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_SCA_REACHABILITY"')
+      run: ./run.sh RUNTIME_SCA_REACHABILITY
     - name: Run IAST_DEDUPLICATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
