@@ -311,21 +311,26 @@ Result:       coded default / DEFAULT / no error code
 
 ---
 
-## REASON-11 — DEFAULT (no split entry → allocation skipped → waterfall exhausted)
+## REASON-11 — DEFAULT (no matching split → allocation not selected → waterfall exhausted)
 
 Single allocation. No targeting rules. No date window.
-**No split entries** (`splits: []` — empty array, not a split entry with empty shards).
+Split entry present, but the subject's hash does not land in any shard range → allocation not
+selected. With no subsequent allocation, the waterfall is exhausted → coded default / DEFAULT / no error code.
 
-An allocation with `splits: []` cannot produce a variant — there is no split entry to resolve a
-variation key. The allocation is skipped even though rules pass. With no subsequent allocation, the
-waterfall is exhausted → coded default / DEFAULT / no error code.
-
-> **REASON-11 vs REASON-12:** The structural difference is whether a split *entry* exists at all.
-> - REASON-11: `splits: []` — no split entries; allocation cannot resolve a variant; allocation skipped → DEFAULT (coded default)
-> - REASON-12: `splits: [{"variationKey": "on", "shards": []}]` — one entry with empty `shards`; resolves vacuously → STATIC (platform value)
+> **REASON-11 vs REASON-12:** The structural difference is whether the split matches the subject.
+> - REASON-11: Split entry exists but subject falls outside all shard ranges (`ranges: []` is the
+>   canonical deterministic form — 0% shard, guaranteed miss). The allocation is evaluated but does
+>   not select a variant. Waterfall exhausted → coded default / DEFAULT.
+> - REASON-12: `splits: [{"variationKey": "on", "shards": []}]` — vacuous split, `shards: []` means
+>   no hash bucket boundaries to check; matches unconditionally without computing a hash → STATIC
+>   (platform value).
 >
 > These produce **different results**. REASON-11 exhausts the waterfall without selecting a variant.
-> REASON-12 selects the variation from the split entry without hashing.
+> REASON-12 always selects the variation key without hashing.
+>
+> Note: `splits: []` (empty splits array — no split entries at all) produces the same operational
+> result as REASON-11 but is an unexpected/degenerate config shape, not the canonical fixture for
+> this case.
 
 ```json
 {
@@ -338,9 +343,20 @@ waterfall is exhausted → coded default / DEFAULT / no error code.
   },
   "allocations": [
     {
-      "key": "static-alloc",
+      "key": "no-match-alloc",
       "rules": [],
-      "splits": [],
+      "splits": [
+        {
+          "variationKey": "on",
+          "shards": [
+            {
+              "salt": "rfc-salt",
+              "totalShards": 10000,
+              "ranges": []
+            }
+          ]
+        }
+      ],
       "doLog": true
     }
   ]
@@ -351,7 +367,7 @@ waterfall is exhausted → coded default / DEFAULT / no error code.
 targetingKey: "user-1"
 attributes:   {}
 Result:       coded default / DEFAULT / no error code
-              variant tag: absent or "n/a"  (allocation skipped; no variation resolved)
+              variant tag: absent or "n/a"  (shard miss; no variation selected)
 ```
 
 ---
@@ -963,7 +979,7 @@ Result:       platform value / DEFAULT / variant=off / allocationKey=default-all
 
 ## Summary
 
-Return value key: **Platform** = variant from flag config; **Coded** = developer's fallback value (ADR-001: rows 9, 10, 22 return coded default with DEFAULT reason, not an error).
+Return value key: **Platform** = variant from flag config; **Coded** = developer's fallback value (ADR-001: rows 9, 10, 11, 22 return coded default with DEFAULT reason, not an error).
 
 | # | Flag present | Return | Key shape | Reason | Error code |
 |---|---|---|---|---|---|
@@ -977,7 +993,7 @@ Return value key: **Platform** = variant from flag config; **Coded** = developer
 | 8 | Yes | Platform | Single alloc, rule, vacuous split | TARGETING_MATCH | — |
 | 9 | Yes | **Coded** ¹ | `allocations: []` | DEFAULT | — |
 | 10 | Yes | **Coded** ¹ | Rule alloc only, no default alloc | DEFAULT | — |
-| 11 | Yes | **Coded** ¹ | Single alloc, `splits: []`, no rules, no window — alloc skipped, waterfall exhausted | DEFAULT | — |
+| 11 | Yes | **Coded** ¹ | Single alloc, 0% shard (ranges:[]), no rules, no window — shard miss, waterfall exhausted | DEFAULT | — |
 | 12 | Yes | Platform | Single alloc, `splits: [{shards:[]}]`, no rules, no window | STATIC | — |
 | 13 | Yes | Platform | Rule alloc + default alloc; rule matches | TARGETING_MATCH | — |
 | 14 | Yes | Platform | Rule alloc + default alloc; rule fails | DEFAULT | — |
