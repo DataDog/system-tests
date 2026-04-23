@@ -185,11 +185,17 @@ class TestClientApi:
 
     def _is_alive(self) -> bool:
         self.container.reload()
-        return (
-            self.container.status == "running"
-            and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
-            == HTTPStatus.NOT_FOUND
-        )
+
+        if self.container.status != "running":
+            logger.info(f"Container status is {self.container.status}, waiting...")
+            return False
+
+        status = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
+        if status != HTTPStatus.NOT_FOUND:
+            logger.info(f"HTTP app is not yet ready, status code is {status}, waiting...")
+            return False
+
+        return True
 
     def _print_logs(self):
         try:
