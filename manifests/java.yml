@@ -3150,7 +3150,7 @@ manifest:
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Split::test_ffe_eval_reason_split: v1.62.0-SNAPSHOT
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Targeting::test_ffe_eval_reason_targeting: v1.61.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Targeting_Key_Optional::test_ffe_eval_targeting_key_optional: v1.61.0
-  # 9 tests pass against Java ≥ v1.61.0 (REASON-3,7,8,10,13,19,22,25) or v1.62.0-SNAPSHOT (REASON-11).
+  # 9 tests pass against Java ≥ v1.61.0 (REASON-3,7,8,10,13,19,22,25) or v1.62.0-SNAPSHOT (REASON-11: splits:[]→DEFAULT).
   # 11 tests still fail against Java master (v1.62.0-SNAPSHOT); failure modes noted per test:
   #   REASON-2  PROVIDER_FATAL: 401 mock times out before tracer enters fatal state
   #   REASON-9  zero-alloc → DEFAULT: Java returns error/general instead of default
