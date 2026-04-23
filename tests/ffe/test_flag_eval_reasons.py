@@ -57,6 +57,12 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 # ---------------------------------------------------------------------------
 # 100% shard: always buckets the subject. A non-empty shard spec always triggers
 # hash computation, so a targeting key is required to use this constant.
+#
+# README note: "A single variation covering 100% (0-10000) returns STATIC, not SPLIT"
+# applies only to allocations with no targeting rules. Every use of SHARD_ALWAYS_HIT
+# here is in an allocation that also has a targeting rule (REASON-7, REASON-17, REASON-18),
+# so the evaluation path performs a real hash computation; the correct expected reason
+# for REASON-17 is SPLIT (ADR-004), not STATIC.
 SHARD_ALWAYS_HIT = [{"salt": "rfc-salt", "totalShards": 10000, "ranges": [{"start": 0, "end": 10000}]}]
 # 0% shard: guaranteed miss — the shard entry is present (salt + totalShards), so the
 # SDK still computes the hash (targeting key required), but the empty ranges list means
@@ -391,6 +397,11 @@ class Test_FFE_REASON_2_ProviderFatal:
 
     def setup_ffe_reason_2_provider_fatal(self):
         self.config_request_data = None
+        # Assign flag_key and default_value before the mock is sent so that the
+        # closure and subsequent assertions can reference them without depending on
+        # execution order after wait_for returns.
+        self.flag_key = "b2-provider-fatal-flag"
+        self.default_value = "coded-default"
 
         def wait_for_config_401(data: dict) -> bool:
             if data["path"] == "/v0.7/config" and data["response"]["status_code"] == 401:
@@ -398,35 +409,45 @@ class Test_FFE_REASON_2_ProviderFatal:
                 return True
             return False
 
-        # Return 401 before any valid config has been received
-        StaticJsonMockedTracerResponse(
-            path="/v0.7/config", mocked_json={"error": "Unauthorized"}, status_code=401
-        ).send()
+        try:
+            # reset() inside try so that if it raises, the finally cleanup still runs
+            # and self.r is assigned on the normal path (avoiding AttributeError in the
+            # test method on reset failure).
+            rc.tracer_rc_state.reset().apply()
 
-        # wait_for is the framework's sequencing mechanism, not time.sleep(). It
-        # blocks until the tracer has observed the 401 response, which ensures the
-        # provider has had the opportunity to enter PROVIDER_FATAL state before the
-        # evaluation request is made. Without this gate the evaluation would race
-        # the tracer's RC polling cycle and could arrive before the 401 is processed.
-        # The same pattern is used in test_dynamic_evaluation.py (setup_ffe_rc_*).
-        interfaces.library.wait_for(wait_for_config_401, timeout=60)
+            # Return 401 before any valid config has been received
+            StaticJsonMockedTracerResponse(
+                path="/v0.7/config", mocked_json={"error": "Unauthorized"}, status_code=401
+            ).send()
 
-        self.flag_key = "b2-provider-fatal-flag"
-        self.default_value = "coded-default"
+            # wait_for is the framework's sequencing mechanism, not time.sleep(). It
+            # blocks until the tracer has observed the 401 response, which ensures the
+            # provider has had the opportunity to enter PROVIDER_FATAL state before the
+            # evaluation request is made. Without this gate the evaluation would race
+            # the tracer's RC polling cycle and could arrive before the 401 is processed.
+            # The same pattern is used in test_dynamic_evaluation.py (setup_ffe_rc_*).
+            interfaces.library.wait_for(wait_for_config_401, timeout=60)
 
-        self.r = weblog.post(
-            "/ffe",
-            json={
-                "flag": self.flag_key,
-                "variationType": "STRING",
-                "defaultValue": self.default_value,
-                "targetingKey": "user-1",
-                "attributes": {},
-            },
-        )
-
-        # Restore normal RC behavior
-        StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
+            self.r = weblog.post(
+                "/ffe",
+                json={
+                    "flag": self.flag_key,
+                    "variationType": "STRING",
+                    "defaultValue": self.default_value,
+                    "targetingKey": "user-1",
+                    "attributes": {},
+                },
+            )
+        finally:
+            # Restore normal RC behavior. send() is fire-and-forget; no wait_for is needed
+            # after restoration because each subsequent test class calls
+            # rc.tracer_rc_state.reset().apply() in its own setup, providing a clean-state
+            # guarantee independently of whether this send() has been processed yet.
+            # Wrapped in try/except so a cleanup failure does not mask the primary exception.
+            try:
+                StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
+            except Exception:  # noqa: BLE001
+                pass
 
     def test_ffe_reason_2_provider_fatal(self):
         """REASON-2: 401 from config endpoint → ERROR / PROVIDER_FATAL; coded default returned."""
@@ -440,11 +461,19 @@ class Test_FFE_REASON_2_ProviderFatal:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-2: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
             f"REASON-2: Expected reason=error, got tags: {tags}"
         )
         assert get_tag_value(tags, "error.type") == "provider_fatal", (
             f"REASON-2: Expected error.type=provider_fatal, got tags: {tags}"
+        )
+        # On PROVIDER_FATAL, no platform variation was selected; the SDK returns the
+        # coded default. The variant tag should be absent or a sentinel (not a flag variation).
+        assert get_tag_value(tags, "feature_flag.result.variant") in (None, "n/a"), (
+            f"REASON-2: Expected no platform variant on PROVIDER_FATAL (coded default returned), got tags: {tags}"
         )
 
 
@@ -498,6 +527,9 @@ class Test_FFE_REASON_3_DisabledFlagNotFound:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-3: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
             f"REASON-3: Expected reason=error, got tags: {tags}"
         )
@@ -550,6 +582,9 @@ class Test_FFE_REASON_7_TargetingKeyMissing:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-7: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
             f"REASON-7: Expected reason=error, got tags: {tags}"
         )
@@ -604,8 +639,17 @@ class Test_FFE_REASON_8_RuleOnlyNoKey:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-8: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "targeting_match", (
             f"REASON-8: Expected reason=targeting_match, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
+            f"REASON-8: Expected variant=on (rule-alloc fired), got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "rule-alloc", (
+            f"REASON-8: Expected allocation_key=rule-alloc, got tags: {tags}"
         )
         assert get_tag_value(tags, "error.type") is None, (
             f"REASON-8: Expected no error.type for successful eval, got tags: {tags}"
@@ -656,6 +700,9 @@ class Test_FFE_REASON_9_ZeroAllocations:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-9: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-9: Expected reason=default, got tags: {tags}"
         )
@@ -716,6 +763,9 @@ class Test_FFE_REASON_10_NoDefaultAlloc:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-10: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-10: Expected reason=default, got tags: {tags}"
         )
@@ -777,8 +827,17 @@ class Test_FFE_REASON_11_StaticNoSplit:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-11: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "static", (
             f"REASON-11: Expected reason=static, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
+            f"REASON-11: Expected variant=on (static-alloc fired), got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "static-alloc", (
+            f"REASON-11: Expected allocation_key=static-alloc, got tags: {tags}"
         )
 
 
@@ -823,11 +882,17 @@ class Test_FFE_REASON_13_MultiAllocRuleMatch:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-13: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "targeting_match", (
             f"REASON-13: Expected reason=targeting_match, got tags: {tags}"
         )
         assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
             f"REASON-13: Expected variant=on (from rule alloc), got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "rule-alloc", (
+            f"REASON-13: Expected allocation_key=rule-alloc, got tags: {tags}"
         )
 
 
@@ -872,6 +937,9 @@ class Test_FFE_REASON_14_MultiAllocRuleFail:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-14: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-14: Expected reason=default, got tags: {tags}"
         )
@@ -921,6 +989,9 @@ class Test_FFE_REASON_16_RulePassShardMiss:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-16: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-16: Expected reason=default, got tags: {tags}"
         )
@@ -970,6 +1041,9 @@ class Test_FFE_REASON_17_RulePassShardWin:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-17: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "split", (
             f"REASON-17: Expected reason=split (SPLIT overrides TARGETING_MATCH per ADR-004), got tags: {tags}"
         )
@@ -1019,6 +1093,9 @@ class Test_FFE_REASON_18_RuleFail:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-18: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-18: Expected reason=default, got tags: {tags}"
         )
@@ -1068,8 +1145,17 @@ class Test_FFE_REASON_19_SplitMissRuleMatch:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-19: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "targeting_match", (
             f"REASON-19: Expected reason=targeting_match, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
+            f"REASON-19: Expected variant=on (rule-alloc fired after split-alloc missed), got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "rule-alloc", (
+            f"REASON-19: Expected allocation_key=rule-alloc, got tags: {tags}"
         )
 
 
@@ -1114,6 +1200,9 @@ class Test_FFE_REASON_20_SplitMissDefault:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-20: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-20: Expected reason=default, got tags: {tags}"
         )
@@ -1167,6 +1256,9 @@ class Test_FFE_REASON_21_ActiveWindowSingle:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-21: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-21: Expected reason=default (not static — date window precludes STATIC per ADR-003), got tags: {tags}"
         )
@@ -1224,10 +1316,15 @@ class Test_FFE_REASON_22_InactiveWindowSingle:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-22: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-22: Expected reason=default (ADR-001 data-invariant case, not FLAG_NOT_FOUND), got tags: {tags}"
         )
-        assert get_tag_value(tags, "error.type") is None, f"REASON-22: Expected no error.type (ADR-001), got tags: {tags}"
+        assert get_tag_value(tags, "error.type") is None, (
+            f"REASON-22: Expected no error.type (ADR-001), got tags: {tags}"
+        )
         # No allocation matched (window expired), so no platform variation was selected.
         # SDKs may emit the tag as absent (None) or use a sentinel like "n/a"; both are valid.
         # This distinguishes REASON-22 from REASON-24 where the default-alloc fires and produces variant=off.
@@ -1244,7 +1341,14 @@ class Test_FFE_REASON_22_InactiveWindowSingle:
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
 class Test_FFE_REASON_23_ActiveWindowMulti:
-    """REASON-23: Multi-alloc; first alloc has active startAt/endAt; no rules, no split → DEFAULT."""
+    """REASON-23: Multi-alloc; first alloc has active startAt/endAt; no rules, no split → DEFAULT.
+
+    Per ADR-003: the presence of startAt/endAt scheduling metadata on an allocation
+    precludes STATIC, because the evaluation result is time-dependent and could change
+    when the window expires. This applies regardless of whether the split is vacuous
+    (shards:[]). The reason is DEFAULT, not STATIC. The variant assertion (variant=on)
+    confirms the window-alloc fired rather than the default-alloc (variant=off).
+    """
 
     def setup_ffe_reason_23_active_window_multi(self):
         rc.tracer_rc_state.reset().apply()
@@ -1276,6 +1380,9 @@ class Test_FFE_REASON_23_ActiveWindowMulti:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-23: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-23: Expected reason=default, got tags: {tags}"
         )
@@ -1331,6 +1438,9 @@ class Test_FFE_REASON_24_InactiveWindowMulti:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-24: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-24: Expected reason=default, got tags: {tags}"
         )
@@ -1380,8 +1490,17 @@ class Test_FFE_REASON_25_WindowActiveRuleMatch:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-25: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "targeting_match", (
             f"REASON-25: Expected reason=targeting_match, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
+            f"REASON-25: Expected variant=on (window-rule-alloc fired), got tags: {tags}"
+        )
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") == "window-rule-alloc", (
+            f"REASON-25: Expected allocation_key=window-rule-alloc, got tags: {tags}"
         )
 
 
@@ -1426,6 +1545,9 @@ class Test_FFE_REASON_26_WindowRuleFail:
         point = metrics[0]
         tags = point.get("tags", [])
 
+        assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
+            f"REASON-26: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
+        )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
             f"REASON-26: Expected reason=default, got tags: {tags}"
         )
