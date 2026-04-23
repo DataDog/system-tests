@@ -37,6 +37,7 @@ Coverage map (B-N = Appendix B row N):
   REASON-26 DEFAULT (window+rules, fail) → Test_FFE_REASON_26_WindowRuleFail
 """
 
+import contextlib
 from typing import Any
 
 from utils import (
@@ -443,11 +444,9 @@ class Test_FFE_REASON_2_ProviderFatal:
             # after restoration because each subsequent test class calls
             # rc.tracer_rc_state.reset().apply() in its own setup, providing a clean-state
             # guarantee independently of whether this send() has been processed yet.
-            # Wrapped in try/except so a cleanup failure does not mask the primary exception.
-            try:
+            # Wrapped in suppress so a cleanup failure does not mask the primary exception.
+            with contextlib.suppress(Exception):
                 StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
-            except Exception:
-                pass
 
     def test_ffe_reason_2_provider_fatal(self):
         """REASON-2: 401 from config endpoint → ERROR / PROVIDER_FATAL; coded default returned."""
