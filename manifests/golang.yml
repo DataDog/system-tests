@@ -621,6 +621,11 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.50.0-rc.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.69.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.69.0
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v2.4.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: v2.4.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: v2.4.0
