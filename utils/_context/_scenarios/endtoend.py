@@ -86,14 +86,18 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
+        self._needs_readiness_wait = False
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
             self.warmups.append(self._create_network)
-            self.warmups.append(self._start_containers)
+            if self._reuse:
+                self.warmups.append(self._attach_or_start_containers)
+            else:
+                self.warmups.append(self._start_containers)
 
         for container in reversed(self._containers):
-            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
+            container.configure(host_log_folder=self.host_log_folder, replay=self.replay, reuse=self._reuse)
 
         for container in self._containers:
             self.warmups.append(container.post_start)
@@ -165,6 +169,35 @@ class DockerScenario(Scenario):
         for container in self._containers:
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
+
+    def _attach_or_start_containers(self):
+        """In reuse mode, try to attach to existing containers. Fall back to starting fresh
+        if containers are missing, not running, or built from a stale image."""
+        existing_containers = []
+        can_reuse = True
+        for container in self._containers:
+            existing = container.get_existing_container()
+            if existing is None or existing.status != "running" or container.image_is_stale(existing):
+                can_reuse = False
+                break
+            existing_containers.append(existing)
+
+        if can_reuse:
+            logger.stdout("Reusing existing containers")
+            for container, existing in zip(self._containers, existing_containers):
+                container._container = existing  # noqa: SLF001
+                container.healthy = True
+        else:
+            logger.stdout("Reuse not possible, starting containers...")
+            # Reconfigure containers for a fresh start (kill old, load image)
+            for container in reversed(self._containers):
+                container.configure(host_log_folder=self.host_log_folder, replay=self.replay, reuse=False)
+            self._start_containers()
+            # Re-enable reuse on containers so they're kept alive after tests
+            for container in self._containers:
+                container._reuse = True  # noqa: SLF001
+            # Set by DockerScenario, read by EndToEndScenario._wait_for_app_readiness_if_needed
+            self._needs_readiness_wait = True
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
         self.close_targets()
@@ -329,7 +362,10 @@ class EndToEndScenario(DockerScenario):
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
             self.warmups.append(self._get_weblog_system_info)
-            self.warmups.append(self._wait_for_app_readiness)
+            if self._reuse:
+                self.warmups.append(self._wait_for_app_readiness_if_needed)
+            else:
+                self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
 
@@ -382,6 +418,11 @@ class EndToEndScenario(DockerScenario):
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
 
+    def _wait_for_app_readiness_if_needed(self):
+        """In reuse mode, only wait for readiness if we fell back to starting fresh."""
+        if self._needs_readiness_wait:
+            self._wait_for_app_readiness()
+
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
             logger.debug("Wait for app readiness")
@@ -413,6 +454,31 @@ class EndToEndScenario(DockerScenario):
 
         interfaces.library_dotnet_managed.load_data()
 
+    def _drain_interfaces(self, *, force_interface_timout_to_zero: bool):
+        """Wait for interface data to arrive and check for deserialization errors."""
+        self._wait_interface(
+            interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
+        )
+        interfaces.library.check_deserialization_errors()
+
+        for container in self.buddies:
+            self._wait_interface(container.interface, 0)
+            container.interface.check_deserialization_errors()
+
+        self._wait_interface(interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout)
+        interfaces.agent.check_deserialization_errors()
+
+        self._wait_interface(
+            interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+        )
+
+    def _stop_containers(self):
+        """Stop containers after draining interface data."""
+        self.weblog_infra.stop()
+        for container in self.buddies:
+            container.stop()
+        self.agent_container.stop()
+
     def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
@@ -435,28 +501,8 @@ class EndToEndScenario(DockerScenario):
                 interfaces.open_telemetry.check_deserialization_errors()
 
         else:
-            self._wait_interface(
-                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
-            )
-
-            self.weblog_infra.stop()
-            interfaces.library.check_deserialization_errors()
-
-            for container in self.buddies:
-                # we already have waited for self.library_interface_timeout, so let's timeout=0
-                self._wait_interface(container.interface, 0)
-                container.stop()
-                container.interface.check_deserialization_errors()
-
-            self._wait_interface(
-                interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout
-            )
-            self.agent_container.stop()
-            interfaces.agent.check_deserialization_errors()
-
-            self._wait_interface(
-                interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
-            )
+            self._drain_interfaces(force_interface_timout_to_zero=force_interface_timout_to_zero)
+            self._stop_containers()
 
             if self.include_opentelemetry:
                 self._wait_interface(

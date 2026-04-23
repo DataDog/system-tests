@@ -155,17 +155,22 @@ class TestedContainer:
         """Returns the image list that will be loaded to be able to run/build the container"""
         return [self.image.name]
 
-    def configure(self, *, host_log_folder: str, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):
         self.host_log_folder = host_log_folder
+        self._reuse = reuse
         if not replay:
-            self.stop_previous_container()
+            if not reuse:
+                self.stop_previous_container()
             self._starting_lock = RLock()
 
             Path(self.log_folder_path).mkdir(mode=0o777, exist_ok=True, parents=True)
             Path(f"{self.log_folder_path}/logs").mkdir(mode=0o777, exist_ok=True, parents=True)
 
-            self.image.load()
-            self.image.save_image_info(self.log_folder_path)
+            if reuse:
+                self.image.load_from_logs(self.log_folder_path)
+            else:
+                self.image.load()
+                self.image.save_image_info(self.log_folder_path)
         else:
             self.image.load_from_logs(self.log_folder_path)
 
@@ -189,6 +194,15 @@ class TestedContainer:
                 return container
 
         return None
+
+    def image_is_stale(self, existing_container: Container) -> bool:
+        """Check if the running container was built from a different image than the current one."""
+        try:
+            current_image = get_docker_client().images.get(self.image.name)
+            container_image_id = existing_container.attrs.get("Image", "")
+            return current_image.id != container_image_id
+        except docker.errors.ImageNotFound:
+            return True
 
     def stop_previous_container(self):
         if self.allow_old_container:
@@ -407,6 +421,9 @@ class TestedContainer:
         self.volumes = result
 
     def stop(self):
+        if getattr(self, "_reuse", False):
+            return
+
         self._starting_thread = None
 
         logger.debug(f"Stopping container {self.name}")
@@ -446,6 +463,9 @@ class TestedContainer:
                 logger.stdout("")
 
     def remove(self):
+        if getattr(self, "_reuse", False):
+            return
+
         logger.debug(f"Removing container {self.name}")
 
         if self._container:
@@ -675,7 +695,7 @@ class ProxyContainer(TestedContainer):
 
         self.mocked_backend = mocked_backend
 
-    def configure(self, *, host_log_folder: str, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         # Write tracer mocked responses JSON
@@ -986,7 +1006,7 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def configure(self, *, host_log_folder: str, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
@@ -1413,7 +1433,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             user=f"{os.getuid()}:{os.getgid()}",
         )
 
-    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
@@ -1466,7 +1486,7 @@ class APMTestAgentContainer(TestedContainer):
             allow_old_container=False,
         )
 
-    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
         self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
             "bind": "/var/run/datadog/",
@@ -1574,7 +1594,7 @@ class DockerSSIContainer(TestedContainer):
             environment=cast("dict[str, str | None]", environment),
         )
 
-    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+    def configure(self, *, host_log_folder: str, replay: bool, reuse: bool = False) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
         self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
             "bind": "/var/run/datadog/",
