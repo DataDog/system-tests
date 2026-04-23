@@ -741,7 +741,7 @@ class LambdaProxyContainer(TestedContainer):
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
-    agent_version: Version
+    agent_version: Version | None = None
 
     def __init__(
         self,
@@ -797,12 +797,20 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        version_str = self.image.labels.get("org.opencontainers.image.version")
+        if version_str:
+            self.agent_version = ComponentVersion("agent", version_str).version
+
     def post_start(self):
+        if self.agent_version is not None:
+            return
+
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
         self.agent_version = ComponentVersion("agent", data["version"]).version
-
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
 
@@ -1002,6 +1010,10 @@ class WeblogContainer(TestedContainer):
 
         library = self.image.labels["system-tests-library"]
 
+        version_from_label = self.image.labels.get("system-tests-library-version")
+        if version_from_label:
+            self._library = ComponentVersion(library, version_from_label)
+
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
@@ -1106,21 +1118,24 @@ class WeblogContainer(TestedContainer):
     def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
 
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
+        if self._library is None:
+            with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                data = json.load(f)
+                lib = data["library"]
 
-        self._library = ComponentVersion(lib["name"], lib["version"])
+            self._library = ComponentVersion(lib["name"], lib["version"])
+            logger.warning(
+                "Library version from healthcheck — add system-tests-library-version label to speed up startup"
+            )
+            logger.stdout(f"Library: {self.library}")
 
-        logger.stdout(f"Library: {self.library}")
+            if self.appsec_rules_file:
+                logger.stdout("Using a custom appsec rules file")
 
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
+            if self.uds_mode:
+                logger.stdout(f"UDS socket: {self.uds_socket}")
 
-        if self.uds_mode:
-            logger.stdout(f"UDS socket: {self.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_variant}")
+            logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
         self.stdout_interface.init_patterns(self.library)
 

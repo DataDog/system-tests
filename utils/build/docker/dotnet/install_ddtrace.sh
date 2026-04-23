@@ -28,6 +28,7 @@ if [ $(ls /binaries/Datadog.Trace.ClrProfiler.Native.so | wc -l) = 1 ]; then
 else
     if [ $(ls datadog-dotnet-apm*.tar.gz | wc -l) = 1 ]; then
         echo "Install ddtrace from $(ls datadog-dotnet-apm*.tar.gz)"
+        DDTRACE_VERSION=$(ls datadog-dotnet-apm*.tar.gz | grep -oP '\d+\.\d+\.\d+' | head -1)
     else
         echo "Install ddtrace from github releases"
         if ! DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"; then
@@ -46,4 +47,5 @@ else
     fi
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
+    echo "$DDTRACE_VERSION" > /system-tests-library-version
 fi

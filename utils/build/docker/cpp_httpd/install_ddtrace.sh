@@ -25,5 +25,6 @@ fi
 
 echo '{"status": "ok", "library": {"name": "cpp_httpd", "version": "'"$HTTPD_DATADOG_VERSION"'"}}' > /app/healthcheck.json
 echo "$HTTPD_DATADOG_VERSION" > SYSTEM_TESTS_LIBRARY_VERSION
+echo "${HTTPD_DATADOG_VERSION#v}" > /system-tests-library-version
 cat /app/healthcheck.json
 

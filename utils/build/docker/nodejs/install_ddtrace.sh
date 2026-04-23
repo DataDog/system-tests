@@ -35,4 +35,6 @@ else
         echo "install from NPM"
         npm install "$target" || npm install "$target"
     fi
+
+    node -e "process.stdout.write(require('dd-trace/package.json').version)" > /system-tests-library-version
 fi

@@ -128,6 +128,7 @@ class Scenario:
             group.scenarios.append(self)
 
         self.warmups: list[Callable] = []
+        self.post_collection_warmups: list[Callable] = []
         self.collect_only: bool = False
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
@@ -191,6 +192,15 @@ class Scenario:
         try:
             for warmup in self.warmups:
                 logger.info(f"Executing warmup {warmup}")
+                warmup()
+        except:
+            self.close_targets()
+            raise
+
+    def execute_post_collection_warmups(self):
+        try:
+            for warmup in self.post_collection_warmups:
+                logger.info(f"Executing post-collection warmup {warmup}")
                 warmup()
         except:
             self.close_targets()
