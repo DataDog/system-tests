@@ -81,6 +81,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -124,6 +126,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -181,6 +185,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -318,6 +324,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -384,6 +392,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -501,6 +511,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -574,6 +586,8 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
                 "cache_write_input_tokens": mock.ANY,
+                "ephemeral_1h_input_tokens": mock.ANY,
+                "ephemeral_5m_input_tokens": mock.ANY,
             },
         )
 
@@ -630,4 +644,5 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
         write_span_event, read_span_event = span_events
 
         assert write_span_event["metrics"]["cache_write_input_tokens"] == 6163
+        assert write_span_event["metrics"]["ephemeral_5m_input_tokens"] == 6163
         assert read_span_event["metrics"]["cache_read_input_tokens"] == 6163
