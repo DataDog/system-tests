@@ -118,22 +118,22 @@ manifest:
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_propagate_invalid: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_propagate_valid: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_single_key_propagate_valid: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: '>=0.2.1'  # Modified by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_extract_header_D005: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_D008: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_all_D009: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_inject_header_D004: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D015: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_D010: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_all_D011: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_D006: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_default_D001: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: '>=0.2.1'  # Modified by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_extract_header_D005: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_D008: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_all_D009: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_inject_header_D004: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D015: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_D010: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_all_D011: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_D006: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_default_D001: missing_feature  # Created by easy win activation script
+  # tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_all: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_config_with_empty_keys: missing_feature  # Created by easy win activation script
