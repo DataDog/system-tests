@@ -112,6 +112,7 @@ patterns:
         scenario_groups: null
     .gitlab-ci.yml:
         scenario_groups: null
+        libraries: null
     .shellcheck:
         scenario_groups: null
     .shellcheckrc:
@@ -152,6 +153,9 @@ patterns:
     run.sh: # run all by default
     .gitlab/ssi_gitlab-ci.yml:
         scenario_groups: [onboarding, lib_injection, docker_ssi]
+    .gitlab/mock.yml:
+        scenario_groups: null
+        libraries: null
 
 ################################ GitHub Actions ################################
 # This section contains rules to apply to files related to GitHub Actions.
@@ -563,3 +567,8 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
     tests/*:
         scenario_groups: null # dynamic selection
+
+
+    test/*:
+        libraries: null
+        scenario_groups: null
