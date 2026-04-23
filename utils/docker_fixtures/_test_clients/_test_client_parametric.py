@@ -2,13 +2,9 @@ from collections.abc import Generator, Iterable
 import contextlib
 from dataclasses import asdict
 from http import HTTPStatus
-import time
 from types import TracebackType
 from typing import TypedDict, cast
-import urllib.parse
 
-from _pytest.outcomes import Failed
-import requests
 from requests.exceptions import RequestException
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
@@ -26,7 +22,7 @@ from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
 
-from ._core import TestClientFactory
+from ._core import TestClientFactory, TestClientApi
 
 
 class ParametricTestClientFactory(TestClientFactory):
@@ -108,12 +104,6 @@ class ParametricTestClientFactory(TestClientFactory):
         request.node.add_report_section(
             "teardown", f"{self.library.capitalize()} Library Output", f"Log file:\n./{log_file.name}"
         )
-
-
-def _fail(message: str):
-    """Used to mak a test as failed"""
-    logger.error(message)
-    raise Failed(message, pytrace=False) from None
 
 
 class StartSpanResponse(TypedDict):
@@ -248,7 +238,7 @@ class _TestOtelSpan:
         self._client.otel_set_baggage(self.span_id, key, value)
 
 
-class ParametricTestClientApi:
+class ParametricTestClientApi(TestClientApi):
     """API to interact with the tracer+framework server running in a docker container for
     PARAMETRIC scenarios.
     """
@@ -256,13 +246,7 @@ class ParametricTestClientApi:
     def __init__(self, library: str, url: str, timeout: int, container: Container):
         self.library = library
         self.lang = library  # TODO remove
-        self._base_url = url
-        self._session = requests.Session()
-        self.container = container
-        self.timeout = timeout
-
-        # wait for server to start
-        self._wait(timeout)
+        super().__init__(url, timeout, container)
 
     def __enter__(self) -> "ParametricTestClientApi":
         return self
@@ -282,50 +266,11 @@ class ParametricTestClientApi:
 
         return None
 
-    def container_restart(self):
-        self.container.restart()
-        self._wait(self.timeout)
-
-    def _wait(self, timeout: float):
-        delay = 0.01
-        for _ in range(int(timeout / delay)):
-            try:
-                if self._is_alive():
-                    break
-            except Exception:
-                if self.container.status != "running":
-                    self._print_logs()
-                    message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
-                    _fail(message)
-            time.sleep(delay)
-        else:
-            self._print_logs()
-            message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
-            _fail(message)
-
-    def _is_alive(self) -> bool:
-        self.container.reload()
-        return (
-            self.container.status == "running"
-            and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
-            == HTTPStatus.NOT_FOUND
-        )
-
     def is_alive(self) -> bool:
         try:
             return self._is_alive()
         except Exception:
             return False
-
-    def _print_logs(self):
-        try:
-            logs = self.container.logs().decode("utf-8")
-            logger.debug(f"Logs from container {self.container.name}:\n\n{logs}")
-        except Exception:
-            logger.error(f"Failed to get logs from container {self.container.name}")
-
-    def _url(self, path: str) -> str:
-        return urllib.parse.urljoin(self._base_url, path)
 
     def crash(self) -> None:
         try:
