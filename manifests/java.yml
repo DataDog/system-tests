@@ -3150,8 +3150,9 @@ manifest:
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Split::test_ffe_eval_reason_split: v1.62.0-SNAPSHOT
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Targeting::test_ffe_eval_reason_targeting: v1.61.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Targeting_Key_Optional::test_ffe_eval_targeting_key_optional: v1.61.0
-  # 9 tests pass against Java ≥ v1.61.0 (REASON-3,7,8,10,13,19,22,25) or v1.62.0-SNAPSHOT (REASON-11: splits:[]→DEFAULT).
-  # 11 tests still fail against Java master (v1.62.0-SNAPSHOT); failure modes noted per test:
+  # 8 tests pass against Java ≥ v1.61.0 (REASON-3,7,8,10,13,19,22,25).
+  # 12 tests still fail against Java master (v1.62.0-SNAPSHOT); failure modes noted per test:
+  #   REASON-11 shard-miss single-alloc → DEFAULT: fixture corrected (was vacuous-shard), pending re-run
   #   REASON-2  PROVIDER_FATAL: 401 mock times out before tracer enters fatal state
   #   REASON-9  zero-alloc → DEFAULT: Java returns error/general instead of default
   #   REASON-14 default-alloc catches rule-miss → DEFAULT: Java returns static
@@ -3164,7 +3165,7 @@ manifest:
   #   REASON-24 inactive-window → default-alloc → DEFAULT: Java returns static
   #   REASON-26 window+rule-fail → default-alloc → DEFAULT: Java returns static
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_10_NoDefaultAlloc::test_ffe_reason_10_no_default_alloc: v1.61.0
-  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_11_StaticNoSplit::test_ffe_reason_11_static_no_split: v1.62.0-SNAPSHOT
+  tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_11_StaticNoMatchingSplit::test_ffe_reason_11_static_no_matching_split: missing_feature
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_13_MultiAllocRuleMatch::test_ffe_reason_13_multi_alloc_rule_match: v1.61.0
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_14_MultiAllocRuleFail::test_ffe_reason_14_multi_alloc_rule_fail: missing_feature
   tests/ffe/test_flag_eval_reasons.py::Test_FFE_REASON_16_RulePassShardMiss::test_ffe_reason_16_rule_pass_shard_miss: missing_feature

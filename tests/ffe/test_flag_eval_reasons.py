@@ -18,7 +18,7 @@ Coverage map (B-N = Appendix B row N):
   REASON-8  TARGETING_MATCH (no key)  → Test_FFE_REASON_8_RuleOnlyNoKey
   REASON-9  zero allocations → DEFAULT → Test_FFE_REASON_9_ZeroAllocations
   REASON-10 no-default-alloc → DEFAULT → Test_FFE_REASON_10_NoDefaultAlloc
-  REASON-11 splits:[] → alloc skipped → DEFAULT → Test_FFE_REASON_11_StaticNoSplit
+  REASON-11 no matching split → alloc skipped → DEFAULT → Test_FFE_REASON_11_StaticNoMatchingSplit
   REASON-12 STATIC (vacuous split)    → test_flag_eval_metrics.py :: Test_FFE_Eval_Metric_Basic
   REASON-13 TARGETING_MATCH multi     → Test_FFE_REASON_13_MultiAllocRuleMatch
   REASON-14 DEFAULT multi (rule fails) → Test_FFE_REASON_14_MultiAllocRuleFail
@@ -162,21 +162,36 @@ def make_no_default_alloc_fixture(flag_key: str, attribute: str, match_value: st
     return _wrap_fixture(flag_key, fd)
 
 
-def make_pure_static_fixture(flag_key: str) -> dict:
-    """REASON-11: Single allocation, no rules, no date window, splits:[].
+def make_shard_miss_static_fixture(flag_key: str) -> dict:
+    """REASON-11: Single allocation, no rules, no date window; split shards don't match → DEFAULT.
 
-    Uses RFC canonical form: splits:[] (empty array). An allocation with no split
-    entries cannot produce a variant — the allocation is skipped even if rules pass.
-    With no subsequent allocation, the waterfall is exhausted → coded default / DEFAULT.
-    This is distinct from the vacuous-split form (splits:[{shards:[]}]) which does
-    resolve a variation (STATIC). See REASON-12 for the vacuous-split path.
+    The allocation has one split with shards, but the targeting key falls outside every
+    shard range. No split matches → allocation is skipped → waterfall exhausted →
+    coded default / DEFAULT.
+
+    Salt "b11-static-no-match" maps "user-1" to shard 3920 (MD5-based, totalShards=10000).
+    Range [3921, 10000) excludes shard 3920, guaranteeing a deterministic miss.
+
+    Distinct from the empty-splits-array edge case (separate spec point) and from
+    REASON-12 (vacuous split: shards:[] → resolves without hash → STATIC).
     """
     fd = _base_flag(flag_key)
     fd["allocations"] = [
         {
             "key": "static-alloc",
             "rules": [],
-            "splits": [],
+            "splits": [
+                {
+                    "variationKey": "on",
+                    "shards": [
+                        {
+                            "salt": "b11-static-no-match",
+                            "totalShards": 10000,
+                            "ranges": [{"start": 3921, "end": 10000}],
+                        }
+                    ],
+                }
+            ],
             "doLog": True,
         }
     ]
@@ -777,29 +792,31 @@ class Test_FFE_REASON_10_NoDefaultAlloc:
 
 
 # ---------------------------------------------------------------------------
-# REASON-11: STATIC — single allocation, no rules, no date window
+# REASON-11: DEFAULT — single allocation, no rules, no date window, shard miss
 # ---------------------------------------------------------------------------
 
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-class Test_FFE_REASON_11_StaticNoSplit:
-    """REASON-11: Single allocation; no rules, no date window; splits:[] → DEFAULT (coded default).
+class Test_FFE_REASON_11_StaticNoMatchingSplit:
+    """REASON-11: Single allocation; no rules, no date window; split shards don't match → DEFAULT.
 
-    An allocation with splits:[] cannot produce a variant — no split entry exists to
-    resolve a variation key. The allocation is skipped even though rules pass. With no
-    subsequent allocation, the waterfall is exhausted → coded default / DEFAULT / no error.
+    The allocation has one split with shards, but the targeting key falls outside every
+    shard range. No split matches → allocation skipped → waterfall exhausted →
+    coded default / DEFAULT / no error.
 
-    This is the structural distinction from REASON-12 (splits:[{shards:[]}]), where a
-    split entry exists and resolves vacuously → STATIC with a platform value.
+    Distinct from REASON-12 (vacuous split: shards:[] → resolves without hash → STATIC)
+    and from the empty-splits-array edge case (separate spec point).
     """
 
-    def setup_ffe_reason_11_static_no_split(self):
+    def setup_ffe_reason_11_static_no_matching_split(self):
         rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-b11-static"
-        self.flag_key = "b11-static-no-split-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_pure_static_fixture(self.flag_key)).apply()
+        self.flag_key = "b11-static-no-matching-split-flag"
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_shard_miss_static_fixture(self.flag_key)
+        ).apply()
 
         self.r = weblog.post(
             "/ffe",
@@ -812,8 +829,8 @@ class Test_FFE_REASON_11_StaticNoSplit:
             },
         )
 
-    def test_ffe_reason_11_static_no_split(self):
-        """REASON-11: Single alloc, splits:[] → allocation skipped → DEFAULT (coded default)."""
+    def test_ffe_reason_11_static_no_matching_split(self):
+        """REASON-11: Single alloc; shards don't match → allocation skipped → DEFAULT (coded default)."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
@@ -826,14 +843,14 @@ class Test_FFE_REASON_11_StaticNoSplit:
             f"REASON-11: Expected feature_flag.key={self.flag_key}, got tags: {tags}"
         )
         assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
-            f"REASON-11: Expected reason=default (splits:[] → alloc skipped → waterfall exhausted), got tags: {tags}"
+            f"REASON-11: Expected reason=default (shard miss → alloc skipped → waterfall exhausted), got tags: {tags}"
         )
         assert get_tag_value(tags, "error.type") is None, (
             f"REASON-11: Expected no error.type (ADR-001: not an SDK error), got tags: {tags}"
         )
-        # No split entry → no variation resolved → no platform variant. Absent or sentinel.
+        # No split matched → no variation resolved → no platform variant.
         assert get_tag_value(tags, "feature_flag.result.variant") in (None, "n/a"), (
-            f"REASON-11: Expected no platform variant (allocation skipped, coded default returned), got tags: {tags}"
+            f"REASON-11: Expected no platform variant (shard miss, coded default returned), got tags: {tags}"
         )
 
 
