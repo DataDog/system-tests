@@ -20,7 +20,7 @@ elif [ $(ls python-load-from-s3 | wc -l) = 1 ]; then
     echo "Install ddtrace from S3, git ref: ${GIT_REF}"
     # Try to fetch `metadata.txt` and save it so test output can display it, but don't fail if we cannot
     # This includes commit sha, pipeline id, etc that was used to build the artifact
-    curl -s https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/metadata.txt > metadata.txt || true
+    curl -sf https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/metadata.txt > metadata.txt || true
     if [ -s metadata.txt ]; then
         cat metadata.txt
     fi
