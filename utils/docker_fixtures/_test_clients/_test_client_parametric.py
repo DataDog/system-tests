@@ -282,6 +282,10 @@ class ParametricTestClientApi:
 
         return None
 
+    def container_restart(self):
+        self.container.restart()
+        self._wait(self.timeout)
+
     def _wait(self, timeout: float):
         delay = 0.01
         for _ in range(int(timeout / delay)):
@@ -298,10 +302,6 @@ class ParametricTestClientApi:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
             _fail(message)
-
-    def container_restart(self):
-        self.container.restart()
-        self._wait(self.timeout)
 
     def _is_alive(self) -> bool:
         self.container.reload()
