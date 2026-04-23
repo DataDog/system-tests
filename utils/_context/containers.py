@@ -1114,9 +1114,10 @@ class WeblogContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
 
-        exit_code, output = self.exec_run("cat /binaries/metadata.txt")
-        if exit_code == 0 and output:
-            logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
+        if self._container is not None:
+            exit_code, output = self.exec_run("cat /binaries/metadata.txt")
+            if exit_code == 0 and output:
+                logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
 
         if self.appsec_rules_file:
             logger.stdout("Using a custom appsec rules file")
