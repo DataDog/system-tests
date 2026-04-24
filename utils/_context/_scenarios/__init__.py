@@ -354,6 +354,7 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_APPSEC_WAF_TIMEOUT": "10000000",
             "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         rc_api_enabled=True,
         doc="""
