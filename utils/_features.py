@@ -44,29 +44,68 @@ class _Owner(Enum):
     # fmt: off
     agent_apm            = _OwnerDef("@DataDog/agent-apm")
     apm_serverless       = _OwnerDef("@DataDog/apm-serverless")
-    asm                  = _OwnerDef("@DataDog/asm-libraries")
+    asm                  = _OwnerDef("@DataDog/asm-libraries", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/asm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/asm-dotnet",
+                                "dd-trace-go":      "@DataDog/asm-go",
+                                "dd-trace-java":    "@DataDog/asm-java",
+                                "dd-trace-js":      "@DataDog/asm-js",
+                                "dd-trace-php":     "@DataDog/asm-php",
+                                "dd-trace-py":      "@DataDog/asm-python",
+                                "dd-trace-rb":      "@DataDog/asm-ruby",
+                                "httpd-datadog":    "@DataDog/asm-cpp",
+                                "nginx-datadog":    "@DataDog/asm-cpp",
+                            })
     auto_instrumentation = _OwnerDef("@DataDog/unified-instrumentation-setup")
     data_pipeline        = _OwnerDef("@DataDog/libdatadog-apm")  # or agent-apm? TODO @ekump
-    debugger             = _OwnerDef("@DataDog/debugger")
+    debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
+                                "dd-trace-go":      "@DataDog/debugger-go",
+                                "dd-trace-java":    "@DataDog/debugger-java",
+                                "dd-trace-js":      "@DataDog/debugger-nodejs",
+                                "dd-trace-py":      "@DataDog/debugger-python",
+    })
     djm                  = _OwnerDef("@DataDog/data-jobs-monitoring")
     dsm                  = _OwnerDef("@DataDog/data-streams-monitoring")
     ffe                  = _OwnerDef("@DataDog/feature-flagging-and-experimentation-sdk")
-    idm                  = _OwnerDef("@DataDog/apm-idm")
+    idm                  = _OwnerDef("@DataDog/apm-idm", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-idm-dotnet",
+                                "dd-trace-go":      "@DataDog/apm-idm-go",
+                                "dd-trace-java":    "@DataDog/apm-idm-java",
+                                "dd-trace-js":      "@DataDog/apm-idm-js",
+                                "dd-trace-php":     "@DataDog/apm-idm-php",
+                                "dd-trace-py":      "@DataDog/apm-idm-python",
+                                "dd-trace-rb":      "@DataDog/apm-idm-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",
+                            })
     injection_platform   = _OwnerDef("@DataDog/injection-platform")
     language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
-                               "dd-trace-dotnet": "@DataDog/apm-lang-platform-dotnet",
-                               "dd-trace-go":     "@DataDog/lang-platform-go",
-                               "dd-trace-java":   "@DataDog/apm-lang-platform-java",
-                               "dd-trace-js":     "@DataDog/lang-platform-js",
-                               "dd-trace-php":    "@DataDog/apm-lang-platform-php",
-                               "dd-trace-py":     "@DataDog/lang-platform-python",
-                               "dd-trace-ruby":   "@DataDog/lang-platform-ruby",
-                           })
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-go":      "@DataDog/lang-platform-go",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                            })
     ml_observability     = _OwnerDef("@DataDog/ml-observability")
     profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
-    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities")
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
+                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
+                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
+                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
+                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
+                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
+                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
+                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
+                            })
     # fmt: on
 
 
