@@ -133,7 +133,7 @@ def send_state(
 
         if wait_for_acknowledged_status:
             for state in current_states.configs.values():
-                if state["apply_state"] != ApplyState.ACKNOWLEDGED:
+                if state["apply_state"] == ApplyState.UNKNOWN:
                     return False
 
         current_states.state = ApplyState.ACKNOWLEDGED
@@ -141,7 +141,7 @@ def send_state(
 
     library.wait_for(remote_config_applied, timeout=30)
     # ensure the library has enough time to apply the config to all subprocesses
-    time.sleep(0.5)
+    time.sleep(1)
 
     return current_states
 
