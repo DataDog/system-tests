@@ -334,6 +334,60 @@ real failures instead of guessing.
 arrived too late" (library traces, agent traces, telemetry, remote
 config, OTel, or something unexpected).
 
+#### Step 0 findings from PR #6795
+
+PR [#6795](https://github.com/DataDog/system-tests/pull/6795) is exactly
+this experiment: commit `939d9c674cf287e0f7a56660a2067fab73b6388f`
+hard-forces `interfaces.library` wait to `0` in
+`utils/_context/_scenarios/endtoend.py`.
+
+The failures are broad but not random; they cluster into a few recurring
+"late flush" categories:
+
+- **Python (13 prod jobs, 12 dev jobs)**: runtime metrics are often still
+  missing when assertions run. Representative failure:
+  `tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled::test_main`
+  (`len(runtime_metrics_gauges) == len(runtime_metrics_sketches) == 0`).
+- **Ruby (8 prod jobs, 8 dev jobs)**: profiling payloads are not yet visible
+  on either interface when `tests/test_profiling.py` runs.
+  Representative failures: no data on `/profiling/v1/input`, no data on
+  `/api/v2/profile`, and therefore no profiling data for process-tag
+  assertions.
+- **PHP (22 prod jobs, 21 dev jobs)**: same dominant pattern as Ruby —
+  profiling data has not arrived yet on library/agent interfaces when
+  `tests/test_profiling.py` validates it.
+- **Java (21 prod jobs, 19 dev jobs)**: remote-config update-sequence tests
+  are not seeing config requests in time. Representative failure:
+  `tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging::test_tracer_update_sequence`
+  with `ValueError: No data has been observed on /v\d+.\d+/config`.
+- **.NET (1 prod job, 3 dev jobs)**: DSM checkpoints are not yet present on
+  the agent side when assertions run. Representative failures:
+  `tests/integrations/test_dsm.py::{Test_DsmKafka,Test_DsmRabbitmq,...}`
+  with `ValueError: Checkpoint has not been found`.
+- **Go (12 prod jobs, 12 dev jobs)**: AppSec metrics / telemetry are not yet
+  complete when assertions run. Representative failures include missing
+  `rasp.rule.eval`, missing `rasp.rule.match`, and missing
+  `input_truncated:true` on `waf.requests`.
+
+This is useful prioritization information for the later steps:
+
+- We will need built-in waits for **telemetry-ish data**, not just root
+  traces.
+- **Remote config**, **profiling**, and **DSM** really do need either their
+  own wait conditions or to stay on the legacy/fallback path until they get
+  one.
+- The exploratory failures we inspected are all **library/agent-side**; none
+  pointed at backend lookup lag, which supports keeping
+  `backend_interface_timeout` out of scope for the first rollout.
+
+One notable outlier showed up in PR insights:
+
+- `tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_single_is_first`
+  once reported `Expected one is_first=true payload, found 2` on a PHP job.
+  That does **not** look like a classic "data arrived too late" failure, so
+  treat it as likely unrelated noise unless it reproduces consistently in a
+  follow-up run.
+
 ### Step 1 — Skeleton `wait_conditions` module, no behavior change
 
 - Create `utils/wait_conditions.py` with `WaitConditions` and
