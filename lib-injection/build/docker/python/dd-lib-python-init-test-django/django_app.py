@@ -3,12 +3,13 @@ import os
 import signal
 import sys
 import time
+import types
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.urls import path
 
 
-def handle_sigterm(signo, sf):
+def handle_sigterm(signo: int, sf: types.FrameType | None) -> None:
     sys.exit(0)
 
 
@@ -22,15 +23,15 @@ SECRET_KEY = "fdsfdasfa"
 ALLOWED_HOSTS = ["*"]
 
 
-def index(request):
+def index(request: HttpRequest):
     return HttpResponse("test")
 
 
-def crashme(request):
+def crashme(request: HttpRequest):
     ctypes.string_at(0)
 
 
-def fork_and_crash(request):
+def fork_and_crash(request: HttpRequest):
     pid = os.fork()
     if pid > 0:
         # Parent process
@@ -43,7 +44,7 @@ def fork_and_crash(request):
         return HttpResponse("Nobody should see this")
 
 
-def child_pids(request):
+def child_pids(request: HttpRequest):
     current_pid = os.getpid()
     child_pids = []
 
@@ -71,7 +72,7 @@ def child_pids(request):
         return HttpResponse(f"Error: {e!s}", status=500, content_type="text/plain")
 
 
-def zombies(request):
+def zombies(request: HttpRequest):
     zombie_processes = []
 
     # Iterate over all directories in /proc to look for PIDs

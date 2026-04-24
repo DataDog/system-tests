@@ -1,12 +1,13 @@
 import os
 import signal
 import sys
+import types
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.conf.urls import url
 
 
-def handle_sigterm(signo, sf):
+def handle_sigterm(signo: int, sf: types.FrameType | None) -> None:
     sys.exit(0)
 
 
@@ -20,7 +21,7 @@ SECRET_KEY = "fdsfdasfa"
 ALLOWED_HOSTS = ["*"]
 
 
-def index(request):
+def index(request: HttpRequest):
     return HttpResponse("test")
 
 

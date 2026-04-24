@@ -159,7 +159,6 @@ ignore = [
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
 "lib-injection/build/docker/python/*" = [
-    "ANN001",   # missing-type-function-argument
     "ANN201",   # missing-return-type-undocumented-public-function
     "ARG001",   # unused-function-argument
     "INP001",   # implicit-namespace-package
@@ -279,7 +278,6 @@ ignore = [
     "UP017",   # datetime-timezone-utc: TODO
 ]
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO
 ]
      
