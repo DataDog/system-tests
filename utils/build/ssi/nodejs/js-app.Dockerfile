@@ -22,4 +22,4 @@ EXPOSE 18080
 # We need pid 1 to be bash and to properly configure nvm
 # doing this via `RUN` doesn't seem to work
 COPY utils/build/ssi/nodejs/run.sh /app/
-CMD /app/run.sh
+CMD ["/app/run.sh"]
