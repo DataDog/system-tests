@@ -11,4 +11,4 @@ EXPOSE 18080
 
 # Many users run a non-root user, ensure this is supported by the injection mechanism
 USER 1000
-CMD ddtrace-run python -m django runserver 0.0.0.0:18080
+CMD ["ddtrace-run", "python", "-m", "django", "runserver", "0.0.0.0:18080"]
