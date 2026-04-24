@@ -29,4 +29,4 @@ RUN chmod +x app.sh
 
 EXPOSE 7777
 
-CMD ./app.sh
+CMD ["./app.sh"]

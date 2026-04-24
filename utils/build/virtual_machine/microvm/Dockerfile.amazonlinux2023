@@ -28,4 +28,4 @@ COPY systemctl /usr/bin/systemctl
 COPY sudo.sh /usr/bin/sudo
 RUN chmod +x /usr/bin/systemctl
 RUN chmod +x /usr/bin/sudo
-ENTRYPOINT sleep infinity
+ENTRYPOINT ["sleep", "infinity"]
