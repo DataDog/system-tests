@@ -838,6 +838,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth: missing_feature (no /debugger/snapshot/limits endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track: missing_feature (Go system-probe does not route to debugger track endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination: missing_feature (Go system-probe does not route to debugger/v2/input endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_payload_basic_ddtags_snapshot: missing_feature (Go debugger payload only includes agent-side baseline ddtags)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Go system-probe does not emit process_tags)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Go system-probe does not emit process_tags)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (no span-decoration endpoint)
