@@ -436,7 +436,7 @@ def rasp_sqli(*args, **kwargs):
         DB = sqlite3.connect(":memory:")
         print(f"SELECT * FROM users WHERE id='{user_id}'")
         cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
-        print("DB request with {len(list(cursor))} results")
+        print(f"DB request with {len(list(cursor))} results")
         return f"DB request with {len(list(cursor))} results"
     except Exception as e:
         print(f"DB request failure: {e!r}", file=sys.stderr)
@@ -2193,14 +2193,16 @@ def ai_guard_evaluate():
 
     except Exception as e:
         if isinstance(e, AIGuardAbortError):
-            return jsonify(
-                {
-                    "action": getattr(e, "action", ""),
-                    "reason": getattr(e, "reason", ""),
-                    "tags": getattr(e, "tags", []),
-                    "sds": getattr(e, "sds", []),
-                }
-            ), 403
+            error_response = {
+                "action": getattr(e, "action", ""),
+                "reason": getattr(e, "reason", ""),
+                "tags": getattr(e, "tags", []),
+                "sds": getattr(e, "sds", []),
+            }
+            tag_probs = getattr(e, "tag_probs", None)
+            if tag_probs is not None:
+                error_response["tag_probs"] = tag_probs
+            return jsonify(error_response), 403
         else:
             return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
 
@@ -2232,3 +2234,25 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/sca/vulnerable-call")
+def sca_requests_vulnerable_call():
+    """Trigger a call to requests.sessions.Session.send (CVE-2024-35195 target)."""
+    session = requests.Session()
+    try:
+        session.get("http://localhost:1")
+    except Exception:
+        pass
+    return "OK"
+
+
+@app.route("/sca/vulnerable-call-alt")
+def sca_requests_vulnerable_call_alt():
+    """Alternate call site for same CVE-2024-35195 target (first-hit-wins test)."""
+    session = requests.Session()
+    try:
+        session.post("http://localhost:1", data="x")
+    except Exception:
+        pass
+    return "OK"

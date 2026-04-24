@@ -160,6 +160,7 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v8.113.0
@@ -250,6 +251,7 @@ manifest:
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v7.112.0
   tests/appsec/test_traces.py::Test_RetainTraces: v7.112.0
   tests/appsec/test_versions.py::Test_Events: v7.112.0
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_blocking.py::Test_Blocking:
     - weblog_declaration:
         "*": v8.113.0

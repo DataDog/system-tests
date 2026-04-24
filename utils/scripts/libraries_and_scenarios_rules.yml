@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [java_lambda, python_lambda]
+  - &lambda_libraries [java_lambda, nodejs_lambda, python_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
@@ -192,6 +192,12 @@ patterns:
         scenarios: PARAMETRIC
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
+    .github/workflows/stale-prs.yml:
+        scenario_groups: null
+        libraries: null
+    .github/workflows/update-agent-protobuf.yml:
+        scenario_groups: null
+        libraries: null
     .github/*:
         scenario_groups: null
 
@@ -445,6 +451,13 @@ patterns:
         libraries: nodejs
     utils/build/build_nodejs_base_images.sh:
         libraries: nodejs
+
+    manifests/nodejs_lambda.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: nodejs_lambda
+    utils/build/docker/nodejs_lambda/*:
+        scenario_groups: appsec_lambda
+        libraries: nodejs_lambda
 
     manifests/php.yml:
         scenario_groups: null  # already handled by the manifest comparison

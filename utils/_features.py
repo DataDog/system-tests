@@ -1,36 +1,118 @@
-from enum import StrEnum
+from dataclasses import dataclass, field
+from enum import Enum
+import functools
+import os
 import pytest
 
 NOT_REPORTED_ID = -1
 
 
-class _Owner(StrEnum):
-    # the value of each member must be a valid github team
+@functools.cache
+def _get_ci_repo_name() -> str | None:
+    """Returns the repository name when running in CI (GHA, GitLab, Azure), or None."""
+    # GitHub Actions: GITHUB_REPOSITORY is "owner/repo"
+    if repo := os.environ.get("GITHUB_REPOSITORY"):
+        return repo.split("/")[-1]
+    # GitLab CI
+    if repo := os.environ.get("CI_PROJECT_NAME"):
+        return repo
+    # Azure Pipelines
+    if repo := os.environ.get("BUILD_REPOSITORY_NAME"):
+        return repo
+    return None
 
-    agent_apm = "@DataDog/agent-apm"
-    apm_serverless = "@DataDog/apm-serverless"
-    asm = "@DataDog/asm-libraries"  # application security monitoring
-    auto_instrumentation = "@DataDog/unified-instrumentation-setup"
-    data_pipeline = "@DataDog/libdatadog-apm"  # or agent-apm? TODO @ekump
-    debugger = "@DataDog/debugger"
-    djm = "@DataDog/data-jobs-monitoring"
-    dsm = "@DataDog/data-streams-monitoring"
-    idm = "@DataDog/apm-idm"
-    injection_platform = "@DataDog/injection-platform"
-    language_platform = "@DataDog/apm-lang-platform"
-    ml_observability = "@DataDog/ml-observability"
-    profiler = "@DataDog/profiling"  # it does not exists
-    remote_config = "@DataDog/remote-config"
-    rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    sdk_capabilities = "@DataDog/apm-sdk-capabilities"
-    ffe = "@DataDog/feature-flagging-and-experimentation-sdk"  # Feature Flagging & Experimentation
+
+@dataclass
+class _OwnerDef:
+    """A GitHub team, with optional per-repo sub-team overrides.
+
+    When tests run in CI, if the repo name matches a key in repo_overrides,
+    that sub-team is used instead of the default.
+    """
+
+    default: str
+    repo_overrides: dict[str, str] = field(default_factory=dict)
+
+    def resolve(self) -> str:
+        repo_name = _get_ci_repo_name()
+        if repo_name:
+            return self.repo_overrides.get(repo_name, self.default)
+        return self.default
+
+
+class _Owner(Enum):
+    # fmt: off
+    agent_apm            = _OwnerDef("@DataDog/agent-apm")
+    apm_serverless       = _OwnerDef("@DataDog/apm-serverless")
+    asm                  = _OwnerDef("@DataDog/asm-libraries", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/asm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/asm-dotnet",
+                                "dd-trace-go":      "@DataDog/asm-go",
+                                "dd-trace-java":    "@DataDog/asm-java",
+                                "dd-trace-js":      "@DataDog/asm-js",
+                                "dd-trace-php":     "@DataDog/asm-php",
+                                "dd-trace-py":      "@DataDog/asm-python",
+                                "dd-trace-rb":      "@DataDog/asm-ruby",
+                                "httpd-datadog":    "@DataDog/asm-cpp",
+                                "nginx-datadog":    "@DataDog/asm-cpp",
+                            })
+    auto_instrumentation = _OwnerDef("@DataDog/unified-instrumentation-setup")
+    data_pipeline        = _OwnerDef("@DataDog/libdatadog-apm")  # or agent-apm? TODO @ekump
+    debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
+                                "dd-trace-go":      "@DataDog/debugger-go",
+                                "dd-trace-java":    "@DataDog/debugger-java",
+                                "dd-trace-js":      "@DataDog/debugger-nodejs",
+                                "dd-trace-py":      "@DataDog/debugger-python",
+    })
+    djm                  = _OwnerDef("@DataDog/data-jobs-monitoring")
+    dsm                  = _OwnerDef("@DataDog/data-streams-monitoring")
+    ffe                  = _OwnerDef("@DataDog/feature-flagging-and-experimentation-sdk")
+    idm                  = _OwnerDef("@DataDog/apm-idm", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-idm-dotnet",
+                                "dd-trace-go":      "@DataDog/apm-idm-go",
+                                "dd-trace-java":    "@DataDog/apm-idm-java",
+                                "dd-trace-js":      "@DataDog/apm-idm-js",
+                                "dd-trace-php":     "@DataDog/apm-idm-php",
+                                "dd-trace-py":      "@DataDog/apm-idm-python",
+                                "dd-trace-rb":      "@DataDog/apm-idm-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",
+                            })
+    injection_platform   = _OwnerDef("@DataDog/injection-platform")
+    language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-go":      "@DataDog/lang-platform-go",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                            })
+    ml_observability     = _OwnerDef("@DataDog/ml-observability")
+    profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
+    remote_config        = _OwnerDef("@DataDog/remote-config")
+    rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
+                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
+                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
+                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
+                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
+                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
+                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
+                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
+                            })
+    # fmt: on
 
 
 def _mark_test_object(test_object, feature_id: int, owner: _Owner):
     """Mark the test object with a feature ID"""
     pytest.mark.features(feature_id=feature_id)(test_object)
-    pytest.mark.owners(owner=owner.value)(test_object)
-
+    pytest.mark.owners(owner=owner.value.resolve())(test_object)
     return test_object
 
 
@@ -2567,6 +2649,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=535, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_eval_metrics(test_object):
+        """Feature Flags Evaluation Metrics
+
+        https://feature-parity.us1.prod.dog/#/?feature=548
+        """
+        return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
@@ -2791,13 +2881,30 @@ class _Features:
         return _mark_test_object(test_object, feature_id=545, owner=_Owner.language_platform)
 
     @staticmethod
+    def appsec_apm_standalone(test_object):
+        """Ensure that AppSec works correctly with the infra product disabled
+
+        https://feature-parity.us1.prod.dog/#/?feature=546
+        """
+        return _mark_test_object(test_object, feature_id=546, owner=_Owner.asm)
+
+    @staticmethod
     def base_service(test_object):
         """_dd.base_service meta tag is set on spans whose service name differs from the global service.
         Preserves the originating service context when integrations override the service name.
 
-        https://feature-parity.us1.prod.dog/#/?feature=546
+        https://feature-parity.us1.prod.dog/#/?feature=549
         """
-        return _mark_test_object(test_object, feature_id=546, owner=_Owner.idm)
+        return _mark_test_object(test_object, feature_id=549, owner=_Owner.idm)
+
+    @staticmethod
+    def runtime_sca_reachability(test_object):
+        """SCA Runtime Reachability: report CVE metadata and caller information
+        for vulnerable dependencies when DD_APPSEC_SCA_ENABLED=true.
+
+        https://feature-parity.us1.prod.dog/#/?feature=553
+        """
+        return _mark_test_object(test_object, feature_id=553, owner=_Owner.asm)
 
 
 features = _Features()

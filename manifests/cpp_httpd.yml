@@ -11,6 +11,8 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -18,6 +20,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature
   tests/apm_tracing_e2e/: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/: irrelevant (ASM is not implemented in C++)
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
