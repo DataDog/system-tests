@@ -21,5 +21,5 @@ RUN pip freeze | grep opentelemetry
 
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV FLASK_APP=app.py
-CMD ./app.sh
+CMD ["./app.sh"]
 

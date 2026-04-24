@@ -29,7 +29,7 @@ RUN npm run build
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node dist/app.js' >> app.sh
-CMD ./app.sh
+CMD ["./app.sh"]
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .

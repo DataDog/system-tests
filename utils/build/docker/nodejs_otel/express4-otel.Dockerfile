@@ -31,4 +31,4 @@ ENV OTEL_BSP_SCHEDULE_DELAY=200
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node --require @opentelemetry/auto-instrumentations-node/register app.js' >> app.sh
-CMD ./app.sh
+CMD ["./app.sh"]

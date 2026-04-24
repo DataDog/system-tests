@@ -24,4 +24,4 @@ COPY manifests /app/manifests
 COPY conftest.py /app/
 COPY run.sh /app/
 
-CMD ./run.sh
+CMD ["./run.sh"]

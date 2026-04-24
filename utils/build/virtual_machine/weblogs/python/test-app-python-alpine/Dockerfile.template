@@ -8,4 +8,4 @@ WORKDIR /src
 ADD . /src
 RUN pip3 install django
 EXPOSE 18080
-CMD python3 -m django runserver 0.0.0.0:18080
+CMD ["python3", "-m", "django", "runserver", "0.0.0.0:18080"]

@@ -25,7 +25,7 @@ ENV LOG_LEVEL='DEBUG'
 # FIXME: Ensure gevent patching occurs before ddtrace
 
 ENV FLASK_APP=app.py
-CMD ./app.sh
+CMD ["./app.sh"]
 
 # docker build -f utils/build/docker/python/flask-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

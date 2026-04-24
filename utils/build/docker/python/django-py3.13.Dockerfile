@@ -21,7 +21,7 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
 # docker startup
-CMD ./app.sh
+CMD ["./app.sh"]
 
 # docker build -f utils/build/docker/python/django-py3.13.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

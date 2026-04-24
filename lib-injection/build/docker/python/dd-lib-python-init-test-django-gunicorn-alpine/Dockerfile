@@ -6,4 +6,4 @@ WORKDIR /src
 ADD . /src
 RUN pip install django gunicorn
 EXPOSE 18080
-CMD gunicorn --bind :18080 django_app:application
+CMD ["gunicorn", "--bind", ":18080", "django_app:application"]

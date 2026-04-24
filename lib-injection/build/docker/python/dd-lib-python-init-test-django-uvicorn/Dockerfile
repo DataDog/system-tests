@@ -6,4 +6,4 @@ WORKDIR /src
 ADD . /src
 RUN pip install django uvicorn
 EXPOSE 18080
-CMD uvicorn --host 0.0.0.0 --port 18080 django_app:application
+CMD ["uvicorn", "--host", "0.0.0.0", "--port", "18080", "django_app:application"]
