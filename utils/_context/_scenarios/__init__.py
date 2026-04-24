@@ -300,7 +300,7 @@ class _Scenarios:
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None, "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
+        weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, when remote config is available, rules file
@@ -320,8 +320,6 @@ class _Scenarios:
         weblog_env={
             "DD_APPSEC_WAF_TIMEOUT": "10000000",  # 10 seconds
             "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
-            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
         },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
@@ -355,7 +353,6 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_APPSEC_WAF_TIMEOUT": "10000000",
             "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         rc_api_enabled=True,
         doc="""
@@ -454,7 +451,6 @@ class _Scenarios:
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         agent_env={
             "DD_INFRASTRUCTURE_MODE": "none",
@@ -472,7 +468,6 @@ class _Scenarios:
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         agent_env={
             "DD_INFRASTRUCTURE_MODE": "none",
@@ -552,7 +547,7 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
@@ -565,7 +560,6 @@ class _Scenarios:
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         doc="",
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
@@ -574,7 +568,7 @@ class _Scenarios:
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None, "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
+        weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, when remote config is available, rules file
@@ -612,7 +606,6 @@ class _Scenarios:
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_REMOTE_CONFIGURATION_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
@@ -671,7 +664,6 @@ class _Scenarios:
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
         rc_api_enabled=True,
-        weblog_env={"DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
     library_conf_custom_header_tags_invalid = EndToEndScenario(
@@ -705,7 +697,6 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -762,7 +753,6 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
             "DD_TRACE_OTEL_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         doc="",
         rc_api_enabled=True,
@@ -862,7 +852,6 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
         },
         library_interface_timeout=5,
         doc="Test scenario for checking debugger telemetry.",

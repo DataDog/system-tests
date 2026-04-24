@@ -141,7 +141,7 @@ def send_state(
 
     library.wait_for(remote_config_applied, timeout=30)
     # ensure the library has enough time to apply the config to all subprocesses
-    time.sleep(1)
+    time.sleep(1 if context.library.name == "nodejs" else 2)
 
     return current_states
 
