@@ -1151,6 +1151,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0-dev.1
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_with_error_does_not_set_error_tracking_tags: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 1.65.0)
       component_version: <1.65.0
@@ -1161,6 +1162,10 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_with_array_encoding:
     - declaration: missing_feature (New naming breaks old tests, so only run old tests on previous versions.)
       component_version: <1.59.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_does_not_override_error_msg: v1.57.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg: v1.50.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_response_status_code: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_status_code: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span:
     - declaration: missing_feature (Implemented in 1.61.0)

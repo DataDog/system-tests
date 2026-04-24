@@ -200,7 +200,12 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.0.1
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_get_span_context: missing_feature (APMSP-2059)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_with_error_does_not_set_error_tracking_tags: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (Old array encoding not supported)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_does_not_override_error_msg: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_response_status_code: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_status_code: missing_feature
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span: missing_feature (APMSP-2059)

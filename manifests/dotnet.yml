@@ -906,11 +906,13 @@ manifest:
       component_version: <3.36.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization: missing_feature (dd-trace-dotnet does not support expanding arrays into named indices)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization: v2.53.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error_tracking_tags: v2.53.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization: v2.53.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags: v2.53.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_with_error_does_not_set_error_tracking_tags: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 2.53.0)
       component_version: <2.53.0
@@ -928,6 +930,8 @@ manifest:
     - declaration: missing_feature (Implemented in 2.42.0)
       component_version: <=2.41.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error: missing_feature (.NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_response_status_code: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_status_code: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end:
     - declaration: missing_feature (Implemented in 2.42.0)
       component_version: <=2.41.0

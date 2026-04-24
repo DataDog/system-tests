@@ -1832,6 +1832,7 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <2.9.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_with_error_does_not_set_error_tracking_tags: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 2.9.0)
       component_version: <2.9.0
@@ -1847,6 +1848,10 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error:  # Modified by easy win activation script
     - declaration: missing_feature (New operation name mapping not yet implemented)
       component_version: <4.3.1
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_does_not_override_error_msg: v2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg: v2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_response_status_code: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error_sets_error_msg_from_http_status_code: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_ok: missing_feature (Default state of otel spans is OK, updating the status from OK to ERROR is supported)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)

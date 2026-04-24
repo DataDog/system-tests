@@ -303,6 +303,89 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "error_span"
 
+    def test_otel_set_span_status_error_sets_error_msg(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """This test verifies that setting the status of a span
+        with error will populate the error.msg tag
+        """
+        with test_library, test_library.otel_start_span(name="error_span", span_kind=SpanKind.INTERNAL) as s:
+            s.set_status(StatusCode.ERROR, "error_desc")
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, s.trace_id)
+        span = find_span(trace, s.span_id)
+        assert (
+            span.get("meta").get("error.message") == "error_desc" or span.get("meta").get("error.msg") == "error_desc"
+        )
+        assert span.get("name") == "internal"
+        assert span.get("resource") == "error_span"
+
+    def test_otel_set_span_status_error_sets_error_msg_from_http_response_status_code(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """This test verifies that setting the status of a span
+        with error and no description will fallback to using the
+        http.response.status_code as the final error message.
+
+        The format the agent uses is: "{status_code_int} {StatusText(status_code_int)}",
+        as determined by the golang status implementation: https://go.dev/src/net/http/status.go.
+        Including the status code should be sufficient.
+        """
+        with test_library, test_library.otel_start_span(name="error_span", span_kind=SpanKind.INTERNAL) as s:
+            s.set_attributes({"http.response.status_code": 400})
+            s.set_status(StatusCode.ERROR)
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, s.trace_id)
+        span = find_span(trace, s.span_id)
+        assert (span.get("meta").get("error.message") and "400" in span.get("meta").get("error.message")) or (
+            span.get("meta").get("error.msg") and "400" in span.get("meta").get("error.msg")
+        )
+        assert span.get("name") == "internal"
+        assert span.get("resource") == "error_span"
+
+    def test_otel_set_span_status_error_sets_error_msg_from_http_status_code(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """This test verifies that setting the status of a span
+        with error and no description will fallback to using the
+        http.status_code as the final error message.
+
+        The format is: "{status_code_int} {StatusText(status_code_int)}" as determined by
+        the golang status implementation: https://go.dev/src/net/http/status.go
+        """
+        with test_library, test_library.otel_start_span(name="error_span", span_kind=SpanKind.INTERNAL) as s:
+            s.set_attributes({"http.status_code": 400})
+            s.set_status(StatusCode.ERROR)
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, s.trace_id)
+        span = find_span(trace, s.span_id)
+        assert (span.get("meta").get("error.message") and "400" in span.get("meta").get("error.message")) or (
+            span.get("meta").get("error.msg") and "400" in span.get("meta").get("error.msg")
+        )
+        assert span.get("name") == "internal"
+        assert span.get("resource") == "error_span"
+
+    def test_otel_set_span_status_error_does_not_override_error_msg(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """This test verifies that setting the status of a span
+        with error will not override an existing error.msg tag
+        """
+        with test_library, test_library.otel_start_span(name="error_span", span_kind=SpanKind.INTERNAL) as s:
+            s.set_attributes({"error.msg": "takes_precedence"})
+            s.set_status(StatusCode.ERROR, "error_desc")
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, s.trace_id)
+        span = find_span(trace, s.span_id)
+        assert (
+            span.get("meta").get("error.message") == "takes_precedence"
+            or span.get("meta").get("error.msg") == "takes_precedence"
+        )
+        assert span.get("name") == "internal"
+        assert span.get("resource") == "error_span"
+
     def test_otel_set_span_status_ok(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """This test verifies that setting the status of a span
         behaves accordingly to the Otel API spec
@@ -769,8 +852,35 @@ class Test_Otel_Span_Methods:
 
         assert root_span["error"] == 1
         assert "error.stack" in root_span["meta"]
-        assert "error.message" in root_span["meta"]
+        assert "error.message" in root_span["meta"] or "error.msg" in root_span["meta"]
         assert "error.type" in root_span["meta"]
+
+    def test_otel_record_exception_with_error_does_not_set_error_tracking_tags(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """Tests the Span.RecordException API (requires Span.AddEvent API support)
+        and its serialization into the Datadog 'events' tag. Datadog error tags must not be populated.
+        """
+        with test_library, test_library.otel_start_span("operation") as span:
+            span.set_status(StatusCode.ERROR)
+            span.record_exception(
+                message="woof1",
+                attributes={
+                    "string_val": "value",
+                    "exception.stacktrace": "stacktrace1",
+                    "exception.type": "ExceptionType",
+                },
+            )
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, span.trace_id)
+        root_span = find_span(trace, span.span_id)
+
+        assert root_span["error"] == 1
+        assert "error.stack" not in root_span["meta"]
+        assert "error.message" not in root_span["meta"]
+        assert "error.msg" not in root_span["meta"]
+        assert "error.type" not in root_span["meta"]
 
     def test_otel_record_exception_sets_handling_stack_in_go(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """For dd-trace-go > v2.5.0, we set the throw stack (if available) in error.details and the handling stack in error.stack (always)

@@ -226,7 +226,7 @@ class _TestOtelSpan:
     def set_name(self, name: str):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code: StatusCode, description: str):
+    def set_status(self, code: StatusCode, description: str | None = None):
         self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: int | None = None, attributes: dict | None = None):
@@ -697,7 +697,7 @@ class ParametricTestClientApi:
     def otel_set_name(self, span_id: str | int, name: str) -> None:
         self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
 
-    def otel_set_status(self, span_id: str | int, code: StatusCode, description: str) -> None:
+    def otel_set_status(self, span_id: str | int, code: StatusCode, description: str | None = None) -> None:
         self._session.post(
             self._url("/trace/otel/set_status"),
             json={"span_id": span_id, "code": code.name, "description": description},
