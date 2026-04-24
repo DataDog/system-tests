@@ -22,6 +22,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@c28619d8999a147d5e09c1199f84ff6af6ad5794 # master
+
     - name: Get image list
       shell: bash
       run: |
@@ -36,10 +39,6 @@ runs:
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
-
-    - name: clean-up
-      shell: bash
-      run: sudo rm -rf /usr/local/lib/android
 
 #retry
     - name: Pull
