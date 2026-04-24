@@ -317,10 +317,7 @@ class _Scenarios:
         rc_api_enabled=True,
         appsec_enabled=False,
         iast_enabled=False,
-        weblog_env={
-            "DD_APPSEC_WAF_TIMEOUT": "10000000",  # 10 seconds
-            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
-        },
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
     )
@@ -603,10 +600,7 @@ class _Scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
-        },
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
     )
