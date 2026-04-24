@@ -24,7 +24,7 @@ RUN a2enmod datadog
 # Create C++ application
 RUN echo "Hello world\n" > /app/index.html
 WORKDIR /app
-RUN echo "#!/bin/bash\napachectl -D FOREGROUND" > app.sh
+RUN echo "#!/bin/bash\nexec apachectl -D FOREGROUND" > app.sh
 RUN chmod +x app.sh
 
 EXPOSE 7777
