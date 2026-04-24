@@ -24,5 +24,5 @@ RUN /binaries/install_ddtrace.sh
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
-RUN printf 'node app.js' >> app.sh
+RUN printf 'exec node app.js' >> app.sh
 CMD ["./app.sh"]
