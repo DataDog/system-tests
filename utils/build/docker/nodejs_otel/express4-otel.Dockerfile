@@ -41,4 +41,4 @@ RUN npm install --save opentelemetry-instrumentation-mssql || npm install --save
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node --require @opentelemetry/auto-instrumentations-node/register app.js' >> app.sh
-CMD ./app.sh
+CMD ["./app.sh"]
