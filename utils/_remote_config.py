@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
+import contextlib
 import hashlib
 import json
 import re
@@ -84,10 +85,8 @@ def send_state(
     # Collect runtime_ids of all processes currently polling RC so we can wait for each one to acknowledge.
     known_runtime_ids: set[str] = set()
     for _d in library.get_data(path_filters="/v0.7/config"):
-        try:
+        with contextlib.suppress(KeyError, TypeError):
             known_runtime_ids.add(_d["request"]["content"]["client"]["client_tracer"]["runtime_id"])
-        except (KeyError, TypeError):
-            pass
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
