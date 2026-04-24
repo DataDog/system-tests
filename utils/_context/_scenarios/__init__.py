@@ -317,7 +317,11 @@ class _Scenarios:
         rc_api_enabled=True,
         appsec_enabled=False,
         iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+        weblog_env={
+            "DD_APPSEC_WAF_TIMEOUT": "10000000",  # 10 seconds
+            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5",
+        },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
     )
