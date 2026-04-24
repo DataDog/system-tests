@@ -11,3 +11,10 @@ ADD utils/build/docker/php/common/install_ddtrace.sh /install_ddtrace.sh
 
 ADD binaries* /binaries/
 RUN /install_ddtrace.sh 1
+
+ADD utils/build/docker/php/apache-mod/entrypoint.sh /entrypoint.sh
+WORKDIR /binaries
+ENTRYPOINT []
+RUN echo "#!/bin/bash\nexec dumb-init /entrypoint.sh" > app.sh
+RUN chmod +x app.sh
+CMD [ "./app.sh" ]
