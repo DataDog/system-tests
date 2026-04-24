@@ -238,11 +238,6 @@ ignore = [
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
-"utils/docker_ssi/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ANN205",  # issing-return-type-static-method: TODO
-]
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "ANN003",   # missing-type-kwargs: TODO
