@@ -133,7 +133,7 @@ def send_state(
 
         if wait_for_acknowledged_status:
             for state in current_states.configs.values():
-                if state["apply_state"] == ApplyState.UNKNOWN:
+                if state["apply_state"] != ApplyState.ACKNOWLEDGED:
                     return False
 
         current_states.state = ApplyState.ACKNOWLEDGED
