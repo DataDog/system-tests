@@ -121,7 +121,7 @@ class DockerScenario(Scenario):
 
         # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
         # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver(timeout=0.1)
+        observer = PollingObserver()
 
         for interface in interfaces:
             observer.schedule(Event(interface), path=interface.log_folder)
@@ -315,14 +315,14 @@ class EndToEndScenario(DockerScenario):
         if self._library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
-            elif library == "golang":
+            elif library in ("golang",):
                 self.library_interface_timeout = 10
             elif library in ("nodejs", "ruby"):
                 self.library_interface_timeout = 0
-            elif library == "php":
+            elif library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
-            elif library == "python":
+            elif library in ("python",):
                 self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
