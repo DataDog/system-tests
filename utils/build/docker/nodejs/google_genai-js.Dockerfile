@@ -8,11 +8,13 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/google_genai_app /usr/app
-
 WORKDIR /usr/app
 
-RUN npm install || sleep 60 && npm install
+COPY utils/build/docker/nodejs/google_genai_app/package.json utils/build/docker/nodejs/google_genai_app/package-lock.json ./
+RUN npm ci
+
+COPY utils/build/docker/nodejs/google_genai_app /usr/app
+
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         npm install @google/genai; \
     else \

@@ -7,13 +7,14 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/fastify /usr/app
-
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install || sleep 60 && npm install
+COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fastify/package-lock.json ./
+RUN npm ci
+
+COPY utils/build/docker/nodejs/fastify /usr/app
 
 EXPOSE 7777
 

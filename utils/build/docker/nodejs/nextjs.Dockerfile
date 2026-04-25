@@ -7,11 +7,12 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/nextjs /usr/app
-
 WORKDIR /usr/app
 
-RUN npm install || sleep 60 && npm install
+COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/package-lock.json ./
+RUN npm ci
+
+COPY utils/build/docker/nodejs/nextjs /usr/app
 
 EXPOSE 7777
 
