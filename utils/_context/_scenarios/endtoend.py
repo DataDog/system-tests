@@ -121,7 +121,7 @@ class DockerScenario(Scenario):
 
         # lot of issue using the default OS dependant notifiers (not working on WSL, reaching some inotify watcher
         # limits on Linux) -> using the good old bare polling system
-        observer = PollingObserver()
+        observer = PollingObserver(timeout=0.1)
 
         for interface in interfaces:
             observer.schedule(Event(interface), path=interface.log_folder)
