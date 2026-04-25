@@ -93,13 +93,11 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
             if not self.probe_spans[expected_trace]:
                 raise ValueError(f"No spans found for trace {expected_trace}")
 
-    def _get_snapshot_ddtag_entries(self, snapshot: dict, probe_id: str) -> list[str]:
-        assert "query" in snapshot, f"Missing 'query' in snapshot for probe {probe_id}"
-        assert isinstance(snapshot["query"], dict)
+    def _parse_ddtag_entries(self, raw_ddtags: list[str] | str | None) -> list[str]:
+        if raw_ddtags is None:
+            return []
 
-        ddtags_entries = snapshot["query"].get("ddtags", [])
-        assert isinstance(ddtags_entries, list)
-
+        ddtags_entries = raw_ddtags if isinstance(raw_ddtags, list) else [raw_ddtags]
         return [
             tag.strip()
             for tag_entry in ddtags_entries
@@ -107,6 +105,18 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
             for tag in tag_entry.split(",")
             if tag.strip()
         ]
+
+    def _get_snapshot_ddtag_entries(self, snapshot: dict, probe_id: str) -> list[str]:
+        assert "query" in snapshot, f"Missing 'query' in snapshot for probe {probe_id}"
+        assert isinstance(snapshot["query"], dict)
+
+        query_ddtags = snapshot["query"].get("ddtags", [])
+        assert isinstance(query_ddtags, list)
+
+        payload_ddtags = snapshot.get("ddtags")
+        assert payload_ddtags is None or isinstance(payload_ddtags, (list, str))
+
+        return self._parse_ddtag_entries(query_ddtags) + self._parse_ddtag_entries(payload_ddtags)
 
     def _validate_scm_tags(self):
         expected_repo_tag = "git.repository_url:https://github.com/datadog/hello"
