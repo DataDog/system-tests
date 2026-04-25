@@ -26,28 +26,32 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(*, enabled: bool | None = None, reset: bool = True):
+        def _configure(*, enabled: bool | None = None, reset: bool = True):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
-
             self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=enabled, reset=reset)
-            self.send_weblog_request("/debugger/log")
 
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
         self.rc_states = []
 
-        _send_config()
+        _configure()
+        self.send_weblog_request("/debugger/log")
         self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=True, reset=False)
+        _configure(enabled=True, reset=False)
+        self.wait_for_all_probes(statuses=["INSTALLED"], timeout=TIMEOUT)
+        self.send_weblog_request("/debugger/log")
         self.di_explicit_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(reset=False)
+        _configure(reset=False)
+        self.wait_for_all_probes(statuses=["INSTALLED"], timeout=TIMEOUT)
+        self.send_weblog_request("/debugger/log")
         self.di_empty_config = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=False, reset=False)
+        _configure(enabled=False, reset=False)
+        self.send_weblog_request("/debugger/log")
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
     def test_inproduct_enablement_di(self):
