@@ -10,10 +10,8 @@ RUN node --version && npm --version && curl --version
 
 WORKDIR /usr/app
 
-COPY utils/build/docker/nodejs/openai_app/package.json utils/build/docker/nodejs/openai_app/package-lock.json ./
-RUN npm ci
-
 COPY utils/build/docker/nodejs/openai_app /usr/app
+RUN npm ci
 
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         npm install openai; \

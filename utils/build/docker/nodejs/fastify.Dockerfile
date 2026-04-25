@@ -11,10 +11,8 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fastify/package-lock.json ./
-RUN npm ci
-
 COPY utils/build/docker/nodejs/fastify /usr/app
+RUN npm ci
 
 EXPOSE 7777
 

@@ -9,10 +9,8 @@ RUN node --version && npm --version && curl --version
 
 WORKDIR /usr/app
 
-COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/package-lock.json ./
-RUN npm ci
-
 COPY utils/build/docker/nodejs/nextjs /usr/app
+RUN npm ci
 
 EXPOSE 7777
 

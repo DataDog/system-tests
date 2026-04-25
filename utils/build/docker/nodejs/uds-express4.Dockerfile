@@ -11,10 +11,9 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
+COPY utils/build/docker/nodejs/express /usr/app
 COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/package-lock.json ./
 RUN npm ci
-
-COPY utils/build/docker/nodejs/express /usr/app
 
 EXPOSE 7777
 
