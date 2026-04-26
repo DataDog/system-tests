@@ -14,7 +14,7 @@ ENV NODE_ENV=production
 COPY utils/build/docker/nodejs/express /usr/app
 #overwrite app.js and package files
 COPY utils/build/docker/nodejs_otel/express4-otel /usr/app
-RUN npm ci
+RUN npm ci || sleep 30 && npm ci
 
 EXPOSE 7777
 

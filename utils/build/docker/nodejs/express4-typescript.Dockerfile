@@ -10,7 +10,7 @@ RUN node --version && npm --version && curl --version
 WORKDIR /usr/app
 
 COPY utils/build/docker/nodejs/express4-typescript /usr/app
-RUN npm ci
+RUN npm ci || sleep 30 && npm ci
 
 EXPOSE 7777
 

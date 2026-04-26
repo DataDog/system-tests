@@ -13,7 +13,7 @@ ENV NODE_ENV=production
 
 COPY utils/build/docker/nodejs/express /usr/app
 COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/package-lock.json ./
-RUN npm ci
+RUN npm ci || sleep 30 && npm ci
 
 EXPOSE 7777
 
