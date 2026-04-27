@@ -78,3 +78,6 @@ go.work*
 
 # Hypothesis Python package
 .hypothesis/
+
+# Rust
+target
