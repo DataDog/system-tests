@@ -288,7 +288,42 @@ parse_str($query, $queryParams);
 if (count($parts) === 1) {
     switch ($parts[0]) {
         case 'init':
-            echo "Debugger initialized";
+            // If 'probes' query param is provided (comma-separated probe IDs), loop until
+            // all requested probe IDs appear in the loaded remote config, then return.
+            // Without 'probes', just trigger RC processing and return immediately.
+            $expectedProbes = isset($queryParams['probes']) && $queryParams['probes'] !== ''
+                ? explode(',', $queryParams['probes'])
+                : [];
+            $timeoutMs = isset($queryParams['timeout']) ? (int)$queryParams['timeout'] : 5000;
+            $deadline = microtime(true) * 1000 + $timeoutMs;
+
+            do {
+                $loadedConfigs = dd_trace_internal_fn('get_loaded_remote_configs') ?: [];
+                $loadedKeys = array_keys($loadedConfigs);
+
+                $missing = [];
+                foreach ($expectedProbes as $probeId) {
+                    $found = false;
+                    foreach ($loadedKeys as $configId) {
+                        if (strpos($configId, $probeId) !== false) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $missing[] = $probeId;
+                    }
+                }
+
+                if (empty($missing)) {
+                    break;
+                }
+
+                usleep(10000); // 10ms between polls
+            } while (microtime(true) * 1000 < $deadline);
+
+            header('Content-Type: application/json');
+            echo json_encode($loadedConfigs);
             break;
         case 'log':
             echo $controller->LogProbe();
