@@ -94,7 +94,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        express4: *ref_5_98_0
+        express4: *ref_5_99_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
