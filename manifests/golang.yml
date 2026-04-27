@@ -863,8 +863,10 @@ manifest:
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.2.3
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors: bug (FFL-2182)
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
   tests/ffe/test_flag_eval_metrics.py: v2.9.0-dev
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex: irrelevant (Go validates regex at config load time)
