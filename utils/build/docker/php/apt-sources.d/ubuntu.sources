@@ -1,17 +1,17 @@
-# Defaults for noble, without noble-backports suites and restrictied/multiverse components
-# Use azure mirror for archive.ubuntu.com for (hopefull) faster downloads from GitHub Actions.
+# Defaults for noble, without noble-backports suites and restricted/multiverse components.
+# Use the azure mirror for amd64/i386 (fast on GitHub Actions) and
+# ports.ubuntu.com for arm64/armhf (the only official source for those archs).
 
 Types: deb
 URIs: http://azure.archive.ubuntu.com/ubuntu/
 Suites: noble noble-updates noble-security
 Components: main universe
+Architectures: amd64 i386
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-# Disable security.ubuntu.com, we'll eventually get security updates from the other mirrors.
-# Timely updates would rarely be relevant here since we often cache these images.
-#   Types: deb
-#   URIs: http://security.ubuntu.com/ubuntu/
-#   Suites: noble-security
-#   Components: main universe
-#   Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-
+Types: deb
+URIs: http://ports.ubuntu.com/ubuntu-ports/
+Suites: noble noble-updates noble-security
+Components: main universe
+Architectures: arm64 armhf
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg

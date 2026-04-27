@@ -308,11 +308,11 @@ class BaseDebuggerTest:
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
 
-        # PHP tracer requires a request to /debugger/* to start logging the probe information.
-        # Two calls ensure the sidecar has had time to poll the new RC (poll interval: 100ms).
+        # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
         if context.library == "php":
-            weblog.get("/debugger/init")
-            weblog.get("/debugger/init")
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_apm_tracing(
         self,
@@ -389,11 +389,11 @@ class BaseDebuggerTest:
             )
         )
 
-        # PHP tracer requires a request to /debugger/* to process RC before the test request.
-        # Two calls ensure the sidecar has had time to poll the new RC (poll interval: 100ms).
+        # PHP tracer requires requests to /debugger/* to process RC before the test request.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
         if context.library == "php":
-            weblog.get("/debugger/init")
-            weblog.get("/debugger/init")
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
