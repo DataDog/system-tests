@@ -12,7 +12,7 @@ WORKDIR /usr/app
 ENV NODE_ENV=production
 
 COPY utils/build/docker/nodejs/fastify /usr/app
-RUN npm ci || sleep 30 && npm ci
+RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 

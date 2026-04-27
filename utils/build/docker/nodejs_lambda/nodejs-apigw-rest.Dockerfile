@@ -11,7 +11,7 @@ RUN chmod +x /binaries/install_datadog_lambda.sh && /binaries/install_datadog_la
 
 # Setup the Lambda handler
 COPY utils/build/docker/nodejs_lambda/function/. ${LAMBDA_TASK_ROOT}
-RUN cd ${LAMBDA_TASK_ROOT} && (npm ci || sleep 30 && npm ci)
+RUN cd ${LAMBDA_TASK_ROOT} && (npm ci || (sleep 30 && npm ci))
 
 ENV DD_LAMBDA_HANDLER=handler.handler
 ENV _HANDLER=/opt/nodejs/node_modules/datadog-lambda-js/handler.handler

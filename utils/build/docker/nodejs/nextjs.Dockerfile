@@ -10,7 +10,7 @@ RUN node --version && npm --version && curl --version
 WORKDIR /usr/app
 
 COPY utils/build/docker/nodejs/nextjs /usr/app
-RUN npm ci || sleep 30 && npm ci
+RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 
