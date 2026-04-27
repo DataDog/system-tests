@@ -257,7 +257,7 @@ jobs:
     needs:
       - compute_parameters
       - build_end_to_end
-    if: ${{ always() && needs.build_end_to_end.result != 'failure' && needs.compute_parameters.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ needs.build_end_to_end.result != 'failure' && needs.compute_parameters.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' && !cancelled() }}
     strategy:
       matrix:
         job: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_jobs) }}
@@ -287,6 +287,7 @@ jobs:
       _build_proxy_image: ${{ inputs._build_proxy_image }}
       _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
+      _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
 
   display_summary:
     name: Report failures
@@ -294,7 +295,7 @@ jobs:
       - compute_parameters
       - run_end_to_end
       - parametric
-    if: always() && inputs.display_summary == true
+    if: inputs.display_summary == true && !cancelled()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

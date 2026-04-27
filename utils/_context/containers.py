@@ -953,18 +953,6 @@ class WeblogContainer(TestedContainer):
     def trace_agent_port(self):
         return ProxyPorts.weblog
 
-    @staticmethod
-    def _get_image_list_from_dockerfile(dockerfile: str) -> list[str]:
-        result = []
-
-        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
-        with open(dockerfile, encoding="utf-8") as f:
-            for line in f:
-                if match := pattern.match(line):
-                    result.append(match.group("image_name"))
-
-        return result
-
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Returns images needed to build the weblog"""
 
