@@ -440,6 +440,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v2.3.0-dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:

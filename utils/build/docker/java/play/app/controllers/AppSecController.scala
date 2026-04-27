@@ -164,7 +164,11 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       case AnyContentAsFormUrlEncoded(data) =>
         Results.Ok(data.toString())
       case AnyContentAsMultipartFormData(mpfd) =>
-        Results.Ok(mpfd.dataParts.toString())
+        val sb = new StringBuilder()
+        mpfd.files.foreach { file =>
+          sb.append(new String(java.nio.file.Files.readAllBytes(file.ref.path)))
+        }
+        Results.Ok(sb.toString())
       case AnyContentAsJson(data) =>
         Results.Ok(Json.stringify(data))
       case AnyContentAsXml(data) =>

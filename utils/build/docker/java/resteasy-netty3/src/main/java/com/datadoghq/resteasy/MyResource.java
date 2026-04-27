@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.List;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
@@ -288,6 +290,13 @@ public class MyResource {
     @Consumes(MediaType.TEXT_PLAIN)
     public String postWafString(String data) {
         return data;
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes("multipart/form-data")
+    public String postWafMultipart(InputStream body) throws IOException {
+        return new String(body.readAllBytes());
     }
 
     @GET

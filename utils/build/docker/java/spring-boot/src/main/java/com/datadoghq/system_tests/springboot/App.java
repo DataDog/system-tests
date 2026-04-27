@@ -303,6 +303,15 @@ public class App {
         return object.toString();
     }
 
+    @PostMapping(value = "/waf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> postWafMultipart(HttpServletRequest request) throws Exception {
+        var sb = new StringBuilder();
+        for (var part : request.getParts()) {
+            sb.append(new String(part.getInputStream().readAllBytes()));
+        }
+        return ResponseEntity.ok(sb.toString());
+    }
+
     @GetMapping(value = "/session/new")
     ResponseEntity<String> newSession(final HttpServletRequest request) {
         final HttpSession session = request.getSession(true);
