@@ -738,8 +738,6 @@ class BaseSCAStandaloneTelemetry:
         assert configuration_by_name
 
         dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
-        dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
-
         cfg_appsec_enabled = next(
             (
                 configuration_by_name.get(config_name)
@@ -748,7 +746,9 @@ class BaseSCAStandaloneTelemetry:
             ),
             None,
         )
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+        assert cfg_appsec_enabled is not None, (
+            f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+        )
 
         outcome_value: bool | str = True
         if context.library in ["java", "php"]:

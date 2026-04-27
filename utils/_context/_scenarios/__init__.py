@@ -412,6 +412,17 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    runtime_sca_reachability = EndToEndScenario(
+        "RUNTIME_SCA_REACHABILITY",
+        weblog_env={
+            "DD_APPSEC_SCA_ENABLED": "true",
+        },
+        doc="""
+            Scenario to test SCA telemetry events
+        """,
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={
@@ -1235,7 +1246,10 @@ class _Scenarios:
     ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
         weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
             "DD_API_KEY": "mock_api_key",

@@ -14,12 +14,16 @@ CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
     go mod edit -replace "$MAIN_MODULE=/binaries/dd-trace-go"
-    for contrib in $CONTRIBS; do
-        path="${contrib#github.com/DataDog/dd-trace-go/}"
-        path="${path%/v2}"
-        echo "Install contrib $contrib from folder /binaries/dd-trace-go/$path"
-        go mod edit -replace "github.com/DataDog/dd-trace-go/$path/v2=/binaries/dd-trace-go/$path"
-    done
+    # Add replace directives for all dd-trace-go submodules (contribs and others
+    # like instrumentation/testutils/grpc).
+    while IFS= read -r gomod; do
+        moddir="$(dirname "$gomod")"
+        modname="$(grep '^module ' "$gomod" | awk '{print $2}')"
+        if [[ "$modname" == github.com/DataDog/dd-trace-go/* ]] && [[ "$modname" != "$MAIN_MODULE" ]]; then
+            echo "Install contrib $modname from folder $moddir"
+            go mod edit -replace "$modname=$moddir"
+        fi
+    done < <(find /binaries/dd-trace-go -name "go.mod" -not -path "*/_*")
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get"
     # Read the file into an array to ensure we capture all lines

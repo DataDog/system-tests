@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -440,6 +441,11 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.6.2
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
@@ -463,6 +469,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (PHP normalizes into dashes; additionally, matching on keys is not supported)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams: v0.71.0
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0
@@ -915,6 +922,9 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: v1.19.0
+  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
+    - component_version: ">=1.19.0"
+      declaration: bug (APMLP-1311)
   tests/stats/test_stats.py::Test_Client_Stats::test_disable: v1.17.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (PHP does not support gRPC)
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature
@@ -1069,6 +1079,7 @@ manifest:
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace: irrelevant (Trace method does not reach php-land)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62222)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v1.9.0
   tests/test_standard_tags.py::Test_StandardTagsRoute: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.75.0

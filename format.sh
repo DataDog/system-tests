@@ -66,7 +66,7 @@ fi
 
 echo "Checking trailing whitespaces..."
 INCLUDE_PATTERN='.*\.(md|yml|yaml|sh|cs|Dockerfile|java|sql|ts|js|php)$'
-EXCLUDE_PATTERN='utils/build/virtual_machine'
+EXCLUDE_PATTERN='utils/build/virtual_machine|/node_modules/'
 # Check all files tracked by git, and matching include/exclude patterns
 FILES="$(git ls-files | grep -v -E "$EXCLUDE_PATTERN" | grep -E "$INCLUDE_PATTERN" | while read f ; do grep -l ' $' "$f" || true ; done)"
 

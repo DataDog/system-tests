@@ -36,6 +36,7 @@ manifest:
   tests/test_semantic_conventions.py: v1.72.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag: v2.3.0
   tests/test_standard_tags.py: v1.72.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v0.1  # unknown initial version
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
