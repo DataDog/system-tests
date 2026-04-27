@@ -10,7 +10,7 @@ class DebuggerScenario(EndToEndScenario):
     def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             # added temporarily to troubleshoot debugger test flakiness
             "JAVA_OPTS": " -Ddatadog.slf4j.simpleLogger.log.com.datadog.debugger=debug ",
         }
