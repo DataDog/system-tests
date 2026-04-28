@@ -852,6 +852,10 @@ class Test_FFE_REASON_11_StaticNoMatchingSplit:
         assert get_tag_value(tags, "feature_flag.result.variant") in (None, "n/a"), (
             f"REASON-11: Expected no platform variant (shard miss, coded default returned), got tags: {tags}"
         )
+        # Shard miss → allocation skipped → no allocation was selected; tag absent.
+        assert get_tag_value(tags, "feature_flag.result.allocation_key") is None, (
+            f"REASON-11: Expected no allocation_key (shard miss → allocation skipped → waterfall exhausted), got tags: {tags}"
+        )
 
 
 # ---------------------------------------------------------------------------
