@@ -99,6 +99,11 @@ on:
         default: false
         required: false
         type: boolean
+      remove_android:
+        description: "Remove /usr/local/lib/android to free up disk space before pulling images"
+        default: true
+        required: false
+        type: boolean
       _system_tests_library_target_branch_map:
         description: "If system-tests dev mode, JSON map of library to branch (e.g. {\"java\":\"b1\",\"dotnet\":\"b2\"})"
         default: ''
@@ -288,6 +293,7 @@ jobs:
       _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
+      remove_android: ${{ inputs.remove_android }}
 
   display_summary:
     name: Report failures

@@ -18,6 +18,10 @@ inputs:
     description: "To prevent reaching docker hub API limits, provide a username and token to login to docker hub"
     required: false
     default: ""
+  remove_android:
+    description: "Run the Android cleanup step (rm -rf /usr/local/lib/android)"
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -37,7 +41,8 @@ runs:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
-    - name: clean-up
+    - name: remove-android
+      if: inputs.remove_android == 'true'
       shell: bash
       run: sudo rm -rf /usr/local/lib/android
 
