@@ -412,6 +412,17 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    runtime_sca_reachability = EndToEndScenario(
+        "RUNTIME_SCA_REACHABILITY",
+        weblog_env={
+            "DD_APPSEC_SCA_ENABLED": "true",
+        },
+        doc="""
+            Scenario to test SCA telemetry events
+        """,
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={
@@ -1188,6 +1199,20 @@ class _Scenarios:
         doc="Test runtime metrics",
     )
 
+    otlp_runtime_metrics = EndToEndScenario(
+        "OTLP_RUNTIME_METRICS",
+        weblog_env={
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
+            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        runtime_metrics_enabled=True,
+        include_opentelemetry=True,
+        library_interface_timeout=20,
+        doc="Test runtime metrics exported via OTLP with OTel semantic convention names",
+    )
+
     # Appsec Lambda Scenarios
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
@@ -1235,7 +1260,10 @@ class _Scenarios:
     ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
         weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
             "DD_API_KEY": "mock_api_key",

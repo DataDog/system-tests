@@ -5,21 +5,36 @@ set -e
 PHP_VERSION=$1
 PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
 
+# Override apt sources to avoid backpports, restricted and multiverse (speed up update runs).
+cp /tmp/php/apt-sources.d/ubuntu.sources /etc/apt/sources.list.d/
+
+# Non-interactive mode for all apt commands.
+export DEBIAN_FRONTEND=noninteractive
+
+# Install nala (https://github.com/volitank/nala) for mirror selection and parallelization.
+# nala initiates 3 parallel downloads per mirror.
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata publicsuffix
+apt-get install -y nala
 
-printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
-	chmod +x /usr/sbin/policy-rc.d && \
-	apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common jq ca-certificates git \
-	&& rm -rf /var/lib/apt/lists/* && \
-	rm -rf /usr/sbin/policy-rc.d
+# To use additional mirrors, selected by lowest latency probe, uncomment the following.
+# However, the time to probe mirrors, plus the chance of selecting an improperly sync'd
+# mirror, make this sometimes more unreliable than relying on our defaults.
+#   nala fetch --auto --country US --country FR
+#   sed -i -e 's~ restricted~~g' -e 's~ multiverse ~~g' /etc/apt/sources.list.d/nala-sources.list
 
-add-apt-repository ppa:ondrej/apache2 -y
-add-apt-repository ppa:ondrej/php -y
-apt-get update
+# Install PPAs
+cp /tmp/php/apt-sources.d/ondrej-ubuntu-{php,apache2}-noble.sources /etc/apt/sources.list.d/
 
-apt-get install -y php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-mongodb
-apt-get install -y
+nala update
+
+# exit 101 here prevents services from starting automatically during install
+printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d
+chmod +x /usr/sbin/policy-rc.d
+
+nala install -y --no-install-recommends tzdata publicsuffix curl apache2 libapache2-mod-fcgid jq ca-certificates git php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-mongodb
+
+rm -rf /usr/sbin/policy-rc.d
+rm -rf /var/lib/apt/lists/*
 
 find /var/www/html -mindepth 1 -delete
 
