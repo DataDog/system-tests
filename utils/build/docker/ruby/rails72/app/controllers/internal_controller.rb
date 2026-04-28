@@ -49,7 +49,8 @@ class InternalController < ApplicationController
         end
       end
     rescue => e
-      Rails.logger.warn("Failed to flush OTel metrics: #{e.class}: #{e}")
+      Rails.logger.error("Failed to flush OTel metrics: #{e.class}: #{e}\n#{e.backtrace.join("\n")}")
+      raise
     end
 
     render plain: 'OK'
