@@ -599,6 +599,7 @@ if __name__ == "__main__":
             "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
             "APPSEC_API_SECURITY_RC",
             "APPSEC_API_SECURITY_WITH_SAMPLING",
+            "APPSEC_AUTO_EVENTS_DISABLED",
             "APPSEC_AUTO_EVENTS_EXTENDED",
             "APPSEC_AUTO_EVENTS_RC",
             "APPSEC_BLOCKING",

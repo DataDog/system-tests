@@ -547,6 +547,199 @@ class Test_Login_Events_Extended:
         interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
+@rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
+@scenarios.appsec_auto_events_disabled
+@features.user_monitoring
+class Test_Login_Events_Disabled:
+    """Test that disabled mode suppresses all automated login event tags (R4)."""
+
+    def setup_login_success_local(self):
+        self.r_success = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
+
+    def test_login_success_local(self):
+        """Validates that a successful login with local auth produces no automated
+        user event tags when tracking is disabled (R4). The trace must not be
+        force-kept since no automated event is generated (R11 inverse).
+        """
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
+            assert "appsec.events.users.login.success.track" not in meta
+            assert "usr.id" not in meta
+            assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
+
+    def setup_login_success_basic(self):
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
+
+    def test_login_success_basic(self):
+        """Validates that a successful login with basic auth produces no automated
+        user event tags when tracking is disabled (R4). The trace must not be
+        force-kept since no automated event is generated (R11 inverse).
+        """
+        assert self.r_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
+            assert "appsec.events.users.login.success.track" not in meta
+            assert "usr.id" not in meta
+            assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
+
+    def setup_login_wrong_user_failure_local(self):
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
+
+    def test_login_wrong_user_failure_local(self):
+        """Validates that a failed login (unknown user) with local auth produces no
+        automated user event tags when tracking is disabled (R4). The trace must not
+        be force-kept since no automated event is generated (R11 inverse).
+        """
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
+            assert "appsec.events.users.login.failure.track" not in meta
+            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert "appsec.events.users.login.failure.usr.exists" not in meta
+            assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
+
+    def setup_login_wrong_user_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
+        )
+
+    def test_login_wrong_user_failure_basic(self):
+        """Validates that a failed login (unknown user) with basic auth produces no
+        automated user event tags when tracking is disabled (R4). The trace must not
+        be force-kept since no automated event is generated (R11 inverse).
+        """
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
+            assert "appsec.events.users.login.failure.track" not in meta
+            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert "appsec.events.users.login.failure.usr.exists" not in meta
+            assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
+
+    def setup_login_wrong_password_failure_local(self):
+        self.r_wrong_pw_failure = weblog.post("/login?auth=local", data=login_data(USER, "wrongpassword"))
+
+    def test_login_wrong_password_failure_local(self):
+        """Validates that a failed login (wrong password) with local auth produces no
+        automated user event tags when tracking is disabled (R4). The trace must not
+        be force-kept since no automated event is generated (R11 inverse).
+        """
+        assert self.r_wrong_pw_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_pw_failure):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
+            assert "appsec.events.users.login.failure.track" not in meta
+            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert "appsec.events.users.login.failure.usr.exists" not in meta
+            assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
+
+    def setup_login_wrong_password_failure_basic(self):
+        self.r_wrong_pw_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
+        )
+
+    def test_login_wrong_password_failure_basic(self):
+        """Validates that a failed login (wrong password) with basic auth produces no
+        automated user event tags when tracking is disabled (R4). The trace must not
+        be force-kept since no automated event is generated (R11 inverse).
+        """
+        assert self.r_wrong_pw_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_pw_failure):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
+            assert "appsec.events.users.login.failure.track" not in meta
+            assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert "appsec.events.users.login.failure.usr.exists" not in meta
+            assert span.get_sampling_priority() != SamplingPriority.USER_KEEP
+
+    def setup_login_sdk_success_local(self):
+        self.r_sdk_success = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(USER, PASSWORD),
+        )
+
+    def test_login_sdk_success_local(self):
+        """Validates that SDK-triggered login success events still fire when auto-tracking
+        is disabled (R8). The auto.mode tag must be absent or 'disabled' (auto-tracking never ran), SDK
+        tags and force-keep priority must be present.
+        """
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span)
+
+    def setup_login_sdk_success_basic(self):
+        self.r_sdk_success = weblog.get(
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
+        )
+
+    def test_login_sdk_success_basic(self):
+        """Validates that SDK-triggered login success events still fire when auto-tracking
+        is disabled (R8), using basic auth. The auto.mode tag must be absent (auto-tracking
+        never ran), SDK tags and force-keep priority must be present.
+        """
+        assert self.r_sdk_success.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["usr.id"] == "sdkUser"
+            assert_priority(span)
+
+    def setup_login_sdk_failure_local(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data=login_data(INVALID_USER, PASSWORD),
+        )
+
+    def test_login_sdk_failure_local(self):
+        """Validates that SDK-triggered login failure events still fire when auto-tracking
+        is disabled (R8). The auto.mode tag must be absent or 'disabled' (auto-tracking never ran), SDK
+        tags, failure info, and force-keep priority must be present.
+        """
+        assert self.r_sdk_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+            assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert_priority(span)
+
+    def setup_login_sdk_failure_basic(self):
+        self.r_sdk_failure = weblog.get(
+            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
+        )
+
+    def test_login_sdk_failure_basic(self):
+        """Validates that SDK-triggered login failure events still fire when auto-tracking
+        is disabled (R8), using basic auth. The auto.mode tag must be absent (auto-tracking
+        never ran), SDK tags, failure info, and force-keep priority must be present.
+        """
+        assert self.r_sdk_failure.status_code == 401
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.failure.auto.mode", "disabled") == "disabled"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+            assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert_priority(span)
+
+
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
 @features.user_id_collection_modes
@@ -1136,7 +1329,7 @@ class Test_V2_Login_Events_RC:
 
     def test_rc(self):
         def validate_disabled(meta: dict):
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
 
         def validate_anon(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
@@ -1776,7 +1969,7 @@ class Test_V3_Login_Events_RC:
 
     def test_rc(self):
         def validate_disabled(meta: dict):
-            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.auto.mode", "disabled") == "disabled"
 
         def validate_anon(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"

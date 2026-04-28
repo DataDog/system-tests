@@ -421,6 +421,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (Go only supports SDK events)
         net-http-orchestrion: missing_feature
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: irrelevant (Go only supports SDK events)
