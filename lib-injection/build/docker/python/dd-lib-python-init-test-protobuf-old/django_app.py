@@ -1,15 +1,14 @@
 import os
 import signal
 import sys
-import types
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from django.urls import path
 
 import addressbook_pb2
 
 
-def handle_sigterm(signo: int, sf: types.FrameType | None) -> None:
+def handle_sigterm(signo, sf):
     sys.exit(0)
 
 
@@ -23,7 +22,7 @@ SECRET_KEY = "fdsfdasfa"
 ALLOWED_HOSTS = ["*"]
 
 
-def index(request: HttpRequest):
+def index(request):
     # Do some stuff with the protobuf
     person = addressbook_pb2.Person()
     person.id = 1234
