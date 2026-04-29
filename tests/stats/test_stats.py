@@ -1,5 +1,6 @@
 import contextlib
 import pytest
+
 from utils import features, interfaces, logger, scenarios, weblog
 
 """
@@ -132,6 +133,148 @@ class Test_Client_Stats:
         assert any(stat.get("GRPCStatusCode") == "0" for stat in grpc_stats), (
             f"Expected a gRPC stats entry with GRPCStatusCode=0, got: {grpc_stats}"
         )
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation
+class Test_Client_Stats_With_Client_Obfuscation:
+    """Test client-side stats do the obfuscation before-hand when available"""
+
+    def setup_obfuscation(self):
+        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_obfuscation(self):
+        """Test that SQL resources are obfuscated before stats aggregation.
+
+        Validates:
+        - Datadog-Obfuscation-Version header is present on stats payloads
+        - SQL resource names are obfuscated (literals replaced with ?)
+        - All 4 distinct queries are aggregated into a single obfuscated resource bucket
+        """
+        want = "SELECT * FROM users WHERE id = ?"
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+                assert int(headers["datadog-obfuscation-version"]) >= 1, (
+                    f"Expected obfuscation version to be >= 1, got '{headers['datadog-obfuscation-version']}'"
+                )
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                        sql_stats.append(stat)
+
+        assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
+
+        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
+        for stat in sql_stats:
+            assert stat["Resource"] == want, f"Expected obfuscated resource '{want}', got '{stat['Resource']}'"
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_obfuscation_disabled
+class Test_Client_Stats_With_Client_Obfuscation_Disabled:
+    """Test that libraries read the agent /info to respect the obfuscation config"""
+
+    TEST_USER_IDS = ["1", "2", "admin", "test"]
+
+    def setup_obfuscation(self):
+        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
+        for user_id in self.TEST_USER_IDS:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_obfuscation(self):
+        """Test that SQL resources are obfuscated before stats aggregation.
+
+        Validates:
+        - Datadog-Obfuscation-Version header is present on stats payloads
+        - SQL resource names are not obfuscated, only normalized
+        """
+        want_prefix = "SELECT * FROM users WHERE id = "
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+                assert int(headers["datadog-obfuscation-version"]) >= 1, (
+                    f"Expected obfuscation version to be >= 1, got '{headers['datadog-obfuscation-version']}'"
+                )
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                        sql_stats.append(stat)
+
+        assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
+
+        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
+        # NormalizeOnly mode preserves string literals including surrounding single quotes.
+        # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
+        # suffix appears as e.g. "'1'" (with quotes). Accept both quoted and unquoted forms
+        # to be compatible with tracers that may strip the quotes.
+        quoted_user_ids = {f"'{uid}'" for uid in self.TEST_USER_IDS}
+        accepted_suffixes = set(self.TEST_USER_IDS) | quoted_user_ids
+        for stat in sql_stats:
+            query = stat["Resource"]
+            # assert that query is in the form SELECT * FROM users WHERE id = [one of the user ids]
+            assert query.startswith(want_prefix)
+            assert query.removeprefix(want_prefix) in accepted_suffixes
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_future_obfuscation_version
+class Test_Client_Stats_Future_Obfuscation_Version:
+    """Test that the SDK skips client-side obfuscation when the agent advertises a future/unknown obfuscation version"""
+
+    def setup_no_obfuscation(self):
+        """Setup for future obfuscation version test - generates SQL spans"""
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_no_obfuscation(self):
+        """Test that the SDK does not obfuscate stats and does not send the obfuscation header
+        when the agent reports an obfuscation_version higher than what the SDK supports (99).
+
+        Validates:
+        - Datadog-Obfuscation-Version header is NOT present on any stats payload
+        - SQL resource names are NOT obfuscated (raw literals still present)
+        """
+        sql_stats = []
+        obfuscation_header_found = False
+
+        for data in interfaces.library.get_data("/v0.6/stats"):
+            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-obfuscation-version" in headers:
+                obfuscation_header_found = True
+
+            payload = data["request"]["content"]
+            for bucket in payload.get("Stats", []):
+                for stat in bucket.get("Stats", []):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                        sql_stats.append(stat)
+
+        assert not obfuscation_header_found, (
+            "Datadog-Obfuscation-Version header should NOT be present when agent reports a future obfuscation version"
+        )
+
+        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
+        for stat in sql_stats:
+            assert "?" not in stat["Resource"], (
+                f"SQL resource should NOT be obfuscated when agent reports a future obfuscation version, "
+                f"but got: '{stat['Resource']}'"
+            )
 
 
 @features.service_override_source
