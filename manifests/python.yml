@@ -1794,6 +1794,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: v4.10.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0
