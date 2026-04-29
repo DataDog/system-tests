@@ -1210,6 +1210,8 @@ This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method fr
 - **Content-Type:** `application/json`
 - **Body:** List of AI Guard `Message` objects to be evaluated
 - **Header:** `X-AI-Guard-Block` (optional, default: `false`) - Controls whether blocking is enabled
+- **Header:** `X-User-Id` (optional) - If present and non-empty, sets `usr.id` on the local root span
+- **Header:** `X-Session-Id` (optional) - If present and non-empty, sets `session.id` on the local root span
 
 **Request Body Example:**
 ```json
