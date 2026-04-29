@@ -31,7 +31,6 @@ class ProfilingScenario(EndToEndScenario):
         if library == "nodejs":
             self.library_interface_timeout = 10
             self.weblog_container.environment["DD_PROFILING_UPLOAD_PERIOD"] = "5"
-            self.weblog_container.environment["DD_PROFILING_START_FORCE_FIRST"] = "true"
 
         if library == "dotnet":
             # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
