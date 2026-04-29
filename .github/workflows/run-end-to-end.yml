@@ -149,11 +149,16 @@ jobs:
         # sudo mkdir -p "${GITHUB_WORKSPACE}"
         # sudo find "${GITHUB_WORKSPACE}" -maxdepth 0 ! -empty -exec echo 'WARNING: directory [{}] is not empty, data loss might occur. Content:' \; -exec ls -al "{}" \;
 
-        # android not removed because it takes forever
+        # only android system images removed, the rest takes too long
         # docker cache not removed because we use Docker so it could be useful
         echo "Removing unwanted software... "
+        echo "  Android System Images... "
+        sudo rm -rf /usr/local/lib/android/sdk/system-images
+        echo "  .NET... "
         sudo rm -rf /usr/share/dotnet
+        echo "  Haskell... "
         sudo rm -rf /opt/ghc
+        echo "  CodeQL... "
         sudo rm -rf /opt/hostedtoolcache/CodeQL
         echo "... done"
 
