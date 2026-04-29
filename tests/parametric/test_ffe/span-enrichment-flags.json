@@ -1,0 +1,146 @@
+{
+  "createdAt": "2024-04-17T19:40:53.716Z",
+  "format": "SERVER",
+  "environment": {
+    "name": "Test"
+  },
+  "flags": {
+    "basic-flag": {
+      "key": "basic-flag",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": {
+          "key": "on",
+          "value": true
+        },
+        "off": {
+          "key": "off",
+          "value": false
+        }
+      },
+      "allocations": [
+        {
+          "key": "on-allocation",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "on",
+              "shards": [],
+              "serialId": 100
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "experiment-flag": {
+      "key": "experiment-flag",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": {
+          "key": "control",
+          "value": "control"
+        },
+        "treatment": {
+          "key": "treatment",
+          "value": "treatment"
+        }
+      },
+      "allocations": [
+        {
+          "key": "experiment-allocation",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "treatment",
+              "shards": [],
+              "serialId": 108
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "no-log-flag": {
+      "key": "no-log-flag",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": {
+          "key": "on",
+          "value": true
+        },
+        "off": {
+          "key": "off",
+          "value": false
+        }
+      },
+      "allocations": [
+        {
+          "key": "no-log-allocation",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "on",
+              "shards": [],
+              "serialId": 200
+            }
+          ],
+          "doLog": false
+        }
+      ]
+    },
+    "multi-serial-flag-1": {
+      "key": "multi-serial-flag-1",
+      "enabled": true,
+      "variationType": "INTEGER",
+      "variations": {
+        "v1": {
+          "key": "v1",
+          "value": 1
+        }
+      },
+      "allocations": [
+        {
+          "key": "allocation-1",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "v1",
+              "shards": [],
+              "serialId": 128
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "multi-serial-flag-2": {
+      "key": "multi-serial-flag-2",
+      "enabled": true,
+      "variationType": "INTEGER",
+      "variations": {
+        "v2": {
+          "key": "v2",
+          "value": 2
+        }
+      },
+      "allocations": [
+        {
+          "key": "allocation-2",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "v2",
+              "shards": [],
+              "serialId": 130
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    }
+  }
+}
