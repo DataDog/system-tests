@@ -1614,6 +1614,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app
         express4: *ref_5_77_0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors: bug (FFL-2182)
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": incomplete_test_app
