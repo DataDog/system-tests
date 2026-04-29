@@ -11,6 +11,10 @@ Example: [100, 108, 128, 130] -> deltas [100, 8, 20, 2] -> varint bytes -> base6
 
 import base64
 
+# Varint encoding constants
+VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data
+VARINT_CONTINUATION_BIT = 0x80  # MSB indicates more bytes follow
+
 
 def decode_varint(data: bytes, offset: int = 0) -> tuple[int, int]:
     """Decode a single varint from bytes.
@@ -21,6 +25,7 @@ def decode_varint(data: bytes, offset: int = 0) -> tuple[int, int]:
 
     Returns:
         Tuple of (decoded value, number of bytes consumed)
+
     """
     result = 0
     shift = 0
@@ -28,11 +33,11 @@ def decode_varint(data: bytes, offset: int = 0) -> tuple[int, int]:
 
     while offset < len(data):
         byte = data[offset]
-        result |= (byte & 0x7F) << shift
+        result |= (byte & VARINT_DATA_BITS) << shift
         bytes_consumed += 1
         offset += 1
 
-        if (byte & 0x80) == 0:
+        if (byte & VARINT_CONTINUATION_BIT) == 0:
             break
         shift += 7
 
@@ -51,6 +56,7 @@ def decode_delta_varint(encoded_base64: str) -> list[int]:
     Example:
         >>> decode_delta_varint("ZAgUAg==")
         [100, 108, 128, 130]
+
     """
     if not encoded_base64:
         return []
@@ -81,6 +87,7 @@ def encode_delta_varint(serial_ids: list[int]) -> str:
     Example:
         >>> encode_delta_varint([100, 108, 128, 130])
         'ZAgUAg=='
+
     """
     if not serial_ids:
         return ""
@@ -94,8 +101,8 @@ def encode_delta_varint(serial_ids: list[int]) -> str:
         prev_value = serial_id
 
         # Encode delta as varint
-        while delta >= 0x80:
-            result.append((delta & 0x7F) | 0x80)
+        while delta >= VARINT_CONTINUATION_BIT:
+            result.append((delta & VARINT_DATA_BITS) | VARINT_CONTINUATION_BIT)
             delta >>= 7
         result.append(delta)
 
