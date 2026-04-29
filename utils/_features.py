@@ -2657,6 +2657,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_event_enrichment(test_object):
+        """Feature Flags Event Enrichment (APM span tags)
+
+        https://feature-parity.us1.prod.dog/#/?feature=551
+        """
+        return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
