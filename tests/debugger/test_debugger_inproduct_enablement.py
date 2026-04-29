@@ -26,12 +26,13 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(*, enabled: bool | None = None, reset: bool = True):
+        def _send_config(*, enabled: bool | None = None, reset: bool = True, wait_installed: bool = False):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
-
             self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=enabled, reset=reset)
+            if wait_installed:
+                self.wait_for_all_probes(statuses=["INSTALLED"], timeout=TIMEOUT)
             self.send_weblog_request("/debugger/log")
 
         self.initialize_weblog_remote_config()
@@ -41,10 +42,10 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config()
         self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=True, reset=False)
+        _send_config(enabled=True, reset=False, wait_installed=context.library == "nodejs")
         self.di_explicit_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(reset=False)
+        _send_config(reset=False, wait_installed=context.library == "nodejs")
         self.di_empty_config = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
         _send_config(enabled=False, reset=False)

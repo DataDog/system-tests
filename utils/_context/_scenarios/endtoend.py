@@ -309,6 +309,9 @@ class EndToEndScenario(DockerScenario):
 
         library = self.weblog_infra.library_name
 
+        if library == "nodejs":
+            self.weblog_infra.http_container.environment.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5")
+
         if self._library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
