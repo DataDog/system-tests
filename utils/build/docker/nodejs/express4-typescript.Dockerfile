@@ -24,8 +24,8 @@ ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
-RUN printf 'node dist/app.js' >> app.sh
-CMD ./app.sh
+RUN printf 'exec node dist/app.js' >> app.sh
+CMD ["./app.sh"]
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 

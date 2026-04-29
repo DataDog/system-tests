@@ -19,7 +19,7 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 ENV DD_CODE_ORIGIN_FOR_SPANS_ENABLED=0
 
 # docker startup
-CMD ./app.sh
+CMD ["./app.sh"]
 
 # docker build -f utils/build/docker/python/fastapi.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
