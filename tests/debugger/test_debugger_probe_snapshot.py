@@ -3,16 +3,25 @@
 # Copyright 2021 Datadog, Inc.
 
 import time
+from collections import Counter
 from collections.abc import Callable
 import tests.debugger.utils as debugger
 
 
-from utils import context, features, irrelevant, logger, missing_feature, scenarios, slow
+from utils import context, features, logger, missing_feature, scenarios, slow
 from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
 class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
     """Base class with common methods for snapshot probe tests"""
+
+    # The plain `host:` ddtag is currently emitted with the agent-side host in
+    # this harness, so we validate that exact value in the ddtags test.
+    EXPECTED_HOST_DDTAG_VALUE = "test"
+    EXPECTED_SERVICE = "weblog"
+    EXPECTED_DDSOURCE = "dd_debugger"
+    EXPECTED_ENV = "system-tests"
+    EXPECTED_VERSION = "1.0.0"
 
     def _setup(
         self,
@@ -84,6 +93,31 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
             if not self.probe_spans[expected_trace]:
                 raise ValueError(f"No spans found for trace {expected_trace}")
 
+    def _parse_ddtag_entries(self, raw_ddtags: list[str] | str | None) -> list[str]:
+        if raw_ddtags is None:
+            return []
+
+        ddtags_entries = raw_ddtags if isinstance(raw_ddtags, list) else [raw_ddtags]
+        return [
+            tag.strip()
+            for tag_entry in ddtags_entries
+            if isinstance(tag_entry, str)
+            for tag in tag_entry.split(",")
+            if tag.strip()
+        ]
+
+    def _get_snapshot_ddtag_entries(self, snapshot: dict, probe_id: str) -> list[str]:
+        assert "query" in snapshot, f"Missing 'query' in snapshot for probe {probe_id}"
+        assert isinstance(snapshot["query"], dict)
+
+        query_ddtags = snapshot["query"].get("ddtags", [])
+        assert isinstance(query_ddtags, list)
+
+        payload_ddtags = snapshot.get("ddtags")
+        assert payload_ddtags is None or isinstance(payload_ddtags, (list, str))
+
+        return self._parse_ddtag_entries(query_ddtags) + self._parse_ddtag_entries(payload_ddtags)
+
     def _validate_scm_tags(self):
         expected_repo_tag = "git.repository_url:https://github.com/datadog/hello"
         expected_sha_tag = "git.commit.sha:1234hash"
@@ -93,18 +127,10 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
             found_scm_tags = False
 
             for snapshot in snapshots:
-                assert "query" in snapshot, f"Missing 'query' in snapshot for probe {expected_snapshot}"
-                assert isinstance(snapshot["query"], dict)
-
-                ddtags = snapshot["query"].get("ddtags", [])
-                assert isinstance(ddtags, list)
-
-                for tag_entry in ddtags:
-                    if not isinstance(tag_entry, str):
-                        continue
-                    if expected_repo_tag in tag_entry and expected_sha_tag in tag_entry:
-                        found_scm_tags = True
-                        break
+                ddtag_entries = self._get_snapshot_ddtag_entries(snapshot, expected_snapshot)
+                if expected_repo_tag in ddtag_entries and expected_sha_tag in ddtag_entries:
+                    found_scm_tags = True
+                    break
 
                 if found_scm_tags:
                     break
@@ -113,6 +139,56 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
                 f"Expected SCM tags ({expected_repo_tag}, {expected_sha_tag}) "
                 f"not found in any snapshot ddtags for probe {expected_snapshot}"
             )
+
+    def _validate_payload_root_properties(self):
+        for expected_snapshot in self.probe_ids:
+            snapshots = self.probe_snapshots[expected_snapshot]
+
+            for snapshot in snapshots:
+                assert snapshot.get("service") == self.EXPECTED_SERVICE, (
+                    f"Expected snapshot service to be {self.EXPECTED_SERVICE!r}, "
+                    f"got {snapshot.get('service')!r} for probe {expected_snapshot}"
+                )
+                assert snapshot.get("ddsource") == self.EXPECTED_DDSOURCE, (
+                    f"Expected snapshot ddsource to be {self.EXPECTED_DDSOURCE!r}, "
+                    f"got {snapshot.get('ddsource')!r} for probe {expected_snapshot}"
+                )
+
+    def _expected_debugger_version_value(self) -> str:
+        version = self.get_tracer()["tracer_version"]
+        if self.get_tracer()["language"] == "java":
+            # Java normalizes the build metadata separator to `~` in debugger ddtags.
+            version = version.replace("+", "~", 1)
+        elif self.get_tracer()["language"] == "python":
+            # Python removes the separator before rc build metadata in debugger ddtags.
+            version = version.replace("-rc", "rc", 1)
+        return version
+
+    def _validate_payload_basic_ddtags(self):
+        expected_tags = {
+            f"host:{self.EXPECTED_HOST_DDTAG_VALUE}",
+            f"debugger_version:{self._expected_debugger_version_value()}",
+            f"env:{self.EXPECTED_ENV}",
+            f"version:{self.EXPECTED_VERSION}",
+        }
+
+        for expected_snapshot in self.probe_ids:
+            snapshots = self.probe_snapshots[expected_snapshot]
+
+            for snapshot in snapshots:
+                ddtag_entries = self._get_snapshot_ddtag_entries(snapshot, expected_snapshot)
+                ddtag_keys = [entry.split(":", 1)[0] for entry in ddtag_entries]
+                duplicate_keys = sorted(key for key, count in Counter(ddtag_keys).items() if count > 1)
+                assert not duplicate_keys, (
+                    f"Expected unique ddtag keys for probe {expected_snapshot}. "
+                    f"Found duplicates {duplicate_keys} in {ddtag_entries}"
+                )
+
+                missing_tags = {tag for tag in expected_tags if tag not in ddtag_entries}
+                assert not missing_tags, (
+                    f"Missing payload metadata tags {sorted(missing_tags)} "
+                    f"for probe {expected_snapshot}. Got {sorted(ddtag_entries)}"
+                )
 
 
 @features.debugger_method_probe
@@ -410,13 +486,16 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._assert()
         self._validate_spans()
 
-    @irrelevant(
-        condition=context.library == "java" and context.weblog_variant != "spring-boot",
-    )
     def setup_process_tags_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
     def setup_process_tags_snapshot_svc(self):
+        self.setup_process_tags_snapshot()
+
+    def setup_payload_root_properties_snapshot(self):
+        self.setup_process_tags_snapshot()
+
+    def setup_payload_basic_ddtags_snapshot(self):
         self.setup_process_tags_snapshot()
 
     def check_process_tags_snapshot(self, validate_process_tags_func: Callable):
@@ -441,6 +520,16 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     @features.process_tags
     def test_process_tags_snapshot(self):
         self.check_process_tags_snapshot(validate_process_tags)
+
+    def test_payload_root_properties_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+        self._validate_payload_root_properties()
+
+    def test_payload_basic_ddtags_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+        self._validate_payload_basic_ddtags()
 
 
 @features.debugger_line_probe

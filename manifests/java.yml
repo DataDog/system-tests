@@ -3041,6 +3041,7 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_payload_basic_ddtags_snapshot: missing_feature (Debugger payload basic ddtags contract not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
     - weblog_declaration:
         spring-boot-3-native: missing_feature (Not yet implemented)
