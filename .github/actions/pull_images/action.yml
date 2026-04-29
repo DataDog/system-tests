@@ -39,79 +39,79 @@ runs:
     - name: Maximize build disk space 
       shell: bash
       run: |
-          set -euo pipefail
+        set -euo pipefail
 
-          # absolute file path for the LVM image created on the root filesystem
-          PV_LOOP_PATH="/pv.img"
+        # absolute file path for the LVM image created on the root filesystem
+        PV_LOOP_PATH="/pv.img"
 
-          # absolute file path for the LVM image created on the temp filesystem
-          TMP_PV_LOOP_PATH="/mnt/tmp-pv.img"
+        # absolute file path for the LVM image created on the temp filesystem
+        TMP_PV_LOOP_PATH="/mnt/tmp-pv.img"
 
-          # store owner of $GITHUB_WORKSPACE in case the action deletes it
-          WORKSPACE_OWNER="$(stat -c '%U:%G' "${GITHUB_WORKSPACE}")"
+        # store owner of $GITHUB_WORKSPACE in case the action deletes it
+        WORKSPACE_OWNER="$(stat -c '%U:%G' "${GITHUB_WORKSPACE}")"
 
-          # ensure mount path exists before the action
+        # ensure mount path exists before the action
+        sudo mkdir -p "${GITHUB_WORKSPACE}"
+        sudo find "${GITHUB_WORKSPACE}" -maxdepth 0 ! -empty -exec echo 'WARNING: directory [{}] is not empty, data loss might occur. Content:' \; -exec ls -al "{}" \;
+
+        # android not removed because it takes forever
+        # docker cache not removed because we use Docker so it could be useful
+        echo "Removing unwanted software... "
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        echo "... done"
+
+        VG_NAME=buildvg
+
+        # github runners have an active swap file in /mnt/swapfile
+        # we want to reuse the temp disk, so first unmount swap and clean the temp disk
+        echo "Unmounting and removing swap file."
+        sudo swapoff -a
+        sudo rm -f /mnt/swapfile
+
+        echo "Creating LVM Volume."
+        echo "  Creating LVM PV on root fs."
+        # create loop pv image on root fs
+        ROOT_RESERVE_KB=$(expr 1024 \* 1024)
+        ROOT_FREE_KB=$(df --block-size=1024 --output=avail / | tail -1)
+        ROOT_LVM_SIZE_KB=$(expr $ROOT_FREE_KB - $ROOT_RESERVE_KB)
+        ROOT_LVM_SIZE_BYTES=$(expr $ROOT_LVM_SIZE_KB \* 1024)
+        sudo touch "${PV_LOOP_PATH}" && sudo fallocate -z -l "${ROOT_LVM_SIZE_BYTES}" "${PV_LOOP_PATH}"
+        export ROOT_LOOP_DEV=$(sudo losetup --find --show "${PV_LOOP_PATH}")
+        sudo pvcreate -f "${ROOT_LOOP_DEV}"
+
+        # create pv on temp disk
+        echo "  Creating LVM PV on temp fs."
+        TMP_RESERVE_KB=$(expr 100 \* 1024)
+        TMP_FREE_KB=$(df --block-size=1024 --output=avail /mnt | tail -1)
+        TMP_LVM_SIZE_KB=$(expr $TMP_FREE_KB - $TMP_RESERVE_KB)
+        TMP_LVM_SIZE_BYTES=$(expr $TMP_LVM_SIZE_KB \* 1024)
+        sudo touch "${TMP_PV_LOOP_PATH}" && sudo fallocate -z -l "${TMP_LVM_SIZE_BYTES}" "${TMP_PV_LOOP_PATH}"
+        export TMP_LOOP_DEV=$(sudo losetup --find --show "${TMP_PV_LOOP_PATH}")
+        sudo pvcreate -f "${TMP_LOOP_DEV}"
+
+        # create volume group from these pvs
+        sudo vgcreate "${VG_NAME}" "${TMP_LOOP_DEV}" "${ROOT_LOOP_DEV}"
+
+        echo "Recreating swap"
+        # create and activate swap
+        sudo lvcreate -L "4096M" -n swap "${VG_NAME}"
+        sudo mkswap "/dev/mapper/${VG_NAME}-swap"
+        sudo swapon "/dev/mapper/${VG_NAME}-swap"
+
+        echo "Creating build volume"
+        # create and mount build volume
+        sudo lvcreate -l 100%FREE -n buildlv "${VG_NAME}"
+        sudo mkfs.ext4 -Enodiscard -m0 "/dev/mapper/${VG_NAME}-buildlv"
+        sudo mount "/dev/mapper/${VG_NAME}-buildlv" "${GITHUB_WORKSPACE}"
+        sudo chown -R "${{ inputs.build-mount-path-ownership }}" "${GITHUB_WORKSPACE}"
+
+        # if build mount path is a parent of $GITHUB_WORKSPACE, and has been deleted, recreate it
+        if [[ ! -d "${GITHUB_WORKSPACE}" ]]; then
           sudo mkdir -p "${GITHUB_WORKSPACE}"
-          sudo find "${GITHUB_WORKSPACE}" -maxdepth 0 ! -empty -exec echo 'WARNING: directory [{}] is not empty, data loss might occur. Content:' \; -exec ls -al "{}" \;
-
-          # android not removed because it takes forever
-          # docker cache not removed because we use Docker so it could be useful
-          echo "Removing unwanted software... "
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          echo "... done"
-
-          VG_NAME=buildvg
-
-          # github runners have an active swap file in /mnt/swapfile
-          # we want to reuse the temp disk, so first unmount swap and clean the temp disk
-          echo "Unmounting and removing swap file."
-          sudo swapoff -a
-          sudo rm -f /mnt/swapfile
-
-          echo "Creating LVM Volume."
-          echo "  Creating LVM PV on root fs."
-          # create loop pv image on root fs
-          ROOT_RESERVE_KB=$(expr 1024 \* 1024)
-          ROOT_FREE_KB=$(df --block-size=1024 --output=avail / | tail -1)
-          ROOT_LVM_SIZE_KB=$(expr $ROOT_FREE_KB - $ROOT_RESERVE_KB)
-          ROOT_LVM_SIZE_BYTES=$(expr $ROOT_LVM_SIZE_KB \* 1024)
-          sudo touch "${PV_LOOP_PATH}" && sudo fallocate -z -l "${ROOT_LVM_SIZE_BYTES}" "${PV_LOOP_PATH}"
-          export ROOT_LOOP_DEV=$(sudo losetup --find --show "${PV_LOOP_PATH}")
-          sudo pvcreate -f "${ROOT_LOOP_DEV}"
-
-          # create pv on temp disk
-          echo "  Creating LVM PV on temp fs."
-          TMP_RESERVE_KB=$(expr 100 \* 1024)
-          TMP_FREE_KB=$(df --block-size=1024 --output=avail /mnt | tail -1)
-          TMP_LVM_SIZE_KB=$(expr $TMP_FREE_KB - $TMP_RESERVE_KB)
-          TMP_LVM_SIZE_BYTES=$(expr $TMP_LVM_SIZE_KB \* 1024)
-          sudo touch "${TMP_PV_LOOP_PATH}" && sudo fallocate -z -l "${TMP_LVM_SIZE_BYTES}" "${TMP_PV_LOOP_PATH}"
-          export TMP_LOOP_DEV=$(sudo losetup --find --show "${TMP_PV_LOOP_PATH}")
-          sudo pvcreate -f "${TMP_LOOP_DEV}"
-
-          # create volume group from these pvs
-          sudo vgcreate "${VG_NAME}" "${TMP_LOOP_DEV}" "${ROOT_LOOP_DEV}"
-
-          echo "Recreating swap"
-          # create and activate swap
-          sudo lvcreate -L "4096M" -n swap "${VG_NAME}"
-          sudo mkswap "/dev/mapper/${VG_NAME}-swap"
-          sudo swapon "/dev/mapper/${VG_NAME}-swap"
-
-          echo "Creating build volume"
-          # create and mount build volume
-          sudo lvcreate -l 100%FREE -n buildlv "${VG_NAME}"
-          sudo mkfs.ext4 -Enodiscard -m0 "/dev/mapper/${VG_NAME}-buildlv"
-          sudo mount "/dev/mapper/${VG_NAME}-buildlv" "${GITHUB_WORKSPACE}"
-          sudo chown -R "${{ inputs.build-mount-path-ownership }}" "${GITHUB_WORKSPACE}"
-
-          # if build mount path is a parent of $GITHUB_WORKSPACE, and has been deleted, recreate it
-          if [[ ! -d "${GITHUB_WORKSPACE}" ]]; then
-            sudo mkdir -p "${GITHUB_WORKSPACE}"
-            sudo chown -R "${WORKSPACE_OWNER}" "${GITHUB_WORKSPACE}"
-          fi
+          sudo chown -R "${WORKSPACE_OWNER}" "${GITHUB_WORKSPACE}"
+        fi
 
     - name: Disk space report after modification
       shell: bash
