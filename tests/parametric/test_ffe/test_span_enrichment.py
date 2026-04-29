@@ -393,6 +393,7 @@ class Test_Span_Enrichment_Subjects:
         )
 
 
+@features.feature_flags_event_enrichment
 class Test_Span_Enrichment_Delta_Varint:
     """Test delta varint encoding algorithm correctness.
 
