@@ -36,7 +36,7 @@ runs:
         sudo df -h
         echo
 
-    - name: Maximize build disk space 
+    - name: Maximize build disk space
       shell: bash
       run: |
         set -euo pipefail
@@ -105,7 +105,7 @@ runs:
         sudo lvcreate -l 100%FREE -n buildlv "${VG_NAME}"
         sudo mkfs.ext4 -Enodiscard -m0 "/dev/mapper/${VG_NAME}-buildlv"
         sudo mount "/dev/mapper/${VG_NAME}-buildlv" "${GITHUB_WORKSPACE}"
-        sudo chown -R "${{ inputs.build-mount-path-ownership }}" "${GITHUB_WORKSPACE}"
+        sudo chown -R "runner:runner" "${GITHUB_WORKSPACE}"
 
         # if build mount path is a parent of $GITHUB_WORKSPACE, and has been deleted, recreate it
         if [[ ! -d "${GITHUB_WORKSPACE}" ]]; then
