@@ -23,7 +23,7 @@ runs:
   using: composite
   steps:
     - name: Free Disk Space
-      uses: endersonmenezes/free-disk-space@v3
+      uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3.2.2
       with:
         remove_android: false # Takes a long time to remove even with rmz
         remove_dotnet: true # Pretty quick and saves a lot
