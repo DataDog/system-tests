@@ -556,7 +556,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
         doc="",
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
