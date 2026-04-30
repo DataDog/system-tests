@@ -374,8 +374,9 @@ class Test_CostTags:
     def test_annotation_context_cost_tags_not_retained_for_tags_added_later(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
-        """Regression: annotation_context cost_tags only see tag keys present at span start.
-        Keys added via a later annotate() are not retained — see dd-trace-py #17628.
+        """Known limitation: annotation_context.cost_tags only sees tag keys
+        present at span start. Tags added via a later annotate() on the same span are not
+        retroactively included.
         """
         llmobs_request = LlmObsAnnotationContextRequest(
             cost_tags=["feature"],
