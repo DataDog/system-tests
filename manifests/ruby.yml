@@ -2,6 +2,16 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62218)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
+    - weblog_declaration:
+        "*": missing_feature (APPSEC-62451)
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": missing_feature (APPSEC-62200)
@@ -1049,8 +1059,6 @@ manifest:
     - declaration: bug (DEBUG-3747)
       component_version: <2.28.0
       weblog: [rails72, uds-rails, rails80]
-    - declaration: bug (DEBUG-3747)
-      excluded_weblog: [rails72, uds-rails, rails80]
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": irrelevant
@@ -1065,18 +1073,14 @@ manifest:
         rails80: v2.8.0
         uds-rails: v2.12.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth: bug (DEBUG-4675)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track:  # Modified by easy win activation script
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track:
     - declaration: missing_feature (DEBUG-4343)
-      component_version: <2.27.0
+      component_version: <2.24.0
       weblog: [rails80, rails72, uds-rails]
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination:
     - declaration: missing_feature (DEBUG-4343)
-      excluded_weblog: [rails80, rails72, uds-rails]
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination:  # Modified by easy win activation script
-    - declaration: missing_feature (DEBUG-4343)
-      component_version: <2.27.0
+      component_version: <2.24.0
       weblog: [rails80, rails72, uds-rails]
-    - declaration: missing_feature (DEBUG-4343)
-      excluded_weblog: [rails80, rails72, uds-rails]
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
@@ -1967,6 +1971,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:  # Modified by easy win activation script
     - declaration: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
       component_version: <2.24.0

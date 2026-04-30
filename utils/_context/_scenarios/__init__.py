@@ -1094,7 +1094,7 @@ class _Scenarios:
         "DOCKER_SSI_APPSEC",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
-        appsec_enabled="true",
+        appsec_enabled=True,
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(
@@ -1197,6 +1197,20 @@ class _Scenarios:
         use_proxy_for_weblog=False,
         library_interface_timeout=20,
         doc="Test runtime metrics",
+    )
+
+    otlp_runtime_metrics = EndToEndScenario(
+        "OTLP_RUNTIME_METRICS",
+        weblog_env={
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
+            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        runtime_metrics_enabled=True,
+        include_opentelemetry=True,
+        library_interface_timeout=20,
+        doc="Test runtime metrics exported via OTLP with OTel semantic convention names",
     )
 
     # Appsec Lambda Scenarios
