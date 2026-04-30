@@ -81,6 +81,7 @@ class _Owner(Enum):
                             })
     injection_platform   = _OwnerDef("@DataDog/injection-platform")
     language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                                 "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
                                 "dd-trace-go":      "@DataDog/lang-platform-go",
                                 "dd-trace-java":    "@DataDog/apm-lang-platform-java",
@@ -88,6 +89,8 @@ class _Owner(Enum):
                                 "dd-trace-php":     "@DataDog/apm-lang-platform-php",
                                 "dd-trace-py":      "@DataDog/lang-platform-python",
                                 "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                             })
     ml_observability     = _OwnerDef("@DataDog/ml-observability")
     profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
