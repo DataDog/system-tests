@@ -319,7 +319,10 @@ class EndToEndScenario(DockerScenario):
                 # SIGTERM handling. This affects at least REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING.
                 self.library_interface_timeout = 10
             elif library in ("nodejs"):
-                self.library_interface_timeout = 0
+                if self.weblog_variant == "nextjs":
+                    self.library_interface_timeout = 10
+                else:
+                    self.library_interface_timeout = 0
             elif library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
                 self.library_interface_timeout = 10
