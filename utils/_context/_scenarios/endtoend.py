@@ -314,7 +314,11 @@ class EndToEndScenario(DockerScenario):
                 self.library_interface_timeout = 25
             elif library in ("golang",):
                 self.library_interface_timeout = 10
-            elif library in ("nodejs", "ruby"):
+            elif library in ("ruby",):
+                # There is an issue with ruby not flushing all data appropriately, neither with the /flush endpoint or
+                # SIGTERM handling. This affects at least REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING.
+                self.library_interface_timeout = 10
+            elif library in ("nodejs"):
                 self.library_interface_timeout = 0
             elif library in ("php",):
                 # possibly something weird on obfuscator, let increase the delay for now
