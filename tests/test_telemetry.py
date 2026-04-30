@@ -1069,3 +1069,53 @@ class Test_TelemetrySCAEnvVar:
             f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
             f"{' or '.join(dd_appsec_sca_enabled_names)}"
         )
+
+
+@scenarios.telemetry_extended_heartbeat
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event in end-to-end scenario"""
+
+    def setup_extended_heartbeat_config_matches(self):
+        weblog.get("/")
+
+    def test_extended_heartbeat_config_matches(self):
+        """Test that every config reported in app-started or app-client-configuration-change
+        was eventually reported by at least one app-extended-heartbeat event.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        # Collect all config names reported in app-started and config-change events
+        expected_config_names: set[str] = set()
+        found_app_started = False
+
+        for data in telemetry_data:
+            request_type = get_request_type(data)
+            if request_type in ("app-started", "app-client-configuration-change"):
+                if request_type == "app-started":
+                    found_app_started = True
+                for c in get_configurations(data) or []:
+                    expected_config_names.add(c["name"])
+
+        assert found_app_started, "app-started event not found"
+
+        # Collect all config names ever reported across all extended heartbeats
+        heartbeat_config_names: set[str] = set()
+        found_extended_hb = False
+
+        for data in telemetry_data:
+            if get_request_type(data) == "app-extended-heartbeat":
+                found_extended_hb = True
+                for c in get_configurations(data) or []:
+                    heartbeat_config_names.add(c["name"])
+
+        assert found_extended_hb, "app-extended-heartbeat event not found"
+
+        # For each expected config, verify it was reported by at least one extended heartbeat.
+        # Configs may appear in heartbeats before or after they are (re-)reported in
+        # config-change events (e.g. remote config updates re-report existing configs).
+        missing = sorted(expected_config_names - heartbeat_config_names)
+        assert not missing, (
+            f"{len(missing)} config(s) reported in app-started or config-change but never "
+            f"included in any app-extended-heartbeat event: {missing}"
+        )

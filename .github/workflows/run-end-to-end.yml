@@ -395,6 +395,9 @@ jobs:
     - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
       run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
+    - name: Run TELEMETRY_EXTENDED_HEARTBEAT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_EXTENDED_HEARTBEAT"')
+      run: ./run.sh TELEMETRY_EXTENDED_HEARTBEAT
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
