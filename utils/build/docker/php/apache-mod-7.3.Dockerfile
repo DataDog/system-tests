@@ -20,6 +20,6 @@ RUN rm -rf /tmp/php/
 ADD utils/build/docker/php/apache-mod/entrypoint.sh /
 WORKDIR /binaries
 ENTRYPOINT []
-RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
+RUN echo "#!/bin/bash\nexec dumb-init /entrypoint.sh" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
