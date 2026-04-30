@@ -1094,7 +1094,7 @@ class _Scenarios:
         "DOCKER_SSI_APPSEC",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
-        appsec_enabled="true",
+        appsec_enabled=True,
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(

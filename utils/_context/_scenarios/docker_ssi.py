@@ -3,6 +3,7 @@ import os
 import random
 import socket
 import time
+from collections.abc import Iterator
 from docker.errors import BuildError
 from docker.models.networks import Network
 import pytest
@@ -20,7 +21,7 @@ from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
-from .core import Scenario
+from .core import Scenario, ScenarioGroup
 
 
 class ContainerRemovalError(Exception):
@@ -37,7 +38,13 @@ class DockerSSIScenario(Scenario):
     _network: Network = None
 
     def __init__(
-        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None, appsec_enabled=None
+        self,
+        name: str,
+        doc: str,
+        extra_env_vars: dict | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
+        *,
+        appsec_enabled: bool | None = None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
@@ -110,7 +117,7 @@ class DockerSSIScenario(Scenario):
             self._env,
             self._custom_library_version,
             self._custom_injector_version,
-            self._appsec_enabled,
+            appsec_enabled=self._appsec_enabled,
         )
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
@@ -152,7 +159,7 @@ class DockerSSIScenario(Scenario):
         self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
-    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:  # noqa: ARG002
         self.close_targets()
 
     def close_targets(self):
@@ -186,33 +193,33 @@ class DockerSSIScenario(Scenario):
 
         return None
 
-    def fill_context(self, json_tested_components):
+    def fill_context(self, json_tested_components: dict):
         """After extract the components from the weblog, fill the context with the data"""
 
         image_internal_name = self.find_image_name(self._base_image, self._arch)
         self.configuration["os"] = image_internal_name
         self.configuration["arch"] = self._arch.replace("linux/", "")
 
-        for key in json_tested_components:
+        for key, value in json_tested_components.items():
             try:
                 self.components[key] = ComponentVersion(
                     key.removeprefix("datadog-apm-library-"),
-                    json_tested_components[key].lstrip(" "),
+                    value.lstrip(" "),
                 ).version
             except ValueError:
-                self.components[key] = json_tested_components[key].lstrip(" ")
-            if key == "weblog_url" and json_tested_components[key]:
-                self.weblog_url = json_tested_components[key].lstrip(" ")
+                self.components[key] = value.lstrip(" ")
+            if key == "weblog_url" and value:
+                self.weblog_url = value.lstrip(" ")
                 continue
-            if key == "runtime_version" and json_tested_components[key]:
-                self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
+            if key == "runtime_version" and value:
+                self._installed_language_runtime = Version(value.lstrip(" "))
                 # Runtime version is stored as configuration not as dependency
                 del self.components[key]
                 self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
-            if key.startswith("datadog-apm-inject") and json_tested_components[key]:
-                self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
+            if key.startswith("datadog-apm-inject") and value:
+                self._datadog_apm_inject_version = f"v{value.lstrip(' ')}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                library_version_number = json_tested_components[key].lstrip(" ")
+                library_version_number = value.lstrip(" ")
                 self._libray_version = ComponentVersion(self._library, str(library_version_number))
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
@@ -254,7 +261,7 @@ class DockerSSIScenario(Scenario):
             raise ValueError("❌ Error: Could not get the library or injector version. ❌")
         logger.stdout("✅ All components are installed correctly. ✅")
 
-    def post_setup(self, session):  # noqa: ARG002
+    def post_setup(self, session: pytest.Session) -> None:  # noqa: ARG002
         self.check_installed_components()
 
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
@@ -289,19 +296,20 @@ class DockerSSIImageBuilder:
 
     def __init__(
         self,
-        scenario_name,
-        host_log_folder,
-        base_weblog,
-        base_image,
-        library,
-        arch,
-        installable_runtime,
-        push_base_images,
-        force_build,
-        env,
-        custom_library_version,
-        custom_injector_version,
-        appsec_enabled=None,
+        scenario_name: str,
+        host_log_folder: str,
+        base_weblog: str,
+        base_image: str,
+        library: str,
+        arch: str,
+        installable_runtime: str | None,
+        push_base_images: bool,  # noqa: FBT001
+        force_build: bool,  # noqa: FBT001
+        env: str,
+        custom_library_version: str | None,
+        custom_injector_version: str | None,
+        *,
+        appsec_enabled: bool | None = None,
     ) -> None:
         self.scenario_name = scenario_name
         self.host_log_folder = host_log_folder
@@ -460,7 +468,7 @@ class DockerSSIImageBuilder:
             self.print_docker_build_logs("Error building installer docker file", e.build_log)
             raise BuildError("Failed to build installer docker image", e.build_log) from e
 
-    def build_weblog_image(self, ssi_installer_docker_tag):
+    def build_weblog_image(self, ssi_installer_docker_tag: str):
         """Build the final weblog image. Uses base ssi installer image, install
         the full ssi (to perform the auto inject) and build the weblog image
         """
@@ -485,7 +493,9 @@ class DockerSSIImageBuilder:
                     "SSI_ENV": self._env,
                     "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
                     "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
-                    "DD_APPSEC_ENABLED": self._appsec_enabled,
+                    "DD_APPSEC_ENABLED": str(self._appsec_enabled).lower()
+                    if isinstance(self._appsec_enabled, bool)
+                    else None,
                 },
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
@@ -519,7 +529,7 @@ class DockerSSIImageBuilder:
         logger.info(f"Testes components: {result.decode('utf-8')}")
         return json.loads(result.decode("utf-8").replace("'", '"'))
 
-    def print_docker_build_logs(self, image_tag, build_logs):
+    def print_docker_build_logs(self, image_tag: str, build_logs: Iterator[dict[str, str]]):
         """Print the docker build logs to docker_build.log file"""
         vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
@@ -536,7 +546,7 @@ class DockerSSIImageBuilder:
                 for line in chunk["stream"].splitlines():
                     vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(line)
 
-    def print_docker_push_logs(self, image_tag, push_logs):
+    def print_docker_push_logs(self, image_tag: str, push_logs: str):
         """Print the docker push logs to docker_push.log file"""
         vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
