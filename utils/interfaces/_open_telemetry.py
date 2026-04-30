@@ -43,6 +43,12 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                         if rid in request_headers_user_agent_value or rid in user_agent_value:
                             yield span.get("trace_id") or span.get("traceId")
 
+    def get_otel_metrics(self):
+        """Yield (request, content) pairs for each OTLP ExportMetricsServiceRequest captured on /v1/metrics."""
+        for data in self.get_data(path_filters=["/v1/metrics"]):
+            content = data.get("request").get("content")
+            yield data.get("request"), content
+
     def get_otel_spans(self, request: HttpResponse):
         paths = ["/api/v0.2/traces", "/v1/traces"]
         rid = request.get_rid()
