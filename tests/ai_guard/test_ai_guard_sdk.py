@@ -6,6 +6,8 @@ from utils.dd_constants import SamplingMechanism, SamplingPriority
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
+DEFAULT_MAX_CONTENT_SIZE: int = 512 * 1024
+DEFAULT_MAX_MESSAGES_LENGTH: int = 16
 MESSAGES: dict = {
     "ALLOW": [{"role": "user", "content": "What is the weather like today?"}],
     "DENY": [
@@ -53,6 +55,23 @@ MESSAGES: dict = {
         },
     ],
 }
+
+MESSAGES["MESSAGES_TRUNCATION"] = [
+    {"role": "user", "content": f"Benign filler message {i}"}
+    for i in range(DEFAULT_MAX_MESSAGES_LENGTH - len(MESSAGES["ABORT"]) + 1)
+] + MESSAGES["ABORT"]
+
+MESSAGES["CONTENT_TRUNCATION"] = [{"role": "user", "content": "A" * (DEFAULT_MAX_CONTENT_SIZE + 1)}]
+
+MESSAGES["CONTENT_PARTS_TRUNCATION"] = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "A" * (DEFAULT_MAX_CONTENT_SIZE + 1)},
+            MESSAGES["CONTENT_PARTS"][0]["content"][1],
+        ],
+    }
+]
 
 
 def _assert_key(values: dict, key: str, value: object | None = None):
@@ -345,6 +364,92 @@ class Test_Tag_Probabilities:
         assert self.r.status_code == 200
         body = json.loads(self.r.text)
         interfaces.library.validate_one_span(self.r, validator=self._assert_span(response=body), full_trace=True)
+
+
+@features.ai_guard
+@scenarios.ai_guard
+@rfc("https://datadoghq.atlassian.net/wiki/x/OAAhhwE")
+class Test_MetaStruct_Truncation:
+    def _assert_span(self, action: str, expected_messages: list):
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            meta = span["meta"]
+            _assert_key(meta, "ai_guard.action", action)
+
+            meta_struct = span["meta_struct"]
+            ai_guard = _assert_key(meta_struct, "ai_guard")
+            meta_struct_messages = _assert_key(ai_guard, "messages")
+            assert meta_struct_messages == expected_messages, (
+                f"Invalid truncated messages stored in the meta struct: {meta_struct_messages} != {expected_messages}"
+            )
+
+            return True
+
+        return validate
+
+    def setup_messages_truncation(self):
+        self.messages = MESSAGES["MESSAGES_TRUNCATION"]
+        self.expected_messages = self.messages[-DEFAULT_MAX_MESSAGES_LENGTH:]
+        self.r = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: "false"}, json=self.messages)
+
+    def test_messages_truncation(self):
+        """Test AI Guard truncates stored meta_struct messages to the configured maximum.
+
+        Verifies the span keeps only the last N messages in meta_struct while the evaluation
+        still succeeds for the original request payload.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r,
+            validator=self._assert_span(action="ABORT", expected_messages=self.expected_messages),
+            full_trace=True,
+        )
+
+    def setup_content_truncation(self):
+        self.messages = MESSAGES["CONTENT_TRUNCATION"]
+        self.expected_messages = [{"role": "user", "content": "A" * DEFAULT_MAX_CONTENT_SIZE}]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+
+    def test_content_truncation(self):
+        """Test AI Guard truncates string message content stored in meta_struct.
+
+        Verifies plain string content is truncated to the configured maximum size before it is
+        attached to the AI Guard span meta_struct.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r,
+            validator=self._assert_span(action="ALLOW", expected_messages=self.expected_messages),
+            full_trace=True,
+        )
+
+    def setup_content_parts_truncation(self):
+        self.messages = MESSAGES["CONTENT_PARTS_TRUNCATION"]
+        self.expected_messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "A" * DEFAULT_MAX_CONTENT_SIZE},
+                    MESSAGES["CONTENT_PARTS"][0]["content"][1],
+                ],
+            }
+        ]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+
+    def test_content_parts_truncation(self):
+        """Test AI Guard truncates text content parts stored in meta_struct.
+
+        Verifies only text parts are truncated in multi-modal content while non-text parts, such
+        as image URLs, are preserved as-is in the AI Guard span meta_struct.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r,
+            validator=self._assert_span(action="ALLOW", expected_messages=self.expected_messages),
+            full_trace=True,
+        )
 
 
 @features.ai_guard
