@@ -10,6 +10,8 @@
 # use `>1.0.0` to indicate that requirement.
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -159,6 +161,11 @@ manifest:
   tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.3.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.3.0
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_shell_execution.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_span_tags_headers.py: v1.6.1
@@ -188,6 +195,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: irrelevant
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (Header rejected by nginx ('client sent invalid header line)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams: irrelevant (path params waf address unfilled)
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.2.0

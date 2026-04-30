@@ -795,6 +795,19 @@ Expected query parameters:
 This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
 
+### GET /sca/vulnerable-call
+
+This endpoint triggers a call to a function tracked as vulnerable by a CVE in one of the application's
+dependencies. Each language picks a suitable vulnerable dependency and target function for its ecosystem.
+It is used by SCA runtime reachability tests to verify that calling a vulnerable function reports CVE
+metadata with caller information in the telemetry `app-dependencies-loaded` payload.
+
+### GET /sca/vulnerable-call-alt
+
+Alternate call site for the same vulnerable function targeted by `/sca/vulnerable-call`. Used to
+test first-hit-wins deduplication: when the same CVE is triggered from two different call sites, only the
+first occurrence is reported in the `reached` array.
+
 ### GET /log/library
 
 This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
@@ -1197,6 +1210,8 @@ This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method fr
 - **Content-Type:** `application/json`
 - **Body:** List of AI Guard `Message` objects to be evaluated
 - **Header:** `X-AI-Guard-Block` (optional, default: `false`) - Controls whether blocking is enabled
+- **Header:** `X-User-Id` (optional) - If present and non-empty, sets `usr.id` on the local root span
+- **Header:** `X-Session-Id` (optional) - If present and non-empty, sets `session.id` on the local root span
 
 **Request Body Example:**
 ```json

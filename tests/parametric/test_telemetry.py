@@ -18,20 +18,20 @@ from .conftest import APMLibrary
 telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "instrumentation_source": {
         "java": "DD_INSTRUMENTATION_SOURCE",
-        "nodejs": ["instrumentationSource", "instrumentation_source"],
+        "nodejs": "instrumentationSource",
     },
     "ssi_injection_enabled": {
         "python": "DD_INJECTION_ENABLED",
         "java": "DD_INJECTION_ENABLED",
         "ruby": "DD_INJECTION_ENABLED",
-        "nodejs": ["DD_INJECTION_ENABLED", "injectionEnabled", "ssi_injection_enabled"],
+        "nodejs": "DD_INJECTION_ENABLED",
         "golang": ["DD_INJECTION_ENABLED", "injection_enabled"],
     },
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
         "java": "DD_INJECT_FORCE",
-        "nodejs": ["DD_INJECT_FORCE", "injectForce", "ssi_forced_injection_enabled"],
+        "nodejs": "DD_INJECT_FORCE",
         "golang": ["DD_INJECT_FORCE", "inject_force"],
     },
     "trace_sample_rate": {
@@ -44,7 +44,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
-        "nodejs": ["DD_LOGS_INJECTION", "DD_LOG_INJECTION"],
+        "nodejs": "DD_LOGS_INJECTION",
         "python": "DD_LOGS_INJECTION",
         "php": "DD_TRACE_LOGS_ENABLED",
         "ruby": "DD_LOGS_INJECTION",
@@ -70,14 +70,14 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "trace_enabled": {
         "dotnet": "DD_TRACE_ENABLED",
         "java": "DD_TRACE_ENABLED",
-        "nodejs": ["DD_TRACE_ENABLED", "tracing"],
+        "nodejs": "DD_TRACE_ENABLED",
         "python": "DD_TRACE_ENABLED",
         "ruby": "DD_TRACE_ENABLED",
         "golang": ["DD_TRACE_ENABLED", "trace_enabled"],
     },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
-        "nodejs": ["DD_PROFILING_ENABLED", "profiling.enabled"],
+        "nodejs": "DD_PROFILING_ENABLED",
         "python": "DD_PROFILING_ENABLED",
         "ruby": "DD_PROFILING_ENABLED",
         "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
@@ -85,7 +85,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "appsec_enabled": {
         "dotnet": "DD_APPSEC_ENABLED",
-        "nodejs": ["DD_APPSEC_ENABLED", "appsec.enabled"],
+        "nodejs": "DD_APPSEC_ENABLED",
         "python": "DD_APPSEC_ENABLED",
         "ruby": "DD_APPSEC_ENABLED",
         "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
@@ -93,7 +93,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
-        "nodejs": ["DD_DATA_STREAMS_ENABLED", "dsmEnabled"],
+        "nodejs": "DD_DATA_STREAMS_ENABLED",
         "python": "DD_DATA_STREAMS_ENABLED",
         "java": "DD_DATA_STREAMS_ENABLED",
         "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
@@ -102,7 +102,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "runtime_metrics_enabled": {
         "java": "DD_RUNTIME_METRICS_ENABLED",
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
-        "nodejs": ["DD_RUNTIME_METRICS_ENABLED", "runtime.metrics.enabled"],
+        "nodejs": "DD_RUNTIME_METRICS_ENABLED",
         "python": "DD_RUNTIME_METRICS_ENABLED",
         "ruby": "DD_RUNTIME_METRICS_ENABLED",
         "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
@@ -110,7 +110,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "dynamic_instrumentation_enabled": {
         "java": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
-        "nodejs": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamicInstrumentation.enabled"],
+        "nodejs": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "ruby": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
@@ -153,7 +153,12 @@ def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
 
 
 def _check_propagation_style_with_inject_and_extract(
-    test_agent: TestAgentAPI, configuration_by_name: dict, expected_origin: str, library_name: str
+    test_agent: TestAgentAPI,
+    configuration_by_name: dict,
+    expected_origin: str,
+    library_name: str,
+    *,
+    allow_calculated_origin: bool = False,
 ) -> None:
     """Check both inject and extract propagation style keys for languages that report them separately.
 
@@ -161,51 +166,43 @@ def _check_propagation_style_with_inject_and_extract(
     instead of a single combined key. This function validates that both keys exist with the
     expected origin and have non-empty values.
 
-    Raises an AssertionError if either key is missing, has wrong origin, or has empty value
+    When a library derives the inject/extract values from DD_TRACE_PROPAGATION_STYLE,
+    the reported origin may be "calculated" instead of the original source origin.
+    In that case, allow_calculated_origin can be used to accept either origin.
     """
-    # Define the inject and extract key names for each language
-    if library_name in ("python", "ruby"):
-        inject_keys = ["DD_TRACE_PROPAGATION_STYLE_INJECT"]
-        extract_keys = ["DD_TRACE_PROPAGATION_STYLE_EXTRACT"]
-    elif library_name == "nodejs":
-        inject_keys = ["DD_TRACE_PROPAGATION_STYLE_INJECT", "tracePropagationStyle.inject"]
-        extract_keys = ["DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracePropagationStyle.extract"]
+    allowed_origins = [expected_origin]
+    if allow_calculated_origin:
+        allowed_origins.append("calculated")
+
+    if library_name in ("python", "ruby", "nodejs"):
+        keys = ["DD_TRACE_PROPAGATION_STYLE_INJECT", "DD_TRACE_PROPAGATION_STYLE_EXTRACT"]
     else:
         raise ValueError(f"Unsupported library for inject/extract propagation style: {library_name}")
 
-    # Check inject key
-    inject_item = None
-    inject_key = inject_keys[0]
-    for candidate in inject_keys:
-        inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, candidate, expected_origin)
-        if inject_item is not None:
-            inject_key = candidate
-            break
-    assert inject_item is not None, (
-        f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
-    )
-    assert isinstance(inject_item, dict)
-    assert inject_item["origin"] == expected_origin, (
-        f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
-    )
-    assert inject_item["value"], f"Expected non-empty value for '{inject_key}'"
+    def _assert_config_with_allowed_origins(config_name: str, origins: list[str]) -> None:
+        config_item = next(
+            (
+                item
+                for origin in origins
+                if (item := test_agent.get_telemetry_config_by_origin(configuration_by_name, config_name, origin))
+                is not None
+            ),
+            None,
+        )
+        assert config_item is not None, (
+            f"No configuration found for '{config_name}' with any origin in {origins}. Full configuration_by_name: {configuration_by_name}"
+        )
+        assert isinstance(config_item, dict)
+        assert config_item["origin"] in origins, (
+            f"Origin mismatch for {config_item}. Expected one of {origins}, Actual origin: '{config_item.get('origin', '<missing>')}'"
+        )
+        assert config_item["value"], f"Expected non-empty value for '{config_name}'"
 
-    # Check extract key
-    extract_item = None
-    extract_key = extract_keys[0]
-    for candidate in extract_keys:
-        extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, candidate, expected_origin)
-        if extract_item is not None:
-            extract_key = candidate
-            break
-    assert extract_item is not None, (
-        f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
-    )
-    assert isinstance(extract_item, dict)
-    assert extract_item["origin"] == expected_origin, (
-        f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
-    )
-    assert extract_item["value"], f"Expected non-empty value for '{extract_key}'"
+    # The combined key is not asserted here: libraries that derive inject/extract
+    # may still report it with origin "default" (their built-in default value),
+    # which is not a wrong origin to flag, just a different reporting shape.
+    for key in keys:
+        _assert_config_with_allowed_origins(key, allowed_origins)
 
 
 @scenarios.parametric
@@ -937,7 +934,11 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # Python, Ruby and Node.js only report inject and extract keys for trace_propagation_style
             if cfg_name == "trace_propagation_style" and context.library.name in ["python", "ruby", "nodejs"]:
                 _check_propagation_style_with_inject_and_extract(
-                    test_agent, configuration_by_name, expected_origin, context.library.name
+                    test_agent,
+                    configuration_by_name,
+                    expected_origin,
+                    context.library.name,
+                    allow_calculated_origin=True,
                 )
             elif cfg_name == "tags" and context.library.name in ["ruby"]:
                 continue
@@ -1096,16 +1097,13 @@ class Test_TelemetrySSIConfigs:
         ssi_enabled_telemetry_names = _mapped_telemetry_name("ssi_injection_enabled")
         inject_enabled = None
         for ssi_name in ssi_enabled_telemetry_names:
-            inject_enabled = test_agent.get_telemetry_config_by_origin(configuration_by_name, ssi_name, "env_var")
+            inject_enabled = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name,
+                ssi_name,
+                "env_var",
+            )
             if inject_enabled is not None:
                 break
-        if inject_enabled is None and context.library == "nodejs":
-            for ssi_name in ssi_enabled_telemetry_names:
-                inject_enabled = test_agent.get_telemetry_config_by_origin(
-                    configuration_by_name, ssi_name, "calculated", fallback_to_first=True
-                )
-                if inject_enabled is not None:
-                    break
         assert inject_enabled is not None, (
             f"No configuration found for any of {' or '.join(ssi_enabled_telemetry_names)}"
         )
@@ -1114,9 +1112,7 @@ class Test_TelemetrySSIConfigs:
         if context.library == "nodejs":
             expected_values += ([item.strip() for item in expected_value.split(",")],)
         assert inject_enabled.get("value") in expected_values
-        # Node.js now derives the SSI source config from canonical config entries. Once PR #7734
-        # is fully rolled out, restore the strict env_var origin assertion here.
-        if expected_value is not None and context.library != "nodejs":
+        if expected_value is not None:
             assert inject_enabled.get("origin") == "env_var"
 
     @pytest.mark.parametrize(
@@ -1154,26 +1150,18 @@ class Test_TelemetrySSIConfigs:
         inject_force = None
         for inject_force_name in inject_force_telemetry_names:
             inject_force = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, inject_force_name, "env_var"
+                configuration_by_name,
+                inject_force_name,
+                "env_var",
             )
             if inject_force is not None:
                 break
-        if inject_force is None and context.library == "nodejs":
-            for inject_force_name in inject_force_telemetry_names:
-                inject_force = test_agent.get_telemetry_config_by_origin(
-                    configuration_by_name, inject_force_name, "calculated", fallback_to_first=True
-                )
-                if inject_force is not None:
-                    break
         assert inject_force is not None, (
             f"No configuration found for any of {' or '.join(inject_force_telemetry_names)}"
         )
         assert isinstance(inject_force, dict)
         assert str(inject_force.get("value")).lower() == expected_value
-        # Node.js now derives the SSI source config from canonical config entries. Once PR #7734
-        # is fully rolled out, restore the strict env_var origin assertion here.
-        if context.library != "nodejs":
-            assert inject_force.get("origin") == "env_var"
+        assert inject_force.get("origin") == "env_var"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_SERVICE": "service_test"}])
     def test_instrumentation_source_non_ssi(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -1189,19 +1177,13 @@ class Test_TelemetrySSIConfigs:
         instrumentation_source = None
         for instrumentation_source_name in instrumentation_source_telemetry_names:
             instrumentation_source = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, instrumentation_source_name, "default", fallback_to_first=True
+                configuration_by_name,
+                instrumentation_source_name,
+                "default",
+                fallback_to_first=True,
             )
             if instrumentation_source is not None:
                 break
-        # Node.js reports instrumentationSource as a calculated value with the new config pipeline.
-        # Remove this fallback after PR #7734 lands and older values no longer need coverage.
-        if instrumentation_source is None and context.library == "nodejs":
-            for instrumentation_source_name in instrumentation_source_telemetry_names:
-                instrumentation_source = test_agent.get_telemetry_config_by_origin(
-                    configuration_by_name, instrumentation_source_name, "calculated", fallback_to_first=True
-                )
-                if instrumentation_source is not None:
-                    break
         assert instrumentation_source is not None, (
             f"No configuration found for any of {' or '.join(instrumentation_source_telemetry_names)}"
         )
@@ -1259,11 +1241,10 @@ class Test_TelemetrySCAEnvVar:
         assert test_library.is_alive(), "Library container is not running"
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
-        dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
 
         logger.info(f"""Check that:
     * the env var DD_APPSEC_SCA_ENABLED={library_env["DD_APPSEC_SCA_ENABLED"]}
-    * is reported in telemetry configuration {dd_appsec_sca_enabled} as value={outcome_value}""")
+    * is reported in telemetry configuration {" or ".join(dd_appsec_sca_enabled_names)} as value={outcome_value}""")
 
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
@@ -1275,8 +1256,10 @@ class Test_TelemetrySCAEnvVar:
             ),
             None,
         )
-        logger.info(f"Oberved {dd_appsec_sca_enabled}: {cfg_appsec_enabled}")
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+        logger.info(f"Observed {' / '.join(dd_appsec_sca_enabled_names)}: {cfg_appsec_enabled}")
+        assert cfg_appsec_enabled is not None, (
+            f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+        )
 
         # Backend implementation accepts both boolean and string representations
         assert cfg_appsec_enabled[0].get("value") in (outcome_value, str(outcome_value).lower())
@@ -1289,7 +1272,6 @@ class Test_TelemetrySCAEnvVar:
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
         dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
-        dd_appsec_sca_enabled = " or ".join(dd_appsec_sca_enabled_names)
 
         if context.library in ("java", "nodejs", "python", "ruby"):
             cfg_appsec_enabled = next(
@@ -1300,7 +1282,9 @@ class Test_TelemetrySCAEnvVar:
                 ),
                 None,
             )
-            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+            assert cfg_appsec_enabled is not None, (
+                f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+            )
             assert cfg_appsec_enabled[0].get("value") is None
         else:
             assert all(config_name not in configuration_by_name for config_name in dd_appsec_sca_enabled_names)

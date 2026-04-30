@@ -1,7 +1,7 @@
 import json
 import math
 
-from utils import context, interfaces, scenarios, weblog, features
+from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import SamplingMechanism, SamplingPriority
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
@@ -223,6 +223,41 @@ class Test_RootSpanUserKeep:
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
                 "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism"
             )
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/x/x4DVhAE")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_ClientIPTagsCollected:
+    PUBLIC_IP = "5.6.7.9"
+
+    def setup_client_ip_tags(self):
+        self.r = weblog.post(
+            "/ai_guard/evaluate",
+            headers={"X-Forwarded-For": self.PUBLIC_IP},
+            json=MESSAGES["ALLOW"],
+        )
+
+    def test_client_ip_tags(self):
+        """Test AI Guard collects client IP tags on the local root span with AppSec disabled."""
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        span = interfaces.library.get_root_span(self.r)
+        assert span
+        meta = span.get("meta", {})
+        assert meta
+        assert "network.client.ip" in meta
+        network_client_ip = meta["network.client.ip"]
+        assert network_client_ip
+        assert network_client_ip != self.PUBLIC_IP
+
+        http_client_ip = meta.get("http.client_ip")
+        assert http_client_ip
+        assert http_client_ip == self.PUBLIC_IP
+        assert network_client_ip != http_client_ip
 
 
 @features.ai_guard
@@ -456,6 +491,82 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(location, "start_index") is not None
             assert _assert_key(location, "end_index_exclusive") is not None
             assert _assert_key(location, "path")
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/x/KIApiQE")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_AnomalyDetectionTags:
+    """Test that anomaly detection attributes are propagated from the root span into every AI Guard span."""
+
+    PUBLIC_IP = "5.6.7.9"
+    USER_ID = "u12345"
+    SESSION_ID = "s12345"
+
+    def _assert_span(self, root_span: DataDogLibrarySpan):
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            meta = span["meta"]
+
+            # Tags copied from the root span must be present on every AI Guard span
+            _assert_key(meta, "ai_guard.http.client_ip")
+            _assert_key(meta, "ai_guard.network.client.ip")
+            _assert_key(meta, "ai_guard.http.useragent")
+            _assert_key(meta, "ai_guard.usr.id", self.USER_ID)
+            _assert_key(meta, "ai_guard.session.id", self.SESSION_ID)
+
+            # Values must match what is on the root span
+            root_meta = root_span["meta"]
+            assert meta["ai_guard.http.client_ip"] == root_meta.get("http.client_ip"), (
+                f"ai_guard.http.client_ip mismatch: {meta['ai_guard.http.client_ip']} != {root_meta.get('http.client_ip')}"
+            )
+            assert meta["ai_guard.network.client.ip"] == root_meta.get("network.client.ip"), (
+                f"ai_guard.network.client.ip mismatch: {meta['ai_guard.network.client.ip']} != {root_meta.get('network.client.ip')}"
+            )
+            assert meta["ai_guard.http.useragent"] == root_meta.get("http.useragent"), (
+                f"ai_guard.http.useragent mismatch: {meta['ai_guard.http.useragent']} != {root_meta.get('http.useragent')}"
+            )
+            assert meta["ai_guard.usr.id"] == root_meta.get("usr.id"), (
+                f"ai_guard.usr.id mismatch: {meta['ai_guard.usr.id']} != {root_meta.get('usr.id')}"
+            )
+            assert meta["ai_guard.session.id"] == root_meta.get("session.id"), (
+                f"ai_guard.session.id mismatch: {meta['ai_guard.session.id']} != {root_meta.get('session.id')}"
+            )
+
+            return True
+
+        return validate
+
+    def setup_anomaly_detection_tags(self):
+        self.r = weblog.post(
+            "/ai_guard/evaluate",
+            headers={
+                "X-Forwarded-For": self.PUBLIC_IP,
+                "X-User-Id": self.USER_ID,
+                "X-Session-Id": self.SESSION_ID,
+            },
+            json=MESSAGES["ALLOW"],
+        )
+
+    def test_anomaly_detection_tags(self):
+        """Test that AI Guard spans carry anomaly detection attributes copied from the root span.
+
+        Verifies that http.client_ip, network.client.ip, http.useragent, usr.id and session.id
+        are all present on the AI Guard span with the ai_guard. prefix, and that their values
+        match the corresponding tags on the local root span.
+        """
+        assert self.r.status_code == 200
+
+        root_span = interfaces.library.get_root_span(self.r)
+        assert root_span, "No root span found"
+
+        interfaces.library.validate_one_span(
+            self.r,
+            validator=self._assert_span(root_span=root_span),
+            full_trace=True,
+        )
 
 
 @features.ai_guard
