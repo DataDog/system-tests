@@ -361,6 +361,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.6.2
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
