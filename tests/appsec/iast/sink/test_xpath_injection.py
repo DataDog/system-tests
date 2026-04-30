@@ -29,6 +29,7 @@ class TestXPathInjection_StackTrace:
         self.r = weblog.post("/iast/xpathi/test_insecure", data={"expression": "expression"})
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -43,4 +44,5 @@ class TestXPathInjection_ExtendedLocation:
         self.r = weblog.post("/iast/xpathi/test_insecure", data={"expression": "expression"})
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)

@@ -28,6 +28,7 @@ class TestSamplingByRouteMethodCount:
         vuln_debug_list = []
 
         for r in self.requests:
+            assert r.status_code == 200
             iast = None
             try:
                 iast = get_iast_event(r)

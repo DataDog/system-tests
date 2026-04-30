@@ -39,6 +39,7 @@ class TestCodeInjection_StackTrace:
         self.r = weblog.post("/iast/code_injection/test_insecure", data={"code": "1+2"})
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -53,4 +54,5 @@ class TestCodeInjection_ExtendedLocation:
         self.r = weblog.post("/iast/code_injection/test_insecure", data={"code": "1+2"})
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
