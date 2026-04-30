@@ -23,10 +23,19 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 @dataclass
 class SchemaBug:
+    """Represents a known schema-validation failure that should be waived in `assert_no_schema_error`.
+
+    A captured ValidationError is considered waived when, for some active bug
+    (one whose `condition` is True), every specified field matches the error.
+    Fields left as `None` act as wildcards that match any value.
+    """
+
     endpoint: str
-    data_path: str | None  # None means that all data_path will be considered as bug
+    data_path: str | None  # None matches any data_path on the endpoint
     condition: bool
     ticket: str
+    error_validator: str | None = None  # e.g. "additionalProperties", "type", "enum"; None matches any validator
+    error_message_pattern: str | None = None  # regex matched via re.search against error.message; None matches any
 
 
 def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
@@ -210,18 +219,35 @@ def _main():
                         print(error.message)  # noqa: T201
 
 
+def _is_waived(error: SchemaError, active_bugs: list[SchemaBug]) -> bool:
+    """Return True if `error` is waived by at least one of the active bugs.
+
+    A bug waives an error when every specified bug field matches the error.
+    `None` on a bug field acts as a wildcard.
+    """
+
+    for bug in active_bugs:
+        if bug.endpoint != error.endpoint:
+            continue
+        if bug.data_path is not None and bug.data_path != error.data_path:
+            continue
+        if bug.error_validator is not None and bug.error_validator != error.error.validator:
+            continue
+        if bug.error_message_pattern is not None and not re.search(bug.error_message_pattern, error.error.message):
+            continue
+        return True
+    return False
+
+
 def assert_no_schema_error(interface: ProxyBasedInterfaceValidator, known_bugs: list[SchemaBug]) -> None:
-    excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+    active_bugs = [bug for bug in known_bugs if bug.condition]
 
     schema_errors: list[SchemaError] = []
     validator = SchemaValidator(interface.name)
 
     for data in interface.get_data():
         for error in validator.get_errors(data):
-            if (error.endpoint, error.data_path) not in excluded_points and (
-                error.endpoint,
-                None,
-            ) not in excluded_points:
+            if not _is_waived(error, active_bugs):
                 logger.error(f"* {error.message}")
                 schema_errors.append(error)
 
