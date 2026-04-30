@@ -42,11 +42,9 @@ class InternalController < ApplicationController
 
     # Flush OTel metrics
     begin
-      if defined?(::OpenTelemetry) && defined?(::OpenTelemetry::SDK::Metrics::MeterProvider)
+      if defined?(::OpenTelemetry)
         meter_provider = ::OpenTelemetry.meter_provider
-        if meter_provider.is_a?(::OpenTelemetry::SDK::Metrics::MeterProvider)
-          meter_provider.force_flush
-        end
+        meter_provider.force_flush if meter_provider.respond_to?(:force_flush)
       end
     rescue => e
       Rails.logger.error("Failed to flush OTel metrics: #{e.class}: #{e}\n#{e.backtrace.join("\n")}")
