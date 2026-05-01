@@ -2,6 +2,10 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": missing_feature (APPSEC-62449)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -3133,6 +3137,8 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": irrelevant

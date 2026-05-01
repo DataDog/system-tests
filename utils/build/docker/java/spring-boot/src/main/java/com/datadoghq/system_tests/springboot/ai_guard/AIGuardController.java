@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import datadog.trace.api.aiguard.AIGuard;
 import datadog.trace.api.aiguard.AIGuard.Evaluation;
+import datadog.trace.api.interceptor.MutableSpan;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +42,19 @@ public class AIGuardController {
     @PostMapping("/ai_guard/evaluate")
     public ResponseEntity<?> evaluate(
             @RequestHeader(name = "X-AI-Guard-Block", defaultValue = "false") final boolean block,
+            @RequestHeader(name = "X-User-Id", required = false) final String userId,
+            @RequestHeader(name = "X-Session-Id", required = false) final String sessionId,
             @RequestBody final List<Message> data) {
+        final Span activeSpan = GlobalTracer.get().activeSpan();
+        if (activeSpan instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) activeSpan).getLocalRootSpan();
+            if (userId != null && !userId.isEmpty()) {
+                rootSpan.setTag("usr.id", userId);
+            }
+            if (sessionId != null && !sessionId.isEmpty()) {
+                rootSpan.setTag("session.id", sessionId);
+            }
+        }
         try {
             final List<AIGuard.Message> messages = data.stream().map(Message::toAIGuard).collect(Collectors.toList());
             final Evaluation result = AIGuard.evaluate(messages, new AIGuard.Options().block(block));

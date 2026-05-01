@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
@@ -931,9 +932,6 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: v1.19.0
-  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
-    - component_version: ">=1.19.0"
-      declaration: bug (APMLP-1311)
   tests/stats/test_stats.py::Test_Client_Stats::test_disable: v1.17.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (PHP does not support gRPC)
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature

@@ -57,7 +57,6 @@ class _Owner(Enum):
                                 "nginx-datadog":    "@DataDog/asm-cpp",
                             })
     auto_instrumentation = _OwnerDef("@DataDog/unified-instrumentation-setup")
-    data_pipeline        = _OwnerDef("@DataDog/libdatadog-apm")  # or agent-apm? TODO @ekump
     debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
                                 "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
                                 "dd-trace-go":      "@DataDog/debugger-go",
@@ -82,6 +81,7 @@ class _Owner(Enum):
                             })
     injection_platform   = _OwnerDef("@DataDog/injection-platform")
     language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                                 "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
                                 "dd-trace-go":      "@DataDog/lang-platform-go",
                                 "dd-trace-java":    "@DataDog/apm-lang-platform-java",
@@ -89,6 +89,8 @@ class _Owner(Enum):
                                 "dd-trace-php":     "@DataDog/apm-lang-platform-php",
                                 "dd-trace-py":      "@DataDog/lang-platform-python",
                                 "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                             })
     ml_observability     = _OwnerDef("@DataDog/ml-observability")
     profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
@@ -182,7 +184,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
 
-        return _mark_test_object(test_object, feature_id=6, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=6, owner=_Owner.language_platform)
 
     @staticmethod
     def unix_domain_sockets_automatic_detection(test_object):
@@ -190,7 +192,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=7
         """
-        return _mark_test_object(test_object, feature_id=7, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=7, owner=_Owner.language_platform)
 
     @staticmethod
     def twl_customer_controls_ingestion_dd_trace_sampling_rules(test_object):
@@ -250,7 +252,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=14
         """
-        return _mark_test_object(test_object, feature_id=14, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=14, owner=_Owner.language_platform)
 
     # @staticmethod
     # def support_ddmeasured(test_object):
@@ -326,7 +328,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=23
         """
-        return _mark_test_object(test_object, feature_id=23, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=23, owner=_Owner.language_platform)
 
     @staticmethod
     def partial_flush_on_by_default(test_object):
@@ -334,7 +336,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=24
         """
-        return _mark_test_object(test_object, feature_id=24, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=24, owner=_Owner.language_platform)
 
     @staticmethod
     def automatic_trace_id_injection_into_logs(test_object):
@@ -486,7 +488,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=45
         """
-        return _mark_test_object(test_object, feature_id=45, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=45, owner=_Owner.language_platform)
 
     # @staticmethod
     # def setting_to_rename_service_by_tag_split_by_tag(test_object):
@@ -554,7 +556,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=53
         """
-        return _mark_test_object(test_object, feature_id=53, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=53, owner=_Owner.language_platform)
 
     @staticmethod
     def aws_sdk_integration_tags(test_object):
@@ -602,7 +604,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=60
         """
-        return _mark_test_object(test_object, feature_id=60, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=60, owner=_Owner.language_platform)
 
     @staticmethod
     def creation_and_propagation_of_ddpdm(test_object):
@@ -618,7 +620,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=62
         """
-        return _mark_test_object(test_object, feature_id=62, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=62, owner=_Owner.language_platform)
 
     # @staticmethod
     # def client_side_stats_on_by_default(test_object):
