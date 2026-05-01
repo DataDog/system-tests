@@ -162,10 +162,6 @@ def apply_annotations(span, annotations: list[LlmObsAnnotationRequest], annotate
             for field_name in annotation.__dataclass_fields__
             if field_name != "explicit_span"
         }
-        # cost_tags was added later — only forward when set so older SDK versions
-        # without the kwarg don't break unrelated tests in the same weblog.
-        if options.get("cost_tags") is None:
-            options.pop("cost_tags", None)
         if annotation.explicit_span or annotate_after:
             options["span"] = span
         LLMObs.annotate(**options)
