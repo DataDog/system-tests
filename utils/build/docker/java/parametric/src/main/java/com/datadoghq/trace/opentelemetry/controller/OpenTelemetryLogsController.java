@@ -60,8 +60,10 @@ public class OpenTelemetryLogsController {
       }
     }
     try {
+      Severity severity = Severity.valueOf(args.level().toUpperCase(Locale.ROOT));
       logger.logRecordBuilder()
-          .setSeverity(Severity.valueOf(args.level().toUpperCase(Locale.ROOT)))
+          .setSeverity(severity)
+          .setSeverityText(severity.name())
           .setBody(args.message())
           .emit();
     } finally {
