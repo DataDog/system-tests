@@ -606,7 +606,7 @@ class ProxyContainer(TestedContainer):
         socket_family = "socket.AF_INET6" if enable_ipv6 else "socket.AF_INET"
 
         super().__init__(
-            image_name="datadog/system-tests:proxy-v1",
+            image_name="datadog/system-tests:proxy-v2",
             name="proxy",
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
@@ -914,6 +914,7 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_DOGSTATSD_HOST"] = "proxy"
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"

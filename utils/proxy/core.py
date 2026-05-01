@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import ssl
-from typing import Any, Literal
+from typing import Any, Literal, cast
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
@@ -38,6 +38,29 @@ messages_counts: dict[str, int] = defaultdict(int)
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
 
+class _UDPForwarder(asyncio.DatagramProtocol):
+    def __init__(self, target_host: str, target_port: int) -> None:
+        self.target_host = target_host
+        self.target_port = target_port
+        self.transport: asyncio.DatagramTransport | None = None
+
+    def connection_made(self, transport: asyncio.BaseTransport) -> None:
+        self.transport = cast("asyncio.DatagramTransport", transport)
+
+    def error_received(self, exc: Exception) -> None:
+        logger.error(f"DogStatsD UDP forwarder error: {exc}")
+
+    def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
+        if self.transport is None:
+            logger.error("DogStatsD UDP forwarder: datagram received but transport is None")
+            return
+
+        logger.info(
+            f"Forward UDP datagram ({len(data)}B) from {addr[0]}:{addr[1]} to {self.target_host}:{self.target_port}"
+        )
+        self.transport.sendto(data, (self.target_host, self.target_port))
+
+
 async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     """Keep the mitmproxy ↔ upstream TLS leg alive; mitmproxy handles all actual HTTP."""
     try:
@@ -46,6 +69,17 @@ async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.S
         pass
     finally:
         writer.close()
+
+
+async def _start_udp_forwarder(
+    *, listen_host: str, listen_port: int, target_host: str, target_port: int
+) -> asyncio.DatagramTransport:
+    loop = asyncio.get_running_loop()
+    server_transport, _ = await loop.create_datagram_endpoint(
+        lambda: _UDPForwarder(target_host, target_port),
+        local_addr=(listen_host, listen_port),
+    )
+    return cast("asyncio.DatagramTransport", server_transport)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -366,7 +400,21 @@ def start_proxy() -> None:
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())
     proxy.addons.add(_RequestLogger())
-    loop.run_until_complete(proxy.run())
+
+    async def _run() -> None:
+        await _start_udp_forwarder(
+            listen_host=listen_host,
+            listen_port=ProxyPorts.dogstatsd_weblog,
+            target_host="agent",
+            target_port=ProxyPorts.dogstatsd_weblog,
+        )
+        logger.info(
+            "DogStatsD UDP forwarder started on port "
+            f"{ProxyPorts.dogstatsd_weblog} to agent:{ProxyPorts.dogstatsd_weblog}"
+        )
+        await proxy.run()
+
+    loop.run_until_complete(_run())
 
 
 if __name__ == "__main__":

@@ -223,7 +223,7 @@ build() {
                 --load \
                 --progress=plain \
                 -f utils/build/docker/proxy.Dockerfile \
-                -t datadog/system-tests:proxy-v1 \
+                -t datadog/system-tests:proxy-v2 \
                 $EXTRA_DOCKER_ARGS \
                 .
 
