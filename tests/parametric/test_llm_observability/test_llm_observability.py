@@ -277,7 +277,7 @@ def _get_cost_tags(span_event: dict) -> list[str] | None:
     return span_event.get("meta", {}).get("metadata", {}).get("_dd", {}).get("cost_tags")
 
 
-@features.llm_observability_sdk_enablement
+@features.llm_observability_cost_tags
 @scenarios.parametric
 class Test_CostTags:
     """Cost tags propagate user-selected span tags to LLMObs cost/token metrics.
@@ -359,17 +359,18 @@ class Test_CostTags:
         assert _get_cost_tags(span_events[0]) == ["team"]
 
     def test_cost_tags_in_annotation_context(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """cost_tags supplied to annotation_context are applied to child spans started within the context."""
+        """cost_tags supplied to annotation_context are applied to every child span started within the context."""
         llmobs_request = LlmObsAnnotationContextRequest(
             tags={"team": "ml", "feature": "chatbot"},
             cost_tags=["team", "feature"],
-            children=[LlmObsSpanRequest(kind="llm")],
+            children=[LlmObsSpanRequest(kind="llm"), LlmObsSpanRequest(kind="llm")],
         )
         test_library.llmobs_trace(llmobs_request)
 
         span_events = test_agent.wait_for_llmobs_requests(num=1)
-        assert len(span_events) == 1
+        assert len(span_events) == 2
         assert _get_cost_tags(span_events[0]) == ["team", "feature"]
+        assert _get_cost_tags(span_events[1]) == ["team", "feature"]
 
     def test_annotation_context_cost_tags_not_retained_for_tags_added_later(
         self, test_agent: TestAgentAPI, test_library: APMLibrary

@@ -2905,5 +2905,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=553, owner=_Owner.asm)
 
+    @staticmethod
+    def llm_observability_cost_tags(test_object):
+        """LLM Observability supports cost_tags annotation for propagating user-selected
+        span tags to LLM cost and token metrics.
+
+        https://feature-parity.us1.prod.dog/#/?feature=554
+        """
+        return _mark_test_object(test_object, feature_id=554, owner=_Owner.ml_observability)
 
 features = _Features()
