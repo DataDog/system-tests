@@ -119,7 +119,7 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
       args.push(span);
     }
 
-    args.push({ inputData, outputData, metadata, metrics, tags, prompt, ...(costTags != null && { costTags }) });
+    args.push({ inputData, outputData, metadata, metrics, tags, prompt, costTags });
 
     llmobs.annotate(...args);
   }
