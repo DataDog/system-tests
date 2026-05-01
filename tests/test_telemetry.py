@@ -162,8 +162,7 @@ class Test_Telemetry:
         max_out_of_order_lag = timedelta(seconds=0.3)  # s
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-        if len(telemetry_data) == 0:
-            raise ValueError("No telemetry data to validate on")
+        assert telemetry_data, "No telemetry data to validate on"
 
         data_list_per_runtime = defaultdict(list)
         for data in telemetry_data:
@@ -171,6 +170,7 @@ class Test_Telemetry:
 
         for runtime_id, data_list in data_list_per_runtime.items():
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
+            assert len(data_list) >= 2, f"Not enough telemetry messages to validate seq_id for runtime id {runtime_id}"
 
             last_known_data = None
 
@@ -184,6 +184,7 @@ class Test_Telemetry:
 
                 if last_known_data is None:
                     # first payload sent, nothing to check
+                    last_known_data = data
                     continue
 
                 last_seq_id = last_known_data["request"]["content"]["seq_id"]
@@ -198,14 +199,13 @@ class Test_Telemetry:
                 )
 
                 if seq_id == last_seq_id:
-                    # if consecutive requests sue the same number, it may be caused by a retry
+                    # if consecutive requests use the same number, it may be caused by a retry
                     # in that situation, the time between the two requests should be very small
                     # in theory less than 100ms, we allow a bit more time in the test
-                    if curr_message_time - last_message_time > max_out_of_order_lag:
-                        raise ValueError(
-                            f"Received message with seq_id {seq_id} to far more than"
-                            f"100ms after message with seq_id {last_seq_id}"
-                        )
+                    assert curr_message_time - last_message_time <= max_out_of_order_lag, (
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {last_seq_id}"
+                    )
 
                 last_known_data = data
 
