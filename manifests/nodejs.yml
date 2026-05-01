@@ -1645,8 +1645,14 @@ manifest:
         "*": incomplete_test_app
         express4: *ref_5_77_0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1730)
-  tests/ffe/test_flag_eval_metrics.py: missing_feature
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Targeting_Key_Optional: irrelevant (JS SDK requires targeting key)
+  tests/ffe/test_flag_eval_metrics.py:
+    - weblog_declaration:
+        "*": missing_feature
+        express4: *ref_6_0_0
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Numeric_To_Integer: bug (FFL-2064)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex: bug (FFL-2064)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch: bug (FFL-2064)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Split: bug (FFL-2064)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create: missing_feature  # ephemeral cache TTL metrics not yet released

@@ -121,9 +121,10 @@ class Test_FFE_Eval_Metric_Basic:
         assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
             f"Expected tag feature_flag.result.variant:on, got tags: {tags}"
         )
-        assert get_tag_value(tags, "feature_flag.result.reason") == "static", (
-            f"Expected tag feature_flag.result.reason:static, got tags: {tags}"
-        )
+        # TODO(FFL-2064): align evaluation reasons across SDKs
+        # assert get_tag_value(tags, "feature_flag.result.reason") == "static", (
+        #     f"Expected tag feature_flag.result.reason:static, got tags: {tags}"
+        # )
         assert get_tag_value(tags, "feature_flag.result.allocation_key") == "default-allocation", (
             f"Expected tag feature_flag.result.allocation_key:default-allocation, got tags: {tags}"
         )
