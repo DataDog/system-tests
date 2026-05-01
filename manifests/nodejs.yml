@@ -1981,16 +1981,20 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Implemented in 4.20.0 (and 3.41.0))
       component_version: <4.20.0
+    - declaration: bug (ot.th injection adds an extra vendor entry, changing the expected tracestate member count)
+      component_version: '>=4.20.0'
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
   : - declaration: irrelevant (Default value was switched to datadog,tracecontext)
       component_version: '>=4.0.0'
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy:
     - declaration: irrelevant (Newer versions include tracecontext as a default propagator (2.27.0 and 3.14.0))
       component_version: '>=3.14.0'
+  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext: bug (ot.th injection adds an extra vendor entry, changing the expected tracestate member count)
+  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_datadog: bug (ot.th injection adds an extra vendor entry, changing the expected tracestate member count)
+  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_datadog_tracecontext: bug (ot.th injection adds an extra vendor entry, changing the expected tracestate member count)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
   : - declaration: missing_feature (Implemented in 4.20.0 (and 3.41.0))
       component_version: <4.20.0
-  tests/parametric/test_tracestate_ot_th.py::Test_Tracestate_OT_Probability_Threshold: missing_feature
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
@@ -2006,6 +2010,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <5.6.0
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_keeps_32_or_fewer_list_members: bug (ot.th injection adds an extra vendor entry, pushing count above 32-member limit)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : bug (APMAPI-914)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
