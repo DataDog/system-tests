@@ -4,6 +4,8 @@ import static com.datadoghq.ApmTestClient.LOGGER;
 
 import com.datadoghq.trace.opentelemetry.dto.*;
 import com.datadoghq.trace.opentracing.controller.OpenTracingController;
+import datadog.trace.api.GlobalTracer;
+import datadog.trace.api.internal.InternalTracer;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.logs.*;
 import io.opentelemetry.api.trace.Span;
@@ -79,7 +81,10 @@ public class OpenTelemetryLogsController {
   public FlushResult flushLogs(@RequestBody FlushArgs args) {
     LOGGER.info("Flushing OTel logs: {}", args);
     try {
-      // TODO: call internal hook to flush logs
+      if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
+        //noinspection JavaReflectionMemberAccess new method not yet in a release
+        InternalTracer.class.getMethod("flushLogs").invoke(internalTracer);
+      }
       return new FlushResult(true);
     } catch (Exception e) {
       LOGGER.warn("Failed to flush OTel logs", e);
