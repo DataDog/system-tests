@@ -30,6 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/trace/otel")
 public class OpenTelemetryTraceController {
+  /** Created spans, indexed by their identifiers .*/
   private static final Map<Long, Span> spans = new ConcurrentHashMap<>();
 
   private final Tracer tracer;
@@ -239,7 +240,7 @@ public class OpenTelemetryTraceController {
     this.baggage = Baggage.empty();
   }
 
-  static Span getSpan(long spanId) {
+  public static Span getSpan(long spanId) {
     Span span = spans.get(spanId);
     if (span == null) {
       LOGGER.warn("OTel span {} does not exist.", spanId);
