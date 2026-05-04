@@ -165,6 +165,7 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
         Results.Ok(data.toString())
       case AnyContentAsMultipartFormData(mpfd) =>
         val sb = new StringBuilder()
+        mpfd.dataParts.foreach { case (_, values) => values.foreach(sb.append) }
         mpfd.files.foreach { file =>
           sb.append(new String(java.nio.file.Files.readAllBytes(file.ref.path)))
         }
