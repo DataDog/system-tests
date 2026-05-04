@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.http.HttpClient;
@@ -44,6 +45,8 @@ import java.util.stream.Stream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import io.vertx.ext.web.handler.SessionHandler;
@@ -173,6 +176,17 @@ public class Main {
                 ctx.response().setStatusCode(200).end(body.toString());
             });
         }
+        router.post("/waf").consumes("multipart/form-data").handler(ctx -> {
+            var sb = new StringBuilder();
+            for (FileUpload upload : ctx.fileUploads()) {
+                try {
+                    sb.append(new String(Files.readAllBytes(Paths.get(upload.uploadedFileName()))));
+                } catch (IOException e) {
+                    // ignore read errors for individual uploads
+                }
+            }
+            ctx.response().setStatusCode(200).end(sb.toString());
+        });
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");

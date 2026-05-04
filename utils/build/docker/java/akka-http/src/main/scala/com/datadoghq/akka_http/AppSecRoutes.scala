@@ -29,6 +29,8 @@ import scala.xml.{Elem, XML}
 import datadog.appsec.api.user.User.setUser
 
 import scala.jdk.CollectionConverters._
+import akka.stream.scaladsl._
+import akka.util.ByteString
 
 object AppSecRoutes {
 
@@ -158,6 +160,15 @@ object AppSecRoutes {
           complete("Hello world!")
         } ~
           post {
+            entity(as[Multipart.FormData]) { formData =>
+              val contentFuture = formData.parts
+                .mapAsync(1)(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _))
+                .runFold(ByteString.empty)(_ ++ _)
+                .map(_.utf8String)
+              onSuccess(contentFuture) { content =>
+                complete(content)
+              }
+            } ~
             formFieldMultiMap { fields: Map[String, List[String]] =>
               complete(fields.toString)
             } ~
