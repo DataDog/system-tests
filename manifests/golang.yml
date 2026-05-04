@@ -1339,7 +1339,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_client:
     - declaration: missing_feature (Obfuscation only occurs on server side)
       component_version: <2.1.0-dev
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v1.18.0
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default:
+    - declaration: missing_feature
+      component_version: <1.18.0
+    # DD_RUNTIME_METRICS_V2_ENABLED defaults to true since dd-trace-go v2.2.0, see https://docs.datadoghq.com/integrations/go-runtime-metrics-v2/
+    # This makes this test obsolete, since that makes runtime metrics available by default.
+    - declaration: irrelevant
+      component_version: '>=2.2.0'
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v1.18.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v1.18.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
