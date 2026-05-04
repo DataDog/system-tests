@@ -1268,6 +1268,8 @@ class _Scenarios:
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
             "DD_API_KEY": "mock_api_key",
             "DD_APP_KEY": "mock_app_key",
+            "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
+            "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
         },
         doc="AI Guard SDK tests",
         scenario_groups=[scenario_groups.ai_guard],
