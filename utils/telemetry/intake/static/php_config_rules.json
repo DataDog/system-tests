@@ -1,5 +1,6 @@
 {
     "normalization_rules": {
+        "dd_trace_redis_client_split_by_host": "trace_redis_client_split_by_host_enabled",
         "telemetry_log_collection_enabled": "instrumentation_telemetry_log_collection_enabled",
         "trace.ignore_agent_sampling_rates": "trace_ignore_agent_sampling_rates"
     },
