@@ -1917,6 +1917,7 @@ manifest:
         fastify: *ref_5_26_0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Node.js extract endpoint doesn't seem to be working.)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_inject: incomplete_test_app (Node.js inject endpoint doesn't seem to be working.)
+  tests/otel/test_otlp_trace_metrics.py::Test_OTLP_Trace_Metrics: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
@@ -1990,6 +1991,7 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
   : - declaration: missing_feature (Implemented in 4.20.0 (and 3.41.0))
       component_version: <4.20.0
+  tests/parametric/test_tracestate_ot_th.py::Test_Tracestate_OT_Probability_Threshold: missing_feature
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used)

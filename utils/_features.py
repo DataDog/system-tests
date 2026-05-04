@@ -2908,5 +2908,25 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=553, owner=_Owner.asm)
 
+    @staticmethod
+    def otlp_trace_metrics(test_object):
+        """OTLP Trace Metrics Export
+
+        Client-side span stats (dd.trace.span.hits, dd.trace.span.errors,
+        dd.trace.span.top_level_hits, dd.trace.span.duration) exported as OTLP
+        metrics to /v1/metrics when DD_TRACE_OTEL_METRICS_ENABLED=true.
+        """
+        return _mark_test_object(test_object, feature_id=554, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def w3c_tracestate_ot_probability_threshold(test_object):
+        """W3C TraceState ot.th probability threshold injection
+
+        When propagating a sampled trace with tracecontext style, the tracer
+        injects an ot=th:<hex> entry into the outgoing tracestate so that
+        downstream OTel collectors can extrapolate metrics from sampled data.
+        """
+        return _mark_test_object(test_object, feature_id=555, owner=_Owner.sdk_capabilities)
+
 
 features = _Features()
