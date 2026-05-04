@@ -1909,6 +1909,9 @@ manifest:
         "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
+        spring-boot-payara: missing_feature (no instrumentation for Payara multipart parsing)
+        vertx3: missing_feature (no instrumentation for Vert.x async multipart)
+        vertx4: missing_feature (no instrumentation for Vert.x async multipart)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
