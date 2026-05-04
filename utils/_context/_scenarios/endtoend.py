@@ -239,7 +239,9 @@ class EndToEndScenario(DockerScenario):
 
         self._weblog_env = dict(weblog_env) if weblog_env else {}
         if rc_api_enabled:
-            # Override the default RC poll interval so config changes propagate quickly in tests.
+            # Low poll interval ensures RC config changes are picked up quickly during tests.
+            # Polling aggressively is safe because the RC backend is a mock, not a
+            # real Datadog backend that could be affected by high request rates.
             self._weblog_env.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
         self.weblog_infra = EndToEndWeblogInfra(
             environment=self._weblog_env,

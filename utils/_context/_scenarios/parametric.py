@@ -190,7 +190,9 @@ class ParametricScenario(DockerFixturesScenario):
             worker_id=worker_id,
             test_id=test_id,
             test_agent=test_agent,
-            # Override the default RC poll interval so config changes propagate quickly in tests.
+            # Low poll interval ensures RC config changes are picked up quickly during tests.
+            # Polling aggressively is safe because the RC backend is a mock, not a
+            # real Datadog backend that could be affected by high request rates.
             library_env={"DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2", **library_env},
             library_extra_command_arguments=library_extra_command_arguments,
         ) as result:
