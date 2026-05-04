@@ -147,8 +147,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         If no payload satisfies validator(), then validate_one will fail
         """
-
+        n_iters = 0
         for data in self.get_data(path_filters=path_filters):
+            n_iters += 1
             try:
                 if validator(data) is True:
                     return
@@ -163,7 +164,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
                 raise
 
-        raise ValueError(f"No data has been observed on {path_filters}")
+        if n_iters:
+            raise ValueError(f"{n_iters} observed on path filter {path_filters} but none matched the validator")
+        raise ValueError(f"No data observed on path filter {path_filters}")
 
     def validate_all(
         self,
