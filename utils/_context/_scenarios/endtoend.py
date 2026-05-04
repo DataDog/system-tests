@@ -238,6 +238,9 @@ class EndToEndScenario(DockerScenario):
         self._containers.append(self.agent_container)
 
         self._weblog_env = dict(weblog_env) if weblog_env else {}
+        if rc_api_enabled:
+            # Override the default RC poll interval so config changes propagate quickly in tests.
+            self._weblog_env.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
         self.weblog_infra = EndToEndWeblogInfra(
             environment=self._weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,

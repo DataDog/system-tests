@@ -404,7 +404,7 @@ class _Scenarios:
 
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
+        weblog_env={"DD_APPSEC_ENABLED": "true"},
         rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config
@@ -587,7 +587,6 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             "DD_METRICS_OTEL_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
@@ -828,7 +827,6 @@ class _Scenarios:
         rc_api_enabled=True,
         rc_backend_enabled=False,
         weblog_env={
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
             "DD_TRACE_FLUSH_INTERVAL": "100",
         },
         library_interface_timeout=5,

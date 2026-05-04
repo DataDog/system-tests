@@ -190,7 +190,8 @@ class ParametricScenario(DockerFixturesScenario):
             worker_id=worker_id,
             test_id=test_id,
             test_agent=test_agent,
-            library_env=library_env,
+            # Override the default RC poll interval so config changes propagate quickly in tests.
+            library_env={"DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2", **library_env},
             library_extra_command_arguments=library_extra_command_arguments,
         ) as result:
             yield result
