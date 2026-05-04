@@ -1724,6 +1724,7 @@ manifest:
     - declaration: flaky (APMAPI-1400)
       component_version: '>3.7.0'
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3: v2.8.0
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:
     - declaration: irrelevant (Deprecated in 3.x)
