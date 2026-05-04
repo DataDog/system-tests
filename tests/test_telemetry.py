@@ -704,28 +704,6 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
-def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result: list = []
-    for obj in objs:
-        if obj is not None:
-            if isinstance(obj, dict):
-                result.extend(list(obj.keys()))
-                result.extend(list(obj.values()))
-            elif isinstance(obj, list):
-                result.extend(obj)
-            else:
-                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-    return result
-
-
-def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes: list):
-    lower_key = key.lower()
-    is_allowed_key = lower_key in allowed_keys
-    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-    return is_allowed_key or is_allowed_prefix
-
-
 @features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
@@ -741,52 +719,6 @@ class Test_TelemetryV2:
                 assert "appsec" in products, (
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
-
-    def test_config_telemetry_completeness(self):
-        """Assert that config telemetry is handled properly by telemetry intake
-
-        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
-        """
-
-        config_norm_rules = load_telemetry_json("config_norm_rules")
-        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
-        config_aggregation_list = load_telemetry_json("config_aggregation_list")
-
-        lang_configs = get_lang_configs()
-
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if not is_v2_payload(data):
-                continue
-            if get_request_type(data) in ["app-started", "app-client-configuration-change"]:
-                language_name = data["request"]["content"]["application"]["language_name"]
-
-                lang_config = lang_configs.get(language_name, {})
-
-                norm_rules = lang_config.get("normalization_rules", {})
-                exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
-                # backend side normalizes keys to lowercase, we need to mimic this behavior
-                exact_keys = [key.lower() for key in exact_keys]
-
-                prefix_keys = get_all_keys_and_values(
-                    config_prefix_block_list,
-                    lang_config.get("prefix_block_list", {}),
-                    config_aggregation_list,
-                    lang_config.get("reduce_rules", {}),
-                )
-
-                configuration = data["request"]["content"]["payload"]["configuration"]
-                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
-
-                missing_config_keys = [
-                    key for key in library_config_keys if not is_key_accepted_by_telemetry(key, exact_keys, prefix_keys)
-                ]
-
-                # This may create a fairly large test output, but it makes the output more actionable
-                if len(missing_config_keys) != 0:
-                    logger.error(json.dumps(missing_config_keys, indent=2))
-                    raise ValueError(
-                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
-                    )
 
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
