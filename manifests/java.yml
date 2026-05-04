@@ -1909,6 +1909,7 @@ manifest:
         "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
+        spring-boot-jetty: missing_feature (no instrumentation for Jetty)
         spring-boot-payara: missing_feature (no instrumentation for Payara multipart parsing)
         vertx3: missing_feature (no instrumentation for Vert.x async multipart)
         vertx4: missing_feature (no instrumentation for Vert.x async multipart)
