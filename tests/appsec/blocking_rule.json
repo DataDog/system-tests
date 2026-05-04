@@ -732,6 +732,35 @@
       ]
     },
     {
+      "id": "tst-037-015",
+      "name": "Test block on body files content",
+      "tags": {
+        "type": "unrestricted_file_upload",
+        "crs_id": "000015",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.body.files_content"
+              }
+            ],
+            "list": ["malicious-content-for-test"],
+            "options": {
+              "case_sensitive": true
+            }
+          },
+          "operator": "phrase_match"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "monitor-resolvers",
       "name": "Monitor Resolvers",
       "tags": {

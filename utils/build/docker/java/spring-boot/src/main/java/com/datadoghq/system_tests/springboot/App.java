@@ -86,6 +86,7 @@ import okhttp3.Headers;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -301,6 +302,15 @@ public class App {
     @PostMapping(value = "/waf", consumes = MediaType.APPLICATION_XML_VALUE)
     String postWafXml(@RequestBody XmlObject object) {
         return object.toString();
+    }
+
+    @PostMapping(value = "/waf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> postWafMultipart(HttpServletRequest request) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        for (Part part : request.getParts()) {
+            sb.append(new String(part.getInputStream().readAllBytes()));
+        }
+        return ResponseEntity.ok(sb.toString());
     }
 
     @GetMapping(value = "/session/new")
