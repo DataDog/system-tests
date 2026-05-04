@@ -593,7 +593,8 @@ class Test_AIGuardEvent_Tag:
         assert self.r.status_code == 200
         interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
 
-def _find_telemetry_series(namespace, metric):
+
+def _find_telemetry_series(namespace: str, metric: str) -> list[dict]:
     """Extract telemetry metric series matching the given namespace and metric name."""
     series = []
     for data in interfaces.library.get_telemetry_data():
@@ -608,7 +609,8 @@ def _find_telemetry_series(namespace, metric):
                 series.append(serie)
     return series
 
-def _sum_points(series_list):
+
+def _sum_points(series_list: list[dict]) -> int:
     """Sum all point values across a list of series."""
     total = 0
     for s in series_list:
@@ -616,10 +618,12 @@ def _sum_points(series_list):
             total += p[1]
     return total
 
+
 TELEMETRY_NAMESPACE = "ai_guard"
 
+
 @features.ai_guard
-@scenarios.ai_guard
+@scenarios.ai_guard_telemetry
 class Test_AIGuardTelemetryRequests:
     """Test that the ai_guard.requests telemetry metric is emitted with correct tags."""
 
@@ -638,29 +642,27 @@ class Test_AIGuardTelemetryRequests:
         self._requests_allow_series(series)
         self._requests_block_series(series)
 
-    def _requests_metric_has_required_tags(self, series):
+    def _requests_metric_has_required_tags(self, series: list[dict]) -> None:
         """Every requests series must carry error, source, and integration tags."""
-        
         required_prefixes = {"error", "source", "integration"}
         for s in series:
             tag_prefixes = {t.split(":")[0] for t in s["tags"]}
             missing = required_prefixes - tag_prefixes
             assert not missing, f"Missing required tag prefixes {missing} in {s['tags']}"
 
-
-    def _requests_total_count(self, series):
+    def _requests_total_count(self, series: list[dict]) -> None:
         """Total requests count should be at least the number of evaluate calls made."""
         total = _sum_points(series)
         assert total >= 3, f"Expected at least 3 requests metrics points, got {total}"
 
-    def _requests_allow_series(self, series):
+    def _requests_allow_series(self, series: list[dict]) -> None:
         """There should be a requests series with error:false for the ALLOW call."""
         allow_series = [s for s in series if "error:false" in s["tags"]]
         assert len(allow_series) > 0, (
             f"No requests series with error:false found. All series tags: {[s['tags'] for s in series]}"
         )
 
-    def _requests_block_series(self, series):
+    def _requests_block_series(self, series: list[dict]) -> None:
         """There should be a requests series with block:true for the blocked DENY call."""
         block_series = [s for s in series if "block:true" in s["tags"]]
         assert len(block_series) > 0, (
@@ -669,11 +671,11 @@ class Test_AIGuardTelemetryRequests:
 
 
 @features.ai_guard
-@scenarios.ai_guard
+@scenarios.ai_guard_telemetry
 class Test_AIGuardTelemetryTruncated:
     """Test that the ai_guard.truncated telemetry metric is emitted when messages or content exceed limits.
 
-    The ai_guard scenario sets DD_AI_GUARD_MAX_MESSAGES_LENGTH=1 and DD_AI_GUARD_MAX_CONTENT_SIZE=5.
+    The ai_guard_telemetry scenario sets DD_AI_GUARD_MAX_MESSAGES_LENGTH=1 and DD_AI_GUARD_MAX_CONTENT_SIZE=5.
     """
 
     MESSAGES_MANY = [
@@ -694,7 +696,7 @@ class Test_AIGuardTelemetryTruncated:
         self._truncated_content(series)
         self._truncated_has_required_tags(series)
 
-    def _truncated_messages(self, series):
+    def _truncated_messages(self, series: list[dict]) -> None:
         messages_series = [s for s in series if "type:messages" in s["tags"]]
         assert len(messages_series) > 0, (
             f"No ai_guard.truncated metric with type:messages found. "
@@ -703,18 +705,15 @@ class Test_AIGuardTelemetryTruncated:
         total = _sum_points(messages_series)
         assert total >= 1, f"Expected at least 1 messages truncation event, got {total}"
 
-
-    def _truncated_content(self, series):
+    def _truncated_content(self, series: list[dict]) -> None:
         content_series = [s for s in series if "type:content" in s["tags"]]
         assert len(content_series) > 0, (
-            f"No ai_guard.truncated metric with type:content found. "
-            f"All truncated series: {[s['tags'] for s in series]}"
+            f"No ai_guard.truncated metric with type:content found. All truncated series: {[s['tags'] for s in series]}"
         )
         total = _sum_points(content_series)
         assert total >= 1, f"Expected at least 1 content truncation event, got {total}"
 
-
-    def _truncated_has_required_tags(self, series):
+    def _truncated_has_required_tags(self, series: list[dict]) -> None:
         required_prefixes = {"type", "source", "integration"}
         for s in series:
             assert s["type"] == "count"
