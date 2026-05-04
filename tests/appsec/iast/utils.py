@@ -124,10 +124,9 @@ class BaseSinkTestWithoutTelemetry:
     def expected_evidence(self) -> str | None:
         return _get_expectation(self.evidence_map)
 
-    def setup_insecure(self) -> None:
+    def _setup_insecure_request(self) -> None:
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
-
         if not hasattr(self.__class__, "insecure_request"):
             assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
@@ -140,6 +139,9 @@ class BaseSinkTestWithoutTelemetry:
             )
 
         self.insecure_request = self.__class__.insecure_request
+
+    def setup_insecure(self) -> None:
+        self._setup_insecure_request()
 
     def test_insecure(self) -> None:
         assert_iast_vulnerability(
@@ -157,9 +159,12 @@ class BaseSinkTestWithoutTelemetry:
         self.test_insecure()
 
     def setup_secure(self) -> None:
+        # test_secure verifies the insecure endpoint IS vulnerable before asserting the secure one isn't,
+        # to avoid a false PASS from tracers that don't implement the detection at all
+        self._setup_insecure_request()
+
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
-
         if not hasattr(self.__class__, "secure_request"):
             assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
             assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
@@ -384,7 +389,7 @@ def get_hardcoded_vulnerabilities(vulnerability_type: str, request: HttpResponse
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
     def setup_telemetry_metric_instrumented_sink(self) -> None:
-        self.setup_insecure()
+        self._setup_insecure_request()
 
     def test_telemetry_metric_instrumented_sink(self) -> None:
         self.check_test_insecure()
@@ -415,7 +420,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
             assert p[1] >= 1
 
     def setup_telemetry_metric_executed_sink(self) -> None:
-        self.setup_insecure()
+        self._setup_insecure_request()
 
     def test_telemetry_metric_executed_sink(self) -> None:
         self.check_test_insecure()
