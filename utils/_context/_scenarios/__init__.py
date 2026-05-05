@@ -766,6 +766,8 @@ class _Scenarios:
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
