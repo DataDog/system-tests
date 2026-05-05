@@ -284,7 +284,10 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v2.22.1-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_all:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -301,7 +304,10 @@ manifest:
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -310,7 +316,10 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
