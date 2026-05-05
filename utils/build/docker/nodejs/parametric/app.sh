@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/dumb-init /bin/sh
+# shellcheck shell=sh
 
 if [ "${UDS_WEBLOG:-}" = "1" ]; then
     ./set-uds-transport.sh

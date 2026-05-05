@@ -1,7 +1,7 @@
 
 FROM node:18.10-slim
-RUN apt-get update && apt-get -y install bash curl git jq \
-  || sleep 60 && apt-get update && apt-get -y install bash curl git jq
+RUN apt-get update && apt-get -y install bash curl git jq dumb-init \
+  || sleep 60 && apt-get update && apt-get -y install bash curl git jq dumb-init
 WORKDIR /usr/app
 COPY utils/build/docker/nodejs/parametric/package.json /usr/app/
 COPY utils/build/docker/nodejs/parametric/package-lock.json /usr/app/
