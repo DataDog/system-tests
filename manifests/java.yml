@@ -4073,7 +4073,7 @@ manifest:
     - weblog_declaration:
         vertx3: v1.60.1  # TODO: a lower version might be supported
         vertx4: v1.60.1  # TODO: a lower version might be supported
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.64.0
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: irrelevant (Java noted as an exception to runtime metrics off by default in the RFC)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled:
     - weblog_declaration:
         "*": v0.64.0
