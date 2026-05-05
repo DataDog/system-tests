@@ -5,7 +5,7 @@ ARG PHP_VERSION=7.0
 ADD utils/build/docker/php /tmp/php
 
 RUN chmod +x /tmp/php/php-fpm/build.sh
-RUN /tmp/php/php-fpm/build.sh $PHP_VERSION 1
+RUN /tmp/php/php-fpm/build.sh $PHP_VERSION
 RUN rm -rf /tmp/php/
 
 # docker build --progress=plain -f utils/build/docker/php/php-fpm-7.0.base.Dockerfile -t datadog/system-tests:php-fpm-7.0.base-v1 .
