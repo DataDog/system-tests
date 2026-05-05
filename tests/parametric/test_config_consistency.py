@@ -377,17 +377,20 @@ class Test_Config_Dogstatsd:
         assert resp["dd_dogstatsd_port"] == "8150"
 
 
-SDK_DEFAULT_STABLE_CONFIG = {
-    "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
-    "dd_profiling_enabled": "1"
-    if context.library == "php"
-    else "true"
-    if context.library == "golang"
-    else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
-    "dd_data_streams_enabled": "false"
-    if context.library != "dotnet"
-    else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
-    "dd_logs_injection": {
+def _build_sdk_default_stable_config() -> dict:
+    """Build per-language default config values expected when stable config is active.
+
+    C++ only reports trace_enabled (it doesn't support product enablement features).
+    Other languages report product defaults that vary by language.
+    """
+    lang = context.library.name
+
+    if context.library == "cpp":
+        return {"dd_trace_enabled": "true"}
+
+    # Per-language product defaults
+    profiling_defaults: dict[str, str] = {"php": "1", "golang": "true"}
+    logs_injection_defaults: dict[str, str | None] = {  # type: ignore[assignment]
         "dotnet": "true",
         "ruby": "true",
         "java": "true",
@@ -395,8 +398,17 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "python": "true",
         "nodejs": "true",
         "php": "true",
-    }.get(context.library.name, "false"),  # Enabled by default in ruby
-}
+    }
+
+    return {
+        "dd_runtime_metrics_enabled": "true" if lang in ("java", "dotnet") else "false",
+        "dd_profiling_enabled": profiling_defaults.get(lang, "false"),
+        "dd_data_streams_enabled": "true" if lang == "dotnet" else "false",
+        "dd_logs_injection": logs_injection_defaults.get(lang, "false"),
+    }
+
+
+SDK_DEFAULT_STABLE_CONFIG = _build_sdk_default_stable_config()
 
 
 class QuotedStr(str):
@@ -434,40 +446,32 @@ class Test_Stable_Config_Default(StableConfigWriter):
             ),
             (
                 "runtime_metrics",
-                {
-                    "DD_RUNTIME_METRICS_ENABLED": True,
-                },
+                {"DD_RUNTIME_METRICS_ENABLED": True},
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_runtime_metrics_enabled": "true"
-                    if context.library != "php"
-                    else "false",  # PHP does not support runtime metrics
+                    # PHP does not support runtime metrics
+                    "dd_runtime_metrics_enabled": "false" if context.library == "php" else "true",
                 },
             ),
             (
                 "data_streams",
-                {
-                    "DD_DATA_STREAMS_ENABLED": True,
-                },
+                {"DD_DATA_STREAMS_ENABLED": True},
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_data_streams_enabled": "true"
-                    if context.library not in ("php", "ruby")
-                    else "false",  # PHP and Ruby do not support data streams
+                    # PHP and Ruby do not support data streams
+                    "dd_data_streams_enabled": "false" if context.library in ("php", "ruby") else "true",
                 },
             ),
             (
                 "logs_injection",
-                {
-                    "DD_LOGS_INJECTION": context.library != "ruby",  # Ruby defaults logs injection to true
-                },
+                # Ruby defaults logs injection to true, so we set False to test the override
+                {"DD_LOGS_INJECTION": context.library != "ruby"},
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": None
-                    if context.library == "golang"
-                    else "false"
-                    if context.library == "ruby"
-                    else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
+                    "dd_logs_injection": {
+                        "golang": None,  # Go doesn't support logs injection
+                        "ruby": "false",  # Ruby defaults to true, so False override -> "false"
+                    }.get(context.library.name, "true"),
                 },
             ),
         ],
@@ -582,11 +586,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
                 "expected": {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": None
-                    if context.library == "golang"
-                    else "false"
-                    if context.library == "ruby"
-                    else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
+                    "dd_logs_injection": {
+                        "golang": None,
+                        "ruby": "false",
+                    }.get(context.library.name, "true"),
                 },
             },
         ],
@@ -661,9 +664,8 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 {"DD_PROFILING_ENABLED": False},
                 {
                     "dd_profiling_enabled": "false",
-                    "dd_runtime_metrics_enabled": "true"
-                    if context.library != "php"
-                    else "false",  # PHP does not support runtime metrics
+                    # PHP does not support runtime metrics
+                    "dd_runtime_metrics_enabled": "false" if context.library == "php" else "true",
                     "dd_env": "abc",
                 },  # expected
             ),
