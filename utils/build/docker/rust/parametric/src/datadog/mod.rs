@@ -25,47 +25,40 @@ use tracing::debug;
 
 use crate::{get_tracer, AppState, ContextWithParent};
 
-/// Returns true if `b` is a valid HTTP token char (tchar per RFC 9110).
-/// tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." /
-///         "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
-fn is_tchar(b: u8) -> bool {
-    matches!(
-        b,
-        b'!' | b'#'
-            | b'$'
-            | b'%'
-            | b'&'
-            | b'\''
-            | b'*'
-            | b'+'
-            | b'-'
-            | b'.'
-            | b'^'
-            | b'_'
-            | b'`'
-            | b'|'
-            | b'~'
-            | b'0'..=b'9'
-            | b'a'..=b'z'
-            | b'A'..=b'Z'
-    )
-}
-
-/// Percent-encode any byte in `key` that is not a valid tchar, so the resulting
-/// string passes OTel's `Baggage` key-validity check.
+/// Percent-encodes any byte in `key` that is not a valid tchar (RFC 9110 §5.6.2),
+/// so the resulting string is accepted by OTel's `Baggage` key validation.
 fn encode_baggage_key(key: &str) -> String {
-    let mut encoded = String::with_capacity(key.len());
+    let mut out = String::with_capacity(key.len());
     for b in key.bytes() {
-        if is_tchar(b) {
-            encoded.push(b as char);
+        if matches!(
+            b,
+            b'!' | b'#'
+                | b'$'
+                | b'%'
+                | b'&'
+                | b'\''
+                | b'*'
+                | b'+'
+                | b'-'
+                | b'.'
+                | b'^'
+                | b'_'
+                | b'`'
+                | b'|'
+                | b'~'
+                | b'0'..=b'9'
+                | b'a'..=b'z'
+                | b'A'..=b'Z'
+        ) {
+            out.push(b as char);
         } else {
-            encoded.push_str(&format!("%{:02X}", b));
+            out.push_str(&format!("%{:02X}", b));
         }
     }
-    encoded
+    out
 }
 
-/// Percent-decode a baggage key back to its original form.
+/// Percent-decodes a baggage key back to its original form.
 fn decode_baggage_key(key: &str) -> String {
     let bytes = key.as_bytes();
     let mut result: Vec<u8> = Vec::with_capacity(bytes.len());
@@ -87,8 +80,7 @@ fn decode_baggage_key(key: &str) -> String {
     String::from_utf8_lossy(&result).into_owned()
 }
 
-/// Stored in the OTel `Context` to signal that the baggage size limit has been
-/// reached; subsequent `set_baggage` calls for the same span are silently dropped.
+/// Marker stored in the context once the OTel baggage item limit is reached.
 #[derive(Clone)]
 struct BaggageOverflowed;
 
@@ -487,31 +479,26 @@ async fn set_baggage(State(state): State<AppState>, Json(args): Json<SpanSetBagg
     if let Some(ctx) = contexts.get(&args.span_id).cloned() {
         debug!("set_baggage: span {} found", args.span_id);
 
-        // If the size limit was previously reached, silently drop new items.
         if ctx.context.get::<BaggageOverflowed>().is_some() {
-            debug!("set_baggage: baggage overflow flag set, skipping");
+            debug!("set_baggage: baggage overflow, skipping");
             return;
         }
 
         let encoded_key = encode_baggage_key(&args.key);
-
         let mut new_baggage = opentelemetry::baggage::Baggage::new();
         for (k, (v, _)) in ctx.context.baggage().iter() {
             new_baggage.insert(k.clone(), v.as_str().to_string());
         }
         new_baggage.insert(encoded_key.clone(), args.value.clone());
 
-        // Detect whether the insert succeeded: the key must now hold the expected value.
-        let insert_succeeded = new_baggage
+        let succeeded = new_baggage
             .iter()
             .any(|(k, (v, _))| k.as_str() == encoded_key && v.as_str() == args.value.as_str());
 
         let new_context = ctx.context.with_baggage(new_baggage);
-        // On failure, mark the context so no subsequent items are accepted.
-        let new_context = if insert_succeeded {
+        let new_context = if succeeded {
             new_context
         } else {
-            debug!("set_baggage: insert failed (overflow), setting overflow flag");
             new_context.with_value(BaggageOverflowed)
         };
 
@@ -531,7 +518,6 @@ async fn get_baggage(
     let contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get(&args.span_id) {
         debug!("get_baggage: span {} found", args.span_id);
-        // Keys may be stored in percent-encoded form; encode the lookup key accordingly.
         let encoded_key = encode_baggage_key(&args.key);
         let value = ctx
             .context
@@ -553,14 +539,15 @@ async fn get_all_baggage(
     let contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get(&args.span_id) {
         debug!("get_all_baggage: span {} found", args.span_id);
-        // Decode keys back to their original (possibly non-tchar) form.
         let baggage: HashMap<String, String> = ctx
             .context
             .baggage()
             .iter()
             .map(|(k, (v, _))| (decode_baggage_key(k.as_str()), v.as_str().to_string()))
             .collect();
-        Json(SpanGetAllBaggageResult { baggage: Some(baggage) })
+        Json(SpanGetAllBaggageResult {
+            baggage: Some(baggage),
+        })
     } else {
         debug!("get_all_baggage: span {} NOT found", args.span_id);
         Json(SpanGetAllBaggageResult { baggage: None })
@@ -596,7 +583,10 @@ async fn remove_all_baggage(
     if let Some(ctx) = contexts.get(&args.span_id).cloned() {
         debug!("remove_all_baggage: span {} found", args.span_id);
         let new_context = ctx.context.with_cleared_baggage();
-        contexts.insert(args.span_id, Arc::new(ContextWithParent::new(new_context, ctx.parent.clone())));
+        contexts.insert(
+            args.span_id,
+            Arc::new(ContextWithParent::new(new_context, ctx.parent.clone())),
+        );
     } else {
         debug!("remove_all_baggage: span {} NOT found", args.span_id);
     }
