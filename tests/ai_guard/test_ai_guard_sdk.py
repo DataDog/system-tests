@@ -622,6 +622,7 @@ def _sum_points(series_list: list[dict]) -> int:
 TELEMETRY_NAMESPACE = "ai_guard"
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/x/54JqiQE")
 @features.ai_guard
 @scenarios.ai_guard_telemetry
 class Test_AIGuardTelemetryRequests:
@@ -670,6 +671,7 @@ class Test_AIGuardTelemetryRequests:
         )
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/x/54JqiQE")
 @features.ai_guard
 @scenarios.ai_guard_telemetry
 class Test_AIGuardTelemetryTruncated:
