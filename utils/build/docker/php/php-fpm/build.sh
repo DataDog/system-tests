@@ -4,6 +4,8 @@ set -e
 
 PHP_VERSION=$1
 PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
+# Pass 1 as second argument to skip tracer installation (used by base image builds)
+SKIP_TRACER_INSTALL=${2:-0}
 
 # Override apt sources to avoid backpports, restricted and multiverse (speed up update runs).
 cp /tmp/php/apt-sources.d/ubuntu.sources /etc/apt/sources.list.d/
@@ -92,13 +94,15 @@ fi
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;
 
-export TRACER_VERSION=latest
-export APPSEC_VERSION=latest
-cp /tmp/php/common/install_ddtrace.sh /
-/install_ddtrace.sh 0
+if [[ $SKIP_TRACER_INSTALL -ne 1 ]]; then
+	export TRACER_VERSION=latest
+	export APPSEC_VERSION=latest
+	cp /tmp/php/common/install_ddtrace.sh /
+	/install_ddtrace.sh 0
 
-rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
+	rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
 
-SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
-echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini
-echo "datadog.trace.sources_path = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/src" >> /etc/php/$PHP_VERSION/fpm/php.ini
+	SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
+	echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini
+	echo "datadog.trace.sources_path = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/src" >> /etc/php/$PHP_VERSION/fpm/php.ini
+fi
