@@ -57,6 +57,13 @@ class _Scenarios:
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
+    dbm_fingerprint = EndToEndScenario(
+        "DBM_FINGERPRINT",
+        weblog_env={"DD_DBM_PROPAGATION_MODE": "fingerprint"},
+        other_weblog_containers=(PostgresContainer,),
+        doc="Tests DBM fingerprint propagation mode with SQL base hash injection.",
+    )
+
     otel_integrations = OpenTelemetryScenario(
         "OTEL_INTEGRATIONS",
         weblog_env={

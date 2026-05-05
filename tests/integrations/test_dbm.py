@@ -6,9 +6,13 @@
 import json
 import re
 
+import pytest
+
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils._weblog import HttpResponse
 from utils.dd_types import DataDogLibrarySpan
+
+from .utils import BaseDbIntegrationsTestClass
 
 
 def remove_traceparent(s: str) -> str:
@@ -124,6 +128,38 @@ class Test_Dbm:
                 self._assert_span_is_untagged(span)
             else:
                 self._assert_span_is_tagged(span)
+
+
+@features.database_monitoring_correlation
+@scenarios.dbm_fingerprint
+class Test_Dbm_Fingerprint_Java:
+    """Verify Java DBM fingerprint propagation mode."""
+
+    BASE_HASH_TAG = "_dd.propagated_hash"
+    TRACE_INJECTED_TAG = "_dd.dbm_trace_injected"
+
+    def setup_fingerprint_propagation(self):
+        if context.library != "java":
+            pytest.skip("DBM fingerprint mode is currently validated for Java only")
+
+        init_response = weblog.get("/db", params={"service": "postgresql", "operation": "init"}, timeout=20)
+        assert init_response.status_code == 200, f"Request: {init_response.request.url} wasn't successful."
+
+        self.request = weblog.get("/db", params={"service": "postgresql", "operation": "select"})
+
+    def test_fingerprint_propagation(self):
+        assert self.request.status_code == 200, f"Request: {self.request.request.url} wasn't successful."
+
+        span = BaseDbIntegrationsTestClass.get_span_from_tracer(self.request)
+        meta = span.get("meta", {})
+
+        assert self.BASE_HASH_TAG in meta, (
+            f"{self.BASE_HASH_TAG} not found in span meta: {json.dumps(span.raw_span, indent=2)}"
+        )
+        assert meta[self.BASE_HASH_TAG].strip(), f"{self.BASE_HASH_TAG} value is empty."
+        assert self.TRACE_INJECTED_TAG not in meta, (
+            f"{self.TRACE_INJECTED_TAG} found in span meta: {json.dumps(span.raw_span, indent=2)}"
+        )
 
 
 class _BaseDbmComment:
