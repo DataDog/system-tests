@@ -1,7 +1,6 @@
+FROM ubuntu:24.04
 
 ARG PHP_VERSION
-
-FROM ubuntu:24.04
 
 ADD . /tmp/php
 
