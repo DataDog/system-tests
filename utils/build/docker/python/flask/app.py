@@ -2187,6 +2187,15 @@ def ai_guard_evaluate():
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
         messages = flask_request.get_json()
 
+        user_id = flask_request.headers.get("X-User-Id")
+        session_id = flask_request.headers.get("X-Session-Id")
+        root_span = tracer.current_root_span()
+        if root_span:
+            if user_id:
+                root_span.set_tag("usr.id", user_id)
+            if session_id:
+                root_span.set_tag("session.id", session_id)
+
         client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
         evaluation = client.evaluate(messages, Options(block=should_block))
         return jsonify(evaluation), 200
@@ -2234,3 +2243,25 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/sca/vulnerable-call")
+def sca_requests_vulnerable_call():
+    """Trigger a call to requests.sessions.Session.send (CVE-2024-35195 target)."""
+    session = requests.Session()
+    try:
+        session.get("http://localhost:1")
+    except Exception:
+        pass
+    return "OK"
+
+
+@app.route("/sca/vulnerable-call-alt")
+def sca_requests_vulnerable_call_alt():
+    """Alternate call site for same CVE-2024-35195 target (first-hit-wins test)."""
+    session = requests.Session()
+    try:
+        session.post("http://localhost:1", data="x")
+    except Exception:
+        pass
+    return "OK"

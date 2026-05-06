@@ -49,6 +49,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_php_base_images:
+        description: "Shall we build PHP base images for tests on PHP tracer"
+        default: false
+        required: false
+        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -219,7 +224,7 @@ jobs:
           ref: ${{ steps.compute_ref.outputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
@@ -228,10 +233,14 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Build weblog base images
+      - name: Build python weblog base images
         if: inputs.library == 'python' && inputs._build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
+      - name: Build php weblog base images
+        if: inputs.library == 'php' && inputs._build_php_base_images
+        run: |
+          ./utils/build/build_php_base_images.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
@@ -257,7 +266,7 @@ jobs:
     needs:
       - compute_parameters
       - build_end_to_end
-    if: ${{ always() && needs.build_end_to_end.result != 'failure' && needs.compute_parameters.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ needs.build_end_to_end.result != 'failure' && needs.compute_parameters.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' && !cancelled() }}
     strategy:
       matrix:
         job: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_jobs) }}
@@ -295,7 +304,7 @@ jobs:
       - compute_parameters
       - run_end_to_end
       - parametric
-    if: always() && inputs.display_summary == true
+    if: inputs.display_summary == true && !cancelled()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -306,7 +315,7 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Download logs artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           merge-multiple: false
           pattern: logs_*_${{ needs.compute_parameters.outputs.unique_id }}

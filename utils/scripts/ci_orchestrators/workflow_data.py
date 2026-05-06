@@ -635,6 +635,7 @@ if __name__ == "__main__":
             "IPV6",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+            "OTLP_RUNTIME_METRICS",
             "PERFORMANCES",
             "PROFILING",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",

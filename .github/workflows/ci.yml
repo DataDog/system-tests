@@ -88,6 +88,7 @@ jobs:
       _build_lambda_proxy_image: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.rebuild_lambda_proxy) }}
       _build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       _build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
+      _build_php_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-php-base-images') }}
       _enable_replay_scenarios: true
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch_map: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch-map }}

@@ -69,6 +69,12 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-3734",
             ),
             SchemaBug(
+                endpoint="/debugger/v2/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
                 condition=context.library == "dotnet" and context.scenario is scenarios.debugger_symdb,

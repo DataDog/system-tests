@@ -2,6 +2,9 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
@@ -377,6 +380,7 @@ manifest:
         poc: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v2.29.0
@@ -505,6 +509,11 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v2.26.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.16.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.16.0
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -697,6 +706,8 @@ manifest:
       component_version: <3.22.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
   tests/ffe/test_exposures.py: v3.36.0
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
@@ -1142,6 +1153,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v1.0  # real version not known

@@ -2,6 +2,9 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
@@ -243,6 +246,9 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction::test_lfi_get:
+    - component_version: ">=1.19.0"
+      declaration: bug (APPSEC-62534)
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: v1.7.0
@@ -357,6 +363,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.6.2
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
@@ -431,6 +438,9 @@ manifest:
   tests/appsec/test_rate_limiter.py::Test_Main: v1.11.0
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v1.12.0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v1.6.2
+  tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405:
+    - component_version: ">=1.19.0"
+      declaration: bug (APPSEC-62534)
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v1.6.2
@@ -441,6 +451,11 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.6.2
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
@@ -449,6 +464,9 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_1st_argument: bug (APPSEC-55673)
   tests/appsec/test_span_tags_headers.py: v1.17.0-dev
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker:
+    - component_version: ">=1.19.0"
+      declaration: bug (APPSEC-62534)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v1.12.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
@@ -913,6 +931,9 @@ manifest:
       component_version: '>1.3.2'
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  ? tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging::test_tracer_update_sequence
+  : - declaration: flaky (DEBUG-5540)
+      component_version: ">=1.19.1"
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
@@ -997,6 +1018,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:
     - declaration: missing_feature (profiling seems not to be activated)
       component_version: <1.16.0
