@@ -895,7 +895,7 @@ class Test_ProductsDisabled:
             assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
             return
 
-        if context.library != "python" or context.library.version < "4.9.0":
+        if context.library != "python" or context.library.version < "4.9.0-dev":
             assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
