@@ -553,7 +553,7 @@ class Test_AnomalyDetectionTags:
     def test_anomaly_detection_tags(self):
         """Test that AI Guard spans carry anomaly detection attributes copied from the root span.
 
-        Verifies that http.client_ip, network.client.ip, http.useragent, usr.id and session.id
+        Verifies that http.client_ip, network.client.ip, http.useragent, usr.id and usr.session.id
         are all present on the AI Guard span with the ai_guard. prefix, and that their values
         match the corresponding tags on the local root span.
         """
