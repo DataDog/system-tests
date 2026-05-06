@@ -1,0 +1,34 @@
+[package]
+name = "weblog"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[[bin]]
+bench = false
+doc = false
+name = "weblog"
+path = "src/main.rs"
+
+[dependencies]
+axum = { version = "0.8.8", features = ["json", "multipart"] }
+# Version changed at build time by install_ddtrace.sh
+datadog-opentelemetry = { version = "0.3.2", features = [
+  "metrics-grpc",
+  "metrics-http"
+] }
+opentelemetry = "0.31.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0" }
+reqwest = { version = "0.12", default-features = false, features = ["json"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tower = "0.5.3"
+tower-otel = { version = "0.9.0", features = ["axum"] }
+tracing = "0.1.44"
+tracing-opentelemetry = "0.32.1"
+tracing-subscriber = "0.3.23"
+uuid = { version = "1", features = ["v4"] }
+url = "2"
+rusqlite = { version = "0.32", features = ["bundled"] }
+md5 = "0.7"
+sha2 = "0.10"
