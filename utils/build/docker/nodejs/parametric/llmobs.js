@@ -28,11 +28,12 @@ function addRoutes (app) {
 function createTrace (traceStructure) {
   const type = traceStructure.type;
   if (type === 'annotation_context') {
-    const { prompt, name, tags, children } = traceStructure;
+    const { prompt, name, tags, cost_tags: costTags, children } = traceStructure;
     const options = {};
     if (prompt) options.prompt = normalizePromptArgument(prompt);
     if (name) options.name = name;
     if (tags) options.tags = tags;
+    if (costTags != null) options.costTags = costTags;
     return llmobs.annotationContext(options, () => {
       let exportedSpanCtx;
       if (!Array.isArray(children)) return;
@@ -109,6 +110,7 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
     const metadata = annotation.metadata;
     const metrics = annotation.metrics;
     const tags = annotation.tags;
+    const costTags = annotation.cost_tags;
     const prompt = normalizePromptArgument(annotation.prompt);
 
     const args = [];
@@ -117,7 +119,7 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
       args.push(span);
     }
 
-    args.push({ inputData, outputData, metadata, metrics, tags, prompt });
+    args.push({ inputData, outputData, metadata, metrics, tags, prompt, costTags });
 
     llmobs.annotate(...args);
   }

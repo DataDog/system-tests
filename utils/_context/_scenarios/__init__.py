@@ -412,6 +412,17 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    runtime_sca_reachability = EndToEndScenario(
+        "RUNTIME_SCA_REACHABILITY",
+        weblog_env={
+            "DD_APPSEC_SCA_ENABLED": "true",
+        },
+        doc="""
+            Scenario to test SCA telemetry events
+        """,
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     appsec_standalone = EndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={
@@ -545,7 +556,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
         doc="",
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
@@ -755,6 +766,8 @@ class _Scenarios:
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
@@ -1083,7 +1096,7 @@ class _Scenarios:
         "DOCKER_SSI_APPSEC",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
-        appsec_enabled="true",
+        appsec_enabled=True,
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(
@@ -1259,6 +1272,24 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_telemetry = AIGuardScenario(
+        "AI_GUARD_TELEMETRY",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
+            "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
+        },
+        doc="AI Guard telemetry tests with low truncation thresholds",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

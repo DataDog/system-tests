@@ -25,6 +25,9 @@ public class WafPostHandler implements Handler {
         MediaType contentType = ctx.getRequest().getContentType();
         if (contentType.isForm()) {
             ctx.insert(FormHandler.INSTANCE);
+        } else if (contentType.getType().startsWith("multipart/")) {
+            ctx.getRequest().getBody().then(body ->
+                ctx.getResponse().send("text/plain", new String(body.getBytes())));
         } else if (contentType.isJson()) {
             ctx.insert(JsonHandler.INSTANCE);
         } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
