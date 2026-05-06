@@ -58,15 +58,16 @@ EXPECTED_METRICS = {
         "v8js.memory.heap.space.physical_size",
         "v8js.memory.heap.used",
     ],
-    # Per OTel semconv, jvm.system.cpu.utilization, jvm.system.cpu.load_1m,
-    # jvm.file_descriptor.count and jvm.file_descriptor.limit are Opt-In and are
-    # intentionally not emitted yet — gating those behind a future
-    # DD_METRICS_OTEL_OPTIN_ENABLED flag is tracked separately.
+    # Per OTel semconv, the following are Opt-In or Development-stability and are intentionally
+    # not emitted yet — gating them behind a future DD_METRICS_OTEL_OPTIN_ENABLED flag is tracked
+    # separately. Same partitioning OTel Java upstream uses (JmxRuntimeMetricsFactory's
+    # emitExperimentalTelemetry branch):
+    #   Opt-In:      jvm.system.cpu.utilization, jvm.system.cpu.load_1m,
+    #                jvm.file_descriptor.count, jvm.file_descriptor.limit
+    #   Development: jvm.memory.init, jvm.buffer.memory.used, jvm.buffer.memory.limit,
+    #                jvm.buffer.count
     # https://opentelemetry.io/docs/specs/semconv/general/metric-requirement-level/#opt-in
     "java": [
-        "jvm.buffer.count",
-        "jvm.buffer.memory.limit",
-        "jvm.buffer.memory.used",
         "jvm.class.count",
         "jvm.class.loaded",
         "jvm.class.unloaded",
@@ -74,7 +75,6 @@ EXPECTED_METRICS = {
         "jvm.cpu.recent_utilization",
         "jvm.cpu.time",
         "jvm.memory.committed",
-        "jvm.memory.init",
         "jvm.memory.limit",
         "jvm.memory.used",
         "jvm.memory.used_after_last_gc",
