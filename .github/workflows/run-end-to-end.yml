@@ -504,6 +504,9 @@ jobs:
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
+    - name: Run AI_GUARD_TELEMETRY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_TELEMETRY"')
+      run: ./run.sh AI_GUARD_TELEMETRY
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
