@@ -31,6 +31,8 @@ runs:
           aarch64|arm64) asset="aarch64-unknown-linux-gnu-rmz" ;;
           *) echo "Unsupported arch: ${arch}"; exit 1 ;;
         esac
+        # rmz deletes files in parallel using multiple threads, making it significantly
+        # faster than rm for large directories.
         tmpfile=$(mktemp)
         curl -fsSL -o "${tmpfile}" "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
         sudo install -m 0755 "${tmpfile}" /usr/local/bin/rmz
