@@ -150,6 +150,8 @@ fi
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \
   /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
+cp /binaries/SYSTEM_TESTS_LIBRARY_VERSION /system-tests-library-version
+
 
 find /opt -name ddappsec-helper -exec ln -s '{}' /usr/local/bin/ \;
 mkdir -p /etc/dd-appsec

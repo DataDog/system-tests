@@ -44,3 +44,5 @@ else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
     exit 1
 fi
+
+python -c "import ddtrace; print(ddtrace.__version__, end='')" > /system-tests-library-version

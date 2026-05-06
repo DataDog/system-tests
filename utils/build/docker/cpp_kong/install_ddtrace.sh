@@ -122,6 +122,7 @@ if [ "$KONG_IS_RELEASE" = "false" ]; then
 fi
 
 echo "${PLUGIN_VERSION}" > /builds/SYSTEM_TESTS_LIBRARY_VERSION
+echo "${PLUGIN_VERSION}" > /system-tests-library-version
 printf '{"status":"ok","library":{"name":"cpp_kong","version":"%s"}}' \
     "$PLUGIN_VERSION" > /builds/healthcheck.json
 

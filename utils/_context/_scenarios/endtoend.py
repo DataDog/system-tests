@@ -89,6 +89,7 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            self.warmups.append(self._log_starting_containers)
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
 
@@ -128,6 +129,9 @@ class DockerScenario(Scenario):
 
         observer.start()
 
+    def _log_starting_containers(self):
+        logger.stdout("Starting containers...")
+
     def _create_network(self) -> None:
         name = "system-tests-ipv6" if self.enable_ipv6 else "system-tests-ipv4"
 
@@ -153,7 +157,6 @@ class DockerScenario(Scenario):
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
     def _start_containers(self):
-        logger.stdout("Starting containers...")
         threads = []
 
         for container in self._containers:
@@ -327,11 +330,54 @@ class EndToEndScenario(DockerScenario):
             self.library_interface_timeout = self._library_interface_timeout
 
         if not self.replay:
-            self.warmups.insert(1, self._start_interfaces_watchdog)
-            self.warmups.append(self._get_weblog_system_info)
-            self.warmups.append(self._wait_for_app_readiness)
-            self.warmups.append(self._set_weblog_domain)
-        self.warmups.append(self._set_components)
+            self.post_collection_warmups.append(self._wait_for_app_readiness)
+            self.post_collection_warmups.append(self._set_weblog_domain)
+
+        if (
+            not self.replay
+            and self.weblog_container._library is not None  # noqa: SLF001
+            and self.agent_container.agent_version is not None
+        ):
+            # Both versions known from image labels: defer container startup to post-collection
+            # so containers are skipped entirely when no tests are selected
+            self._set_library_component()
+            self._set_agent_component()
+            self.warmups.append(self._log_agent_info)
+            self.warmups.append(self._log_weblog_info)
+            self._defer_container_startup()
+        elif self.weblog_container._library is not None:  # noqa: SLF001
+            self._set_library_component()
+            self.warmups.append(self._log_weblog_info)
+            self.warmups.append(self._set_agent_component)
+            if not self.replay:
+                self.warmups.insert(1, self._start_interfaces_watchdog)
+                self.warmups.append(self._get_weblog_system_info)
+        else:
+            self.warmups.append(self._set_library_component)
+            self.warmups.append(self._set_agent_component)
+            if not self.replay:
+                self.warmups.insert(1, self._start_interfaces_watchdog)
+                self.warmups.append(self._get_weblog_system_info)
+
+    def _defer_container_startup(self):
+        """Move container startup warmups to post_collection_warmups (inserted before interface warmups)."""
+        container_warmups = [
+            self._log_starting_containers,
+            self._create_network,
+            self._start_containers,
+            *[c.post_start for c in self._containers],
+        ]
+        for w in container_warmups:
+            self.warmups.remove(w)
+        # Watchdog must start after network creation but before containers to capture early output
+        self.post_collection_warmups[0:0] = [
+            self._log_starting_containers,
+            self._create_network,
+            self._start_interfaces_watchdog,
+            self._start_containers,
+            *[c.post_start for c in self._containers],
+            self._get_weblog_system_info,
+        ]
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
@@ -377,10 +423,24 @@ class EndToEndScenario(DockerScenario):
         if self.enable_ipv6:
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
-    def _set_components(self):
-        self.components["agent"] = self.agent_version
+    def _log_agent_info(self):
+        logger.stdout(f"Agent: {self.agent_container.agent_version}")
+        logger.stdout(f"Backend: {self.agent_container.dd_site}")
+
+    def _log_weblog_info(self):
+        logger.stdout(f"Library: {self.library}")
+        if self.weblog_container.appsec_rules_file:
+            logger.stdout("Using a custom appsec rules file")
+        if self.weblog_container.uds_mode:
+            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
+        logger.stdout(f"Weblog variant: {self.weblog_variant}")
+
+    def _set_library_component(self):
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
+
+    def _set_agent_component(self):
+        self.components["agent"] = self.agent_version
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
