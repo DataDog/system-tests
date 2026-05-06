@@ -2,6 +2,10 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": missing_feature (APPSEC-62449)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -1905,6 +1909,11 @@ manifest:
         "*": missing_feature
         spring-boot: v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.62.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.15.0
@@ -2416,6 +2425,11 @@ manifest:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
@@ -2585,6 +2599,10 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_wrong_key:
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite:
+    - weblog_declaration:
+        "*": v1.62.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v0.95.1
@@ -3124,6 +3142,8 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3654,6 +3674,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'
       component_version: <1.58.2+06122213c8
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_default_id: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_in_annotation_context: missing_feature (prompt annotation not supported in Java LLMObs SDK)
@@ -4216,6 +4237,7 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         akka-http: v1.22.0

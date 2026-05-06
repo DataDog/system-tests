@@ -20,7 +20,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
-from utils._context.component_version import ComponentVersion, Version
+from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
@@ -247,6 +247,15 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
 
+    if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
+        logger.info("Checking that no version is ahead of main branch")
+        manifest = Manifest(context.scenario.components, context.weblog_variant)
+        errors = manifest.assert_versions_not_ahead_of_current()
+        if errors:
+            message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
+            message += "\n".join(f"  - {e}" for e in errors)
+            pytest.exit(message, 1)
+
 
 # called when each test item is collected
 def _collect_item_metadata(item: pytest.Item):
@@ -290,10 +299,8 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-    manifest_components: dict[str, Version] = {
-        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
-    }
-    manifest = Manifest(manifest_components, context.weblog_variant)
+    manifest = Manifest(context.scenario.components, context.weblog_variant)
+
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
@@ -399,6 +406,8 @@ def _item_is_skipped(item: pytest.Item):
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
+    logger.debug("pytest_collection_finish")
+
     if session.config.option.collectonly:
         return
 

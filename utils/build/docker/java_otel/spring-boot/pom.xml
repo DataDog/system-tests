@@ -288,7 +288,7 @@
             <id>openliberty</id>
             <properties>
                 <!-- Defaults to latest OpenLiberty version, which might break during releases. -->
-                <liberty.runtime.version>23.0.0.12</liberty.runtime.version>
+                <liberty.runtime.version>26.0.0.4</liberty.runtime.version>
             </properties>
             <dependencies>
                 <dependency>
@@ -301,7 +301,7 @@
                     <plugin>
                         <groupId>io.openliberty.tools</groupId>
                         <artifactId>liberty-maven-plugin</artifactId>
-                        <version>3.10</version>
+                        <version>3.12.0</version>
                         <configuration>
                             <appsDirectory>apps</appsDirectory>
                             <installAppPackages>spring-boot-project</installAppPackages>

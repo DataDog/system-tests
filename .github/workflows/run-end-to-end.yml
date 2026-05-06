@@ -101,6 +101,11 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+      _system_tests_dev_mode:
+        description: "Shall we run system tests in dev mode (library and agent dev binary)"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   main:
@@ -111,6 +116,7 @@ jobs:
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
+      SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -131,7 +137,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
       if : ${{ inputs.binaries_artifact != '' }}
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
@@ -169,65 +175,68 @@ jobs:
         SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
     - name: Run INTEGRATION_FRAMEWORKS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')
       run: ./run.sh INTEGRATION_FRAMEWORKS -L ${{ inputs.library }} --weblog ${{ inputs.weblog }}
     - name: Run APPSEC_STANDALONE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
     - name: Run APPSEC_APM_STANDALONE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_APM_STANDALONE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_APM_STANDALONE"')
       run: ./run.sh APPSEC_APM_STANDALONE
     - name: Run APPSEC_STANDALONE_APM_STANDALONE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_APM_STANDALONE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_STANDALONE_APM_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE_APM_STANDALONE
     - name: Run APPSEC_STANDALONE_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_API_SECURITY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_STANDALONE_API_SECURITY"')
       run: ./run.sh APPSEC_STANDALONE_API_SECURITY
     - name: Run TRACE_STATS_COMPUTATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
       run: ./run.sh TRACE_STATS_COMPUTATION
     - name: Run IAST_STANDALONE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
     - name: Run SCA_STANDALONE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
+    - name: Run RUNTIME_SCA_REACHABILITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_SCA_REACHABILITY"')
+      run: ./run.sh RUNTIME_SCA_REACHABILITY
     - name: Run IAST_DEDUPLICATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
     - name: Run DEFAULT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
     - name: Run GRAPHQL_APPSEC scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC
     - name: Run GRAPHQL_ERROR_TRACKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_ERROR_TRACKING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GRAPHQL_ERROR_TRACKING"')
       run: ./run.sh GRAPHQL_ERROR_TRACKING
     - name: Run IPV6 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IPV6"')
       run: ./run.sh IPV6
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
     - name: Run PROFILING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"PROFILING"')
       run: |
         cat /proc/sys/kernel/perf_event_paranoid
         sudo sysctl kernel.perf_event_paranoid=1
         sudo sysctl -p
         ./run.sh PROFILING
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
     - name: Run INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
     - name: Run INTEGRATIONS_AWS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
       run: ./run.sh INTEGRATIONS_AWS
     - name: Run APM_TRACING_E2E_OTEL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh APM_TRACING_E2E_OTEL
@@ -236,7 +245,7 @@ jobs:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run APM_TRACING_E2E_SINGLE_SPAN scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh APM_TRACING_E2E_SINGLE_SPAN
@@ -244,183 +253,186 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run APM_TRACING_OTLP scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_OTLP"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_OTLP"')
       run: ./run.sh APM_TRACING_OTLP
     - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
       run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
+    - name: Run OTLP_RUNTIME_METRICS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTLP_RUNTIME_METRICS"')
+      run: ./run.sh OTLP_RUNTIME_METRICS
     - name: Run RUNTIME_METRICS_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
       run: ./run.sh RUNTIME_METRICS_ENABLED
     - name: Run TRACING_CONFIG_EMPTY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_EMPTY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACING_CONFIG_EMPTY"')
       run: ./run.sh TRACING_CONFIG_EMPTY
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
     - name: Run TRACING_CONFIG_NONDEFAULT_2 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_2"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_2"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_2
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
     - name: Run TRACING_CONFIG_NONDEFAULT_4 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_4"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_4"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_4
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
     - name: Run AGENT_NOT_SUPPORTING_SPAN_EVENTS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
       run: ./run.sh APPSEC_MISSING_RULES
     - name: Run APPSEC_CUSTOM_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
       run: ./run.sh APPSEC_CORRUPTED_RULES
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
       run: ./run.sh APPSEC_RULES_MONITORING_WITH_ERRORS
     - name: Run APPSEC_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_BLOCKING"')
       run: ./run.sh APPSEC_BLOCKING
     - name: Run EVERYTHING_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EVERYTHING_DISABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"EVERYTHING_DISABLED"')
       run: ./run.sh EVERYTHING_DISABLED
     - name: Run APPSEC_LOW_WAF_TIMEOUT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LOW_WAF_TIMEOUT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LOW_WAF_TIMEOUT"')
       run: ./run.sh APPSEC_LOW_WAF_TIMEOUT
     - name: Run APPSEC_CUSTOM_OBFUSCATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_OBFUSCATION"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_CUSTOM_OBFUSCATION"')
       run: ./run.sh APPSEC_CUSTOM_OBFUSCATION
     - name: Run APPSEC_RATE_LIMITER scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RATE_LIMITER"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RATE_LIMITER"')
       run: ./run.sh APPSEC_RATE_LIMITER
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
     - name: Run APPSEC_WAF_TELEMETRY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_WAF_TELEMETRY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_WAF_TELEMETRY"')
       run: ./run.sh APPSEC_WAF_TELEMETRY
     - name: Run APPSEC_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_API_SECURITY"')
       run: ./run.sh APPSEC_API_SECURITY
     - name: Run APPSEC_API_SECURITY_RC scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_RC"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_API_SECURITY_RC"')
       run: ./run.sh APPSEC_API_SECURITY_RC
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
     - name: Run APPSEC_ATO_SDK scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
       run: ./run.sh APPSEC_ATO_SDK
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
         ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
         cat ./logs_appsec_api_security_with_sampling/tests.log 2>/dev/null | grep "API SECURITY" || true
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_EXTENDED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_EXTENDED"')
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED
     - name: Run APPSEC_AUTO_EVENTS_RC scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_RC"')
       run: ./run.sh APPSEC_AUTO_EVENTS_RC
     - name: Run APPSEC_RASP scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
     - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE"')
       run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE
     - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX"')
       run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX
     - name: Run APPSEC_STANDALONE_RASP scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
       run: ./run.sh APPSEC_STANDALONE_RASP
     - name: Run APPSEC_RASP_NON_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_NON_BLOCKING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_RASP_NON_BLOCKING"')
       run: ./run.sh APPSEC_RASP_NON_BLOCKING
     - name: Run APPSEC_META_STRUCT_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_DISABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_META_STRUCT_DISABLED"')
       run: ./run.sh APPSEC_META_STRUCT_DISABLED
     - name: Run SAMPLING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING
     - name: Run SAMPLING_RATE_CAPPING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
       run: ./run.sh SAMPLING_RATE_CAPPING
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
     - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
       run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
     - name: Run DEBUGGER_PROBES_STATUS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
       run: ./run.sh DEBUGGER_PROBES_STATUS
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
     - name: Run DEBUGGER_PROBES_SNAPSHOT_WITH_SCM scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
     - name: Run DEBUGGER_PII_REDACTION scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
     - name: Run DEBUGGER_EXPRESSION_LANGUAGE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXPRESSION_LANGUAGE"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_EXPRESSION_LANGUAGE"')
       run: ./run.sh DEBUGGER_EXPRESSION_LANGUAGE
     - name: Run DEBUGGER_EXCEPTION_REPLAY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXCEPTION_REPLAY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_EXCEPTION_REPLAY"')
       run: ./run.sh DEBUGGER_EXCEPTION_REPLAY
     - name: Run DEBUGGER_SYMDB scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_SYMDB"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_SYMDB"')
       run: ./run.sh DEBUGGER_SYMDB
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
       run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
     - name: Run DEBUGGER_TELEMETRY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
       run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh OTEL_INTEGRATIONS
@@ -429,7 +441,7 @@ jobs:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run OTEL_TRACING_E2E scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh OTEL_TRACING_E2E
@@ -442,7 +454,7 @@ jobs:
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run OTEL_METRIC_E2E scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh OTEL_METRIC_E2E
@@ -455,7 +467,7 @@ jobs:
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run OTEL_LOG_E2E scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh OTEL_LOG_E2E
@@ -468,38 +480,38 @@ jobs:
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
     - name: Run APPSEC_LAMBDA_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
       run: ./run.sh APPSEC_LAMBDA_BLOCKING
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
     - name: Run APPSEC_LAMBDA_RASP scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
       run: ./run.sh APPSEC_LAMBDA_RASP
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
     - name: Run GO_PROXIES_DEFAULT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_DEFAULT"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GO_PROXIES_DEFAULT"')
       run: ./run.sh GO_PROXIES_DEFAULT --weblog ${{ inputs.weblog }}
     - name: Run GO_PROXIES_APPSEC_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING"')
       run: ./run.sh GO_PROXIES_APPSEC_BLOCKING --weblog ${{ inputs.weblog }}
     - name: Run OTEL_COLLECTOR scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
     - name: Run OTEL_COLLECTOR_E2E scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
       run: |
         [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
         ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run AI_GUARD scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AI_GUARD"')
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
 
     - name: Run all scenarios in replay mode
@@ -511,7 +523,7 @@ jobs:
 
     - name: Compress logs
       id: compress_logs
-      if: always() && steps.build.outcome == 'success'
+      if: steps.build.outcome == 'success' && !cancelled()
       run: |
         if compgen -G "logs*/" > /dev/null; then
           tar -czvf artifact.tar.gz logs*/
@@ -519,7 +531,7 @@ jobs:
           echo "No logs*/ found; skipping tar."
         fi
     - name: Upload artifact
-      if: always() && steps.compress_logs.outcome == 'success'
+      if: steps.compress_logs.outcome == 'success' && !cancelled()
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
@@ -543,7 +555,7 @@ jobs:
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Push results to Test Optimization
-      if: always() && inputs.push_to_test_optimization
+      if: inputs.push_to_test_optimization && !cancelled()
       uses: ./.github/actions/push_to_test_optim
       with:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
