@@ -27,14 +27,21 @@ runs:
       run: |
         arch="$(uname -m)"
         case "${arch}" in
-          x86_64|amd64) asset="x86_64-unknown-linux-gnu-rmz" ;;
-          aarch64|arm64) asset="aarch64-unknown-linux-gnu-rmz" ;;
+          x86_64|amd64)
+            asset="x86_64-unknown-linux-gnu-rmz"
+            checksum="9017131f24a6a619568316d3cf1aabbf4fb8297d8082b11fd2b6817436876a3b"
+            ;;
+          aarch64|arm64)
+            asset="aarch64-unknown-linux-gnu-rmz"
+            checksum="1ac8e83a0242938b10bd6a37ebd1b96d92896f84547aead32f3608c3e5ff733d"
+            ;;
           *) echo "Unsupported arch: ${arch}"; exit 1 ;;
         esac
         # rmz deletes files in parallel using multiple threads, making it significantly
         # faster than rm for large directories.
         tmpfile=$(mktemp)
         curl -fsSL -o "${tmpfile}" "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
+        echo "${checksum}  ${tmpfile}" | sha256sum -c
         sudo install -m 0755 "${tmpfile}" /usr/local/bin/rmz
         rm -f "${tmpfile}"
         free_mb() { df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}'; }
