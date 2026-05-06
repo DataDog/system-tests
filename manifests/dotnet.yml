@@ -1113,7 +1113,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v2.0.0-prerelease
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default:
+    - declaration: missing_feature
+      component_version: <2.0.0-prerelease
+    # Runtime metrics enabled by default for .NET 6+ since dd-trace-dotnet v3.40.0.
+    # This makes this test obsolete, since runtime metrics are available by default.
+    - declaration: irrelevant
+      component_version: '>=3.40.0'
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v2.0.0-prerelease
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v2.0.0-prerelease
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
