@@ -22,18 +22,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Free Disk Space
-      uses: endersonmenezes/free-disk-space@7901478139cff6e9d44df5972fd8ab8fcade4db1 # v3.2.2
-      with:
-        remove_android: false # Takes a long time to remove even with rmz
-        remove_dotnet: true # Pretty quick and saves a lot
-        remove_haskell: true # Extremely quick and saves a lot
-        remove_tool_cache: false # Decent savings but not fast enough
-        remove_packages: false # By far the slowest option
-        remove_packages_one_command: true
-        remove_folders: "/usr/share/swift /usr/share/az* /usr/local/share/chromium"
-        rm_cmd: "rmz"  # Use 'rmz' for faster deletion (default: 'rm')
-        rmz_version: "3.1.1"  # Required when rm_cmd is 'rmz'
     - name: Get image list
       shell: bash
       run: |
@@ -49,6 +37,10 @@ runs:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
+    - name: clean-up
+      shell: bash
+      run: sudo rm -rf /usr/local/lib/android
+
 #retry
     - name: Pull
       uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
@@ -58,3 +50,7 @@ runs:
         timeout_minutes: 15
         retry_wait_seconds: 10
         max_attempts: 3
+
+    - name: Disk space usage
+      shell: bash
+      run: df -h
