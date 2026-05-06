@@ -50,6 +50,7 @@ EXPECTED_METRICS = {
         "nodejs.eventloop.delay.p50",
         "nodejs.eventloop.delay.p90",
         "nodejs.eventloop.delay.p99",
+        "nodejs.eventloop.delay.stddev",
         "nodejs.eventloop.utilization",
         "process.cpu.utilization",
         "process.memory.usage",
