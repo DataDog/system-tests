@@ -31,6 +31,8 @@ require 'datadog/open_feature/provider'
 require 'opentelemetry/sdk'
 require 'opentelemetry-metrics-sdk'
 require 'opentelemetry/exporter/otlp_metrics'
+require 'opentelemetry-logs-sdk'
+require 'opentelemetry/exporter/otlp_logs'
 require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true works out of the box for Ruby APM
 
 OpenTelemetry::SDK.configure # Initialize OpenTelemetry
@@ -74,6 +76,14 @@ DD_DIGEST = {}
 OTEL_SPANS = {}
 OTEL_METERS = {}
 OTEL_METER_INSTRUMENTS = {}
+OTEL_LOGGERS = {}
+
+LOG_SEVERITY = {
+  'DEBUG' => { number: 5, text: 'DEBUG' },
+  'INFO'  => { number: 9, text: 'INFO' },
+  'WARN'  => { number: 13, text: 'WARN' },
+  'ERROR' => { number: 17, text: 'ERROR' },
+}.freeze
 
 HeaderTuple = Struct.new(:key, :value, keyword_init: true)
 
@@ -737,6 +747,74 @@ class TraceSpanAddEventReturn
   end
 end
 
+class LogCreateLoggerArgs
+  attr_accessor :name, :level, :version, :schema_url, :attributes
+
+  def initialize(params)
+    @name = params['name']
+    @level = params['level']
+    @version = params['version']
+    @schema_url = params['schema_url']
+    @attributes = params['attributes']
+  end
+end
+
+class LogCreateLoggerReturn
+  attr_accessor :success
+
+  def initialize(success)
+    @success = success
+  end
+
+  def to_json(*_args)
+    { success: @success }.to_json
+  end
+end
+
+class LogWriteArgs
+  attr_accessor :logger_name, :level, :message, :span_id
+
+  def initialize(params)
+    @logger_name = params['logger_name']
+    @level = params['level']
+    @message = params['message']
+    @span_id = params['span_id']
+  end
+end
+
+class LogWriteReturn
+  attr_accessor :success
+
+  def initialize(success)
+    @success = success
+  end
+
+  def to_json(*_args)
+    { success: @success }.to_json
+  end
+end
+
+class LogFlushArgs
+  attr_accessor :seconds
+
+  def initialize(params)
+    @seconds = params['seconds']
+  end
+end
+
+class LogFlushReturn
+  attr_accessor :success, :message
+
+  def initialize(success, message)
+    @success = success
+    @message = message
+  end
+
+  def to_json(*_args)
+    { success: @success, message: @message }.to_json
+  end
+end
+
 class OpenFeatureArgs
   attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes
 
@@ -952,6 +1030,12 @@ class MyApp
       handle_metrics_otel_force_flush(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
+    when '/otel/logger/create'
+      handle_otel_logger_create(req, res)
+    when '/otel/logger/write'
+      handle_otel_logger_write(req, res)
+    when '/log/otel/flush'
+      handle_otel_log_flush(req, res)
     when '/ffe/start'
       handle_ffe_start(req, res)
     when '/ffe/evaluate'
@@ -1508,6 +1592,66 @@ class MyApp
     end
 
     res.write(OtelMetricsForceFlushReturn.new(true).to_json)
+  end
+
+  def handle_otel_logger_create(req, res)
+    args = LogCreateLoggerArgs.new(JSON.parse(req.body.read))
+    if OTEL_LOGGERS[args.name]
+      res.write(LogCreateLoggerReturn.new(false).to_json)
+      return
+    end
+
+    logger_kwargs = { name: args.name }
+    logger_kwargs[:version] = args.version if args.version
+    logger = ::OpenTelemetry.logger_provider.logger(**logger_kwargs)
+    OTEL_LOGGERS[args.name] = { logger: logger, level: args.level }
+    res.write(LogCreateLoggerReturn.new(true).to_json)
+  end
+
+  def handle_otel_logger_write(req, res)
+    args = LogWriteArgs.new(JSON.parse(req.body.read))
+
+    logger_info = OTEL_LOGGERS[args.logger_name]
+    raise "Logger #{args.logger_name} not found in registered loggers: #{OTEL_LOGGERS.keys}" unless logger_info
+
+    logger = logger_info[:logger]
+    severity = LOG_SEVERITY[args.level.upcase] || LOG_SEVERITY['INFO']
+
+    emit_params = {
+      timestamp: Datadog::Core::Utils::Time.now,
+      severity_number: severity[:number],
+      severity_text: severity[:text],
+      body: args.message,
+    }
+
+    if args.span_id
+      otel_span = OTEL_SPANS[args.span_id]
+      context = if otel_span
+        ::OpenTelemetry::Trace.context_with_span(otel_span)
+      else
+        digest = get_digest(args.span_id)
+        span_context = digest_to_spancontext(digest)
+        non_recording = ::OpenTelemetry::Trace::NonRecordingSpan.new(span_context)
+        ::OpenTelemetry::Trace.context_with_span(non_recording)
+      end
+      logger.on_emit(**emit_params, context: context)
+    else
+      logger.on_emit(**emit_params)
+    end
+
+    res.write(LogWriteReturn.new(true).to_json)
+  end
+
+  def handle_otel_log_flush(req, res)
+    args = LogFlushArgs.new(JSON.parse(req.body.read))
+    provider = ::OpenTelemetry.logger_provider
+    message = provider.class.name
+
+    provider.force_flush(timeout: args.seconds) if provider.respond_to?(:force_flush)
+
+    res.write(LogFlushReturn.new(true, message).to_json)
+  rescue => e
+    res.write(LogFlushReturn.new(false, "Error: #{e}").to_json)
   end
 
   def get_ddtrace_version
