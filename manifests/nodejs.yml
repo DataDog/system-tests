@@ -1978,6 +1978,12 @@ manifest:
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_single_key_propagate_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: irrelevant (uses weblog tests)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: *ref_5_54_0
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_AgentInfo: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractDefault: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Injection: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Strict: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_TrustedOpms: missing_feature (Org Propagation Guard RFC not yet implemented)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Implemented in 4.20.0 (and 3.41.0))
       component_version: <4.20.0
