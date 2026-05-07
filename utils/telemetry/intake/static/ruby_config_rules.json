@@ -18,6 +18,9 @@
         "appsec.ip_passlist": "appsec_ip_passlist",
         "appsec.user_id_denylist": "appsec_user_id_denylist",
         "ci.enabled": "ci_enabled",
+        "ci.discard_traces": "ci_discard_traces",
+        "ci.trace_flush": "ci_trace_flush",
+        "ci.writer_options": "ci_writer_options",
         "dynamic_instrumentation.internal.development": "dynamic_instrumentation_development",
         "dynamic_instrumentation.internal.max_processing_time": "dynamic_instrumentation_max_processing_time",
         "dynamic_instrumentation.internal.min_send_interval": "dynamic_instrumentation_min_send_interval",
@@ -166,7 +169,11 @@
         "tracing.waterdrop.service_name": "trace_waterdrop_service_name",
         "tracing.writer": "trace_writer"
     },
-    "prefix_block_list": [],
+    "prefix_block_list": [
+        "DD_CIVISIBILITY_",
+        "DD_TEST_",
+        "DD_TRACE_CI_"
+    ],
     "redaction_list": [],
     "reduce_rules": {}
 }

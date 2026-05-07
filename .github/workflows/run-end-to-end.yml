@@ -47,11 +47,6 @@ on:
         default: 'custom'
         required: false
         type: string
-      _build_python_base_images:
-        description: "Shall we build python base images for tests on python tracer"
-        default: false
-        required: false
-        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -141,10 +136,6 @@ jobs:
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
-    - name: Build python's weblog base images
-      if: inputs.library == 'python' && inputs._build_python_base_images
-      run: |
-        ./utils/build/build_python_base_images.sh
     - name: Build buddies weblog images
       if: inputs._build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh
@@ -513,6 +504,9 @@ jobs:
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
+    - name: Run AI_GUARD_TELEMETRY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_TELEMETRY"')
+      run: ./run.sh AI_GUARD_TELEMETRY
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
