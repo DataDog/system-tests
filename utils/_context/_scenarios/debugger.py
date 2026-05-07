@@ -39,6 +39,7 @@ class DebuggerScenario(EndToEndScenario):
             self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "0.1"
         elif library == "nodejs":
             self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_INTERVAL_SECONDS"] = "0.1"
+            self.weblog_container.environment["DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS"] = "0.2"
         elif library in ("java", "dotnet"):
             # Java and .NET use UPLOAD_FLUSH_INTERVAL in milliseconds
             self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "100"
