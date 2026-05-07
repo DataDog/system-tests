@@ -75,4 +75,3 @@ fi
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;
-
