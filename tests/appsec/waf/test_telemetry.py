@@ -58,8 +58,11 @@ class Test_TelemetryMetrics:
             "success",
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
-        # Gunicorn creates 2 process (main gunicorn process + X child workers). It may generates two init (but not always as initialization is now lazy)
-        if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
+        # Python: Gunicorn creates 2 process (main gunicorn process + X child workers). It may generates two init (but not always as initialization is now lazy)
+        # Java: OpenLiberty follows a similar pattern.
+        if (context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc")) or (
+            context.library == "java" and context.weblog_variant == "spring-boot-openliberty"
+        ):
             assert len(series) in (1, 2)
         else:
             assert len(series) == 1

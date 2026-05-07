@@ -22,6 +22,6 @@ EXPOSE 7777/tcp
 
 WORKDIR /binaries
 ENTRYPOINT []
-RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
+RUN echo "#!/bin/bash\nexec dumb-init /entrypoint.sh" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]

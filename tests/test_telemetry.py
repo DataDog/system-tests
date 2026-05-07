@@ -7,7 +7,7 @@ from datetime import timedelta
 from http import HTTPStatus
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger, wait_conditions
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 from utils.telemetry_utils import TelemetryUtils
@@ -76,6 +76,67 @@ def _first_lifecycle_per_runtime(
 
     messages.sort(key=lambda m: (m[0], m[1], m[2]))
     return [(rid, next(grp)[3]) for rid, grp in itertools.groupby(messages, key=lambda m: m[0])]
+
+
+def _add_min_telemetry_messages_condition(
+    *,
+    min_messages_per_runtime: int,
+    telemetry_window: float,
+    description: str,
+    request_type: str | None = None,
+) -> None:
+    def first_telemetry_timestamp() -> float | None:
+        timestamps = [
+            isoparse(data["request"]["timestamp_start"]).timestamp()
+            for data in interfaces.library.get_telemetry_data(flatten_message_batches=False)
+        ]
+        return min(timestamps) if timestamps else None
+
+    def has_enough_messages_by_runtime() -> bool:
+        runtime_ids: set[str] = set()
+        messages_by_runtime: defaultdict[str, int] = defaultdict(int)
+
+        for data in interfaces.library.get_telemetry_data():
+            content: dict[str, Any] = data["request"]["content"]
+            runtime_id = content.get("runtime_id")
+            if not isinstance(runtime_id, str):
+                continue
+
+            runtime_ids.add(runtime_id)
+            if request_type is None or content.get("request_type") == request_type:
+                messages_by_runtime[runtime_id] += 1
+
+        return bool(runtime_ids) and all(
+            messages_by_runtime[runtime_id] >= min_messages_per_runtime for runtime_id in runtime_ids
+        )
+
+    def wait_for_messages(effective_timeout: float) -> bool:
+        deadline = time.time() + effective_timeout
+
+        if has_enough_messages_by_runtime():
+            return True
+
+        if first_telemetry_timestamp() is None and effective_timeout > 0:
+            interfaces.library.wait_for(lambda _data: first_telemetry_timestamp() is not None, effective_timeout)
+
+        first_timestamp = first_telemetry_timestamp()
+        if first_timestamp is not None:
+            timeout = min(max(0.0, deadline - time.time()), max(0.0, first_timestamp + telemetry_window - time.time()))
+        else:
+            timeout = max(0.0, deadline - time.time())
+
+        if timeout > 0:
+            interfaces.library.wait_for(lambda _data: has_enough_messages_by_runtime(), timeout)
+
+        return has_enough_messages_by_runtime()
+
+    wait_conditions.add(
+        wait_conditions.Condition(
+            wait=wait_for_messages,
+            description=description,
+            timeout=telemetry_window,
+        )
+    )
 
 
 @features.telemetry_instrumentation
@@ -162,8 +223,7 @@ class Test_Telemetry:
         max_out_of_order_lag = timedelta(seconds=0.3)  # s
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-        if len(telemetry_data) == 0:
-            raise ValueError("No telemetry data to validate on")
+        assert telemetry_data, "No telemetry data to validate on"
 
         data_list_per_runtime = defaultdict(list)
         for data in telemetry_data:
@@ -171,6 +231,7 @@ class Test_Telemetry:
 
         for runtime_id, data_list in data_list_per_runtime.items():
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
+            assert len(data_list) >= 2, f"Not enough telemetry messages to validate seq_id for runtime id {runtime_id}"
 
             last_known_data = None
 
@@ -184,6 +245,7 @@ class Test_Telemetry:
 
                 if last_known_data is None:
                     # first payload sent, nothing to check
+                    last_known_data = data
                     continue
 
                 last_seq_id = last_known_data["request"]["content"]["seq_id"]
@@ -198,14 +260,13 @@ class Test_Telemetry:
                 )
 
                 if seq_id == last_seq_id:
-                    # if consecutive requests sue the same number, it may be caused by a retry
+                    # if consecutive requests use the same number, it may be caused by a retry
                     # in that situation, the time between the two requests should be very small
                     # in theory less than 100ms, we allow a bit more time in the test
-                    if curr_message_time - last_message_time > max_out_of_order_lag:
-                        raise ValueError(
-                            f"Received message with seq_id {seq_id} to far more than"
-                            f"100ms after message with seq_id {last_seq_id}"
-                        )
+                    assert curr_message_time - last_message_time <= max_out_of_order_lag, (
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {last_seq_id}"
+                    )
 
                 last_known_data = data
 
@@ -349,6 +410,27 @@ class Test_Telemetry:
             delays_by_runtime[runtime_id] = delays
 
         return delays_by_runtime
+
+    def setup_app_heartbeats_delays(self) -> None:
+        # This test needs at least 3 heartbeats per runtime to compute a stable average delay.
+        # It most often fails without this wait condition when run alone with:
+        # ./run.sh DEFAULT tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays
+        # because the setup phase can end before enough periodic telemetry has been emitted.
+        heartbeat_window = float(context.telemetry_heartbeat_interval) * 3 + 1
+        _add_min_telemetry_messages_condition(
+            min_messages_per_runtime=3,
+            telemetry_window=heartbeat_window,
+            description="three app-heartbeats per telemetry runtime",
+            request_type="app-heartbeat",
+        )
+
+    def setup_seq_id(self) -> None:
+        seq_id_window = float(context.telemetry_heartbeat_interval) * 2 + 1
+        _add_min_telemetry_messages_condition(
+            min_messages_per_runtime=2,
+            telemetry_window=seq_id_window,
+            description="two telemetry messages per telemetry runtime",
+        )
 
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
