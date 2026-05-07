@@ -9,6 +9,11 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -16,6 +21,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
@@ -50,6 +56,18 @@ manifest:
   tests/appsec/iast/test_security_controls.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/rasp/: irrelevant (ASM is not implemented in C++)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Telemetry: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: '>=1.12.0'  # Modified by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection: missing_feature  # Created by easy win activation script
@@ -99,6 +117,8 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_non_blocking_plain_text:
     - weblog_declaration:
         nginx: irrelevant (Blocks on text/plain if parsed to a String)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.4.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.2.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: irrelevant (Tag adding happens before WAF run)
@@ -144,6 +164,11 @@ manifest:
   tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.3.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.3.0
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_shell_execution.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_span_tags_headers.py: v1.6.1
@@ -173,6 +198,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: irrelevant
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (Header rejected by nginx ('client sent invalid header line)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams: irrelevant (path params waf address unfilled)
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.2.0
@@ -291,6 +317,7 @@ manifest:
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: irrelevant (library does not implement OpenTelemetry)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -306,8 +333,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v1.3.0

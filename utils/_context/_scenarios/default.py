@@ -49,6 +49,7 @@ _iast_security_controls_map = {
     ),
     "ruby": "TODO",
     "rust": "TODO",
+    "nodejs_lambda": "TODO",
 }
 
 

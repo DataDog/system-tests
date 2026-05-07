@@ -154,7 +154,7 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
@@ -242,6 +242,11 @@ class BaseDebuggerTest:
                             source_file = "debugger/index.ts"
                         else:
                             source_file = "debugger/index.js"
+                    elif language == "golang":
+                        variant = context.weblog_variant or "net-http"
+                        # Some variants share a build directory (e.g. uds-echo builds from echo/)
+                        go_build_dir = {"uds-echo": "echo"}.get(variant, variant)
+                        source_file = f"{go_build_dir}/debugger.go"
                     elif language == "php":
                         source_file = "debugger.php"
 
@@ -253,6 +258,18 @@ class BaseDebuggerTest:
                         source_file = source_file.replace("/", "\\")
 
                     probe["where"]["sourceFile"] = source_file
+
+                    # Go system-probe requires methodName for line probes to identify the function.
+                    # Other languages resolve this from sourceFile+line, but the eBPF-based
+                    # system-probe needs the fully qualified method name explicitly.
+                    if language == "golang" and probe["where"].get("lines"):
+                        golang_line_to_method = {
+                            "20": "main.(*DebuggerController).logProbe",
+                            "71": "main.(*DebuggerController).expression",
+                        }
+                        line = probe["where"]["lines"][0]
+                        if line in golang_line_to_method:
+                            probe["where"]["methodName"] = golang_line_to_method[line]
 
                 probe["type"] = __get_probe_type(probe["id"])
 
@@ -375,12 +392,13 @@ class BaseDebuggerTest:
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
         logger.debug("Wating for all probes")
         self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
+        found_ids: set[str] = set()
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_all_probes(data, statuses=statuses, found_ids=found_ids), timeout=timeout
+        )
         return self._wait_successful
 
-    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus]):
-        found_ids = set()
-
+    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus], found_ids: set[str]):
         def _check_all_probes_status(probe_diagnostics: ProbeDiagnosticsCollection, statuses: list[ProbeStatus]):
             statuses = statuses + ["ERROR"]
             logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")

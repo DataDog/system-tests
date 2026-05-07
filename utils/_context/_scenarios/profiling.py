@@ -27,6 +27,11 @@ class ProfilingScenario(EndToEndScenario):
         super().configure(config)
 
         library = self.weblog_infra.library_name
+
+        if library == "nodejs":
+            self.library_interface_timeout = 10
+            self.weblog_container.environment["DD_PROFILING_UPLOAD_PERIOD"] = "5"
+
         if library == "dotnet":
             # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
             self.weblog_container.environment["LD_PRELOAD"] = (
@@ -37,7 +42,3 @@ class ProfilingScenario(EndToEndScenario):
             # profiling is known to be unstable on python3.11, and this value is here to fix that
             # it's not yet the default behaviour, but it will be in the future
             self.weblog_container.environment["DD_PROFILING_STACK_V2_ENABLED"] = "true"
-
-        elif library == "nodejs":
-            # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
-            self._require_api_key = True

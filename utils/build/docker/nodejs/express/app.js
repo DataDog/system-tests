@@ -755,14 +755,27 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
+  // eslint-disable-next-line camelcase
+  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
+  const userId = req.headers['x-user-id']
+  const sessionId = req.headers['x-session-id']
+  const rootSpan = tracer.scope().active()?.context()._trace.started[0]
+  if (rootSpan) {
+    if (userId) {
+      rootSpan.setTag('usr.id', userId)
+    }
+    if (sessionId) {
+      rootSpan.setTag('session.id', sessionId)
+    }
+  }
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
-    res.status(200).json(evaluation)
+    res.status(200).json(renameAttrs(evaluation))
   } catch (e) {
     if (e.name === 'AIGuardAbortError') {
-      res.status(403).json(e)
+      res.status(403).json(renameAttrs(e))
     } else {
       res.status(500).json(e)
     }

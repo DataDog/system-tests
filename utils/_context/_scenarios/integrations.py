@@ -50,6 +50,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_IAST_CONTEXT_MODE": "GLOBAL",
                 "INCLUDE_OTEL_DROP_IN": "true",
+                "DD_TRACE_OTEL_ENABLED": "1",
             },
             other_weblog_containers=(
                 ElasticMQContainer,

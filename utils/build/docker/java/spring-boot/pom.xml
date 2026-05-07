@@ -61,6 +61,16 @@
             <version>1.41.0</version>
         </dependency>
         <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-metrics</artifactId>
+            <version>1.41.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+            <version>1.41.0</version>
+        </dependency>
+        <dependency>
             <groupId>io.opentracing</groupId>
             <artifactId>opentracing-api</artifactId>
             <version>LATEST</version>
@@ -307,7 +317,7 @@
             <id>openliberty</id>
             <properties>
                 <!-- Defaults to latest OpenLiberty version, which might break during releases. -->
-                <liberty.runtime.version>23.0.0.12</liberty.runtime.version>
+                <liberty.runtime.version>26.0.0.4</liberty.runtime.version>
             </properties>
             <dependencies>
                 <dependency>
@@ -320,7 +330,7 @@
                     <plugin>
                         <groupId>io.openliberty.tools</groupId>
                         <artifactId>liberty-maven-plugin</artifactId>
-                        <version>3.10</version>
+                        <version>3.12.0</version>
                         <configuration>
                             <appsDirectory>apps</appsDirectory>
                             <installAppPackages>spring-boot-project</installAppPackages>
@@ -366,6 +376,21 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <webResources>
+                                <resource>
+                                    <directory>src/main/webapp-payara</directory>
+                                </resource>
+                            </webResources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>wildfly</id>

@@ -11,6 +11,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -56,6 +58,7 @@ public class RaspRouteProvider implements Consumer<Router> {
         router.route().path("/rasp/lfi").consumes("application/json").blockingHandler(rc -> executeLfi(rc, rc.getBodyAsJson().getString(FILE)));
         router.route().path("/rasp/lfi").consumes("application/x-www-form-urlencoded").blockingHandler(rc -> executeLfi(rc, rc.request().getFormAttribute(FILE)));
         router.route().path("/rasp/lfi").blockingHandler(rc -> executeLfi(rc, rc.request().getParam(FILE)));
+        router.route().path("/rasp/lfi_write").blockingHandler(rc -> executeLfiWrite(rc, rc.request().getParam(FILE)));
         router.route().path("/rasp/shi").consumes("application/xml").blockingHandler(rc -> executeShi(rc, parseListDirXml(rc.getBody()).getCmd()));
         router.route().path("/rasp/shi").consumes("application/json").blockingHandler(rc -> executeShi(rc, rc.getBodyAsJson().getString(LIST_DIR)));
         router.route().path("/rasp/shi").consumes("application/x-www-form-urlencoded").blockingHandler(rc -> executeShi(rc, rc.request().getFormAttribute(LIST_DIR)));
@@ -95,6 +98,15 @@ public class RaspRouteProvider implements Consumer<Router> {
 
     private void executeLfi(final RoutingContext rc, final String file) {
         new File(file);
+        rc.response().end("OK");
+    }
+
+    private void executeLfiWrite(final RoutingContext rc, final String file) {
+        try {
+            new FileOutputStream(file).close();
+        } catch (IOException e) {
+            // expected to be blocked by RASP
+        }
         rc.response().end("OK");
     }
 

@@ -86,6 +86,7 @@ import okhttp3.Headers;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -303,6 +304,15 @@ public class App {
         return object.toString();
     }
 
+    @PostMapping(value = "/waf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> postWafMultipart(HttpServletRequest request) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        for (Part part : request.getParts()) {
+            sb.append(new String(part.getInputStream().readAllBytes()));
+        }
+        return ResponseEntity.ok(sb.toString());
+    }
+
     @GetMapping(value = "/session/new")
     ResponseEntity<String> newSession(final HttpServletRequest request) {
         final HttpSession session = request.getSession(true);
@@ -440,11 +450,6 @@ public class App {
 
     @RequestMapping("/trace/sql")
     String traceSQL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         // NOTE: see README.md for setting up the docker image to quickly test this
 
         String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
@@ -469,11 +474,6 @@ public class App {
 
     @RequestMapping("/trace/http")
     String traceHTTP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         try {
             URL server = new URL("http://example.com");
             HttpURLConnection connection = (HttpURLConnection)server.openConnection();
@@ -488,11 +488,6 @@ public class App {
 
     @RequestMapping("/trace/cassandra")
     String traceCassandra() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         cassandra.getSession().execute("SELECT * FROM \"table\" WHERE id = 1").all();
 
         return "hi Cassandra";
@@ -500,11 +495,6 @@ public class App {
 
     @RequestMapping("/trace/mongo")
     String traceMongo() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         MongoCollection<Document> collection = mongoClient.getDatabase("mydb").getCollection("test");
         Document doc = collection.find(eq("id", 3)).first();
         if (doc != null) {
@@ -1016,11 +1006,6 @@ public class App {
 
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
         try {
@@ -1093,11 +1078,6 @@ public class App {
 
     @RequestMapping("/experimental/redirect")
     RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         if (redirect == null) {
             return new RedirectView("https://datadoghq.com");
         }

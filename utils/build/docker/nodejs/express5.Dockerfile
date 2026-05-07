@@ -7,14 +7,13 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express /usr/app
-
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install || sleep 60 && npm install
-RUN npm install "express@5.0.1" || npm install "express@5.0.1"
+COPY utils/build/docker/nodejs/express /usr/app
+COPY utils/build/docker/nodejs/express5/package.json utils/build/docker/nodejs/express5/package-lock.json ./
+RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 

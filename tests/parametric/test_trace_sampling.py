@@ -450,7 +450,12 @@ def tag_sampling_env(tag_glob_pattern: str) -> dict:
 @features.adaptive_sampling
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def assert_matching_span(
-        self, test_agent: TestAgentAPI, trace_id: int, span_id: int, name: str | None = None, service: str | None = None
+        self,
+        test_agent: TestAgentAPI,
+        trace_id: int,
+        span_id: int | str,
+        name: str | None = None,
+        service: str | None = None,
     ):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
@@ -464,7 +469,12 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             assert matching_span["service"] == service
 
     def assert_mismatching_span(
-        self, test_agent: TestAgentAPI, trace_id: int, span_id: int, name: str | None = None, service: str | None = None
+        self,
+        test_agent: TestAgentAPI,
+        trace_id: int,
+        span_id: int | str,
+        name: str | None = None,
+        service: str | None = None,
     ):
         mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 

@@ -94,7 +94,20 @@ class Test_Endpoint_Discovery:
 
     def test_optional_method(self):
         endpoints = self._get_endpoints()
-        allowed = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT", "*"}
+        allowed = {
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "HEAD",
+            "OPTIONS",
+            "TRACE",
+            "CONNECT",
+            "*",
+            "PROPFIND",
+            "REPORT",
+        }
         found = False
         for endpoint in endpoints:
             if "method" in endpoint:

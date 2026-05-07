@@ -294,13 +294,17 @@ class Test_Span_Sampling:
         """Test sample rate comes close to expected number of spans sampled. We do this by setting the
         sample_rate to 0.5, and then making sure that about half of the spans have span sampling tags and
         half do not.
+
+        With 200 traces and a 0.5 sample rate, the expected number of sampled spans is 100
+        (std dev ~7.07). The acceptable range [60, 140] is ~5.7 standard deviations from the
+        mean, giving a theoretical failure probability of ~1 in 85 million.
         """
-        # make 100 new traces, each with one span
-        for _ in range(100):
+        # make 200 new traces, each with one span
+        for _ in range(200):
             with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
                 pass
-        traces = test_agent.wait_for_num_traces(num=100)
-        assert len(traces) == 100
+        traces = test_agent.wait_for_num_traces(num=200)
+        assert len(traces) == 200
         sampled = []
         unsampled = []
 
@@ -311,8 +315,8 @@ class Test_Span_Sampling:
             else:
                 unsampled.append(trace)
 
-        assert len(sampled) in range(30, 70)
-        assert len(unsampled) in range(30, 70)
+        assert len(sampled) in range(60, 141)
+        assert len(unsampled) in range(60, 141)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -834,6 +838,7 @@ class Test_Span_Sampling:
                 "DD_TRACE_PROPAGATION_STYLE": "datadog",
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "web.request", "sample_rate": 0.0}]),
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"name": "web.request", "sample_rate": 0.0}]),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",  # Disable stats computation to send P0s
             }
         ],
     )
@@ -872,9 +877,7 @@ class Test_Span_Sampling:
 
         test_library.dd_flush()
 
-        tracer_sends_p0 = context.library.name != "java" or context.library.version <= "1.54"
-
-        traces = test_agent.wait_for_num_traces(2 if tracer_sends_p0 else 1)
+        traces = test_agent.wait_for_num_traces(2)
 
         case1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         # Assert the RUM origin is set
@@ -889,16 +892,15 @@ class Test_Span_Sampling:
         assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
         assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
 
-        if tracer_sends_p0:
-            case2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
-            # Assert the RUM origin is set
-            assert case2["meta"]["_dd.origin"] == "rum"
-            # Assert the propagated sampling priority is unaffected
-            assert case2["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
-            # Assert that there is no trace sampling happening
-            assert "_dd.p.dm" not in case2["meta"]
-            assert "_dd.rule_psr" not in case2["meta"]
-            # Assert that there is no single span sampling happening
-            assert SINGLE_SPAN_SAMPLING_MECHANISM not in case1["metrics"]
-            assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
-            assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
+        case2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
+        # Assert the RUM origin is set
+        assert case2["meta"]["_dd.origin"] == "rum"
+        # Assert the propagated sampling priority is unaffected
+        assert case2["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
+        # Assert that there is no trace sampling happening
+        assert "_dd.p.dm" not in case2["meta"]
+        assert "_dd.rule_psr" not in case2["meta"]
+        # Assert that there is no single span sampling happening
+        assert SINGLE_SPAN_SAMPLING_MECHANISM not in case1["metrics"]
+        assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
+        assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]

@@ -13,6 +13,8 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: missing_feature

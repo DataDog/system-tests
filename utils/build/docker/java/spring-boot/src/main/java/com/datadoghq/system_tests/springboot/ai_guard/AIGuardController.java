@@ -5,6 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import datadog.trace.api.aiguard.AIGuard;
 import datadog.trace.api.aiguard.AIGuard.Evaluation;
+import datadog.trace.api.interceptor.MutableSpan;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,18 +18,43 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
 @RestController
 public class AIGuardController {
 
+    @Configuration
+    public static class JacksonConfig {
+        @Bean
+        public Jackson2ObjectMapperBuilderCustomizer mixInCustomizer() {
+            return builder -> builder
+                    .mixIn(AIGuard.AIGuardAbortError.class, AIGuardAbortErrorMixIn.class)
+                    .mixIn(AIGuard.Evaluation.class, AIGuardEvaluationMixIn.class);
+        }
+    }
+
     @PostMapping("/ai_guard/evaluate")
     public ResponseEntity<?> evaluate(
             @RequestHeader(name = "X-AI-Guard-Block", defaultValue = "false") final boolean block,
+            @RequestHeader(name = "X-User-Id", required = false) final String userId,
+            @RequestHeader(name = "X-Session-Id", required = false) final String sessionId,
             @RequestBody final List<Message> data) {
+        final Span activeSpan = GlobalTracer.get().activeSpan();
+        if (activeSpan instanceof MutableSpan) {
+            final MutableSpan rootSpan = ((MutableSpan) activeSpan).getLocalRootSpan();
+            if (userId != null && !userId.isEmpty()) {
+                rootSpan.setTag("usr.id", userId);
+            }
+            if (sessionId != null && !sessionId.isEmpty()) {
+                rootSpan.setTag("session.id", sessionId);
+            }
+        }
         try {
             final List<AIGuard.Message> messages = data.stream().map(Message::toAIGuard).collect(Collectors.toList());
             final Evaluation result = AIGuard.evaluate(messages, new AIGuard.Options().block(block));
@@ -34,7 +65,6 @@ public class AIGuardController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
         }
     }
-
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Message {
@@ -192,6 +222,18 @@ public class AIGuardController {
         public void setArguments(String arguments) {
             this.arguments = arguments;
         }
+    }
+
+    public static abstract class AIGuardAbortErrorMixIn {
+
+        @JsonProperty("tag_probs")
+        abstract Object getTagProbabilities();
+    }
+
+    public static abstract class AIGuardEvaluationMixIn {
+
+        @JsonProperty("tag_probs")
+        abstract Object getTagProbabilities();
     }
 
 }

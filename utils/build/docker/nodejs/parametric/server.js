@@ -276,7 +276,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
-    const span_id = ctx._spanId.toString(10)
+    const span_id = "0x" + ctx._spanId.toString(16)
     const trace_id = ctx._traceId.toString(10)
 
     otelSpans[span_id] = span
@@ -321,7 +321,7 @@ app.post('/trace/otel/span_context', (req, res) => {
   const span = otelSpans[span_id]
   const ctx = span.spanContext()
   res.json({
-    span_id: ctx.spanId,
+    span_id: `0x${ctx.spanId}`,
     trace_id: ctx.traceId,
     // Node.js official OTel API uses a number, not a string
     trace_flags: `0${ctx.traceFlags}`,

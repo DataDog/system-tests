@@ -115,7 +115,7 @@ jobs:
         uses: ./.github/actions/install_runner
       - name: Get binaries artifact
         if : ${{ inputs.binaries_artifact != '' }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
@@ -141,7 +141,7 @@ jobs:
           fi
       - name: Compress logs
         id: compress_logs
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           if compgen -G "logs*/" > /dev/null; then
             # the script that pushes logs to FPD does not handles folder name collisions.
@@ -152,15 +152,15 @@ jobs:
             echo "No logs*/ found; skipping tar."
           fi
       - name: Upload artifact
-        if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.compress_logs.outcome == 'success' && !cancelled()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}_${{ inputs.unique_id }}
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - name: Push results to Test Optimization
-        if: always() && inputs.push_to_test_optimization
+        if: inputs.push_to_test_optimization && !cancelled()
         uses: ./.github/actions/push_to_test_optim
         with:
           datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
