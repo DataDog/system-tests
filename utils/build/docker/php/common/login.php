@@ -1,6 +1,7 @@
 <?php
 
 require_once 'cookie_manager.php';
+require_once 'appsec_compat.php';
 
 const USERS = [
     'test' => [
@@ -21,19 +22,31 @@ const USERS = [
 function handlePost()
 {
     if (!isset(USERS[$_POST['username']])) {
-        \datadog\appsec\track_user_login_failure_event_automated($_POST['username'], "", false, []);
+        if (_dd_appsec_new_api()) {
+            \datadog\appsec\internal\track_user_login_failure_event_automated('custom', $_POST['username'], "", false, []);
+        } else {
+            \datadog\appsec\track_user_login_failure_event_automated($_POST['username'], "", false, []);
+        }
         http_response_code(401);
         return;
     }
 
     $user = USERS[$_POST['username']];
     if ($user['password'] != $_POST['password']) {
-        \datadog\appsec\track_user_login_failure_event_automated($user['username'], $user['id'], true, $user);
+        if (_dd_appsec_new_api()) {
+            \datadog\appsec\internal\track_user_login_failure_event_automated('custom', $user['username'], $user['id'], true, $user);
+        } else {
+            \datadog\appsec\track_user_login_failure_event_automated($user['username'], $user['id'], true, $user);
+        }
         http_response_code(401);
         return;
     }
 
-    \datadog\appsec\track_user_login_success_event_automated($user['username'], $user['id'], $user);
+    if (_dd_appsec_new_api()) {
+        \datadog\appsec\internal\track_user_login_success_event_automated('custom', $user['username'], $user['id'], $user);
+    } else {
+        \datadog\appsec\track_user_login_success_event_automated($user['username'], $user['id'], $user);
+    }
     setLoggedInCookie($user['id']);
 }
 
@@ -71,4 +84,3 @@ if ($_GET['auth'] != 'local') {
 $_SERVER['REQUEST_METHOD'] === 'POST' ? handlePost() : handleGet();
 
 checkSdk();
-

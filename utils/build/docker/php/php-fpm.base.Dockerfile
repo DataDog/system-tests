@@ -1,6 +1,7 @@
 FROM ubuntu:24.04
 
 ARG PHP_VERSION
+ENV PHP_VERSION=${PHP_VERSION}
 
 ADD . /tmp/php
 

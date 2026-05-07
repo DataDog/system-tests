@@ -526,8 +526,11 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_SSRF: v0.68.3
   tests/appsec/waf/test_rules.py::Test_Scanners: v0.68.3
   tests/appsec/waf/test_rules.py::Test_XSS: v0.68.3
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_init: '>=1.16.0'
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
+    - declaration: missing_feature (only the rust helper, default on PHP 8.4+, emits all boolean tags on every series; the c++ helper omits them when false)
+      excluded_weblog: [php-fpm-8.5]
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: '>=1.20.0'
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
