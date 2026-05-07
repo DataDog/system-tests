@@ -109,35 +109,42 @@ class Test_Span_Enrichment_Serial_IDs:
         success = test_library.ffe_start()
         assert success, "Failed to start FFE provider"
 
-        # Evaluate multiple flags to test serial ID encoding
-        test_library.ffe_evaluate(
-            flag="basic-flag",
-            variation_type="BOOLEAN",
-            default_value=False,
-            targeting_key="user-max-test",
-            attributes={},
-        )
-        test_library.ffe_evaluate(
-            flag="experiment-flag",
-            variation_type="STRING",
-            default_value="default",
-            targeting_key="user-max-test",
-            attributes={},
-        )
-        test_library.ffe_evaluate(
-            flag="multi-serial-flag-1",
-            variation_type="INTEGER",
-            default_value=0,
-            targeting_key="user-max-test",
-            attributes={},
-        )
-        test_library.ffe_evaluate(
-            flag="multi-serial-flag-2",
-            variation_type="INTEGER",
-            default_value=0,
-            targeting_key="user-max-test",
-            attributes={},
-        )
+        # Create a span and evaluate flags within its context
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            # Evaluate multiple flags to test serial ID encoding
+            # Pass span_id to activate the span during evaluation
+            test_library.ffe_evaluate(
+                flag="basic-flag",
+                variation_type="BOOLEAN",
+                default_value=False,
+                targeting_key="user-max-test",
+                attributes={},
+                span_id=span.span_id,
+            )
+            test_library.ffe_evaluate(
+                flag="experiment-flag",
+                variation_type="STRING",
+                default_value="default",
+                targeting_key="user-max-test",
+                attributes={},
+                span_id=span.span_id,
+            )
+            test_library.ffe_evaluate(
+                flag="multi-serial-flag-1",
+                variation_type="INTEGER",
+                default_value=0,
+                targeting_key="user-max-test",
+                attributes={},
+                span_id=span.span_id,
+            )
+            test_library.ffe_evaluate(
+                flag="multi-serial-flag-2",
+                variation_type="INTEGER",
+                default_value=0,
+                targeting_key="user-max-test",
+                attributes={},
+                span_id=span.span_id,
+            )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -178,15 +185,16 @@ class Test_Span_Enrichment_Child_Span_Propagation:
         # Create parent span, then child span, evaluate flag in child context
         with (
             test_library.dd_start_span(name="parent", service="test-service") as parent,
-            test_library.dd_start_span(name="child", service="test-service", parent_id=parent.span_id),
+            test_library.dd_start_span(name="child", service="test-service", parent_id=parent.span_id) as child,
         ):
-            # Evaluate flag while in child span context
+            # Evaluate flag while in child span context - use child span_id to activate
             test_library.ffe_evaluate(
                 flag="basic-flag",
                 variation_type="BOOLEAN",
                 default_value=False,
                 targeting_key="user-child-span-test",
                 attributes={},
+                span_id=child.span_id,
             )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
@@ -233,15 +241,18 @@ class Test_Span_Enrichment_Max_Serial_IDs:
         success = test_library.ffe_start()
         assert success, "Failed to start FFE provider"
 
-        # Evaluate all 150 flags
-        for i in range(num_flags):
-            test_library.ffe_evaluate(
-                flag=f"generated-flag-{i:04d}",
-                variation_type="BOOLEAN",
-                default_value=False,
-                targeting_key="user-limit-test",
-                attributes={},
-            )
+        # Create a span and evaluate flags within its context
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            # Evaluate all 150 flags
+            for i in range(num_flags):
+                test_library.ffe_evaluate(
+                    flag=f"generated-flag-{i:04d}",
+                    variation_type="BOOLEAN",
+                    default_value=False,
+                    targeting_key="user-limit-test",
+                    attributes={},
+                    span_id=span.span_id,
+                )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -284,13 +295,15 @@ class Test_Span_Enrichment_Default_Fallback:
         # Evaluate a flag that doesn't exist in the UFC config
         flag_name = "nonexistent-flag"
         default_value = "my-default"
-        test_library.ffe_evaluate(
-            flag=flag_name,
-            variation_type="STRING",
-            default_value=default_value,
-            targeting_key="test-user",
-            attributes={},
-        )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            test_library.ffe_evaluate(
+                flag=flag_name,
+                variation_type="STRING",
+                default_value=default_value,
+                targeting_key="test-user",
+                attributes={},
+                span_id=span.span_id,
+            )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -334,13 +347,15 @@ class Test_Span_Enrichment_Default_Fallback:
         long_default = "x" * 100  # Much longer than the 49 char limit
 
         flag_name = "nonexistent-long-default"
-        test_library.ffe_evaluate(
-            flag=flag_name,
-            variation_type="STRING",
-            default_value=long_default,
-            targeting_key="test-user",
-            attributes={},
-        )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            test_library.ffe_evaluate(
+                flag=flag_name,
+                variation_type="STRING",
+                default_value=long_default,
+                targeting_key="test-user",
+                attributes={},
+                span_id=span.span_id,
+            )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -383,14 +398,16 @@ class Test_Span_Enrichment_Default_Fallback:
         assert success, "Failed to start FFE provider"
 
         # Evaluate 10 non-existent flags to trigger coded-default fallback
-        for i in range(10):
-            test_library.ffe_evaluate(
-                flag=f"nonexistent-flag-{i:02d}",
-                variation_type="STRING",
-                default_value=f"default-{i}",
-                targeting_key="test-user",
-                attributes={},
-            )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            for i in range(10):
+                test_library.ffe_evaluate(
+                    flag=f"nonexistent-flag-{i:02d}",
+                    variation_type="STRING",
+                    default_value=f"default-{i}",
+                    targeting_key="test-user",
+                    attributes={},
+                    span_id=span.span_id,
+                )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -430,14 +447,16 @@ class Test_Span_Enrichment_Max_Subjects:
         assert success, "Failed to start FFE provider"
 
         # Evaluate with 30 different subjects
-        for i in range(30):
-            test_library.ffe_evaluate(
-                flag="experiment-flag",
-                variation_type="STRING",
-                default_value="default",
-                targeting_key=f"subject-{i:03d}",
-                attributes={},
-            )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            for i in range(30):
+                test_library.ffe_evaluate(
+                    flag="experiment-flag",
+                    variation_type="STRING",
+                    default_value="default",
+                    targeting_key=f"subject-{i:03d}",
+                    attributes={},
+                    span_id=span.span_id,
+                )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -475,13 +494,15 @@ class Test_Span_Enrichment_Subjects:
         assert success, "Failed to start FFE provider"
 
         # Evaluate experiment-flag which has doLog=true
-        test_library.ffe_evaluate(
-            flag="experiment-flag",
-            variation_type="STRING",
-            default_value="default",
-            targeting_key="experiment-user-789",
-            attributes={},
-        )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            test_library.ffe_evaluate(
+                flag="experiment-flag",
+                variation_type="STRING",
+                default_value="default",
+                targeting_key="experiment-user-789",
+                attributes={},
+                span_id=span.span_id,
+            )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -518,13 +539,15 @@ class Test_Span_Enrichment_Subjects:
         assert success, "Failed to start FFE provider"
 
         # Evaluate no-log-flag which has doLog=false
-        test_library.ffe_evaluate(
-            flag="no-log-flag",
-            variation_type="BOOLEAN",
-            default_value=False,
-            targeting_key="user-no-log",
-            attributes={},
-        )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            test_library.ffe_evaluate(
+                flag="no-log-flag",
+                variation_type="BOOLEAN",
+                default_value=False,
+                targeting_key="user-no-log",
+                attributes={},
+                span_id=span.span_id,
+            )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"
@@ -555,13 +578,15 @@ class Test_Span_Enrichment_Subjects:
         assert success, "Failed to start FFE provider"
 
         targeting_key = "test-user-sha256"
-        test_library.ffe_evaluate(
-            flag="experiment-flag",
-            variation_type="STRING",
-            default_value="default",
-            targeting_key=targeting_key,
-            attributes={},
-        )
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            test_library.ffe_evaluate(
+                flag="experiment-flag",
+                variation_type="STRING",
+                default_value="default",
+                targeting_key=targeting_key,
+                attributes={},
+                span_id=span.span_id,
+            )
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         assert len(traces) > 0, "No traces received"

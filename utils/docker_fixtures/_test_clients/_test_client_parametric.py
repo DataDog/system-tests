@@ -751,6 +751,7 @@ class ParametricTestClientApi(TestClientApi):
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -760,21 +761,23 @@ class ParametricTestClientApi(TestClientApi):
             default_value: The default value to return if evaluation fails
             targeting_key: The targeting key (usually user ID) for evaluation context
             attributes: Optional additional attributes for evaluation context
+            span_id: Optional span ID to activate during evaluation (for span enrichment)
 
         Returns:
             dict: Evaluation result containing 'value' and 'reason'
 
         """
-        resp = self._session.post(
-            self._url("/ffe/evaluate"),
-            json={
-                "flag": flag,
-                "variationType": variation_type,
-                "defaultValue": default_value,
-                "targetingKey": targeting_key,
-                "attributes": attributes or {},
-            },
-        )
+        payload = {
+            "flag": flag,
+            "variationType": variation_type,
+            "defaultValue": default_value,
+            "targetingKey": targeting_key,
+            "attributes": attributes or {},
+        }
+        if span_id is not None:
+            payload["span_id"] = str(span_id)
+
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
 
     def otel_get_meter(
@@ -1171,6 +1174,7 @@ class APMLibrary:
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1179,6 +1183,7 @@ class APMLibrary:
             default_value=default_value,
             targeting_key=targeting_key,
             attributes=attributes,
+            span_id=span_id,
         )
 
     def llmobs_trace(

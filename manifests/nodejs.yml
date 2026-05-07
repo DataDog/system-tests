@@ -1970,7 +1970,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: *ref_4_23_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_of7_empty_targeting_key: bug (FFL-1730)
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: *ref_6_0_0
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_inject_valid: missing_feature (Need to remove b3=b3multi alias)
