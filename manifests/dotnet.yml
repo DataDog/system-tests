@@ -1230,5 +1230,4 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (Product started missing)
       excluded_weblog: [uds, poc]
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (Re-enable when this automatically updates the dd-go files.)
   tests/test_v1_payloads.py: missing_feature
