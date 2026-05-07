@@ -56,6 +56,7 @@ class Test_TelemetryMetrics:
             "version",
             "lib_language",
             "success",
+            "helper_runtime",
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # Gunicorn creates 2 process (main gunicorn process + X child workers). It may generates two init (but not always as initialization is now lazy)
@@ -96,6 +97,7 @@ class Test_TelemetryMetrics:
             "block_failure",
             "rate_limited",
             "input_truncated",
+            "helper_runtime",
         }
         mandatory_tag_prefixes = self._get_waf_requests_mandatory_tags()
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
@@ -249,7 +251,7 @@ def _validate_headers(headers: list[list[str]], request_type: str):
     elif context.library > "nodejs@4.20.0":
         # APM Node.js migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
-    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0" or context.library == "dotnet":
+    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0" or context.library == "dotnet" or context.library == "php":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     else:
         expected_headers["DD-Telemetry-API-Version"] = "v1"
