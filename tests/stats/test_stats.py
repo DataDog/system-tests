@@ -217,7 +217,9 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
 
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
 
-        assert len(sql_stats) == 4, "Expected 4 distincs SQL stats entry, because obfuscation was not applied client-side"
+        assert len(sql_stats) == 4, (
+            "Expected 4 distincs SQL stats entry, because obfuscation was not applied client-side"
+        )
         # NormalizeOnly mode preserves string literals including surrounding single quotes.
         # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
         # suffix appears as e.g. "'1'" (with quotes). Accept both quoted and unquoted forms
@@ -313,7 +315,9 @@ class Test_Client_Stats_Missing_Obfuscation_Version:
             "Datadog-Obfuscation-Version header should NOT be present when agent does not advertise obfuscation_version"
         )
 
-        assert len(sql_stats) == 4, "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        assert len(sql_stats) == 4, (
+            "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        )
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
                 f"SQL resource should NOT be obfuscated when agent does not advertise obfuscation_version, "
@@ -358,7 +362,9 @@ class Test_Client_Stats_Obfuscation_Version_Zero:
             "Datadog-Obfuscation-Version header should NOT be present when agent advertises obfuscation_version=0"
         )
 
-        assert len(sql_stats) == 4, "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        assert len(sql_stats) == 4, (
+            "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        )
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
                 f"SQL resource should NOT be obfuscated when agent advertises obfuscation_version=0, "
