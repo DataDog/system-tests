@@ -503,6 +503,7 @@ class _Scenarios:
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
+        library_interface_timeout=25,  # 25 sec: time for tracer to flush traces before weblog shutdown (reduced flakes)
     )
 
     sca_standalone = EndToEndScenario(
