@@ -143,7 +143,7 @@ def assert_gauge_aggregation(gauge_aggregation: dict, value: int, attributes: di
 
 def assert_histogram_aggregation(
     histogram_aggregation: dict[str, str | list[dict]],
-    aggregation_temporality: str,
+    histogram_temporality: str,
     count: int,
     sum_value: int,
     min_value: int,
@@ -152,8 +152,8 @@ def assert_histogram_aggregation(
     bucket_counts: list[int],
     attributes: dict[str, str],
 ):
-    aggregation_temporality: str = histogram_aggregation["aggregation_temporality"]
-    assert aggregation_temporality.casefold() == aggregation_temporality.casefold()
+    aggregation_temporality = str(histogram_aggregation["aggregation_temporality"])
+    assert aggregation_temporality.casefold() == histogram_temporality.casefold()
 
     assert isinstance(histogram_aggregation["data_points"], list)
     data_points: list[dict] = histogram_aggregation["data_points"]
@@ -163,13 +163,62 @@ def assert_histogram_aggregation(
             assert histogram_data_point["sum"] == sum_value
             assert histogram_data_point["min"] == min_value
             assert histogram_data_point["max"] == max_value
-
-            assert histogram_data_point["explicit_bounds"] == bucket_boundaries
-            assert list(map(int, histogram_data_point["bucket_counts"])) == bucket_counts
+            assert_histogram_buckets(histogram_data_point, bucket_boundaries, bucket_counts)
             assert "time_unix_nano" in histogram_data_point
             return
 
     pytest.fail(f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}")
+
+
+def assert_histogram_buckets(
+    histogram_data_point: dict,
+    bucket_bounds: list[float],
+    bucket_counts: list[int],
+):
+    actual_bounds = histogram_data_point["explicit_bounds"]
+    actual_counts = [int(c) for c in histogram_data_point["bucket_counts"]]
+    if len(bucket_bounds) == 0:
+        # only time we expect boundaries and counts to have the same length
+        assert bucket_counts == []
+        assert actual_bounds == []
+        assert actual_counts == []
+        return
+    # otherwise we expect counts for every boundary plus an overflow count
+    # (some empty buckets may be collapsed into one on languages like Java)
+    assert len(bucket_counts) == len(bucket_bounds) + 1
+    assert len(actual_counts) == len(actual_bounds) + 1
+    idx = 0
+    last_collapsed_bound = None
+    for expected_bound, expected_count in zip(bucket_bounds, bucket_counts, strict=False):
+        if idx < len(actual_bounds) and actual_bounds[idx] == expected_bound and actual_counts[idx] == expected_count:
+            # actual boundary and count are aligned with expectations
+            last_collapsed_bound = None
+            idx += 1
+        elif expected_count == 0:
+            # tolerate collapsing series of empty buckets into one (using the last boundary)
+            last_collapsed_bound = expected_bound
+        else:
+            if last_collapsed_bound is not None:
+                # preceding empty buckets collapsed before non-empty bucket
+                assert actual_bounds[idx] == last_collapsed_bound
+                assert actual_counts[idx] == 0
+                idx += 1
+            last_collapsed_bound = None
+            assert actual_bounds[idx] == expected_bound
+            assert actual_counts[idx] == expected_count
+            idx += 1
+    if last_collapsed_bound is not None:
+        if bucket_counts[-1] == 0:
+            # expect trailing empty buckets to be collapsed into overflow bucket
+            assert actual_counts[-1] == 0
+        else:
+            # preceding empty buckets collapsed before non-empty overflow bucket
+            assert actual_bounds[idx] == last_collapsed_bound
+            assert actual_counts[idx] == 0
+            idx += 1
+    assert idx == len(actual_bounds), f"unexpected extra buckets: {actual_bounds[idx:]}"
+    # check the overflow bucket count matches (its boundary is never exported)
+    assert actual_counts[-1] == bucket_counts[-1]
 
 
 def find_metric_by_name(scope_metric: dict, name: str) -> dict:
