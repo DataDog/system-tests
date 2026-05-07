@@ -1,12 +1,21 @@
 """Test feature flag span enrichment via parametric tests.
 
-This module tests feature flag event enrichment on APM spans:
-1. Multiple flag evaluations combine serial IDs correctly (ffe_flags_enc)
-2. Child span flag evaluation propagates to root span
-3. Max serial ID limit (128)
-4. Max subjects limit (25)
-5. Subjects encoding behavior (doLog=true adds subjects, doLog=false does not)
-6. Delta varint encoding correctness
+All FFE span tags (ffe_flags_enc, ffe_subjects_enc, ffe_defaults) are added to the
+ROOT SPAN of the trace, regardless of which span context the flag was evaluated in.
+This follows the specification for chunk-level tagging.
+
+This module tests:
+1. ffe_flags_enc: Multiple flag evaluations combine serial IDs correctly
+2. ffe_flags_enc: Child span flag evaluation propagates to root span
+3. ffe_flags_enc: Max 128 serial IDs limit
+4. ffe_subjects_enc: doLog=true adds subjects, doLog=false does not
+5. ffe_subjects_enc: Multiple subjects tracked separately with SHA256 hashed keys
+6. ffe_subjects_enc: Single subject with multiple flags combines serial IDs
+7. ffe_subjects_enc: Max 10 subjects limit
+8. ffe_defaults: Flag not found adds coded-default fallback
+9. ffe_defaults: Value truncated at 64 chars
+10. ffe_defaults: Max 5 flag keys limit
+11. Delta varint encoding correctness (unit tests)
 """
 
 import json
@@ -276,7 +285,7 @@ class Test_Span_Enrichment_Max_Serial_IDs:
 class Test_Span_Enrichment_Default_Fallback:
     """Test ffe_defaults tag behavior when flag evaluation falls back to default value."""
 
-    CODED_DEFAULT_PREFIX = "coded-default: "
+    CODED_DEFAULT_PREFIX = "coded-default:"
     MAX_FFE_DEFAULTS_VALUE_LENGTH = 64
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -285,7 +294,7 @@ class Test_Span_Enrichment_Default_Fallback:
 
         When a flag is not found in the UFC config and falls back to default_value,
         an ffe_defaults tag should be added with the format:
-        {"flag-name": "coded-default: <default_value>"}
+        {"flag-name": "coded-default:<default_value>"}
         """
         _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
 
@@ -335,7 +344,7 @@ class Test_Span_Enrichment_Default_Fallback:
     def test_ffe_defaults_value_truncated_at_64_chars(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test that ffe_defaults values are truncated to 64 characters.
 
-        The total value length (including 'coded-default: ' prefix) should not exceed 64 chars.
+        The total value length (including 'coded-default:' prefix) should not exceed 64 chars.
         """
         _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
 
@@ -343,8 +352,8 @@ class Test_Span_Enrichment_Default_Fallback:
         assert success, "Failed to start FFE provider"
 
         # Create a default value that would exceed 64 chars when combined with prefix
-        # Prefix "coded-default: " is 15 chars, so max default value is 49 chars
-        long_default = "x" * 100  # Much longer than the 49 char limit
+        # Prefix "coded-default:" is 14 chars, so max default value is 50 chars
+        long_default = "x" * 100  # Much longer than the 50 char limit
 
         flag_name = "nonexistent-long-default"
         with test_library.dd_start_span(name="test-span", service="test-service") as span:
@@ -432,23 +441,23 @@ class Test_Span_Enrichment_Default_Fallback:
 @scenarios.parametric
 @features.feature_flags_event_enrichment
 class Test_Span_Enrichment_Max_Subjects:
-    """Test 25 subject limit enforcement (provisional - may adjust during code review)."""
+    """Test 10 subject limit enforcement per RFC - APM & Experimentation."""
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_max_25_subjects_enforced(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test that at most 25 unique subjects are tracked.
+    def test_max_10_subjects_enforced(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test that at most 10 unique subjects are tracked.
 
-        When more than 25 unique subjects evaluate doLog=true flags,
-        only the first 25 should appear in ffe_subjects_enc.
+        When more than 10 unique subjects evaluate doLog=true flags,
+        only the first 10 should appear in ffe_subjects_enc.
         """
         _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
 
         success = test_library.ffe_start()
         assert success, "Failed to start FFE provider"
 
-        # Evaluate with 30 different subjects
+        # Evaluate with 15 different subjects (more than the 10 limit)
         with test_library.dd_start_span(name="test-span", service="test-service") as span:
-            for i in range(30):
+            for i in range(15):
                 test_library.ffe_evaluate(
                     flag="experiment-flag",
                     variation_type="STRING",
@@ -473,7 +482,7 @@ class Test_Span_Enrichment_Max_Subjects:
 
             if isinstance(subjects_encoded, dict):
                 num_subjects = len(subjects_encoded)
-                assert num_subjects <= 25, f"Should have at most 25 subjects, got {num_subjects}"
+                assert num_subjects <= 10, f"Should have at most 10 subjects, got {num_subjects}"
 
 
 @scenarios.parametric
@@ -525,6 +534,135 @@ class Test_Span_Enrichment_Subjects:
         # Should be a non-empty dict
         assert isinstance(subjects_encoded, dict), f"Expected dict, got {type(subjects_encoded)}"
         assert len(subjects_encoded) > 0, "ffe_subjects_enc should not be empty"
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_multiple_subjects_tracked_separately(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test that multiple subjects in a single span are tracked with separate hashed keys.
+
+        When multiple different targeting keys evaluate doLog=true flags, each subject
+        should appear as a separate SHA256-hashed key in ffe_subjects_enc with their
+        respective serial IDs.
+        """
+        _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
+
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        # Evaluate the same doLog=true flag with 3 different subjects
+        subjects = ["user-alice", "user-bob", "user-charlie"]
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            for subject in subjects:
+                test_library.ffe_evaluate(
+                    flag="experiment-flag",  # doLog=true, serialId=108
+                    variation_type="STRING",
+                    default_value="default",
+                    targeting_key=subject,
+                    attributes={},
+                    span_id=span.span_id,
+                )
+
+        traces = test_agent.wait_for_num_traces(1, clear=True)
+        assert len(traces) > 0, "No traces received"
+
+        root_span = traces[0][0]
+        meta = root_span.get("meta", {})
+
+        assert "ffe_subjects_enc" in meta, f"ffe_subjects_enc not found in span meta: {list(meta.keys())}"
+
+        subjects_encoded = meta["ffe_subjects_enc"]
+        if isinstance(subjects_encoded, str):
+            subjects_encoded = json.loads(subjects_encoded)
+
+        assert isinstance(subjects_encoded, dict), f"Expected dict, got {type(subjects_encoded)}"
+
+        # Verify all 3 subjects are tracked with their hashed keys
+        assert len(subjects_encoded) == 3, f"Expected 3 subjects, got {len(subjects_encoded)}"
+
+        # Verify each subject's hash is present
+        for subject in subjects:
+            expected_hash = hash_targeting_key(subject)
+            assert expected_hash in subjects_encoded, (
+                f"Expected SHA256 hash of '{subject}' ({expected_hash}) not found in subjects_encoded"
+            )
+
+            # Verify the serial ID for this subject (experiment-flag has serialId=108)
+            encoded_ids = subjects_encoded[expected_hash]
+            decoded_ids = decode_delta_varint(encoded_ids)
+            assert 108 in decoded_ids, f"Expected serial ID 108 for subject '{subject}', got {decoded_ids}"
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_single_subject_multiple_flags_combines_serial_ids(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test that a single subject evaluating multiple doLog=true flags combines serial IDs.
+
+        When the same targeting key evaluates multiple flags with doLog=true, all serial IDs
+        should be combined under the same SHA256-hashed key in ffe_subjects_enc.
+        """
+        _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
+
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        # Same subject evaluates multiple doLog=true flags
+        subject = "multi-flag-user"
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            # experiment-flag has doLog=true, serialId=108
+            test_library.ffe_evaluate(
+                flag="experiment-flag",
+                variation_type="STRING",
+                default_value="default",
+                targeting_key=subject,
+                attributes={},
+                span_id=span.span_id,
+            )
+            # multi-serial-flag-1 has doLog=true, serialId=128
+            test_library.ffe_evaluate(
+                flag="multi-serial-flag-1",
+                variation_type="INTEGER",
+                default_value=0,
+                targeting_key=subject,
+                attributes={},
+                span_id=span.span_id,
+            )
+            # multi-serial-flag-2 has doLog=true, serialId=130
+            test_library.ffe_evaluate(
+                flag="multi-serial-flag-2",
+                variation_type="INTEGER",
+                default_value=0,
+                targeting_key=subject,
+                attributes={},
+                span_id=span.span_id,
+            )
+
+        traces = test_agent.wait_for_num_traces(1, clear=True)
+        assert len(traces) > 0, "No traces received"
+
+        root_span = traces[0][0]
+        meta = root_span.get("meta", {})
+
+        assert "ffe_subjects_enc" in meta, f"ffe_subjects_enc not found in span meta: {list(meta.keys())}"
+
+        subjects_encoded = meta["ffe_subjects_enc"]
+        if isinstance(subjects_encoded, str):
+            subjects_encoded = json.loads(subjects_encoded)
+
+        # Should only have 1 subject (same targeting key)
+        assert len(subjects_encoded) == 1, f"Expected 1 subject, got {len(subjects_encoded)}"
+
+        # Verify the subject's hash contains all serial IDs
+        expected_hash = hash_targeting_key(subject)
+        assert expected_hash in subjects_encoded, f"Subject hash not found: {expected_hash}"
+
+        encoded_ids = subjects_encoded[expected_hash]
+        decoded_ids = decode_delta_varint(encoded_ids)
+
+        # All 3 doLog=true flags' serial IDs should be combined
+        expected_ids = {108, 128, 130}
+        for expected_id in expected_ids:
+            assert expected_id in decoded_ids, (
+                f"Expected serial ID {expected_id} not found in subject's combined IDs: {decoded_ids}"
+            )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_do_log_false_no_subjects_encoded(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
