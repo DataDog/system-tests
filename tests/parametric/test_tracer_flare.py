@@ -25,7 +25,6 @@ DEFAULT_ENVVARS = {
     "DD_INTERNAL_TELEMETRY_V2_ENABLED": "1",
     # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
-    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
 
 PROFILING_NOTRACING_ENVVARS = {
@@ -35,7 +34,6 @@ PROFILING_NOTRACING_ENVVARS = {
     "DD_INTERNAL_TELEMETRY_V2_ENABLED": "1",
     # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
-    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
     "DD_PROFILING_ENABLED": "true",
     "DD_TRACE_ENABLED": "false",
     "DD_APM_TRACING_ENABLED": "false",
