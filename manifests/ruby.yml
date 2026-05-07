@@ -54,6 +54,16 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_MetaStruct_Truncation:
+    - weblog_declaration:
+        "*": bug (APPSEC-62361)
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": v2.31.0-dev

@@ -54,6 +54,10 @@ const jsonLogger = winston.createLogger({
 iast.initData().catch(() => {})
 
 app.use(require('body-parser').json({
+  // /ai_guard/evaluate uses this global JSON parser, and
+  // tests/ai_guard/test_ai_guard_sdk.py::Test_MetaStruct_Truncation sends payloads
+  // larger than the default limit when exercising AI Guard message/content truncation.
+  limit: '10mb',
   verify: (req, res, buf) => {
     req.rawBody = buf
   }
