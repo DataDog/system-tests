@@ -309,6 +309,12 @@ class EndToEndScenario(DockerScenario):
 
         library = self.weblog_infra.library_name
 
+        if library == "nodejs":
+            # Node.js starts the poll interval only after receiving the previous response, so faster
+            # polling is safe. Some other languages use a fixed interval regardless of response
+            # timing, or have bugs that cause race conditions when the interval is too short.
+            self.weblog_container.environment.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
+
         if self._library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
