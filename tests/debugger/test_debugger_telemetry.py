@@ -25,7 +25,7 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
         if not Test_Debugger_Telemetry.telemetry_data:
             telemetry_type = "app-started"
 
-            if self.get_tracer()["language"] == "dotnet":
+            if self.get_tracer()["language"] in ("dotnet", "php"):
                 telemetry_type = "app-client-configuration-change"
 
             Test_Debugger_Telemetry.telemetry_data = self.wait_for_telemetry(telemetry_type)

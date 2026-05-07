@@ -8,6 +8,9 @@ import json
 import time
 
 TIMEOUT = 5
+DEFAULT_ENVVARS = {
+    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+}
 
 
 @features.debugger_inproduct_enablement
