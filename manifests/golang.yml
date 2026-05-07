@@ -1098,6 +1098,12 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_key_with_asterisk: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_AgentInfo: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractDefault: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Injection: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Strict: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_TrustedOpms: missing_feature (Org Propagation Guard RFC not yet implemented)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was updated in v1.62.0 (w3c phase 2))
       component_version: <1.62.0

@@ -2259,6 +2259,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=353, owner=_Owner.sdk_capabilities)
 
     @staticmethod
+    def org_propagation_guard(test_object):
+        """Org Propagation Guard: Org Propagation Marker (OPM) gates trace context continuation across orgs
+
+        https://feature-parity.us1.prod.dog/#/?feature=555
+        """
+        return _mark_test_object(test_object, feature_id=555, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def iast_sink_email_html_injection(test_object):
         """IAST Sink: Email HTML injection
 

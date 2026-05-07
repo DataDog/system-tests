@@ -45,10 +45,21 @@ public class OpenTracingController implements Closeable {
 
   /** The extracted span contexts, indexed by span identifier. */
   private final Map<Long, SpanContext> extractedSpanContexts;
+  /**
+   * Raw inbound {@code baggage} header value, indexed by trace identifier.
+   *
+   * <p>Captured on extract because the dd-trace-ot bridge drops the W3C baggage
+   * entry when converting the internal Context to {@link io.opentracing.SpanContext},
+   * so it never reaches inject through the OT API. Keyed by trace_id (not span_id)
+   * because baggage is trace-scoped and child spans built via {@code asChildOf}
+   * share the inbound trace_id.
+   */
+  private final Map<Long, String> extractedBaggageHeaders;
 
   public OpenTracingController() {
     this.tracer = GlobalTracer.get();
     this.extractedSpanContexts = new HashMap<>();
+    this.extractedBaggageHeaders = new ConcurrentHashMap<>();
   }
 
   @PostMapping("start")
@@ -175,6 +186,16 @@ public class OpenTracingController implements Closeable {
       // Get context from span and inject it to carrier
       TextMapAdapter carrier = TextMapAdapter.empty();
       this.tracer.inject(span.context(), TEXT_MAP, carrier);
+      // Re-attach the inbound baggage header captured on extract — the OT bridge
+      // strips it when building the OT SpanContext, so tracer.inject would not
+      // emit it on its own.
+      String traceIdStr = span.context().toTraceId();
+      if (traceIdStr != null && !traceIdStr.isEmpty()) {
+        String baggage = this.extractedBaggageHeaders.get(DDTraceId.from(traceIdStr).toLong());
+        if (baggage != null) {
+          carrier.put("baggage", baggage);
+        }
+      }
       return new SpanInjectHeadersResult(carrier.toHeaders());
     }
     return new SpanInjectHeadersResult(emptyList());
@@ -189,6 +210,17 @@ public class OpenTracingController implements Closeable {
     }
     long spanId = DDSpanId.from(context.toSpanId());
     this.extractedSpanContexts.put(spanId, context);
+
+    // OT extract drops the W3C baggage entry; capture the raw header so we
+    // can re-emit it on the matching inject_headers call.
+    String baggage = args.headers().stream()
+        .filter(h -> "baggage".equalsIgnoreCase(h.key()))
+        .map(KeyValue::value)
+        .findFirst()
+        .orElse(null);
+    if (baggage != null && !context.toTraceId().isEmpty()) {
+      this.extractedBaggageHeaders.put(DDTraceId.from(context.toTraceId()).toLong(), baggage);
+    }
     return new SpanExtractHeadersResult(spanId);
   }
 
@@ -202,6 +234,7 @@ public class OpenTracingController implements Closeable {
       }
       spans.clear();
       this.extractedSpanContexts.clear();
+      this.extractedBaggageHeaders.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);
     }
