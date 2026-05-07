@@ -2148,6 +2148,7 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.8.0
   tests/test_telemetry.py::Test_DependencyEnable: v1.4.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: ">2.30.0"
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

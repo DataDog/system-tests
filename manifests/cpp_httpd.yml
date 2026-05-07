@@ -188,6 +188,7 @@ manifest:
   tests/test_smoke.py::Test_Library::test_receive_request_trace: missing_feature (For some reason, span type is server i/o web)
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py: irrelevant
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature (httpd-datadog has not received an update of its dd-trace-cpp since app-extended-heartbeat was implemented)
   tests/test_telemetry.py::Test_Log_Generation: '>=1.0.3'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_MessageBatch: '>=1.0.3'  # Modified by easy win activation script

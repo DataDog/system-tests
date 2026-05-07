@@ -434,6 +434,7 @@ manifest:
   tests/test_standard_tags.py: irrelevant
   tests/test_telemetry.py::Test_APMOnboardingInstallID: '>=1.12.0'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_DependencyEnable: '>=1.12.0'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature (nginx-datadog has not received an update of its dd-trace-cpp since app-extended-heartbeat was implemented)
   tests/test_telemetry.py::Test_Log_Generation: '>=1.12.0'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_MessageBatch: '>=1.12.0'  # Modified by easy win activation script
