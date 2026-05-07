@@ -100,7 +100,7 @@ class Test_Library_Tracestats:
     def test_distinct_aggregationkeys_TS003(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
-        The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
+        The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics, version }
         """
         name = "name"
         resource = "resource"
@@ -153,6 +153,12 @@ class Test_Library_Tracestats:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
+            # Unique Version (per-span version tag, no global DD_VERSION set)
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
+                span.set_meta(key="_dd.origin", val=origin)
+                span.set_meta(key="http.status_code", val=http_status_code)
+                span.set_meta(key="version", val="v1.0.0")
+
         if test_library.lang in ("golang", "java"):
             test_library.dd_flush()
 
@@ -173,8 +179,8 @@ class Test_Library_Tracestats:
                 assert s["TopLevelHits"] == 1
                 assert s["Duration"] > 0
 
-        assert cnt == 7, (
-            "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
+        assert cnt == 8, (
+            "There should be eight stats entries in the bucket. There is one baseline entry and 7 that are unique along each of 7 dimensions."
         )
 
     @enable_tracestats()
