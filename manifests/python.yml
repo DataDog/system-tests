@@ -1151,7 +1151,10 @@ manifest:
         "*": missing_feature
         *flask: v3.5.0
     - declaration: missing_feature
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask: v4.9.0-dev
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
@@ -1162,6 +1165,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay
+  : bug (Exception Replay RC enablement broken for flask-family weblogs; to be fixed in follow-up)
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:

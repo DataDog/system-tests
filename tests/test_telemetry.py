@@ -1,14 +1,16 @@
 import itertools
 import json
-from typing import Any
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import timedelta
 from http import HTTPStatus
-import time
+from typing import Any
+
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+
+from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
+from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 from utils.telemetry_utils import TelemetryUtils
 
@@ -849,7 +851,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert DI and ER are disabled by default, and code origin config is reported."""
+        """Assert DI and ER are disabled by default, and code origin is enabled by default."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -893,7 +895,8 @@ class Test_ProductsDisabled:
             assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
             return
 
-        assert co_config == "false", "Code Origin for Spans should be disabled by default"
+        if context.library != "python" or context.library.version < "4.9.0-dev":
+            assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
