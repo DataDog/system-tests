@@ -1,3 +1,4 @@
+from typing import Literal
 import os
 import pytest
 
@@ -46,7 +47,7 @@ class DockerScenario(Scenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
-        obfuscation_version: int | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -204,7 +205,7 @@ class EndToEndScenario(DockerScenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
-        obfuscation_version: int | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,

@@ -139,6 +139,44 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_missing_obfuscation_version = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",
+        # Same as trace_stats_computation but with the agent not advertising obfuscation_version
+        # in /info, to test that the SDK correctly falls back to no client-side obfuscation.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        obfuscation_version="MISSING",
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent not advertising obfuscation_version. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent does not advertise any obfuscation version."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_obfuscation_version_zero = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO",
+        # Same as trace_stats_computation but with the agent advertising obfuscation_version=0,
+        # to test that the SDK treats version 0 as "not supported" and skips client-side obfuscation.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        obfuscation_version=0,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 0. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent advertises obfuscation_version=0."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     trace_stats_computation_obfuscation_disabled = EndToEndScenario(
         name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
         # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
