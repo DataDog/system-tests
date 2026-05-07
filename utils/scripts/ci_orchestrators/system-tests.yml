@@ -1,0 +1,18 @@
+{% for scenario in scenarios %}{% for variant in weblog_variants %}
+
+run_{{library}}_{{scenario}}_{{variant}}:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  tags:
+    - docker-in-docker:amd64
+  stage: {{stage}}
+  variables:
+    WEBLOG_VARIANT: {{variant}}
+  script:
+    - ./build.sh {{library}}
+    - ./run.sh {{scenario}}
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+
+{% endfor %}{% endfor %}

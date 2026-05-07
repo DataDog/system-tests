@@ -1,0 +1,37 @@
+spec:
+  inputs:
+    stage:
+    libraries:
+      default: "java python nodejs"
+---
+
+build_test_pipeline:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  tags:
+    - arch:amd64
+  stage: build
+  script:
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - pip install Jinja2
+    - >
+      EXCLUDED_SCENARIOS="APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS";
+      for library in $[[ inputs.libraries ]]; do
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json -g all --excluded-scenarios $EXCLUDED_SCENARIOS --output params_${library}.json;
+        python3 utils/scripts/ci_orchestrators/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json >> generated-pipeline.yml;
+      done
+  artifacts:
+    paths:
+      - generated-pipeline.yml
+
+run_test_pipeline:
+  stage: run
+  needs:
+    - job: build_test_pipeline
+      artifacts: true
+  trigger:
+    include:
+      - artifact: generated-pipeline.yml
+        job: build_test_pipeline
+    strategy: depend
+
