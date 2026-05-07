@@ -7,7 +7,7 @@ from http import HTTPStatus
 import json
 import os
 import re
-from typing import Self
+from typing import Self, Literal
 
 import requests
 
@@ -358,14 +358,17 @@ class SetObfuscationVersion(_InternalMockedTracerResponse):
     omit the Datadog-Obfuscation-Version header from stats payloads.
     """
 
-    def __init__(self, *, obfuscation_version: int):
+    def __init__(self, *, obfuscation_version: int | Literal["MISSING"]):
         super().__init__(path="/info")
         self.obfuscation_version = obfuscation_version
 
     def execute(self, flow: HTTPFlow) -> None:
         if flow.response.status_code == HTTPStatus.OK:
             c = json.loads(flow.response.content)
-            c["obfuscation_version"] = self.obfuscation_version
+            if self.obfuscation_version == "MISSING":
+                del c["obfuscation_version"]
+            else:
+                c["obfuscation_version"] = self.obfuscation_version
             flow.response.content = json.dumps(c).encode()
 
     def to_json(self) -> dict:

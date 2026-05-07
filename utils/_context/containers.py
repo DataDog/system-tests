@@ -4,7 +4,7 @@ import re
 import stat
 import sys
 import json
-from typing import cast
+from typing import cast, Literal
 from http import HTTPStatus
 from pathlib import Path
 import time
@@ -590,7 +590,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         client_drop_p0s: bool | None = None,
-        obfuscation_version: int | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
     ) -> None:
