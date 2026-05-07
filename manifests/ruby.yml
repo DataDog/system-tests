@@ -2,6 +2,8 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62218)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": missing_feature (APPSEC-62451)
@@ -284,7 +286,10 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v2.22.1-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_all:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -301,7 +306,10 @@ manifest:
     - weblog_declaration:
         "*": v2.29.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -310,7 +318,10 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v2.27.0-dev
@@ -376,7 +387,10 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
     - weblog_declaration:
         "*": v2.14.0
@@ -405,19 +419,28 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: irrelevant  # xml body not natively supported
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v2.14.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v2.14.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.14.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version:
+    - weblog_declaration:
+        "*": v2.29.0
+        "graphql23": irrelevant
   tests/appsec/smoke_tests/test_apm_standalone.py: v2.30.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: missing_feature
