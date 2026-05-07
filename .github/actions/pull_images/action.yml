@@ -22,6 +22,57 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Free Disk Space
+      shell: bash
+      run: |
+        arch="$(uname -m)"
+        case "${arch}" in
+          x86_64|amd64)
+            asset="x86_64-unknown-linux-gnu-rmz"
+            checksum="9017131f24a6a619568316d3cf1aabbf4fb8297d8082b11fd2b6817436876a3b"
+            ;;
+          aarch64|arm64)
+            asset="aarch64-unknown-linux-gnu-rmz"
+            checksum="1ac8e83a0242938b10bd6a37ebd1b96d92896f84547aead32f3608c3e5ff733d"
+            ;;
+          *) echo "Unsupported arch: ${arch}"; exit 1 ;;
+        esac
+        # rmz deletes files in parallel using multiple threads, making it significantly
+        # faster than rm for large directories.
+        tmpfile=$(mktemp)
+        curl -fsSL -o "${tmpfile}" "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
+        echo "${checksum}  ${tmpfile}" | sha256sum -c
+        sudo install -m 0755 "${tmpfile}" /usr/local/bin/rmz
+        rm -f "${tmpfile}"
+        free_mb() { df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}'; }
+        total_recovered=0
+        paths=(
+          /usr/share/dotnet          # .NET runtime
+          /usr/share/doc/dotnet-*    # .NET documentation
+          /opt/ghc                   # GHC (Haskell compiler)
+          /usr/local/.ghcup          # GHCup (Haskell toolchain manager)
+          /opt/cabal                 # Cabal (Haskell build tool)
+          /home/runner/.ghcup        # GHCup user data
+          /home/runner/.cabal        # Cabal user data
+          /usr/share/swift           # Swift toolchain
+          /usr/local/share/chromium  # Chromium browser
+          /usr/share/az*             # Azure CLI
+        )
+        for path in "${paths[@]}"; do
+          [ -e "${path}" ] || continue
+          echo "Removing ${path}"
+          before=$(free_mb)
+          ts_before=$(date +%s)
+          sudo rmz "${path}" || true
+          after=$(free_mb)
+          elapsed=$(( $(date +%s) - ts_before ))
+          freed=$(awk "BEGIN {printf \"%.2f\", ${after} - ${before}}")
+          echo "FreeUp Space: ${freed} MB"
+          echo "Time Elapsed: ${elapsed} seconds"
+          total_recovered=$(awk "BEGIN {printf \"%.2f\", ${total_recovered} + ${freed}}")
+        done
+        echo "Total Recovered Space: ${total_recovered} MB"
+
     - name: Get image list
       shell: bash
       run: |
@@ -37,10 +88,6 @@ runs:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
-    - name: clean-up
-      shell: bash
-      run: sudo rm -rf /usr/local/lib/android
-
 #retry
     - name: Pull
       uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
@@ -50,7 +97,3 @@ runs:
         timeout_minutes: 15
         retry_wait_seconds: 10
         max_attempts: 3
-
-    - name: Disk space usage
-      shell: bash
-      run: df -h
