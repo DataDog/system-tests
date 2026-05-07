@@ -849,7 +849,7 @@ class _Scenarios:
             "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
-        library_interface_timeout=5,
+        library_interface_timeout=20,  # 20s: dotnet needs more time for RC + telemetry (reduced flakes)
         doc="Test scenario for checking debugger telemetry.",
         scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
     )
