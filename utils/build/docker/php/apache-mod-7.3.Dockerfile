@@ -1,25 +1,13 @@
-ARG PHP_VERSION=7.3
-ARG VARIANT=release
+FROM datadog/system-tests:apache-mod-7.3.base-v1
 
-FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
+ENV PHP_VERSION=7.3
+ENV VARIANT=release
 
-ENV DD_TRACE_ENABLED=1
-ENV DD_TRACE_GENERATE_ROOT_SPAN=1
-ENV DD_TRACE_AGENT_FLUSH_AFTER_N_REQUESTS=0
-ENV DD_TRACE_HEADER_TAGS=user-agent
-
-EXPOSE 7777/tcp
+ADD utils/build/docker/php/apache-mod/php.conf /etc/apache2/mods-available/apache-mod/php.conf
+ADD utils/build/docker/php/apache-mod/php.load /etc/apache2/mods-available/apache-mod/php.load
+ADD utils/build/docker/php/common /var/www/html
+ADD utils/build/docker/php/common/php.ini /etc/php/php.ini
+ADD utils/build/docker/php/common/install_ddtrace.sh /install_ddtrace.sh
 
 ADD binaries* /binaries/
-ADD utils/build/docker/php /tmp/php
-
-RUN chmod +x /tmp/php/apache-mod/build.sh
-RUN /tmp/php/apache-mod/build.sh
-RUN rm -rf /tmp/php/
-
-ADD utils/build/docker/php/apache-mod/entrypoint.sh /
-WORKDIR /binaries
-ENTRYPOINT []
-RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
-RUN chmod +x app.sh
-CMD [ "./app.sh" ]
+RUN /install_ddtrace.sh 1
