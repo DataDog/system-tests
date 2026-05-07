@@ -1631,7 +1631,7 @@ class MyApp
       else
         digest = get_digest(args.span_id)
         span_context = digest_to_spancontext(digest)
-        non_recording = ::OpenTelemetry::Trace::NonRecordingSpan.new(span_context)
+        non_recording = ::OpenTelemetry::Trace.non_recording_span(span_context)
         ::OpenTelemetry::Trace.context_with_span(non_recording)
       end
       logger.on_emit(**emit_params, context: context)
@@ -1648,6 +1648,7 @@ class MyApp
     message = provider.class.name
 
     provider.force_flush(timeout: args.seconds) if provider.respond_to?(:force_flush)
+    Datadog.send(:components).telemetry&.flush
 
     res.write(LogFlushReturn.new(true, message).to_json)
   rescue => e
