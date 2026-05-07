@@ -251,7 +251,7 @@ def _validate_headers(headers: list[list[str]], request_type: str):
     elif context.library > "nodejs@4.20.0":
         # APM Node.js migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
-    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0" or context.library == "dotnet" or context.library == "php":
+    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0" or context.library in ("dotnet", "php"):
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     else:
         expected_headers["DD-Telemetry-API-Version"] = "v1"
