@@ -71,6 +71,7 @@
       "apache-mod-8.1-zts": 343,
       "apache-mod-8.2": 352,
       "apache-mod-8.2-zts": 347,
+      "laravel11x": 352,
       "parametric": 15,
       "php-fpm-7.0": 297,
       "php-fpm-7.1": 219,

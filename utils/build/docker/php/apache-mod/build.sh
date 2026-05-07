@@ -6,6 +6,7 @@ PHP_MAJOR_VERSION=$(php -r "echo PHP_MAJOR_VERSION;")
 PHP_MINOR_VERSION=$(php -r "echo PHP_MINOR_VERSION;")
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 VARIANT=$(php-config --prefix| grep release-zts && echo release-zts || echo "")
+WEBLOG=${1:-plain}
 
 export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
@@ -14,6 +15,7 @@ mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.conf /etc/apache2/mods-available/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
 cp -rf /tmp/php/weblogs/plain/* /var/www/html/
+cp -rf /tmp/php/weblogs/$WEBLOG/* /var/www/html/
 cp -rf /tmp/php/common/php.ini /etc/php/
 
 # Install required packages and PHP extensions
