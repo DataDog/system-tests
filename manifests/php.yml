@@ -799,7 +799,6 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_traces_parentbased_on:
     - declaration: missing_feature (The always_on sampler mapping is properly implemented in v1.2.0)
       component_version: <=1.1.0
-  tests/parametric/test_otel_logs.py: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_metrics.py: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0

@@ -20,10 +20,13 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -111,6 +114,8 @@ $scopes = [];
 $activeSpan = null;
 /** @var array[] $spansDistributedTracingHeaders */
 $spansDistributedTracingHeaders = [];
+/** @var \OpenTelemetry\API\Logs\LoggerInterface[] $loggerDict */
+$loggerDict = [];
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
@@ -500,6 +505,71 @@ $router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHand
     }
 
     return jsonResponse([]);
+}));
+$router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(function (Request $req) use (&$loggerDict) {
+    $name = arg($req, 'name');
+
+    if (isset($loggerDict[$name])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    $version = arg($req, 'version');
+    $schemaUrl = arg($req, 'schema_url');
+    $attributes = arg($req, 'attributes') ?? [];
+
+    $loggerDict[$name] = Globals::loggerProvider()->getLogger($name, $version, $schemaUrl, $attributes);
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$otelSpans, &$spans) {
+    $loggerName = arg($req, 'logger_name');
+    $level = arg($req, 'level');
+    $message = arg($req, 'message');
+    $spanId = arg($req, 'span_id');
+
+    if (!isset($loggerDict[$loggerName])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    $levelUpper = strtoupper((string)$level);
+    $severityMap = [
+        'TRACE' => ['number' => 1,  'text' => 'TRACE'],
+        'DEBUG' => ['number' => 5,  'text' => 'DEBUG'],
+        'INFO'  => ['number' => 9,  'text' => 'INFO'],
+        'WARN'  => ['number' => 13, 'text' => 'WARN'],
+        'ERROR' => ['number' => 17, 'text' => 'ERROR'],
+        'FATAL' => ['number' => 21, 'text' => 'FATAL'],
+    ];
+    $severity = $severityMap[$levelUpper] ?? $severityMap['INFO'];
+
+    $logRecord = (new LogRecord($message))
+        ->setSeverityNumber($severity['number'])
+        ->setSeverityText($severity['text']);
+
+    if ($spanId !== null) {
+        if (isset($otelSpans[$spanId])) {
+            $context = $otelSpans[$spanId]->storeInContext(Context::getCurrent());
+            $logRecord->setContext($context);
+        } elseif (isset($spans[$spanId])) {
+            \DDTrace\switch_stack($spans[$spanId]);
+            $logRecord->setContext(Context::getCurrent());
+        }
+    }
+
+    $loggerDict[$loggerName]->emit($logRecord);
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) {
+    try {
+        $provider = Globals::loggerProvider();
+        if (method_exists($provider, 'forceFlush')) {
+            $provider->forceFlush();
+        }
+        return jsonResponse(['success' => true, 'message' => get_class($provider)]);
+    } catch (\Throwable $e) {
+        return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
 }));
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
