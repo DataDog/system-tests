@@ -2,6 +2,8 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -1906,8 +1908,13 @@ manifest:
         resteasy-netty3: irrelevant (Blocks on text/plain if parsed to a String)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
+        uds-spring-boot: v1.61.0-SNAPSHOT
+        spring-boot-jetty: missing_feature (no instrumentation for Jetty)
+        spring-boot-payara: missing_feature (APPSEC-61873)
+        vertx3: missing_feature (no instrumentation for Vert.x async multipart)
+        vertx4: missing_feature (no instrumentation for Vert.x async multipart)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
