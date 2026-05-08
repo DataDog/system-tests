@@ -749,12 +749,12 @@ class Test_Span_Enrichment_Subjects:
         )
 
 
+@scenarios.parametric
 @features.feature_flags_event_enrichment
 class Test_Span_Enrichment_Delta_Varint:
     """Test delta varint encoding algorithm correctness.
 
     These are pure unit tests for the encoding utilities - no tracer needed.
-    Not decorated with @scenarios.parametric to avoid manifest missing_feature marking.
     """
 
     def test_encoding_decoding_roundtrip(self) -> None:
