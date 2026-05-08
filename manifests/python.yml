@@ -1896,6 +1896,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: v2.16.0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: flaky (APMAPI-734)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308
+  tests/parametric/test_process_tags_mapping.py::Test_ProcessTagsMapping: missing_feature
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.8.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v4.7.0
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: v2.8.0
