@@ -1159,8 +1159,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
-  : bug (DEBUG-5000)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
@@ -1186,8 +1184,6 @@ manifest:
     - declaration: bug (DEBUG-3746)
       component_version: <4.3.1
       weblog: [uds-flask, uwsgi-poc, flask-poc]
-    - declaration: bug (DEBUG-3746)
-      excluded_weblog: [uds-flask, uwsgi-poc, flask-poc]
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
