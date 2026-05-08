@@ -309,7 +309,7 @@ class EndToEndScenario(DockerScenario):
 
         library = self.weblog_infra.library_name
 
-        if library == "nodejs":
+        if library in ("nodejs", "python"):
             # Node.js starts the poll interval only after receiving the previous response, so faster
             # polling is safe. Some other languages use a fixed interval regardless of response
             # timing, or have bugs that cause race conditions when the interval is too short.
