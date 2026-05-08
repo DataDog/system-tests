@@ -9,4 +9,5 @@ ADD utils/build/docker/php/common /var/www/html
 ADD utils/build/docker/php/common/php.ini /etc/php/php.ini
 ADD utils/build/docker/php/common/install_ddtrace.sh /install_ddtrace.sh
 
+ADD binaries* /binaries/
 RUN /install_ddtrace.sh 1
