@@ -20,9 +20,13 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
-use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
+use OpenTelemetry\SDK\Common\Time\ClockFactory;
+use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
+use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -116,6 +120,32 @@ $activeSpan = null;
 $spansDistributedTracingHeaders = [];
 /** @var \OpenTelemetry\API\Logs\LoggerInterface[] $loggerDict */
 $loggerDict = [];
+
+// Construct the OTel LoggerProvider directly when DD_LOGS_OTEL_ENABLED=true.
+// Mirrors how a user would wire up OTLP logs export themselves. dd-trace-php's
+// DatadogResolver fills in OTEL_EXPORTER_OTLP_LOGS_ENDPOINT from the agent host
+// and the resource detector hooks (Service / Environment / Host) populate the
+// ResourceInfo with DD_SERVICE / DD_ENV / DD_VERSION / DD_HOSTNAME.
+$sdkLoggerProvider = SDKLoggerProvider::builder()->build();
+if (\dd_trace_env_config('DD_LOGS_OTEL_ENABLED')) {
+    try {
+        $sdkLoggerProvider = SDKLoggerProvider::builder()
+            ->setResource(ResourceInfoFactory::defaultResource())
+            ->addLogRecordProcessor(
+                new BatchLogRecordProcessor(
+                    (new LogsExporterFactory())->create(),
+                    ClockFactory::getDefault()
+                )
+            )
+            ->build();
+    } catch (\Throwable $e) {
+        // Fall back to a noop provider when the OTLP transport for the
+        // configured protocol isn't available (e.g. grpc without ext-grpc +
+        // open-telemetry/transport-grpc). Lets the server keep responding so
+        // tests fail cleanly on missing payloads rather than 500s.
+        \error_log('Datadog: failed to build OTLP LoggerProvider: ' . $e->getMessage());
+    }
+}
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
@@ -506,7 +536,7 @@ $router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHand
 
     return jsonResponse([]);
 }));
-$router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(function (Request $req) use (&$loggerDict) {
+$router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$sdkLoggerProvider) {
     $name = arg($req, 'name');
 
     if (isset($loggerDict[$name])) {
@@ -517,7 +547,7 @@ $router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(funct
     $schemaUrl = arg($req, 'schema_url');
     $attributes = arg($req, 'attributes') ?? [];
 
-    $loggerDict[$name] = Globals::loggerProvider()->getLogger($name, $version, $schemaUrl, $attributes);
+    $loggerDict[$name] = $sdkLoggerProvider->getLogger($name, $version, $schemaUrl, $attributes);
 
     return jsonResponse(['success' => true]);
 }));
@@ -560,13 +590,10 @@ $router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(functi
 
     return jsonResponse(['success' => true]);
 }));
-$router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) {
+$router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$sdkLoggerProvider) {
     try {
-        $provider = Globals::loggerProvider();
-        if (method_exists($provider, 'forceFlush')) {
-            $provider->forceFlush();
-        }
-        return jsonResponse(['success' => true, 'message' => get_class($provider)]);
+        $sdkLoggerProvider->forceFlush();
+        return jsonResponse(['success' => true, 'message' => get_class($sdkLoggerProvider)]);
     } catch (\Throwable $e) {
         return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
