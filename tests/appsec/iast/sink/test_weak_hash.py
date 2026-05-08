@@ -69,6 +69,7 @@ class TestWeakHash_StackTrace:
         self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -87,6 +88,7 @@ class TestDeduplication:
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
         we will report only one vulnerability
         """
+        assert self.r_insecure_hash_remove_duplicates.status_code == 200
         assert_iast_vulnerability(
             request=self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
@@ -100,6 +102,7 @@ class TestDeduplication:
 
     def test_insecure_hash_multiple(self):
         """If a endpoint has multiple vulnerabilities (in diferent lines) we will report all of them"""
+        assert self.r_insecure_hash_multiple.status_code == 200
         assert_iast_vulnerability(
             request=self.r_insecure_hash_multiple,
             vulnerability_count=2,
@@ -119,4 +122,5 @@ class TestWeakHash_ExtendedLocation:
         self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
