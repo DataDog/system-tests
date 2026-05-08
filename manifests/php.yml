@@ -341,13 +341,42 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_failure_basic: missing_feature (Basic auth not implemented)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_failure_local:
+    - weblog_declaration:
+        "*": v1.8.0
+        laravel11x: missing_feature (SDK not implemented in Laravel weblog)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_basic: missing_feature (Basic auth not implemented)
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_success_basic: missing_feature (Basic auth not implemented)
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_password_failure_basic: missing_feature (Basic auth not implemented)
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_user_failure_basic: missing_feature (Basic auth not implemented)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_local:
+    - weblog_declaration:
+        "*": v1.8.0
+        laravel11x: missing_feature (SDK not implemented in Laravel weblog)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_success_basic:
+    - weblog_declaration:
+        "*": missing_feature (Basic auth not implemented)
+        laravel11x: v1.8.0
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_password_failure_basic:
+    - weblog_declaration:
+        "*": missing_feature (Basic auth not implemented)
+        laravel11x: missing_feature (usr.exists not reported for wrong-password failures in v1.19.2)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_password_failure_local:
+    - weblog_declaration:
+        "*": v1.8.0
+        laravel11x: missing_feature (usr.exists not reported for wrong-password failures in v1.19.2)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_user_failure_basic:
+    - weblog_declaration:
+        "*": missing_feature (Basic auth not implemented)
+        laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_failure_basic: missing_feature (Basic auth not implemented)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_failure_local:
+    - weblog_declaration:
+        "*": v1.8.0
+        laravel11x: missing_feature (SDK not implemented in Laravel weblog)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_basic: missing_feature (Basic auth not implemented)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_local:
+    - weblog_declaration:
+        "*": v1.8.0
+        laravel11x: missing_feature (SDK not implemented in Laravel weblog)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_success_basic: missing_feature (Basic auth not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_password_failure_basic: missing_feature (Basic auth not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_user_failure_basic: missing_feature (Basic auth not implemented)
@@ -357,6 +386,10 @@ manifest:
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_sdk_overwrite:
+    - weblog_declaration:
+        "*": v1.8.0
+        laravel11x: missing_feature (DDTrace\set_user does not override _dd.appsec.user.collection_mode in v1.19.2)
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
