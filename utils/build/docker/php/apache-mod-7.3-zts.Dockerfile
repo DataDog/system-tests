@@ -1,4 +1,4 @@
-FROM datadog/system-tests:apache-mod-7.3-zts.base-v1
+FROM datadog/system-tests:apache-mod-7.3-zts.base-v2
 
 ENV PHP_VERSION=7.3
 ENV VARIANT=release-zts
@@ -11,3 +11,6 @@ ADD utils/build/docker/php/common/install_ddtrace.sh /install_ddtrace.sh
 
 ADD binaries* /binaries/
 RUN /install_ddtrace.sh 1
+
+ADD utils/build/docker/php/apache-mod/app.sh /app.sh
+CMD [ "/app.sh" ]

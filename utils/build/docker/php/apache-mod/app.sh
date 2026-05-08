@@ -1,4 +1,7 @@
-#!/bin/bash -e
+#!/usr/bin/dumb-init /bin/bash
+# shellcheck shell=bash
+
+set -e
 
 if [[ $# -gt 0 ]]; then
   "$@"
@@ -11,13 +14,13 @@ chmod a+rx /root
 export SYSTEM_TESTS_LOGS=/var/log/system-tests
 
 rm -f /tmp/ddappsec.lock
-LOGS_PHP=($SYSTEM_TESTS_LOGS/appsec.log $SYSTEM_TESTS_LOGS/helper.log $SYSTEM_TESTS_LOGS/php_error.log $SYSTEM_TESTS_LOGS/sidecar.log $SYSTEM_TESTS_LOGS/tracer.log)
+LOGS_PHP=("$SYSTEM_TESTS_LOGS/appsec.log" "$SYSTEM_TESTS_LOGS/helper.log" "$SYSTEM_TESTS_LOGS/php_error.log" "$SYSTEM_TESTS_LOGS/sidecar.log" "$SYSTEM_TESTS_LOGS/tracer.log")
 touch "${LOGS_PHP[@]}"
 chown www-data:www-data "${LOGS_PHP[@]}"
 
 export APACHE_LOG_DIR="$SYSTEM_TESTS_LOGS/apache2"
 mkdir -p "$APACHE_LOG_DIR"
-LOGS_APACHE=($APACHE_LOG_DIR/{access.log,error.log})
+LOGS_APACHE=("$APACHE_LOG_DIR/access.log" "$APACHE_LOG_DIR/error.log")
 touch "${LOGS_APACHE[@]}"
 chown root:adm "${LOGS_APACHE[@]}"
 

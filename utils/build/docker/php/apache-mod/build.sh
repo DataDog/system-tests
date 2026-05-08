@@ -20,21 +20,11 @@ cp -rf /tmp/php/common/php.ini /etc/php/
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
-		apache2 jq \
+		apache2 jq dumb-init \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
 a2enmod rewrite
-
-ARCH=$(arch)
-if [[ $ARCH = aarch64 ]]; then
-  ARCH=arm64
-else
-  ARCH=amd64
-fi
-
-curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_${ARCH}.deb && \
-	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]]; then
 	sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.{conf,load};

@@ -1,4 +1,4 @@
-FROM datadog/system-tests:apache-mod-8.1.base-v1
+FROM datadog/system-tests:apache-mod-8.1.base-v2
 
 ENV PHP_VERSION=8.1
 ENV VARIANT=release
@@ -11,3 +11,6 @@ ADD utils/build/docker/php/common/install_ddtrace.sh /install_ddtrace.sh
 
 ADD binaries* /binaries/
 RUN /install_ddtrace.sh 1
+
+ADD utils/build/docker/php/apache-mod/app.sh /app.sh
+CMD [ "/app.sh" ]
