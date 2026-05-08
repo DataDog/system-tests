@@ -3120,6 +3120,8 @@ manifest:
         spring-boot-openliberty: v1.38.0
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
+  # TODO(andrei): un-skip when v1.63.0 is released
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": missing_feature
