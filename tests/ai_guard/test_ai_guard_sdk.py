@@ -515,7 +515,7 @@ class Test_AnomalyDetectionTags:
             _assert_key(meta, "ai_guard.network.client.ip")
             _assert_key(meta, "ai_guard.http.useragent")
             _assert_key(meta, "ai_guard.usr.id", self.USER_ID)
-            _assert_key(meta, "ai_guard.session.id", self.SESSION_ID)
+            _assert_key(meta, "ai_guard.usr.session_id", self.SESSION_ID)
 
             # Values must match what is on the root span
             root_meta = root_span["meta"]
@@ -531,8 +531,8 @@ class Test_AnomalyDetectionTags:
             assert meta["ai_guard.usr.id"] == root_meta.get("usr.id"), (
                 f"ai_guard.usr.id mismatch: {meta['ai_guard.usr.id']} != {root_meta.get('usr.id')}"
             )
-            assert meta["ai_guard.session.id"] == root_meta.get("session.id"), (
-                f"ai_guard.session.id mismatch: {meta['ai_guard.session.id']} != {root_meta.get('session.id')}"
+            assert meta["ai_guard.usr.session_id"] == root_meta.get("usr.session_id"), (
+                f"ai_guard.usr.session_id mismatch: {meta['ai_guard.usr.session_id']} != {root_meta.get('usr.session_id')}"
             )
 
             return True
@@ -553,7 +553,7 @@ class Test_AnomalyDetectionTags:
     def test_anomaly_detection_tags(self):
         """Test that AI Guard spans carry anomaly detection attributes copied from the root span.
 
-        Verifies that http.client_ip, network.client.ip, http.useragent, usr.id and session.id
+        Verifies that http.client_ip, network.client.ip, http.useragent, usr.id and usr.session.id
         are all present on the AI Guard span with the ai_guard. prefix, and that their values
         match the corresponding tags on the local root span.
         """
