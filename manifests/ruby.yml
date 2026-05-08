@@ -606,7 +606,6 @@ manifest:
       excluded_weblog: [rails52, rails80, uds-rails, rails61, uds-sinatra, rails72, sinatra41, sinatra14, rack, sinatra32, sinatra22, rails42]
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled:
     - weblog_declaration:
-        '*': v2.32.0
         graphql23: irrelevant (graphql weblog does not support this endpoint)
         rack: irrelevant (it's not possible to auto instrument with rack)
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key:
@@ -617,7 +616,6 @@ manifest:
       component_version: <=1.0.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout:
     - weblog_declaration:
-        '*': v2.32.0
         graphql23: irrelevant (graphql weblog does not support this endpoint)
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation::test_partial_obfuscation_parameter_value:
