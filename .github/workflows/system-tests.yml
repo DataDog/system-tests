@@ -49,6 +49,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_php_base_images:
+        description: "Shall we build PHP base images for tests on PHP tracer"
+        default: false
+        required: false
+        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -228,10 +233,14 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Build weblog base images
+      - name: Build python weblog base images
         if: inputs.library == 'python' && inputs._build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
+      - name: Build php weblog base images
+        if: inputs.library == 'php' && inputs._build_php_base_images
+        run: |
+          ./utils/build/build_php_base_images.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
