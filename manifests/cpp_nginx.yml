@@ -90,6 +90,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: missing_feature
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: missing_feature
   tests/appsec/test_automated_login_events.py::Test_Login_Events: missing_feature
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: missing_feature
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: missing_feature

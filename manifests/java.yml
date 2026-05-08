@@ -1751,6 +1751,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_Login_Events::test_login_wrong_user_failure_local:
     - weblog_declaration:
         spring-boot-openliberty: missing_feature (weblog returns error 500)
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: irrelevant (was v1.36.0 but will be replaced by V2)
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended::test_login_sdk_failure_basic:
     - weblog_declaration:

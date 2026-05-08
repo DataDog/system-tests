@@ -661,6 +661,9 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v3.9.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v3.9.0
   tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: v2.10.0  # might be earlier; confirms disabled mode suppresses auto-events
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled::test_login_success_basic: v4.8.0-rc4
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled::test_login_success_local: v4.8.0-rc4
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: irrelevant (was v2.11.0 but will be replaced by V3)
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)

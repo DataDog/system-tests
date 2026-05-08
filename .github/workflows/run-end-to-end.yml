@@ -350,6 +350,9 @@ jobs:
       run: |
         ./run.sh APPSEC_API_SECURITY_WITH_SAMPLING
         cat ./logs_appsec_api_security_with_sampling/tests.log 2>/dev/null | grep "API SECURITY" || true
+    - name: Run APPSEC_AUTO_EVENTS_DISABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_DISABLED"')
+      run: ./run.sh APPSEC_AUTO_EVENTS_DISABLED
     - name: Run APPSEC_AUTO_EVENTS_EXTENDED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_AUTO_EVENTS_EXTENDED"')
       run: ./run.sh APPSEC_AUTO_EVENTS_EXTENDED

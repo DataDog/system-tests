@@ -244,6 +244,13 @@ build() {
             fi
 
             if ! [[ -z "$BINARY_PATH" ]]; then
+                BINARIES_ABS=$(cd binaries && pwd -P)
+                BINARY_PATH_ABS=$(cd "$BINARY_PATH" 2>/dev/null && pwd -P)
+                if [[ "$BINARY_PATH_ABS" == "$BINARIES_ABS"/* ]]; then
+                    echo "Error: --binary-path must NOT be used when the sources are already inside the binaries/ directory." >&2
+                    echo "       --binary-path is intended for sources located outside of binaries/." >&2
+                    exit 1
+                fi
                 cd binaries
                 clean-binaries
                 cp -r $BINARY_PATH/* ./

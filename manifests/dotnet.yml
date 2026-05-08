@@ -311,6 +311,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v3.26.3
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v3.26.3
   tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Disabled: irrelevant (was v2.53.0 but will be replaced by V2)
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended::test_login_failure_headers:
     - declaration: missing_feature

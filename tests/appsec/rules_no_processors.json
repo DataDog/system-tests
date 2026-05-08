@@ -1,0 +1,51 @@
+{
+  "version": "2.2",
+  "metadata": {
+    "rules_version": "1.0.0"
+  },
+  "rules": [
+    {
+      "id": "test-canary-login-success-tracked",
+      "name": "Canary: login success was tracked (should not fire when auto-tracking is disabled)",
+      "tags": {
+        "type": "business_logic",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.business_logic.users.login.success"
+              }
+            ],
+            "regex": ".+"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test-canary-login-failure-tracked",
+      "name": "Canary: login failure was tracked (should not fire when auto-tracking is disabled)",
+      "tags": {
+        "type": "business_logic",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.business_logic.users.login.failure"
+              }
+            ],
+            "regex": ".+"
+          }
+        }
+      ]
+    }
+  ],
+  "processors": []
+}

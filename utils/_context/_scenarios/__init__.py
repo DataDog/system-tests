@@ -390,6 +390,35 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
+    appsec_auto_events_disabled = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_DISABLED",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "disabled",
+            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "disabled",
+            "DD_APPSEC_RULES": "/appsec_rules_no_processors.json",
+            "DD_API_SECURITY_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+        },
+        library_weblog_env={
+            # PHP AppSec 1.18.0 crashes (SIGSEGV via null TSRM mutex) when
+            # DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE=disabled is set during
+            # MINIT — it does not recognise "disabled" as a valid V2 mode.
+            # The V1 env var (DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING) is
+            # sufficient for PHP to enter disabled mode.
+            "php": {"DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": None},
+        },
+        weblog_volumes={
+            "./tests/appsec/rules_no_processors.json": {
+                "bind": "/appsec_rules_no_processors.json",
+                "mode": "ro",
+            }
+        },
+        appsec_enabled=True,
+        doc="Scenario for checking disabled mode in automatic user events",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     appsec_auto_events_extended = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
         weblog_env={

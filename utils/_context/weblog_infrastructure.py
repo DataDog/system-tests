@@ -36,6 +36,7 @@ class EndToEndWeblogInfra(WeblogInfra):
         self,
         *,
         environment: dict[str, str | None] | None = None,
+        library_environment: dict[str, dict[str, str | None]] | None = None,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,
         iast_enabled: bool = True,
@@ -55,6 +56,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             use_proxy=use_proxy,
             volumes=volumes,
         )
+        self._library_environment = library_environment or {}
         self._other_containers = [container() for container in other_containers]
 
         self.http_container.environment |= {
@@ -79,6 +81,13 @@ class EndToEndWeblogInfra(WeblogInfra):
         if config.option.force_dd_iast_debug:
             self.http_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.http_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
+
+        library: str = getattr(config.option, "library", "") or ""
+        for key, value in self._library_environment.get(library, {}).items():
+            if value is None:
+                self.http_container.environment.pop(key, None)
+            else:
+                self.http_container.environment[key] = value
 
     def stop(self) -> None:
         self.http_container.flush()
