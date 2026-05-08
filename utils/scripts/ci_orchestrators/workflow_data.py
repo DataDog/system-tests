@@ -636,6 +636,7 @@ if __name__ == "__main__":
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
             "OTLP_RUNTIME_METRICS",
+            "OTLP_RUNTIME_METRICS_EXTENDED",
             "PERFORMANCES",
             "PROFILING",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",

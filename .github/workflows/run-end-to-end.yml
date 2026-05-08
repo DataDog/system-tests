@@ -258,6 +258,9 @@ jobs:
     - name: Run OTLP_RUNTIME_METRICS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTLP_RUNTIME_METRICS"')
       run: ./run.sh OTLP_RUNTIME_METRICS
+    - name: Run OTLP_RUNTIME_METRICS_EXTENDED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTLP_RUNTIME_METRICS_EXTENDED"')
+      run: ./run.sh OTLP_RUNTIME_METRICS_EXTENDED
     - name: Run RUNTIME_METRICS_ENABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
       run: ./run.sh RUNTIME_METRICS_ENABLED
