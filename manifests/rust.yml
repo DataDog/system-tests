@@ -100,6 +100,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_inject_valid: missing_feature  # Created by easy win activation script

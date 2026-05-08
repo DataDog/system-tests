@@ -96,6 +96,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: irrelevant (The CPP tracer doesn't support http header tags)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_inject_valid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)

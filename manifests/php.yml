@@ -712,6 +712,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <1.16.0
