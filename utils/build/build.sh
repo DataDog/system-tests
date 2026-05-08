@@ -112,6 +112,29 @@ default-weblog() {
     echo -n "${!var}"
 }
 
+run_build_command() {
+    local log_file
+    local exit_code
+    log_file=$(mktemp)
+
+    echo "Running command: $*"
+    echo "Build log file: ${log_file}"
+
+    set +e
+    "$@" >"${log_file}" 2>&1
+    exit_code=$?
+    set -e
+
+    if [ "${exit_code}" -eq 0 ]; then
+        rm -f "${log_file}"
+        return 0
+    fi
+    echo "Build command failed: $*" >&2
+    cat "${log_file}" >&2
+    rm -f "${log_file}"
+    return "${exit_code}"
+}
+
 build() {
     CACHE_TO=
     CACHE_FROM=
@@ -176,16 +199,16 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip setuptools==75.8.0
+                run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            python -m pip install -e .
+            run_build_command python -m pip install -e .
             if [[ -d "venv/" ]]; then
                 cp requirements.txt venv/requirements.txt
             fi
 
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -195,7 +218,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -263,7 +286,7 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    run_build_command docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
@@ -280,7 +303,7 @@ build() {
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
-                docker buildx build \
+                run_build_command docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
@@ -297,7 +320,7 @@ build() {
 
                 if test -f "binaries/waf_rule_set.json"; then
 
-                    docker buildx build \
+                    run_build_command docker buildx build \
                         --build-arg BUILDKIT_INLINE_CACHE=1 \
                         --load \
                         --progress=plain \
@@ -314,7 +337,7 @@ build() {
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \

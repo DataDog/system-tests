@@ -43,6 +43,7 @@ public class Main {
         final ResourceConfig rc = new ResourceConfig().packages("com.datadoghq.jersey");
 
         // Register resources
+        rc.register(org.glassfish.jersey.media.multipart.MultiPartFeature.class);
         rc.register(MyResource.class);
         rc.register(RaspResource.class);
         rc.register(IastSinkResource.class);

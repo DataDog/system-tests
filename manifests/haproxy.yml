@@ -7,6 +7,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
