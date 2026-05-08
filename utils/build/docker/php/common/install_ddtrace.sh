@@ -156,3 +156,9 @@ mkdir -p /etc/dd-appsec
 find /opt -name recommended.json -exec ln -s '{}' /etc/dd-appsec/ \;
 
 rm -rf /tmp/{dd-library-php-setup.php,dd-library,dd-appsec}
+
+if [[ $IS_APACHE -eq 1 ]]; then
+  if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
+      grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini
+  fi
+fi
