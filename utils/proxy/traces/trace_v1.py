@@ -476,6 +476,21 @@ def _uncompress_span_links_list(span_links: list | None, strings: list[str]) -> 
     return uncompressed_links
 
 
+def _mirror_span_link_snake_case_to_camel_case(link: dict[str, Any]) -> None:
+    """Copy protobuf / enum snake_case link fields to camelCase keys consumers expect.
+
+    ``_uncompress_span_link`` may leave ``trace_id`` / ``span_id`` / ``trace_id_high`` in place
+    while other payloads use ``traceID`` / ``spanID`` / ``traceIDHigh``. Populate the camelCase
+    names when missing so agent idx traces have a single readable contract.
+    """
+    if "traceID" not in link and "trace_id" in link:
+        link["traceID"] = link["trace_id"]
+    if "spanID" not in link and "span_id" in link:
+        link["spanID"] = link["span_id"]
+    if "traceIDHigh" not in link and "trace_id_high" in link:
+        link["traceIDHigh"] = link["trace_id_high"]
+
+
 def _uncompress_span_events_list(span_events: list | None, strings: list[str]) -> list | None:
     """Uncompress a list of span events by converting integer keys to string keys."""
     if span_events is None or not isinstance(span_events, list):
@@ -569,6 +584,8 @@ def _uncompress_span_link(link: dict, strings: list[str]) -> None:
         if isinstance(trace_state, int) and trace_state < len(strings):
             link["tracestate"] = strings[trace_state]
 
+    _mirror_span_link_snake_case_to_camel_case(link)
+
 
 def _uncompress_span_event(event: dict, strings: list[str]) -> None:
     """Uncompress a span event by deserializing time, name, and attributes.
@@ -632,9 +649,16 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
                 chunk["origin"] = strings[origin_ref]
             for span in chunk.get("spans", []):
                 span["attributes"] = _uncompress_attributes(span.get("attributes", {}), strings)
-                # Uncompress span links
-                for link in span.get("links", []):
-                    _uncompress_span_link(link, strings)
+                # Uncompress span links (protobuf JSON may expose `spanLinks` or `links`)
+                span_links_raw: list[Any] | None = None
+                for key in ("links", "spanLinks"):
+                    candidate = span.get(key)
+                    if isinstance(candidate, list) and candidate:
+                        span_links_raw = candidate
+                        break
+                if span_links_raw is not None:
+                    for link in span_links_raw:
+                        _uncompress_span_link(link, strings)
                 # Uncompress span events (handle both camelCase and snake_case field names)
                 span_events = span.get("spanEvents") or span.get("span_events")
                 if span_events:

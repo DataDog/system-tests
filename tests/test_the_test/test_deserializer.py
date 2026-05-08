@@ -152,6 +152,64 @@ def test_uncompress_agent_v1_trace_with_span_links():
 
 
 @scenarios.test_the_test
+def test_uncompress_agent_v1_trace_span_links_snake_case_gets_camel_aliases():
+    """Protobuf JSON may use trace_id / span_id / trace_id_high; proxy mirrors camelCase for readers."""
+    trace_id_bytes = bytes(
+        [0x12, 0x34, 0x56, 0x78, 0x90, 0x12, 0x34, 0x56, 0x78, 0x90, 0x12, 0x34, 0x56, 0x78, 0x90, 0x12]
+    )
+    trace_id_base64 = base64.b64encode(trace_id_bytes).decode("utf-8")
+    chunk_trace_id_bytes = bytes(
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xE3]
+    )
+    chunk_trace_id_base64 = base64.b64encode(chunk_trace_id_bytes).decode("utf-8")
+
+    data = {
+        "idxTracerPayloads": [
+            {
+                "strings": ["", "my-service", "span-name", "web", "link-key", "link-value", "tracestate-value"],
+                "attributes": {},
+                "chunks": [
+                    {
+                        "traceID": chunk_trace_id_base64,
+                        "spans": [
+                            {
+                                "service": "my-service",
+                                "name_value": "span-name",
+                                "typeRef": "web",
+                                "attributes": {},
+                                "links": [
+                                    {
+                                        "trace_id": trace_id_base64,
+                                        "span_id": "424242",
+                                        "trace_id_high": 99,
+                                        "attributes": {
+                                            "4": {"stringValueRef": 5},
+                                        },
+                                        "tracestateRef": 6,
+                                        "flags": 1,
+                                    }
+                                ],
+                            }
+                        ],
+                        "attributes": {},
+                    }
+                ],
+            }
+        ]
+    }
+
+    result = _uncompress_agent_v1_trace(data, "agent")
+    span_link = result["idxTracerPayloads"][0]["chunks"][0]["spans"][0]["links"][0]
+
+    assert span_link["trace_id"] == "0x12345678901234567890123456789012"
+    assert span_link["traceID"] == "0x12345678901234567890123456789012"
+    assert span_link["span_id"] == "424242"
+    assert span_link["spanID"] == "424242"
+    assert span_link["trace_id_high"] == 99
+    assert span_link["traceIDHigh"] == 99
+
+
+@scenarios.test_the_test
 def test_uncompress_array_direct():
     """Test _uncompress_array with (type, value) pairs: string ref, double, bool."""
     strings = ["", "first", "second"]
