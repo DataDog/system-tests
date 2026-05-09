@@ -10,6 +10,9 @@ inputs:
   scenarios:
     description: "JSON array, or comma separated list of scenarios that will be executed"
     required: true
+  github_token:
+    description: "GitHub token to avoid rate limits when downloading release assets"
+    required: true
   dockerhub_username:
     description: "To prevent reaching docker hub API limits, provide a username and token to login to docker hub"
     required: false
@@ -24,6 +27,8 @@ runs:
   steps:
     - name: Free Disk Space
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github_token }}
       run: |
         arch="$(uname -m)"
         case "${arch}" in
@@ -40,7 +45,8 @@ runs:
         # rmz deletes files in parallel using multiple threads, making it significantly
         # faster than rm for large directories.
         tmpfile=$(mktemp)
-        curl -fsSL -o "${tmpfile}" "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
+        curl -fsSL -H "Authorization: token ${GH_TOKEN}" \
+          -o "${tmpfile}" "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
         echo "${checksum}  ${tmpfile}" | sha256sum -c
         sudo install -m 0755 "${tmpfile}" /usr/local/bin/rmz
         rm -f "${tmpfile}"

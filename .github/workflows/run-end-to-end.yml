@@ -151,6 +151,7 @@ jobs:
         library: ${{ inputs.library }}
         weblog: ${{ inputs.weblog }}
         scenarios: ${{ inputs.scenarios }}
+        github_token: ${{ github.token }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build weblog
