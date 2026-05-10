@@ -25,7 +25,15 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Free Disk Space
+    - name: Restore rmz cache
+      id: cache-rmz
+      uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: ~/.cache/rmz
+        key: rmz-3.1.1-${{ runner.arch }}
+
+    - name: Download rmz
+      if: steps.cache-rmz.outputs.cache-hit != 'true'
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github_token }}
@@ -42,14 +50,24 @@ runs:
             ;;
           *) echo "Unsupported arch: ${arch}"; exit 1 ;;
         esac
-        # rmz deletes files in parallel using multiple threads, making it significantly
-        # faster than rm for large directories.
-        tmpfile=$(mktemp)
+        mkdir -p ~/.cache/rmz
         curl -fsSL -H "Authorization: token ${GH_TOKEN}" \
-          -o "${tmpfile}" "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
-        echo "${checksum}  ${tmpfile}" | sha256sum -c
-        sudo install -m 0755 "${tmpfile}" /usr/local/bin/rmz
-        rm -f "${tmpfile}"
+          -o ~/.cache/rmz/rmz \
+          "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
+        echo "${checksum}  ${HOME}/.cache/rmz/rmz" | sha256sum -c
+        chmod +x ~/.cache/rmz/rmz
+
+    - name: Save rmz cache
+      if: steps.cache-rmz.outputs.cache-hit != 'true'
+      uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: ~/.cache/rmz
+        key: rmz-3.1.1-${{ runner.arch }}
+
+    - name: Free Disk Space
+      shell: bash
+      run: |
+        sudo install -m 0755 ~/.cache/rmz/rmz /usr/local/bin/rmz
         free_mb() { df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}'; }
         total_recovered=0
         paths=(
