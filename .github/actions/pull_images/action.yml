@@ -10,9 +10,6 @@ inputs:
   scenarios:
     description: "JSON array, or comma separated list of scenarios that will be executed"
     required: true
-  github_token:
-    description: "GitHub token to avoid rate limits when downloading release assets"
-    required: true
   dockerhub_username:
     description: "To prevent reaching docker hub API limits, provide a username and token to login to docker hub"
     required: false
@@ -25,77 +22,33 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Restore rmz cache
-      id: cache-rmz
-      uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-      with:
-        path: ~/.cache/rmz
-        key: rmz-3.1.1-${{ runner.arch }}
-
-    - name: Download rmz
-      if: steps.cache-rmz.outputs.cache-hit != 'true'
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github_token }}
-      run: |
-        arch="$(uname -m)"
-        case "${arch}" in
-          x86_64|amd64)
-            asset="x86_64-unknown-linux-gnu-rmz"
-            checksum="9017131f24a6a619568316d3cf1aabbf4fb8297d8082b11fd2b6817436876a3b"
-            ;;
-          aarch64|arm64)
-            asset="aarch64-unknown-linux-gnu-rmz"
-            checksum="1ac8e83a0242938b10bd6a37ebd1b96d92896f84547aead32f3608c3e5ff733d"
-            ;;
-          *) echo "Unsupported arch: ${arch}"; exit 1 ;;
-        esac
-        mkdir -p ~/.cache/rmz
-        curl -fsSL -H "Authorization: token ${GH_TOKEN}" \
-          -o ~/.cache/rmz/rmz \
-          "https://github.com/SUPERCILEX/fuc/releases/download/3.1.1/${asset}"
-        echo "${checksum}  ${HOME}/.cache/rmz/rmz" | sha256sum -c
-        chmod +x ~/.cache/rmz/rmz
-
-    - name: Save rmz cache
-      if: steps.cache-rmz.outputs.cache-hit != 'true'
-      uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-      with:
-        path: ~/.cache/rmz
-        key: rmz-3.1.1-${{ runner.arch }}
-
     - name: Free Disk Space
       shell: bash
       run: |
-        sudo install -m 0755 ~/.cache/rmz/rmz /usr/local/bin/rmz
-        free_mb() { df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}'; }
-        total_recovered=0
+        before=$(df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}')
         paths=(
-          /usr/share/dotnet          # .NET runtime
-          /usr/share/doc/dotnet-*    # .NET documentation
-          /opt/ghc                   # GHC (Haskell compiler)
-          /usr/local/.ghcup          # GHCup (Haskell toolchain manager)
-          /opt/cabal                 # Cabal (Haskell build tool)
-          /home/runner/.ghcup        # GHCup user data
-          /home/runner/.cabal        # Cabal user data
-          /usr/share/swift           # Swift toolchain
-          /usr/local/share/chromium  # Chromium browser
-          /usr/share/az*             # Azure CLI
+          /usr/share/dotnet
+          /usr/share/doc/dotnet-*
+          /opt/ghc
+          /usr/local/.ghcup
+          /opt/cabal
+          /home/runner/.ghcup
+          /home/runner/.cabal
+          /usr/share/swift
+          /usr/local/share/chromium
+          /usr/share/az*
         )
+        pids=()
         for path in "${paths[@]}"; do
           [ -e "${path}" ] || continue
           echo "Removing ${path}"
-          before=$(free_mb)
-          ts_before=$(date +%s)
-          sudo rmz "${path}" || true
-          after=$(free_mb)
-          elapsed=$(( $(date +%s) - ts_before ))
-          freed=$(awk "BEGIN {printf \"%.2f\", ${after} - ${before}}")
-          echo "FreeUp Space: ${freed} MB"
-          echo "Time Elapsed: ${elapsed} seconds"
-          total_recovered=$(awk "BEGIN {printf \"%.2f\", ${total_recovered} + ${freed}}")
+          sudo rm -rf "${path}" &
+          pids+=($!)
         done
-        echo "Total Recovered Space: ${total_recovered} MB"
+        for pid in "${pids[@]}"; do wait "$pid" || true; done
+        after=$(df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}')
+        freed=$(awk "BEGIN {printf \"%.2f\", ${after} - ${before}}")
+        echo "Total Recovered Space: ${freed} MB"
 
     - name: Get image list
       shell: bash
