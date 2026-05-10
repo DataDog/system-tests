@@ -52,7 +52,7 @@ runs:
           pids+=($!)
         done
         for pid in "${pids[@]}"; do wait "$pid" || true; done
-        cat "${tmpdir}"/*
+        cat "${tmpdir}"/* 2>/dev/null || true
         rm -rf "${tmpdir}"
         after=$(df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}')
         echo "Total Recovered Space: $(awk "BEGIN {printf \"%.2f\", ${after} - ${before}}") MB"
