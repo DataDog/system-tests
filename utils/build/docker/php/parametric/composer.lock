@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5844bb2809257454a2a085845137d49b",
+    "content-hash": "ce5d0272a4ed36f5a4de37f3d0382580",
     "packages": [
         {
             "name": "amphp/amp",
@@ -1745,12 +1745,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "c412c2e0d6c98525e55746294dc40413f6ffebf3"
+                "reference": "68b974809baff3f071893de61447212e9e688ee7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/c412c2e0d6c98525e55746294dc40413f6ffebf3",
-                "reference": "c412c2e0d6c98525e55746294dc40413f6ffebf3",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/68b974809baff3f071893de61447212e9e688ee7",
+                "reference": "68b974809baff3f071893de61447212e9e688ee7",
                 "shasum": ""
             },
             "require": {
@@ -1768,14 +1768,16 @@
                 "graylog2/gelf-php": "^1.4.2 || ^2.0",
                 "guzzlehttp/guzzle": "^7.4.5",
                 "guzzlehttp/psr7": "^2.2",
-                "mongodb/mongodb": "^1.8",
+                "mongodb/mongodb": "^1.8 || ^2.0",
                 "php-amqplib/php-amqplib": "~2.4 || ^3",
-                "phpstan/phpstan": "^1.9",
-                "phpstan/phpstan-deprecation-rules": "^1.0",
-                "phpstan/phpstan-strict-rules": "^1.4",
-                "phpunit/phpunit": "^10.1",
+                "php-console/php-console": "^3.1.8",
+                "phpstan/phpstan": "^2",
+                "phpstan/phpstan-deprecation-rules": "^2",
+                "phpstan/phpstan-strict-rules": "^2",
+                "phpunit/phpunit": "^10.5.17 || ^11.0.7",
                 "predis/predis": "^1.1 || ^2",
-                "ruflin/elastica": "^7",
+                "rollbar/rollbar": "^4.0",
+                "ruflin/elastica": "^7 || ^8",
                 "symfony/mailer": "^5.4 || ^6",
                 "symfony/mime": "^5.4 || ^6"
             },
@@ -1839,7 +1841,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-11-10T12:29:35+00:00"
+            "time": "2026-04-09T13:04:03+00:00"
         },
         {
             "name": "nikic/fast-route",
@@ -2297,6 +2299,65 @@
             "time": "2025-10-19T06:44:33+00:00"
         },
         {
+            "name": "open-telemetry/opentelemetry-logger-monolog",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/opentelemetry-php/contrib-logger-monolog.git",
+                "reference": "418b1100975374cd306d56105625f590d9abbf4d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/opentelemetry-php/contrib-logger-monolog/zipball/418b1100975374cd306d56105625f590d9abbf4d",
+                "reference": "418b1100975374cd306d56105625f590d9abbf4d",
+                "shasum": ""
+            },
+            "require": {
+                "monolog/monolog": "^1.1|^2|^3",
+                "open-telemetry/api": "^1.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3",
+                "google/protobuf": ">=3.5.0",
+                "guzzlehttp/guzzle": "^7.4",
+                "nyholm/psr7": "^1.6",
+                "open-telemetry/exporter-otlp": ">=1.0",
+                "open-telemetry/sdk": ">=1.0",
+                "phan/phan": "^5.0",
+                "phpbench/phpbench": "^1.2",
+                "phpstan/phpstan": "^1.1",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "phpunit/phpunit": "^9.5",
+                "psalm/plugin-phpunit": "^0.19.2",
+                "vimeo/psalm": "6.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "OpenTelemetry\\Contrib\\Logs\\Monolog\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "OpenTelemetry Monolog handler.",
+            "homepage": "https://opentelemetry.io",
+            "keywords": [
+                "handler",
+                "logs",
+                "monolog",
+                "open-telemetry",
+                "opentelemetry",
+                "otel"
+            ],
+            "support": {
+                "source": "https://github.com/opentelemetry-php/contrib-logger-monolog/tree/1.2.0"
+            },
+            "time": "2026-03-24T16:33:16+00:00"
+        },
+        {
             "name": "open-telemetry/sdk",
             "version": "1.4.0",
             "source": {
@@ -2745,12 +2806,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001"
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001",
-                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
                 "shasum": ""
             },
             "require": {
@@ -2786,9 +2847,9 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/3.0.0"
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2021-07-14T16:46:02+00:00"
+            "time": "2024-09-11T13:17:53+00:00"
         },
         {
             "name": "ramsey/collection",
@@ -3737,5 +3798,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

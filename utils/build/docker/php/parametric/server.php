@@ -21,7 +21,10 @@ use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use OpenTelemetry\API\Logs\LogRecord;
+use OpenTelemetry\API\Logs\LoggerInterface as OtelLoggerInterface;
+use OpenTelemetry\API\Logs\LoggerProviderInterface as OtelLoggerProviderInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\Contrib\Logs\Monolog\Handler as OtelMonologHandler;
 use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
@@ -118,7 +121,7 @@ $scopes = [];
 $activeSpan = null;
 /** @var array[] $spansDistributedTracingHeaders */
 $spansDistributedTracingHeaders = [];
-/** @var \OpenTelemetry\API\Logs\LoggerInterface[] $loggerDict */
+/** @var Logger[] $loggerDict */
 $loggerDict = [];
 
 // Construct the OTel LoggerProvider directly when DD_LOGS_OTEL_ENABLED=true.
@@ -547,7 +550,56 @@ $router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(funct
     $schemaUrl = arg($req, 'schema_url');
     $attributes = arg($req, 'attributes') ?? [];
 
-    $loggerDict[$name] = $sdkLoggerProvider->getLogger($name, $version, $schemaUrl, $attributes);
+    // Route through Monolog + OTel handler so the LogsIntegration (PSR-3 hook)
+    // runs and we exercise the actual log-injection mutex behavior. The handler
+    // calls $provider->getLogger($monologChannel) without the scope params from
+    // create_logger, so we wrap the SDK provider to inject them when asked.
+    $scopedProvider = new class($sdkLoggerProvider, $version, $schemaUrl, $attributes) implements OtelLoggerProviderInterface {
+        public function __construct(
+            private OtelLoggerProviderInterface $inner,
+            private ?string $version,
+            private ?string $schemaUrl,
+            private iterable $attributes,
+        ) {}
+        public function getLogger(string $name, ?string $version = null, ?string $schemaUrl = null, iterable $attributes = []): OtelLoggerInterface {
+            return $this->inner->getLogger($name, $this->version, $this->schemaUrl, $this->attributes);
+        }
+    };
+
+    // Use a subclass of the OTel Monolog handler so the LogsIntegration
+    // instanceof check still matches, but override write() to emit with OTel-
+    // canonical severity_text values ("WARN"/"FATAL") instead of Monolog's
+    // "WARNING"/"CRITICAL"/etc — LogRecord::with() doesn't let us mutate
+    // level_name (it's derived from the Level enum), so re-implementing the
+    // small write() body is the cleanest path.
+    $handler = new class($scopedProvider, Logger::DEBUG) extends OtelMonologHandler {
+        public function __construct(private OtelLoggerProviderInterface $provider, $level) {
+            parent::__construct($provider, $level);
+        }
+        protected function write($record): void {
+            static $severity = [
+                'DEBUG'     => [5,  'DEBUG'],
+                'INFO'      => [9,  'INFO'],
+                'NOTICE'    => [10, 'INFO'],
+                'WARNING'   => [13, 'WARN'],
+                'ERROR'     => [17, 'ERROR'],
+                'CRITICAL'  => [21, 'FATAL'],
+                'ALERT'     => [22, 'FATAL'],
+                'EMERGENCY' => [23, 'FATAL'],
+            ];
+            [$number, $text] = $severity[$record['level_name']] ?? [9, 'INFO'];
+            $logRecord = (new LogRecord())
+                ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
+                ->setSeverityNumber($number)
+                ->setSeverityText($text)
+                ->setBody($record['message']);
+            $this->provider->getLogger($record['channel'])->emit($logRecord);
+        }
+    };
+
+    $monologLogger = new Logger($name);
+    $monologLogger->pushHandler($handler);
+    $loggerDict[$name] = $monologLogger;
 
     return jsonResponse(['success' => true]);
 }));
@@ -561,32 +613,33 @@ $router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(functi
         return jsonResponse(['success' => false]);
     }
 
-    $levelUpper = strtoupper((string)$level);
-    $severityMap = [
-        'TRACE' => ['number' => 1,  'text' => 'TRACE'],
-        'DEBUG' => ['number' => 5,  'text' => 'DEBUG'],
-        'INFO'  => ['number' => 9,  'text' => 'INFO'],
-        'WARN'  => ['number' => 13, 'text' => 'WARN'],
-        'ERROR' => ['number' => 17, 'text' => 'ERROR'],
-        'FATAL' => ['number' => 21, 'text' => 'FATAL'],
+    // Map the test client's level string to a PSR-3 level. The OTel Monolog
+    // handler then maps PSR-3 -> OTel SeverityNumber.
+    $psr3Map = [
+        'TRACE' => 'debug',
+        'DEBUG' => 'debug',
+        'INFO'  => 'info',
+        'WARN'  => 'warning',
+        'ERROR' => 'error',
+        'FATAL' => 'critical',
     ];
-    $severity = $severityMap[$levelUpper] ?? $severityMap['INFO'];
+    $psr3Level = $psr3Map[strtoupper((string)$level)] ?? 'info';
 
-    $logRecord = (new LogRecord($message))
-        ->setSeverityNumber($severity['number'])
-        ->setSeverityText($severity['text']);
-
+    $scope = null;
     if ($spanId !== null) {
         if (isset($otelSpans[$spanId])) {
-            $context = $otelSpans[$spanId]->storeInContext(Context::getCurrent());
-            $logRecord->setContext($context);
+            $scope = $otelSpans[$spanId]->activate();
         } elseif (isset($spans[$spanId])) {
             \DDTrace\switch_stack($spans[$spanId]);
-            $logRecord->setContext(Context::getCurrent());
         }
     }
-
-    $loggerDict[$loggerName]->emit($logRecord);
+    try {
+        $loggerDict[$loggerName]->log($psr3Level, $message);
+    } finally {
+        if ($scope !== null) {
+            $scope->detach();
+        }
+    }
 
     return jsonResponse(['success' => true]);
 }));

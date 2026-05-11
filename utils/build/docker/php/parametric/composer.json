@@ -8,6 +8,7 @@
     "open-telemetry/api": "^1.0.0 <1.4.0",
     "open-telemetry/sdk": "1.4.0",
     "open-telemetry/exporter-otlp": "^1.0.0",
+    "open-telemetry/opentelemetry-logger-monolog": "^1.0",
     "symfony/http-client": "6.4.x-dev",
     "nyholm/psr7": "^1.8@dev"
   },
