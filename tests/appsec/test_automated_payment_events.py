@@ -70,11 +70,13 @@ def assert_no_payment_event(request: HttpResponse, status_code: int):
 class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPaymentEventsStripe):
     pass
 
+
 @scenarios.default
 @features.appsec_automated_payment_events
 @rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
 class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
     pass
+
 
 class BaseTestAutomatedPaymentEventsStripe:
     def setup_checkout_session(self):
