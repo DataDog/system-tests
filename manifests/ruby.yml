@@ -606,12 +606,8 @@ manifest:
       excluded_weblog: [rails52, rails80, uds-rails, rails61, uds-sinatra, rails72, sinatra41, sinatra14, rack, sinatra32, sinatra22, rails42]
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_disabled:
     - weblog_declaration:
+        graphql23: irrelevant (graphql weblog does not support this endpoint)
         rack: irrelevant (it's not possible to auto instrument with rack)
-        sinatra14: missing_feature (Sinatra endpoint not implemented)
-        sinatra22: missing_feature (Sinatra endpoint not implemented)
-        sinatra32: missing_feature (Sinatra endpoint not implemented)
-        sinatra41: missing_feature (Sinatra endpoint not implemented)
-        uds-sinatra: missing_feature (Sinatra endpoint not implemented)
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key:
     - declaration: missing_feature
       component_version: <=1.0.0
@@ -620,11 +616,7 @@ manifest:
       component_version: <=1.0.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_waf_timeout:
     - weblog_declaration:
-        sinatra14: missing_feature (Sinatra endpoint not implemented)
-        sinatra22: missing_feature (Sinatra endpoint not implemented)
-        sinatra32: missing_feature (Sinatra endpoint not implemented)
-        sinatra41: missing_feature (Sinatra endpoint not implemented)
-        uds-sinatra: missing_feature (Sinatra endpoint not implemented)
+        graphql23: irrelevant (graphql weblog does not support this endpoint)
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation::test_partial_obfuscation_parameter_value:
     - declaration: missing_feature
@@ -867,9 +859,9 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
   tests/appsec/test_span_tags_headers.py:
     - weblog_declaration:
-        "*": v2.30.0-dev
+        "*": v2.31.0
         graphql23: irrelevant
-        rails42: missing_feature  # Old Rack does not support to_ary for content-length computation
+        rails42: missing_feature
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.22.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.22.0-dev
