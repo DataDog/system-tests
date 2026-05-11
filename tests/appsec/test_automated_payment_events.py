@@ -355,4 +355,3 @@ class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPayment
 @rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
 class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
     pass
-
