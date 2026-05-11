@@ -1330,7 +1330,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: missing_feature (Endpoint not implemented)
-  tests/integrations/test_inferred_proxy.py: missing_feature
+  tests/integrations/test_inferred_proxy.py:
+    - weblog_declaration:
+        "*": missing_feature
+        graphql23: irrelevant
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)

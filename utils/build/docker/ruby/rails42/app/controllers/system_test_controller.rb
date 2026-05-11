@@ -135,6 +135,11 @@ class SystemTestController < ApplicationController
     render json: JSON.generate(request_headers), content_type: 'application/json'
   end
 
+  def inferred_proxy_span_creation
+    status_code = (params[:status_code] || 200).to_i
+    render plain: 'ok', status: status_code
+  end
+
   def handle_path_params
     render plain: 'OK'
   end
