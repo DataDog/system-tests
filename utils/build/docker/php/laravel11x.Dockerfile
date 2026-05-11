@@ -19,10 +19,15 @@ RUN cp /tmp/php/weblogs/laravel11x/.apache.conf /tmp/php/apache-mod/php.conf
 # Pre-create .env with APP_KEY and file-based session (no DB needed)
 RUN mkdir -p /var/www/html && \
     php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" > /var/www/html/.env && \
-    echo "SESSION_DRIVER=file" >> /var/www/html/.env
+    echo "SESSION_DRIVER=file" >> /var/www/html/.env && \
+    echo "APP_DEBUG=true" >> /var/www/html/.env
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
 RUN /tmp/php/apache-mod/build.sh laravel11x
+RUN touch /tmp/laravel.db && \
+    cd /var/www/html && \
+    php artisan migrate --force --no-interaction && \
+    chmod 666 /tmp/laravel.db
 
 # Install ddtrace (same pattern as apache-mod-X.Y.Dockerfiles)
 ADD utils/build/docker/php/common/install_ddtrace.sh /install_ddtrace.sh

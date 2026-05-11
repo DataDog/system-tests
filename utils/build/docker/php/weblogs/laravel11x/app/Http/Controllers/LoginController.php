@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Providers\ArrayUserProvider;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController
 {
     private static array $newUsers = [
-        'testnew' => ['id' => 'new-user', 'email' => 'testnewuser@ddog.com'],
+        'testnew' => ['id' => 'new-user'],
     ];
 
     public function login(Request $request)
@@ -31,17 +33,16 @@ class LoginController
     public function signup(Request $request)
     {
         $username = $request->input('username', '');
-        $id       = self::$newUsers[$username]['id'] ?? '';
-        $email    = self::$newUsers[$username]['email'] ?? ($username . '@ddog.com');
-
-        ArrayUserProvider::addUser($username, $id, $email);
+        $password = $request->input('password', '');
 
         $user = User::create([
-            'id'       => $id,
+            'id' => $username === 'testnew' ? 'new-user' : Hash::make($username),
             'username' => $username,
-            'password' => '1234',
+            'password' => Hash::make($password),
             'name'     => $username,
         ]);
+
+        event(new Registered($user));
 
         Auth::login($user);
 
@@ -54,13 +55,26 @@ class LoginController
             return response('', 200);
         }
 
-        $username = $request->input('username', '');
-        $password = $request->input('password', '');
+        $username   = $request->input('username', '');
+        $password   = $request->input('password', '');
+        $sdkEvent   = $request->query('sdk_event', '');
+        $sdkTrigger = $request->query('sdk_trigger', '');
+        $sdkUser    = $request->query('sdk_user', '');
+        $sdkExists  = $request->boolean('sdk_user_exists');
 
-        if (Auth::attempt(['username' => $username, 'password' => $password])) {
+        if ($sdkTrigger === 'before' && $sdkEvent !== '') {
+            $this->callSdk($sdkEvent, $sdkUser, $sdkExists);
+        }
+
+        $success = Auth::attempt(['username' => $username, 'password' => $password]);
+
+        if ($sdkTrigger === 'after' && $sdkEvent !== '') {
+            $this->callSdk($sdkEvent, $sdkUser, $sdkExists);
+        }
+
+        if ($success) {
             $request->session()->regenerate();
-            $userId = Auth::id();
-            return response('', 200)->cookie('user_logged_in', $userId);
+            return response('', 200);
         }
 
         return response('', 401);
@@ -78,11 +92,34 @@ class LoginController
         $username = $parts[0] ?? '';
         $password = $parts[1] ?? '';
 
-        if (Auth::attempt(['username' => $username, 'password' => $password])) {
-            $userId = Auth::id();
-            return response('', 200)->cookie('user_logged_in', $userId);
+        $sdkEvent   = $request->query('sdk_event', '');
+        $sdkTrigger = $request->query('sdk_trigger', '');
+        $sdkUser    = $request->query('sdk_user', '');
+        $sdkExists  = $request->boolean('sdk_user_exists');
+
+        if ($sdkTrigger === 'before' && $sdkEvent !== '') {
+            $this->callSdk($sdkEvent, $sdkUser, $sdkExists);
+        }
+
+        $success = Auth::attempt(['username' => $username, 'password' => $password]);
+
+        if ($sdkTrigger === 'after' && $sdkEvent !== '') {
+            $this->callSdk($sdkEvent, $sdkUser, $sdkExists);
+        }
+
+        if ($success) {
+            return response('', 200);
         }
 
         return response('', 401);
+    }
+
+    private function callSdk(string $event, string $user, bool $exists): void
+    {
+        if ($event === 'success') {
+            \datadog\appsec\track_user_login_success_event($user, []);
+        } else {
+            \datadog\appsec\track_user_login_failure_event($user, $exists, []);
+        }
     }
 }

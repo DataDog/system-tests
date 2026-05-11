@@ -60,7 +60,7 @@ curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin
 cd /var/www/html
 # Use composer.json for PHP < 8.2, composer.gte8.2.json for PHP >= 8.2 (COMPOSER env = config filename)
 export COMPOSER=composer.json
-if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ] && [ -f composer.gte8.2.json ]; then
 	export COMPOSER=composer.gte8.2.json
 fi
 echo "Using composer config: $COMPOSER"
