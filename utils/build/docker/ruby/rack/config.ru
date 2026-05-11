@@ -575,6 +575,9 @@ app = proc do |env|
     Flush.run(request)
   elsif request.path.start_with?('/resource_renaming')
     ResourceRenaming.run
+  elsif request.path == '/inferred-proxy/span-creation'
+    status_code = (request.params['status_code'] || 200).to_i
+    [status_code, { 'Content-Type' => 'text/plain' }, ['ok']]
   else
     NotFound.run
   end
