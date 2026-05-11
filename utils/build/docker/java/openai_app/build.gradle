@@ -27,6 +27,8 @@ dependencies {
     implementation 'com.anthropic:anthropic-java:2.4.0'
 
     compileOnly files('/dd-tracer/dd-java-agent.jar')
+    implementation 'io.opentracing:opentracing-api:0.33.0'
+    implementation 'io.opentracing:opentracing-util:0.33.0'
 }
 
 application {

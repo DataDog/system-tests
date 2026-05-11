@@ -281,4 +281,9 @@ class SystemTestController < ApplicationController
   def handle_path_params
     render plain: 'OK'
   end
+
+  def inferred_proxy_span_creation
+    status_code = (params[:status_code] || 200).to_i
+    render plain: 'ok', status: status_code
+  end
 end
