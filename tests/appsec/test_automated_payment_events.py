@@ -64,20 +64,6 @@ def assert_no_payment_event(request: HttpResponse, status_code: int):
     interfaces.library.validate_all_spans(request, validator=validator)
 
 
-@scenarios.appsec_rasp
-@features.appsec_automated_payment_events
-@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
-class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPaymentEventsStripe):
-    pass
-
-
-@scenarios.default
-@features.appsec_automated_payment_events
-@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
-class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
-    pass
-
-
 class BaseTestAutomatedPaymentEventsStripe:
     def setup_checkout_session(self):
         self.r = weblog.post(
@@ -355,3 +341,18 @@ class BaseTestAutomatedPaymentEventsStripe:
     def test_unsupported_event(self):
         """R6.2"""
         assert_no_payment_event(self.r, 200)
+
+
+@scenarios.appsec_rasp
+@features.appsec_automated_payment_events
+@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
+class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPaymentEventsStripe):
+    pass
+
+
+@scenarios.default
+@features.appsec_automated_payment_events
+@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
+class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
+    pass
+
