@@ -1119,7 +1119,7 @@ manifest:
       component_version: '>=0.93.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.75.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_ExtendedHeartbeat: '>=1.20.0'
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature (PHP v1.20.0 emits null for dependencies[].version in app-extended-heartbeat, failing schema validation)
   tests/test_telemetry.py::Test_Log_Generation:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
