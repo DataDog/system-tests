@@ -14,7 +14,7 @@ run_without_node_env () {
 install_custom_target () {
     local target=$1
 
-    run_without_node_env npm install "$target" || run_without_node_env npm install "$target"
+    run_without_node_env bun add --linker=hoisted --network-concurrency 8 "$target" || run_without_node_env bun add --linker=hoisted --network-concurrency 8 "$target"
 }
 
 if [ -e /binaries/nodejs-load-from-local ]; then
@@ -33,6 +33,6 @@ else
     else
         target="dd-trace"
         echo "install from NPM"
-        npm install "$target" || npm install "$target"
+        bun add --linker=hoisted --network-concurrency 8 "$target" || bun add --linker=hoisted --network-concurrency 8 "$target"
     fi
 fi
