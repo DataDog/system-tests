@@ -4,7 +4,6 @@ on:
   workflow_call:
 
 jobs:
-
   fuzzer:
     runs-on: ubuntu-latest
     steps:
@@ -12,6 +11,7 @@ jobs:
       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         repository: 'DataDog/system-tests'
+        submodules: recursive
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Build
