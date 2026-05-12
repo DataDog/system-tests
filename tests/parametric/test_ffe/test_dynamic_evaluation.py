@@ -19,6 +19,12 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 MISSING_FFE_FIXTURES_CASE = "__missing_ffe_fixtures__"
+KNOWN_FIXTURE_GAPS = {
+    "test-case-null-targeting-key.json": {
+        "python": "dd-trace-py main does not yet support explicit null targeting keys",
+        "ruby": "dd-trace-rb main does not yet support explicit null targeting keys",
+    },
+}
 
 parametrize = pytest.mark.parametrize
 
@@ -64,6 +70,12 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 @pytest.fixture
 def ufc_fixture_data() -> dict[str, Any]:
     return _load_ufc_fixture()
+
+
+def _xfail_known_fixture_gap(test_case_file: str) -> None:
+    reason = KNOWN_FIXTURE_GAPS.get(test_case_file, {}).get(context.library.name)
+    if reason:
+        pytest.xfail(reason)
 
 
 DEFAULT_ENVVARS = {
@@ -138,6 +150,8 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}. "
                 "Run `git submodule update --init --recursive`."
             )
+
+        _xfail_known_fixture_gap(test_case_file)
 
         # Skip OF.7 (empty targeting key) test for libraries with known bugs
         # Java: FFL-1729 - OpenFeature Java SDK rejects empty targeting keys
