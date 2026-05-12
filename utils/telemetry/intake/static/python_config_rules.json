@@ -1,6 +1,8 @@
 {
     "normalization_rules": {
         "DD_AIOHTTP_CLIENT_DISABLE_STREAM_TIMING_FOR_MEM_LEAK": "aiohttp_client_disable_stream_timing_for_mem_leak",
+        "DD_CRASHTRACKING_COLLECT_ALL_THREADS": "crashtracking_collect_all_threads",
+        "DD_CRASHTRACKING_MAX_THREADS": "crashtracking_max_threads",
         "DD_DJANGO_TRACING_MINIMAL": "trace_django_tracing_minimal",
         "DD_LLMOBS_EVALUATOR_SAMPLING_RULES": "llmobs_evaluator_sampling_rules",
         "DD_PROFILING_API_TIMEOUT_MS": "profiling_api_timeout_ms",
@@ -10,8 +12,6 @@
         "DD_PROFILING_LOCK_EXCLUDE_MODULES": "profiling_lock_exclude_modules",
         "DD_PROFILING_PYTORCH_ENABLED": "profiling_pytorch_enabled",
         "DD_PROFILING_PYTORCH_EVENTS_LIMIT": "profiling_pytorch_events_limit",
-        "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_FLUSH_INTERVAL": "trace_experimental_long_running_flush_interval",
-        "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_INITIAL_FLUSH_INTERVAL": "trace_experimental_long_running_initial_flush_interval",
         "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level",
         "DD_TRACE_LOG_STREAM_HANDLER": "trace_log_file_stream_handler",
         "DD_TRACE_RAY_ARGS_KWARGS": "trace_ray_args_kwargs",
