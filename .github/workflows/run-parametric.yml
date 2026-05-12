@@ -111,6 +111,7 @@ jobs:
         with:
           repository: DataDog/system-tests
           ref: ${{ steps.compute_ref.outputs.ref }}
+          submodules: recursive
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Get binaries artifact

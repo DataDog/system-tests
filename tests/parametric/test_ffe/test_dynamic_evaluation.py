@@ -22,13 +22,14 @@ FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 parametrize = pytest.mark.parametrize
 
 
-# Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
     fixture_path = FFE_SYSTEM_TEST_DATA_DIR / "ufc-config.json"
 
     if not fixture_path.exists():
-        pytest.skip(f"Fixture file not found: {fixture_path}")
+        raise FileNotFoundError(
+            f"Fixture file not found: {fixture_path}. Run `git submodule update --init --recursive`."
+        )
 
     with fixture_path.open() as f:
         return json.load(f)
@@ -37,15 +38,27 @@ def _load_ufc_fixture() -> dict[str, Any]:
 def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
     if not FFE_EVALUATION_CASES_DIR.exists():
-        return []
+        raise FileNotFoundError(
+            f"Fixture directory not found: {FFE_EVALUATION_CASES_DIR}. Run `git submodule update --init --recursive`."
+        )
 
-    return sorted(f.name for f in FFE_EVALUATION_CASES_DIR.iterdir() if f.suffix == ".json")
+    test_case_files = sorted(f.name for f in FFE_EVALUATION_CASES_DIR.iterdir() if f.suffix == ".json")
+    if not test_case_files:
+        raise AssertionError(f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}")
+
+    return test_case_files
 
 
-# Load fixture at module level for reuse across tests
-UFC_FIXTURE_DATA = _load_ufc_fixture()
-ALL_TEST_CASE_FILES = _get_test_case_files()
-assert ALL_TEST_CASE_FILES, f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}"
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    """Parametrize FFE cases during pytest collection, not module import."""
+    if "test_case_file" in metafunc.fixturenames:
+        metafunc.parametrize("test_case_file", _get_test_case_files())
+
+
+@pytest.fixture
+def ufc_fixture_data() -> dict[str, Any]:
+    return _load_ufc_fixture()
+
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -91,17 +104,20 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_remote_config(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_ffe_remote_config(
+        self, ufc_fixture_data: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 
         assert test_library.is_alive(), "library container is not alive"
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        apply_state = _set_and_wait_ffe_rc(test_agent, ufc_fixture_data)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_ffe_flag_evaluation(
+        self, test_case_file: str, ufc_fixture_data: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Test FFE flag evaluation logic with various targeting scenarios.
 
         This is the core FFE test that validates the OpenFeature provider correctly:
@@ -128,7 +144,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             test_cases = json.load(f)
 
         # Set up UFC Remote Config and wait for it to be applied
-        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        _set_and_wait_ffe_rc(test_agent, ufc_fixture_data)
 
         # Initialize FFE provider
         success = test_library.ffe_start()
@@ -160,7 +176,9 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_of7_empty_targeting_key(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_ffe_of7_empty_targeting_key(
+        self, ufc_fixture_data: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """OF.7: Empty string is a valid targeting key.
 
         This test validates that flag evaluation succeeds when the targeting key
@@ -170,7 +188,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         Temporary dedicated test until FFL-1729 (Java) and FFL-1730 (Node.js) are resolved.
         """
         # Set up UFC Remote Config and wait for it to be applied
-        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        _set_and_wait_ffe_rc(test_agent, ufc_fixture_data)
 
         # Initialize FFE provider
         success = test_library.ffe_start()
