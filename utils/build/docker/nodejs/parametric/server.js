@@ -132,7 +132,7 @@ app.post('/trace/span/start', (req, res) => {
   });
 
   if (ddContext[request.parent_id]) {
-    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link.context, link.attributes)
+    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link)
   }
 
   spans[span.context().toSpanId()] = span;
@@ -143,9 +143,9 @@ app.post('/trace/span/add_link', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
   if (spans[request.parent_id]) {
-    span.addLink(spans[request.parent_id].context(), request.attributes)
+    span.addLink({ context: spans[request.parent_id].context(), attributes: request.attributes })
   } else {
-    span.addLink(ddContext[request.parent_id], request.attributes)
+    span.addLink({ context: ddContext[request.parent_id], attributes: request.attributes })
   }
   res.json({});
 });

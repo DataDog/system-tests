@@ -1908,8 +1908,13 @@ manifest:
         resteasy-netty3: irrelevant (Blocks on text/plain if parsed to a String)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
+        uds-spring-boot: v1.61.0-SNAPSHOT
+        spring-boot-jetty: missing_feature (no instrumentation for Jetty)
+        spring-boot-payara: missing_feature (APPSEC-61873)
+        vertx3: missing_feature (no instrumentation for Vert.x async multipart)
+        vertx4: missing_feature (no instrumentation for Vert.x async multipart)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
@@ -3578,7 +3583,10 @@ manifest:
         spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP:
+    - weblog_declaration:
+        "*": v1.62.0
+        spring-boot-3-native: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -4472,7 +4480,6 @@ manifest:
         spring-boot: '>=1.60.3'
         vertx4: '>=1.60.3'
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
   tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
   tests/test_v1_payloads.py: missing_feature

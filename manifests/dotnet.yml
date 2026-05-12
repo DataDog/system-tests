@@ -709,7 +709,7 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
   tests/ffe/test_exposures.py: v3.36.0
-  tests/ffe/test_flag_eval_metrics.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature (FFL-2257 - Requires Datadog.FeatureFlags.OpenFeature 2.3.0 NuGet package to be published)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
@@ -1153,7 +1153,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v3.44.0
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v1.0  # real version not known
@@ -1230,5 +1230,4 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (Product started missing)
       excluded_weblog: [uds, poc]
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (Re-enable when this automatically updates the dd-go files.)
   tests/test_v1_payloads.py: missing_feature

@@ -387,3 +387,9 @@ get '/flush' do
 
   'OK'
 end
+
+get '/inferred-proxy/span-creation' do
+  content_type :text
+  status (params['status_code'] || 200).to_i
+  'ok'
+end
