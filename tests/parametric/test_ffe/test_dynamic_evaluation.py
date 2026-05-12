@@ -16,6 +16,8 @@ from tests.parametric.conftest import APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
+FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
+FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 
 parametrize = pytest.mark.parametrize
 
@@ -23,7 +25,7 @@ parametrize = pytest.mark.parametrize
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
-    fixture_path = Path(__file__).parent / "flags-v1.json"
+    fixture_path = FFE_SYSTEM_TEST_DATA_DIR / "ufc-config.json"
 
     if not fixture_path.exists():
         pytest.skip(f"Fixture file not found: {fixture_path}")
@@ -34,16 +36,16 @@ def _load_ufc_fixture() -> dict[str, Any]:
 
 def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
-    test_data_dir = Path(__file__).parent
-    if not test_data_dir.exists():
+    if not FFE_EVALUATION_CASES_DIR.exists():
         return []
 
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name != "flags-v1.json"]
+    return sorted(f.name for f in FFE_EVALUATION_CASES_DIR.iterdir() if f.suffix == ".json")
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
 ALL_TEST_CASE_FILES = _get_test_case_files()
+assert ALL_TEST_CASE_FILES, f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}"
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -117,7 +119,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 pytest.skip("OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
 
         # Load the test case file
-        test_case_path = Path(__file__).parent / test_case_file
+        test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
 
         if not test_case_path.exists():
             pytest.skip(f"Test case file not found: {test_case_path}")
