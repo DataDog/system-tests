@@ -1330,7 +1330,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: missing_feature (Endpoint not implemented)
-  tests/integrations/test_inferred_proxy.py: missing_feature
+  tests/integrations/test_inferred_proxy.py:
+    - weblog_declaration:
+        "*": missing_feature
+        graphql23: irrelevant
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
@@ -2376,7 +2379,6 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers:
     - declaration: missing_feature (dd-client-library-version missing)
       component_version: <1.22.0
