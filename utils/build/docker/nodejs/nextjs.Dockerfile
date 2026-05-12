@@ -1,16 +1,6 @@
-FROM node:20-alpine
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
+FROM datadog/system-tests:nextjs.base-v1
 
 COPY utils/build/docker/nodejs/nextjs /usr/app
-RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 

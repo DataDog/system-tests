@@ -1,16 +1,6 @@
-FROM node:18-alpine
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
+FROM datadog/system-tests:express4-typescript.base-v1
 
 COPY utils/build/docker/nodejs/express4-typescript /usr/app
-RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 
@@ -32,5 +22,5 @@ RUN printf 'node dist/app.js' >> app.sh
 CMD ./app.sh
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
-# docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .
+# docker build -f utils/build/docker/nodejs/express4-typescript.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

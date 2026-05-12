@@ -1,17 +1,7 @@
-FROM node:22-alpine
+FROM datadog/system-tests:google_genai-js.base-v1
 ARG FRAMEWORK_VERSION
 
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
-
 COPY utils/build/docker/nodejs/google_genai_app /usr/app
-RUN npm ci || (sleep 30 && npm ci)
 
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         npm install @google/genai; \
