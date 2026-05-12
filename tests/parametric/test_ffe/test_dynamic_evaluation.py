@@ -18,6 +18,7 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
+MISSING_FFE_FIXTURES_CASE = "__missing_ffe_fixtures__"
 
 parametrize = pytest.mark.parametrize
 
@@ -52,7 +53,12 @@ def _get_test_case_files() -> list[str]:
 def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """Parametrize FFE cases during pytest collection, not module import."""
     if "test_case_file" in metafunc.fixturenames:
-        metafunc.parametrize("test_case_file", _get_test_case_files())
+        try:
+            test_case_files = _get_test_case_files()
+        except (FileNotFoundError, AssertionError):
+            test_case_files = [MISSING_FFE_FIXTURES_CASE]
+
+        metafunc.parametrize("test_case_file", test_case_files)
 
 
 @pytest.fixture
@@ -127,6 +133,12 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
+        if test_case_file == MISSING_FFE_FIXTURES_CASE:
+            pytest.fail(
+                f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}. "
+                "Run `git submodule update --init --recursive`."
+            )
+
         # Skip OF.7 (empty targeting key) test for libraries with known bugs
         # Java: FFL-1729 - OpenFeature Java SDK rejects empty targeting keys
         # Node.js: FFL-1730 - OpenFeature JS SDK rejects empty targeting keys
