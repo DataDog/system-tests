@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.List;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
@@ -295,8 +293,8 @@ public class MyResource {
     @POST
     @Path("/waf")
     @Consumes("multipart/form-data")
-    public String postWafMultipart(InputStream body) throws IOException {
-        return new String(body.readAllBytes());
+    public String postWafMultipart(org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput input) {
+        return "ok";
     }
 
     @GET
