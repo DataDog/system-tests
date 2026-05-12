@@ -2183,18 +2183,15 @@ def ai_guard_evaluate():
 
     try:
         from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+        from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
         messages = flask_request.get_json()
 
         user_id = flask_request.headers.get("X-User-Id")
         session_id = flask_request.headers.get("X-Session-Id")
-        root_span = tracer.current_root_span()
-        if root_span:
-            if user_id:
-                root_span.set_tag("usr.id", user_id)
-            if session_id:
-                root_span.set_tag("session.id", session_id)
+        if user_id and session_id:
+            track_user_id(user_id, session_id=session_id)
 
         client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
         evaluation = client.evaluate(messages, Options(block=should_block))

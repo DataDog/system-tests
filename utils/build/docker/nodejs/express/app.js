@@ -761,14 +761,8 @@ app.post('/ai_guard/evaluate', async (req, res) => {
   const messages = req.body
   const userId = req.headers['x-user-id']
   const sessionId = req.headers['x-session-id']
-  const rootSpan = tracer.scope().active()?.context()._trace.started[0]
-  if (rootSpan) {
-    if (userId) {
-      rootSpan.setTag('usr.id', userId)
-    }
-    if (sessionId) {
-      rootSpan.setTag('session.id', sessionId)
-    }
+  if (userId && sessionId) {
+    tracer.setUser({ id: userId, session_id: sessionId })
   }
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
