@@ -1,4 +1,4 @@
-package com.datadoghq.system_tests.springboot;
+package com.datadoghq.system_tests.springboot.debugger;
 
 import java.util.ArrayList;
 import java.util.HashMap;

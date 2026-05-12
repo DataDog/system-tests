@@ -1,4 +1,4 @@
-from utils import bug, missing_feature, scenarios
+from utils import bug, missing_feature, scenarios, features, slow
 
 from .utils import run_system_tests
 
@@ -24,6 +24,7 @@ class Test_ForceSkip:
 
 
 @scenarios.mock_the_test
+@features.adaptive_sampling
 class Test_Bug:
     @bug(condition=True, reason="FAKE-001")
     def test_bug_executed(self):
@@ -33,10 +34,12 @@ class Test_Bug:
     def test_missing_feature_executed(self):
         assert True
 
-    @bug(condition=True, reason="FAKE-001", force_skip=True)
+    @slow
+    @bug(condition=True, reason="FAKE-001")
     def test_bug_not_executed(self):
         assert True
 
-    @missing_feature(condition=True, force_skip=True)
+    @slow
+    @missing_feature(condition=True)
     def test_missing_feature_not_executed(self):
         assert True

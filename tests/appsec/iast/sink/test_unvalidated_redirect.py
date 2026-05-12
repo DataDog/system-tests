@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features, missing_feature, rfc, weblog
+from utils import context, features, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 
@@ -19,7 +19,7 @@ def _expected_location():
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.name == "nodejs":
-        if context.weblog_variant in ("express4", "express5"):
+        if context.weblog_variant in ("express4", "express5", "fastify"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
@@ -38,16 +38,11 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
 
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_insecure(self):
         super().test_insecure()
 
     # there is probably an issue with how system test handles redirection
     # it's suspicious that three deifferent languages have the same issue
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
-    @missing_feature(library="dotnet", reason="weblog does not respond")
-    @missing_feature(library="java", reason="weblog does not respond")
-    @missing_feature(library="nodejs", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 
@@ -63,9 +58,6 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
 
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
-    @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
-    @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
     def test_secure(self):
         return super().test_secure()
 
@@ -82,7 +74,6 @@ class TestUnvalidatedRedirect_StackTrace:
             "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
         )
 
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

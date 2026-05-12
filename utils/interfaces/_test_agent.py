@@ -1,10 +1,13 @@
 import pathlib
 import threading
 import json
+
+import ddapm_test_agent.client as agent_client
+
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
 from utils._weblog import HttpResponse
-from utils.tools import get_rid_from_span
+from utils.tools import get_rid_from_user_agent
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):
@@ -15,8 +18,6 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         self._data_telemetry_list = []
 
     def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126):
-        import ddapm_test_agent.client as agent_client
-
         logger.debug("Collecting data from test agent")
         client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
         self._data_traces_list = client.traces(clear=False)
@@ -41,7 +42,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
         for trace in self._data_traces_list:
             for span in trace:
-                if rid == get_rid_from_span(span):
+                if rid == _get_rid_from_span(span):
                     return span
         return None
 
@@ -83,6 +84,10 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         ]
         return injection_metrics
 
+    def get_injection_metadata_for_autoinject(self):
+        logger.debug("Try to find injection metadata related to autoinject")
+        return [t["payload"] for t in self._data_telemetry_list if t["request_type"] == "injection-metadata"]
+
     def get_telemetry_logs(self):
         logger.debug("Try to find telemetry data related to logs")
         return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
@@ -97,37 +102,103 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             # If payload is a list, iterate through its items
             if isinstance(payload, list):
                 crash_reports.extend(
-                    p for p in payload if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+                    p
+                    for p in payload
+                    if "si_signo" in p.get("tags", "")
+                    or "signame" in p.get("tags", "")
+                    or "signum" in p.get("tags", "")
                 )
             # If payload is a single object, check it directly
             elif isinstance(payload, dict):
-                if "signame" in payload.get("tags", "") or "signum" in payload.get("tags", ""):
+                if (
+                    "si_signo" in payload.get("tags", "")
+                    or "signame" in payload.get("tags", "")
+                    or "signum" in payload.get("tags", "")
+                ):
                     crash_reports.append(payload)
 
-        return crash_reports
+                # v2 logs send in the form of `payload:{logs:[]}`
+                # we should also check if `logs` value is a list, and iterate
+                # through the `dict`s in the list
+                if "logs" in payload and isinstance(payload["logs"], list):
+                    for log in payload["logs"]:
+                        if isinstance(log, dict):
+                            if (
+                                "si_signo" in log.get("tags", "")
+                                or "signame" in log.get("tags", "")
+                                or "signum" in log.get("tags", "")
+                            ):
+                                crash_reports.append(log)
+        # Filter for crash reports only; ignoring crash pings
+        # Crash pings have is_crash_ping:true
+        return [r for r in crash_reports if "is_crash_ping" not in r.get("tags", "")]
 
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
         """Get telemetry configurations for a given runtime ID and service name."""
         configurations = {}
-        # Sort telemetry requests by timestamp, this ensures later configurations take precedence
+        # Sort telemetry requests by timestamp and seq_id, this ensures later configurations take precedence
         requests = list(self.get_telemetry_for_runtime(runtime_id))
-        requests.sort(key=lambda x: x["tracer_time"])
+        requests.sort(key=lambda x: (x["tracer_time"], x.get("seq_id", 0)))
         for request in requests:
-            if service_name is not None:
+            if service_name is not None and request["application"]["service_name"] != service_name:
                 # Check if the service name in telemetry matches the expected service name
-                assert (
-                    request["application"]["service_name"] == service_name
-                ), f"Service name in telemetry in requests: {request} "
-                f"does not match expected service name {service_name}"
+                logger.debug(
+                    f"Service name in telemetry in requests: {request} "
+                    f"does not match expected service name {service_name}"
+                )
+                continue
             # Convert all telemetry payloads to the the message-batch format. This simplifies configuration extraction
             events = (
-                request["payload"]
+                request.get("payload")
                 if request["request_type"] == "message-batch"
-                else [{"payload": request["payload"], "request_type": request["request_type"]}]
+                else [{"payload": request.get("payload"), "request_type": request["request_type"]}]
             )
+            logger.debug("Found telemetry events: %s", events)
             for event in events:
                 # Get the configuration from app-started or app-client-configuration-change payloads
                 if event and event["request_type"] in ("app-started", "app-client-configuration-change"):
-                    for config in event["payload"].get("configuration", []):
+                    # Sort configurations by seq_id so the latest configuration is the last one in the list
+                    config_list = event["payload"].get("configuration", [])
+                    config_list.sort(key=lambda x: x.get("seq_id") or 0)
+                    for config in config_list:
                         configurations[config["name"]] = config
         return configurations
+
+
+def _get_rid_from_span(span: dict) -> str | None:
+    meta = span.get("meta", {})
+    metrics = span.get("metrics", {})
+
+    if span.get("attributes") is not None:
+        # This is a v1 span so it won't have a meta or metrics field
+        # To reuse the logic here just override meta with the attributes
+        meta = span.get("attributes")
+        metrics = span.get("attributes")
+
+    user_agent = None
+
+    if span.get("type") == "rpc":
+        user_agent = meta.get("grpc.metadata.user-agent")
+        # java does not fill this tag; it uses the normal http tags
+
+    if not user_agent and metrics.get("_dd.top_level") == 1.0:
+        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
+        user_agent = meta.get("http.request.headers.user-agent")
+
+    if not user_agent:  # try something for .NET
+        user_agent = meta.get("http_request_headers_user-agent")
+
+    if not user_agent:
+        # cpp tracer
+        user_agent = meta.get("http_user_agent")
+
+    if not user_agent:  # last hope
+        user_agent = meta.get("http.useragent")
+
+    if not user_agent:  # last last hope (java opentelemetry autoinstrumentation)
+        user_agent = meta.get("user_agent.original")
+
+    if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
+        user_agent = meta.get("http.user_agent")
+
+    return get_rid_from_user_agent(user_agent)

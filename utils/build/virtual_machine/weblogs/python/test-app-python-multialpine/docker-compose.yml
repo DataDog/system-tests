@@ -51,13 +51,3 @@ services:
             dockerfile: Dockerfile.python_3_9-alpine
         healthcheck:
             test: "curl -f http://localhost:18080"
-
-    python_3_7:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_7:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_7-alpine
-        healthcheck:
-            test: "curl -f http://localhost:18080"

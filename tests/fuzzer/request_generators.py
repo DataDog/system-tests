@@ -2,43 +2,45 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import aiohttp
 import json
 import random
 
 from tests.fuzzer.html_parser import extract_requests
+from tests.fuzzer.request_mutator import RequestMutator
 
 
 class RequestGenerator:
     corpus_max_size = 10000  # How many valid requests do we save ?
     corpus_request_max_size = 10000  # do not save valid requests bigger than this
 
-    def __init__(self, mutator, corpus):
+    def __init__(self, mutator: RequestMutator, corpus: list[dict]):
         super().__init__()
 
         # mutation engine
         self.mutator = mutator
 
         # list of interesting request to be mutated
-        self.corpus = []
+        self.corpus: list[str] = []
 
         # list of request to be sent in priority
         # initialize it with initial corpus
-        self.buffer = []
+        self.buffer: list[dict] = []
         for request in corpus:
             self.mutator.clean_request(request)
             self.buffer.append(request)
 
         self.not_found_response_is_parsed = False
-        self.parsed = set()
+        self.parsed: set = set()
 
-    def add_in_buffer(self, request) -> None:
-        if not request.get("path", None):
+    def add_in_buffer(self, request: dict) -> None:
+        if not request.get("path"):
             return
 
         self.buffer.append(request)
 
-    def add_in_corpus(self, request) -> None:
-        if not request.get("path", None):
+    def add_in_corpus(self, request: dict) -> None:
+        if not request.get("path"):
             return
 
         request["method"] = request["method"].upper()
@@ -65,7 +67,7 @@ class RequestGenerator:
         return request
 
     #############################
-    async def feedback(self, request, response, base_url) -> None:
+    async def feedback(self, request: dict, response: aiohttp.ClientResponse, base_url: str) -> None:
         endpoint = request["method"], request["path"]
 
         if response.status == 404 and not self.not_found_response_is_parsed:

@@ -7,10 +7,10 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express4-typescript /usr/app
-
 WORKDIR /usr/app
 
+COPY utils/build/docker/nodejs/express4-typescript /usr/app
+RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 
@@ -22,18 +22,14 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
+COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+RUN npm run build
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node dist/app.js' >> app.sh
 CMD ./app.sh
-
-COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-
-RUN npm install || npm install
-RUN /binaries/install_ddtrace.sh
-RUN npm run build
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .

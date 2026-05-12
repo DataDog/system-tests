@@ -16,7 +16,7 @@ class Test_Otel_Drop_In:
     setup_otel_drop_in_telemetry_data = exercise_otel_drop_in
 
     def test_otel_drop_in_telemetry_data(self):
-        def has_otel_integration(integrations):
+        def has_otel_integration(integrations: list[dict]) -> bool:
             return any(item["name"].startswith("otel.") and item["enabled"] for item in integrations)
 
         integration_found = False
@@ -30,7 +30,7 @@ class Test_Otel_Drop_In:
     setup_otel_drop_in_span_metrics = exercise_otel_drop_in
 
     def test_otel_drop_in_span_metrics(self):
-        def has_otel_library_tag(tags):
+        def has_otel_library_tag(tags: list[str]) -> bool:
             return any(tag.startswith("integration_name:otel.") for tag in tags)
 
         span_metric_found = False

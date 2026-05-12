@@ -2,8 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import bug, context, missing_feature, features, rfc, weblog
-from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from utils import features, rfc, weblog
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.iast_sink_ssrf
@@ -17,20 +22,16 @@ class TestSSRF(BaseSinkTest):
     data = {"url": "https://www.datadoghq.com"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+        "nodejs": get_nodejs_iast_file_paths(),
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
     }
 
-    @bug(context.library < "java@1.14.0", reason="APMRP-360")
     def test_insecure(self):
         super().test_insecure()
 
-    @missing_feature(library="nodejs", reason="Endpoint not implemented")
-    @missing_feature(library="java", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

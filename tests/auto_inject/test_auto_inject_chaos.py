@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug, irrelevant, missing_feature, logger
+from utils import scenarios, features, context, irrelevant, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 import tests.auto_inject.utils as base
@@ -7,7 +7,7 @@ from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
-    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command):
+    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command: str):
         """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
@@ -45,9 +45,9 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         warmup_weblog(weblog_url)
         r = requests.get(weblog_url, timeout=10)
-        assert (
-            r.status_code == 200
-        ), "The weblog app it's not working after remove the installation folder  and restart the app"
+        assert r.status_code == 200, (
+            "The weblog app it's not working after remove the installation folder  and restart the app"
+        )
         # Kill the app before restore the installation
         self.execute_command(
             virtual_machine,
@@ -64,7 +64,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         logger.info("Restoring installation using the command:: ")
         apm_inject_restore = f"{prefix_env} {apm_inject_restore}"
         logger.info(apm_inject_restore)
-        _, stdout, stderr = virtual_machine.get_ssh_connection().exec_command(apm_inject_restore)
+        _, stdout, _stderr = virtual_machine.get_ssh_connection().exec_command(apm_inject_restore)
         stdout.channel.set_combine_stderr(True)
 
         # Read the output line by line
@@ -86,15 +86,17 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @irrelevant(
-        context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
-        reason="LD library failures impact on the docker engine, causes flakiness",
+        context.vm_name
+        in [
+            "Amazon_Linux_2023_amd64",
+            "Amazon_Linux_2023_arm64",
+            "OracleLinux_9_2_amd64",
+            "OracleLinux_9_2_arm64",
+            "OracleLinux_9_3_amd64",
+            "OracleLinux_9_3_arm64",
+        ],
+        reason="LD library failures impact on the docker engine, causes flakiness or cpp compilation issues",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
@@ -109,17 +111,16 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
         context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]
         and context.weblog_variant == "test-app-python",
         reason="Flaky machine with python and the ld preload changes",
+    )
+    @irrelevant(
+        context.vm_name
+        in ["OracleLinux_9_2_amd64", "OracleLinux_9_2_arm64", "OracleLinux_9_3_amd64", "OracleLinux_9_3_arm64"],
+        reason="Cpp compilation issues",
     )
     def test_remove_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""

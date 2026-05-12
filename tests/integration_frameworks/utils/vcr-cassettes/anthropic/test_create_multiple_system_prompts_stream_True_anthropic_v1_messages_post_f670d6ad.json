@@ -1,0 +1,64 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "x-stainless-timeout": "NOT_GIVEN",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "Anthropic/Python 0.75.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "0.75.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "anthropic-version": "2023-06-01",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "430",
+      "x-datadog-trace-id": "11076853050732862486",
+      "x-datadog-parent-id": "4549125553003010874",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=1328014648943303684,_dd.p.llmobs_trace_id=139827272726357914790104662100958846616,_dd.p.tid=6931c0cf00000000",
+      "traceparent": "00-6931c0cf0000000099b8e32976225c16-3f21bd9691659b3a-01",
+      "tracestate": "dd=p:3f21bd9691659b3a;s:1;t.dm:-0;t.llmobs_parent_id:1328014648943303684;t.llmobs_trace_id:139827272726357914790104662100958846616;t.tid:6931c0cf00000000"
+    },
+    "body": "{\"max_tokens\":100,\"messages\":[{\"role\":\"user\",\"content\":\"Explain in a few sentences what a pizza is.\"},{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"And, what ingredients do I need to make one?\"}]}],\"model\":\"claude-sonnet-4-5-20250929\",\"stream\":true,\"system\":[{\"type\":\"text\",\"text\":\"You are a helpful assistant who speaks like Yoda.\"},{\"type\":\"text\",\"text\":\"You also only speak in exactly 7 word sentences.\"}],\"temperature\":0.5}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Thu, 04 Dec 2025 17:11:45 GMT",
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-RAY": "9a8cecb01dfe4399-EWR",
+      "Cache-Control": "no-cache",
+      "anthropic-ratelimit-output-tokens-limit": "2500000",
+      "anthropic-ratelimit-output-tokens-remaining": "2500000",
+      "anthropic-ratelimit-output-tokens-reset": "2025-12-04T17:11:43Z",
+      "anthropic-ratelimit-input-tokens-limit": "20000000",
+      "anthropic-ratelimit-input-tokens-remaining": "20000000",
+      "anthropic-ratelimit-input-tokens-reset": "2025-12-04T17:11:43Z",
+      "retry-after": "17",
+      "anthropic-ratelimit-tokens-limit": "22500000",
+      "anthropic-ratelimit-tokens-remaining": "22500000",
+      "anthropic-ratelimit-tokens-reset": "2025-12-04T17:11:43Z",
+      "request-id": "req_011CVn25fzr62g8RXQHYg4zP",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "anthropic-organization-id": "4257e925-ee99-4ee8-9c62-8e53716d5203",
+      "x-envoy-upstream-service-time": "2170",
+      "cf-cache-status": "DYNAMIC",
+      "X-Robots-Tag": "none",
+      "Server": "cloudflare"
+    },
+    "body": "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"claude-sonnet-4-5-20250929\",\"id\":\"msg_01Cn4Drs7CaPbfULsj7swcSB\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":54,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":1,\"service_tier\":\"standard\"}}            }\n\nevent: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}      }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"Roun\"}     }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"d flat\"}     }\n\nevent: ping\ndata: {\"type\": \"ping\"}\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"bread with t\"}      }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"oppings, pizza\"}           }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" is,\"}            }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" hm\"}  }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"m.\"}}\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"\\n\\nCheese\"}        }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" an\"}        }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"d tom\"}               }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"ato sauce, traditional\"}              }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" t\"}    }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"oppings are\"}   }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\".\"}}\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"\\n\\nDough, water\"}        }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\", flour, yeast, salt you\"}       }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" nee\"}   }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"d.\\n\\nTom\"}    }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"ato sauce, m\"}        }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"ozzarella cheese, t\"}               }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"oppings you\"}    }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" must\"}       }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" gather\"}    }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\".\\n\\nOlive\"}          }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" oil for\"}         }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" the\"}             }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" \"}       }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"dough, use\"}            }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" also\"}            }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\".\"}    }\n\nevent: content_block_stop\ndata: {\"type\":\"content_block_stop\",\"index\":0        }\n\nevent: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\",\"stop_sequence\":null},\"usage\":{\"input_tokens\":54,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":79}    }\n\nevent: message_stop\ndata: {\"type\":\"message_stop\"       }\n\n"
+  }
+}

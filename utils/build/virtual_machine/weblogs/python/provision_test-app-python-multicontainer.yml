@@ -20,8 +20,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.python_3_9
           - name: copy-python3_8-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.python_3_8
-          - name: copy-python3_7-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.python_3_7
           - name: copy-reverseproxy-dockerfile
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf

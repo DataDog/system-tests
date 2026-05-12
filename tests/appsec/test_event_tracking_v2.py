@@ -2,17 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios, irrelevant
+from utils import weblog, interfaces, features, scenarios
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 from tests.appsec.utils import find_series
+from abc import ABC, abstractmethod
 
-HEADERS = {
-    "Accept": "text/html",
-    "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
-    "Accept-Language": "en-GB, *;q=0.5",
-    "Content-Language": "en-GB",
-    "Content-Type": "application/json; charset=utf-8",
-    "Host": "127.0.0.1:1234",
-    "User-Agent": "Benign User Agent 1.0",
+IP_HEADERS = {
     "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
     "X-Client-IP": "42.42.42.42, 43.43.43.43",
     "X-Real-IP": "42.42.42.42, 43.43.43.43",
@@ -24,13 +19,24 @@ HEADERS = {
     "True-Client-IP": "42.42.42.42, 43.43.43.43",
 }
 
+HEADERS = {
+    "Accept": "text/html",
+    "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
+    "Accept-Language": "en-GB, *;q=0.5",
+    "Content-Language": "en-GB",
+    "Content-Type": "application/json; charset=utf-8",
+    "Host": "127.0.0.1:1234",
+    "User-Agent": "Benign User Agent 1.0",
+    **IP_HEADERS,
+}
+
 USER_ID_SAFE = "user_id_safe"
 USER_ID_IN_RULE = "user_id_unsafe"
 LOGIN_SAFE = "login_safe"
 LOGIN_IN_RULE = "login_unsafe"
 
 
-def validate_metric_type_and_version(event_type, version, metric):
+def validate_metric_type_and_version(event_type: str, version: str, metric: dict):
     return (
         metric.get("type") == "count"
         and f"event_type:{event_type}" in metric.get("tags", ())
@@ -38,7 +44,13 @@ def validate_metric_type_and_version(event_type, version, metric):
     )
 
 
-def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected_metadata):
+def validate_tags_and_metadata(
+    span: DataDogLibrarySpan,
+    prefix: str,
+    expected_tags: dict,
+    metadata: dict | None,
+    unexpected_metadata: list[str] | None,
+):
     if metadata is not None:
         for key, value in metadata.items():
             expected_tags[prefix + "." + key] = value
@@ -46,7 +58,7 @@ def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected
     for tag, expected_value in expected_tags.items():
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
-        if value != expected_value:
+        if not is_same_boolean(actual=value, expected=expected_value):
             raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
     if unexpected_metadata is not None:
@@ -57,13 +69,13 @@ def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected
     return True
 
 
-@features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
-class Test_UserLoginSuccessEventV2_Tags:
-    """Test tags created in AppSec User Login Success Event SDK v2"""
+class BaseUserLoginSuccessEventV2Tags:
+    """Test tags created in User Login Success Event SDK v2"""
 
-    def get_user_login_success_tags_validator(self, login, user_id, metadata=None, unexpected_metadata=None):
-        def validate(span):
+    def get_user_login_success_tags_validator(
+        self, login: str, user_id: str, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
+    ):
+        def validate(span: DataDogLibrarySpan):
             expected_tags = {
                 "appsec.events.users.login.success.usr.login": login,
                 "appsec.events.users.login.success.usr.id": user_id,
@@ -97,7 +109,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
@@ -112,8 +124,6 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -121,7 +131,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
@@ -139,11 +149,10 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         assert self.r.status_code == 200
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def setup_user_login_success_event_deep_metadata(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
@@ -158,9 +167,6 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
-    @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
 
@@ -170,7 +176,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r,
             validator=self.get_user_login_success_tags_validator(
                 LOGIN_SAFE, USER_ID_SAFE, metadata, unexpected_metadata
@@ -180,7 +186,17 @@ class Test_UserLoginSuccessEventV2_Tags:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
-class Test_UserLoginSuccessEventV2_HeaderCollection:
+class Test_UserLoginSuccessEventV2_Tags_AppsecEnabled(BaseUserLoginSuccessEventV2Tags):
+    """Test tags created in AppSec User Login Success Event SDK v2 when appsec is enabled"""
+
+
+@features.event_tracking_sdk_v2
+@scenarios.everything_disabled
+class Test_UserLoginSuccessEventV2_Tags_AppsecDisabled(BaseUserLoginSuccessEventV2Tags):
+    """Test tags created in AppSec User Login Success Event SDK v2 when appsec is disabled"""
+
+
+class BaseUserLoginSuccessEventV2HeaderCollection(ABC):
     """Test headers are collected in AppSec User Login Success Event SDK v2"""
 
     def setup_user_login_success_header_collection(self):
@@ -188,12 +204,22 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=HEADERS)
 
+    @abstractmethod
+    def test_user_login_success_header_collection(self):
+        raise AssertionError("Not implemented")
+
+
+@features.event_tracking_sdk_v2
+@scenarios.appsec_ato_sdk
+class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginSuccessEventV2HeaderCollection):
+    """Test headers are collected in AppSec User Login Success Event SDK v2 when appsec is enabled"""
+
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on login success SDK
 
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span):
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -202,12 +228,32 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
-class Test_UserLoginSuccessEventV2_Metrics:
+@scenarios.everything_disabled
+class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginSuccessEventV2HeaderCollection):
+    """Test headers are not collected in User Login Success Event SDK v2 when appsec is disabled"""
+
+    def test_user_login_success_header_collection(self):
+        assert self.r.status_code == 200
+
+        def validate_user_login_success_header_collection(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            for header in IP_HEADERS:
+                assert f"http.request.headers.{header.lower()}" not in span["meta"], (
+                    f"Header {header} is found in span's meta. It should not be collected when appsec is disabled."
+                )
+
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
+
+
+class BaseUserLoginSuccessEventV2Metrics:
     """Test metrics in AppSec User Login Success Event SDK v2"""
 
     def setup_user_login_success_event(self):
@@ -220,12 +266,24 @@ class Test_UserLoginSuccessEventV2_Metrics:
 
         assert self.r.status_code == 200
 
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
         assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
             s.get("tags") for s in series
         ]
+
+
+@features.event_tracking_sdk_v2
+@scenarios.appsec_ato_sdk
+class Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled(BaseUserLoginSuccessEventV2Metrics):
+    """Test metrics in AppSec User Login Success Event SDK v2 when appsec is enabled"""
+
+
+@features.event_tracking_sdk_v2
+@scenarios.everything_disabled
+class Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled(BaseUserLoginSuccessEventV2Metrics):
+    """Test metrics in AppSec User Login Success Event SDK v2 when appsec is disabled"""
 
 
 @features.event_tracking_sdk_v2
@@ -272,13 +330,13 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
         interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
 
 
-@features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
-class Test_UserLoginFailureEventV2_Tags:
+class BaseUserLoginFailureEventV2Tags:
     """Test created tags in AppSec User Login Failure Event SDK v2"""
 
-    def get_user_login_failure_tags_validator(self, login, exists, metadata=None, unexpected_metadata=None):
-        def validate(span):
+    def get_user_login_failure_tags_validator(
+        self, login: str, *, exists: bool, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
+    ):
+        def validate(span: DataDogLibrarySpan):
             expected_tags = {
                 "appsec.events.users.login.failure.usr.login": login,
                 "appsec.events.users.login.failure.usr.exists": "true" if exists else "false",
@@ -310,7 +368,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True, metadata=metadata)
         )
 
@@ -332,7 +390,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False, metadata=metadata)
         )
 
@@ -350,7 +408,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
         assert self.r.status_code == 200
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False)
         )
 
@@ -368,9 +426,6 @@ class Test_UserLoginFailureEventV2_Tags:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
-    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
-    @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 
@@ -380,7 +435,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r,
             validator=self.get_user_login_failure_tags_validator(
                 LOGIN_SAFE, exists=False, metadata=metadata, unexpected_metadata=unexpected_metadata
@@ -390,7 +445,17 @@ class Test_UserLoginFailureEventV2_Tags:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
-class Test_UserLoginFailureEventV2_HeaderCollection:
+class Test_UserLoginFailureEventV2_Tags_AppsecEnabled(BaseUserLoginFailureEventV2Tags):
+    """Test tags created in AppSec User Login Failure Event SDK v2 when appsec is enabled"""
+
+
+@features.event_tracking_sdk_v2
+@scenarios.everything_disabled
+class Test_UserLoginFailureEventV2_Tags_AppsecDisabled(BaseUserLoginFailureEventV2Tags):
+    """Test tags created in AppSec User Login Failure Event SDK v2 when appsec is disabled"""
+
+
+class BaseUserLoginFailureEventV2HeaderCollection(ABC):
     """Test collected headers in AppSec User Login Failure Event SDK v2"""
 
     def setup_user_login_failure_header_collection(self):
@@ -398,12 +463,20 @@ class Test_UserLoginFailureEventV2_HeaderCollection:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=HEADERS)
 
+    @abstractmethod
     def test_user_login_failure_header_collection(self):
-        # Validate that all relevant headers are included on user login failure
+        raise AssertionError("Not implemented")
 
+
+@features.event_tracking_sdk_v2
+@scenarios.appsec_ato_sdk
+class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginFailureEventV2HeaderCollection):
+    """Test headers are collected in AppSec User Login Failure Event SDK v2 when appsec is enabled"""
+
+    def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span):
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -412,12 +485,32 @@ class Test_UserLoginFailureEventV2_HeaderCollection:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
-class Test_UserLoginFailureEventV2_Metrics:
+@scenarios.everything_disabled
+class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginFailureEventV2HeaderCollection):
+    """Test headers are not collected in User Login Failure Event SDK v2 when AppSec is disabled"""
+
+    def test_user_login_failure_header_collection(self):
+        assert self.r.status_code == 200
+
+        def validate_user_login_failure_header_collection(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            for header in IP_HEADERS:
+                assert f"http.request.headers.{header.lower()}" not in span["meta"], (
+                    f"Header {header} is found in span's meta. It should not be collected when appsec is disabled."
+                )
+
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
+
+
+class BaseUserLoginFailureEventV2Metrics:
     """Test metrics in AppSec User Login Failure Event SDK v2"""
 
     def setup_user_login_failure_event(self):
@@ -430,12 +523,24 @@ class Test_UserLoginFailureEventV2_Metrics:
 
         assert self.r.status_code == 200
 
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
         assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
             s.get("tags") for s in series
         ]
+
+
+@features.event_tracking_sdk_v2
+@scenarios.appsec_ato_sdk
+class Test_UserLoginFailureEventV2_Metrics_AppsecEnabled(BaseUserLoginFailureEventV2Metrics):
+    """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is enabled"""
+
+
+@features.event_tracking_sdk_v2
+@scenarios.everything_disabled
+class Test_UserLoginFailureEventV2_Metrics_AppsecDisabled(BaseUserLoginFailureEventV2Metrics):
+    """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
 
 
 @features.event_tracking_sdk_v2

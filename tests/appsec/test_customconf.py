@@ -36,21 +36,29 @@ class Test_CorruptedRules_Telemetry:
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     def test_waf_init_and_config_errors_tags(self):
-        waf_init_series = find_series("generate-metrics", "appsec", ["waf.init"])
+        waf_init_series = find_series("appsec", ["waf.init"])
         waf_init_metric = [
             d for d in waf_init_series if "event_rules_version:unknown" in d["tags"] and "success:false" in d["tags"]
         ]
         assert waf_init_metric, "waf.init missing 'success:false' or 'event_rules_version:unknown' tag"
 
-        waf_config_errors_series = find_series("generate-metrics", "appsec", ["waf.config_errors"])
-        waf_config_errors_metric = [d for d in waf_config_errors_series if "event_rules_version:unknown" in d["tags"]]
-        assert waf_config_errors_metric, "waf.config_errors missing 'event_rules_version:unknown' tag"
+        waf_config_errors_series = find_series("appsec", ["waf.config_errors"])
+        with_event_rules_version_tag = [
+            d for d in waf_config_errors_series if "event_rules_version:unknown" in d["tags"]
+        ]
+        assert with_event_rules_version_tag, "waf.config_errors missing 'event_rules_version:unknown' tag"
+
+        with_waf_version = [d for d in waf_config_errors_series if any(t.startswith("waf_version:") for t in d["tags"])]
+        assert with_waf_version, "waf.config_errors missing 'waf_version:<version>' tag"
+
+        with_action_tag = [d for d in waf_config_errors_series if "action:init" in d["tags"]]
+        assert with_action_tag, "waf.config_errors missing 'action:init' tag"
 
 
 @scenarios.appsec_missing_rules
 @features.threats_configuration
 class Test_MissingRules:
-    """AppSec do not report anything if rule file is missing"""
+    """AppSec does not report anything if rule file is missing"""
 
     def setup_c04(self):
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})

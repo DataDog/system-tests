@@ -38,8 +38,11 @@ public class WebController {
   private static final Logger logger = LoggerFactory.getLogger(App.class);
 
   @RequestMapping("/")
-  String home() {
-    return "Hello World!";
+  ResponseEntity<String> home() {
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_PLAIN)
+        .contentLength(13)
+        .body("Hello world!\n");
   }
 
   @RequestMapping("/healthcheck")
@@ -80,6 +83,11 @@ public class WebController {
 
   @RequestMapping("/status")
   ResponseEntity<String> status(@RequestParam Integer code) {
+    return new ResponseEntity<>(HttpStatus.valueOf(code));
+  }
+
+  @RequestMapping("/stats-unique")
+  ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
     return new ResponseEntity<>(HttpStatus.valueOf(code));
   }
 

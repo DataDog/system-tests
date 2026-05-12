@@ -1,0 +1,64 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/completions",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "66",
+      "x-datadog-trace-id": "5754296545490231159",
+      "x-datadog-parent-id": "7488896327489678592",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=10400755468104782765,_dd.p.llmobs_trace_id=139679708451427359637316176328765345406,_dd.p.tid=6915555400000000",
+      "traceparent": "00-69155554000000004fdb5e387633df77-67ede7882fbfed00-01",
+      "tracestate": "dd=p:67ede7882fbfed00;s:1;t.dm:-0;t.llmobs_parent_id:10400755468104782765;t.llmobs_trace_id:139679708451427359637316176328765345406;t.tid:6915555400000000"
+    },
+    "body": "{\"model\":\"gpt-3.5-turbo\",\"prompt\":\"Hello OpenAI!\",\"max_tokens\":35}"
+  },
+  "response": {
+    "status": {
+      "code": 404,
+      "message": "Not Found"
+    },
+    "headers": {
+      "Date": "Thu, 13 Nov 2025 03:49:41 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "access-control-expose-headers": "X-Request-ID",
+      "openai-processing-ms": "10",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "openai-version": "2020-10-01",
+      "x-envoy-upstream-service-time": "31",
+      "x-ratelimit-limit-requests": "10000",
+      "x-ratelimit-limit-tokens": "50000000",
+      "x-ratelimit-remaining-requests": "9999",
+      "x-ratelimit-remaining-tokens": "49999996",
+      "x-ratelimit-reset-requests": "6ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_637c88b6f7a240c6985c13816102fbe6",
+      "x-openai-proxy-wasm": "v0.1",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=V9j56Xi2tb0hFpKMvmhWxLaHbfL7fzqarY.M7y5AZcw-1763005781-1.0.1.1-ucHG4FdIS7LPqWu_inaUMUxf0VY8l2lHrD3ri9vgMs2dL_57zqKhI7xq4915UPm0E083UPAQJzqwjz2YLFO1ya4G_H6sc6OAtAgxJANCGhU; path=/; expires=Thu, 13-Nov-25 04:19:41 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=uvg2sbg1a4aTLUltNiqaQV5EhPgKy9LbAzwMrChpPaM-1763005781132-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "99db4cf1aee8c3ab-EWR",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"error\": {\n    \"message\": \"This is a chat model and not supported in the v1/completions endpoint. Did you mean to use v1/chat/completions?\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"model\",\n    \"code\": null\n  }\n}"
+  }
+}

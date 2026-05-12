@@ -11,6 +11,8 @@ elif [ "$DD_LANG" == "php" ]; then
     runtime_version=$(php -v | grep -oP 'PHP \K[0-9]+\.[0-9]+\.[0-9]+')
 elif [ "$DD_LANG" == "python" ]; then
     runtime_version=$(python --version | grep -oP 'Python \K[0-9]+\.[0-9]+\.[0-9]+')
+elif [ "$DD_LANG" == "ruby" ]; then
+    runtime_version=$(ruby -e 'puts RUBY_VERSION')
 elif [ "$DD_LANG" == "js" ]; then
     export NVM_DIR="/root/.nvm"
     . "$NVM_DIR/nvm.sh"
@@ -30,6 +32,7 @@ if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUT
         agent_version="${agent_path##*/}"
         agent_version="${agent_version%-1}"
       fi
+      agent_version="${agent_version#*:}"
 
       if dpkg -s datadog-apm-inject &> /dev/null; then
         inject_version=$(dpkg -s datadog-apm-inject | grep Version);
@@ -40,6 +43,7 @@ if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUT
         inject_version="${inject_path##*/}"
         inject_version="${inject_version%-1}"
       fi
+      inject_version="${inject_version#*:}"
 
       if dpkg -s datadog-apm-library-$DD_LANG &> /dev/null; then
         tracer_version=$(dpkg -s datadog-apm-library-$DD_LANG | grep Version);
@@ -50,11 +54,9 @@ if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUT
         tracer_version="${tracer_path##*/}"
         tracer_version="${tracer_version%-1}"
       fi
+      tracer_version="${tracer_version#*:}"
 
-      installer_path="$(readlink -f /opt/datadog-packages/datadog-installer/stable)"
-      installer_path="${installer_path%/}"
-      installer_version="${installer_path##*/}"
-      installer_version="${installer_version%-1}"
+      installer_version="${agent_version}" # Installer is now shipped with the Agent
 
       echo "{'weblog_url':'$(echo $WEBLOG_URL)','runtime_version':'$(echo $runtime_version)','agent':'$(echo $agent_version)','datadog-apm-inject':'$(echo $inject_version)','datadog-apm-library-$DD_LANG': '$(echo $tracer_version)','docker':'$(docker -v || true)','datadog-installer':'$(echo $installer_version)'}"
 
@@ -67,6 +69,7 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
         agent_version="${agent_path##*/}"
         agent_version="${agent_version%-1}"
       fi
+      agent_version="${agent_version#*:}"
 
       if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)" ]; then
         inject_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject);
@@ -76,6 +79,7 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
         inject_version="${inject_path##*/}"
         inject_version="${inject_version%-1}"
       fi
+      inject_version="${inject_version#*:}"
 
       if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)" ]; then
         tracer_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG);
@@ -85,11 +89,9 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
         tracer_version="${tracer_path##*/}"
         tracer_version="${tracer_version%-1}"
       fi
+      tracer_version="${tracer_version#*:}"
 
-      installer_path="$(readlink -f /opt/datadog-packages/datadog-installer/stable)"
-      installer_path="${installer_path%/}"
-      installer_version="${installer_path##*/}"
-      installer_version="${installer_version%-1}"
+      installer_version="${agent_version}" # Installer is now shipped with the Agent
 
       echo "{'weblog_url':'$(echo $WEBLOG_URL)','runtime_version':'$(echo $runtime_version)','agent':'$(echo $agent_version)','datadog-apm-inject':'$(echo $inject_version)','datadog-apm-library-$DD_LANG': '$(echo $tracer_version)','docker':'$(docker -v || true)','datadog-installer':'$(echo $installer_version)'}"
 else

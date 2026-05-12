@@ -1,0 +1,27 @@
+FROM public.ecr.aws/docker/library/ruby:2.6-alpine
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set timezone to UTC by default
+RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
+
+# Upgrade RubyGems and Bundler
+RUN gem update --system 3.4.22
+RUN gem install bundler -v '~> 2.4.22'
+RUN mkdir -p "$GEM_HOME" && chmod -R 777 "$GEM_HOME"
+ENV BUNDLE_SILENCE_ROOT_WARNING 1
+
+# Setup directory
+RUN mkdir /app
+WORKDIR /app
+
+# Add files
+COPY lib_injection_rails61_app /app
+
+# Install gems
+RUN bundle install
+
+# Set entrypoint
+ENTRYPOINT ["/bin/bash", "-c"]
+
+CMD ["bin/rails server -b 0.0.0.0 -p 18080"]

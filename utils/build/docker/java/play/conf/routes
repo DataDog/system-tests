@@ -7,12 +7,14 @@ GET  /sample_rate_route/:i     controllers.MainController.sampleRateRoute(i: Int
 GET  /api_security/sampling/:i controllers.AppSecController.apiSecuritySamplingWithStatus(i: Int)
 GET  /api_security_sampling/:i controllers.AppSecController.apiSecuritySampling(i: Int)
 GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
+GET  /resource_renaming/*path  controllers.MainController.resourceRenaming(path: String)
 GET  /waf                      controllers.AppSecController.waf
 GET  /waf/                      controllers.AppSecController.waf
 GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
 POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
+GET  /stats-unique             controllers.AppSecController.statsUnique(code: Option[Int])
 GET  /users                    controllers.AppSecController.users(user: String)
 GET  /identify                 controllers.AppSecController.identify
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
@@ -20,10 +22,13 @@ GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_u
 GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])
 POST  /user_login_success_event_v2   controllers.AppSecController.loginSuccessV2
 POST  /user_login_failure_event_v2   controllers.AppSecController.loginFailureV2
+GET  /inferred-proxy/span-creation  controllers.AppSecController.inferredProxySpanCreation(status_code: Option[Int])
 GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
 GET  /rasp/lfi                 controllers.RaspController.lfi
 POST /rasp/lfi                 controllers.RaspController.lfi
+GET  /rasp/lfi_write           controllers.RaspController.lfiWrite
+POST /rasp/lfi_write           controllers.RaspController.lfiWrite
 GET  /rasp/ssrf                controllers.RaspController.ssrf
 POST /rasp/ssrf                controllers.RaspController.ssrf
 GET  /rasp/shi                controllers.RaspController.shi
@@ -35,4 +40,14 @@ GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerable
 GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
 GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
+GET     /authorization_related_headers      controllers.AppSecController.authResponseHeaders
 GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
+
+# IAST Sampling endpoints
+GET     /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.getSamplingByRouteMethodCount(id: String)
+POST    /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.postSamplingByRouteMethodCount(id: String)
+GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingController.getSamplingByRouteMethodCount2(id: String)
+
+# IAST Source endpoints
+GET     /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterGet
+POST    /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterPost

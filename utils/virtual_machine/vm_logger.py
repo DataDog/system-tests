@@ -1,8 +1,14 @@
 import logging
-import logging.config
 
 
-def vm_logger(host_log_folder, log_name, level=logging.INFO, log_folder=None, show_timestamp=True):
+def vm_logger(
+    host_log_folder: str,
+    log_name: str,
+    level: int = logging.INFO,
+    log_folder: str | None = None,
+    *,
+    show_timestamp: bool = True,
+) -> logging.Logger:
     output_folder = log_folder or host_log_folder
     specified_logger = logging.getLogger(log_name)
     if len(specified_logger.handlers) == 0:

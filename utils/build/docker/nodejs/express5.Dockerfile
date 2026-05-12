@@ -7,14 +7,13 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express /usr/app
-
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install || npm install
-RUN npm install "express@5.0.1" || npm install "express@5.0.1"
+COPY utils/build/docker/nodejs/express /usr/app
+COPY utils/build/docker/nodejs/express5/package.json utils/build/docker/nodejs/express5/package-lock.json ./
+RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 
@@ -25,8 +24,6 @@ ENV PGHOST=postgres
 ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
-
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh

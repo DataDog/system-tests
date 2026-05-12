@@ -1,0 +1,66 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "x-stainless-timeout": "NOT_GIVEN",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "Anthropic/Python 0.75.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "0.75.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "anthropic-version": "2023-06-01",
+      "X-Stainless-Helper-Method": "stream",
+      "X-Stainless-Stream-Helper": "messages",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "141",
+      "x-datadog-trace-id": "13648038904822311902",
+      "x-datadog-parent-id": "11228534478458580549",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.tid=6931c0a300000000",
+      "traceparent": "00-6931c0a300000000bd679312d2a52bde-9bd3c49de8bfee45-01",
+      "tracestate": "dd=p:9bd3c49de8bfee45;s:1;t.dm:-0;t.tid:6931c0a300000000"
+    },
+    "body": "{\"max_tokens\":100,\"messages\":[{\"role\":\"user\",\"content\":\"What is 2+2?\"}],\"model\":\"claude-sonnet-4-5-20250929\",\"temperature\":0.5,\"stream\":true}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Thu, 04 Dec 2025 17:11:00 GMT",
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-RAY": "9a8ceb9b6de172b1-EWR",
+      "Cache-Control": "no-cache",
+      "anthropic-ratelimit-output-tokens-limit": "2500000",
+      "anthropic-ratelimit-output-tokens-remaining": "2500000",
+      "anthropic-ratelimit-output-tokens-reset": "2025-12-04T17:10:59Z",
+      "anthropic-ratelimit-input-tokens-limit": "20000000",
+      "anthropic-ratelimit-input-tokens-remaining": "19999000",
+      "anthropic-ratelimit-input-tokens-reset": "2025-12-04T17:10:59Z",
+      "retry-after": "1",
+      "anthropic-ratelimit-tokens-limit": "22500000",
+      "anthropic-ratelimit-tokens-remaining": "22499000",
+      "anthropic-ratelimit-tokens-reset": "2025-12-04T17:10:59Z",
+      "request-id": "req_011CVn22QnU7ks758XfhBqkk",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "anthropic-organization-id": "4257e925-ee99-4ee8-9c62-8e53716d5203",
+      "x-envoy-upstream-service-time": "1768",
+      "cf-cache-status": "DYNAMIC",
+      "X-Robots-Tag": "none",
+      "Server": "cloudflare"
+    },
+    "body": "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"claude-sonnet-4-5-20250929\",\"id\":\"msg_01PFKuJ5FhfuXxhFkL4yViJV\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":14,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":1,\"service_tier\":\"standard\"}}            }\n\nevent: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}             }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"2+2 = 4\"}               }\n\nevent: ping\ndata: {\"type\": \"ping\"}\n\nevent: content_block_stop\ndata: {\"type\":\"content_block_stop\",\"index\":0            }\n\nevent: ping\ndata: {\"type\": \"ping\"}\n\nevent: ping\ndata: {\"type\": \"ping\"}\n\nevent: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\",\"stop_sequence\":null},\"usage\":{\"input_tokens\":14,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":11}           }\n\nevent: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"
+  }
+}

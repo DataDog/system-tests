@@ -1,9 +1,5 @@
-from dataclasses import dataclass
-from http import HTTPStatus
 import os
-import sys
 import pytest
-from _pytest.reports import TestReport
 
 from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
@@ -15,35 +11,19 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
+from utils._context.docker import get_docker_client
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
-    PostgresContainer,
-    MongoContainer,
-    KafkaContainer,
-    CassandraContainer,
-    RabbitMqContainer,
-    MySqlContainer,
-    MsSqlServerContainer,
     BuddyContainer,
     TestedContainer,
-    LocalstackContainer,
-    ElasticMQContainer,
-    _get_client as get_docker_client,
 )
+from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
-
-
-@dataclass
-class _SchemaBug:
-    endpoint: str
-    data_path: str | None  # None means that all data_path will be considered as bug
-    condition: bool
-    ticket: str
 
 
 class DockerScenario(Scenario):
@@ -60,90 +40,66 @@ class DockerScenario(Scenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
+        mocked_backend: bool = True,
         rc_api_enabled: bool = False,
+        rc_backend_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
-        include_postgres_db: bool = False,
-        include_cassandra_db: bool = False,
-        include_mongo_db: bool = False,
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_mysql_db: bool = False,
-        include_sqlserver: bool = False,
-        include_localstack: bool = False,
-        include_elasticmq: bool = False,
+        client_drop_p0s: bool | None = None,
+        extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
         self.enable_ipv6 = enable_ipv6
         self.rc_api_enabled = rc_api_enabled
+        self.rc_backend_enabled = rc_backend_enabled
         self.meta_structs_disabled = False
         self.span_events = span_events
+        self.client_drop_p0s = client_drop_p0s
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
 
-        self._required_containers: list[TestedContainer] = []
-        self._supporting_containers: list[TestedContainer] = []
+        if self.rc_backend_enabled and not self.rc_api_enabled:
+            raise ValueError("rc_backend_enabled requires rc_api_enabled")
+
+        self._containers: list[TestedContainer] = [container() for container in extra_containers]
+        """ list of containers that will be started in this scenario """
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
-                host_log_folder=self.host_log_folder,
                 rc_api_enabled=rc_api_enabled,
+                rc_backend_enabled=rc_backend_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
+                client_drop_p0s=client_drop_p0s,
                 enable_ipv6=enable_ipv6,
+                mocked_backend=mocked_backend,
             )
 
-            self._required_containers.append(self.proxy_container)
-
-        if include_postgres_db:
-            self._supporting_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
-
-        if include_mongo_db:
-            self._supporting_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
-
-        if include_cassandra_db:
-            self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
-
-        if include_kafka:
-            self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
-
-        if include_rabbitmq:
-            self._supporting_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
-
-        if include_mysql_db:
-            self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
-
-        if include_sqlserver:
-            self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
-
-        if include_localstack:
-            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
-
-        if include_elasticmq:
-            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
-
-        self._required_containers.extend(self._supporting_containers)
+            self._containers.append(self.proxy_container)
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         return [
-            image_name
-            for container in self._required_containers
-            for image_name in container.get_image_list(library, weblog)
+            image_name for container in self._containers for image_name in container.get_image_list(library, weblog)
         ]
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            self.warmups.append(self._create_network)
+            self.warmups.append(self._start_containers)
 
-        for container in reversed(self._required_containers):
-            container.configure(replay=self.replay)
+        for container in reversed(self._containers):
+            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
+
+        for container in self._containers:
+            self.warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
-        for container in self._required_containers:
+        for container in self._containers:
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
         return None
@@ -196,29 +152,17 @@ class DockerScenario(Scenario):
         else:
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(self._create_network)
-            warmups.append(self._start_containers)
-
-        for container in self._required_containers:
-            warmups.append(container.post_start)
-
-        return warmups
-
     def _start_containers(self):
+        logger.stdout("Starting containers...")
         threads = []
 
-        for container in self._required_containers:
+        for container in self._containers:
             threads.append(container.async_start(self._network))
 
         for thread in threads:
             thread.join()
 
-        for container in self._required_containers:
+        for container in self._containers:
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
 
@@ -226,11 +170,8 @@ class DockerScenario(Scenario):
         self.close_targets()
 
     def close_targets(self):
-        for container in reversed(self._required_containers):
-            try:
-                container.remove()
-            except:
-                logger.exception(f"Failed to remove container {container}")
+        for container in reversed(self._containers):
+            container.remove()
 
 
 class EndToEndScenario(DockerScenario):
@@ -256,22 +197,16 @@ class EndToEndScenario(DockerScenario):
         use_proxy_for_weblog: bool = True,
         use_proxy_for_agent: bool = True,
         rc_api_enabled: bool = False,
+        rc_backend_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
+        client_drop_p0s: bool | None = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
-        include_postgres_db: bool = False,
-        include_cassandra_db: bool = False,
-        include_mongo_db: bool = False,
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_mysql_db: bool = False,
-        include_sqlserver: bool = False,
-        include_localstack: bool = False,
-        include_elasticmq: bool = False,
-        include_otel_drop_in: bool = False,
         include_buddies: bool = False,
+        include_opentelemetry: bool = False,
         require_api_key: bool = False,
+        other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         scenario_groups = [
             all_scenario_groups.all,
@@ -287,48 +222,24 @@ class EndToEndScenario(DockerScenario):
             enable_ipv6=enable_ipv6,
             use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
+            rc_backend_enabled=rc_backend_enabled,
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
-            include_postgres_db=include_postgres_db,
-            include_cassandra_db=include_cassandra_db,
-            include_mongo_db=include_mongo_db,
-            include_kafka=include_kafka,
-            include_rabbitmq=include_rabbitmq,
-            include_mysql_db=include_mysql_db,
-            include_sqlserver=include_sqlserver,
-            include_localstack=include_localstack,
-            include_elasticmq=include_elasticmq,
+            client_drop_p0s=client_drop_p0s,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
-
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
+            use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
         )
+        self._containers.append(self.agent_container)
 
-        if use_proxy_for_agent:
-            self.agent_container.depends_on.append(self.proxy_container)
-
-        weblog_env = dict(weblog_env) if weblog_env else {}
-        weblog_env.update(
-            {
-                "INCLUDE_POSTGRES": str(include_postgres_db).lower(),
-                "INCLUDE_CASSANDRA": str(include_cassandra_db).lower(),
-                "INCLUDE_MONGO": str(include_mongo_db).lower(),
-                "INCLUDE_KAFKA": str(include_kafka).lower(),
-                "INCLUDE_RABBITMQ": str(include_rabbitmq).lower(),
-                "INCLUDE_MYSQL": str(include_mysql_db).lower(),
-                "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
-                "INCLUDE_OTEL_DROP_IN": str(include_otel_drop_in).lower(),
-            }
-        )
-
-        self.weblog_container = WeblogContainer(
-            self.host_log_folder,
-            environment=weblog_env,
+        self._weblog_env = dict(weblog_env) if weblog_env else {}
+        self.weblog_infra = EndToEndWeblogInfra(
+            environment=self._weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
             iast_enabled=iast_enabled,
@@ -336,20 +247,13 @@ class EndToEndScenario(DockerScenario):
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy_for_weblog,
             volumes=weblog_volumes,
+            other_containers=other_weblog_containers,
         )
-
-        self.weblog_container.depends_on.append(self.agent_container)
-        self.weblog_container.depends_on.extend(self._supporting_containers)
-
-        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
-
-        self._required_containers.append(self.agent_container)
-        self._required_containers.append(self.weblog_container)
+        self._containers += self.weblog_infra.get_containers()
 
         # buddies are a set of weblog app that are not directly the test target
         # but are used only to test feature that invlove another app with a datadog tracer
         self.buddies: list[BuddyContainer] = []
-
         if include_buddies:
             # so far, only python, nodejs, java, ruby and golang are supported.
             # This list contains :
@@ -357,48 +261,39 @@ class EndToEndScenario(DockerScenario):
             # 2. the trace agent port where the buddy connect to the agent
             # 3. and the host port where the buddy is accessible
             supported_languages = [
-                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
-                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
-                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
-                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
-                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python, "datadog/system-tests:python_buddy-v2"),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs, "datadog/system-tests:nodejs_buddy-v1"),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java, "datadog/system-tests:java_buddy-v1"),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v2"),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang, "datadog/system-tests:golang_buddy-v2"),
             ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
-                    f"datadog/system-tests:{language}_buddy-v1",
-                    self.host_log_folder,
+                    image_name,
                     host_port=host_port,
                     trace_agent_port=trace_agent_port,
-                    environment=weblog_env,
+                    environment=self._weblog_env,
                 )
-                for language, trace_agent_port, host_port in supported_languages
+                for language, trace_agent_port, host_port, image_name in supported_languages
             ]
 
-            for buddy in self.buddies:
-                buddy.depends_on.append(self.agent_container)
-                buddy.depends_on.extend(self._supporting_containers)
-
-            self._required_containers += self.buddies
+        self._containers += self.buddies
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
         self._library_interface_timeout = library_interface_timeout
+        self.include_opentelemetry = include_opentelemetry
 
     def configure(self, config: pytest.Config):
-        super().configure(config)
-
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
-        if config.option.force_dd_trace_debug:
-            self.weblog_container.environment["DD_TRACE_DEBUG"] = "true"
+        self.weblog_infra.configure(config)
+        self._set_containers_dependancies()
 
-        if config.option.force_dd_iast_debug:
-            self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
-            self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
-
+        super().configure(config)
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
@@ -406,10 +301,13 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
+        if self.include_opentelemetry:
+            interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
+
         for container in self.buddies:
             container.interface.configure(self.host_log_folder, replay=self.replay)
 
-        library = self.weblog_container.image.labels["system-tests-library"]
+        library = self.weblog_infra.library_name
 
         if self._library_interface_timeout is None:
             if library == "java":
@@ -427,6 +325,26 @@ class EndToEndScenario(DockerScenario):
                 self.library_interface_timeout = 40
         else:
             self.library_interface_timeout = self._library_interface_timeout
+
+        if not self.replay:
+            self.warmups.insert(1, self._start_interfaces_watchdog)
+            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self._wait_for_app_readiness)
+            self.warmups.append(self._set_weblog_domain)
+        self.warmups.append(self._set_components)
+
+    def _set_containers_dependancies(self) -> None:
+        if self._use_proxy_for_agent:
+            self.agent_container.depends_on.append(self.proxy_container)
+
+        for container in self.weblog_infra.get_containers():
+            container.depends_on.append(self.agent_container)
+
+            if self._use_proxy_for_weblog:
+                container.depends_on.append(self.proxy_container)
+
+        for buddy in self.buddies:
+            buddy.depends_on.append(self.agent_container)
 
     def _get_weblog_system_info(self):
         try:
@@ -446,42 +364,23 @@ class EndToEndScenario(DockerScenario):
         logger.stdout("")
 
     def _start_interfaces_watchdog(self):
+        open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
+            [interfaces.open_telemetry] if self.include_opentelemetry else []
+        )
         super().start_interfaces_watchdog(
-            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+            [interfaces.library, interfaces.agent]
+            + [container.interface for container in self.buddies]
+            + open_telemetry_interfaces
         )
 
     def _set_weblog_domain(self):
         if self.enable_ipv6:
-            from utils import weblog  # TODO better interface
-
-            if sys.platform == "linux":
-                # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
-                # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
-                weblog.domain = self.weblog_container.network_ip(self._network)
-                logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
-
-            elif sys.platform == "darwin":
-                # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
-                # as they are on an network intermal to the docker VM. But we can still use localhost.
-                logger.info("Mac => Using localhost as weblog domain")
-            else:
-                pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+            self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(1, self._start_interfaces_watchdog)
-            warmups.append(self._get_weblog_system_info)
-            warmups.append(self._wait_for_app_readiness)
-            warmups.append(self._set_weblog_domain)
-            warmups.append(self._set_components)
-
-        return warmups
+        self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
@@ -531,25 +430,16 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
 
+            if self.include_opentelemetry:
+                interfaces.open_telemetry.load_data_from_logs()
+                interfaces.open_telemetry.check_deserialization_errors()
+
         else:
             self._wait_interface(
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
             )
 
-            if self.library in ("nodejs",):
-                from utils import weblog  # TODO better interface
-
-                # for weblogs who supports it, call the flush endpoint
-                try:
-                    r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == HTTPStatus.OK
-                except:
-                    self.weblog_container.healthy = False
-                    logger.stdout(
-                        f"Warning: Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
-                    )
-
-            self.weblog_container.stop()
+            self.weblog_infra.stop()
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -568,174 +458,20 @@ class EndToEndScenario(DockerScenario):
                 interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
             )
 
+            if self.include_opentelemetry:
+                self._wait_interface(
+                    interfaces.open_telemetry, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+                )
+
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
 
         interface.wait(timeout)
 
-    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
-        library_bugs = [
-            # deactivated to get a new occurence of the bug
-            # _SchemaBug(
-            #     endpoint="/debugger/v1/diagnostics",
-            #     data_path="$",
-            #     condition=context.library > "nodejs@5.36.0",
-            #     ticket="DEBUG-3487",
-            # ),
-            _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[]",
-                condition=self.library >= "nodejs@2.27.1",
-                ticket="APPSEC-52805",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library < "python@v2.9.0.dev",
-                ticket="APPSEC-52845",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=self.library == "golang",
-                ticket="APMS-12697",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content",
-                condition=self.library < "nodejs@5.31.0",
-                ticket="DEBUG-2864",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content[].debugger.diagnostics",
-                condition=self.library == "nodejs",
-                ticket="DEBUG-3245",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/input",
-                data_path="$[].debugger.snapshot.stack[].lineNumber",
-                condition=self.library in ("python@2.16.2", "python@2.16.3")
-                and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
-                ticket="APMRP-360",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/input",
-                data_path="$[].debugger.snapshot.probe.location.method",
-                condition=self.library == "dotnet",
-                ticket="DEBUG-3734",
-            ),
-            _SchemaBug(
-                endpoint="/symdb/v1/input",
-                data_path=None,
-                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
-                ticket="DEBUG-3298",
-            ),
-            _SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library > "php@1.7.3",
-                ticket="APMAPI-1270",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[]",
-                condition=self.library >= "php@1.8.3",
-                ticket="DEBUG-3709",
-            ),
-        ]
-        self._test_schemas(session, interfaces.library, library_bugs)
-
-        agent_bugs = [
-            # deactivated to get a new occurence of the bug
-            # _SchemaBug(
-            #     endpoint="/api/v2/debugger",
-            #     data_path="$",
-            #     condition=self.library > "nodejs@5.36.0",
-            #     ticket="DEBUG-3487",
-            # ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[]",
-                condition=self.library >= "nodejs@2.27.1"
-                or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
-                ticket="APPSEC-52805",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library < "python@v2.9.0.dev",
-                ticket="APPSEC-52845",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
-            ),  # the main payload sent by the agent may be an array i/o an object
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=self.library == "golang",
-                ticket="APMS-12697",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[].content",
-                condition=self.library < "nodejs@5.31.0",
-                ticket="DEBUG-2864",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[]",
-                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
-                ticket="DEBUG-3298",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=self.library > "php@1.7.3",
-                ticket="XXX-1234",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[]",
-                condition=self.library >= "php@1.8.3",
-                ticket="DEBUG-3709",
-            ),
-        ]
-        self._test_schemas(session, interfaces.agent, agent_bugs)
-
-        return super().pytest_sessionfinish(session, exitstatus)
-
-    def _test_schemas(
-        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
-    ) -> None:
-        long_repr = []
-
-        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
-
-        for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points and (
-                error.endpoint,
-                None,
-            ) not in excluded_points:
-                long_repr.append(f"* {error.message}")
-
-        if len(long_repr) != 0:
-            report = TestReport(
-                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::_test_schemas",
-                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
-                {},
-                "failed",
-                "\n".join(long_repr),
-                "call",
-            )
-
-            if "error" not in logger.terminal.stats:
-                logger.terminal.stats["error"] = []
-
-            logger.terminal.stats["error"].append(report)
-            session.exitstatus = pytest.ExitCode.TESTS_FAILED
+    @property
+    def weblog_container(self) -> WeblogContainer:
+        return self.weblog_infra.http_container
 
     @property
     def dd_site(self):
@@ -773,14 +509,13 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result

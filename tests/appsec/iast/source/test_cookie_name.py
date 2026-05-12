@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, features
+from utils import features
 from tests.appsec.iast.utils import BaseSourceTest
 
 
@@ -16,18 +16,8 @@ class TestCookieName(BaseSourceTest):
     source_names = ["table"]
     source_value = "table"
 
-    @missing_feature(library="dotnet", reason="Not implemented")
-    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
-    @missing_feature(
-        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
-    @bug(context.library >= "java@1.16.0" and context.library < "java@1.22.0", reason="APMRP-360")
-    @missing_feature(weblog_variant="akka-http", reason="Not working as expected")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
-    @missing_feature(weblog_variant="akka-http", reason="Not working as expected")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

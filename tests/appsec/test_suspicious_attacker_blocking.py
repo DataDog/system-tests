@@ -72,31 +72,31 @@ class Test_Suspicious_Attacker_Blocking:
     """
 
     def setup_block_suspicious_attacker(self):
-        self.config_state_1 = rc.rc_state.reset().apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().apply()
         self.response_1 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
 
-        self.config_state_2 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*CONFIG_ENABLED).apply()
         self.response_2 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
 
         self.config_state_3 = (
-            rc.rc_state.set_config(*BLOCK_405).set_config(*EXCLUSIONS).set_config(*EXCLUSION_DATA).apply()
+            rc.tracer_rc_state.set_config(*BLOCK_405).set_config(*EXCLUSIONS).set_config(*EXCLUSION_DATA).apply()
         )
         self.response_3 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
         self.response_3b = weblog.get("/waf/", headers=HEADERS_REGULAR)
         self.response_3ᐩ = weblog.get("/waf/", headers=HEADERS_ATTACKER_NON_BLOCKING)
         self.response_3bᐩ = weblog.get("/waf/", headers=HEADERS_REGULAR_NON_BLOCKING)
 
-        self.config_state_4 = rc.rc_state.set_config(*BLOCK_416).apply()
+        self.config_state_4 = rc.tracer_rc_state.set_config(*BLOCK_416).apply()
         self.response_4 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
         self.response_4b = weblog.get("/waf/", headers=HEADERS_REGULAR)
         self.response_4ᐩ = weblog.get("/waf/", headers=HEADERS_ATTACKER_NON_BLOCKING)
         self.response_4bᐩ = weblog.get("/waf/", headers=HEADERS_REGULAR_NON_BLOCKING)
 
-        self.config_state_5 = rc.rc_state.del_config(EXCLUSION_DATA[0]).apply()
+        self.config_state_5 = rc.tracer_rc_state.del_config(EXCLUSION_DATA[0]).apply()
         self.response_5 = weblog.get("/waf/", headers=HEADERS_ATTACKER)
         self.response_5ᐩ = weblog.get("/waf/", headers=HEADERS_ATTACKER_NON_BLOCKING)
 
-        self.config_state_6 = rc.rc_state.reset().apply()
+        self.config_state_6 = rc.tracer_rc_state.reset().apply()
 
     def test_block_suspicious_attacker(self):
         # ASM disabled

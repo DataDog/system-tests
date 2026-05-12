@@ -1,0 +1,62 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "394",
+      "x-datadog-trace-id": "4025375907216069658",
+      "x-datadog-parent-id": "420287682450119718",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=1029175783707504946,_dd.p.llmobs_trace_id=139684269220602493251931922004402097490,_dd.p.tid=6916363100000000",
+      "traceparent": "00-691636310000000037dd020f6d07941a-05d5296b9fe95c26-01",
+      "tracestate": "dd=p:05d5296b9fe95c26;s:1;t.dm:-0;t.llmobs_parent_id:1029175783707504946;t.llmobs_trace_id:139684269220602493251931922004402097490;t.tid:6916363100000000"
+    },
+    "body": "{\"input\":[{\"role\":\"user\",\"content\":\"What's the weather like in San Francisco?\"},{\"type\":\"function_call\",\"call_id\":\"call_123\",\"name\":\"get_weather\",\"arguments\":\"{\\\"location\\\": \\\"San Francisco, CA\\\"}\"},{\"type\":\"function_call_output\",\"call_id\":\"call_123\",\"output\":\"{\\\"temperature\\\": \\\"72\u00b0F\\\", \\\"conditions\\\": \\\"sunny\\\", \\\"humidity\\\": \\\"65%\\\"}\"}],\"model\":\"gpt-4.1\",\"stream\":false,\"temperature\":0.1}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Thu, 13 Nov 2025 19:49:07 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "x-ratelimit-limit-requests": "10000",
+      "x-ratelimit-limit-tokens": "30000000",
+      "x-ratelimit-remaining-requests": "9999",
+      "x-ratelimit-remaining-tokens": "29999921",
+      "x-ratelimit-reset-requests": "6ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_684affcb790a408eaa41c4a40128c3bf",
+      "openai-processing-ms": "1366",
+      "x-envoy-upstream-service-time": "1369",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=rguEnBqgg1RD6Vjyvinh3aangbZYQ7pCVmhdAQXGD2k-1763063347-1.0.1.1-ZmW3_C1e2o_VrAA9vow9D9LxqxFXjWnyHvreR3rqU8kj3zp07b9MJZ.sIOWHfY4HsdyONZlkT0z1ZsUHrfAPydPTJvNw7Q3kWoII7YW5vIk; path=/; expires=Thu, 13-Nov-25 20:19:07 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=wlwbHKS1pyAyxiWGqarhI1A.P9ya_YINV2cAnW2Ts_0-1763063347387-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "99e0ca585ce8c94c-IAD",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"resp_055dc79a0c4753490169163632033881a1bb9eaa02ef08ad3d\",\n  \"object\": \"response\",\n  \"created_at\": 1763063346,\n  \"status\": \"completed\",\n  \"background\": false,\n  \"billing\": {\n    \"payer\": \"developer\"\n  },\n  \"error\": null,\n  \"incomplete_details\": null,\n  \"instructions\": null,\n  \"max_output_tokens\": null,\n  \"max_tool_calls\": null,\n  \"model\": \"gpt-4.1-2025-04-14\",\n  \"output\": [\n    {\n      \"id\": \"msg_055dc79a0c4753490169163632bcdc81a1ad26433aa8fa769e\",\n      \"type\": \"message\",\n      \"status\": \"completed\",\n      \"content\": [\n        {\n          \"type\": \"output_text\",\n          \"annotations\": [],\n          \"logprobs\": [],\n          \"text\": \"The current weather in San Francisco is sunny with a temperature of 72\\u00b0F and a humidity level of 65%. Let me know if you need a forecast for the next few days or more details!\"\n        }\n      ],\n      \"role\": \"assistant\"\n    }\n  ],\n  \"parallel_tool_calls\": true,\n  \"previous_response_id\": null,\n  \"prompt_cache_key\": null,\n  \"prompt_cache_retention\": null,\n  \"reasoning\": {\n    \"effort\": null,\n    \"summary\": null\n  },\n  \"safety_identifier\": null,\n  \"service_tier\": \"default\",\n  \"store\": false,\n  \"temperature\": 0.1,\n  \"text\": {\n    \"format\": {\n      \"type\": \"text\"\n    },\n    \"verbosity\": \"medium\"\n  },\n  \"tool_choice\": \"auto\",\n  \"tools\": [],\n  \"top_logprobs\": 0,\n  \"top_p\": 1.0,\n  \"truncation\": \"disabled\",\n  \"usage\": {\n    \"input_tokens\": 60,\n    \"input_tokens_details\": {\n      \"cached_tokens\": 0\n    },\n    \"output_tokens\": 41,\n    \"output_tokens_details\": {\n      \"reasoning_tokens\": 0\n    },\n    \"total_tokens\": 101\n  },\n  \"user\": null,\n  \"metadata\": {}\n}"
+  }
+}

@@ -2,12 +2,11 @@ package com.datadoghq.resteasy;
 
 import com.datadoghq.system_tests.iast.utils.*;
 
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
-
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 
 import static com.datadoghq.resteasy.Main.DATA_SOURCE;
 import static com.datadoghq.resteasy.Main.LDAP_CONTEXT;
@@ -45,20 +44,12 @@ public class IastSinkResource {
     @GET
     @Path("/insecure_hashing/test_secure_algorithm")
     public String secureHashing() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return crypto.secureHashing(superSecretAccessKey);
     }
 
     @GET
     @Path("/insecure_hashing/test_md5_algorithm")
     public String insecureMd5Hashing() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return crypto.insecureMd5Hashing(superSecretAccessKey);
     }
 
@@ -66,80 +57,48 @@ public class IastSinkResource {
     @GET
     @Path("/insecure_cipher/test_secure_algorithm")
     public String secureCipher() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return crypto.secureCipher(superSecretAccessKey);
     }
 
     @GET
     @Path("/insecure_cipher/test_insecure_algorithm")
     public String insecureCipher() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return crypto.insecureCipher(superSecretAccessKey);
     }
 
     @POST
     @Path("/sqli/test_insecure")
     public Object insecureSql(@FormParam("username") String username, @FormParam("password") String password) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return sql.insecureSql(username, password);
     }
 
     @POST
     @Path("/sqli/test_secure")
     public Object secureSql(@FormParam("username") String username, @FormParam("password") String password) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return sql.secureSql(username, password);
     }
 
     @POST
     @Path("/cmdi/test_insecure")
     public String insecureCmd(@FormParam("cmd") final String cmd) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return this.cmd.insecureCmd(cmd);
     }
 
     @POST
     @Path("/ldapi/test_insecure")
     public String insecureLDAP(@FormParam("username") final String username, @FormParam("password") final String password) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return ldap.injection(username, password);
     }
 
     @POST
     @Path("/ldapi/test_secure")
     public String secureLDAP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return ldap.secure();
     }
 
     @POST
     @Path("/path_traversal/test_insecure")
     public String insecurePathTraversal(@FormParam("path") final String path) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return this.path.insecurePathTraversal(path);
     }
 
@@ -353,5 +312,83 @@ public class IastSinkResource {
         String sanitized = SecurityControlUtil.overloadedSanitize(param, null);
         cmd.insecureCmd(sanitized);
         return "ok";
+    }
+
+    @GET
+    @Path("/sampling-by-route-method-count/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getSamplingByRouteMethodCount(@PathParam("id") String id) {
+        try {
+            MessageDigest.getInstance("SHA1").digest("hash1".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash2".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash3".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash4".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash5".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash6".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash7".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash8".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash9".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash10".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash11".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash12".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash13".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash14".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash15".getBytes(StandardCharsets.UTF_8));
+            return "ok";
+        } catch (Exception e) {
+            throw new WebApplicationException(e.getMessage(), 500);
+        }
+    }
+
+    @POST
+    @Path("/sampling-by-route-method-count/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String postSamplingByRouteMethodCount(@PathParam("id") String id) {
+        try {
+            MessageDigest.getInstance("SHA1").digest("hash1".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash2".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash3".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash4".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash5".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash6".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash7".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash8".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash9".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash10".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash11".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash12".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash13".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash14".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash15".getBytes(StandardCharsets.UTF_8));
+            return "ok";
+        } catch (Exception e) {
+            throw new WebApplicationException(e.getMessage(), 500);
+        }
+    }
+
+    @GET
+    @Path("/sampling-by-route-method-count-2/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getSamplingByRouteMethodCount2(@PathParam("id") String id) {
+        try {
+            MessageDigest.getInstance("SHA1").digest("hash1".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash2".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash3".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash4".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash5".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash6".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash7".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash8".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash9".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash10".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash11".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash12".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash13".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash14".getBytes(StandardCharsets.UTF_8));
+            MessageDigest.getInstance("SHA1").digest("hash15".getBytes(StandardCharsets.UTF_8));
+            return "ok";
+        } catch (Exception e) {
+            throw new WebApplicationException(e.getMessage(), 500);
+        }
     }
 }

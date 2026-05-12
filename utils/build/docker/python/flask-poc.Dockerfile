@@ -1,9 +1,12 @@
-FROM datadog/system-tests:flask-poc.base-v9
+FROM datadog/system-tests:flask-poc.base-v13
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+# Install OTel OTLP exporter for FFE metrics
+RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -12,7 +15,6 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV DD_DATA_STREAMS_ENABLED=True
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=5
 
 # Cross Tracer Integration Testing for Trace Context Propagation
 ENV DD_BOTOCORE_PROPAGATION_ENABLED=true

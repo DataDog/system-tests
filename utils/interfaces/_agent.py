@@ -4,15 +4,16 @@
 
 """Validate data flow between agent and backend"""
 
-from collections.abc import Callable, Iterable
 import copy
 import threading
+from collections.abc import Callable, Generator, Iterable
+from typing import Any
 
-from utils.tools import get_rid_from_span
 from utils._logger import logger
-from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils._weblog import HttpResponse
+from utils.dd_types import AgentTraceFormat, DataDogAgentSpan, DataDogAgentTrace
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
 class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -26,42 +27,20 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_appsec_data(self, request: HttpResponse):
-        rid = request.get_rid()
-
-        for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                continue
-
-            content = data["request"]["content"]["tracerPayloads"]
-
-            for payload in content:
-                for chunk in payload["chunks"]:
-                    for span in chunk["spans"]:
-                        appsec_data = span.get("meta", {}).get("_dd.appsec.json", None) or span.get(
-                            "meta_struct", {}
-                        ).get("appsec", None)
-                        if appsec_data is None:
-                            continue
-
-                        if rid is None:
-                            yield data, payload, chunk, span, appsec_data
-                        elif get_rid_from_span(span) == rid:
-                            logger.debug(f'Found span with rid={rid} in {data["log_filename"]}')
-                            yield data, payload, chunk, span, appsec_data
+    def get_appsec_data(
+        self, request: HttpResponse
+    ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
+        for data, span in self.get_spans(request):
+            json_data = span.meta.get("_dd.appsec.json")
+            if json_data is not None:
+                yield data, span, json_data
+            elif (legacy_metastruct_data := span.get("metaStruct", {}).get("appsec")) is not None:
+                yield data, span, legacy_metastruct_data
+            elif (v1_metastruct_data := span.meta.get("appsec")) is not None:
+                yield data, span, v1_metastruct_data
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
-
-    def validate_profiling(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
-
-    def validate_appsec(self, request: HttpResponse, validator: Callable):
-        for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
-            if validator(data, payload, chunk, span, appsec_data):
-                return
-
-        raise ValueError("No data validate this test")
 
     def get_telemetry_data(self, *, flatten_message_batches: bool = True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
@@ -81,7 +60,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     yield data
 
     def assert_trace_exists(self, request: HttpResponse):
-        for _, _ in self.get_spans(request=request):
+        for _, _ in self.get_traces(request=request):
             return
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
@@ -93,41 +72,17 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
+        """Assert that a header is present on all requests"""
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
+        self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
-    def assert_headers_match(
-        self,
-        path_filter: list[str] | str | None,
-        request_headers: dict | None = None,
-        response_headers: dict | None = None,
-        check_condition: Callable | None = None,
-    ):
-        validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
-
-    def validate_telemetry(self, validator: Callable, *, success_by_default: bool = False):
-        def validator_skip_onboarding_event(data: dict):
-            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
-                return None
-            return validator(data)
-
-        self.validate(
-            validator=validator_skip_onboarding_event,
-            success_by_default=success_by_default,
-            path_filters="/api/v2/apmtelemetry",
-        )
-
-    def add_traces_validation(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(
-            validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
-        )
-
-    def get_spans(self, request: HttpResponse | None = None):
-        """Attempts to fetch the spans the agent will submit to the backend.
+    def get_traces(self, request: HttpResponse | None = None) -> Generator[tuple[dict, DataDogAgentTrace]]:
+        """Attempts to fetch the traces the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
+
+        Returns data, trace and trace_format
         """
 
         rid = request.get_rid() if request else None
@@ -135,30 +90,80 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                raise ValueError("Trace property is missing in agent payload")
+            logger.debug(f"Looking at agent data {data['log_filename']}")
 
-            content = data["request"]["content"]["tracerPayloads"]
+            builder: Callable[[dict, dict], DataDogAgentTrace]
+
+            if "tracerPayloads" in data["request"]["content"]:
+                builder = DataDogAgentTrace.from_agent_legacy
+                content: list[dict] = data["request"]["content"]["tracerPayloads"]
+            elif "idxTracerPayloads" in data["request"]["content"]:
+                builder = DataDogAgentTrace.from_agent_v1
+                content: list[dict] = data["request"]["content"]["idxTracerPayloads"]
+            else:
+                raise TypeError("I don't know how to build trace from this file")
 
             for payload in content:
-                for chunk in payload["chunks"]:
-                    for span in chunk["spans"]:
-                        if rid is None or get_rid_from_span(span) == rid:
-                            yield data, span
+                for chunk in payload.get("chunks", []):
+                    trace = builder(data, raw_trace=chunk)
+                    if rid is None:
+                        yield data, trace
+                    else:
+                        for span in trace.spans:
+                            if span.get_rid() == rid:
+                                logger.debug(f"Found a span in {trace.log_filename}")
+                                yield data, trace
+                                break
 
-    def get_spans_list(self, request: HttpResponse):
+    def get_spans(self, request: HttpResponse | None = None) -> Generator[tuple[dict, DataDogAgentSpan], None, None]:
+        """Attempts to fetch the spans the agent will submit to the backend.
+
+        When a valid request is given, then we filter the spans to the ones sampled
+        during that request's execution, and only return those.
+
+        Returns data, span and trace_format
+        """
+
+        rid = request.get_rid() if request else None
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data, trace in self.get_traces(request=request):
+            for span in trace.spans:
+                if rid is None or span.get_rid() == rid:
+                    yield data, span
+
+    @staticmethod
+    def get_span_metrics(span: DataDogAgentSpan) -> dict[str, str]:
+        """Returns the metrics dictionary of a span according to its format"""
+        if span.trace.format == AgentTraceFormat.legacy:
+            return span["metrics"]
+
+        if span.trace.format == AgentTraceFormat.efficient_trace_payload_format:
+            # in the new format, metrics and meta are joined in attributes
+            return span["attributes"]
+
+        raise ValueError(f"Unknown span format: {span.trace.format}")
+
+    def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
         return [span for _, span in self.get_spans(request)]
 
     def get_metrics(self):
         """Attempts to fetch the metrics the agent will submit to the backend."""
 
         for data in self.get_data(path_filters="/api/v2/series"):
-            if "series" not in data["request"]["content"]:
-                raise ValueError("series property is missing in agent payload")
+            content = data["request"]["content"]
+            assert isinstance(content, dict), f"content is not a dict in {data['log_filename']}"
 
-            content = data["request"]["content"]["series"]
+            if len(content) == 0:
+                continue
 
-            for point in content:
+            if "series" not in content:
+                raise ValueError(f"series property is missing in agent payload in {data['log_filename']}")
+
+            series = data["request"]["content"]["series"]
+
+            for point in series:
                 yield data, point
 
     def get_sketches(self):
@@ -167,23 +172,22 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         all_data = self.get_data(path_filters="/api/beta/sketches")
 
         for data in all_data:
-            if "sketches" not in data["request"]["content"]:
-                raise ValueError("sketches property is missing in agent payload")
+            if "sketches" in data["request"]["content"]:
+                content = data["request"]["content"]["sketches"]
 
-            content = data["request"]["content"]["sketches"]
-
-            for point in content:
-                yield data, point
+                for point in content:
+                    yield data, point
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
 
-    def get_stats(self, resource: str = ""):
+    def get_stats(self, resource: str | list[str] = ""):
         """Attempts to fetch the stats the agent will submit to the backend.
 
         When a valid request is given, then we filter the stats to the ones sampled
         during that request's execution, and only return those.
         """
+        resources = [resource] if isinstance(resource, str) else resource
 
         for data in self.get_data(path_filters="/api/v0.2/stats"):
             client_stats_payloads = data["request"]["content"]["Stats"]
@@ -191,5 +195,5 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for client_stats_payload in client_stats_payloads:
                 for client_stats_buckets in client_stats_payload["Stats"]:
                     for client_grouped_stat in client_stats_buckets["Stats"]:
-                        if resource == "" or client_grouped_stat["Resource"] == resource:
+                        if not resources or "" in resources or client_grouped_stat["Resource"] in resources:
                             yield client_grouped_stat

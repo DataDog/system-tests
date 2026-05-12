@@ -30,6 +30,14 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
+        os_branch: fedora41
+        remote-command: |
+          sudo dnf install -y python3
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo dnf install -y python-pip || sudo dnf install -y python3-pip
+
+      - os_type: linux
+        os_distro: rpm
         os_branch: alma_linux
         remote-command: |
           sudo dnf install python39 -y

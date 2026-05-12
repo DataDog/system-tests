@@ -1,0 +1,30 @@
+{
+  "snapshot_0": {
+    "duration": "<scrubbed>",
+    "error": 1,
+    "meta": {
+      "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
+      "_dd.debug.error.2.function": "exceptionReplaySimple",
+      "_dd.debug.error.2.line": "10",
+      "_dd.debug.error.2.snapshot_id": "<scrubbed>",
+      "_dd.debug.error.exception_capture_id": "<scrubbed>",
+      "_dd.debug.error.exception_hash": "<scrubbed>",
+      "component": "flask",
+      "env": "system-tests",
+      "error.debug_info_captured": "true",
+      "error.message": "simple exception",
+      "error.stack": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/ddtrace/contrib/internal/flask/wrappers.py\", <scrubbed>",
+      "error.type": "builtins.Exception",
+      "key1": "val1",
+      "key2": "val2",
+      "version": "<scrubbed>"
+    },
+    "name": "exceptionreplay.exceptionReplaySimple",
+    "parentID": "<scrubbed>",
+    "resource": "/exceptionreplay/simple",
+    "service": "weblog",
+    "spanID": "<scrubbed>",
+    "start": "<scrubbed>",
+    "traceID": "<scrubbed>"
+  }
+}

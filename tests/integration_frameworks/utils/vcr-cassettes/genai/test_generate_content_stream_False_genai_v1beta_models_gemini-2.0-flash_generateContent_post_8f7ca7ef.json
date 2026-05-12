@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "User-Agent": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "x-goog-api-client": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "Content-Length": "157",
+      "x-datadog-trace-id": "8916646162201419277",
+      "x-datadog-parent-id": "15930596281908926946",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.tid=694204bf00000000",
+      "traceparent": "00-694204bf000000007bbe4a712ddd9e0d-dd14d8ea1b5719e2-01",
+      "tracestate": "dd=p:dd14d8ea1b5719e2;s:1;t.dm:-0;t.tid:694204bf00000000"
+    },
+    "body": "{\"contents\": [{\"parts\": [{\"text\": \"Why did the chicken cross the road?\"}], \"role\": \"user\"}], \"generationConfig\": {\"temperature\": 0.1, \"maxOutputTokens\": 50}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Vary": "Origin, X-Origin, Referer",
+      "Content-Encoding": "gzip",
+      "Date": "Wed, 17 Dec 2025 01:17:52 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=644",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Transfer-Encoding": "chunked"
+    },
+    "body": "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\": [\n          {\n            \"text\": \"This is a classic joke! Here are a few possible answers, ranging from the traditional to the more absurd:\\n\\n*   **The Classic:** To get to the other side.\\n*   **The Logical:** Because there was a road there.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\": \"MAX_TOKENS\",\n      \"avgLogprobs\": -0.17845451354980468\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 8,\n    \"candidatesTokenCount\": 50,\n    \"totalTokenCount\": 58,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 8\n      }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 50\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-2.0-flash\",\n  \"responseId\": \"wARCadnXBbLR_uMPmp3SkQ8\"\n}\n"
+  }
+}

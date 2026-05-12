@@ -10,13 +10,10 @@
                         "dd-djm-spark-test-app"
                     ]
                 }
-            ],
-            "cluster_agents": [
-                "latest"
             ]
         },
         {
-            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
+            "scenarios": ["K8S_LIB_INJECTION_OPERATOR"],
             "weblogs": [
                 {
                     "java": [
@@ -29,37 +26,40 @@
                         "sample-app"
                     ],
                     "python": [
-                        "dd-lib-python-init-test-django",
-                        "dd-lib-python-init-test-django-gunicorn",
-                        "dd-lib-python-init-test-django-gunicorn-alpine",
-                        "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn",
-                        "dd-lib-python-init-test-protobuf-old",
-                        "dd-lib-python-init-test-django-preinstalled"
+                        "dd-lib-python-init-test-django"
                     ],
                     "ruby": [
-                        "dd-lib-ruby-init-test-rails",
-                        "dd-lib-ruby-init-test-rails-explicit",
-                        "dd-lib-ruby-init-test-rails-gemsrb"
-                    ]
-                }
-            ],
-            "cluster_agents": [
-                "old_injection",
-                "latest"
-            ]
-        },
-        {
-            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
-            "weblogs": [
-                {
+                        "dd-lib-ruby-init-test-rails"
+                    ],
                     "php": [
                         "dd-lib-php-init-test-app"
                     ]
                 }
-            ],
-            "cluster_agents": [
-                "latest"
+            ]
+        },
+        {
+            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_APPSEC_DISABLED", "K8S_LIB_INJECTION_APPSEC_ENABLED"],
+            "weblogs": [
+                {
+                    "java": [
+                        "dd-lib-java-init-test-app"
+                    ],
+                    "dotnet": [
+                        "dd-lib-dotnet-init-test-app"
+                    ],
+                    "nodejs": [
+                        "sample-app"
+                    ],
+                    "python": [
+                        "dd-lib-python-init-test-django"
+                    ],
+                    "ruby": [
+                        "dd-lib-ruby-init-test-rails"
+                    ],
+                    "php": [
+                        "dd-lib-php-init-test-app"
+                    ]
+                }
             ]
         },
         {
@@ -80,9 +80,7 @@
                         "dd-lib-python-init-test-django-gunicorn",
                         "dd-lib-python-init-test-django-gunicorn-alpine",
                         "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn",
-                        "dd-lib-python-init-test-protobuf-old",
-                        "dd-lib-python-init-test-django-preinstalled"
+                        "dd-lib-python-init-test-django-uvicorn"
                     ],
                     "ruby": [
                         "dd-lib-ruby-init-test-rails",
@@ -95,10 +93,7 @@
                 }
             ]
         }
-       
-    ],
-    "cluster_agent_spec": {
-        "latest": "gcr.io/datadoghq/cluster-agent:latest",
-        "old_injection": "gcr.io/datadoghq/cluster-agent:7.56.2"
-    }
+
+    ]
+
 }

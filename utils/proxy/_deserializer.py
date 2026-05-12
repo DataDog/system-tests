@@ -6,11 +6,10 @@ import base64
 import gzip
 import io
 import json
-import logging
 from hashlib import md5
 from http import HTTPStatus
 import traceback
-from typing import Any
+from typing import Any, Literal
 
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
@@ -27,10 +26,11 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
-
-
-logger = logging.getLogger(__name__)
+from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from .trace_bytes_decoding import decode_trace_bytes_ascii, unpack_trace_bytes_msgpack
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
+from .traces.otlp_v1 import deserialize_otlp_v1_trace
+from .utils import logger
 
 
 def get_header_value(name: str, headers: list[tuple[str, str]]):
@@ -90,17 +90,21 @@ def _decode_v_0_5_traces(content: tuple):
 
 
 def deserialize_dd_appsec_s_meta(payload: str):
-    """Meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings"""
+    """Meta value for _dd.appsec.s.<address> are either JSON or b64-gzip-json encoded.
 
-    try:
-        return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
-    except Exception:
-        # b64/gzip is optional
-        return json.loads(payload)
+    Uses the same decoding logic as v1 trace attribute handling. Raises ValueError
+    if json, base64, or gzip decoding fails.
+    """
+    return decode_appsec_s_value(payload)
 
 
 def deserialize_http_message(
-    path: str, message: dict, content: bytes | None, interface: str, key: str, export_content_files_to: str
+    path: str,
+    message: dict,
+    content: bytes | None,
+    interface: str,
+    key: Literal["request", "response"],
+    export_content_files_to: str,
 ):
     def json_load():
         if not content:
@@ -111,10 +115,23 @@ def deserialize_http_message(
     raw_content_type = get_header_value("content-type", message["headers"])
     content_type = None if raw_content_type is None else raw_content_type.lower()
 
+    # Determine if the content is from a Datadog tracer
+    source_is_datadog_tracer = interface in (
+        "library",
+        "python_buddy",
+        "nodejs_buddy",
+        "java_buddy",
+        "ruby_buddy",
+        "golang_buddy",
+    )
+
     if not content or len(content) == 0:
         return None
 
     if content_type and any(mime_type in content_type for mime_type in ("application/json", "text/json")):
+        # For OTLP traces, flatten some attributes to simplify the payload for testing purposes
+        if path == "/v1/traces":
+            return deserialize_otlp_v1_trace(json_load())
         return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
@@ -123,21 +140,27 @@ def deserialize_http_message(
 
         return json_load()
 
-    if path == "/dogstatsd/v2/proxy" and interface == "library":
+    if path == "/dogstatsd/v2/proxy" and source_is_datadog_tracer:
         # TODO : how to deserialize this ?
         return content.decode(encoding="utf-8")
 
-    if interface == "library" and path == "/info":
+    if source_is_datadog_tracer and path == "/info":
         if key == "response":
             return json_load()
 
         # replace zero length strings/bytes by None
         return content if content else None
 
+    if path == "/v1.0/traces" and source_is_datadog_tracer:
+        if content_type == "text/plain; charset=utf-8":
+            return content.decode(encoding="utf-8")
+
+        return deserialize_v1_trace(content)
+
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
-        if interface == "library":
+        if source_is_datadog_tracer:
             if path == "/v0.4/traces":
                 _decode_unsigned_int_traces(result)
                 _deserialized_nested_json_from_trace_payloads(result, interface)
@@ -161,23 +184,53 @@ def deserialize_http_message(
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
-            return MessageToDict(ExportTraceServiceRequest.FromString(content))
+            return deserialize_otlp_v1_trace(
+                MessageToDict(
+                    ExportTraceServiceRequest.FromString(content),
+                    preserving_proto_field_name=False,
+                    use_integers_for_enums=True,
+                )
+            )
         if dd_protocol == "otlp" and "metrics" in path:
-            return MessageToDict(ExportMetricsServiceRequest.FromString(content))
+            return MessageToDict(
+                ExportMetricsServiceRequest.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if dd_protocol == "otlp" and "logs" in path:
-            return MessageToDict(ExportLogsServiceRequest.FromString(content))
+            return MessageToDict(
+                ExportLogsServiceRequest.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/v1/traces":
-            return MessageToDict(ExportTraceServiceResponse.FromString(content))
+            return MessageToDict(
+                ExportTraceServiceResponse.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/v1/metrics":
-            return MessageToDict(ExportMetricsServiceResponse.FromString(content))
+            return MessageToDict(
+                ExportMetricsServiceResponse.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/v1/logs":
-            return MessageToDict(ExportLogsServiceResponse.FromString(content))
+            return MessageToDict(
+                ExportLogsServiceResponse.FromString(content),
+                preserving_proto_field_name=False,
+                use_integers_for_enums=True,
+            )
         if path == "/api/v0.2/traces":
             result = MessageToDict(TracePayload.FromString(content))
             _deserialized_nested_json_from_trace_payloads(result, interface)
+            _uncompress_agent_v1_trace(result, interface)
             return result
         if path == "/api/v2/series":
-            return MessageToDict(MetricPayload.FromString(content))
+            if key == "request":
+                return MessageToDict(MetricPayload.FromString(content))
+
+            return MessageToDict(BackendResponsePayload.FromString(content))
         if path == "/api/beta/sketches":
             return MessageToDict(SketchPayload.FromString(content))
 
@@ -187,13 +240,13 @@ def deserialize_http_message(
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
         for part in MultipartDecoder(content, raw_content_type).parts:
-            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
+            headers: dict[str, str] = {k.decode("utf-8").lower(): v.decode("utf-8") for k, v in part.headers.items()}
             item: dict[str, Any] = {"headers": headers}
 
             content_type_part = ""
 
             for name, value in headers.items():
-                if name.lower() == "content-type":
+                if name == "content-type":
                     content_type_part = value.lower()
                     break
 
@@ -208,8 +261,8 @@ def deserialize_http_message(
                 try:
                     with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
                         content = gz_file.read()
-                except:
-                    item["system-tests-error"] = "Can't decompress gzip data"
+                except Exception as e:  # Many possible errors, catching all
+                    item["system-tests-error"] = f"Can't decompress gzip data: {e}"
                     continue
 
                 _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, content)
@@ -234,12 +287,14 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
 ) -> None:
-    content_disposition = headers.get("Content-Disposition", "")
+    content_disposition = headers.get("content-disposition", "<not set>")
 
     if not content_disposition.startswith("form-data"):
-        item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
+        item["system-tests-error"] = (
+            f"Unknown content-disposition: {content_disposition}, please contact #apm-shared-testing"
+        )
         item["content"] = None
 
     else:
@@ -295,16 +350,21 @@ def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):
                 _deserialize_meta(span)
 
 
+_json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json"])
+
+
 def _deserialize_meta(span: dict):
     meta = span.get("meta", {})
-
-    keys = ("_dd.appsec.json", "_dd.iast.json")
 
     for key in list(meta):
         if key.startswith("_dd.appsec.s."):
             meta[key] = deserialize_dd_appsec_s_meta(meta[key])
-        elif key in keys:
+        elif key in _json_meta_values:
             meta[key] = json.loads(meta[key])
+
+    for key, val in span.get("metaStruct", {}).items():
+        if isinstance(val, str):
+            span["metaStruct"][key] = unpack_trace_bytes_msgpack(base64.b64decode(val))
 
 
 def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401
@@ -314,13 +374,13 @@ def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401
                 if path == "[][].meta_struct":
                     # meta_struct value is msgpack in msgpack
                     try:
-                        item[key] = msgpack.unpackb(item[key], unicode_errors="replace", strict_map_key=False)
+                        item[key] = unpack_trace_bytes_msgpack(item[key])
                     except BaseException as e:
                         raise ValueError(f"Error decoding {path}") from e
                 else:
                     # otherwise, best guess is simple string
                     try:
-                        item[key] = item[key].decode("ascii")
+                        item[key] = decode_trace_bytes_ascii(item[key])
                     except UnicodeDecodeError as e:
                         raise ValueError(f"Error decoding {path}") from e
             elif isinstance(item[key], dict):
@@ -330,14 +390,24 @@ def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401
             _convert_bytes_values(value, f"{path}[]")
 
 
-def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface: str, export_content_files_to: str):
+def deserialize(
+    data: dict[str, Any],
+    key: Literal["request", "response"],
+    content: bytes | None,
+    interface: str,
+    export_content_files_to: str,
+):
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
-    except:
+    except Exception:  # Many possible errors, catching all
         status_code: int = data[key]["status_code"]
-        if key == "response" and status_code in (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.REQUEST_TIMEOUT):
+        if key == "response" and status_code in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.FORBIDDEN,
+        ):
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

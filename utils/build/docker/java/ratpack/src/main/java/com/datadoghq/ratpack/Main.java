@@ -2,6 +2,7 @@ package com.datadoghq.ratpack;
 
 import static datadog.appsec.api.user.User.setUser;
 import static java.util.Collections.emptyMap;
+import static ratpack.jackson.Jackson.json;
 
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
@@ -107,7 +108,8 @@ public class Main {
                                 Span span = tracer.buildSpan("test-span").start();
                                 span.setTag("test-tag", "my value");
                                 try {
-                                    ctx.getResponse().send("text/plain", "Hello World!");
+                                    ctx.getResponse().getHeaders().set("Content-Length", "13");
+                                    ctx.getResponse().send("text/plain", "Hello world!\n");
                                 } finally {
                                     span.finish();
                                 }
@@ -122,7 +124,7 @@ public class Main {
                                 response.put("status", "ok");
                                 response.put("library", library);
 
-                                ctx.render(Jackson.json(response));
+                                ctx.render(json(response));
                             })
                             .get("headers", ctx -> {
                                 Response response = ctx.getResponse();
@@ -141,6 +143,24 @@ public class Main {
                                 response.getHeaders().add("X-Test-Header-3", "value3");
                                 response.getHeaders().add("X-Test-Header-4", "value4");
                                 response.getHeaders().add("X-Test-Header-5", "value5");
+                                response.send("text/plain", "Response with custom headers");
+                            })
+                            .get("authorization_related_headers", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Authorization-related headers
+                                response.getHeaders().add("Authorization", "value1");
+                                response.getHeaders().add("Proxy-Authorization", "value2");
+                                response.getHeaders().add("WWW-Authenticate", "value3");
+                                response.getHeaders().add("Proxy-Authenticate", "value4");
+                                response.getHeaders().add("Authentication-Info", "value5");
+                                response.getHeaders().add("Proxy-Authentication-Info", "value6");
+                                response.getHeaders().add("Cookie", "value7");
+                                response.getHeaders().add("Set-Cookie", "value8");
+
+                                // Standard headers
+                                response.getHeaders().add("Content-Language", "en-US");
+                                response.getHeaders().add("content-type", "text/plain");
+
                                 response.send("text/plain", "Response with custom headers");
                             })
                             // Endpoint exceeding default header budget with 50 headers
@@ -199,9 +219,22 @@ public class Main {
                             .path("tag_value/:tag_value/:status_code", ctx -> {
                                 final String value = ctx.getPathTokens().get("tag_value");
                                 final int code = Integer.parseInt(ctx.getPathTokens().get("status_code"));
+                                final String xOption = ctx.getRequest().getQueryParams().get("X-option");
                                 WafPostHandler.consumeParsedBody(ctx).then(v -> {
                                     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-                                    ctx.getResponse().status(code).send("Value tagged");
+                                    if (xOption != null) {
+                                        ctx.getResponse().getHeaders().add("X-option", xOption);
+                                    }
+                                    ctx.getResponse().status(code);
+                                    if (value.startsWith("payload_in_response_body")) {
+                                        ctx.getResponse().contentType("application/json");
+                                        final Map<String, Object> responseBody = new HashMap<>();
+                                        responseBody.put("payload", v);
+                                        ctx.render(json(responseBody));
+                                    } else {
+                                        ctx.getResponse().contentType("text/plain");
+                                        ctx.render("Value tagged");
+                                    }
                                 });
                             })
                             .get("sample_rate_route/:i", ctx -> {
@@ -228,9 +261,16 @@ public class Main {
                             })
                             .get("params/:params?:.*",
                                     ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
+                            .get("resource_renaming/:path?:.*",
+                                    ctx -> ctx.getResponse().send("text/plain", "ok"))
                             .path("status", ctx -> {
                                 String codeParam = ctx.getRequest().getQueryParams().get("code");
                                 int code = Integer.parseInt(codeParam);
+                                ctx.getResponse().status(code).send();
+                            })
+                            .path("stats-unique", ctx -> {
+                                String codeParam = ctx.getRequest().getQueryParams().get("code");
+                                int code = codeParam != null ? Integer.parseInt(codeParam): 200;
                                 ctx.getResponse().status(code).send();
                             })
                             .get("users", ctx -> {
@@ -331,12 +371,39 @@ public class Main {
                                 setRootSpanTag("service", serviceName);
                                 ctx.getResponse().send("ok");
                             })
+                            .get("inferred-proxy/span-creation", ctx -> {
+                                String statusCodeParam = ctx.getRequest().getQueryParams().get("status_code");
+                                int statusCode = 200;
+                                if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                                    try {
+                                        statusCode = Integer.parseInt(statusCodeParam);
+                                    } catch (NumberFormatException e) {
+                                        statusCode = 400;
+                                    }
+                                }
+                                System.out.println("Received an API Gateway request:");
+                                Headers headers = ctx.getRequest().getHeaders();
+                                headers.getNames().forEach(name -> System.out.println(name + ": " + headers.get(name)));
+                                ctx.getResponse().status(statusCode).send("text/plain", "ok");
+                            })
                             .get("set_cookie", ctx -> {
                                 final String name = ctx.getRequest().getQueryParams().get("name");
                                 final String value = ctx.getRequest().getQueryParams().get("value");
                                 ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
                                 ctx.getResponse().send("text/plain", "ok");
-                            });
+                            })
+                            // IAST Sampling endpoints
+                            .get("iast/sampling-by-route-method-count-2/:id", IastSamplingHandlers.getSamplingByRouteMethodCount2());
+                    chain.path("iast/sampling-by-route-method-count/:id", ctx -> {
+                        ctx.byMethod(m -> m
+                                .get(ctxGet -> {
+                                    IastSamplingHandlers.getSamplingByRouteMethodCount().handle(ctxGet);
+                                })
+                                .post(ctxPost -> {
+                                    IastSamplingHandlers.postSamplingByRouteMethodCount().handle(ctxPost);
+                                })
+                        );
+                    });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);
                 })

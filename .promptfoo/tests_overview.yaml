@@ -1,0 +1,47 @@
+  - description: "[Generic questions] overview"
+    vars:
+      user_prompt: "what are the system-tests?"
+    assert:
+        - type: llm-rubric
+          value: "it's a framework for testing Datadog tracer libraries. It's a collection of tests for different tracer libraries and different scenarios. black box testing. There are different types of scenarios."
+          threshold: 0.7
+
+  - description: "[Generic questions] main scenarios"
+    vars:
+      user_prompt: "what are the main scenarios on system-tests?"
+    assert:
+        - type: icontains-all
+          value:
+            - "end-to-end"
+            - "parametric"
+        - type: icontains-any
+          value:
+            - "library injection tests"
+            - "lib injection"
+            - "kubernetes"
+            - "k8s"
+        - type: icontains-any
+          value:
+            - "aws ssi"
+            - "onboarding"
+        - type: icontains-any
+          value:
+            - "docker ssi"
+            - "docker_ssi"
+
+  - description: "[Generic questions] First time setup"
+    vars:
+      user_prompt: "to run the system-tests for the very first time, what should i do? Please provide me with a step-by-step breakdown of the system test requirements and what I need to do to build and run my first scenario."
+    assert:
+        - type: icontains-all
+          value:
+            - "build.sh -i runner"
+            - "source venv/bin/activate"
+            - "build.sh"
+            - "run.sh"
+            - "docker"
+            - "bash"
+        - type: icontains-any
+          value:
+            - "python3.12"
+            - "python 3.12"

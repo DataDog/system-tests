@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'pry'
 require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'faraday/follow_redirects'
 
 # tracer configuration of Rack integration
 
@@ -13,10 +13,13 @@ begin
 rescue LoadError
   require 'ddtrace/auto_instrument'
 end
+
 require 'datadog/kit/appsec/events'
+require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
   if c.respond_to?(:tracing)
     c.tracing.instrument :rack
   else
@@ -57,7 +60,7 @@ module Hello
   module_function
 
   def run
-    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+    [200, { 'Content-Type' => 'text/plain' }, ["Hello world!\n"]]
   end
 end
 
@@ -168,7 +171,7 @@ module MakeDistantCall
 
     result = {
       url: url,
-      status_code: response.code,
+      status_code: response.code.to_i,
       request_headers: request.each_header.to_h,
       response_headers: response.each_header.to_h
     }
@@ -300,6 +303,76 @@ module SSRFHandler
   end
 end
 
+module ExternalRequest
+  module_function
+
+  def run(request)
+    queries = request.GET.dup
+    status_code = queries.delete('status') || '200'
+    url_extra = queries.delete('url_extra') || ''
+
+    headers = queries.each.with_object({}) do |(key, value), hash|
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    request.body.rewind
+    body = request.body.read
+    if body && !body.empty?
+      headers['Content-Type'] = request.content_type
+    else
+      body = nil
+    end
+
+    url = "http://internal_server:8089/mirror/#{status_code}#{url_extra}"
+    method = request.request_method.downcase.to_sym
+    downstream_response = Faraday.new.run_request(method, url, body, headers)
+
+    if (200..299).cover?(downstream_response.status)
+      response = {
+        status: downstream_response.status,
+        headers: downstream_response.headers,
+        payload: JSON.parse(downstream_response.body)
+      }
+    else
+      response = { status: downstream_response.status, error: 'Request failed' }
+    end
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
+module ExternalRequestRedirect
+  module_function
+
+  def run(request)
+    total_redirects = request.params['totalRedirects'] || '0'
+
+    headers = request.params.each.with_object({}) do |(key, value), hash|
+      next if key == 'totalRedirects'
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+    conn = Faraday.new do |f|
+      f.response :follow_redirects, limit: 10
+    end
+    downstream_response = conn.get(url, nil, headers)
+
+    response = {
+      status: downstream_response.status,
+      headers: downstream_response.headers.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -317,12 +390,133 @@ module AddEvent
   end
 end
 
+# /api_security/sampling/:status
+module ApiSecurityWithSampling
+  module_function
+
+  def run(request)
+    status = request.path.split('/').last
+    status_code = status.to_i
+
+    [status_code, { 'Content-Type' => 'application/json' }, ['OK']]
+  end
+end
+
+# /api_security_sampling/:i
+module ApiSecuritySampling
+  module_function
+
+  def run(request)
+    [200, { 'Content-Type' => 'application/json' }, ['Hello!']]
+  end
+end
+
+# POST /user_login_success_event_v2
+module UserLoginSuccessEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+      payload['login'],
+      payload['user_id'],
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+# POST /user_login_failure_event_v2
+module UserLoginFailureEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+      payload['login'],
+      payload.fetch('exists', 'false') == 'true',
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
 # any other route
 module NotFound
   module_function
 
   def run
     [404, { 'Content-Type' => 'text/plain' }, ['not found']]
+  end
+end
+
+# NOTE: This is a workaround to ensure that the trace was sampled before the
+#       request lifecycle ends, like in other higher level frameworks (Rails, Sinatra, etc.).
+class TraceSamplingMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    response = @app.call(env)
+    Datadog.send(:components).tracer.sampler.sample!(Datadog::Tracing.active_trace)
+    response
+  end
+end
+
+use TraceSamplingMiddleware
+# NOTE: Most of the frameworks rely on Web Server to compute `Content-Length` header.
+#       But in this case to make it different from Rails and Sinatra we are going
+#       to provide it.
+use Rack::ContentLength
+
+# /flush
+module Flush
+  module_function
+
+  def run(request)
+    # NOTE: If anything needs to be flushed here before the test suite ends,
+    #       this is the place to do it.
+    #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+    if (telemetry = Datadog.send(:components)&.telemetry)
+      if (worker = telemetry.instance_variable_get(:@worker))
+        if (metrics_manager = worker.instance_variable_get(:@metrics_manager))
+          metric_events = metrics_manager.flush!
+          worker.send(:flush_events, metric_events) if metric_events.any?
+        end
+
+        # HACK: In the current implementation there is no way to force the flushing.
+        #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+        #       and just wait till all penging messages are flushed.
+        #
+        # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+        #       value carefully.
+        worker.loop_wait_time = 0
+        sleep 0.2
+      end
+    end
+
+    # NOTE: We don't expose directly flushing in the OpenFeature component as it
+    #       has no use now. But this might change, but for now we are going to
+    #       flush manually knowing some internals.
+    if (open_feature = Datadog.send(:components)&.open_feature)
+      worker = open_feature.instance_variable_get(:@worker)
+      worker.send(:send_events, *worker.dequeue)
+    end
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+module ResourceRenaming
+  def run
+    [200, {'Content-Type' => 'text/plain'}, ['OK']]
   end
 end
 
@@ -365,6 +559,22 @@ app = proc do |env|
     AddEvent.run(request)
   elsif request.path == '/rasp/ssrf'
     SSRFHandler.run(request)
+  elsif request.path == '/external_request'
+    ExternalRequest.run(request)
+  elsif request.path == '/external_request/redirect'
+    ExternalRequestRedirect.run(request)
+  elsif request.path.include?('/api_security/sampling/')
+    ApiSecurityWithSampling.run(request)
+  elsif request.path.include?('/api_security_sampling/')
+    ApiSecuritySampling.run(request)
+  elsif request.path == '/user_login_success_event_v2'
+    UserLoginSuccessEventV2.run(request)
+  elsif request.path == '/user_login_failure_event_v2'
+    UserLoginFailureEventV2.run(request)
+  elsif request.path == '/flush'
+    Flush.run(request)
+  elsif request.path.start_with?('/resource_renaming')
+    ResourceRenaming.run
   else
     NotFound.run
   end

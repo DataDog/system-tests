@@ -1,8 +1,8 @@
-from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
+from utils import interfaces, scenarios, weblog, features, context, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseKinesis:
@@ -15,7 +15,9 @@ class _BaseKinesis:
     unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, stream, operation) -> dict | None:
+    def get_span(
+        cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], stream: str, operation: str
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and stream: {stream} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -46,14 +48,14 @@ class _BaseKinesis:
                 # elif stream != cls.get_stream_name(span):
                 #     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
         return None
 
     @staticmethod
-    def get_stream(span) -> str | None:
+    def get_stream(span: dict) -> str | None:
         """Extracts the stream from a span by trying various fields"""
         stream = span["meta"].get("streamname", None)  # this is in nodejs, java, python
 
@@ -99,11 +101,6 @@ class _BaseKinesis:
             stream=self.WEBLOG_TO_BUDDY_STREAM,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(
-        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -160,11 +157,6 @@ class _BaseKinesis:
             stream=self.BUDDY_TO_WEBLOG_STREAM,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(
-        library="java", reason="Expected to fail, Java does not extract message attribute context for Kinesis"
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -187,7 +179,12 @@ class _BaseKinesis:
         assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_kinesis_spans(self, producer_interface, consumer_interface, stream):
+    def validate_kinesis_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        stream: str,
+    ):
         """Validates production/consumption of Kinesis message.
         It works the same for both test_produce and test_consume
         """

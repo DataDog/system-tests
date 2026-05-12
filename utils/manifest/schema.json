@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Manifest Schema",
+  "description": "Schema for validating manifest YAML files that declare test activation and deactivation conditions",
+  "properties": {
+    "refs": {
+      "type": "array",
+      "description": "Optional YAML anchors (references) for reusable SemVer version expressions. Use these to avoid repeating long or complex version ranges across multiple test declarations.",
+      "items": {
+        "type": "string",
+        "description": "YAML anchor definition (e.g., '&ref_name >=3.0.0 || ^2.13.0'). Reference it later using '*ref_name'"
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "description": "Main manifest section mapping test paths to activation conditions. Test paths follow the format: 'tests/path/to/file.py::Test_Class::test_method' (class and method are optional). Entries must be sorted alphabetically.",
+      "patternProperties": {
+        "^tests/.*": {
+          "$ref": "#/$defs/test_declaration",
+          "description": "Test path in format 'tests/path/to/file.py::Test_Class::test_method' (class and method parts are optional)"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["manifest"],
+  "additionalProperties": false,
+
+  "$defs": {
+    "test_declaration": {
+      "description": "Test declaration can be either a simple string (version or marker) or a complex array with weblog-specific conditions",
+      "if": { "type": "string" },
+      "then": { "$ref": "#/$defs/simple_declaration" },
+      "else": { "$ref": "#/$defs/complex_declaration" }
+    },
+
+    "simple_declaration": {
+      "type": "string",
+      "description": "Simple test declaration: either a SemVer version expression (e.g., 'v1.40.0', '>=3.0.0', '^2.13.0') that enables the test, or a marker that disables it (missing_feature, irrelevant, bug, flaky, incomplete_test_app). Optional comment in parentheses after marker.",
+      "pattern": "^(v[0-9]|<|>|<=|>=|[0-9]).*|^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$",
+      "examples": [
+        "v1.40.0",
+        ">=3.0.0 || ^2.13.0",
+        "missing_feature",
+        "bug (JIRA-1234)",
+        "irrelevant (not applicable to this language)"
+      ]
+    },
+
+    "complex_declaration": {
+      "type": "array",
+      "description": "Complex declaration matching multiple aspects of the component",
+      "items": {
+        "type": "object",
+        "description": "Object defining test conditions with optional weblog filtering, component version requirements, or weblog-specific declarations",
+        "properties": {
+          "excluded_weblog": {
+            "description": "Weblog(s) to exclude from this test. Can be a single weblog name (string) or an array of weblog names. Tests matching these weblogs will be skipped.",
+            "if": { "type": "string" },
+            "then": {
+              "type": "string",
+              "description": "Single weblog name to exclude"
+            },
+            "else": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Weblog name"
+              },
+              "description": "Array of weblog names to exclude"
+            }
+          },
+          "weblog": {
+            "description": "Weblog(s) to include for this test. Can be a single weblog name (string) or an array of weblog names. Only tests matching these weblogs will run.",
+            "if": { "type": "string" },
+            "then": {
+              "type": "string",
+              "description": "Single weblog name to include"
+            },
+            "else": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "Weblog name"
+              },
+              "description": "Array of weblog names to include"
+            }
+          },
+          "component_version": {
+            "description": "Version requirement for component corresponding to this manifest. Must match the pattern for SemVer expressions (e.g., 'v1.2.0', '>=2.0.0').",
+            "type": "string",
+            "pattern": "^(v[0-9]|<|>|<=|>=|[0-9]).*",
+            "examples": ["v1.2.0", ">=2.0.0", "^3.5.0"]
+          },
+          "declaration": {
+            "description": "Test marker declaration: missing_feature, irrelevant, bug, flaky, or incomplete_test_app. Optional comment in parentheses (e.g., 'bug (JIRA-1234)').",
+            "type": "string",
+            "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$",
+            "examples": ["missing_feature", "bug (JIRA-1234)", "irrelevant (not applicable)"]
+          },
+          "weblog_declaration": {
+            "type": "object",
+            "description": "Weblog-specific declarations mapping weblog names to version requirements or markers. Use '*' as a wildcard to match all unspecified weblogs.",
+            "patternProperties": {
+              "^.*$": {
+                "type": "string",
+                "description": "SemVer version expression or marker for this specific weblog",
+                "examples": ["v2.5.0", "missing_feature", "bug (JIRA-1234)"]
+              }
+            },
+            "additionalProperties": false,
+            "examples": [
+              {
+                "*": "v2.1.0",
+                "fastapi": "v2.5.0",
+                "django": "missing_feature"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "minProperties": 1
+      }
+    }
+  }
+}

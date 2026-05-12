@@ -182,7 +182,7 @@ namespace weblog
         {
             return ExecuteCommandInternal("ls", false);
         }
-        
+
         private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
         {
             try
@@ -463,20 +463,20 @@ namespace weblog
         }
 
         [HttpGet("trust-boundary-violation/test_insecure")]
-        public IActionResult test_insecure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        public IActionResult test_insecure_trustBoundaryViolation([FromQuery] string username, [FromQuery] string password)
         {
             HttpContext.Session.SetString("UserData", username);
             return Content("Parameter added to session. User : " + HttpContext.Session.GetString("UserData"));
         }
 
         [HttpGet("trust-boundary-violation/test_secure")]
-        public IActionResult test_secure_trustBoundaryViolation([FromQuery]string username, [FromQuery]string password)
+        public IActionResult test_secure_trustBoundaryViolation([FromQuery] string username, [FromQuery] string password)
         {
             return Content("Nothing added to session");
         }
 
         [HttpPost("unvalidated_redirect/test_insecure_header")]
-        public IActionResult test_insecure_redirect_header([FromForm]string location)
+        public IActionResult test_insecure_redirect_header([FromForm] string location)
         {
             Response.Headers["location"] = location;
             return Content("Redirected to " + location);
@@ -491,7 +491,7 @@ namespace weblog
         }
 
         [HttpPost("unvalidated_redirect/test_insecure_redirect")]
-        public IActionResult test_insecure_redirect([FromForm]string location)
+        public IActionResult test_insecure_redirect([FromForm] string location)
         {
             Response.Redirect(location);
             return Content("Redirected to " + location);
@@ -536,7 +536,7 @@ namespace weblog
         }
 
         [HttpPost("source/body/test")]
-        public IActionResult test_source_body([FromBody]BodyForIast body)
+        public IActionResult test_source_body([FromBody] BodyForIast body)
         {
             try
             {
@@ -565,7 +565,7 @@ namespace weblog
         }
 
         [HttpPost("mongodb-nosql-injection/test_insecure")]
-        public IActionResult test_insecure_mongodb_injection([FromForm]string key)
+        public IActionResult test_insecure_mongodb_injection([FromForm] string key)
         {
             try
             {
@@ -583,7 +583,7 @@ namespace weblog
         }
 
         [HttpPost("mongodb-nosql-injection/test_secure")]
-        public IActionResult test_secure_mongodb_injection([FromForm]string key)
+        public IActionResult test_secure_mongodb_injection([FromForm] string key)
         {
             try
             {
@@ -603,7 +603,7 @@ namespace weblog
         private class ReflectionInjection { } // Class name passed as parameter in the reflection injection test
 
         [HttpPost("reflection_injection/test_insecure")]
-        public IActionResult test_insecure_reflection_injection([FromForm]string param)
+        public IActionResult test_insecure_reflection_injection([FromForm] string param)
         {
 
             try
@@ -620,7 +620,7 @@ namespace weblog
         }
 
         [HttpPost("reflection_injection/test_secure")]
-        public IActionResult test_secure_reflection_injection([FromForm]string param)
+        public IActionResult test_secure_reflection_injection([FromForm] string param)
         {
             try
             {
@@ -646,17 +646,17 @@ namespace weblog
 
             return StatusCode(200);
         }
-		
-		private readonly string xmlContent = @"<?xml version=""1.0"" encoding=""ISO-8859-1""?>
+
+        private readonly string xmlContent = @"<?xml version=""1.0"" encoding=""ISO-8859-1""?>
 		<data><user><name>jaime</name><password>1234</password><account>administrative_account</account></user>
 		<user><name>tom</name><password>12345</password><account>toms_acccount</account></user>
 		<user><name>guest</name><password>anonymous1234</password><account>guest_account</account></user>
 		</data>";
-		
+
         [HttpPost("xpathi/test_insecure")]
         public IActionResult test_insecure_xpath_injection([FromForm] RequestData data)
         {
-            
+
             var findUserXPath = "/data/user[name/text()='" + data.expression + "' and password/text()='" + data.expression + "}']";
             var doc = new XmlDocument();
             doc.LoadXml(xmlContent);
@@ -665,7 +665,7 @@ namespace weblog
                 Content($"Invalid user/password") :
                 Content($"User " + result.ChildNodes[0].InnerText + " successfully logged.");
         }
-        
+
         [HttpPost("xpathi/test_secure")]
         public IActionResult test_secure_xpath_injection([FromForm] RequestData data)
         {
@@ -677,19 +677,19 @@ namespace weblog
                 Content($"Invalid user/password") :
                 Content($"User " + result.ChildNodes[0].InnerText + " successfully logged.");
         }
-        
+
         [HttpPost("email_html_injection/test_insecure")]
         public IActionResult TestInsecureEmailHtmlInjection([FromForm] string username, [FromForm] string email)
         {
             try
             {
                 var mailMessage = BuildMailMessage(username);
-                
+
                 using (var client = new SmtpClient())
                 {
                     client.Send(mailMessage);
                 }
-                
+
                 return Content("Email sent");
             }
             catch
@@ -704,12 +704,12 @@ namespace weblog
             try
             {
                 var mailMessage = BuildMailMessage(HttpUtility.HtmlEncode(username));
-                
+
                 using (var client = new SmtpClient())
                 {
                     client.Send(mailMessage);
                 }
-                
+
                 return Content("Email sent");
             }
             catch
@@ -717,7 +717,7 @@ namespace weblog
                 return Content("Error sending email");
             }
         }
-        
+
         private MailMessage BuildMailMessage(string name)
         {
             var contentHtml = "Hi " + name + "!";
@@ -729,6 +729,121 @@ namespace weblog
             mailMessage.Body = contentHtml;
             mailMessage.IsBodyHtml = true;
             return mailMessage;
+        }
+
+
+        [HttpGet("sampling-by-route-method-count/{count}")]
+        public IActionResult TestSecureEmailHtmlInjection(int count)
+        {
+            GetSHA1_1();
+            GetSHA1_2();
+            GetSHA1_3();
+            GetSHA1_4();
+            GetSHA1_5();
+            GetSHA1_6();
+            GetSHA1_7();
+            GetSHA1_8();
+            GetSHA1_9();
+            GetSHA1_10();
+            GetSHA1_11();
+            GetSHA1_12();
+            GetSHA1_13();
+            GetSHA1_14();
+            GetSHA1_15();
+
+            return Content("OK");
+
+            static byte[] GetSHA1_1() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_2() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_3() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_4() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_5() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_6() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_7() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_8() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_9() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_10() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_11() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_12() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_13() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_14() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_15() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+        }
+
+        [HttpGet("sampling-by-route-method-count-2/{count}")]
+        public IActionResult TestSecureEmailHtmlInjection_2(int count)
+        {
+            GetSHA1_1();
+            GetSHA1_2();
+            GetSHA1_3();
+            GetSHA1_4();
+            GetSHA1_5();
+            GetSHA1_6();
+            GetSHA1_7();
+            GetSHA1_8();
+            GetSHA1_9();
+            GetSHA1_10();
+            GetSHA1_11();
+            GetSHA1_12();
+            GetSHA1_13();
+            GetSHA1_14();
+            GetSHA1_15();
+
+            return Content("OK");
+
+            static byte[] GetSHA1_1() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_2() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_3() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_4() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_5() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_6() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_7() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_8() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_9() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_10() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_11() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_12() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_13() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_14() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_15() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+        }
+
+        [HttpPost("sampling-by-route-method-count/{count}")]
+        public IActionResult TestSecureEmailHtmlInjection_Post([FromForm] int count)
+        {
+            GetSHA1_1();
+            GetSHA1_2();
+            GetSHA1_3();
+            GetSHA1_4();
+            GetSHA1_5();
+            GetSHA1_6();
+            GetSHA1_7();
+            GetSHA1_8();
+            GetSHA1_9();
+            GetSHA1_10();
+            GetSHA1_11();
+            GetSHA1_12();
+            GetSHA1_13();
+            GetSHA1_14();
+            GetSHA1_15();
+
+            return Content("OK");
+
+            static byte[] GetSHA1_1() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_2() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_3() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_4() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_5() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_6() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_7() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_8() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_9() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_10() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_11() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_12() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_13() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_14() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+            static byte[] GetSHA1_15() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
         }
     }
 }

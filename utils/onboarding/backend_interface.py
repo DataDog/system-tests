@@ -1,3 +1,5 @@
+from collections.abc import Callable
+import json
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -7,12 +9,19 @@ from utils._logger import logger
 
 
 API_HOST = "https://dd.datadoghq.com"
+_json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json"])
 
 
-def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
+def wait_backend_trace_id(trace_id: str, profile: bool = False, validator: Callable | None = None):
     logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
-    runtime_id = _query_for_trace_id(trace_id, validator=validator)
+    results = _query_for_trace_id(trace_id, validator=validator)
+    runtime_id = results["runtime_id"]
+    if validator:
+        validator_results = results["validator"]
+        assert validator_results, f"{validator.__name__} failed to validate trace_id: {trace_id}"
+
     assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
+
     if profile:
         _query_for_profile(runtime_id)
 
@@ -51,38 +60,54 @@ def _headers():
     }
 
 
-def _query_for_trace_id(trace_id, validator=None):
+def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
     url = f"{API_HOST}/api/ui/trace/{trace_id}"
 
+    results = {}
+
     trace_data = _make_request(url, headers=_headers())
+    _deserialize_meta(trace_data)
     if validator:
         logger.info("Validating backend trace...")
-        if not validator(trace_id, trace_data):
-            logger.info("Backend trace is not valid")
-            return None
-        logger.info("Backend trace is valid")
+        results["validator"] = validator(trace_id, trace_data)
+        if not results["validator"]:
+            logger.info("Validator failed")
 
     root_id = trace_data["trace"]["root_id"]
-    start_time = trace_data["trace"]["spans"][root_id]["start"]
+    root_span = trace_data["trace"]["spans"][root_id]
+    start_time = root_span["start"]
     start_date = datetime.fromtimestamp(start_time)
     if (datetime.now() - start_date).days > 1:
         logger.info("Backend trace is too old")
-        return None
+        results["runtime_id"] = None
+    else:
+        results["runtime_id"] = root_span["meta"]["runtime-id"]
+    return results
 
-    return trace_data["trace"]["spans"][root_id]["meta"]["runtime-id"]
+
+def _deserialize_meta(trace: dict) -> dict:
+    spans = trace.get("trace", {}).get("spans", {})
+    for span in spans.values():
+        meta = span.get("meta", {})
+        for key in _json_meta_values:
+            value = meta.get(key)
+            if isinstance(value, str):
+                meta[key] = json.loads(value)
+
+    return trace
 
 
 def _make_request(
-    url,
-    headers=None,
-    method="get",
-    json=None,
-    overall_timeout=300,
-    request_timeout=10,
-    retry_delay=1,
-    backoff_factor=2,
-    max_retries=30,
-    validator=None,
+    url: str,
+    headers: dict[str, str] | None = None,
+    method: str = "get",
+    json: dict | None = None,
+    overall_timeout: int = 300,
+    request_timeout: int = 10,
+    retry_delay: int = 1,
+    backoff_factor: int = 2,
+    max_retries: int = 30,
+    validator: Callable | None = None,
 ):
     """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
     start_time = time.perf_counter()
@@ -118,7 +143,7 @@ def _make_request(
     raise TimeoutError(f"Reached max retries limit for {method} {url}")
 
 
-def _parse_retry_after(headers):
+def _parse_retry_after(headers: dict[str, str]):
     # docs: https://docs.datadoghq.com/api/latest/rate-limits/
     limit = headers.get("X-RateLimit-Limit")
     period = headers.get("X-RateLimit-Period")
@@ -136,12 +161,12 @@ def _parse_retry_after(headers):
         return -1
 
 
-def _validate_profiler_response(json):
+def _validate_profiler_response(json: dict):
     data = json["data"]
     return isinstance(data, list) and len(data) > 0
 
 
-def _query_for_profile(runtime_id):
+def _query_for_profile(runtime_id: str):
     url = f"{API_HOST}/api/unstable/profiles/list"
     headers = _headers()
     headers["Content-Type"] = "application/json"

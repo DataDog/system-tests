@@ -9,8 +9,8 @@ function has() {
     shift
 
     local e
-    for e; do [[ "${e}" == "${needle}" ]] && return 0; done
-
+    # shellcheck disable=SC2053 # explicitly allow glob matching
+    for e in "$@"; do [[ $needle == $e ]] && return 0; done
     return 1
 }
 
@@ -41,9 +41,9 @@ function lint() {
         fi
 
         files+=("$f")
-    done < <( find utils -name '*.sh'; ls -1 -- *.sh )
+    done < <( find utils -type d -name 'node_modules' -prune -o -name '*.sh' -print; ls -1 -- *.sh )
 
-    shellcheck "${files[@]}"
+    ./venv/bin/shellcheck "${files[@]}"
 }
 
 function root() {

@@ -6,8 +6,6 @@
 
 from collections.abc import Callable, Iterable
 import json
-from os import listdir
-from os.path import join
 from pathlib import Path
 import re
 import shutil
@@ -18,7 +16,6 @@ from typing import Any
 import pytest
 
 from utils._logger import logger
-from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
 
 class InterfaceValidator:
@@ -63,7 +60,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._lock = threading.RLock()
         self._data_list: list[dict] = []
         self._ingested_files: set[str] = set()
-        self._schema_errors: list[SchemaError] | None = None
 
     def configure(self, host_log_folder: str, *, replay: bool):
         super().configure(host_log_folder, replay=replay)
@@ -90,7 +86,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             self._append_data(data)
             self._ingested_files.add(src_path)
 
-            # make 100% sure that the list is sorted
+            # Ensure the list is completely sorted
             self._data_list.sort(key=lambda data: data["log_filename"])
 
         if self._wait_for_function and self._wait_for_function(data):
@@ -113,14 +109,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                 pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
 
     def load_data_from_logs(self):
-        for filename in sorted(listdir(self.log_folder)):
-            file_path = join(self.log_folder, filename)
-            if Path(file_path).is_file():
-                with open(file_path, encoding="utf-8") as f:
+        for file in sorted(Path(self.log_folder).iterdir()):
+            if file.is_file():
+                with file.open(encoding="utf-8") as f:
                     data = json.load(f)
 
                 self._append_data(data)
-                logger.info(f"{self.name} interface gets {file_path}")
+                logger.info(f"{self.name} interface gets {file}")
 
     def _append_data(self, data: dict):
         self._data_list.append(data)
@@ -140,10 +135,21 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def validate(
-        self, validator: Callable, path_filters: Iterable[str] | str | None = None, *, success_by_default: bool = False
-    ):
+    def validate_one(
+        self,
+        validator: Callable[[dict], bool],
+        path_filters: Iterable[str] | str | None = None,
+    ) -> None:
+        """Will call validator() on all data sent on path_filters. validator() returns a boolean :
+        * True : the payload satisfies the condition, validate_one returns in success
+        * False : the payload is ignored
+        * If validator() raise an exception. the validate_one will fail
+
+        If no payload satisfies validator(), then validate_one will fail
+        """
+        n_iters = 0
         for data in self.get_data(path_filters=path_filters):
+            n_iters += 1
             try:
                 if validator(data) is True:
                     return
@@ -158,10 +164,42 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
                 raise
 
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
+        if n_iters:
+            raise ValueError(f"{n_iters} observed on path filter {path_filters} but none matched the validator")
+        raise ValueError(f"No data observed on path filter {path_filters}")
 
-    def wait_for(self, wait_for_function: Callable, timeout: int):
+    def validate_all(
+        self,
+        validator: Callable[[dict], None],
+        path_filters: Iterable[str] | str | None = None,
+        *,
+        allow_no_data: bool = False,
+    ) -> None:
+        """Will call validator() on all data sent on path_filters
+        If ever a validator raise an exception, the validation will fail
+        """
+
+        data_is_missing = True
+
+        for data in self.get_data(path_filters=path_filters):
+            data_is_missing = False
+            try:
+                validator(data)
+            except Exception as e:
+                logger.error(f"{data['log_filename']} did not validate this test")
+
+                if isinstance(e, ValidationError):
+                    if isinstance(e.extra_info, (dict, list)):
+                        logger.info(json.dumps(e.extra_info, indent=2))
+                    elif isinstance(e.extra_info, (str, int, float)):
+                        logger.info(e.extra_info)
+
+                raise
+
+        if not allow_no_data and data_is_missing:
+            raise ValueError(f"No data has been observed on {path_filters}")
+
+    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> None:
         if self.replay:
             return
 
@@ -183,16 +221,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             logger.error(f"Wait for {wait_for_function} finished in error")
 
         self._wait_for_function = None
-
-    def get_schemas_errors(self) -> list[SchemaError]:
-        if self._schema_errors is None:
-            self._schema_errors: list[SchemaError] = []
-            validator = SchemaValidator(self.name)
-
-            for data in self.get_data():
-                self._schema_errors.extend(validator.get_errors(data))
-
-        return self._schema_errors
 
     def assert_response_header(
         self, path_filters: list[str] | str, header_name_pattern: str, header_value_pattern: str

@@ -8,11 +8,14 @@ import socket
 from utils import interfaces, scenarios, features
 
 
-def is_ip(value):
+def is_ip(value: str):
     try:
         socket.inet_aton(value)
         return True
-    except:
+    except OSError:
+        # Possible exceptions:
+        # - OSError: Raised when the string is not a valid IPv4 address format
+        # - TypeError: Raised if the input is not a string (despite type hint)
         return False
 
 
@@ -29,7 +32,7 @@ class Test_NoIpIsReported:
             "request.tracerPayloads[].tracerVersion",
         }
 
-        def assert_no_ip(data, root):
+        def assert_no_ip(data: dict | list | bytes | str | float | bool, root: str):  # noqa: FBT001
             if data is None or isinstance(data, (bool, int, float, bytes)):
                 pass  # nothing interesting here
             elif isinstance(data, bytes):
@@ -52,7 +55,7 @@ class Test_NoIpIsReported:
             else:
                 raise TypeError(f"Unsupported type: {data}")
 
-        def validator(data):
+        def validator(data: dict):
             assert_no_ip(data["request"]["content"], "request")
 
-        interfaces.agent.validate(validator, success_by_default=True)
+        interfaces.agent.validate_all(validator, allow_no_data=True)

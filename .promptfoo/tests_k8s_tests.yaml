@@ -1,0 +1,21 @@
+  - description: "[k8s] Run k8s tests"
+    vars:
+      user_prompt: "how can i run the k8s tests?"
+    assert:
+        - type: icontains-all
+          value:
+            - "k8s_ssi_wizard.sh"
+        - type: icontains-any
+          value:
+            - "K8s Library Injection"
+            - "K8s Lib Injection"
+            - "K8s tests"
+        - type: icontains-any
+          value:
+            - "aws-vault"
+            - "aws ecr get-login-password"
+        - type: icontains-any
+          value:
+            - "Kind"
+            - "Minikube"
+            - "Colima"

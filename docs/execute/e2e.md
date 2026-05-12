@@ -13,7 +13,7 @@ Check this site-to-host for easier [navigation](https://github.com/DataDog/syste
 
 * Make sure you built the appropriate version of the weblog, for example single span sampling at the time of writing is using Go Chi.
   * To build the weblog, run `./build.sh -l golang -w <chi or net-http or etc>` from the system-tests directory.
-* Run `./run.sh <scenario name >` to run the tests, for example `./run.sh APM_TRACING_E2E_SINGLE_SPAN`.
+* Run `./run.sh <SCENARIO_NAME>` to run the tests, for example `./run.sh APM_TRACING_E2E_SINGLE_SPAN`.
 
 #### Instructions to add new tests or scenarii
 

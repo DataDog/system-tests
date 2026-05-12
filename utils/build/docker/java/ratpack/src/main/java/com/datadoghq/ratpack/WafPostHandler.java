@@ -25,6 +25,9 @@ public class WafPostHandler implements Handler {
         MediaType contentType = ctx.getRequest().getContentType();
         if (contentType.isForm()) {
             ctx.insert(FormHandler.INSTANCE);
+        } else if (contentType.getType().startsWith("multipart/")) {
+            ctx.getRequest().getBody().then(body ->
+                ctx.getResponse().send("text/plain", new String(body.getBytes())));
         } else if (contentType.isJson()) {
             ctx.insert(JsonHandler.INSTANCE);
         } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
@@ -36,19 +39,17 @@ public class WafPostHandler implements Handler {
     }
 
 
-    public static Promise<Void> consumeParsedBody(final Context ctx) {
+    public static Promise<?> consumeParsedBody(final Context ctx) {
         final MediaType contentType = ctx.getRequest().getContentType();
         if (contentType.isEmpty()) {
-            return Promise.ofNull();
+            return ctx.getRequest().getBody().map(TypedData::getText);
         }
         if (contentType.isForm()) {
-            return ctx.parse(Form.class).map(b -> null);
+            return ctx.parse(Form.class);
         } else if (contentType.isJson()) {
-            return ctx.parse(fromJson(Object.class)).map(b -> null);
-        } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
-            return Promise.ofNull();
+            return ctx.parse(fromJson(Object.class));
         }
-        return Promise.ofNull();
+        return ctx.getRequest().getBody().map(TypedData::getText);
     }
 
      enum FormHandler implements Handler {

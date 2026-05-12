@@ -1,15 +1,16 @@
-FROM golang:1.23
+FROM golang:1.25-alpine AS build
+
+RUN apk add --no-cache jq curl bash gcc musl-dev socat git
 
 # print important lib versions
 RUN go version && curl --version
-
-# install socat for the UDS
-RUN apt-get update && apt-get -y install socat
 
 # download go dependencies
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
+ENV GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 RUN go mod download && go mod verify
 
 # copy the app code

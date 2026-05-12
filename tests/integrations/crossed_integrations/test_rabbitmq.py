@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import json
 
 from utils.buddies import java_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils import interfaces, scenarios, weblog, features, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseRabbitMQ:
@@ -19,7 +18,14 @@ class _BaseRabbitMQ:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, exchange, operation) -> dict | None:
+    def get_span(
+        cls,
+        interface: interfaces.LibraryInterfaceValidator,
+        span_kind: str,
+        queue: str,
+        exchange: str,
+        operation: list[str],
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -32,24 +38,24 @@ class _BaseRabbitMQ:
 
                 operation_found = False
                 for op in operation:
-                    if op.lower() in span.get("resource").lower() or op.lower() in span.get("name").lower():
+                    if op.lower() in span["resource"].lower() or op.lower() in span["name"].lower():
                         operation_found = True
                         break
 
                 if not operation_found:
                     continue
 
-                meta = span.get("meta")
+                meta: dict[str, str] = span["meta"]
                 if (
-                    queue.lower() not in span.get("resource").lower()
-                    and exchange.lower() not in span.get("resource").lower()
+                    queue.lower() not in span["resource"].lower()
+                    and exchange.lower() not in span["resource"].lower()
                     and queue.lower() not in meta.get("rabbitmq.routing_key", "").lower()
                     # this is where we find the queue name in dotnet 👇
                     and queue.lower() not in meta.get("amqp.routing_key", "").lower()
                 ):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
@@ -94,8 +100,6 @@ class _BaseRabbitMQ:
             exchange=self.WEBLOG_TO_BUDDY_EXCHANGE,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -118,7 +122,7 @@ class _BaseRabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def setup_consume(self):
         """Send request A to library buddy : this request will produce a RabbitMQ message
@@ -162,8 +166,6 @@ class _BaseRabbitMQ:
             exchange=self.BUDDY_TO_WEBLOG_EXCHANGE,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -186,9 +188,15 @@ class _BaseRabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
-    def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):
+    def validate_rabbitmq_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        queue: str,
+        exchange: str,
+    ):
         """Validates production/consumption of RabbitMQ message.
         It works the same for both test_produce and test_consume
         """

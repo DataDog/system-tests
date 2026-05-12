@@ -12,12 +12,12 @@ class TestSamplingByRouteMethodCount:
         # Each request expect some vulnerabilities or no vulns, but at the end all the vulnerabilities must be there
         requests = []
         for i in range(1, 11):
-            r = weblog.request(method="GET", path=f"/iast/sampling-by-route-method-count/{i}/?param=value{i}")
+            r = weblog.request(method="GET", path=f"/iast/sampling-by-route-method-count/{i}?param=value{i}")
             requests.append(r)
-            r = weblog.request(method="GET", path=f"/iast/sampling-by-route-method-count-2/{i}/?param=value{i}")
+            r = weblog.request(method="GET", path=f"/iast/sampling-by-route-method-count-2/{i}?param=value{i}")
             requests.append(r)
             r = weblog.request(
-                method="POST", path=f"/iast/sampling-by-route-method-count/{i}/", data={"param": f"value{i}"}
+                method="POST", path=f"/iast/sampling-by-route-method-count/{i}", data={"param": f"value{i}"}
             )
             requests.append(r)
 
@@ -44,8 +44,6 @@ class TestSamplingByRouteMethodCount:
                     vulnerability_hash = vuln["hash"]
                     vuln_hash_set.add(vulnerability_hash)
 
-        assert (
-            len(vuln_hash_set) >= 45
-        ), (
+        assert len(vuln_hash_set) >= 45, (
             f"Invalid number of vulnerabilities: {vuln_debug_list}"
         )  # Bigger or equal, because unrelated extra vulns could be detected in the app

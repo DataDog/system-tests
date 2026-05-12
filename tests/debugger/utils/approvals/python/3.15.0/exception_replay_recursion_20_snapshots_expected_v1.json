@@ -1,0 +1,2537 @@
+[
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "1"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "2"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "3"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "4"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "5"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "6"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "7"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "8"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "21"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "21": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "9"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "23"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 23
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursionHelper",
+        "lineNumber": 21
+      },
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayRecursion",
+        "lineNumber": 16
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "23": {
+          "arguments": {
+            "originalDepth": {
+              "type": "int",
+              "value": "20"
+            },
+            "currentDepth": {
+              "type": "int",
+              "value": "0"
+            }
+          },
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'recursion exception depth 20'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursion",
+                "lineNumber": 16
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 21
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayRecursionHelper",
+                "lineNumber": 23
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  }
+]

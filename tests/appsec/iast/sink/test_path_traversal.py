@@ -2,8 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, weblog, rfc
-from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from utils import features, weblog, rfc
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.iast_sink_path_traversal
@@ -17,21 +22,16 @@ class TestPathTraversal(BaseSinkTest):
     data = {"path": "/var/log"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.PathExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+        "nodejs": get_nodejs_iast_file_paths(),
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
-    @missing_feature(library="java", reason="Endpoint not implemented")
-    @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
         return super().test_secure()
 

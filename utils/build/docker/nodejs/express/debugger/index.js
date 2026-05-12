@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars, camelcase */
 
 const Pii = require('./pii')
+const dataGenerator = require('./data_generator')
 
 module.exports = {
   initRoutes (app) {
-    // Padding
     // Padding
     // Padding
     // Padding
@@ -124,6 +124,16 @@ module.exports = {
       const { intValue, strValue, boolValue } = req.query
       const pii = boolValue ? new Pii() : null
       res.send('Expression probe') // This needs to be line 126
+    })
+
+    app.get('/debugger/snapshot/limits', (req, res) => {
+      const { deepObject, manyFields, largeCollection, longString } = dataGenerator({
+        depth: parseInt(req.query.depth, 10) || 0,
+        fields: parseInt(req.query.fields, 10) || 0,
+        collectionSize: parseInt(req.query.collectionSize, 10) || 0,
+        stringLength: parseInt(req.query.stringLength, 10) || 0
+      })
+      res.send('Capture limits probe') // This needs to be line 136
     })
   }
 }

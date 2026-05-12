@@ -1,0 +1,46 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "targetSpan": "ACTIVE",
+        "decorations": [
+            {
+                "when": {
+                    "dsl": "",
+                    "json": {
+                        "gt": [
+                            {"ref": "loops"},
+                            0
+                        ]
+                    }
+                },
+                "tags": [
+                    {
+                        "name": "BudgetsTag",
+                        "value": {
+                            "template": null,
+                            "segments": [
+                                {
+                                    "dsl": "",
+                                    "json": {
+                                        "getmember": [
+                                            {"ref": "clientTracer"},
+                                            "nonExistentField"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Budgets",
+            "sourceFile": null
+        }
+    }
+]

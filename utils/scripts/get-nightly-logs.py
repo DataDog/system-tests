@@ -21,7 +21,7 @@ def get_environ() -> dict[str, str]:
 
     try:
         with open(".env", encoding="utf-8") as f:
-            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
+            lines = [line.replace("export ", "").strip().split("=", 1) for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
@@ -89,7 +89,7 @@ def main(
     environ = get_environ()
 
     with requests.Session() as session:
-        session.headers.update({"Authorization": f"token {environ['GH_TOKEN']}"})
+        session.headers.update({"Authorization": f"token {environ['GITHUB_TOKEN']}"})
 
         artifacts = get_artifacts(session, repo_slug, workflow_file, run_id)
         artifacts = [artifact for artifact in artifacts if is_included(params, artifact["name"])]

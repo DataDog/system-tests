@@ -1,4 +1,5 @@
-from utils import context, interfaces, scenarios, weblog, bug, features
+from utils import interfaces, scenarios, weblog, features
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 from .utils import BaseFullDenyListTest
 
@@ -15,12 +16,12 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         self.r_nonblock = weblog.get("/users", params={"user": self.NOT_BLOCKED_USER})
 
     def test_nonblocking_test(self):
-        def validate_nonblock_user(span):
+        def validate_nonblock_user(span: DataDogLibrarySpan):
             assert span["meta"]["usr.id"] == self.NOT_BLOCKED_USER
             return True
 
         assert self.r_nonblock.status_code == 200
-        interfaces.library.validate_spans(self.r_nonblock, validator=validate_nonblock_user)
+        interfaces.library.validate_one_span(self.r_nonblock, validator=validate_nonblock_user)
         interfaces.library.assert_no_appsec_event(self.r_nonblock)
 
     def setup_blocking_test(self):
@@ -31,10 +32,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             weblog.get("/users", params={"user": self.NUM_OF_BLOCKED_USERS - 1}),
         ]
 
-    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
-    @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
-    @bug(library="java", weblog_variant="spring-boot-payara", reason="APPSEC-56006")
-    @bug(context.library < "ruby@2.11.0-dev", reason="APMRP-56691")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 
@@ -44,6 +41,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
             span = interfaces.library.get_root_span(r)
-            assert span["meta"]["appsec.event"] == "true"
-            assert span["meta"]["appsec.blocked"] == "true"
+            assert is_same_boolean(actual=span["meta"]["appsec.event"], expected="true")
+            assert is_same_boolean(actual=span["meta"]["appsec.blocked"], expected="true")
             assert span["meta"]["http.status_code"] == "403"

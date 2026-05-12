@@ -14,6 +14,7 @@ function initRaspEndpoints (app) {
     })
     clientRequest.on('error', (e) => {
       if (e.name === 'DatadogRaspAbortError') {
+        // throwing in event emitter will bubble up to the process unhandled error handler
         throw e
       }
       res.writeHead(500).end(e.message)
@@ -26,6 +27,7 @@ function initRaspEndpoints (app) {
     })
     clientRequest.on('error', (e) => {
       if (e.name === 'DatadogRaspAbortError') {
+        // throwing in event emitter will bubble up to the process unhandled error handler
         throw e
       }
       res.writeHead(500).end(e.message)

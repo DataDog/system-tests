@@ -33,7 +33,6 @@
         "stack_trace"
       ]
     },
-
     {
       "id": "rasp-930-100",
       "name": "Local file inclusion exploit",
@@ -277,6 +276,55 @@
       "on_match": [
         "stack_trace"
       ]
-    }      
+    },
+    {
+      "id": "api-010-100",
+      "name": "Monitor redirections to GET targets",
+      "enabled": true,
+      "tags": {
+        "type": "api10",
+        "category": "api_security",
+        "confidence": "0",
+        "module": "business-logic"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.response.status"
+              }
+            ],
+            "list": [
+              "301",
+              "302"
+            ]
+          },
+          "operator": "exact_match"
+        }, {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.response.headers"
+              }
+            ]
+          },
+          "operator": "exists"
+        }
+      ],
+      "transformers": [],
+      "output": {
+        "event": false,
+        "keep": true,
+        "attributes": {
+          "appsec.api.redirection.move_target": {
+            "address": "server.io.net.response.headers",
+            "key_path": [
+              "location"
+            ]
+          }
+        }
+      }
+    }
   ]
 }

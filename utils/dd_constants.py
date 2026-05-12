@@ -1,6 +1,4 @@
 from enum import IntEnum
-from opentelemetry.trace import SpanKind  # noqa: F401
-from opentelemetry.trace import StatusCode  # noqa: F401
 
 
 # Key used in the metrics map to indicate tracer sampling priority
@@ -73,14 +71,57 @@ class Capabilities(IntEnum):
     ASM_SESSION_FINGERPRINT = 33
     ASM_NETWORK_FINGERPRINT = 34
     ASM_HEADER_FINGERPRINT = 35
-    # 36
+    ASM_TRUNCATION_RULES = 36
     ASM_RASP_CMDI = 37
     APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION = 38
     APM_TRACING_ENABLE_EXCEPTION_REPLAY = 39
     APM_TRACING_ENABLE_CODE_ORIGIN = 40
     APM_TRACING_ENABLE_LIVE_DEBUGGING = 41
+    ASM_DD_MULTICONFIG = 42
+    ASM_TRACE_TAGGING_RULES = 43
+    ASM_EXTENDED_DATA_COLLECTION = 44
+    APM_TRACING_MULTICONFIG = 45
+    FFE_FLAG_CONFIGURATION_RULES = 46
+    DATA_STREAMS_TRANSACTION_EXTRACTORS = 47
+    APM_TRACING_LLMOBS = 48
 
 
 class SamplingPriority(IntEnum):
+    USER_REJECT = -1
+    AUTO_REJECT = 0
     AUTO_KEEP = 1
     USER_KEEP = 2
+
+
+class SamplingMechanism(IntEnum):
+    UNKNOWN = -1
+    DEFAULT = 0
+    AGENT_RATE = 1
+    REMOTE_RATE = 2
+    RULE_RATE = 3
+    MANUAL = 4
+    APPSEC = 5
+    REMOTE_USER_RATE = 6
+    SINGLE_SPAN = 8
+    RESERVED_9 = 9
+    RESERVED_10 = 10
+    REMOTE_USER_RULE = 11
+    REMOTE_DYNAMIC_RULE = 12
+    AI_GUARD = 13
+
+
+# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L153
+class SpanKind(IntEnum):
+    UNSPECIFIED = 0
+    INTERNAL = 1
+    SERVER = 2
+    CLIENT = 3
+    PRODUCER = 4
+    CONSUMER = 5
+
+
+# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L316
+class StatusCode(IntEnum):
+    STATUS_CODE_UNSET = 0
+    STATUS_CODE_OK = 1
+    STATUS_CODE_ERROR = 2

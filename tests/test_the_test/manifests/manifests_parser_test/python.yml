@@ -1,0 +1,27 @@
+---
+refs:
+  - &django "django-poc, django-py3.13, python3.12"
+manifest:
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v2.6.0"
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
+    - weblog_declaration:
+        "*": missing_feature
+        *django: "v3.12.0.dev"
+  tests/appsec/api_security/test_schemas.py::Test_Scanners:
+    - weblog_declaration:
+        "*": "v2.4.0"
+        fastapi: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
+    - weblog_declaration:
+        "*": "v2.1.0"
+        fastapi: "v2.5.0"
+  tests/appsec/iast/sink: "missing_feature"
+  tests/appsec/iast:
+    - component_version: "<3.11.0"
+      declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
+      weblog: *django
+  tests/appsec/iast/test:
+    - component_version: "<3.11.0"
+      declaration: irrelevant
+      weblog: [*django, fastapi]

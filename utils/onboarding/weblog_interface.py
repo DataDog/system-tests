@@ -3,23 +3,29 @@ from random import randint
 import os
 from pathlib import Path
 import requests
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
-def make_get_request(app_url):
+def make_get_request(app_url: str, appsec: bool = False):
     generated_uuid = str(randint(1, 100000000000000000))
+    headers = {
+        "x-datadog-trace-id": generated_uuid,
+        "x-datadog-parent-id": generated_uuid,
+        "x-datadog-sampling-priority": "2",
+    }
+
+    if appsec:
+        headers["user-agent"] = "dd-test-scanner-log"
+
     requests.get(
         app_url,
-        headers={
-            "x-datadog-trace-id": generated_uuid,
-            "x-datadog-parent-id": generated_uuid,
-            "x-datadog-sampling-priority": "2",
-        },
+        headers=headers,
         timeout=15,
     )
     return generated_uuid
 
 
-def warmup_weblog(app_url):
+def warmup_weblog(app_url: str):
     for _ in range(15):
         try:
             requests.get(app_url, timeout=10)
@@ -28,7 +34,7 @@ def warmup_weblog(app_url):
             time.sleep(5)
 
 
-def make_internal_get_request(stdin_file, vm_port):
+def make_internal_get_request(stdin_file: str, vm_port: int, appsec: bool = False):
     """Exclusively for testing through KrunVm microVM.
     It is used to make a request to the weblog application inside the VM, using stdin file
     """
@@ -41,9 +47,9 @@ URL="http://localhost:{vm_port}/"
 TIMEOUT={timeout}
 TRACE_ID={generated_uuid}
 PARENT_ID={generated_uuid}
-ps
+USER_AGENT={"'dd-test-scanner-log'" if appsec else "'Firefox'"}
 while true; do
-  RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" -H "x-datadog-sampling-priority: 2" $URL)
+  RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" -H "x-datadog-sampling-priority: 2" -H "user-agent: $USER_AGENT" $URL)
   echo "$RESPONSE"
   if [[ $(echo "$RESPONSE" | grep "HTTP/1.1 200 OK") ]]; then
     echo "HTTP status 200 received: OK"
@@ -78,21 +84,21 @@ done"""
     return generated_uuid
 
 
-def get_child_pids(virtual_machine) -> str:
+def get_child_pids(virtual_machine: _VirtualMachine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port
     url = f"http://{vm_ip}:{vm_port}/child_pids"
     return requests.get(url, timeout=60).text
 
 
-def get_zombies(virtual_machine) -> str:
+def get_zombies(virtual_machine: _VirtualMachine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port
     url = f"http://{vm_ip}:{vm_port}/zombies"
     return requests.get(url, timeout=60).text
 
 
-def fork_and_crash(virtual_machine) -> str:
+def fork_and_crash(virtual_machine: _VirtualMachine) -> str:
     vm_ip = virtual_machine.get_ip()
     vm_port = virtual_machine.deffault_open_port
     url = f"http://{vm_ip}:{vm_port}/fork_and_crash"

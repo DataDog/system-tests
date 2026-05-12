@@ -2,10 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, features
+from utils import weblog, interfaces, features, context
+
+# those tests are linked to unix_domain_sockets_support_for_traces only for UDS weblogs
+optional_uds_feature = (
+    features.unix_domain_sockets_support_for_traces if "uds" not in context.weblog_variant else features.not_reported
+)
 
 
-@features.unix_domain_sockets_support_for_traces
+@optional_uds_feature
 class Test_Basic:
     """Make sure the spans endpoint is successful"""
 

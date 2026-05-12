@@ -6,6 +6,8 @@ from typing import Any
 
 import requests
 
+from utils.const import COMPONENT_GROUPS
+
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 
@@ -17,7 +19,7 @@ def get_environ() -> dict[str, str]:
 
     try:
         with open(".env", encoding="utf-8") as f:
-            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
+            lines = [line.replace("export ", "").strip().split("=", 1) for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
@@ -39,8 +41,8 @@ def main(
     branch: str = "main",
 ) -> None:
     environ = get_environ()
-    gh_token = environ["GH_TOKEN"]
-    headers = {"Authorization": f"token {gh_token}"}
+    github_token = environ["GITHUB_TOKEN"]
+    headers = {"Authorization": f"token {github_token}"}
 
     url = f"https://api.github.com/repos/{repo_slug}/actions/workflows/{workflow_file}/runs?"
 
@@ -105,7 +107,7 @@ if __name__ == "__main__":
         "-l",
         type=str,
         help="One of the supported Datadog languages",
-        choices=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
+        choices=sorted(COMPONENT_GROUPS.easy_win),
     )
     parser.add_argument(
         "--repo-slug",

@@ -1,9 +1,14 @@
 'use strict'
 
-const tracer = require('dd-trace').init({
-  debug: true,
-  flushInterval: 5000
-})
+const opts = {}
+
+// This mimics a scenario where a user has one config setting set in multiple sources
+// so that config chaining data is sent
+if (process.env.CONFIG_CHAINING_TEST) {
+  opts.logInjection = true
+}
+
+const tracer = require('dd-trace').init(opts)
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -11,12 +16,13 @@ const axios = require('axios')
 const http = require('http')
 const fs = require('fs')
 const crypto = require('crypto')
-const pino = require('pino')
+const winston = require('winston')
 const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
+const { OpenFeature } = require('@openfeature/server-sdk')
 
 const { spawnSync } = require('child_process')
 
@@ -35,11 +41,23 @@ const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-const logger = pino()
+// Unstructured logging (plain text)
+const plainLogger = console
+
+// Structured logging (JSON)
+const jsonLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(), // structured
+  transports: [new winston.transports.Console()]
+})
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json())
+app.use(require('body-parser').json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf
+  }
+}))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
@@ -47,9 +65,11 @@ iast.initMiddlewares(app)
 
 require('./auth')(app, tracer)
 
+require('./stripe')(app)
+
 app.get('/', (req, res) => {
-  console.log('Received a request')
-  res.send('Hello\n')
+  res.set('Content-Type', 'text/plain')
+  res.send('Hello world!\n')
 })
 
 app.get('/healthcheck', (req, res) => {
@@ -98,6 +118,43 @@ app.get('/headers', (req, res) => {
   res.send('Hello, headers!')
 })
 
+app.get('/customResponseHeaders', (req, res) => {
+  res.set({
+    'content-type': 'text/plain',
+    'content-language': 'en-US',
+    'x-test-header-1': 'value1',
+    'x-test-header-2': 'value2',
+    'x-test-header-3': 'value3',
+    'x-test-header-4': 'value4',
+    'x-test-header-5': 'value5'
+  })
+  res.send('OK')
+})
+
+app.get('/authorization_related_headers', (req, res) => {
+  res.set({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
+  })
+  res.send('OK')
+})
+
+app.get('/exceedResponseHeaders', (req, res) => {
+  res.set('content-language', 'text/plain')
+  for (let i = 0; i < 50; i++) {
+    res.set(`x-test-header-${i}`, `value${i}`)
+  }
+  res.set('content-language', 'en-US')
+  res.send('OK')
+})
+
 app.get('/identify', (req, res) => {
   tracer.setUser({
     id: 'usr.id',
@@ -117,12 +174,11 @@ app.get('/session/new', (req, res) => {
 })
 
 app.get('/status', (req, res) => {
-  res.status(parseInt(req.query.code)).send('OK')
+  res.status(parseInt(req.query.code) || 400).send('OK')
 })
 
 app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
-  console.log(url)
 
   const parsedUrl = new URL(url)
 
@@ -143,7 +199,7 @@ app.get('/make_distant_call', (req, res) => {
       res.json({
         url,
         status_code: response.statusCode,
-        request_headers: response.req._headers,
+        request_headers: response.req.getHeaders(),
         response_headers: response.headers,
         response_body: responseBody
       })
@@ -294,6 +350,13 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/log/library', (req, res) => {
   const msg = req.query.msg || 'msg'
+  const logger = (
+    req.query.structured === true ||
+    req.query.structured?.toString().toLowerCase() === 'true' ||
+    req.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (req.query.level) {
     case 'warn':
       logger.warn(msg)
@@ -433,7 +496,6 @@ app.get('/rabbitmq/consume', (req, res) => {
 })
 
 app.get('/load_dependency', (req, res) => {
-  console.log('Load dependency endpoint')
   require('glob')
   res.send('Loaded a dependency')
 })
@@ -537,6 +599,7 @@ app.get('/flush', (req, res) => {
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  tracer._tracer?._processor?._stats?.onInterval()
 
   // does have a callback :)
   const promises = []
@@ -551,11 +614,11 @@ app.get('/flush', (req, res) => {
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err))())
   }
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
   }
 
   Promise.all(promises).then(() => {
@@ -604,23 +667,192 @@ app.get('/add_event', (req, res) => {
   res.status(200).json({ message: 'Event added' })
 })
 
-require('./rasp')(app)
+app.all('/external_request', (req, res) => {
+  const status = req.query.status || '200'
+  const urlExtra = req.query.url_extra || ''
 
-const startServer = () => {
-  return new Promise((resolve) => {
-    app.listen(7777, '0.0.0.0', () => {
-      tracer.trace('init.service', () => {})
-      console.log('listening')
-      resolve()
+  const headers = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  let body = null
+  if (req.body && Object.keys(req.body).length > 0) {
+    body = JSON.stringify(req.body)
+    headers['Content-Type'] = req.headers['content-type'] || 'application/json'
+  }
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path: `/mirror/${status}${urlExtra}`,
+    method: req.method,
+    headers
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
+      const payload = JSON.parse(responseBody)
+      res.status(200).json({
+        status: response.statusCode,
+        payload,
+        headers: response.headers
+      })
     })
   })
+
+  // Write body if present
+  if (body) {
+    request.write(body)
+  }
+
+  request.end()
+})
+
+app.get('/external_request/redirect', (req, res) => {
+  const headers = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = req.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path) => {
+    const options = {
+      hostname: 'internal_server',
+      port: 8089,
+      path,
+      method: 'GET',
+      headers
+    }
+
+    const request = http.request(options, (response) => {
+      if (response.statusCode === 302 && response.headers.location) {
+        // Follow the redirect
+        followRedirect(response.headers.location)
+      } else {
+        // Final response
+        response.on('end', () => {
+          res.status(200).send('OK')
+        })
+      }
+      response.resume()
+    })
+
+    request.end()
+  }
+
+  // Start the redirect chain
+  followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
+})
+
+require('./rasp')(app)
+
+app.post('/ai_guard/evaluate', async (req, res) => {
+  // eslint-disable-next-line camelcase
+  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const block = req.headers['x-ai-guard-block'] === 'true'
+  const messages = req.body
+  const userId = req.headers['x-user-id']
+  const sessionId = req.headers['x-session-id']
+  const rootSpan = tracer.scope().active()?.context()._trace.started[0]
+  if (rootSpan) {
+    if (userId) {
+      rootSpan.setTag('usr.id', userId)
+    }
+    if (sessionId) {
+      rootSpan.setTag('session.id', sessionId)
+    }
+  }
+  try {
+    const evaluation = await tracer.aiguard.evaluate(messages, { block })
+    res.status(200).json(renameAttrs(evaluation))
+  } catch (e) {
+    if (e.name === 'AIGuardAbortError') {
+      res.status(403).json(renameAttrs(e))
+    } else {
+      res.status(500).json(e)
+    }
+  }
+})
+
+let openFeatureClient = null
+
+// Initialize OpenFeature provider if FFE is enabled
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  const { openfeature } = tracer
+  OpenFeature.setProvider(openfeature)
+  openFeatureClient = OpenFeature.getClient()
 }
+
+// Single FFE endpoint that evaluates feature flags
+app.post('/ffe', async (req, res) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
+
+    if (!openFeatureClient) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const context = { targetingKey, ...attributes }
+
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break
+      case 'INTEGER':
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break
+      default:
+        return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+    }
+
+    res.status(200).json({ value })
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
 
 // apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
 const initGraphQL = () => {
   return graphQLEnabled
     ? require('./graphql')(app)
     : Promise.resolve()
+}
+
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      if (req.url.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve()
+    })
+  })
 }
 
 initGraphQL()

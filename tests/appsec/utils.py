@@ -1,20 +1,32 @@
+from collections.abc import Generator
+
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 
 
-def find_series(request_type: str, namespace: str, metrics: list[str]) -> list:
+def find_series(namespace: str, metrics: list[str]) -> list:
     series = []
     for data in interfaces.library.get_telemetry_data():
         content = data["request"]["content"]
-        if content.get("request_type") != request_type:
+        if content.get("request_type") != "generate-metrics":
             continue
-        fallback_namespace = content["payload"].get("namespace")
-        for serie in content["payload"]["series"]:
+        payload = content["payload"]
+        fallback_namespace = payload.get("namespace")
+        for serie in payload["series"]:
             computed_namespace = serie.get("namespace", fallback_namespace)
             if computed_namespace == namespace and serie["metric"] in metrics:
                 series.append(serie)
     return series
+
+
+def find_configuration() -> Generator:
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
+            continue
+        payload = content["payload"]
+        yield payload.get("configuration")
 
 
 class BaseFullDenyListTest:
@@ -42,7 +54,7 @@ class BaseFullDenyListTest:
                 ]
             }
 
-            rc_state = remote_config.rc_state
+            rc_state = remote_config.tracer_rc_state
             rc_state.set_config("datadog/2/ASM_DATA/ASM_DATA-base/config", config)
 
             BaseFullDenyListTest.states = rc_state.apply()

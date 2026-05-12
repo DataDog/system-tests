@@ -7,18 +7,19 @@ import shlex
 import subprocess
 import xmltodict
 import sys
-import http.client
-import urllib.request
-
 import boto3
 import django
+import httpx
 import requests
+import stripe
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -31,7 +32,8 @@ from iast import (
 )
 
 import ddtrace
-from ddtrace import patch_all
+
+from ddtrace.appsec import trace_utils as ato_user_sdk_v1
 
 try:
     from ddtrace.appsec import track_user_sdk
@@ -50,12 +52,16 @@ except ImportError:
     track_user_sdk = TUS()
 
 try:
-    from ddtrace.trace import Pin, tracer
+    from ddtrace._trace.pin import Pin
+    from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import tracer, Pin
+    try:
+        from ddtrace.trace import Pin, tracer
+    except ImportError:
+        from ddtrace import tracer, Pin
 
 
-patch_all(urllib3=True)
+ddtrace.patch_all(urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -63,6 +69,17 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
+
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
 
 
 from app.models import CustomUser
@@ -167,6 +184,10 @@ def set_cookie(request):
     return res
 
 
+def resource_renaming(request, path: str):
+    return HttpResponse("ok", content_type="text/plain")
+
+
 ### BEGIN EXPLOIT PREVENTION
 
 
@@ -224,9 +245,9 @@ def rasp_ssrf(request, *args, **kwargs):
     if domain is None:
         return HttpResponse("missing domain parameter", status=400)
     try:
-        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
-            return HttpResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
-    except http.client.HTTPException as e:
+        response = httpx.get(f"http://{domain}", timeout=1)
+        return HttpResponse(f"url http://{domain} open with {len(response.content)} bytes")
+    except Exception as e:
         return HttpResponse(f"url http://{domain} could not be open: {e!r}")
 
 
@@ -500,8 +521,6 @@ def view_sqli_secure(request):
 
 @csrf_exempt
 def view_iast_ssrf_insecure(request):
-    import requests
-
     url = request.POST.get("url", "")
     try:
         requests.get(url)
@@ -512,8 +531,6 @@ def view_iast_ssrf_insecure(request):
 
 @csrf_exempt
 def view_iast_ssrf_secure(request):
-    import requests
-
     try:
         requests.get("https://www.datadog.com")
     except Exception:
@@ -538,7 +555,8 @@ def view_iast_xss_secure(request):
 
 @csrf_exempt
 def view_iast_stacktraceleak_insecure(request):
-    return HttpResponse("""
+    return HttpResponse(
+        """
   Traceback (most recent call last):
   File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
     result = complex_calculation(data)
@@ -561,7 +579,8 @@ def view_iast_stacktraceleak_insecure(request):
 ValueError: Constraint violation at step 9
 
 Lorem Ipsum Foobar
-""")
+"""
+    )
 
 
 @csrf_exempt
@@ -740,6 +759,34 @@ def view_iast_sampling_by_route_method_2(request, id):
 
 
 @csrf_exempt
+def view_iast_unvalidated_redirect_insecure(request):
+    location = request.POST.get("location")
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure_header(request):
+    location = request.POST.get("location")
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure(request):
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure_header(request):
+    location = "http://dummy.location.com"
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
 def view_iast_source_path_parameter(request, table):
     _sink_point_sqli(table=table)
 
@@ -750,7 +797,8 @@ def view_iast_source_path_parameter(request, table):
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
+    response.headers._store["Header-Injection".lower()] = ("Header-Injection", header)
+    # This line is deprecated, it's kept for backward compatibility with older versions
     response.headers["Header-Injection"] = header
     return response
 
@@ -759,7 +807,6 @@ def view_iast_header_injection_insecure(request):
 def view_iast_header_injection_secure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
     response.headers["Vary"] = header
     return response
 
@@ -818,16 +865,15 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    track_user_sdk.track_login_success(login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_user_login_success_event(
+        None, login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return HttpResponse("OK")
 
 
 def track_user_login_failure_event(request):
-    track_user_sdk.track_login_failure(
-        login=_TRACK_USER,
-        exists=True,
-        user_id=_TRACK_USER,
-        metadata=_TRACK_METADATA,
+    ato_user_sdk_v1.track_user_login_failure_event(
+        None, login=_TRACK_USER, exists=True, user_id=_TRACK_USER, metadata=_TRACK_METADATA
     )
     return HttpResponse("OK")
 
@@ -917,7 +963,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    track_user_sdk.track_custom_event(event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_custom_event(None, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
@@ -1052,6 +1098,100 @@ def s3_multipart_upload(request):
     return JsonResponse(result)
 
 
+@csrf_exempt
+@require_http_methods(["GET", "TRACE", "POST", "PUT"])
+def external_request(request):
+    queries = {k: str(v) for k, v in request.GET.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = request.body or None
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+    full_url = f"http://internal_server:8089/mirror/{status}{url_extra}"
+    try:
+        with httpx.Client() as client:
+            response = client.request(request.method, full_url, content=body, headers=queries, timeout=10)
+            payload = response.text
+            return JsonResponse(
+                {"status": int(response.status_code), "headers": dict(response.headers), "payload": json.loads(payload)}
+            )
+    except Exception as e:
+        status = getattr(e, "status", getattr(getattr(e, "response", None), "status_code", 500))
+        return JsonResponse({"status": int(status), "error": repr(e)})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def external_request_redirect(request):
+    queries = {k: str(v) for k, v in request.GET.items()}
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
+    try:
+        with httpx.Client() as client:
+            response = client.request("GET", full_url, headers=queries, timeout=10, follow_redirects=True)
+            return JsonResponse(
+                {"status": int(response.status_code), "headers": dict(response.headers), "payload": response.json()}
+            )
+    except Exception as e:
+        status = getattr(e, "status", getattr(getattr(e, "response", None), "status_code", 500))
+        return JsonResponse({"status": int(status), "error": repr(e)})
+
+
+@csrf_exempt
+def ffe(request):
+    """OpenFeature evaluation endpoint."""
+    body = json.loads(request.body)
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return JsonResponse({"value": value}, status=200)
+
+
+@csrf_exempt
+def stripe_create_checkout_session(request):
+    try:
+        body = json.loads(request.body)
+        result = stripe.checkout.Session.create(**body)
+        return JsonResponse(dict(result))
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def stripe_create_payment_intent(request):
+    try:
+        body = json.loads(request.body)
+        result = stripe.PaymentIntent.create(**body)
+        return JsonResponse(dict(result))
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    try:
+        event = stripe.Webhook.construct_event(request.body, request.headers.get("Stripe-Signature"), "whsec_FAKE")
+        return JsonResponse(event.data.object)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=403)
+
+
 urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
@@ -1068,6 +1208,7 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("set_cookie", set_cookie),
+    path("resource_renaming/<path:path>", resource_renaming),
     path("rasp/cmdi", rasp_cmdi),
     path("rasp/lfi", rasp_lfi),
     path("rasp/multiple", rasp_multiple),
@@ -1127,8 +1268,14 @@ urlpatterns = [
     path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
     path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
+    path("iast/sampling-by-route-method-count/<str:id>", view_iast_sampling_by_route_method),
+    path("iast/sampling-by-route-method-count-2/<str:id>", view_iast_sampling_by_route_method_2),
     path("iast/sampling-by-route-method-count/<str:id>/", view_iast_sampling_by_route_method),
     path("iast/sampling-by-route-method-count-2/<str:id>/", view_iast_sampling_by_route_method_2),
+    path("iast/unvalidated_redirect/test_insecure_redirect", view_iast_unvalidated_redirect_insecure),
+    path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
+    path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
+    path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
@@ -1141,4 +1288,10 @@ urlpatterns = [
     path("mock_s3/put_object", s3_put_object),
     path("mock_s3/copy_object", s3_copy_object),
     path("mock_s3/multipart_upload", s3_multipart_upload),
+    path("external_request", external_request),
+    path("external_request/redirect", external_request_redirect),
+    path("ffe", ffe),
+    path("stripe/create_checkout_session", stripe_create_checkout_session),
+    path("stripe/create_payment_intent", stripe_create_payment_intent),
+    path("stripe/webhook", stripe_webhook),
 ]

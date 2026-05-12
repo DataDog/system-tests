@@ -22,6 +22,12 @@ if (!is_numeric($response_code)) {
 	error();
 }
 
+//This is done automatically on framework integrations
+\datadog\appsec\push_addresses(["server.request.path_params" => [
+	'tag_value' => $value,
+	'status_code' => $response_code,
+]]);
+
 \datadog\appsec\track_custom_event('system_tests_appsec_event',
 [
     'value' => $value

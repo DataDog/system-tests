@@ -2,8 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import itertools
 import json
 from collections import defaultdict
+import semantic_version
 
 from utils import (
     ValidationError,
@@ -26,7 +28,7 @@ class Test_NoError:
     """A library should apply with no error all remote config payload."""
 
     def test_no_error(self):
-        def no_error(data):
+        def no_error(data: dict):
             config_states = (
                 data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", {})
             )
@@ -36,7 +38,7 @@ class Test_NoError:
                 if error is not None:
                     raise Exception(f"Error in remote config application: {error}")
 
-        interfaces.library.validate_remote_configuration(no_error, success_by_default=True)
+        interfaces.library.validate_all_remote_configuration(no_error, allow_no_data=True)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -45,26 +47,26 @@ class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
     @staticmethod
-    def response_has_been_overwritten(data) -> bool:
+    def response_has_been_overwritten(data: dict) -> bool:
         # For legacy API send_sequential_commands
         return any(name == "st-proxy-overwrite-rc-response" for name, _ in data["response"]["headers"])
 
     def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
-        def validator(data):
+        def validator(data: dict):
             client = data["request"]["content"]["client"]
             client_tracer = client["client_tracer"]
 
-            assert (
-                "is_agent" not in client or client["is_agent"] is False
-            ), "'client.is_agent' MUST either NOT be set or set to false"
+            assert "is_agent" not in client or client["is_agent"] is False, (
+                "'client.is_agent' MUST either NOT be set or set to false"
+            )
             assert "client_agent" not in client, "'client.client_agent' must NOT be set"
-            assert (
-                client["id"] != client_tracer["runtime_id"]
-            ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
+            assert client["id"] != client_tracer["runtime_id"], (
+                "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
+            )
 
-        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_remote_configuration(validator=validator, allow_no_data=True)
 
 
 def dict_is_included(sub_dict: dict, main_dict: dict):
@@ -77,7 +79,7 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
     return True
 
 
-def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields=True):
+def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields: bool = True):
     """Returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """
@@ -90,7 +92,7 @@ def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields=Tr
     return False
 
 
-def rc_check_request(data, expected, caching):
+def rc_check_request(data: dict, expected: dict, *, caching: bool):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
     expected_client_state = expected["client"]["state"]
@@ -101,9 +103,9 @@ def rc_check_request(data, expected, caching):
         # Our test suite will always emit SOMETHING for this
         expected_targets_version = expected_client_state.get("targets_version")
         targets_version = client_state.get("targets_version", 0)
-        assert (
-            targets_version == expected_targets_version
-        ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
+        assert targets_version == expected_targets_version, (
+            f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
+        )
 
         # verify that the tracer is properly storing and reporting on its config state
         expected_config_states = expected_client_state.get("config_states")
@@ -122,9 +124,9 @@ def rc_check_request(data, expected, caching):
             )
 
         if config_states is not None and expected_config_states is not None:
-            assert len(config_states) == len(
-                expected_config_states
-            ), "client reporting more or less configs than expected"
+            assert len(config_states) == len(expected_config_states), (
+                "client reporting more or less configs than expected"
+            )
 
             for state in expected_config_states:
                 if not dict_is_in_array(state, config_states, allow_additional_fields=True):
@@ -135,9 +137,9 @@ def rc_check_request(data, expected, caching):
 
         if not caching:
             # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-            assert not content.get(
-                "cached_target_files", []
-            ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+            assert not content.get("cached_target_files", []), (
+                "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+            )
         else:
             expected_cached_target_files = expected.get("cached_target_files")
             cached_target_files = content.get("cached_target_files")
@@ -177,7 +179,6 @@ def rc_check_request(data, expected, caching):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
-@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -190,13 +191,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library == "python@1.9.2", reason="APMRP-360")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
-    @bug(library="golang", reason="APPSEC-56064")
-    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -205,16 +203,13 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         self.assert_client_fields()
 
-        def validate(data):
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(asm_features_expected_requests):
-                return True
-
             rc_check_request(data, asm_features_expected_requests[self.request_number], caching=True)
 
             self.python_request_number += 1
@@ -228,9 +223,9 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
             else:
                 self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_features_expected_requests)
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @scenarios.remote_config_mocked_backend_asm_features
@@ -241,7 +236,7 @@ class Test_RemoteConfigurationExtraServices:
     def setup_tracer_extra_services(self):
         self.r_outgoing = weblog.get("/createextraservice?serviceName=extraVegetables")
 
-        def remote_config_asm_extra_services_available(data):
+        def remote_config_asm_extra_services_available(data: dict):
             if data["path"] == "/v0.7/config":
                 client_tracer = data.get("request", {}).get("content", {}).get("client", {}).get("client_tracer", {})
                 if "extra_services" in client_tracer:
@@ -258,7 +253,6 @@ class Test_RemoteConfigurationExtraServices:
 
     def test_tracer_extra_services(self):
         """Test extra services field"""
-        import itertools
 
         # filter extra services
         extra_services = []
@@ -271,9 +265,9 @@ class Test_RemoteConfigurationExtraServices:
         assert extra_services, "extra_services not found"
         extra_services = list(itertools.dropwhile(lambda es: "extraVegetables" not in es, extra_services))
         assert extra_services, "no extra_services contains extraVegetables"
-        assert all(
-            "extraVegetables" in es for es in extra_services
-        ), "extraVegetables is not found in all requests after it was initially added"
+        assert all("extraVegetables" in es for es in extra_services), (
+            "extraVegetables is not found in all requests after it was initially added"
+        )
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -294,7 +288,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -307,7 +300,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         self.assert_client_fields()
 
-        def validate(data):
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -315,22 +308,18 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {request_number[runtime_id]}")
-            if request_number[runtime_id] >= len(live_debugging_expected_requests):
-                return True
-
             rc_check_request(data, live_debugging_expected_requests[request_number[runtime_id]], caching=True)
 
             request_number[runtime_id] += 1
 
-            return False
+            return request_number[runtime_id] >= len(live_debugging_expected_requests)
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
-@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
@@ -342,13 +331,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="APMRP-360")
     @irrelevant(
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
-    @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library <= "java@1.12.1", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -357,23 +343,20 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
             asm_dd_expected_requests = json.load(f)
 
-        def validate(data):
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
                 return False
-
-            if self.request_number >= len(asm_dd_expected_requests):
-                return True
 
             logger.info(f"Validating request #{self.request_number} in {data['log_filename']}")
             rc_check_request(data, asm_dd_expected_requests[self.request_number], caching=True)
 
             self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_dd_expected_requests)
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -404,27 +387,24 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
         self.assert_client_fields()
 
-        def validate(data):
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(asm_features_expected_requests):
-                return True
-
             rc_check_request(data, asm_features_expected_requests[self.request_number], caching=False)
 
             self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_features_expected_requests)
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@scenarios.remote_config_mocked_backend_asm_dd_nocache
+@scenarios.appsec_api_security_rc
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product
@@ -449,20 +429,45 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
             asm_dd_expected_requests = json.load(f)
 
-        def validate(data):
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(asm_dd_expected_requests):
-                return True
-
             rc_check_request(data, asm_dd_expected_requests[self.request_number], caching=False)
 
             self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_dd_expected_requests)
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
+
+
+# XXX: This test can run in any scenario with rc_api_enabled=True. Default will not work, as /v0.7/config is not reported by the agent,
+# which will make some tracers (e.g. Ruby) not use RC.
+@scenarios.appsec_api_security_rc
+@features.remote_config_semantic_versioning
+class Test_RemoteConfigurationSemVer:
+    """Tests that semantic versioning is reported in remote config"""
+
+    def test_semantic_versioning(self):
+        """Test semantic versioning is reported in remote config"""
+        messages = list(interfaces.library.get_data(path_filters=r"/v\d+.\d+/config"))
+        assert messages, "No remote config messages found"
+        logger.info(f"Found {len(messages)} remote config messages")
+        for message in messages:
+            content = message["request"]["content"]
+            client = content.get("client")
+            assert client, "Client is required"
+            client_tracer = client.get("client_tracer")
+            assert client_tracer, "Client tracer is required"
+            tracer_version: str = client_tracer.get("tracer_version")
+            assert tracer_version, "Tracer version is required"
+            # A v prefix is not strictly semver, but it is accepted by our RC backend.
+            # dd-trace-go uses this.
+            tracer_version = tracer_version.removeprefix("v")
+            # This will raise ValueError if the version is invalid semver
+            # See: https://pypi.org/project/semantic-version/
+            semantic_version.Version(tracer_version)

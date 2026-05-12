@@ -1,0 +1,6 @@
+  - description: "[task:java-endpoint-prompt]"
+    vars:
+      user_prompt: "@java-endpoint-prompt.mdc Analyze the test file tests/appsec/iast/sink/test_sql_injection.py and tell me the missing endpoints for the java weblogs"
+    assert:
+        - type: llm-rubric
+          value: "spring-boot weblogs have all the needed enpoints implemented. Play framework need to implement some of the SQL injection endpoints. Ratpack is mentioned."

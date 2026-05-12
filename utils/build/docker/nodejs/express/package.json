@@ -5,11 +5,14 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ."
+    "fix_lint": "eslint . --fix",
+    "check_lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@openfeature/core": "^1.9.0",
+    "@openfeature/server-sdk": "~1.19.0",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^1.30.1",
     "amqplib": "^0.10.3",
@@ -32,10 +35,11 @@
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
     "pg": "^8.8.0",
-    "pino": "^9.5.0",
     "pug": "^3.0.3",
     "semver": "^7.6.3",
-    "sinon": "^17.0.1"
+    "sinon": "^17.0.1",
+    "stripe": "^20.0.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "eslint": "^8.53.0",
@@ -44,5 +48,8 @@
     "eslint-plugin-mocha": "^10.2.0",
     "eslint-plugin-n": "^16.2.0",
     "eslint-plugin-promise": "^6.1.1"
+  },
+  "overrides": {
+    "@openfeature/server-sdk": "$@openfeature/server-sdk"
   }
 }

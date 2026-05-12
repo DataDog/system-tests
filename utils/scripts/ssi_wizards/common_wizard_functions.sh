@@ -2,6 +2,14 @@
 # shellcheck disable=all
 #This script was generated using chatgpt
 
+# 🎨 Colors for styling
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+NC='\033[0m' # No Color
+
 # Function: Add blank lines for better UX
 spacer() {
     echo ""
@@ -15,6 +23,40 @@ welcome() {
     echo ""
 }
 
+# Function to check AWS account access
+check_aws_account_access() {
+    local account_name="$1"
+    local aws_profile="sso-${account_name}-account-admin"
+
+    if ! aws-vault exec "$aws_profile" -- aws s3 ls &>/dev/null; then
+        echo "❌ AWS environment check failed for account: ${account_name}"
+        echo ""
+        echo "📚 Please follow these guides to set up AWS access:"
+        echo "   1. AWS SSO Getting Started:"
+        echo "      👉 https://datadoghq.atlassian.net/wiki/spaces/ENG/pages/2498068557/AWS+SSO+Getting+Started"
+        echo ""
+        echo "   2. Request AWS account access (if you don't have it):"
+        echo "      👉 https://datadoghq.atlassian.net/jira/software/c/projects/CLOUDA/forms/form/direct/4/26949"
+        echo ""
+        echo "⚠️ Exiting wizard to prevent further issues."
+        exit 1
+    fi
+}
+
+load_requirements() {
+    echo "🚀 Loading system-tests requirements..."
+    ./build.sh -i runner
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Error: Failed to load system-tests requirements. Please check the logs."
+        exit 1
+    fi
+    echo "✅ System-tests requirements loaded successfully."
+    echo "🔄 Activating virtual environment..."
+    # shellcheck source=/dev/null
+    source venv/bin/activate
+    echo "✅ Virtual environment activated."
+}
+
 ask_load_requirements() {
     spacer
     echo -e "${YELLOW}📌 Step: system-tests requirements${NC}"
@@ -22,20 +64,10 @@ ask_load_requirements() {
     echo "This will execute: ./build.sh -i runner"
     read -p "Run this setup? (y/n): " load_choice
     if [[ "$load_choice" =~ ^[Yy]$ ]]; then
-        echo "🚀 Loading system-tests requirements..."
-        ./build.sh -i runner
-        if [[ $? -ne 0 ]]; then
-            echo "❌ Error: Failed to load system-tests requirements. Please check the logs."
-            exit 1
-        fi
-        echo "✅ System-tests requirements loaded successfully."
+        load_requirements
     else
         echo "⚠️ Skipping system-tests requirements setup."
     fi
-    echo "🔄 Activating virtual environment..."
-    # shellcheck source=/dev/null
-    source venv/bin/activate
-    echo "✅ Virtual environment activated."
 }
 
 ask_for_test_language() {
@@ -132,8 +164,19 @@ select_weblog() {
     echo -e "${YELLOW}📌 Step: Select the weblog${NC}"
     echo "🔄 Fetching weblogs for the selected scenario: $SCENARIO..."
 
-    # Extract available weblogs (second-level keys under the selected SCENARIO)
-    WEBLOGS=($(echo "$WORKFLOW_JSON" | python -c "import sys, json; data=json.load(sys.stdin); print(' '.join(data.get('$SCENARIO', {}).keys()))"))
+    # Extract available weblogs - handle both list and dict formats
+    # K8s lib injection returns: {scenario: [weblog1, weblog2]}
+    # AWS/Docker/K8s injector dev return: {scenario: {weblog1: [...], weblog2: [...]}}
+    WEBLOGS=($(echo "$WORKFLOW_JSON" | python -c "
+import sys, json
+data = json.load(sys.stdin)
+scenario_data = data.get('$SCENARIO', {})
+# Check if it's a list (K8s lib injection) or dict (AWS/Docker/K8s injector dev)
+if isinstance(scenario_data, list):
+    print(' '.join(scenario_data))
+else:
+    print(' '.join(scenario_data.keys()))
+"))
 
     if [[ ${#WEBLOGS[@]} -eq 0 ]]; then
         echo "❌ No weblogs found for scenario: $SCENARIO"

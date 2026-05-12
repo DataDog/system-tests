@@ -6,14 +6,20 @@ class BaseAppsecApiSecurityRcTest:
 
     def setup_scenario(self) -> None:
         if BaseAppsecApiSecurityRcTest.states is None:
-            rc_state = remote_config.rc_state
+            rc_state = remote_config.tracer_rc_state
             rc_state.set_config(
                 "datadog/2/ASM/ASM-base/config",
                 {
-                    "processor_override": [
-                        {"target": ["extract-content"], "scanners": ["test-scanner-002", "test-scanner-custom-001"]}
+                    "processor_overrides": [
+                        {
+                            "target": [{"id": "extract-content"}],
+                            "scanners": {
+                                "include": [{"id": "test-scanner-001"}, {"id": "test-scanner-custom-001"}],
+                                "exclude": [],
+                            },
+                        }
                     ],
-                    "custom_scanners": [
+                    "scanners": [
                         {
                             "id": "test-scanner-custom-001",
                             "name": "Custom scanner",

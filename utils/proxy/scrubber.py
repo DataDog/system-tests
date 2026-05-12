@@ -7,7 +7,8 @@ from typing import Any
 
 _not_secrets = {
     "AWS_VAULT_KEYCHAIN_NAME",  # Name of macOS keychain to use => it's a name, not a key
-    "ONBOARDING_AWS_INFRA_KEY_PATH",  # TODO : what is the content of this value ?
+    "ONBOARDING_AWS_INFRA_KEY_PATH",  # key pair local path
+    "ONBOARDING_AWS_INFRA_KEYPAIR_NAME",  # key pair name
 }
 
 _name_filter = re.compile(r"key|token|secret|pass|docker_login", re.IGNORECASE)
@@ -31,7 +32,7 @@ def _instrument_write_methods_str(f: Any, secrets: set[str]) -> None:  # noqa: A
         for secret in secrets:
             data = data.replace(secret, "--redacted--")
 
-        original_write(data)
+        return original_write(data)
 
     f.write = write
 
@@ -44,7 +45,7 @@ def _instrument_write_methods_bytes(f: Any, secrets: set[str]) -> None:  # noqa:
             for secret in secrets:
                 data = data.replace(secret.encode(), b"--redacted--")
 
-        original_write(data)
+        return original_write(data)
 
     f.write = write
 

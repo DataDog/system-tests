@@ -15,6 +15,7 @@ import signal
 import aiohttp
 from yarl import URL
 
+from utils._context.containers import WeblogContainer
 
 from tests.fuzzer.corpus import get_corpus
 from tests.fuzzer.request_mutator import get_mutator
@@ -37,15 +38,15 @@ class Semaphore(asyncio.Semaphore):
 
 
 class _RequestDumper:
-    def __init__(self, name=None, *, enabled=True):
+    def __init__(self, name: str | None = None, *, enabled: bool = True):
         self.enabled = enabled
-        self.logger = None
+        self.logger: logging.Logger | None = None
         if name:
             self.filename = f"logs/dump_{name}_{datetime.now(tz=UTC).isoformat()}.dump"
         else:
             self.filename = f"logs/dump_{datetime.now(tz=UTC).isoformat()}.dump"
 
-    def __call__(self, payload):
+    def __call__(self, payload: dict):
         if not self.enabled:
             return
 
@@ -59,20 +60,20 @@ class _RequestDumper:
 class Fuzzer:
     def __init__(
         self,
-        corpus,
-        no_mutation,
-        base_url,
-        seed,
-        max_tasks,
-        report_frequency,
-        logger,
-        weblog,
-        request_count=None,
-        max_time=None,
-        dump_on_status=("500",),
+        corpus: str,
+        base_url: str,
+        seed: str,
+        max_tasks: int,
+        report_frequency: int,
+        logger: logging.Logger,
+        weblog: WeblogContainer,
+        request_count: int | None = None,
+        max_time: int | None = None,
+        dump_on_status: tuple[str, ...] = ("500",),
         *,
-        debug=False,
-        systematic_export=False,
+        no_mutation: bool,
+        debug: bool = False,
+        systematic_export: bool = False,
     ):
         self.loop = asyncio.get_event_loop()
         self.loop.set_debug(debug)
@@ -86,12 +87,12 @@ class Fuzzer:
 
         self.corpus = corpus
         self.seed = seed
-        self.requests = RequestGenerator(get_mutator(no_mutation, weblog), get_corpus(corpus))
+        self.requests = RequestGenerator(get_mutator(no_mutation=no_mutation, weblog=weblog), get_corpus(corpus))
         self.request_count = request_count
 
         self.max_tasks = max_tasks
         self.max_time = max_time
-        self.max_datetime = None  # will be set later
+        self.max_datetime: datetime | None = None  # will be set later
         self.sem = Semaphore(max_tasks)
 
         self.dump_on_status = dump_on_status
@@ -107,11 +108,11 @@ class Fuzzer:
         self.count_metric = ResetedAccumulatedMetric("Count")
         self.bytes_metric = ResetedAccumulatedMetric("Bytes")
 
-        self.status_metrics = {}
-        self.backend_requests = {}
+        self.status_metrics: dict = {}
+        self.backend_requests: dict = {}
         self.backend_requests_size = ResetedAccumulatedMetric("Bytes", raw_name="backend_bytes")
-        self.backend_signals = {}
-        self.backend_commands = {}
+        self.backend_signals: dict = {}
+        self.backend_commands: dict = {}
 
         self._add_status_metric("200", "200")
         self._add_status_metric("400", "400")
@@ -121,19 +122,19 @@ class Fuzzer:
         self._add_backend_request("/ping", "Ping")
         self._add_backend_request("/batches", "Batch")
 
-        self.backend_requests_stack = []
+        self.backend_requests_stack: list[dict] = []
 
         self.finished = False
 
-    def _add_status_metric(self, key, name):
+    def _add_status_metric(self, key: str, name: str):
         self.status_metrics[key] = AccumulatedMetricWithPercent(
             name, self.count_metric, display_length=4, raw_name="R_" + key
         )
 
-    def _add_backend_request(self, key, name):
+    def _add_backend_request(self, key: str, name: str):
         self.backend_requests[key] = ResetedAccumulatedMetric(name, raw_name="B_" + key)
 
-    def _add_backend_signal(self, key, name):
+    def _add_backend_signal(self, key: str, name: str):
         self.backend_signals[key] = ResetedAccumulatedMetric(name, raw_name="S_" + key)
 
     async def wait_for_first_response(self) -> None:
@@ -215,6 +216,7 @@ class Fuzzer:
             return
 
         self.report.start()
+
         self.max_datetime = None if self.max_time is None else datetime.now(tz=UTC) + timedelta(seconds=self.max_time)
 
         tasks = set()
@@ -276,7 +278,7 @@ class Fuzzer:
 
             self.loop.stop()
 
-    async def _process(self, session, request):
+    async def _process(self, session: aiohttp.ClientSession, request: dict):
         resp = None
         request_timestamp = datetime.now(tz=UTC)
         if self.systematic_export:
@@ -300,7 +302,7 @@ class Fuzzer:
                 try:
                     await self.requests.feedback(request, resp, self.base_url)
                 except Exception as exc:
-                    await self.logger.signal("Feedback exception", type(exc).__name__)
+                    self.report.signal("Feedback exception", type(exc).__name__)
 
         except Exception as exc:
             await self.update_metrics(type(exc).__name__, request, request_timestamp)
@@ -336,14 +338,16 @@ class Fuzzer:
 
         return result
 
-    async def update_metrics(self, status, request, request_timestamp, response=None) -> None:
+    async def update_metrics(
+        self, status: str, request: dict, request_timestamp: datetime, response: aiohttp.ClientResponse | None = None
+    ) -> None:
         ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])
 
         self.performances.update(ellapsed)
 
-        def get_len(obj):
+        def get_len(obj):  # noqa: ANN001
             if isinstance(obj, (int, float, bool)):
                 return 4
 
@@ -389,7 +393,7 @@ class Fuzzer:
                 ) as f:
                     await f.write(text)
 
-    def update_backend_metrics(self, data) -> None:
+    def update_backend_metrics(self, data: dict) -> None:
         path, request = data["path"], data["request"]
 
         self.backend_requests_size.update(request["length"])

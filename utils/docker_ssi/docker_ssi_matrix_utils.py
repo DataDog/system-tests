@@ -4,10 +4,11 @@ from utils.docker_ssi.docker_ssi_definitions import (
     PHPRuntimeInstallableVersions,
     PythonRuntimeInstallableVersions,
     DotnetRuntimeInstallableVersions,
+    RubyRuntimeInstallableVersions,
 )
 
 
-def resolve_runtime_version(library, runtime):
+def resolve_runtime_version(library: str, runtime: str) -> str:
     """For installable runtimes, get the version identifier. ie JAVA_11"""
     if library == "java":
         return JavaRuntimeInstallableVersions.get_version_id(runtime)
@@ -19,5 +20,7 @@ def resolve_runtime_version(library, runtime):
         return JSRuntimeInstallableVersions.get_version_id(runtime)
     elif library == "dotnet":
         return DotnetRuntimeInstallableVersions.get_version_id(runtime)
+    elif library == "ruby":
+        return RubyRuntimeInstallableVersions.get_version_id(runtime)
 
     raise ValueError(f"Library {library} not supported")

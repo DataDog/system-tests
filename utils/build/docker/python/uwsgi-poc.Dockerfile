@@ -1,11 +1,15 @@
-FROM datadog/system-tests:uwsgi-poc.base-v5
+FROM datadog/system-tests:uwsgi-poc.base-v9
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
+# Install OTel OTLP exporter for FFE metrics
+RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
+
 COPY utils/build/docker/python/flask /app
+COPY utils/build/docker/python/flask/uwsgi_app.sh /app/app.sh
 COPY utils/build/docker/python/iast.py /app/iast.py
 ENV FLASK_APP=app.py
 
@@ -13,16 +17,9 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV DD_DATA_STREAMS_ENABLED=True
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=5
+ENV UWSGI_ENABLED=true
 
-# docker startup
-# note, only thread mode is supported
-# https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
-RUN echo '#!/bin/bash \n\
-uwsgi --http :7777 -w app:app --threads 2 --enable-threads --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
-RUN chmod +x app.sh
-CMD ./app.sh
+CMD [ "app.sh" ]
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
-

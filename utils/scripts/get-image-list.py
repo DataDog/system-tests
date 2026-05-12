@@ -3,15 +3,16 @@ import json
 import re
 import yaml
 
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, DockerScenario
-from utils._context.containers import _get_client
+from utils._context.docker import get_docker_client
 
 
 def main(scenarios: list[str], library: str, weblog: str) -> None:
     images = set("")
 
     existing_tags = []
-    for image in _get_client().images.list():
+    for image in get_docker_client().images.list():
         existing_tags.extend(image.tags)
 
     for scenario in get_all_scenarios():
@@ -24,7 +25,7 @@ def main(scenarios: list[str], library: str, weblog: str) -> None:
     # remove images that exists locally (they may not exists in the registry, ex: buddies)
     images = {image for image in images if image not in existing_tags}
 
-    compose_data = {"services": {re.sub(r"[/:\.]", "-", image): {"image": image} for image in sorted(images)}}
+    compose_data = {"services": {re.sub(r"[/:\.@]", "-", image): {"image": image} for image in sorted(images)}}
 
     print(yaml.dump(compose_data, default_flow_style=False))
 
@@ -40,22 +41,7 @@ if __name__ == "__main__":
         type=str,
         default="",
         help="One of the supported Datadog library",
-        choices=[
-            "cpp",
-            "cpp_httpd",
-            "cpp_nginx",
-            "dotnet",
-            "python",
-            "ruby",
-            "golang",
-            "java",
-            "nodejs",
-            "php",
-            "java_otel",
-            "python_otel",
-            "nodejs_otel",
-            "",
-        ],
+        choices=[*sorted(COMPONENT_GROUPS.all), ""],
     )
 
     parser.add_argument("--weblog", "-w", type=str, help="End-to-end weblog", default="")

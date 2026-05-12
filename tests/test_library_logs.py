@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, features
+from utils import context, interfaces, features
 import itertools
 import re
 from re import Pattern
@@ -16,7 +16,6 @@ def matches_any(patterns: list[Pattern], string: str):
 class Test_NoExceptions:
     """No unexpected exceptions or errors."""
 
-    @irrelevant(context.library != "dotnet", reason="only for .NET")
     def test_dotnet(self):
         """There is not exception in dotnet-tracer-managed log files"""
         interfaces.library_dotnet_managed.assert_absence(
@@ -27,7 +26,6 @@ class Test_NoExceptions:
             ],
         )
 
-    @irrelevant(context.library != "java", reason="only for Java")
     def test_java_logs(self):
         """Test Java logs for unexpected errors."""
         disallowed_patterns = [
@@ -78,7 +76,6 @@ class Test_NoExceptions:
         logs = [log for log in logs if not matches_any(compiled_allowed_paterns, log)]
         assert not logs
 
-    @irrelevant(context.library != "java", reason="only for Java")
     def test_java_telemetry_logs(self):
         """Test Java telemetry logs for unexpected errors."""
         allowed_patterns = [
@@ -86,6 +83,7 @@ class Test_NoExceptions:
             # APPSEC-56726:
             re.escape("Attempt to replace context value for {}"),
             r"Failed to find the jdk.internal\.jvmstat module.*",
+            re.escape("Source value lost due to GC, origin={}"),
         ]
         if context.weblog_variant == "spring-boot-openliberty":
             # AIDM-588:

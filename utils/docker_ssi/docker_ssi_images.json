@@ -11,16 +11,6 @@
       "architecture": "linux/arm64"
     },
     {
-      "name": "Ubuntu_16_amd64",
-      "image": "public.ecr.aws/docker/library/ubuntu:16.04",
-      "architecture": "linux/amd64"
-    },
-    {
-      "name": "Ubuntu_16_arm64",
-      "image": "public.ecr.aws/docker/library/ubuntu:16.04",
-      "architecture": "linux/arm64"
-    },
-    {
       "name": "CentOS_7_amd64",
       "image": "public.ecr.aws/docker/library/centos:7",
       "architecture": "linux/amd64"
@@ -77,12 +67,12 @@
     },
     {
       "name": "Websphere_amd64",
-      "image": "icr.io/appcafe/websphere-traditional",
+      "image": "235494822917.dkr.ecr.us-east-1.amazonaws.com/third-party/websphere-traditional:latest",
       "architecture": "linux/amd64"
     },
     {
       "name": "Wildfly_amd64",
-      "image": "quay.io/wildfly/wildfly:26.1.2.Final",
+      "image": "235494822917.dkr.ecr.us-east-1.amazonaws.com/third-party/wildfly:26.1.2.Final-amd64",
       "architecture": "linux/amd64"
     }
   ]

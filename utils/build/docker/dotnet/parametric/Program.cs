@@ -1,7 +1,8 @@
 // Force the initialization of the tracer
 _ = Datadog.Trace.Tracer.Instance;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder();
+
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<ApmTestApi.Endpoints.ApmTestApi>>();

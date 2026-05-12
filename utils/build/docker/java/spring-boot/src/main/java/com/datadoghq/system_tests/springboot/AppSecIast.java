@@ -1,13 +1,16 @@
 package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.iast.utils.*;
-import io.opentracing.Span;
-import io.opentracing.util.GlobalTracer;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 
 import javax.mail.MessagingException;
 import javax.naming.Context;
@@ -76,37 +79,21 @@ public class AppSecIast {
 
     @RequestMapping("/insecure_hashing/test_secure_algorithm")
     String secureHashing() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.secureHashing(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_hashing/test_md5_algorithm")
     String insecureMd5Hashing() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.insecureMd5Hashing(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_cipher/test_secure_algorithm")
     String secureCipher() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.secureCipher(superSecretAccessKey);
     }
 
     @RequestMapping("/insecure_cipher/test_insecure_algorithm")
     String insecureCipher() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return cryptoExamples.insecureCipher(superSecretAccessKey);
     }
 
@@ -151,10 +138,6 @@ public class AppSecIast {
 
     @PostMapping("/sqli/test_insecure")
     Object insecureSql(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return sqlExamples.insecureSql(username, password);
@@ -162,10 +145,6 @@ public class AppSecIast {
 
     @PostMapping("/sqli/test_secure")
     Object secureSql(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return sqlExamples.secureSql(username, password);
@@ -173,20 +152,12 @@ public class AppSecIast {
 
     @PostMapping("/cmdi/test_insecure")
     String insecureCmd(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String cmd = request.getParameter("cmd");
         return cmdExamples.insecureCmd(cmd);
     }
 
     @PostMapping("/ldapi/test_insecure")
     String insecureLDAP(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
         return getOrCreateLdapExamples().injection(username, password);
@@ -194,20 +165,12 @@ public class AppSecIast {
 
     @PostMapping("/ldapi/test_secure")
     String secureLDAP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         return getOrCreateLdapExamples().secure();
     }
 
 
     @PostMapping("/path_traversal/test_insecure")
     String insecurePathTraversal(final ServletRequest request) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
         final String path = request.getParameter("path");
         return pathExamples.insecurePathTraversal(path);
     }
@@ -467,6 +430,79 @@ public class AppSecIast {
     void emailHtmlInjectionSecure(final HttpServletRequest request) throws MessagingException {
         String email = request.getParameter("username");
         emailExamples.mail(StringEscapeUtils.escapeHtml4(email));
+    }
+
+    @GetMapping(path = {
+            "/sampling-by-route-method-count/{i}",
+            "/sampling-by-route-method-count/{i}/"  // optional trailing slash
+    })
+    void getSampling(
+            @PathVariable("i") int i,
+            @RequestParam(name = "param", required = false) String paramValue) throws NoSuchAlgorithmException {
+        MessageDigest.getInstance("SHA1").digest("hash1".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash2".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash3".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash4".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash5".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash6".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash7".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash8".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash9".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash10".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash11".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash12".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash13".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash14".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash15".getBytes(StandardCharsets.UTF_8));
+    }
+
+    @GetMapping(path = {
+            "/sampling-by-route-method-count-2/{i}",
+            "/sampling-by-route-method-count-2/{i}/"  // optional trailing slash
+    })
+    void getSampling2(
+            @PathVariable("i") int i,
+            @RequestParam(name = "param", required = false) String paramValue) throws NoSuchAlgorithmException {
+        MessageDigest.getInstance("SHA1").digest("hash1".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash2".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash3".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash4".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash5".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash6".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash7".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash8".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash9".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash10".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash11".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash12".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash13".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash14".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash15".getBytes(StandardCharsets.UTF_8));
+    }
+
+    @PostMapping(path = {
+            "/sampling-by-route-method-count/{i}",
+            "/sampling-by-route-method-count/{i}/"  // optional trailing slash
+    })
+    void postSampling(
+            @PathVariable("i") int i,
+            @RequestParam(name = "param", required = false) String paramValue)
+            throws NoSuchAlgorithmException  {
+        MessageDigest.getInstance("SHA1").digest("hash1".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash2".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash3".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash4".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash5".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash6".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash7".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash8".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash9".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash10".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash11".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash12".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash13".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash14".getBytes(StandardCharsets.UTF_8));
+        MessageDigest.getInstance("SHA1").digest("hash15".getBytes(StandardCharsets.UTF_8));
     }
 
     /**

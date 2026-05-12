@@ -2,6 +2,130 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-04 (119 PR merged)
+
+* 2026-04-23 [feat(features): resolve test owner to per-repo sub-team in CI](https://github.com/DataDog/system-tests/pull/6796) by @cbeauchesne
+* 2026-04-21 [Automatically close stale PRs](https://github.com/DataDog/system-tests/pull/6783) by @cbeauchesne
+* 2026-04-21 [Check that declared version are not ahead of tested version in dev mode](https://github.com/DataDog/system-tests/pull/6774) by @cbeauchesne
+* 2026-04-13 [Intercept HTTPS CONNECT tunnels in mocked backend mode](https://github.com/DataDog/system-tests/pull/6725) by @cbeauchesne
+
+
+### 2026-03 (196 PR merged)
+
+* 2026-03-19 [Deprecate force_skip argument](https://github.com/DataDog/system-tests/pull/6515) by @cbeauchesne
+* 2026-03-23 [Support multiple lang-branch overrides in PR title](https://github.com/DataDog/system-tests/pull/6468) by @bm1549
+* 2026-03-05 [revamp: use a classic test for schema validation](https://github.com/DataDog/system-tests/pull/6437) by @cbeauchesne
+* 2026-03-02 [AI devx tools](https://github.com/DataDog/system-tests/pull/6391) by @robertomonteromiguel
+* 2026-03-09 [Centralized constant handling: list of all components grouped by use case](https://github.com/DataDog/system-tests/pull/6359) by @nccatoni
+* 2026-03-10 [README improvement and restructuration of the documentation](https://github.com/DataDog/system-tests/pull/6290) by @nccatoni
+
+
+### 2026-02 (156 PR merged)
+
+* 2026-02-26 [Adding the datadog mcp to system-tests cursor configuration](https://github.com/DataDog/system-tests/pull/6380) by @nccatoni
+* 2026-02-23 [Support v1 trace format from libraries](https://github.com/DataDog/system-tests/pull/6360) by @cbeauchesne and @ajgajg1134
+* 2026-02-19 [[ruby] Use dd-trace-rb version as it is in the library](https://github.com/DataDog/system-tests/pull/6340) by @p-datadog
+* 2026-02-10 [codex: pr review rules](https://github.com/DataDog/system-tests/pull/6246) by @robertomonteromiguel
+* 2026-02-06 [Activate ANN001 format rules (typings) on K8s utils](https://github.com/DataDog/system-tests/pull/6231) by @robertomonteromiguel
+* 2026-02-02 [Update K8s Components github workflow](https://github.com/DataDog/system-tests/pull/6157) by @robertomonteromiguel
+* 2026-02-06 [[APMSP-2608] Introduce weblog infra abstraction](https://github.com/DataDog/system-tests/pull/6154) by @cbeauchesne
+
+
+### 2026-01 (184 PR merged)
+
+* 2026-01-30 [Adds library branch selector in debug harness](https://github.com/DataDog/system-tests/pull/6159) by @cbeauchesne
+* 2026-01-27 [AWS SSI: Better exception handler](https://github.com/DataDog/system-tests/pull/6120) by @robertomonteromiguel
+* 2026-01-26 [refactor(parametric): implement version-aware RC capability definitions](https://github.com/DataDog/system-tests/pull/6100) by @watson
+* 2026-01-29 [Add two new decorators to replace the force skip option](https://github.com/DataDog/system-tests/pull/6091) by @nccatoni
+* 2026-01-30 [python: add tornado weblog](https://github.com/DataDog/system-tests/pull/6079) by @florentinl
+* 2026-01-21 [Pushing system-tests CI executions to Test Optim  on DataDog prod](https://github.com/DataDog/system-tests/pull/6075) by @nccatoni
+* 2026-01-19 [python: improved local development experience for scenarios with a python weblog](https://github.com/DataDog/system-tests/pull/6035) by @florentinl
+* 2026-01-27 [[envoy / haproxy] Create new components manifests](https://github.com/DataDog/system-tests/pull/6024) by @e-n-0
+* 2026-01-12 [Allow code editors to collect tests](https://github.com/DataDog/system-tests/pull/5997) by @florentinl
+* 2026-01-07 [New AWs Account for local develpment](https://github.com/DataDog/system-tests/pull/5913) by @robertomonteromiguel
+* 2026-01-28 [K8s: Add cluster agent dev into the job matrix](https://github.com/DataDog/system-tests/pull/5881) by @robertomonteromiguel
+* 2026-01-02 [Test auto activation migration](https://github.com/DataDog/system-tests/pull/5740) by @nccatoni
+
+
+### 2025-12 (109 PR merged)
+
+* 2025-12-30 [allows list of weblogs in weblog declaration keys](https://github.com/DataDog/system-tests/pull/5919) by @christophe-papazian
+* 2025-12-18 [Auto sort for manifest files](https://github.com/DataDog/system-tests/pull/5883) by @nccatoni
+* 2025-12-16 [Auto complete based on schema for yaml-language-server](https://github.com/DataDog/system-tests/pull/5880) by @nccatoni
+* 2025-12-04 [Allow parametric test to set agent env](https://github.com/DataDog/system-tests/pull/5820) by @cbeauchesne
+* 2025-12-09 [Manifests migration](https://github.com/DataDog/system-tests/pull/5575) by @nccatoni
+
+
+### 2025-11 (122 PR merged)
+
+* 2025-11-26 [Clean API to control mocked behavior on proxy](https://github.com/DataDog/system-tests/pull/5775) by @cbeauchesne
+* 2025-11-21 [Simplify PARAMETRIC TestClient API](https://github.com/DataDog/system-tests/pull/5753) by @cbeauchesne
+* 2025-11-26 [Add OpenAI LLM Observability Tests](https://github.com/DataDog/system-tests/pull/5727) by @sabrenner
+* 2025-11-05 [Pushing to test optimization](https://github.com/DataDog/system-tests/pull/5663) by @nccatoni
+* 2025-11-04 [Activate ANN001 on all endtoend and parametric scenarios](https://github.com/DataDog/system-tests/pull/5661) by @cbeauchesne
+* 2025-11-13 [expand openai integration frameworks tests](https://github.com/DataDog/system-tests/pull/5632) by @sabrenner
+
+
+### 2025-10 (207 PR merged)
+
+* 2025-10-24 [Allow running php system tests with self-compiled artifact](https://github.com/DataDog/system-tests/pull/5586) by @bwoebi
+* 2025-10-21 [Clarification of interface.validate API](https://github.com/DataDog/system-tests/pull/5558) by @cbeauchesne
+* 2025-10-21 [Automatic changelog generation](https://github.com/DataDog/system-tests/pull/5540) by @nccatoni
+* 2025-10-15 [SSI: Allow use the installer from binaries](https://github.com/DataDog/system-tests/pull/5485) by @robertomonteromiguel
+* 2025-10-10 [AWS SSI: Allow to use a custom library version for each language](https://github.com/DataDog/system-tests/pull/5470) by @robertomonteromiguel
+* 2025-10-01 [Set good owners (agent, ASM, SDK)](https://github.com/DataDog/system-tests/pull/5391) by @cbeauchesne
+* 2025-10-02 [Display code owners of modified files in a PR comment](https://github.com/DataDog/system-tests/pull/5314) by @avara1986
+* 2025-10-10 [Add Open Telemetry Collector // Postgres Tests](https://github.com/DataDog/system-tests/pull/5254) by @wantsui
+
+
+### 2025-09 (171 PR merged)
+
+* 2025-09-15 [Report code owners in junit/test optimization](https://github.com/DataDog/system-tests/pull/5252) by @cbeauchesne
+* 2025-09-23 [Automatic easy win activation script](https://github.com/DataDog/system-tests/pull/5247) by @nccatoni
+* 2025-09-10 [Reduce parametric logs verbosity](https://github.com/DataDog/system-tests/pull/5228) by @nccatoni
+* 2025-09-02 [Add debugger harness to allow on demand flake reproduction](https://github.com/DataDog/system-tests/pull/5183) by @cbeauchesne
+* 2025-09-19 [feat: add haproxy stream_processing_offload system tests](https://github.com/DataDog/system-tests/pull/5125) by @e-n-0
+* 2025-09-22 [Add scenario deduplication validation with test_minimal_number_of_scenarios](https://github.com/DataDog/system-tests/pull/5090) by @jandro996
+
+
+### 2025-08 (120 PR merged)
+
+* 2025-08-28 [Using prebuilt wheel for dd-trace-py](https://github.com/DataDog/system-tests/pull/5146) by @nccatoni
+* 2025-08-25 [Do not run any scenario/libraries if only documentation is modified.](https://github.com/DataDog/system-tests/pull/5121) by @nccatoni
+* 2025-08-28 [Add initial support for v1.0 traces endpoint](https://github.com/DataDog/system-tests/pull/5118) by @ajgajg1134
+* 2025-08-07 [Add the dimension of feature owner](https://github.com/DataDog/system-tests/pull/5039) by @cbeauchesne
+* 2025-08-06 [Add force-execute input in official workflow](https://github.com/DataDog/system-tests/pull/5032) by @cbeauchesne
+* 2025-08-20 [[python_lambda] Add scenario for testing the python tracer for AWS Lambda](https://github.com/DataDog/system-tests/pull/4891) by @florentinl
+
+
+### 2025-07 (112 PR merged)
+
+* 2025-07-29 [[ruby] Remove excessive Rails versions](https://github.com/DataDog/system-tests/pull/4954) by @Strech
+* 2025-07-02 [Allow to use a subset of weblog in official workflow](https://github.com/DataDog/system-tests/pull/4885) by @cbeauchesne
+* 2025-07-18 [K8s injector dev first scenario](https://github.com/DataDog/system-tests/pull/4692) by @robertomonteromiguel
+
+
+### 2025-06 (128 PR merged)
+
+* 2025-06-26 [Check that all declared production version exists for java](https://github.com/DataDog/system-tests/pull/4840) by @cbeauchesne
+* 2025-06-25 [Implement AI Testing Framework and Specialized Prompts](https://github.com/DataDog/system-tests/pull/4815) by @robertomonteromiguel
+* 2025-06-16 [Use the bare agent image in end-to-end scenario](https://github.com/DataDog/system-tests/pull/4771) by @cbeauchesne
+* 2025-06-12 [Add optional inputs ref for system-tests.yml](https://github.com/DataDog/system-tests/pull/4750) by @TonyCTHsu
+* 2025-06-09 [Robertomonteromiguel/cursor copilot endtoend scenarios](https://github.com/DataDog/system-tests/pull/4722) by @robertomonteromiguel
+* 2025-06-04 [Test that tracer version is reported as semver to RC](https://github.com/DataDog/system-tests/pull/4712) by @smola
+* 2025-06-11 [[Nodejs] init fastify weblog](https://github.com/DataDog/system-tests/pull/4708) by @IlyasShabi
+* 2025-06-03 [Robertomonteromiguel/GitHub copilot and docs](https://github.com/DataDog/system-tests/pull/4665) by @robertomonteromiguel
+
+
+### 2025-05 (110 PR merged)
+
+* 2025-05-27 [add a script that adds a label on tickets referenced in system-tests](https://github.com/DataDog/system-tests/pull/4697) by @cbeauchesne
+* 2025-05-22 [Allow parametric tests to run against an arbitrary system-tests ref](https://github.com/DataDog/system-tests/pull/4685) by @cbeauchesne
+* 2025-05-21 [do not require ca-certificate for agent image #4676](https://github.com/DataDog/system-tests/pull/4677) by @cbeauchesne
+* 2025-05-05 [Use ensure-ci-success for all-green gatekeeper](https://github.com/DataDog/system-tests/pull/4573) by @cbeauchesne
+* 2025-05-09 [ssi: track ssi configurations via telemetry](https://github.com/DataDog/system-tests/pull/4543) by @mabdinur
+
+
 ### 2025-04 (137 PR merged)
 
 * 2025-04-22 [Add an option to exclude some scenarios in system-tests.yml](https://github.com/DataDog/system-tests/pull/4546) by @cbeauchesne

@@ -3,6 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, features
+from utils.dd_types import DataDogLibrarySpan
 
 
 @scenarios.everything_disabled
@@ -21,15 +22,15 @@ class Test_StandardTagsClientIp:
     def test_not_reported(self):
         """Test IP-related span tags are not reported when ASM is disabled"""
 
-        def validator(span):
+        def validator(span: DataDogLibrarySpan):
             meta = span.get("meta", {})
             assert "appsec.event" not in meta, "unexpected appsec event while appsec should be disabled"
             assert "http.client_ip" not in meta, "unexpected http.client_ip tag"
             assert "network.client.ip" not in meta, "unexpected network.client.ip tag"
-            assert (
-                "http.request.headers.x-cluster-client-ip" not in meta
-            ), "unexpected http.request.headers.x-cluster-client-ip tag"
+            assert "http.request.headers.x-cluster-client-ip" not in meta, (
+                "unexpected http.request.headers.x-cluster-client-ip tag"
+            )
 
             return True
 
-        interfaces.library.validate_spans(request=self.r, validator=validator)
+        interfaces.library.validate_one_span(request=self.r, validator=validator)

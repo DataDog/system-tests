@@ -2,18 +2,31 @@
 
 MAVEN_PROFILES=
 
+configure_custom_jar() {
+    local jar_pattern="$1"
+    local artifact_name="$2"
+    local maven_property="$3"
+    local jar_count
+    jar_count=$(find /binaries/ -name "${jar_pattern}" 2>/dev/null | wc -l)
+
+    if [ "$jar_count" = 0 ]; then
+        echo "Using default $artifact_name"
+    elif [ "$jar_count" = 1 ]; then
+        local custom_jar
+        custom_jar=$(find /binaries/ -name "${jar_pattern}")
+        echo "Using custom $artifact_name: ${custom_jar}"
+        MAVEN_PROFILES="$MAVEN_PROFILES -D${maven_property}=${custom_jar}"
+    else
+        echo "Too many $artifact_name within binaries folder"
+        exit 1
+    fi
+}
+
 # Look for custom dd-trace-api jar in custom binaries folder
-CUSTOM_DD_TRACE_API_COUNT=$(find /binaries/dd-trace-api*.jar 2>/dev/null | wc -l)
-if [ "$CUSTOM_DD_TRACE_API_COUNT" = 0 ]; then
-    echo "Using default dd-trace-api"
-elif [ "$CUSTOM_DD_TRACE_API_COUNT" = 1 ]; then
-    CUSTOM_DD_TRACE_API=$(find /binaries/dd-trace-api*.jar)
-    echo "Using custom dd-trace-api: ${CUSTOM_DD_TRACE_API}"
-    MAVEN_PROFILES="$MAVEN_PROFILES -DcustomDdTraceApi=${CUSTOM_DD_TRACE_API}"
-else
-    echo "Too many dd-trace-api within binaries folder"
-    exit 1
-fi
+configure_custom_jar "dd-trace-api*.jar" "dd-trace-api" "customDdTraceApi"
+
+# Look for custom dd-openfeature jar in custom binaries folder
+configure_custom_jar "dd-openfeature*.jar" "dd-openfeature" "customDdOpenfeature"
 
 # Look for custom dd-java-agent jar in custom binaries folder
 CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)

@@ -1,6 +1,7 @@
 import json
 
 from utils import weblog, interfaces, features
+from utils.dd_types import DataDogLibraryTrace
 
 
 # this test relies on the proto file at utils/build/docker/common/message.proto
@@ -14,7 +15,7 @@ class Test_Protobuf:
         assert self.serialization_response.status_code == 200, self.serialization_response.text
         assert self.deserialization_response.status_code == 200, self.deserialization_response.text
 
-        def validator(trace: list):
+        def validator(trace: DataDogLibraryTrace) -> bool:
             if len(trace) == 1:
                 span = trace[0]
             else:
@@ -43,5 +44,5 @@ class Test_Protobuf:
 
             return True
 
-        interfaces.library.validate_traces(request=self.serialization_response, validator=validator)
-        interfaces.library.validate_traces(request=self.deserialization_response, validator=validator)
+        interfaces.library.validate_one_trace(request=self.serialization_response, validator=validator)
+        interfaces.library.validate_one_trace(request=self.deserialization_response, validator=validator)

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+// cherry pick from https://github.com/DataDog/dd-source/blob/main/domains/metrics/shared/libs/proto/apiv2/apiv2.proto
+// if you modify this file, please run : 
+//   > docker run --rm -v "$(pwd):/work" -w /work golang:1.24.5 /work/utils/scripts/update_protobuf.sh
+
+package datadoghq.api.series.v2;
+
+message Response {
+    repeated string errors = 1;
+}

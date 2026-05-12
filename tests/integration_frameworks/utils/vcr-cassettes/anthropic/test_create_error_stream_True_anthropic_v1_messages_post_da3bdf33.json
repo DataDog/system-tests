@@ -1,0 +1,55 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "x-stainless-timeout": "NOT_GIVEN",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "Anthropic/Python 0.75.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "0.75.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "anthropic-version": "2023-06-01",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "124",
+      "x-datadog-trace-id": "3414078974747980691",
+      "x-datadog-parent-id": "7532077275614583918",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=8880332694389439965,_dd.p.llmobs_trace_id=139827316460303622668372572085579721853,_dd.p.tid=6931c2f700000000",
+      "traceparent": "00-6931c2f7000000002f613ebd2cfbb393-6887506021cc9c6e-01",
+      "tracestate": "dd=p:6887506021cc9c6e;s:1;t.dm:-0;t.llmobs_parent_id:8880332694389439965;t.llmobs_trace_id:139827316460303622668372572085579721853;t.tid:6931c2f700000000"
+    },
+    "body": "{\"max_tokens\":100,\"messages\":[{\"role\":\"user\",\"content\":\"What is 2+2?\"}],\"model\":\"bad-model\",\"stream\":true,\"temperature\":0.5}"
+  },
+  "response": {
+    "status": {
+      "code": 404,
+      "message": "Not Found"
+    },
+    "headers": {
+      "Date": "Thu, 04 Dec 2025 17:20:55 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "Content-Encoding": "gzip",
+      "x-should-retry": "false",
+      "request-id": "req_011CVn2nNQaBZBQ7qm4EcvR9",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "anthropic-organization-id": "4257e925-ee99-4ee8-9c62-8e53716d5203",
+      "x-envoy-upstream-service-time": "33",
+      "cf-cache-status": "DYNAMIC",
+      "X-Robots-Tag": "none",
+      "Server": "cloudflare",
+      "CF-RAY": "9a8cfa2aaf0c0f4b-EWR"
+    },
+    "body": "{\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: bad-model\"},\"request_id\":\"req_011CVn2nNQaBZBQ7qm4EcvR9\"}"
+  }
+}

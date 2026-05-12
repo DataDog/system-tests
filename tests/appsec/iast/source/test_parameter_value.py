@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, irrelevant, features, flaky
+from utils import context, features
 from tests.appsec.iast.utils import BaseSourceTest
 
 
@@ -20,18 +20,10 @@ class TestParameterValue(BaseSourceTest):
     source_type = "http.request.body" if context.library.name in ("nodejs", "dotnet") else "http.request.parameter"
     source_names = ["table"]
 
-    # remove the base test, to handle the source_type spcial use case in node
-    @irrelevant()
     def test_source_reported(self): ...
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @irrelevant(
-        library="python",
-        reason="Flask and Django need a header; otherwise, they return a 415 status code."
-        "TODO: When FastAPI implements POST body source, verify if it does too.",
-    )
-    @flaky(context.weblog_variant == "resteasy-netty3", reason="APPSEC-56007")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
 
@@ -40,19 +32,8 @@ class TestParameterValue(BaseSourceTest):
     def test_source_get_reported(self):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
-    @missing_feature(context.library < "java@1.9.0", reason="Not implemented")
-    @missing_feature(
-        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
-    @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.11.0", reason="Not implemented")
-    @missing_feature(
-        context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

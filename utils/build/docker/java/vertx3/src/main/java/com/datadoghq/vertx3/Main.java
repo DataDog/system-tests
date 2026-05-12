@@ -8,6 +8,8 @@ import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
+import com.datadoghq.vertx3.iast.routes.IastSamplingRouteProvider;
+import com.datadoghq.vertx3.rasp.Api10RouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
@@ -37,7 +39,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import io.vertx.ext.web.FileUpload;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -67,13 +74,16 @@ public class Main {
         Router router = Router.router(vertx);
 
         router.get("/")
-                .produces("text/plain")
                 .handler(ctx -> {
                     var tracer = GlobalTracer.get();
                     Span span = tracer.buildSpan("test-span").start();
                     span.setTag("test-tag", "my value");
                     try {
-                        ctx.response().setStatusCode(200).end("Hello World!");
+                        ctx.response()
+                                .setStatusCode(200)
+                                .putHeader("Content-Type", "text/plain")
+                                .putHeader("Content-Length", "13")
+                                .end("Hello world!\n");
                     } finally {
                         span.finish();
                     }
@@ -90,13 +100,24 @@ public class Main {
                         .end("012345678901234567890123456789012345678901"));
         router.route("/tag_value/:tag_value/:status_code")
                 .handler(BodyHandler.create())
-                .produces("text/plain")
                 .handler(ctx -> {
-                    consumeParsedBody(ctx);
-                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("tag_value"));
-                    ctx.response()
-                            .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
-                            .end("Value tagged");
+                    final Object body = consumeParsedBody(ctx);
+                    final String value = ctx.pathParam("tag_value");
+                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+                    ctx.response().setStatusCode(Integer.parseInt(ctx.pathParam("status_code")));
+                    final String xOption = ctx.request().getParam("X-option");
+                    if (xOption != null) {
+                        ctx.response().putHeader("X-option", xOption);
+                    }
+                    if (value.startsWith("payload_in_response_body")) {
+                        ctx.response()
+                                .putHeader("Content-Type", "application/json")
+                                .end(new JsonObject().put("payload", body).encode());
+                    } else {
+                        ctx.response()
+                                .putHeader("Content-Type", "text/plain")
+                                .end("Value tagged");
+                    }
                 });
         router.get("/sample_rate_route/:i")
                 .handler(ctx -> {
@@ -127,6 +148,11 @@ public class Main {
             ctx.pathParams().toString();
             ctx.response().end("Hello world!");
         });
+        router.getWithRegex("/resource_renaming(?:/(.*))?").handler(ctx -> {
+            // Consume path params
+            ctx.pathParams().toString();
+            ctx.response().end("ok");
+        });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
                 .produces("text/plain")
@@ -151,10 +177,27 @@ public class Main {
                 ctx.response().setStatusCode(200).end(body.toString());
             });
         }
+        router.post("/waf").consumes("multipart/form-data").handler(ctx -> {
+            var sb = new StringBuilder();
+            for (FileUpload upload : ctx.fileUploads()) {
+                try {
+                    sb.append(new String(Files.readAllBytes(Paths.get(upload.uploadedFileName()))));
+                } catch (IOException e) {
+                    // ignore read errors for individual uploads
+                }
+            }
+            ctx.response().setStatusCode(200).end(sb.toString());
+        });
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");
                     int code = Integer.parseInt(codeString);
+                    ctx.response().setStatusCode(code).end();
+                });
+        router.get("/stats-unique")
+                .handler(ctx -> {
+                    String codeString = ctx.request().getParam("code");
+                    int code = codeString != null ? Integer.parseInt(codeString): 200;
                     ctx.response().setStatusCode(code).end();
                 });
         router.get("/users")
@@ -295,6 +338,23 @@ public class Main {
                     ctx.response().end("Response with custom headers");
                 });
 
+        router.get("/authorization_related_headers")
+                .handler(ctx -> {
+                    // Headers with sensitive or authentication-related information
+                    ctx.response().putHeader("Authorization", "value1");
+                    ctx.response().putHeader("Proxy-Authorization", "value2");
+                    ctx.response().putHeader("WWW-Authenticate", "value3");
+                    ctx.response().putHeader("Proxy-Authenticate", "value4");
+                    ctx.response().putHeader("Authentication-Info", "value5");
+                    ctx.response().putHeader("Proxy-Authentication-Info", "value6");
+                    ctx.response().putHeader("Cookie", "value7");
+                    ctx.response().putHeader("Set-Cookie", "value8");
+
+                    // Additional headers
+                    ctx.response().putHeader("content-type", "text/plain");
+                    ctx.response().end("Response with sensitive headers");
+                });
+
         // Exceed response headers endpoint
         router.get("/exceedResponseHeaders")
                 .handler(ctx -> {
@@ -316,6 +376,22 @@ public class Main {
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
                 });
+        router.get("/inferred-proxy/span-creation")
+                .handler(ctx -> {
+                    String statusCodeParam = ctx.request().getParam("status_code");
+                    int statusCode = 200;
+                    if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                        try {
+                            statusCode = Integer.parseInt(statusCodeParam);
+                        } catch (NumberFormatException e) {
+                            statusCode = 400;
+                        }
+                    }
+                    System.out.println("Received an API Gateway request:");
+                    ctx.request().headers().forEach(header ->
+                        System.out.println(header.getKey() + ": " + header.getValue()));
+                    ctx.response().setStatusCode(statusCode).end("ok");
+                });
         router.get("/set_cookie")
                 .handler(ctx -> {
                     String name = ctx.request().getParam("name");
@@ -328,6 +404,56 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+        router.get("/make_distant_call").handler(ctx -> {
+            String url = ctx.request().getParam("url");
+            JsonObject requestHeaders = new JsonObject();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    requestHeaders.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    ctx.response().setStatusCode(500).end(e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        ctx.response().setStatusCode(500).end(response.message());
+                    } else {
+                        int status_code = response.code();
+                        JsonObject responseHeaders = new JsonObject();
+                        Headers headers = response.headers();
+                        for (String name : headers.names()) {
+                            responseHeaders.put(name, headers.get(name));
+                        }
+
+                        JsonObject result = new JsonObject();
+                        result.put("url", url);
+                        result.put("status_code", status_code);
+                        result.put("request_headers", requestHeaders);
+                        result.put("response_headers", responseHeaders);
+
+                        ctx.response().end(result.encodePrettily());                    }
+                }
+            });
+        });
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(CookieHandler.create());
         sessionRouter.get().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
@@ -349,15 +475,20 @@ public class Main {
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));
+
         server.requestHandler(router::accept).listen(7777);
     }
 
     private static Stream<Consumer<Router>> iastRouteProviders() {
-        return Stream.of(new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), new IastSourceRouteProvider(DATA_SOURCE));
+        return Stream.of(
+            new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT),
+            new IastSourceRouteProvider(DATA_SOURCE),
+            new IastSamplingRouteProvider()
+        );
     }
 
     private static Stream<Consumer<Router>> raspRouteProviders() {
-        return Stream.of(new RaspRouteProvider(DATA_SOURCE));
+        return Stream.of(new RaspRouteProvider(DATA_SOURCE), new Api10RouteProvider());
     }
 
     private static Map<String, String> asMetadataMap(final JsonObject metadata) {
@@ -395,18 +526,18 @@ public class Main {
         }
     }
 
-    private static void consumeParsedBody(final RoutingContext ctx) {
+    private static Object consumeParsedBody(final RoutingContext ctx) {
         String contentType = ctx.request().getHeader("Content-Type");
         if (contentType == null) {
-            return;
+            return ctx.getBodyAsString();
         }
         contentType = contentType.toLowerCase(Locale.ROOT);
         if (contentType.contains("json")) {
-            ctx.getBodyAsJson();
+            return ctx.getBodyAsJson().getMap();
         } else if (contentType.equals("application/x-www-form-urlencoded")) {
-            ctx.request().formAttributes();
+            return ctx.request().formAttributes().entries();
         } else {
-            ctx.getBodyAsString();
+            return ctx.getBodyAsString();
         }
     }
 

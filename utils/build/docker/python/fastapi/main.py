@@ -16,7 +16,9 @@ from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -27,24 +29,44 @@ from jinja2 import Template
 import psycopg2
 from pydantic import BaseModel
 import requests
+import stripe
 import urllib3
 import xmltodict
+from packaging.version import Version
 from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
+
+# Initialize OpenFeature client if FFE is enabled
+openfeature_client = None
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
+
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -53,22 +75,25 @@ except ImportError:
 
 app = FastAPI()
 
-
 # Custom middleware
-try:
-    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
-    current_ddtrace_version = (int(maj), int(min), int(patch))
-except Exception:
-    current_ddtrace_version = (0, 0, 0)
+current_ddtrace_version = Version(getattr(ddtrace, "__version__", "0.0.0"))
 
-if current_ddtrace_version >= (3, 1, 0):
+if current_ddtrace_version >= Version("3.1.0"):
     """custom middleware only supported after PR 12413"""
 
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):
+        user_id = request.session.get("user_id")
+        session_id = request.cookies.get("session_id")
         try:
-            if request.session.get("user_id"):
-                set_user(tracer, user_id=request.session["user_id"], mode="auto")
+            if user_id or session_id:
+                try:
+                    import ddtrace.appsec.track_user_sdk as track_user_sdk
+
+                    track_user_sdk.track_user(login=user_id, user_id=user_id, session_id=session_id, _auto=True)
+                except Exception:
+                    # Fallback to the legacy set_user function if track_user_sdk or _auto is not available
+                    set_user(tracer, user_id=user_id, session_id=session_id, mode="auto")
         except Exception:
             # to be compatible with all tracer versions
             pass
@@ -94,9 +119,9 @@ async def custom_404_handler(request: Request, _):
     return JSONResponse({"error": 404}, status_code=404)
 
 
-@app.get("/", response_class=PlainTextResponse)
-@app.post("/", response_class=PlainTextResponse)
-@app.options("/", response_class=PlainTextResponse)
+@app.get("/", response_class=PlainTextResponse, status_code=200)
+@app.post("/", response_class=PlainTextResponse, status_code=200)
+@app.options("/", response_class=PlainTextResponse, status_code=200)
 async def root():
     return "Hello, World!"
 
@@ -136,6 +161,36 @@ async def iast_header_injection_secure(request: Request):
     response = PlainTextResponse("OK")
     # label iast_header_injection
     response.headers["Vary"] = header_value
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_redirect")
+async def view_iast_unvalidated_redirect_insecure(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_header", response_class=RedirectResponse)
+async def view_iast_unvalidated_redirect_insecure_header(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_redirect")
+async def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_header", response_class=RedirectResponse)
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
     return response
 
 
@@ -564,6 +619,231 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
     return "OK"
 
 
+@app.post("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+@app.get("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method(request: Request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if request.query_params:
+        param_tainted = request.query_params.get("param")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+    else:
+        form_data = await request.form()
+        param_tainted = form_data.get("param")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+    return PlainTextResponse("OK")
+
+
+@app.get("/iast/sampling-by-route-method-count-2/{id}", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method_2(request: Request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = request.query_params.get("param")
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    return PlainTextResponse("OK")
+
+
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
     try:
@@ -607,7 +887,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.get("/user_login_success_event", response_class=PlainTextResponse)
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return "OK"
 
 
@@ -710,7 +992,7 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 @app.get("/session/new")
 async def session_new(request: Request):
-    response = PlainTextResponse("OK")
+    response = PlainTextResponse(MAGIC_SESSION_KEY)
     response.set_cookie(key="session_id", value=MAGIC_SESSION_KEY)
     return response
 
@@ -807,12 +1089,13 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
 
     # Validate the URL and enforce whitelist
     allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
-    parsed_url = urlparse(str(url))
-
+    if type(url) == bytes:
+        url = url.decode("utf-8")
+    parsed_url = urlparse(url)
     if parsed_url.hostname not in allowed_domains:
         return PlainTextResponse("Forbidden", status_code=403)
     try:
-        result = requests.get(parsed_url.geturl())
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1009,3 +1292,111 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
+
+
+@app.get("/external_request", response_class=JSONResponse, status_code=200)
+@app.post("/external_request", response_class=JSONResponse, status_code=200)
+@app.trace("/external_request", response_class=JSONResponse, status_code=200)
+@app.put("/external_request", response_class=JSONResponse, status_code=200)
+async def external_request(request: Request):
+    queries = {k: str(v) for k, v in request.query_params.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    try:
+        body = await request.body()
+    except Exception:
+        body = None
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+    full_url = f"http://internal_server:8089/mirror/{status}{url_extra}"
+    try:
+        with requests.Session() as s:
+            response = s.request(request.method, full_url, data=body, headers=queries, timeout=10)
+            payload = response.text
+            return {
+                "status": int(response.status_code),
+                "headers": dict(response.headers),
+                "payload": json.loads(payload),
+            }
+    except Exception as e:
+        return {"status": int(e.status), "error": repr(e)}
+
+
+@app.get("/external_request/redirect", response_class=JSONResponse, status_code=200)
+async def external_request(request: Request, totalRedirects: int):
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={totalRedirects}"
+    queries = {k: str(v) for k, v in request.query_params.items()}
+    try:
+        with requests.Session() as s:
+            response = s.request("GET", full_url, headers=queries, timeout=10)
+            payload = response.text
+            return {
+                "status": int(response.status_code),
+                "headers": dict(response.headers),
+                "payload": json.loads(payload),
+            }
+    except Exception as e:
+        return {"status": int(e.status), "error": repr(e)}
+
+
+@app.get("/resource_renaming/{path:path}", response_class=PlainTextResponse)
+def resource_renaming(path: str = ""):
+    return "ok"
+
+
+@app.post("/ffe", response_class=JSONResponse)
+async def ffe(request: Request):
+    """OpenFeature evaluation endpoint."""
+    body = await request.json()
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return JSONResponse({"value": value}, status_code=200)
+
+
+@app.post("/stripe/create_checkout_session", response_class=JSONResponse)
+async def stripe_create_checkout_session(request: Request):
+    try:
+        body = await request.json()
+        result = stripe.checkout.Session.create(**body)
+        return JSONResponse(dict(result))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/stripe/create_payment_intent", response_class=JSONResponse)
+async def stripe_create_payment_intent(request: Request):
+    try:
+        body = await request.json()
+        result = stripe.PaymentIntent.create(**body)
+        return JSONResponse(dict(result))
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/stripe/webhook", response_class=JSONResponse)
+async def stripe_webhook(request: Request):
+    try:
+        body = await request.body()
+        signature = request.headers.get("Stripe-Signature")
+        event = stripe.Webhook.construct_event(body, signature, "whsec_FAKE")
+        return JSONResponse(event.data.object)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=403)

@@ -57,9 +57,21 @@ sed -i s/80/7777/ /etc/apache2/ports.conf
 # Install Composer
 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set up Monolog using Composer
 cd /var/www/html
+# Use composer.json for PHP < 8.2, composer.gte8.2.json for PHP >= 8.2 (COMPOSER env = config filename)
+export COMPOSER=composer.json
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+	export COMPOSER=composer.gte8.2.json
+fi
+echo "Using composer config: $COMPOSER"
 composer install --prefer-dist
+
+# Install OTel SDK for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
+# DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
+# with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
+if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
+fi
 
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor

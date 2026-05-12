@@ -1,0 +1,5 @@
+"*":
+  - tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking
+
+"nodejs":
+  - tests/test_telemetry.py::Test_DependencyEnable::test_app_dependency_loaded_not_sent_dependency_collection_disabled

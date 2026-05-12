@@ -1,12 +1,12 @@
 import pytest
 
-from utils.parametric.spec.trace import find_trace
-from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.trace import find_first_span_in_trace_payload
-from utils.parametric.spec.trace import find_root_span
-from utils import missing_feature, context, rfc, scenarios, features
+from utils.docker_fixtures.spec.trace import find_trace
+from utils.docker_fixtures.spec.trace import find_span
+from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
+from utils.docker_fixtures.spec.trace import find_root_span
+from utils import rfc, scenarios, features
+from utils.docker_fixtures import TestAgentAPI
 
-from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
 
 
@@ -16,9 +16,7 @@ parametrize = pytest.mark.parametrize
 @scenarios.parametric
 @features.trace_annotation
 class Test_Tracer:
-    @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
-    @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
-    def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracer_span_top_level_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""
         with (
             test_library,
@@ -51,7 +49,7 @@ class Test_Tracer:
 class Test_TracerSCITagging:
     @parametrize("library_env", [{"DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/dd-trace-go"}])
     def test_tracer_repository_url_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_GIT_REPOSITORY_URL is specified
         When a trace chunk is emitted
@@ -78,7 +76,7 @@ class Test_TracerSCITagging:
 
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_GIT_COMMIT_SHA is specified
         When a trace chunk is emitted
@@ -137,9 +135,8 @@ class Test_TracerSCITagging:
             },
         ],
     )
-    @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_GIT_REPOSITORY_URL is specified
         When a trace chunk is emitted
@@ -163,10 +160,9 @@ class Test_TracerSCITagging:
 @scenarios.parametric
 @features.dd_service_mapping
 class Test_TracerUniversalServiceTagging:
-    @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
     def test_tracer_service_name_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_SERVICE is specified
         When a span is created
@@ -184,7 +180,7 @@ class Test_TracerUniversalServiceTagging:
 
     @parametrize("library_env", [{"DD_ENV": "prod"}])
     def test_tracer_env_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_ENV is specified
         When a span is created
@@ -200,3 +196,138 @@ class Test_TracerUniversalServiceTagging:
         assert span is not None, "Root span not found"
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
+
+
+@scenarios.parametric
+@features.service_override_source
+@rfc("https://docs.google.com/document/d/11OnbVYMDK-c5D-_V4QfOvL0Pc0z5oFQFGY3xSI-W7xk")
+class Test_TracerServiceNameSource:
+    def test_tracer_manual_service_name_sets_srv_src(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a span is created with a manually set service name
+        The span should have meta._dd.srv.src set to "m" (manual)
+        """
+        with test_library, test_library.dd_start_span("operation", service="my-service") as span:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None, "Root span not found"
+        assert root_span["service"] == "my-service"
+        assert root_span["meta"]["_dd.svc_src"] == "m"
+
+    def test_tracer_no_srv_src_when_service_not_manually_set(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """When a span is created without a manually set service name
+        The span should not have meta._dd.srv.src set
+        """
+        with test_library, test_library.dd_start_span("operation") as span:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None, "Root span not found"
+        assert "_dd.svc_src" not in root_span.get("meta", {})
+
+    def test_tracer_srv_src_inherited_on_child_span(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a parent span has a manually set service name
+        A child span that inherits the same service should also have _dd.svc_src set to "m"
+        """
+        with (
+            test_library,
+            test_library.dd_start_span("parent", service="my-service") as parent,
+            test_library.dd_start_span("child", parent_id=parent.span_id),
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+
+        child_span = next(s for s in trace if s["name"] == "child")
+        assert child_span["meta"].get("_dd.svc_src") == "m", (
+            f"Expected _dd.svc_src='m' on child span, got: {child_span['meta'].get('_dd.svc_src')!r}"
+        )
+
+
+@scenarios.parametric
+@features.base_service
+class Test_TracerBaseService:
+    @parametrize("library_env", [{"DD_SERVICE": "global-service"}])
+    def test_base_service_set_when_service_overridden(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a child span is created with a service name different from DD_SERVICE
+        The child span should have meta._dd.base_service set to the global service (DD_SERVICE)
+        """
+        with (
+            test_library,
+            test_library.dd_start_span("root") as root,
+            test_library.dd_start_span("child", service="other-service", parent_id=root.span_id),
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        child_span = next(s for s in trace if s["name"] == "child")
+        assert child_span["service"] == "other-service"
+        assert child_span["meta"].get("_dd.base_service") == "global-service", (
+            f"Expected _dd.base_service='global-service', got: {child_span['meta'].get('_dd.base_service')!r}"
+        )
+
+    @parametrize("library_env", [{"DD_SERVICE": "global-service"}])
+    def test_base_service_absent_when_service_not_overridden(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """When a span uses the same service name as DD_SERVICE
+        The span should not have meta._dd.base_service set
+        """
+        with test_library, test_library.dd_start_span("operation", service="global-service") as root:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None
+        assert "_dd.base_service" not in root_span.get("meta", {}), (
+            f"Root span should not have _dd.base_service, got: {root_span['meta'].get('_dd.base_service')!r}"
+        )
+
+
+@scenarios.parametric
+@features.process_tags
+@rfc("https://docs.google.com/document/d/1c47iSTWxIOHMHfZTF2nT9xfyQaIBP9KJvI9sRn5SvpM")
+class Test_ProcessTags_ServiceName:
+    @parametrize(
+        "library_env", [{"DD_SERVICE": "test-service", "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}]
+    )
+    def test_process_tag_svc_user(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When DD_SERVICE is set, process tags must include svc.user:true"""
+        with test_library, test_library.dd_start_span("operation") as root:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        span = find_root_span(trace)
+        assert span is not None
+        process_tags = span["meta"]["_dd.tags.process"]
+        assert "svc.user:true" in process_tags, f"DD_SERVICE is set - Expecting svc.user:true in {process_tags}"
+
+    @parametrize("library_env", [{"DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}])
+    def test_process_tag_svc_auto(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When DD_SERVICE is unset, process tags must include svc.auto:<default_svc_name>"""
+        with test_library, test_library.dd_start_span("operation") as root:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        span = find_root_span(trace)
+        assert span is not None
+        process_tags = span["meta"]["_dd.tags.process"]
+        expected_tag = f"svc.auto:{span['service'].lower()}"
+        assert expected_tag in process_tags, f"DD_SERVICE is set - Expecting {expected_tag} in {process_tags}"

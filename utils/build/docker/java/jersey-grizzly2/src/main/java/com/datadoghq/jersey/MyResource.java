@@ -9,7 +9,10 @@ import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.ws.rs.*;
@@ -31,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
@@ -45,12 +50,15 @@ public class MyResource {
     private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     @GET
-    public String hello() {
+    public Response hello() {
         var tracer = GlobalTracer.get();
         Span span = tracer.buildSpan("test-span").start();
         span.setTag("test-tag", "my value");
         try {
-            return "Hello World!";
+            return Response.ok("Hello world!\n")
+                .header("Content-Type", "text/plain")
+                .header("Content-Length", "13")
+                .build();
         } finally {
             span.finish();
         }
@@ -98,31 +106,57 @@ public class MyResource {
 
     @GET
     @Path("/tag_value/{tag_value}/{status_code}")
-    public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-        return Response.status(code)
-                .header("content-type", "text/plain")
-                .entity("Value tagged").build();
+    public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption) {
+        return handleTagValue(value, code, xOption, null);
     }
 
     @OPTIONS
     @Path("/tag_value/{tag_value}/{status_code}")
-    public Response tagValueOptions(@PathParam("tag_value") String value, @PathParam("status_code") int code) {
-        return tagValue(value, code);
+    public Response tagValueOptions(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption) {
+        return handleTagValue(value, code, xOption, null);
     }
 
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
-        return tagValue(value, code);
+    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, MultivaluedMap<String, String> form) {
+        JsonObjectBuilder body = null;
+        if (form != null) {
+            body = Json.createObjectBuilder();
+            for (final String key : form.keySet()) {
+                final JsonArrayBuilder payloadValue = Json.createArrayBuilder();
+                for (final String formValue : form.get(key)) {
+                    payloadValue.add(Json.createValue(formValue));
+                }
+                body.add(key, payloadValue);
+            }
+        }
+        return handleTagValue(value, code, xOption, body == null ? null : body.build());
     }
 
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, JsonValue body) {
-        return tagValue(value, code);
+    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, JsonValue body) {
+        return handleTagValue(value, code, xOption, body);
+    }
+
+    private Response handleTagValue(final String value, final int code, final String xOption, final JsonValue body) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        Response.ResponseBuilder response = Response.status(code);
+        if (xOption != null) {
+            response = response.header("X-option", xOption);
+        }
+        if (value.startsWith("payload_in_response_body")) {
+            response = response
+                    .entity(Json.createObjectBuilder().add("payload", body).build())
+                    .header("Content-Type", "application/json");
+        } else {
+            response = response
+                    .entity("Value tagged")
+                    .header("Content-Type", "text/plain");
+        }
+        return response.build();
     }
 
     @GET
@@ -167,6 +201,12 @@ public class MyResource {
         return "Hello world!";
     }
 
+    @GET
+    @Path("/resource_renaming/{path: .*}")
+    public String resourceRenaming(@PathParam("path") String path) {
+        return "ok";
+    }
+
     @POST
     @Path("/waf")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -202,9 +242,22 @@ public class MyResource {
         return data;
     }
 
+    @POST
+    @Path("/waf")
+    @Consumes("multipart/form-data")
+    public String postWafMultipart(InputStream body) throws IOException {
+        return new String(body.readAllBytes());
+    }
+
     @GET
     @Path("/status")
     public Response status(@QueryParam("code") Integer code) {
+        return Response.status(code).build();
+    }
+
+    @GET
+    @Path("/stats-unique")
+    public Response statsUnique(@QueryParam("code") @DefaultValue("200") Integer code) {
         return Response.status(code).build();
     }
 
@@ -332,6 +385,23 @@ public class MyResource {
     }
 
     @GET
+    @Path("/inferred-proxy/span-creation")
+    public Response inferredProxySpanCreation(@QueryParam("status_code") String statusCodeParam, @Context HttpHeaders headers) {
+        int statusCode = 200;
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400;
+            }
+        }
+        System.out.println("Received an API Gateway request:");
+        headers.getRequestHeaders().forEach((name, values) ->
+            values.forEach(value -> System.out.println(name + ": " + value)));
+        return Response.status(statusCode).entity("ok").build();
+    }
+
+    @GET
     @Path("/make_distant_call")
     public DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
         URL urlObject = new URL(url);
@@ -423,6 +493,22 @@ public class MyResource {
                 .header("X-Test-Header-3", "value3")
                 .header("X-Test-Header-4", "value4")
                 .header("X-Test-Header-5", "value5")
+                .build();
+    }
+
+    @GET
+    @Path("/authorization_related_headers")
+    public Response authResponseHeaders() {
+        return Response.ok("Response with custom headers")
+                .header("Authorization", "value1")
+                .header("Proxy-Authorization", "value2")
+                .header("WWW-Authenticate", "value3")
+                .header("Proxy-Authenticate", "value4")
+                .header("Authentication-Info", "value5")
+                .header("Proxy-Authentication-Info", "value6")
+                .header("Cookie", "value7")
+                .header("Set-Cookie", "value8")
+                .header("content-type", "text/plain")
                 .build();
     }
 

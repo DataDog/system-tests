@@ -1,0 +1,62 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "140",
+      "x-datadog-trace-id": "18378339628953516402",
+      "x-datadog-parent-id": "15292851552657317585",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=5968101487992790724,_dd.p.llmobs_trace_id=139804556665286312462759493397790165570,_dd.p.tid=692d60d200000000",
+      "traceparent": "00-692d60d200000000ff0cfa8519423972-d43b1f764eeb9ed1-01",
+      "tracestate": "dd=p:d43b1f764eeb9ed1;s:1;t.dm:-0;t.llmobs_parent_id:5968101487992790724;t.llmobs_trace_id:139804556665286312462759493397790165570;t.tid:692d60d200000000"
+    },
+    "body": "{\"prompt\":{\"id\":\"pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6\",\"version\":\"1\",\"variables\":{\"phrase\":\"cat in the hat\",\"word\":\"cat\"}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Mon, 01 Dec 2025 09:33:11 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999777",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_741fabf7f8cb4bcd82f07a71bc3e09b3",
+      "openai-processing-ms": "5230",
+      "x-envoy-upstream-service-time": "5233",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=mo85AUOpMha3QrhVD_Yj.lMipdkcFCFuIRbweyak5Bg-1764581591-1.0.1.1-xkqSKztQCJ6pfSkCpUgibID9Hbn3QABpGdC4ZUkH6fbCK3IlMRq.vgocc.wRi3IoiXtUS5ljjbX1Jb0eAwWDpLktGb820Su08zs4NBDtsZc; path=/; expires=Mon, 01-Dec-25 10:03:11 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=WGBDuauNus0EmTSvHfIshAM2VtlK5d_P_8Gdr6rtbpI-1764581591968-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "9a7194c27f0b99f4-CDG",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"resp_0dce29c4d8481bb601692d60d2b4248191983223cf4f82d930\",\n  \"object\": \"response\",\n  \"created_at\": 1764581587,\n  \"status\": \"completed\",\n  \"background\": false,\n  \"billing\": {\n    \"payer\": \"developer\"\n  },\n  \"error\": null,\n  \"incomplete_details\": null,\n  \"instructions\": [\n    {\n      \"type\": \"message\",\n      \"content\": [],\n      \"role\": \"developer\"\n    },\n    {\n      \"type\": \"message\",\n      \"content\": [\n        {\n          \"type\": \"input_text\",\n          \"text\": \"I saw a cat in the hat and another cat\"\n        }\n      ],\n      \"role\": \"user\"\n    }\n  ],\n  \"max_output_tokens\": null,\n  \"max_tool_calls\": null,\n  \"model\": \"o4-mini-2025-04-16\",\n  \"output\": [\n    {\n      \"id\": \"rs_0dce29c4d8481bb601692d60d38e7c8191af4f351f31db5b5e\",\n      \"type\": \"reasoning\",\n      \"summary\": []\n    },\n    {\n      \"id\": \"msg_0dce29c4d8481bb601692d60d6be74819190a52838a4c7d2e2\",\n      \"type\": \"message\",\n      \"status\": \"completed\",\n      \"content\": [\n        {\n          \"type\": \"output_text\",\n          \"annotations\": [],\n          \"logprobs\": [],\n          \"text\": \"That sounds delightfully curious! Where did you spot them\\u2014on a doorstep, in a garden, or perhaps drifting by on a city street? Were they doing anything memorable\\u2014playing, napping, or causing mischief?\\n\\nIf you\\u2019d like, here\\u2019s a little Seussian sketch to capture the scene:\\n\\nI saw a cat in a hat, so tall and neat,  \\nBalancing buttons upon his tiny feet.  \\nAnd right beside him (oh, what fun!)  \\nAnother cat in stripes\\u2014two for one!\\n\\nFeel free to tell me more about what you saw, and I can help you turn it into a longer poem, a short story, or whatever you\\u2019d like!\"\n        }\n      ],\n      \"role\": \"assistant\"\n    }\n  ],\n  \"parallel_tool_calls\": true,\n  \"previous_response_id\": null,\n  \"prompt\": {\n    \"id\": \"pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6\",\n    \"variables\": {\n      \"phrase\": {\n        \"type\": \"input_text\",\n        \"text\": \"cat in the hat\"\n      },\n      \"word\": {\n        \"type\": \"input_text\",\n        \"text\": \"cat\"\n      }\n    },\n    \"version\": \"1\"\n  },\n  \"prompt_cache_key\": null,\n  \"prompt_cache_retention\": null,\n  \"reasoning\": {\n    \"effort\": \"medium\",\n    \"summary\": null\n  },\n  \"safety_identifier\": null,\n  \"service_tier\": \"default\",\n  \"store\": false,\n  \"temperature\": 1.0,\n  \"text\": {\n    \"format\": {\n      \"type\": \"text\"\n    },\n    \"verbosity\": \"medium\"\n  },\n  \"tool_choice\": \"auto\",\n  \"tools\": [],\n  \"top_logprobs\": 0,\n  \"top_p\": 1.0,\n  \"truncation\": \"disabled\",\n  \"usage\": {\n    \"input_tokens\": 16,\n    \"input_tokens_details\": {\n      \"cached_tokens\": 0\n    },\n    \"output_tokens\": 528,\n    \"output_tokens_details\": {\n      \"reasoning_tokens\": 384\n    },\n    \"total_tokens\": 544\n  },\n  \"user\": null,\n  \"metadata\": {}\n}"
+  }
+}

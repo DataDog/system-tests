@@ -2,6 +2,19 @@ var fs = require('fs');
 var path = require('path');
 var fork = require('child_process').fork;
 
+// Load npm dependencies if available (for dependency injection testing)
+var express, lodash, moment, uuid, debug;
+try {
+  express = require('express');
+  lodash = require('lodash');
+  moment = require('moment');
+  uuid = require('uuid');
+  debug = require('debug')('sample-app');
+} catch (e) {
+  // Dependencies not available, use built-in modules only
+  debug = function() {}; // No-op debug function
+}
+
 process.on('SIGTERM', function (signal) {
   process.exit(0);
 });
@@ -117,7 +130,43 @@ function getZombies(req, res) {
   }
 }
 
+function handleInfo(req, res) {
+  var info = {
+    pid: process.pid,
+    uptime: process.uptime(),
+    nodeVersion: process.version,
+    dependencies: {}
+  };
+
+  // Test dependency usage if available
+  if (lodash) {
+    info.dependencies.lodash = lodash.VERSION;
+    info.sampleArray = lodash.shuffle([1, 2, 3, 4, 5]);
+  }
+
+  if (moment) {
+    info.dependencies.moment = moment.version;
+    info.timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
+  }
+
+  if (uuid) {
+    try {
+      info.dependencies.uuid = require('uuid/package.json').version;
+    } catch (e) {
+      info.dependencies.uuid = 'available';
+    }
+    info.requestId = uuid.v4();
+  }
+
+  debug('Info endpoint called', info);
+
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(info, null, 2));
+}
+
 require('http').createServer(function (req, res) {
+  debug('Request received: %s', req.url);
+
   if (req.url === '/crashme') {
     crashme(req, res);
   } else if (req.url === '/fork_and_crash') {
@@ -126,9 +175,12 @@ require('http').createServer(function (req, res) {
     getChildPids(req, res);
   } else if (req.url === '/zombies') {
     getZombies(req, res);
+  } else if (req.url === '/info') {
+    handleInfo(req, res);
   } else {
     res.end('Hello, world!\n')
   }
 }).listen(18080, function () {
   console.log('listening on port 18080') // eslint-disable-line no-console
+  debug('Server started on port 18080');
 })

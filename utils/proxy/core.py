@@ -1,30 +1,51 @@
 # keep this import in first
-import scrubber  # noqa: F401
+from . import scrubber  # noqa: F401
 
 import asyncio
 from collections import defaultdict
 import json
 import logging
 import os
-from typing import Any
+import ssl
+from typing import Any, Literal
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
-from mitmproxy.flow import Error as FlowError, Flow
+from mitmproxy.connection import Client
+from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
-from _deserializer import deserialize
-from ports import ProxyPorts
+from ._deserializer import deserialize
+from .ports import ProxyPorts
+from .mocked_response import (
+    MOCKED_TRACER_RESPONSES_PATH,
+    MOCKED_BACKEND_RESPONSES_PATH,
+    MockedTracerResponse,
+    MockedBackendResponse,
+)
+from .utils import logger
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
 
-logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
 messages_counts: dict[str, int] = defaultdict(int)
+
+# Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
+_MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+
+
+async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+    """Keep the mitmproxy ↔ upstream TLS leg alive; mitmproxy handles all actual HTTP."""
+    try:
+        await reader.read(1)
+    except (ConnectionResetError, asyncio.IncompleteReadError):
+        pass
+    finally:
+        writer.close()
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -43,50 +64,102 @@ class _RequestLogger:
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
 
-        self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
+        self.log_folder = os.environ["SYSTEM_TESTS_LOG_FOLDER"]
 
-        self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
-        self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
+        self.mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
 
-        span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
-        self.span_events = span_events != "False"
+        self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
+        self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
-        self.rc_api_command = None
+        # Tracer mocked responses (modify agent responses)
+        self.mocked_tracer_responses: list[MockedTracerResponse] = []
+        """Tracer mocked responses controlled by setup methods"""
 
-        # mimic the old API
-        self.rc_api_sequential_commands = None
-        self.rc_api_runtime_ids_request_count: dict = {}
+        self.internal_mocked_tracer_responses = MockedTracerResponse.many_from_file()
+        """Tracer mocked responses valid for the entire session, controlled by scenarios"""
+
+        # Backend mocked responses (create responses from scratch)
+        self.mocked_backend_responses: list[MockedBackendResponse] = []
+        """Backend mocked responses controlled by setup methods"""
+
+        self.internal_mocked_backend_responses = MockedBackendResponse.many_from_file()
+        """Backend mocked responses valid for the entire session, controlled by scenarios"""
+
+        self._mock_upstream_server: asyncio.Server | None = None
+
+        self._original_connects: dict[str, tuple[str, int]] = {}
+        """for backend requests, since we mock the connect handshake, we need to store original host/port"""
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
 
+    def _store_mocked_reponses(self, flow: HTTPFlow, target: Literal["tracer", "backend"]) -> None:
+        result: list[MockedTracerResponse] | list[MockedBackendResponse]
+        try:
+            source: list[dict] = json.loads(flow.request.content)
+            if target == "tracer":
+                result = self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)
+            elif target == "backend":
+                result = self.mocked_backend_responses = MockedBackendResponse.from_dicts(source)
+        except Exception as e:
+            logger.exception(f"Failed to build mocked {target} response from {flow.request.content}")
+            flow.response = self.get_error_response(f"Invalid mocked {target} response definition: {e}".encode())
+        else:
+            logger.info(f"Store mocked {target} responses: {result}")
+            flow.response = http.Response.make(200, b"Ok")
+
+    async def running(self) -> None:
+        if not self.mocked_backend:
+            return
+        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_ctx.load_cert_chain(_MITMPROXY_CA_PEM)
+        self._mock_upstream_server = await asyncio.start_server(
+            _mock_upstream_handler, "127.0.0.1", ProxyPorts.upstream_tls_server, ssl=ssl_ctx
+        )
+        logger.info(f"Mock upstream TLS server started on port {ProxyPorts.upstream_tls_server}")
+
+    def http_connect(self, flow: HTTPFlow) -> None:
+        proxy_port = flow.client_conn.sockname[1]
+        logger.info(f"Flow {flow.id}: CONNECT {flow.request.host}:{flow.request.port} using proxy port {proxy_port}")
+        if proxy_port == ProxyPorts.agent and self.mocked_backend:
+            # Redirect to local stub TLS server so mitmproxy can always complete tunnel setup.
+            # Without this, CONNECT handshake is performed to the backend, and if ever it fails,
+            # request() never fires.
+
+            logger.info(f"Flow {flow.id}: bypass CONNECT to 127.0.0.1:{ProxyPorts.upstream_tls_server}")
+            logger.debug(f"Flow {flow.id}: client connection id is: {flow.client_conn.id}")
+
+            self._original_connects[flow.client_conn.id] = flow.request.host, flow.request.port
+
+            flow.request.host = "127.0.0.1"
+            flow.request.port = ProxyPorts.upstream_tls_server
+
+    def clientdisconnected(self, client: Client) -> None:
+        self._original_connects.pop(client.id, None)
+
     def request(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
-        port = flow.client_conn.sockname[1]
+        proxy_port = flow.client_conn.sockname[1]
 
-        logger.info(f"{flow.request.method} {flow.request.pretty_url}, using proxy port {port}")
+        logger.info(f"Flow {flow.id}: {flow.request.method} {flow.request.pretty_url} using proxy port {proxy_port}")
+        logger.info(f"Flow {flow.id}: client connection id is: {flow.client_conn.id}")
 
-        if port == ProxyPorts.proxy_commands:
-            if not self.rc_api_enabled:
-                flow.response = self.get_error_response(b"RC API is not enabled")
-            elif flow.request.path == "/unique_command":
-                logger.info("Store RC command to mock")
-                self.rc_api_command = flow.request.content
-                flow.response = http.Response.make(200, b"Ok")
-            elif flow.request.path == "/sequential_commands":
-                logger.info("Reset mocked RC sequential commands")
-                self.rc_api_sequential_commands = json.loads(flow.request.content)
-                self.rc_api_runtime_ids_request_count = defaultdict(int)
-                flow.response = http.Response.make(200, b"Ok")
+        if proxy_port == ProxyPorts.proxy_commands:
+            if flow.request.path == MOCKED_TRACER_RESPONSES_PATH and flow.request.method == "PUT":
+                self._store_mocked_reponses(flow, target="tracer")
+
+            elif flow.request.path == MOCKED_BACKEND_RESPONSES_PATH and flow.request.method == "PUT":
+                self._store_mocked_reponses(flow, target="backend")
+
             else:
                 flow.response = http.Response.make(404, b"Not found")
 
             return
 
         # if flow.request.headers.get("dd-protocol") == "otlp":
-        if port == ProxyPorts.open_telemetry_weblog:
+        if proxy_port == ProxyPorts.open_telemetry_weblog:
             # OTLP ingestion
             otlp_path = flow.request.headers.get("dd-otlp-path")
             if otlp_path == "agent":
@@ -112,9 +185,12 @@ class _RequestLogger:
             else:
                 raise ValueError(f"Unknown OTLP ingestion path {otlp_path}")
 
-            logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
+            logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
 
-        elif port in (
+        elif proxy_port == ProxyPorts.otel_collector and self.mocked_backend:
+            flow.response = http.Response.make(200, b"Ok")  # TODO : response accepted by collector
+
+        elif proxy_port in (
             ProxyPorts.python_buddy,
             ProxyPorts.nodejs_buddy,
             ProxyPorts.java_buddy,
@@ -122,9 +198,36 @@ class _RequestLogger:
             ProxyPorts.golang_buddy,
             ProxyPorts.weblog,
         ):
-            flow.request.host, flow.request.port = "agent", 8127
+            flow.request.host, flow.request.port = (
+                self.tracing_agent_target_host,
+                self.tracing_agent_target_port,
+            )
             flow.request.scheme = "http"
-            logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
+            logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
+        elif proxy_port == ProxyPorts.agent and self.mocked_backend:
+            # Since we are faking the backend (generating responses from
+            # scratch), the logic is that the first mock satisfying the
+            # condition wins. Consequently, we check runtime mocks (controlled
+            # by the setup method) first, followed by internal mocks (applied on
+            # all scenarios).
+            for mock in self.mocked_backend_responses + self.internal_mocked_backend_responses:
+                if mock.path == flow.request.path:
+                    logger.info(f"Flow {flow.id}: applying backend mock {mock}")
+                    mock.execute(flow)
+                    return
+
+            # No mock matched - return generic success response
+            if flow.request.path == "/support/flare":
+                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 200 status")
+                flow.response = http.Response.make(200, b"Ok")
+            elif flow.request.path.split("?")[0] in "/api/v1/validate":
+                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 200 status with valid content")
+                flow.response = http.Response.make(
+                    200, b'{"valid": true}', headers={"content-type": "application/json"}
+                )
+            else:
+                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 202 status")
+                flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
@@ -132,158 +235,102 @@ class _RequestLogger:
 
     def response(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
-        port = flow.client_conn.sockname[1]
+        proxy_port = flow.client_conn.sockname[1]
 
-        if port == ProxyPorts.proxy_commands:
+        if proxy_port == ProxyPorts.proxy_commands:
             return
 
-        try:
-            logger.info(f"    => Response {flow.response.status_code}")
+        logger.info(f"Flow {flow.id}: response status code is {flow.response.status_code}")
 
-            self._modify_response(flow)
+        self._modify_response(flow)
 
-            # get the interface name
-            if port == ProxyPorts.open_telemetry_weblog:
-                interface = "open_telemetry"
-            elif port == ProxyPorts.weblog:
-                interface = "library"
-            elif port == ProxyPorts.python_buddy:
-                interface = "python_buddy"
-            elif port == ProxyPorts.nodejs_buddy:
-                interface = "nodejs_buddy"
-            elif port == ProxyPorts.java_buddy:
-                interface = "java_buddy"
-            elif port == ProxyPorts.ruby_buddy:
-                interface = "ruby_buddy"
-            elif port == ProxyPorts.golang_buddy:
-                interface = "golang_buddy"
-            elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
-                interface = "agent"
-            else:
-                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
+        # get the interface name
+        if proxy_port == ProxyPorts.otel_collector:
+            interface = "otel_collector"
+        elif proxy_port == ProxyPorts.open_telemetry_weblog:
+            interface = "open_telemetry"
+        elif proxy_port == ProxyPorts.weblog:
+            interface = "library"
+        elif proxy_port == ProxyPorts.python_buddy:
+            interface = "python_buddy"
+        elif proxy_port == ProxyPorts.nodejs_buddy:
+            interface = "nodejs_buddy"
+        elif proxy_port == ProxyPorts.java_buddy:
+            interface = "java_buddy"
+        elif proxy_port == ProxyPorts.ruby_buddy:
+            interface = "ruby_buddy"
+        elif proxy_port == ProxyPorts.golang_buddy:
+            interface = "golang_buddy"
+        elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
+            interface = "agent"
+        else:
+            raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
-            # extract url info
-            if "?" in flow.request.path:
-                path, query = flow.request.path.split("?", 1)
-            else:
-                path, query = flow.request.path, ""
+        # extract url info
+        if "?" in flow.request.path:
+            path, query = flow.request.path.split("?", 1)
+        else:
+            path, query = flow.request.path, ""
 
-            # get destination
-            message_count = messages_counts[interface]
-            messages_counts[interface] += 1
-            log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
-            export_content_files_to = f"{log_foldename}/files"
-            log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
+        # get destination
+        message_count = messages_counts[interface]
+        messages_counts[interface] += 1
+        log_foldename = f"{self.log_folder}/interfaces/{interface}"
+        export_content_files_to = f"{log_foldename}/files"
+        log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
-            data = {
-                "log_filename": log_filename,
-                "path": path,
-                "query": query,
-                "host": flow.request.host,
-                "port": flow.request.port,
-                "request": {
-                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
-                    "headers": list(flow.request.headers.items()),
-                    "length": len(flow.request.content) if flow.request.content else 0,
-                },
-                "response": {
-                    "status_code": flow.response.status_code,
-                    "headers": list(flow.response.headers.items()),
-                    "length": len(flow.response.content) if flow.response.content else 0,
-                },
-            }
+        host, port = self._original_connects.get(flow.client_conn.id, (flow.request.host, flow.request.port))
 
+        data = {
+            "log_filename": log_filename,
+            "path": path,
+            "query": query,
+            "host": host,
+            "port": port,
+            "method": flow.request.method,
+            "request": {
+                "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
+                "headers": list(flow.request.headers.items()),
+                "length": len(flow.request.content) if flow.request.content else 0,
+            },
+            "response": {
+                "status_code": flow.response.status_code,
+                "headers": list(flow.response.headers.items()),
+                "length": len(flow.response.content) if flow.response.content else 0,
+            },
+        }
+
+        deserialize(
+            data,
+            key="request",
+            content=flow.request.content,
+            interface=interface,
+            export_content_files_to=export_content_files_to,
+        )
+
+        if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
+            data["response"] = None
+        else:
             deserialize(
                 data,
-                key="request",
-                content=flow.request.content,
+                key="response",
+                content=flow.response.content,
                 interface=interface,
                 export_content_files_to=export_content_files_to,
             )
 
-            if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
-                data["response"] = None
-            else:
-                deserialize(
-                    data,
-                    key="response",
-                    content=flow.response.content,
-                    interface=interface,
-                    export_content_files_to=export_content_files_to,
-                )
+        logger.info(f"Flow {flow.id}: Saving as {log_filename}")
 
-            logger.info(f"    => Saving data as {log_filename}")
+        with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
+            json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
-            with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
-                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
-
-        except:
-            logger.exception("Unexpected error")
-
-    def _modify_response(self, flow: Flow):
+    def _modify_response(self, flow: HTTPFlow):
         if self.request_is_from_tracer(flow.request):
-            if self.rc_api_enabled:
-                self._add_rc_capabilities_in_info_request(flow)
-
-                if flow.request.path == "/v0.7/config":
-                    # mimic the default response from the agent
-                    flow.response.status_code = 200
-                    flow.response.content = b"{}"
-                    flow.response.headers["Content-Type"] = "application/json"
-
-                    if self.rc_api_command is not None:
-                        request_content = json.loads(flow.request.content)
-                        logger.info("    => modifying rc response")
-                        flow.response.content = self.rc_api_command
-
-                    elif self.rc_api_sequential_commands is not None:
-                        request_content = json.loads(flow.request.content)
-                        runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
-                        nth_api_command = self.rc_api_runtime_ids_request_count[runtime_id]
-                        response = self.rc_api_sequential_commands[nth_api_command]
-
-                        logger.info(f"    => Modifying RC response for runtime ID {runtime_id}")
-                        logger.info(f"    => Overwriting /v0.7/config response #{nth_api_command}")
-
-                        flow.response.content = json.dumps(response).encode()
-                        flow.response.headers["st-proxy-overwrite-rc-response"] = f"{nth_api_command}"
-
-                        if nth_api_command + 1 < len(self.rc_api_sequential_commands):
-                            self.rc_api_runtime_ids_request_count[runtime_id] = nth_api_command + 1
-
-            if self.span_meta_structs_disabled:
-                self._remove_meta_structs_support(flow)
-
-            self._modify_span_events_flag(flow)
-
-    def _remove_meta_structs_support(self, flow: Flow):
-        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
-            c = json.loads(flow.response.content)
-            if "span_meta_structs" in c:
-                logger.info("    => Overwriting /info response to remove span_meta_structs field")
-                c.pop("span_meta_structs")
-                flow.response.content = json.dumps(c).encode()
-
-    def _add_rc_capabilities_in_info_request(self, flow: Flow):
-        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
-            c = json.loads(flow.response.content)
-
-            if "/v0.7/config" not in c["endpoints"]:
-                logger.info("    => Overwriting /info response to include /v0.7/config")
-                c["endpoints"].append("/v0.7/config")
-                flow.response.content = json.dumps(c).encode()
-
-    def _modify_span_events_flag(self, flow: Flow):
-        """Modify the agent flag that signals support for native span event serialization.
-        There are three possible cases:
-        - Not configured: agent's response is not modified, the real agent behavior is preserved
-        - `true`: agent advertises support for native span events serialization
-        - `false`: agent advertises that it does not support native span events serialization
-        """
-        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
-            c = json.loads(flow.response.content)
-            c["span_events"] = self.span_events
-            flow.response.content = json.dumps(c).encode()
+            # Apply tracer mocks (internal first, then runtime-controlled)
+            for mocked_response in self.internal_mocked_tracer_responses + self.mocked_tracer_responses:
+                if mocked_response.path == flow.request.path:
+                    logger.info(f"Flow {flow.id}: applying tracer mock {mocked_response}")
+                    mocked_response.execute(flow)
 
 
 def start_proxy() -> None:
@@ -299,12 +346,22 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     listen_host = "::" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "0.0.0.0"  # noqa: S104
-    opts = options.Options(mode=modes, listen_host=listen_host, confdir="utils/proxy/.mitmproxy")
+    mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
+    opts = options.Options(
+        mode=modes,
+        listen_host=listen_host,
+        confdir="/app/utils/proxy/.mitmproxy",
+        # When mocking, generate TLS certs from SNI (no upstream fetch needed) and don't
+        # verify the stub server's self-signed cert.
+        upstream_cert=not mocked_backend,
+        ssl_insecure=mocked_backend,
+    )
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())

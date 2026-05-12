@@ -9,12 +9,12 @@ class AppsecLowWafTimeout(EndToEndScenario):
         super().__init__(
             name,
             doc="Appsec with a very low WAF timeout",
-            scenario_groups=[scenario_groups.appsec],
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_low_waf_timeout],
         )
 
     def configure(self, config: pytest.Config):
         super().configure(config)
-        library = self.weblog_container.image.labels["system-tests-library"]
+        library = self.weblog_infra.library_name
         # python lib use milliseconds for DD_APPSEC_WAF_TIMEOUT
         # and other libs use microseconds
         # see https://datadoghq.atlassian.net/wiki/spaces/SAAL/pages/2355333252/Environment+Variables

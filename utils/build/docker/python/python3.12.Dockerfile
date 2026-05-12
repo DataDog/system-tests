@@ -1,9 +1,12 @@
-FROM datadog/system-tests:python3.12.base-v6
+FROM datadog/system-tests:python3.12.base-v13
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+# Install OTel OTLP exporter for FFE metrics
+RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
 
 COPY utils/build/docker/python/django /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -16,7 +19,6 @@ RUN DJANGO_SUPERUSER_PASSWORD=abcd python3 manage.py createsuperuser --noinput -
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=5
 
 # docker startup
 CMD ./app.sh

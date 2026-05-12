@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from statistics import mean, stdev
+import matplotlib.pyplot as plt
 from os import environ
 
 
@@ -68,11 +69,6 @@ def compute(lib) -> None:
 
 
 def plot() -> None:
-    try:
-        import matplotlib.pyplot as plt
-    except ModuleNotFoundError:
-        return
-
     def add_plot(filename, label, axis):
         with open(filename, encoding="utf-8") as f:
             data = json.load(f)["memory"]

@@ -3,7 +3,7 @@
 # Copyright 2025 Datadog, Inc.
 
 
-from utils import features, missing_feature
+from utils import features
 from tests.appsec.iast.utils import BaseSinkTest
 
 
@@ -19,6 +19,5 @@ class TestStackTraceLeak(BaseSinkTest):
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()

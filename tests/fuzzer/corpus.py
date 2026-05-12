@@ -44,7 +44,7 @@ def get_big_requests_corpus() -> list:
 
     sys.setrecursionlimit(100000)
 
-    def _get_base_request(comment, path="/", payload_name="json", method="GET"):
+    def _get_base_request(comment: str, path: str = "/", payload_name: str = "json", method: str = "GET"):
         result = {
             "method": method,
             "path": path,
@@ -56,19 +56,19 @@ def get_big_requests_corpus() -> list:
 
         return result
 
-    def _get_nested(size, depth, string_size=20):
+    def _get_nested(size: int, depth: int, string_size: int = 20):
         if depth == 0:
             return {f"{i}": None for i in range(size)}
 
         return {gru(2, 2): _get_nested(size, depth - 1, string_size) for i in range(size)}
 
-    def _get_nested_arrays(size, depth, string_size=20):
+    def _get_nested_arrays(size: int, depth: int, string_size: int = 20):
         if depth == 0:
             return [gru(string_size, string_size) for i in range(size)]
 
         return [_get_nested_arrays(size, depth - 1, string_size) for i in range(size)]
 
-    def _get_waf_triggers_request(comment, payload_name="json", r1=10, r2=1):
+    def _get_waf_triggers_request(comment: str, payload_name: str = "json", r1: int = 10, r2: int = 1):
         request = _get_base_request(comment, payload_name=payload_name, method="POST")
 
         payload = request[payload_name]
@@ -83,19 +83,19 @@ def get_big_requests_corpus() -> list:
 
         return request
 
-    def _get_nested_array_requests(comment, size, depth, string_size=20):
+    def _get_nested_array_requests(comment: str, size: int, depth: int, string_size: int = 20):
         request = _get_base_request(comment, method="POST")
         request["json"]["data"] = _get_nested_arrays(size, depth, string_size=string_size)
 
         return request
 
-    def _get_nested_dict_requests(comment, size, depth, string_size=20):
+    def _get_nested_dict_requests(comment: str, size: int, depth: int, string_size: int = 20):
         request = _get_base_request(comment, method="POST")
         request["json"]["data"] = _get_nested(size, depth, string_size=string_size)
 
         return request
 
-    def _get_big_data(comment, payload_name="json", count=20000, string_size=20):
+    def _get_big_data(comment: str, payload_name: str = "json", count: int = 20000, string_size: int = 20):
         request = _get_base_request(comment, payload_name=payload_name, method="POST")
 
         for _ in range(count):
@@ -103,7 +103,7 @@ def get_big_requests_corpus() -> list:
 
         return request
 
-    def _get_random_data(comment, payload_name="data", size=2000000):
+    def _get_random_data(comment: str, payload_name: str = "data", size: int = 2000000):
         request = _get_base_request(comment, payload_name=payload_name)
 
         request["headers"] = {"Content-type": "text/plain"}
@@ -111,7 +111,7 @@ def get_big_requests_corpus() -> list:
 
         return request
 
-    def _get_long_url(comment):
+    def _get_long_url(comment: str):
         return _get_base_request(comment, path="/" * 8000)
 
     result = []
@@ -134,14 +134,14 @@ def get_big_requests_corpus() -> list:
     return result
 
 
-def get_saved_corpus(source) -> list:
+def get_saved_corpus(source: str | None) -> list:
     if source is None:
         source = str(Path(os.path.realpath(__file__)).parent)
         source = os.path.join(source, "corpus")
 
     result = []
 
-    def _load_file(filename):
+    def _load_file(filename: str):
         if filename.endswith(".json"):
             with open(filename, "r", encoding="utf-8") as f:
                 _add_request(json.load(f))
@@ -153,11 +153,11 @@ def get_saved_corpus(source) -> list:
         else:
             raise ValueError(f"{filename} file must be a .dump or a .json")
 
-    def _add_request(request):
+    def _add_request(request: dict):
         assert request["path"].startswith("/")
         result.append(request)
 
-    def _load_dir(base_dirname):
+    def _load_dir(base_dirname: str):
         for _, dirnames, filenames in os.walk(base_dirname):
             for dirname in dirnames:
                 _load_dir(os.path.join(base_dirname, dirname))
@@ -176,7 +176,7 @@ def get_saved_corpus(source) -> list:
     return result
 
 
-def get_corpus(corpus=None) -> list:
+def get_corpus(corpus: str | None = None) -> list:
     if corpus == "attack10":
         return get_attack10_corpus()
 

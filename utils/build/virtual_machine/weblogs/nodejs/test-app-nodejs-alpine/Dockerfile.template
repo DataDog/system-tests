@@ -11,6 +11,7 @@ RUN mkdir /home/node/code
 WORKDIR /home/node/code
 
 COPY --chown=node:node . .
-
+# Install dependencies with exact versions using npm ci
+RUN npm ci --only=production --no-audit --no-fund
 EXPOSE 18080
 CMD ["node", "index.js"]

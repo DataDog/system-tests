@@ -1,0 +1,54 @@
+name: Daily Tag
+
+# This workflow tags the latest commit on main (system-tests) with the current date (YYYY-MM-DD).
+#
+# ⚠️ Note: For the current day, the tag is mutable: if new commits are pushed to main, the tag for
+# today will move forward. If you need a stable reference, use the tag from the previous day (D-1),
+# which always points to the final commit of that day.
+
+on:
+  schedule:
+    - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
+  push:
+    branches:
+      - main
+  workflow_dispatch: # allow manual trigger too
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Get GitHub token
+        uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.github.daily-tag
+
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          token: ${{ steps.octo-sts.outputs.token }}
+
+      - name: Set up git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        run: |
+          COMMIT=$(git rev-parse origin/main)
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Use today's date (UTC)
+            DATE=$(date -u +'%Y.%m.%d')
+          else
+            # Use the commit date
+            DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d' "$COMMIT")
+          fi
+
+          git tag -f "$DATE" "$COMMIT"
+          git push -f origin "$DATE"

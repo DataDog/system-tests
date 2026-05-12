@@ -1,0 +1,98 @@
+name: Update changelog
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '00 03 2 * *'
+
+jobs:
+  changelog:
+    name: Update changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
+      - name: Run script
+        run: |
+          chmod +x utils/scripts/update_change_log.sh
+          source venv/bin/activate
+          ./utils/scripts/update_change_log.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          # Set the git user.
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add files
+        run: |
+          git add "CHANGELOG.md"
+
+      - name: Variables
+        id: vars
+        run: |
+          BRANCH_NAME="auto-changelog-update"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        run: |
+          echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
+          git checkout -B ${{ steps.vars.outputs.branch_name }}
+
+          echo "Authenticating with GitHub CLI..."
+          gh auth setup-git
+
+          echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
+          git push --force-with-lease -u origin ${{ steps.vars.outputs.branch_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create commit
+        run: |
+          echo "Committing..."
+          git commit -m "Update changelog" --no-verify
+
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.changelog
+
+      - name: Push signed commits
+        uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
+        with:
+          github-token: ${{ steps.octo-sts.outputs.token }}
+          repo: DataDog/system-tests
+          local_branch_name: ${{ steps.vars.outputs.branch_name }}
+          remote_name: origin
+          remote_branch_name: ${{ steps.vars.outputs.branch_name }}
+
+      - name: Create Pull Request
+        run: |
+          BRANCH_NAME="${{ steps.vars.outputs.branch_name }}"
+
+          # Create or reference PR
+          if gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' | grep -q .; then
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+            echo "PR already exists: #$PR_NUMBER"
+          else
+            gh pr create \
+              --title "Auto-update changelog" \
+              --body "Automated update of CHANGELOG.md" \
+              --head "$BRANCH_NAME" \
+              --base main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}

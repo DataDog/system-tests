@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -16,20 +14,29 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
-	"weblog/internal/grpc"
-	"weblog/internal/rasp"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/grpc"
+	"systemtests.weblog/_shared/rasp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
+
 	tracer.Start()
 	defer tracer.Stop()
 
@@ -42,7 +49,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -50,7 +57,10 @@ func main() {
 	r.Use(gintrace.Middleware("weblog"))
 
 	r.Any("/", func(ctx *gin.Context) {
+		ctx.Writer.Header().Set("Content-Type", "text/plain")
+		ctx.Writer.Header().Set("Content-Length", "13")
 		ctx.Writer.WriteHeader(http.StatusOK)
+		ctx.Writer.Write([]byte("Hello world!\n"))
 	})
 	r.Any("/stats-unique", func(ctx *gin.Context) {
 		if c := ctx.Request.URL.Query().Get("code"); c != "" {
@@ -106,18 +116,34 @@ func main() {
 				ctx.Writer.Header().Add(key, value)
 			}
 		}
-		ctx.Writer.WriteHeader(status)
-		ctx.Writer.Write([]byte("Value tagged"))
+		var bodyMap map[string]any
 		switch {
 		case ctx.Request.Header.Get("Content-Type") == "application/json":
-			body, _ := io.ReadAll(ctx.Request.Body)
-			var bodyMap map[string]any
-			if err := json.Unmarshal(body, &bodyMap); err == nil {
-				appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+			dec := json.NewDecoder(ctx.Request.Body)
+			dec.UseNumber()
+			if err := dec.Decode(&bodyMap); err != nil {
+				logrus.Errorf("Error decoding request JSON body: %v", err)
+				ctx.Error(err)
+				return
 			}
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
 		case ctx.Request.ParseForm() == nil:
-			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
+			bodyMap = make(map[string]any, len(ctx.Request.PostForm))
+			for key, value := range ctx.Request.PostForm {
+				bodyMap[key] = value
+			}
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+		default:
+			logrus.Warnf("Unsupported request content-type: %q", ctx.Request.Header.Get("Content-Type"))
 		}
+
+		if ctx.Request.Method == http.MethodPost && strings.HasPrefix(tag, "payload_in_response_body") {
+			gintrace.JSON(ctx, status, map[string]any{"payload": bodyMap})
+			return
+		}
+
+		ctx.Writer.WriteHeader(status)
+		ctx.Writer.Write([]byte("Value tagged"))
 	})
 
 	r.Any("/status", func(ctx *gin.Context) {
@@ -140,7 +166,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		defer res.Body.Close()
@@ -193,6 +219,24 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	r.POST("/user_login_success_event_v2", func(ctx *gin.Context) {
+		var data struct {
+			Login    string            `json:"login"`
+			UserID   string            `json:"user_id"`
+			Metadata map[string]string `json:"metadata"`
+		}
+
+		if err := ctx.BindJSON(&data); err != nil {
+			logrus.Println("error decoding request body for", ctx.Request.URL, ":", err)
+
+			ctx.Status(http.StatusBadRequest)
+			ctx.Error(err)
+			return
+		}
+
+		appsec.TrackUserLoginSuccess(ctx.Request.Context(), data.Login, data.UserID, data.Metadata)
+	})
+
 	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
 		uid := "system_tests_user"
 		if q := ctx.Query("event_user_id"); q != "" {
@@ -208,6 +252,30 @@ func main() {
 		appsec.TrackUserLoginFailureEvent(ctx.Request.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	r.POST("/user_login_failure_event_v2", func(ctx *gin.Context) {
+		var data struct {
+			Login    string            `json:"login"`
+			Exists   string            `json:"exists"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := ctx.BindJSON(&data); err != nil {
+			logrus.Println("error decoding request body for ", ctx.Request.URL, ":", err)
+			ctx.Status(http.StatusBadRequest)
+			ctx.Error(err)
+			return
+		}
+
+		exists, err := strconv.ParseBool(data.Exists)
+		if err != nil {
+			logrus.Printf("error parsing exists value %q: %v\n", data.Exists, err)
+			ctx.Status(http.StatusBadRequest)
+			ctx.Error(err)
+			return
+		}
+
+		appsec.TrackUserLoginFailure(ctx.Request.Context(), data.Login, exists, data.Metadata)
+	})
+
 	r.GET("/custom_event", func(ctx *gin.Context) {
 		name := "system_tests_event"
 		if q := ctx.Query("event_name"); q != "" {
@@ -221,7 +289,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			ctx.Writer.WriteHeader(500)
 		}
 		ctx.Writer.Write(content)
@@ -265,12 +333,41 @@ func main() {
 		ctx.Writer.Write([]byte("ok"))
 	})
 
+	r.GET("/log/library", func(ctx *gin.Context) {
+		msg := ctx.Query("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		reqCtx := ctx.Request.Context()
+		switch ctx.Query("level") {
+		case "warn":
+			logrus.WithContext(reqCtx).Warn(msg)
+		case "error":
+			logrus.WithContext(reqCtx).Error(msg)
+		case "debug":
+			logrus.WithContext(reqCtx).Debug(msg)
+		default:
+			logrus.WithContext(reqCtx).Info(msg)
+		}
+		ctx.Writer.Write([]byte("OK"))
+	})
+
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
+	r.Any("/rasp/multiple", ginHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
+	r.Any("/external_request", ginHandleFunc(rasp.ExternalRequest))
+	r.GET("/external_request/redirect", ginHandleFunc(rasp.ExternalRedirectRequest))
+
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
+	r.Any("/ffe", ginHandleFunc(common.FFeEval()))
+
+	var d DebuggerController
+	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
+	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
+	r.Any("/debugger/expression", ginHandleFunc(d.expression))
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -281,7 +378,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -292,7 +389,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 }
 

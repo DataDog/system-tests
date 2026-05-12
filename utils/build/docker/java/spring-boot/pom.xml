@@ -26,6 +26,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         <dependency>
@@ -47,8 +51,23 @@
             <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.datadoghq</groupId>
+            <artifactId>dd-openfeature</artifactId>
+            <version>${dd-openfeature.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
+            <version>1.41.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-metrics</artifactId>
+            <version>1.41.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
             <version>1.41.0</version>
         </dependency>
         <dependency>
@@ -224,6 +243,11 @@
             <artifactId>okhttp</artifactId>
             <version>4.9.3</version>
         </dependency>
+        <dependency>
+            <groupId>dev.openfeature</groupId>
+            <artifactId>sdk</artifactId>
+            <version>1.18.2</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -293,7 +317,7 @@
             <id>openliberty</id>
             <properties>
                 <!-- Defaults to latest OpenLiberty version, which might break during releases. -->
-                <liberty.runtime.version>23.0.0.12</liberty.runtime.version>
+                <liberty.runtime.version>26.0.0.4</liberty.runtime.version>
             </properties>
             <dependencies>
                 <dependency>
@@ -306,7 +330,7 @@
                     <plugin>
                         <groupId>io.openliberty.tools</groupId>
                         <artifactId>liberty-maven-plugin</artifactId>
-                        <version>3.10</version>
+                        <version>3.12.0</version>
                         <configuration>
                             <appsDirectory>apps</appsDirectory>
                             <installAppPackages>spring-boot-project</installAppPackages>
@@ -427,6 +451,15 @@
         </extensions>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Disables -parameters to avoid test failures for debugger (see DEBUG-5131) -->
+                    <parameters>false</parameters>  
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions>
@@ -492,17 +525,19 @@
         <grpc.version>1.65.1</grpc.version>
         <packaging.type>jar</packaging.type>
         <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
+        <dd-openfeature.version>[1.56.0,)</dd-openfeature.version>
     </properties>
-    <repositories>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    <!--Enable when oss.sonatype.org is available again-->
+    <!--    <repositories>-->
+    <!--        <repository>-->
+    <!--            <id>sonatype-snapshots</id>-->
+    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--            <releases>-->
+    <!--                <enabled>false</enabled>-->
+    <!--            </releases>-->
+    <!--            <snapshots>-->
+    <!--                <enabled>true</enabled>-->
+    <!--            </snapshots>-->
+    <!--        </repository>-->
+    <!--    </repositories>-->
 </project>

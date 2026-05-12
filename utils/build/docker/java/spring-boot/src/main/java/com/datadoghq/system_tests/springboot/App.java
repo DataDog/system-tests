@@ -16,6 +16,7 @@ import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
@@ -38,6 +39,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -84,6 +86,7 @@ import okhttp3.Headers;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,12 +148,15 @@ public class App {
     int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
-    String home(HttpServletResponse response) {
+    ResponseEntity<String> home() {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
         // waiting for that, just set a random value
-        response.setHeader("Content-Language", "not-set");
-        return "Hello World!";
+        return ResponseEntity.ok()
+            .contentType(MediaType.TEXT_PLAIN)
+            .header("Content-Language", "not-set")
+            .contentLength(13)
+            .body("Hello world!\n");
     }
 
     @RequestMapping("/healthcheck")
@@ -183,7 +189,7 @@ public class App {
         return response;
     }
 
-    @GetMapping("/headers")
+    @GetMapping(value = "/headers", produces = "text/plain")
     String headers(HttpServletResponse response) {
         response.setHeader("content-language", "en-US");
         return "012345678901234567890123456789012345678901";
@@ -200,6 +206,21 @@ public class App {
         return "Response with custom headers";
     }
 
+    @GetMapping("/authorization_related_headers")
+    String authResponseHeaders(HttpServletResponse response) {
+        response.setHeader("Authorization", "value1");
+        response.setHeader("Proxy-Authorization", "value2");
+        response.setHeader("WWW-Authenticate", "value3");
+        response.setHeader("Proxy-Authenticate", "value4");
+        response.setHeader("Authentication-Info", "value5");
+        response.setHeader("Proxy-Authentication-Info", "value6");
+        response.setHeader("Cookie", "value7");
+        response.setHeader("Set-Cookie", "value8");
+        response.setHeader("content-type", "text/plain");
+        return "Response with authorization-related headers";
+    }
+
+
     @GetMapping("/exceedResponseHeaders")
     String exceedResponseHeaders(HttpServletResponse response) {
         for (int i = 1; i <= 50; i++) {
@@ -210,19 +231,40 @@ public class App {
     }
 
     @RequestMapping(value = "/tag_value/{tag_value}/{status_code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
-    ResponseEntity<String> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value);
-        return ResponseEntity.status(status_code).body("Value tagged");
+    ResponseEntity<?> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption) {
+        return handleTagValue(tag_value, status_code, xOption, null);
     }
 
     @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam MultiValueMap<String, String> body) {
-        return tagValue(tag_value, status_code);
+    ResponseEntity<?> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestParam MultiValueMap<String, String> form) {
+        ObjectNode body = null;
+        if (form != null) {
+            body = new ObjectMapper().valueToTree(form);
+        }
+        return handleTagValue(tag_value, status_code, xOption, body);
     }
 
     @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<String> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestBody Object body) {
-        return tagValue(tag_value, status_code);
+    ResponseEntity<?> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestBody Map<String, Object> json) {
+        ObjectNode body = null;
+        if (json != null) {
+            body = new ObjectMapper().valueToTree(json);
+        }
+        return handleTagValue(tag_value, status_code, xOption, body);
+    }
+
+    private ResponseEntity<?> handleTagValue(final String value, final int status, final String xOption, final JsonNode body) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (xOption != null) {
+            response = response.header("X-option", xOption);
+        }
+        if (value.startsWith("payload_in_response_body")) {
+            JsonNode responseBody = new ObjectMapper().createObjectNode().set("payload", body);
+            return response.contentType(MediaType.APPLICATION_JSON).body(responseBody);
+        } else {
+            return response.contentType(MediaType.TEXT_PLAIN).body("Value tagged");
+        }
     }
 
     @GetMapping("/api_security/sampling/{i}")
@@ -262,6 +304,15 @@ public class App {
         return object.toString();
     }
 
+    @PostMapping(value = "/waf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<String> postWafMultipart(HttpServletRequest request) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        for (Part part : request.getParts()) {
+            sb.append(new String(part.getInputStream().readAllBytes()));
+        }
+        return ResponseEntity.ok(sb.toString());
+    }
+
     @GetMapping(value = "/session/new")
     ResponseEntity<String> newSession(final HttpServletRequest request) {
         final HttpSession session = request.getSession(true);
@@ -277,6 +328,11 @@ public class App {
 
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
+        return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    @RequestMapping("/stats-unique")
+    ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
@@ -394,11 +450,6 @@ public class App {
 
     @RequestMapping("/trace/sql")
     String traceSQL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         // NOTE: see README.md for setting up the docker image to quickly test this
 
         String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
@@ -423,11 +474,6 @@ public class App {
 
     @RequestMapping("/trace/http")
     String traceHTTP() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         try {
             URL server = new URL("http://example.com");
             HttpURLConnection connection = (HttpURLConnection)server.openConnection();
@@ -442,11 +488,6 @@ public class App {
 
     @RequestMapping("/trace/cassandra")
     String traceCassandra() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         cassandra.getSession().execute("SELECT * FROM \"table\" WHERE id = 1").all();
 
         return "hi Cassandra";
@@ -454,11 +495,6 @@ public class App {
 
     @RequestMapping("/trace/mongo")
     String traceMongo() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         MongoCollection<Document> collection = mongoClient.getDatabase("mydb").getCollection("test");
         Document doc = collection.find(eq("id", 3)).first();
         if (doc != null) {
@@ -970,11 +1006,6 @@ public class App {
 
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
         try {
@@ -1047,11 +1078,6 @@ public class App {
 
     @RequestMapping("/experimental/redirect")
     RedirectView traceRedirect(@RequestParam(required = false, name="url") String redirect) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
         if (redirect == null) {
             return new RedirectView("https://datadoghq.com");
         }
@@ -1278,6 +1304,67 @@ public class App {
         return jsonString;
     }
 
+    @RequestMapping("/otel_drop_in_baggage_api_otel")
+    DistantCallResponse otelDropInBaggageApiOTel(@RequestParam String url, @RequestParam String baggage_remove, @RequestParam String baggage_set) throws Exception {
+        // Insert baggage operations here
+        BaggageBuilder baggageBuilder = Baggage.current().toBuilder();
+
+        // for each
+        if (baggage_remove != null) {
+            for (String key : baggage_remove.split(",")) {
+                baggageBuilder = baggageBuilder.remove(key.trim());
+            }
+        }
+
+        if (baggage_set != null) {
+            for (String key : baggage_set.split(",")) {
+                String[] keyValue = key.split("=");
+                baggageBuilder =baggageBuilder.put(keyValue[0].trim(), keyValue[1].trim());
+            }
+        }
+
+        Baggage newBaggage = baggageBuilder.build();
+        try (Scope scope = newBaggage.makeCurrent()) {
+            HashMap<String, String> request_headers = new HashMap<>();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    request_headers.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            Response response = client.newCall(request).execute();
+
+            // Save response headers and status code
+            int status_code = response.code();
+            HashMap<String, String> response_headers = new HashMap<String, String>();
+            Headers headers = response.headers();
+            for (String name : headers.names()) {
+                response_headers.put(name, headers.get(name));
+            }
+
+            DistantCallResponse result = new DistantCallResponse();
+            result.url = url;
+            result.status_code = status_code;
+            result.request_headers = request_headers;
+            result.response_headers = response_headers;
+
+            return result;
+        }
+    }
+
     @GetMapping(value = "/requestdownstream")
     public String requestdownstream(HttpServletResponse response) throws IOException {
         String url = "http://localhost:7777/returnheaders";
@@ -1328,6 +1415,11 @@ public class App {
             return ResponseEntity.badRequest().body(e.toString());
         }
         return ResponseEntity.ok("ok");
+    }
+
+    @GetMapping("/resource_renaming/{*path}")
+    public String resourceRenaming(@PathVariable(required = false) String path) {
+        return "ok";
     }
 
     @Bean

@@ -1,9 +1,10 @@
-FROM public.ecr.aws/docker/library/node
+FROM public.ecr.aws/docker/library/node:24.10
 
 # Create app directory
 WORKDIR /usr/src/app
 
 COPY . .
-
+# Install dependencies with exact versions using npm ci
+RUN npm ci --only=production --no-audit --no-fund
 EXPOSE 18080
 CMD [ "node", "index.js" ]
