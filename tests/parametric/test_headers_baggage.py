@@ -358,15 +358,15 @@ class Test_Headers_Baggage_Span_Tags:
                 [
                     ("x-datadog-trace-id", "123456789"),
                     ("x-datadog-parent-id", "987654321"),
-                    ("baggage", "user.id=,session.id=mysession,account.id=abcd"),
+                    ("baggage", "=doggo,session.id=mysession,account.id=abcd"),
                 ]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         meta = span.get("meta")
         assert meta is not None
-        # if a header is malformed, all items get dropped
-        # therefore, there are no baggage tags
+        # empty key is malformed per W3C spec (key = 1*tchar); stop-at-first-malformed
+        # drops all subsequent members too, so no baggage tags are promoted
         assert meta.get("baggage.user.id") is None
         assert meta.get("baggage.session.id") is None
         assert meta.get("baggage.account.id") is None
