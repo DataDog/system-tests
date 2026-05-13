@@ -186,6 +186,16 @@ class _Scenarios:
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
+    telemetry_extended_heartbeat = EndToEndScenario(
+        "TELEMETRY_EXTENDED_HEARTBEAT",
+        weblog_env={
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+            "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+            "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+        },
+        doc="Test app-extended-heartbeat telemetry event with a shortened interval",
+        scenario_groups=[scenario_groups.telemetry],
+    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
@@ -631,6 +641,7 @@ class _Scenarios:
             "OTEL_TRACES_EXPORTER": "otlp",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "DD_TRACE_OTEL_ENABLED": "true",
         },
         backend_interface_timeout=5,
         include_opentelemetry=True,
@@ -1193,10 +1204,6 @@ class _Scenarios:
         # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
         weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
-        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
-        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
-        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
-        use_proxy_for_weblog=False,
         library_interface_timeout=20,
         doc="Test runtime metrics",
     )
