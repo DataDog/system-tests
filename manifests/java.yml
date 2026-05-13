@@ -3583,7 +3583,10 @@ manifest:
         spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP:
+    - weblog_declaration:
+        "*": v1.62.0
+        spring-boot-3-native: missing_feature
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -3709,18 +3712,18 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py: '>=1.58.2+06122213c8'  # Modified by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled::test_otlp_metrics_enabled: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_metrics.py: '>=1.62.0'
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter::test_otel_create_instruments_by_distinct:
+    - declaration: bug (APMAPI-1937)
+      component_version: <1.63.0
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: irrelevant (OTel API does not support scope attributes on Java)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
+  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
+  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol::test_otlp_protocol_grpc: incomplete_test_app (GPRC fails for system-test but works with real collector)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature (not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
       component_version: <1.40.0
@@ -4080,7 +4083,7 @@ manifest:
     - weblog_declaration:
         vertx3: v1.60.1  # TODO: a lower version might be supported
         vertx4: v1.60.1  # TODO: a lower version might be supported
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.64.0
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: irrelevant (Java noted as an exception to runtime metrics off by default in the RFC)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled:
     - weblog_declaration:
         "*": v0.64.0
@@ -4354,6 +4357,10 @@ manifest:
       component_version: '>=1.21.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.107.1
   tests/test_telemetry.py::Test_DependencyEnable: v1.7.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat:
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot: v1.23.0
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -4477,7 +4484,6 @@ manifest:
         spring-boot: '>=1.60.3'
         vertx4: '>=1.60.3'
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
   tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
   tests/test_v1_payloads.py: missing_feature

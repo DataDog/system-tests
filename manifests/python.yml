@@ -377,7 +377,8 @@ manifest:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
-        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+        "*": bug (APPSEC-62470)
+        # "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -1165,7 +1166,8 @@ manifest:
         "*": missing_feature
         *flask: v3.5.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay
-  : bug (DEBUG-5579)
+  : - declaration: bug (DEBUG-5579)
+      component_version: <4.9.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
@@ -2247,6 +2249,7 @@ manifest:
       component_version: '>=1.18.0-rc1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v4.6.5
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

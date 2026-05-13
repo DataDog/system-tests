@@ -1113,7 +1113,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v2.0.0-prerelease
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default:
+    - declaration: missing_feature
+      component_version: <2.0.0-prerelease
+    # Runtime metrics enabled by default for .NET 6+ since dd-trace-dotnet v3.40.0.
+    # This makes this test obsolete, since runtime metrics are available by default.
+    - declaration: irrelevant
+      component_version: '>=3.40.0'
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v2.0.0-prerelease
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v2.0.0-prerelease
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
@@ -1201,6 +1207,7 @@ manifest:
       component_version: '>=2.41'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.13.0
   tests/test_telemetry.py::Test_DependencyEnable: v2.35.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v3.39.0
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -1230,5 +1237,4 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (Product started missing)
       excluded_weblog: [uds, poc]
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (Re-enable when this automatically updates the dd-go files.)
   tests/test_v1_payloads.py: missing_feature

@@ -224,7 +224,14 @@ class Test_Config_RateLimit:
 
     @parametrize(
         "library_env",
-        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+        [
+            {
+                "DD_TRACE_RATE_LIMIT": "1",
+                "DD_TRACE_SAMPLE_RATE": "1",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
     )
     def test_setting_trace_rate_limit_strict(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
