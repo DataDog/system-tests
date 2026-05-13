@@ -134,6 +134,7 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
