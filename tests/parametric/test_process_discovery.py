@@ -55,8 +55,13 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
 
     raw_version = context.library.raw_version
     if context.library.name == "ruby":
-        # weblog may adds tailing -dev
-        raw_version = raw_version.removesuffix("-dev")
+        # The Ruby tracer reports its version in SemVer-2 form ("X.Y.Z-dev"), while
+        # raw_version may be in gem prerelease form ("X.Y.Z.dev") from the gemspec
+        # or have a "-dev" suffix appended by the weblog. Strip both possibilities
+        # from raw_version and the SemVer-2 suffix from tracer_version so we compare
+        # base versions.
+        raw_version = raw_version.removesuffix("-dev").removesuffix(".dev")
+        tracer_metadata["tracer_version"] = tracer_metadata["tracer_version"].removesuffix("-dev")
     elif context.library.name == "golang":
         # for which reason ?
         raw_version = raw_version.removeprefix("v")
