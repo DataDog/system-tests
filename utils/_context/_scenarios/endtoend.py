@@ -350,13 +350,13 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._log_weblog_info)
             self.warmups.append(self._set_agent_component)
             if not self.replay:
-                self.warmups.insert(1, self._start_interfaces_watchdog)
+                self.warmups.insert(2, self._start_interfaces_watchdog)
                 self.warmups.append(self._get_weblog_system_info)
         else:
             self.warmups.append(self._set_library_component)
             self.warmups.append(self._set_agent_component)
             if not self.replay:
-                self.warmups.insert(1, self._start_interfaces_watchdog)
+                self.warmups.insert(2, self._start_interfaces_watchdog)
                 self.warmups.append(self._get_weblog_system_info)
 
     def _defer_container_startup(self):
