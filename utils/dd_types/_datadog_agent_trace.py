@@ -155,6 +155,14 @@ class DataDogAgentSpan(ABC):
     def get_span_kind(self) -> str:
         pass
 
+    @abstractmethod
+    def get_span_origin(self) -> str | None:
+        pass
+
+    @abstractmethod
+    def get_sampling_priority(self) -> int | None:
+        pass
+
 
 class DataDogAgentSpanLegacy(DataDogAgentSpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -186,8 +194,16 @@ class DataDogAgentSpanLegacy(DataDogAgentSpan):
     def get_span_kind(self) -> str:
         return self.meta["span.kind"]
 
+    def get_span_origin(self) -> str | None:
+        return self.meta["_dd.origin"]
+
+    def get_sampling_priority(self) -> int | None:
+        return self.metrics["_sampling_priority_v1"]
+
 
 class DataDogAgentSpanV10(DataDogAgentSpan):
+    trace: DataDogTraceAgentV1
+
     def get(self, key: str, default: Any = None):  # noqa: ANN401
         return self.raw_span.get(key, default)
 
@@ -216,3 +232,9 @@ class DataDogAgentSpanV10(DataDogAgentSpan):
 
     def get_span_kind(self) -> str:
         return self.raw_span["kind"]
+
+    def get_span_origin(self) -> str | None:
+        return self.trace.raw_trace.get("origin")
+
+    def get_sampling_priority(self) -> int | None:
+        return self.trace.raw_trace.get("priority")

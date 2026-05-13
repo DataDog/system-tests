@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 import pytest
-from utils import scenarios, features, irrelevant, bug, flaky, missing_feature
+from utils import scenarios, features, irrelevant, bug, flaky, missing_feature, slow
 
 from .utils import run_system_tests
 
@@ -47,7 +47,8 @@ class Test_Cases:
 
     def test_error(self, error_fixture: None): ...
 
-    @bug(condition=True, reason="APMRP-360", force_skip=True)
+    @slow
+    @bug(condition=True, reason="APMRP-360")
     def test_force_skip(self): ...
 
 

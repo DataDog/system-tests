@@ -218,7 +218,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         var result = JsonConvert.SerializeObject(new
         {
              trace_id = activity.TraceId.ToString(),
-             span_id = activity.SpanId.ToString(),
+             span_id = ulong.Parse(activity.SpanId.ToString(), NumberStyles.HexNumber),
              trace_flags = ((int)activity.ActivityTraceFlags).ToString("x2"),
              trace_state = activity.TraceStateString ?? "",
              remote = activity.HasRemoteParent

@@ -39,7 +39,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import io.vertx.ext.web.FileUpload;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -172,6 +177,17 @@ public class Main {
                 ctx.response().setStatusCode(200).end(body.toString());
             });
         }
+        router.post("/waf").consumes("multipart/form-data").handler(ctx -> {
+            var sb = new StringBuilder();
+            for (FileUpload upload : ctx.fileUploads()) {
+                try {
+                    sb.append(new String(Files.readAllBytes(Paths.get(upload.uploadedFileName()))));
+                } catch (IOException e) {
+                    // ignore read errors for individual uploads
+                }
+            }
+            ctx.response().setStatusCode(200).end(sb.toString());
+        });
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");
@@ -359,6 +375,22 @@ public class Main {
                     JsonObject headersJson = new JsonObject();
                     ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
                     ctx.response().end(headersJson.encode());
+                });
+        router.get("/inferred-proxy/span-creation")
+                .handler(ctx -> {
+                    String statusCodeParam = ctx.request().getParam("status_code");
+                    int statusCode = 200;
+                    if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                        try {
+                            statusCode = Integer.parseInt(statusCodeParam);
+                        } catch (NumberFormatException e) {
+                            statusCode = 400;
+                        }
+                    }
+                    System.out.println("Received an API Gateway request:");
+                    ctx.request().headers().forEach(header ->
+                        System.out.println(header.getKey() + ": " + header.getValue()));
+                    ctx.response().setStatusCode(statusCode).end("ok");
                 });
         router.get("/set_cookie")
                 .handler(ctx -> {

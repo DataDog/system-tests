@@ -1208,7 +1208,7 @@ class MyApp
     ctx = span.context
 
     res.write(OtelSpanContextReturn.new(
-      format('%016x', ctx.hex_span_id.to_i(16)),
+      ctx.hex_span_id.to_i(16),
       format('%032x', ctx.hex_trace_id.to_i(16)),
       ctx.trace_flags.sampled? ? '01' : '00',
       ctx.tracestate.to_s,

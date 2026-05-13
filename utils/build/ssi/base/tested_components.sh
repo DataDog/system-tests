@@ -32,6 +32,7 @@ if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUT
         agent_version="${agent_path##*/}"
         agent_version="${agent_version%-1}"
       fi
+      agent_version="${agent_version#*:}"
 
       if dpkg -s datadog-apm-inject &> /dev/null; then
         inject_version=$(dpkg -s datadog-apm-inject | grep Version);
@@ -42,6 +43,7 @@ if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUT
         inject_version="${inject_path##*/}"
         inject_version="${inject_version%-1}"
       fi
+      inject_version="${inject_version#*:}"
 
       if dpkg -s datadog-apm-library-$DD_LANG &> /dev/null; then
         tracer_version=$(dpkg -s datadog-apm-library-$DD_LANG | grep Version);
@@ -52,6 +54,7 @@ if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUT
         tracer_version="${tracer_path##*/}"
         tracer_version="${tracer_version%-1}"
       fi
+      tracer_version="${tracer_version#*:}"
 
       installer_version="${agent_version}" # Installer is now shipped with the Agent
 
@@ -66,6 +69,7 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
         agent_version="${agent_path##*/}"
         agent_version="${agent_version%-1}"
       fi
+      agent_version="${agent_version#*:}"
 
       if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)" ]; then
         inject_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject);
@@ -75,6 +79,7 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
         inject_version="${inject_path##*/}"
         inject_version="${inject_version%-1}"
       fi
+      inject_version="${inject_version#*:}"
 
       if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)" ]; then
         tracer_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG);
@@ -84,6 +89,7 @@ elif [ -f /etc/redhat-release ] || [ "$DISTRIBUTION" = "RedHat" ] || [ "$DISTRIB
         tracer_version="${tracer_path##*/}"
         tracer_version="${tracer_version%-1}"
       fi
+      tracer_version="${tracer_version#*:}"
 
       installer_version="${agent_version}" # Installer is now shipped with the Agent
 

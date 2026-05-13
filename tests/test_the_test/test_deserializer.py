@@ -1,5 +1,6 @@
 from utils import scenarios
 from utils.proxy.traces.trace_v1 import (
+    V1AnyValueKeys,
     _uncompress_array,
     decode_appsec_s_value,
     deserialize_v1_trace,
@@ -242,6 +243,58 @@ def test_decode_appsec_s_value_invalid_raises():
         decode_appsec_s_value(base64.b64encode(b"not gzip").decode())
     with pytest.raises(ValueError, match="Invalid JSON"):
         decode_appsec_s_value("[1,2,invalid")  # starts with [ so treated as JSON
+
+
+@scenarios.test_the_test
+def test_deserialize_v1_trace_bytes_attributes_match_convert_bytes_values():
+    """End state for v1 bytes-valued attributes (V1AnyValueKeys.bytes_value).
+
+    Non-v1 msgpack traces run ``_convert_bytes_values`` after unpack (see
+    ``utils/proxy/_deserializer.py``): bytes under path ``[][].meta_struct`` are
+    decoded with ``msgpack.unpackb``; all other bytes are ASCII-decoded to str.
+
+    v1 has no ``meta_struct``; the same two behaviors should apply to span (and
+    chunk / link / event) attributes whose wire type is **bytes_value**:
+    msgpack payloads become structured Python values; plain ASCII payloads
+    become str. Implemented in ``utils/proxy/trace_bytes_decoding.py`` and
+    ``trace_v1._attributes_to_dict`` / ``_uncompress_array`` / agent
+    ``bytesValue`` handling.
+    """
+    msgpack_bytes = msgpack.packb({"nested": True})
+    content = msgpack.packb(
+        {
+            2: "cid",
+            11: [
+                {
+                    1: 1,
+                    4: [
+                        {
+                            1: "svc",
+                            2: "n",
+                            9: [
+                                "msgpackAttr",
+                                int(V1AnyValueKeys.bytes_value),
+                                msgpack_bytes,
+                                "asciiAttr",
+                                int(V1AnyValueKeys.bytes_value),
+                                b"HELLO",
+                            ],
+                        }
+                    ],
+                    6: bytes(
+                        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xE3]
+                    ),
+                    7: 0,
+                }
+            ],
+        }
+    )
+
+    result = deserialize_v1_trace(content)
+    attrs = result["chunks"][0]["spans"][0]["attributes"]
+
+    assert attrs["msgpackAttr"] == {"nested": True}
+    assert attrs["asciiAttr"] == "HELLO"
 
 
 @scenarios.test_the_test

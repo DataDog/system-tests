@@ -16,9 +16,13 @@ By default, after some basic test/lint jobs, this pipeline build alls weblogs (6
 ### Target branch selection
 `dev` version uses `main` / `master` branch by default but, in the case of some libraries (cpp, agent, nodejs, python, ruby, and dotnet), it is possible to configure the CI to use a target branch.
 
-If the PR's title includes `[target_library@branch_name_to_test]` the workflow will use `branch_name_to_test` instead of `main/master` branch.
+If the PR's title includes `[target_library@branch_name_to_test]` the workflow will use `branch_name_to_test` instead of `main/master` branch. Multiple branch overrides can be specified simultaneously for different libraries:
 
-At the moment, it is not possible to run the CI for all libraries in a particular branch but it is limited to the target library indicated in the title.
+```
+My PR title [java@my-java-branch][dotnet@my-dotnet-branch][ruby@my-ruby-branch]
+```
+
+Each library in the CI matrix will use its own specified branch. Libraries without an override continue to use the default branch.
 
 As a security measure, the "Fail if target branch is specified" job always fails if a target branch is selected.
 

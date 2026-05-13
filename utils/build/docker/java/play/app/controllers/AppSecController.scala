@@ -122,6 +122,12 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   }
 
 
+  def inferredProxySpanCreation(status_code: Option[Int]) = Action { request =>
+    println("Received an API Gateway request:")
+    request.headers.headers.foreach { case (name, value) => println(s"$name: $value") }
+    Results.Status(status_code.getOrElse(200))("ok")
+  }
+
   def tagValue(value: String, code: Int) = Action { request =>
     handleTagValue(value, code, request.queryString, None)
   }
@@ -158,7 +164,12 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       case AnyContentAsFormUrlEncoded(data) =>
         Results.Ok(data.toString())
       case AnyContentAsMultipartFormData(mpfd) =>
-        Results.Ok(mpfd.dataParts.toString())
+        val sb = new StringBuilder()
+        mpfd.dataParts.foreach { case (_, values) => values.foreach(sb.append) }
+        mpfd.files.foreach { file =>
+          sb.append(new String(java.nio.file.Files.readAllBytes(file.ref.path)))
+        }
+        Results.Ok(sb.toString())
       case AnyContentAsJson(data) =>
         Results.Ok(Json.stringify(data))
       case AnyContentAsXml(data) =>

@@ -136,9 +136,9 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
         """Get telemetry configurations for a given runtime ID and service name."""
         configurations = {}
-        # Sort telemetry requests by timestamp, this ensures later configurations take precedence
+        # Sort telemetry requests by timestamp and seq_id, this ensures later configurations take precedence
         requests = list(self.get_telemetry_for_runtime(runtime_id))
-        requests.sort(key=lambda x: x["tracer_time"])
+        requests.sort(key=lambda x: (x["tracer_time"], x.get("seq_id", 0)))
         for request in requests:
             if service_name is not None and request["application"]["service_name"] != service_name:
                 # Check if the service name in telemetry matches the expected service name

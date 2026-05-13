@@ -2,6 +2,7 @@ import base64
 from collections.abc import Generator
 import contextlib
 import datetime
+import gzip
 import hashlib
 from http import HTTPStatus
 import json
@@ -11,6 +12,7 @@ import time
 from typing import TypedDict, Any, cast
 import urllib.parse
 
+import msgpack
 import pytest
 import requests
 from retry import retry
@@ -386,24 +388,47 @@ class TestAgentAPI:
         self._write_log("info", resp_json)
         return resp_json
 
+    def _decode_llmobs_body(self, body_b64: str) -> list[Any]:
+        """Decode base64 body; handle gzip (Java), then JSON or MessagePack (Java) encoding.
+
+        Returns a list of events (each event is a dict with 'spans'). Java can send multiple
+        concatenated msgpack objects in one request; we use Unpacker to decode all of them
+        (same as llm-obs test/conftest.py).
+        """
+        decoded = base64.b64decode(body_b64)
+        if decoded[:2] == b"\x1f\x8b":
+            decoded = gzip.decompress(decoded)
+        # JSON (Python/Node tracer): starts with { or [
+        if decoded.lstrip().startswith((b"{", b"[")):
+            parsed = json.loads(decoded)
+            return [parsed] if isinstance(parsed, dict) else parsed
+        # MessagePack (Java tracer): binary format; may be multiple concatenated objects
+        unpacker = msgpack.Unpacker(unicode_errors="replace", strict_map_key=False)
+        unpacker.feed(decoded)
+        return list(unpacker)
+
     def llmobs_requests(self) -> list[Any]:
-        reqs = [r for r in self.requests() if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs")]
+        reqs = [
+            r
+            for r in self.requests()
+            if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs") or r["url"].endswith("/evp_proxy/v4/api/v2/llmobs")
+        ]
 
         events = []
         for r in reqs:
-            decoded_body = base64.b64decode(r["body"])
-            events.append(json.loads(decoded_body))
+            events.append(self._decode_llmobs_body(r["body"]))
         return events
 
-    def llmobs_evaluations_requests(self):
+    def llmobs_evaluations_requests(self) -> list[Any]:
         reqs = [
             r
             for r in self.requests()
             if r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v1/eval-metric")
             or r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v2/eval-metric")
         ]
-
-        return [json.loads(base64.b64decode(r["body"])) for r in reqs]
+        # One decoded body per request (evaluations are typically single JSON per request)
+        decoded_per_request = [self._decode_llmobs_body(r["body"]) for r in reqs]
+        return [events[0] for events in decoded_per_request]
 
     @contextlib.contextmanager
     def snapshot_context(self, token: str, ignores: list[str] | None = None):
@@ -780,53 +805,55 @@ class TestAgentAPI:
         raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
     def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        """Wait for RC capabilities to be reported by the tracer and return the most recent set seen.
+
+        The tracer's RC capabilities bitmask is monotonically increasing: capabilities are added
+        as products start but never removed. Earlier requests may therefore carry a partial set
+        (e.g. only AppSec capabilities, before APM capabilities are registered). Using the most
+        recent non-empty request gives the fullest picture of what the tracer actually supports.
+        """
         for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
-                # Look for capabilities in the requests.
-                for req in rc_reqs:
+                # Walk all requests newest-first and return the first (most recent) non-empty set.
+                for req in reversed(rc_reqs):
                     raw_caps = req["body"]["client"].get("capabilities")
-                    if raw_caps:
-                        # Capabilities can be a base64 encoded string or an array of numbers. This is due
-                        # to the Go json library used in the trace agent accepting and being able to decode
-                        # both: https://go.dev/play/p/fkT5Q7GE5VD
+                    if not raw_caps:
+                        continue
 
-                        # byte-array:
-                        if isinstance(raw_caps, list):
-                            decoded_capabilities = bytes(raw_caps)
-                        # base64-encoded string:
-                        else:
-                            decoded_capabilities = base64.b64decode(raw_caps)
+                    # Capabilities can be a base64 encoded string or an array of numbers. This is due
+                    # to the Go json library used in the trace agent accepting and being able to decode
+                    # both: https://go.dev/play/p/fkT5Q7GE5VD
+                    decoded_capabilities = bytes(raw_caps) if isinstance(raw_caps, list) else base64.b64decode(raw_caps)
 
-                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+                    int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
 
-                        if int_capabilities >= (1 << 64):
-                            raise AssertionError(
-                                f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}"
-                            )
+                    if int_capabilities >= (1 << 64):
+                        raise AssertionError(f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}")
 
-                        valid_bits = sum(1 << c for c in Capabilities)
-                        if int_capabilities & ~valid_bits != 0:
-                            raise AssertionError(
-                                f"RC capabilities contains unknown bits: {bin(int_capabilities & ~valid_bits)}"
-                            )
+                    valid_bits = sum(1 << c for c in Capabilities)
+                    if int_capabilities & ~valid_bits != 0:
+                        raise AssertionError(
+                            f"RC capabilities contains unknown bits: {bin(int_capabilities & ~valid_bits)}"
+                        )
 
-                        capabilities_seen = remoteconfig.human_readable_capabilities(int_capabilities)
-                        if len(capabilities_seen) > 0:
-                            return capabilities_seen
+                    capabilities_seen = remoteconfig.human_readable_capabilities(int_capabilities)
+                    if capabilities_seen:
+                        return capabilities_seen
             time.sleep(0.01)
         raise AssertionError("RemoteConfig capabilities were empty")
 
     def assert_rc_capabilities(self, expected_capabilities: set[Capabilities], wait_loops: int = 100) -> None:
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        """Assert that the tracer reports all expected RC capabilities, polling up to wait_loops cycles."""
         seen_capabilities = self.wait_for_rc_capabilities(wait_loops)
         missing_capabilities = expected_capabilities.difference(seen_capabilities)
         if missing_capabilities:
-            raise AssertionError(f"RemoteConfig capabilities missing: {missing_capabilities}")
+            raise AssertionError(
+                f"RemoteConfig capabilities missing: {missing_capabilities}; seen: {seen_capabilities}"
+            )
 
     def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""

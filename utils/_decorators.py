@@ -40,8 +40,6 @@ def add_pytest_marker(
     item: pytest.Module | pytest.Function | FunctionType | MethodType,
     declaration: TestDeclaration,
     declaration_details: str | None,
-    *,
-    force_skip: bool = False,
 ) -> pytest.Module | pytest.Function | FunctionType | MethodType:
     if (
         not inspect.isfunction(item)
@@ -54,7 +52,7 @@ def add_pytest_marker(
     if declaration in (TestDeclaration.BUG, TestDeclaration.FLAKY):
         _ensure_jira_ticket_as_reason(item, declaration_details)
 
-    if force_skip or declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
+    if declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
         marker = pytest.mark.skip
     else:
         marker = pytest.mark.xfail
@@ -104,6 +102,7 @@ def _expected_to_fail(
             "nodejs_otel",
             "python_lambda",
             "java_lambda",
+            "nodejs_lambda",
             "rust",
         ):
             raise ValueError(f"Unknown library: {library}")
@@ -122,7 +121,6 @@ def _decorator(
     library: str | None,
     weblog_variant: str | None,
     declaration_details: str | None,
-    force_skip: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -132,9 +130,7 @@ def _decorator(
     if not expected_to_fail:
         return function_or_class
 
-    return add_pytest_marker(
-        function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
-    )
+    return add_pytest_marker(function_or_class, declaration=declaration, declaration_details=declaration_details)
 
 
 def missing_feature(
@@ -142,8 +138,6 @@ def missing_feature(
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
-    *,
-    force_skip: bool = False,
 ):
     """decorator, allow to mark a test function/class as missing"""
     return partial(
@@ -153,7 +147,6 @@ def missing_feature(
         library=library,
         weblog_variant=weblog_variant,
         declaration_details=reason,
-        force_skip=force_skip,
     )
 
 
@@ -197,7 +190,6 @@ def bug(
     weblog_variant: str | None = None,
     *,
     reason: str,
-    force_skip: bool = False,
 ):
     """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
@@ -209,7 +201,6 @@ def bug(
         library=library,
         weblog_variant=weblog_variant,
         declaration_details=reason,
-        force_skip=force_skip,
     )
 
 

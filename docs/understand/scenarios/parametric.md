@@ -133,6 +133,16 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -vv -k test_metrics_
 TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
 ```
 
+### Making parametric runs faster
+
+- **Skip the build when the image already exists:** Use `--skip-parametric-build` (or set `SKIP_PARAMETRIC_BUILD=1`) when you are only changing test code. This avoids rebuilding the parametric library image on every run, saving ~3–4s per invocation. When you change the Dockerfile or app code under `utils/build/docker/<lang>/parametric/`, run without this option so the image is rebuilt.
+
+  ```sh
+  TEST_LIBRARY=java ./run.sh PARAMETRIC --skip-parametric-build tests/parametric/test_startup_logs.py
+  ```
+
+- **Per-test time is dominated by library process startup:** For Java and other heavy runtimes, most of the time for each test is starting the JVM and the parametric app. Running multiple tests in one invocation amortizes session setup (build, agent, network).
+
 ### Understanding the test outcomes
 Please refer to this [chart](../../execute/test-outcomes.md)
 

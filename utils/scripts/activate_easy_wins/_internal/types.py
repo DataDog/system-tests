@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from utils._context.component_version import Version
-from .const import LIBRARIES
+from utils.const import COMPONENT_GROUPS
 
 
 def strip_java_build_metadata(library: str, version_string: str) -> str:
@@ -22,7 +22,7 @@ class Context:
 
     @staticmethod
     def create(library: str, library_version_string: str, variant: str) -> Context | None:
-        if library not in LIBRARIES or not library_version_string:
+        if library not in COMPONENT_GROUPS.easy_win or not library_version_string:
             return None
         for processor in Context.processors:
             library_version_string = processor(library, library_version_string)

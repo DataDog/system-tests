@@ -14,6 +14,7 @@ end
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
 
   c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
 end
@@ -389,4 +390,10 @@ get '/flush' do
   end
 
   'OK'
+end
+
+get '/inferred-proxy/span-creation' do
+  content_type :text
+  status (params['status_code'] || 200).to_i
+  'ok'
 end

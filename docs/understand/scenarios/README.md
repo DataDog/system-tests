@@ -58,6 +58,10 @@ The lib-injection project is a feature to allow injection of the Datadog library
 
 This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailed documentation can be found [here](k8s_library_injection_overview.md).
 
+### AI Guard scenario
+
+The `AI_GUARD` scenario tests the [AI Guard SDK](https://docs.datadoghq.com/security/ai_guard/) integration across tracer libraries. It uses a VCR cassettes container to replay pre-recorded AI Guard API responses, validating evaluation actions (ALLOW, DENY, ABORT), span metadata, sensitive data scanning, and multi-modal content handling. See [ai_guard.md](ai_guard.md) for details.
+
 ### IPv6 scenario
 
 The `IPV6` scenario sets up an IPv6 docker network and uses an IPv6 address as DD_AGENT_HOST to verify that the library is able to communicate to the agent using an IPv6 address. It does not use a proxy between the lib and the agent to not interfere at any point here, so all assertions must be done on the outgoing traffic from the agent.

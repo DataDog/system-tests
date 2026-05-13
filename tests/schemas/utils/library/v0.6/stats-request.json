@@ -41,7 +41,8 @@
                   "description": "Peer tags array from span metadata (based on agent peer tags configuration)"
                 },
                 "IsTraceRoot": { "type": "integer", "description": "TRUE if span parentID == 0, FALSE otherwise" },
-                "GRPCStatusCode": { "type": "string", "description": "gRPC status code from span metadata" }
+                "GRPCStatusCode": { "type": "string", "description": "gRPC status code from span metadata" },
+                "srv_src": { "type": "string", "description": "Service name override source (e.g. integration name)" }
               }
             }
           }

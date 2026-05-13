@@ -82,6 +82,8 @@ class Capabilities(IntEnum):
     ASM_EXTENDED_DATA_COLLECTION = 44
     APM_TRACING_MULTICONFIG = 45
     FFE_FLAG_CONFIGURATION_RULES = 46
+    DATA_STREAMS_TRANSACTION_EXTRACTORS = 47
+    APM_TRACING_LLMOBS = 48
 
 
 class SamplingPriority(IntEnum):
@@ -108,6 +110,7 @@ class SamplingMechanism(IntEnum):
     AI_GUARD = 13
 
 
+# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L153
 class SpanKind(IntEnum):
     UNSPECIFIED = 0
     INTERNAL = 1
@@ -115,3 +118,10 @@ class SpanKind(IntEnum):
     CLIENT = 3
     PRODUCER = 4
     CONSUMER = 5
+
+
+# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L316
+class StatusCode(IntEnum):
+    STATUS_CODE_UNSET = 0
+    STATUS_CODE_OK = 1
+    STATUS_CODE_ERROR = 2

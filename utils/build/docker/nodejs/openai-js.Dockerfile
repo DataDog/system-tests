@@ -8,11 +8,11 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/openai_app /usr/app
-
 WORKDIR /usr/app
 
-RUN npm install || sleep 60 && npm install
+COPY utils/build/docker/nodejs/openai_app /usr/app
+RUN npm ci || (sleep 30 && npm ci)
+
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         npm install openai; \
     else \

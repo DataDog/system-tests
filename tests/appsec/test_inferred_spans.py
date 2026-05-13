@@ -75,9 +75,10 @@ class Test_Proxy_Inferred_Span_Tags:
 
     def test_proxy_inferred_span(self) -> None:
         service_entry_span_appsec_data = None
-        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
+        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r, full_trace=True):
             if span.get("service") == "weblog":
                 service_entry_span_appsec_data = appsec_data
+                break
 
         assert service_entry_span_appsec_data, "Expected non empty appsec data on the weblog entry span"
 

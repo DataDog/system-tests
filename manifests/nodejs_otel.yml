@@ -71,9 +71,9 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)

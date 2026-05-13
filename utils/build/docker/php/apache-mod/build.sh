@@ -14,7 +14,6 @@ mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.conf /etc/apache2/mods-available/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
 cp -rf /tmp/php/common/* /var/www/html/
-cp -rf /tmp/php/common/install_ddtrace.sh /
 cp -rf /tmp/php/common/php.ini /etc/php/
 
 # Install required packages and PHP extensions
@@ -66,12 +65,13 @@ fi
 echo "Using composer config: $COMPOSER"
 composer install --prefer-dist
 
+# Install OTel SDK for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
+# DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
+# with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
+if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
+fi
+
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;
-
-/install_ddtrace.sh 1
-
-if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
-    grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini
-fi

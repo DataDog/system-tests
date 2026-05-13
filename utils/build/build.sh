@@ -34,12 +34,12 @@ readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
-readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
 readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
 readonly DEFAULT_java_lambda=java-apigw-rest
+readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
 readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
@@ -59,21 +59,21 @@ print_usage() {
     echo -e "  ${SCRIPT_NAME} [options...]"
     echo
     echo -e "${WHITE_BOLD}OPTIONS${NC}"
-    echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
-    echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
-    echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
-    echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
-    echo -e "  ${CYAN}--github-token-file <file>${NC} Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
-    echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
-    echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
-    echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
-    echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
-    echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
-    echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
-    echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
-    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
-    echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
+    echo -e "  ${CYAN}--library <lib>${NC}              Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
+    echo -e "  ${CYAN}--weblog-variant <var>${NC}       Weblog variant (env: WEBLOG_VARIANT)."
+    echo -e "  ${CYAN}--images <images>${NC}            Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
+    echo -e "  ${CYAN}--docker${NC}                     Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
+    echo -e "  ${CYAN}--github-token-file <file>${NC}   Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
+    echo -e "  ${CYAN}--extra-docker-args <args>${NC}   Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
+    echo -e "  ${CYAN}--cache-mode <mode>${NC}          Cache mode (env: DOCKER_CACHE_MODE)."
+    echo -e "  ${CYAN}--docker-platform <platform>${NC} Target Docker platform."
+    echo -e "  ${CYAN}--list-libraries${NC}             Lists all available libraries and exits."
+    echo -e "  ${CYAN}--list-weblogs${NC}               Lists all available weblogs for a library and exits."
+    echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
     echo -e "  Build default images:"
@@ -105,7 +105,40 @@ list-weblogs() {
 
 default-weblog() {
     local var="DEFAULT_${TEST_LIBRARY}"
+    if [[ -z "${!var:-}" ]]; then
+        echo "ERROR: This script should not be run for the ${TEST_LIBRARY} library because it has no default weblog." >&2
+        exit 1
+    fi
     echo -n "${!var}"
+}
+
+run_build_command() {
+    local log_file
+    local exit_code
+    echo "Running command: $*"
+    # During development, we prefer non-verbose output in the absence of errors. This adds less clutter
+    # in terminals, and saves a significant amount of useless tokens for coding agents.
+    # In CI, however, we keep full logs that sometimes help troubleshooting build times.
+    if [[ ${CI:-} = true ]]; then
+	    "$@"
+	    exit_code=$?
+	    return $exit_code
+    fi
+    log_file=$(mktemp /tmp/system-tests-build-XXXXXXX.log)
+    echo "Build log file: ${log_file}"
+
+    set +e
+    "$@" >"${log_file}" 2>&1
+    exit_code=$?
+    set -e
+
+    if [ "${exit_code}" -eq 0 ]; then
+        rm -f "${log_file}"
+        return 0
+    fi
+    echo "Build command failed: $*" >&2
+    cat "${log_file}" >&2
+    return "${exit_code}"
 }
 
 build() {
@@ -145,6 +178,14 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+                # Homebrew/Python upgrades can invalidate an existing venv.
+                # If the interpreter is broken, recreate the venv automatically.
+                if [ -d "venv/" ] && ! venv/bin/python -V >/dev/null 2>&1
+                then
+                    echo "Existing venv is broken. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
@@ -164,16 +205,16 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip setuptools==75.8.0
+                run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            python -m pip install -e .
+            run_build_command python -m pip install -e .
             if [[ -d "venv/" ]]; then
                 cp requirements.txt venv/requirements.txt
             fi
 
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -183,7 +224,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -251,7 +292,7 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    run_build_command docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
@@ -268,7 +309,7 @@ build() {
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
-                docker buildx build \
+                run_build_command docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
@@ -285,7 +326,7 @@ build() {
 
                 if test -f "binaries/waf_rule_set.json"; then
 
-                    docker buildx build \
+                    run_build_command docker buildx build \
                         --build-arg BUILDKIT_INLINE_CACHE=1 \
                         --load \
                         --progress=plain \
@@ -302,7 +343,7 @@ build() {
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \

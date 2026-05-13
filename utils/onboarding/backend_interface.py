@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import json
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -8,6 +9,7 @@ from utils._logger import logger
 
 
 API_HOST = "https://dd.datadoghq.com"
+_json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json"])
 
 
 def wait_backend_trace_id(trace_id: str, profile: bool = False, validator: Callable | None = None):
@@ -64,6 +66,7 @@ def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
     results = {}
 
     trace_data = _make_request(url, headers=_headers())
+    _deserialize_meta(trace_data)
     if validator:
         logger.info("Validating backend trace...")
         results["validator"] = validator(trace_id, trace_data)
@@ -80,6 +83,18 @@ def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
     else:
         results["runtime_id"] = root_span["meta"]["runtime-id"]
     return results
+
+
+def _deserialize_meta(trace: dict) -> dict:
+    spans = trace.get("trace", {}).get("spans", {})
+    for span in spans.values():
+        meta = span.get("meta", {})
+        for key in _json_meta_values:
+            value = meta.get(key)
+            if isinstance(value, str):
+                meta[key] = json.loads(value)
+
+    return trace
 
 
 def _make_request(

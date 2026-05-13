@@ -70,7 +70,6 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
         )
 
-    @slow
     def test_log_line_budgets(self):
         self._assert()
         self._validate_snapshots()
@@ -111,7 +110,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         # Allow time for the agent to receive data after the last request
         time.sleep(2)
 
-    @bug(context.library == "java", reason="DEBUG-3797", force_skip=True)
+    @bug(context.library == "java", reason="DEBUG-3797")
     def test_span_probe_expression_budgets(self):
         self.collect()
         self.assert_setup_ok()

@@ -63,7 +63,7 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.42.0",
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -109,26 +109,45 @@ class ParametricScenario(DockerFixturesScenario):
             # we are in the main worker, not in a xdist sub-worker
             # self._build_apm_test_server_image(config.option.github_token_file)
             self._test_agent_factory.pull()
-            self._test_client_factory.build(github_token_file=config.option.github_token_file)
+            skip_build = getattr(config.option, "skip_parametric_build", False)
+            if skip_build and len(get_docker_client().images.list(name=self._test_client_factory.tag)) > 0:
+                logger.stdout(
+                    "Skipping parametric build (image already exists, --skip-parametric-build or SKIP_PARAMETRIC_BUILD)"
+                )
+            else:
+                self._test_client_factory.build(github_token_file=config.option.github_token_file)
             self._clean()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
-            output = get_docker_client().containers.run(
-                self._test_client_factory.tag,
-                remove=True,
-                command=["./system_tests_library_version.sh"],
-                volumes=compute_volumes(self._test_client_factory.container_volumes),
-                environment=self._test_client_factory.container_env,
-            )
-        else:
-            output = get_docker_client().containers.run(
-                self._test_client_factory.tag,
-                remove=True,
-                command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
-            )
+        # The version check container runs npm link (nodejs) or similar operations that
+        # are not safe for concurrent execution on the same volume. Only the main worker
+        # runs the container; sub-workers read the cached result from a file.
+        version_cache = os.path.join(self.host_log_folder, "_library_version.txt")
 
-        self._library = ComponentVersion(library, output.decode("utf-8"))
+        if self.is_main_worker:
+            if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
+                output = get_docker_client().containers.run(
+                    self._test_client_factory.tag,
+                    remove=True,
+                    command=["./system_tests_library_version.sh"],
+                    volumes=compute_volumes(self._test_client_factory.container_volumes),
+                    environment=self._test_client_factory.container_env,
+                )
+            else:
+                output = get_docker_client().containers.run(
+                    self._test_client_factory.tag,
+                    remove=True,
+                    command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
+                )
+
+            version_string = output.decode("utf-8")
+            with open(version_cache, "w", encoding="utf-8") as f:
+                f.write(version_string)
+        else:
+            with open(version_cache, encoding="utf-8") as f:
+                version_string = f.read()
+
+        self._library = ComponentVersion(library, version_string)
         logger.debug(f"Library version is {self._library}")
 
         if self.is_main_worker:

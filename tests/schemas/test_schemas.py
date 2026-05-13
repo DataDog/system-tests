@@ -38,12 +38,6 @@ class Test_DdtraceSchemas:
                 ticket="APPSEC-52845",
             ),
             SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
-                ticket="APMS-12697",
-            ),
-            SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
@@ -64,6 +58,12 @@ class Test_DdtraceSchemas:
             ),
             SchemaBug(
                 endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v2/input",
                 data_path="$[].debugger.snapshot.probe.location.method",
                 condition=context.library == "dotnet",
                 ticket="DEBUG-3734",
@@ -140,12 +140,6 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
             ),  # the main payload sent by the agent may be an array i/o an object
-            SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
-                ticket="APMS-12697",
-            ),
             SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",

@@ -7,7 +7,7 @@ from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
-    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command):
+    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command: str):
         """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
@@ -64,7 +64,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         logger.info("Restoring installation using the command:: ")
         apm_inject_restore = f"{prefix_env} {apm_inject_restore}"
         logger.info(apm_inject_restore)
-        _, stdout, stderr = virtual_machine.get_ssh_connection().exec_command(apm_inject_restore)
+        _, stdout, _stderr = virtual_machine.get_ssh_connection().exec_command(apm_inject_restore)
         stdout.channel.set_combine_stderr(True)
 
         # Read the output line by line

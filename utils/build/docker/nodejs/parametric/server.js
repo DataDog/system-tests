@@ -132,7 +132,7 @@ app.post('/trace/span/start', (req, res) => {
   });
 
   if (ddContext[request.parent_id]) {
-    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link.context, link.attributes)
+    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link)
   }
 
   spans[span.context().toSpanId()] = span;
@@ -143,9 +143,9 @@ app.post('/trace/span/add_link', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
   if (spans[request.parent_id]) {
-    span.addLink(spans[request.parent_id].context(), request.attributes)
+    span.addLink({ context: spans[request.parent_id].context(), attributes: request.attributes })
   } else {
-    span.addLink(ddContext[request.parent_id], request.attributes)
+    span.addLink({ context: ddContext[request.parent_id], attributes: request.attributes })
   }
   res.json({});
 });
@@ -276,7 +276,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
-    const span_id = ctx._spanId.toString(10)
+    const span_id = "0x" + ctx._spanId.toString(16)
     const trace_id = ctx._traceId.toString(10)
 
     otelSpans[span_id] = span
@@ -321,7 +321,7 @@ app.post('/trace/otel/span_context', (req, res) => {
   const span = otelSpans[span_id]
   const ctx = span.spanContext()
   res.json({
-    span_id: ctx.spanId,
+    span_id: `0x${ctx.spanId}`,
     trace_id: ctx.traceId,
     // Node.js official OTel API uses a number, not a string
     trace_flags: `0${ctx.traceFlags}`,

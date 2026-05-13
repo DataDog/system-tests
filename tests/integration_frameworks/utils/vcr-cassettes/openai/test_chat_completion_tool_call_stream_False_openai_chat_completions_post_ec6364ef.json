@@ -1,0 +1,57 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "headers": {
+      "User-Agent": "OpenAIClientImpl/Java unknown",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Lang": "java",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-OS-Version": "6.12.65-linuxkit",
+      "X-Stainless-Package-Version": "unknown",
+      "X-Stainless-Retry-Count": "0",
+      "X-Stainless-Runtime": "JRE",
+      "X-Stainless-Runtime-Version": "17.0.9",
+      "X-Stainless-Read-Timeout": "600",
+      "X-Stainless-Timeout": "600",
+      "Content-Type": "application/json",
+      "Content-Length": "537",
+      "Connection": "Keep-Alive",
+      "Accept-Encoding": "gzip"
+    },
+    "body": "{\"messages\":[{\"content\":\"Bob is a student at Stanford University. He is studying computer science.\",\"role\":\"user\"}],\"model\":\"gpt-3.5-turbo\",\"tool_choice\":\"auto\",\"tools\":[{\"function\":{\"name\":\"extract_student_info\",\"description\":\"Get the student information from the body of the input text\",\"parameters\":{\"type\":\"object\",\"properties\":{\"major\":{\"description\":\"Major subject.\",\"type\":\"string\"},\"school\":{\"description\":\"The university name.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the person\",\"type\":\"string\"}}}},\"type\":\"function\"}]}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Fri, 20 Feb 2026 00:01:06 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "access-control-expose-headers": "X-Request-ID",
+      "openai-processing-ms": "463",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "openai-version": "2020-10-01",
+      "Server": "cloudflare",
+      "x-ratelimit-limit-requests": "10000",
+      "x-ratelimit-limit-tokens": "50000000",
+      "x-ratelimit-remaining-requests": "9999",
+      "x-ratelimit-remaining-tokens": "49999979",
+      "x-ratelimit-reset-requests": "6ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_1503996b1cea4bca91a0697db9eec68e",
+      "x-openai-proxy-wasm": "v0.1",
+      "cf-cache-status": "DYNAMIC",
+      "set-cookie": "__cf_bm=Y.uMUvKXcR9Yk6xXzcExCuLDDxpKWoS90CZWc5aj_78-1771545665.585499-1.0.1.1-qZlmanRqlTnlgnA_UKxWN6ccJeGJMZ5cU8hQn4XOsKn2_XJnm1IuHxGV8ejtnSlnbsmSfy6dmFNMOlDANMzF9kJG1U4ZD82BHh6ZqUZnE5Xgyn07s46Z66pomW1vQ4BI; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 20 Feb 2026 00:31:06 GMT",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Encoding": "gzip",
+      "CF-RAY": "9d09ba39ea9bdf09-SEA",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"chatcmpl-DB8F79pRqLfT6pTKajxAu4MpCpMZe\",\n  \"object\": \"chat.completion\",\n  \"created\": 1771545665,\n  \"model\": \"gpt-3.5-turbo-0125\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": null,\n        \"tool_calls\": [\n          {\n            \"id\": \"call_NAE9VXAzyT6ftmPl4lmeSb4E\",\n            \"type\": \"function\",\n            \"function\": {\n              \"name\": \"extract_student_info\",\n              \"arguments\": \"{\\\"name\\\":\\\"Bob\\\",\\\"school\\\":\\\"Stanford University\\\",\\\"major\\\":\\\"computer science\\\"}\"\n            }\n          }\n        ],\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"tool_calls\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 89,\n    \"completion_tokens\": 26,\n    \"total_tokens\": 115,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": null\n}\n"
+  }
+}

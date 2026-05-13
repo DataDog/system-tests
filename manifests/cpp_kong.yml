@@ -8,6 +8,7 @@ manifest:
   tests/appsec/: irrelevant (ASM is not implemented in Kong plugin)
   tests/debugger/: irrelevant
   tests/ffe/: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integrations/: missing_feature (Endpoints not implemented)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/: irrelevant (Parametric scenario is not applied on Kong)

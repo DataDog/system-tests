@@ -224,7 +224,14 @@ class Test_Config_RateLimit:
 
     @parametrize(
         "library_env",
-        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+        [
+            {
+                "DD_TRACE_RATE_LIMIT": "1",
+                "DD_TRACE_SAMPLE_RATE": "1",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
     )
     def test_setting_trace_rate_limit_strict(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
@@ -378,7 +385,7 @@ class Test_Config_Dogstatsd:
 
 
 SDK_DEFAULT_STABLE_CONFIG = {
-    "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
+    "dd_runtime_metrics_enabled": "false" if context.library not in ("java", "dotnet") else "true",
     "dd_profiling_enabled": "1"
     if context.library == "php"
     else "true"

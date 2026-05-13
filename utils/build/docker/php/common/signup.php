@@ -1,5 +1,7 @@
 <?php
 
+require_once 'appsec_compat.php';
+
 const USERS = [
     'testnew' => [
         "id" => 'new-user',
@@ -15,7 +17,11 @@ function handlePost()
         "id" =>  USERS[$_POST['username']]['id'] ?? '',
         "username" => USERS[$_POST['username']]['username'] ?? $_POST['username'],
     ];
-    \datadog\appsec\track_user_signup_event_automated($user['username'], $user['id'], []);
+    if (_dd_appsec_new_api()) {
+        \datadog\appsec\internal\track_user_signup_event_automated('custom', $user['username'], $user['id'], []);
+    } else {
+        \datadog\appsec\track_user_signup_event_automated($user['username'], $user['id'], []);
+    }
 }
 
 function checkSdk()

@@ -20,7 +20,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
-from utils._context.component_version import ComponentVersion, Version
+from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
@@ -130,6 +130,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default="",
         help="An file containing a valid Github token to perform API calls",
     )
+    parser.addoption(
+        "--skip-parametric-build",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip building the parametric library image when it already exists "
+            "(faster re-runs when only test code changes)"
+        ),
+    )
 
     # Integration frameworks scenario options
     parser.addoption(
@@ -176,6 +185,13 @@ def pytest_configure(config: pytest.Config) -> None:
     ):
         config.option.skip_empty_scenario = True
 
+    if not config.option.skip_parametric_build and os.environ.get("SKIP_PARAMETRIC_BUILD", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        config.option.skip_parametric_build = True
+
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
 
@@ -217,7 +233,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
-    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    # The canonical way of adding Junit properties to testsuite is not working with xdist
     # Workaround to tackle this issue
     # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
     xml = session.config._store.get(xml_key, None)  # noqa: SLF001
@@ -230,6 +246,15 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
+
+    if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
+        logger.info("Checking that no version is ahead of main branch")
+        manifest = Manifest(context.scenario.components, context.weblog_variant)
+        errors = manifest.assert_versions_not_ahead_of_current()
+        if errors:
+            message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
+            message += "\n".join(f"  - {e}" for e in errors)
+            pytest.exit(message, 1)
 
 
 # called when each test item is collected
@@ -274,10 +299,8 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-    manifest_components: dict[str, Version] = {
-        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
-    }
-    manifest = Manifest(manifest_components, context.weblog_variant)
+    manifest = Manifest(context.scenario.components, context.weblog_variant)
+
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
@@ -295,9 +318,12 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     must_pass_item_count = 0
     for item in items:
-        marker_names = [marker.name for marker in item.iter_markers()]
-        if "skip_if_xfail" in marker_names and "declaration" in marker_names:
-            item.add_marker(pytest.mark.skip())
+        markers = {marker.name: marker for marker in item.iter_markers()}
+        if "skip_if_xfail" in markers and "declaration" in markers:
+            marker = markers["declaration"]
+            declaration, details = marker.kwargs["declaration"], marker.kwargs["details"]
+            # mark as inconditional skip and rebuild the skip message
+            item.add_marker(pytest.mark.skip(f"{declaration} ({details})"))
 
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents
@@ -380,6 +406,8 @@ def _item_is_skipped(item: pytest.Item):
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
+    logger.debug("pytest_collection_finish")
+
     if session.config.option.collectonly:
         return
 
@@ -548,6 +576,16 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 if "classname" in testcase.attrib:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
                     del testcase.attrib["classname"]
+
+                if testcase.attrib["name"] == "pytest.internal":
+                    properties = ET.Element("properties")
+                    testcase.append(properties)
+                    properties.append(
+                        ET.Element(
+                            "property",
+                            {"name": "test.codeowners", "value": '["@DataDog/apm-reliability-and-performance"]'},
+                        )
+                    )
 
                 if context.weblog_variant:
                     name = testcase.attrib["name"]

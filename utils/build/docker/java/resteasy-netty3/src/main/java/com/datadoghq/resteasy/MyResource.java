@@ -290,6 +290,13 @@ public class MyResource {
         return data;
     }
 
+    @POST
+    @Path("/waf")
+    @Consumes("multipart/form-data")
+    public String postWafMultipart(org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput input) {
+        return "ok";
+    }
+
     @GET
     @Path("/status")
     public Response status(@QueryParam("code") Integer code) {
@@ -442,6 +449,23 @@ public class MyResource {
             sb.append('}');
             return sb.toString();
         }
+    }
+
+    @GET
+    @Path("/inferred-proxy/span-creation")
+    public Response inferredProxySpanCreation(@QueryParam("status_code") String statusCodeParam, @Context HttpHeaders headers) {
+        int statusCode = 200;
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400;
+            }
+        }
+        System.out.println("Received an API Gateway request:");
+        headers.getRequestHeaders().forEach((name, values) ->
+            values.forEach(value -> System.out.println(name + ": " + value)));
+        return Response.status(statusCode).entity("ok").build();
     }
 
     @GET

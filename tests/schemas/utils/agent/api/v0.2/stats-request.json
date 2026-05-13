@@ -49,7 +49,8 @@
                         "description": "Peer tags"
                       },
                       "IsTraceRoot": { "type": "integer", "description": "Trace root flag" },
-                      "GRPCStatusCode": { "type": "string", "description": "gRPC status code" }
+                      "GRPCStatusCode": { "type": "string", "description": "gRPC status code" },
+                      "srv_src": { "type": "string", "description": "Service name override source (e.g. integration name)" }
                     }
                   }
                 },

@@ -7,7 +7,7 @@ from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
 from utils.manifest import Condition
-from .const import LIBRARIES
+from utils.const import COMPONENT_GROUPS
 from typing import TYPE_CHECKING
 import re
 
@@ -51,7 +51,7 @@ class ManifestEditor:
         self.init_round_trip_parser()
 
         self.raw_data = {}
-        components_to_process = components if components is not None else LIBRARIES
+        components_to_process = components if components is not None else COMPONENT_GROUPS.easy_win
         for component in components_to_process:
             data = self.wrap_key_anchors(manifests_path.joinpath(f"{component}.yml"))
             self.raw_data[component] = self.round_trip_parser.load(data)
@@ -161,7 +161,7 @@ class ManifestEditor:
         for rule, condition_indices in declaration_sources:
             for condition_index in condition_indices:
                 component = self.manifest.data[rule][condition_index[0]]["component"]
-                if component not in LIBRARIES:
+                if component not in COMPONENT_GROUPS.easy_win:
                     continue
                 raw_conditions = self.raw_data[component]["manifest"][rule]
                 parsed_condition = self.manifest.data[rule][condition_index[0]]
@@ -414,7 +414,9 @@ class ManifestEditor:
             )
 
             if "excluded_component_version" in view.condition:
-                comment_text = EASY_WIN_COMMENT
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue
@@ -478,7 +480,9 @@ class ManifestEditor:
                         self.write_comment(weblog_declaration, weblog, EASY_WIN_COMMENT, "inline")
 
             else:
-                comment_text = EASY_WIN_COMMENT
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue

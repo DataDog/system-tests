@@ -1,8 +1,8 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
 from utils import weblog, interfaces, rfc, scenarios, features
+from utils.dd_types import is_same_boolean
 
 
 @rfc("https://docs.google.com/document/d/1iWQsOfT6Lg_IFyvQeqry9wVmXOE2Yav0X4MgOTk7mks")
@@ -64,7 +64,7 @@ class Test_SecurityEvents_Appsec_Metastruct_Disabled:
         span = interfaces.library.get_root_span(request=self.r)
         meta = span.get("meta", {})
         meta_struct = span.get("meta_struct", {})
-        assert meta["appsec.event"] == "true"
+        assert is_same_boolean(actual=meta["appsec.event"], expected="true")
         assert "_dd.appsec.json" in meta
         assert "appsec" not in meta_struct
 

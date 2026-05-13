@@ -18,6 +18,7 @@ import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,13 +30,14 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/trace/otel")
 public class OpenTelemetryTraceController {
+  /** Created spans, indexed by their identifiers .*/
+  private static final Map<Long, Span> spans = new ConcurrentHashMap<>();
+
   private final Tracer tracer;
-  private final Map<Long, Span> spans;
   private Baggage baggage;
 
   public OpenTelemetryTraceController() {
     this.tracer = GlobalOpenTelemetry.getTracer("java-client");
-    this.spans = new HashMap<>();
     this.baggage = Baggage.empty();
   }
 
@@ -78,7 +80,7 @@ public class OpenTelemetryTraceController {
     // Store span
     long traceId = DDTraceId.fromHex(span.getSpanContext().getTraceId()).toLong();
     long spanId = DDSpanId.fromHex(span.getSpanContext().getSpanId());
-    this.spans.put(spanId, span);
+    spans.put(spanId, span);
     // Return result
     return new StartSpanResult(spanId, traceId);
   }
@@ -102,7 +104,7 @@ public class OpenTelemetryTraceController {
     }
     SpanContext spanContext = span.getSpanContext();
     return new SpanContextResult(
-        spanContext.getSpanId(),
+        Long.parseUnsignedLong(spanContext.getSpanId(), 16),
         spanContext.getTraceId(),
         spanContext.getTraceFlags().asHex(),
         formatTraceState(spanContext.getTraceState()),
@@ -191,7 +193,7 @@ public class OpenTelemetryTraceController {
       if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
           internalTracer.flush();
       }
-      this.spans.clear();
+      spans.clear();
       return new FlushResult(true);
     } catch (Exception e) {
       LOGGER.warn("Failed to flush OTel spans", e);
@@ -238,8 +240,8 @@ public class OpenTelemetryTraceController {
     this.baggage = Baggage.empty();
   }
 
-  private Span getSpan(long spanId) {
-    Span span = this.spans.get(spanId);
+  public static Span getSpan(long spanId) {
+    Span span = spans.get(spanId);
     if (span == null) {
       LOGGER.warn("OTel span {} does not exist.", spanId);
     }
