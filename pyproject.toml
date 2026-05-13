@@ -220,6 +220,8 @@ ignore = [
 ]
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
+    "ANN001",    # missing-type-function-argument: stubs of internal interfaces
+    "SLF001",    # private-member-access: tests of warmup ordering need to inspect privates
 ]
 "utils/_context/_scenarios/auto_injection.py" = [
     "PLC0415",  # import-outside-top-level TODO

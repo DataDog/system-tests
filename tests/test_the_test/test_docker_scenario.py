@@ -14,7 +14,7 @@ class FakeContainer(_TestedContainer):
     def configure(self, *, host_log_folder: str, replay: bool):  # noqa: ARG002
         self._starting_lock = RLock()
 
-    def start(self, network):  # noqa: ARG002, ANN001
+    def start(self, network):  # noqa: ARG002
         self._test_events.append(f"start {self.name}")
         self.healthy = True
 
