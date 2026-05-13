@@ -488,7 +488,9 @@ class Test_FFE_Eval_Reason_Split:
     def setup_ffe_eval_reason_split(self):
         config_id = "ffe-reason-split"
         self.flag_key = "reason-split-flag"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_split_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_split_fixture(self.flag_key)
+        ).apply()
 
         self.r = weblog.post(
             "/ffe",
@@ -635,7 +637,9 @@ class Test_FFE_Eval_Config_Exists_Flag_Missing:
     def setup_ffe_eval_config_exists_flag_missing(self):
         # Set up config with a different flag than what we'll request
         config_id = "ffe-eval-metric-error"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         self.flag_key = "non-existent-eval-metric-flag"
         self.r = weblog.post(
@@ -1075,7 +1079,9 @@ class Test_FFE_Eval_Lowercase_Consistency:
     def setup_ffe_lowercase_error_type(self):
         # Set up config with a different flag than what we'll request
         config_id = "ffe-lowercase-error-test"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         # Request non-existent flag to trigger error
         self.error_flag_key = "lowercase-error-flag"

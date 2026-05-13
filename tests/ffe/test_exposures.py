@@ -788,7 +788,9 @@ class Test_FFE_Exposure_Missing_Flag:
         """Set up FFE exposure test for a missing flag."""
         # Set up a config with a different flag (not the one we'll request)
         config_id = "ffe-missing-flag-test"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
         self.targeting_key = "missing-flag-user"
