@@ -1089,7 +1089,7 @@ manifest:
         uds-rails: v2.12.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth:
     - declaration: bug (DEBUG-4675)
-      component_version: <2.34.0
+      component_version: '<2.34.0-dev'
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track:
     - declaration: missing_feature (DEBUG-4343)
       component_version: <2.24.0
