@@ -42,7 +42,23 @@ class _OwnerDef:
 
 class _Owner(Enum):
     # fmt: off
-    agent_apm            = _OwnerDef("@DataDog/agent-apm")
+    agent_apm            = _OwnerDef("@DataDog/agent-apm", repo_overrides={
+                                # Even if these teams do not own these features, any failure occurring in a dd-trace
+                                # repository cannot be monitored by the Agent team. As a result, we attribute such
+                                # failures to the CI owner. This does not mean that the CI owner is responsible for
+                                # fixing the issue, but rather that they are responsible for triaging it and alerting
+                                # the appropriate team (e.g., the Agent team).
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-go":      "@DataDog/lang-platform-go",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",
+                            })
     apm_serverless       = _OwnerDef("@DataDog/apm-serverless")
     asm                  = _OwnerDef("@DataDog/asm-libraries", repo_overrides={
                                 "dd-trace-cpp":     "@DataDog/asm-cpp",
