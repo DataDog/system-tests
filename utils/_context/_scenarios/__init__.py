@@ -631,6 +631,7 @@ class _Scenarios:
             "OTEL_TRACES_EXPORTER": "otlp",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "DD_TRACE_OTEL_ENABLED": "true",
         },
         backend_interface_timeout=5,
         include_opentelemetry=True,
@@ -1193,10 +1194,6 @@ class _Scenarios:
         # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
         weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
-        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
-        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
-        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
-        use_proxy_for_weblog=False,
         library_interface_timeout=20,
         doc="Test runtime metrics",
     )
@@ -1272,6 +1269,24 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_telemetry = AIGuardScenario(
+        "AI_GUARD_TELEMETRY",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
+            "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
+        },
+        doc="AI Guard telemetry tests with low truncation thresholds",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

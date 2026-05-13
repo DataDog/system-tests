@@ -23,7 +23,7 @@ public class WafPostHandler implements Handler {
     @Override
     public void handle(Context ctx) throws Exception {
         MediaType contentType = ctx.getRequest().getContentType();
-        if (contentType.isForm()) {
+        if (contentType.isForm() || contentType.getType().startsWith("multipart/")) {
             ctx.insert(FormHandler.INSTANCE);
         } else if (contentType.getType().startsWith("multipart/")) {
             ctx.getRequest().getBody().then(body ->

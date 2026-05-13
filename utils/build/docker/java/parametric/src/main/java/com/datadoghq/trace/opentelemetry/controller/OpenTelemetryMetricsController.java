@@ -2,6 +2,7 @@ package com.datadoghq.trace.opentelemetry.controller;
 
 import static com.datadoghq.ApmTestClient.LOGGER;
 
+import com.datadoghq.trace.metrics.controller.MetricsController;
 import com.datadoghq.trace.opentelemetry.dto.*;
 import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.internal.InternalTracer;
@@ -215,6 +216,11 @@ public class OpenTelemetryMetricsController {
     try {
       if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
         internalTracer.flushMetrics();
+        // skip the next general metrics flush, as it's covered by the same call
+        // (this avoids an issue where OTel metrics tests end up flushing twice:
+        // one explicit flush call and another when 'with test_library' exits,
+        // which disrupts certain assertions that assume only one flush event)
+        MetricsController.skipNextFlush();
       }
       return new FlushResult(true);
     } catch (Exception e) {

@@ -2,6 +2,8 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
@@ -1244,7 +1246,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_existence: flaky (APMAPI-932)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v2.9.0-dev
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.48.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: '>=2.7.0-dev.1'
@@ -1339,7 +1341,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_client:
     - declaration: missing_feature (Obfuscation only occurs on server side)
       component_version: <2.1.0-dev
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v1.18.0
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default:
+    - declaration: missing_feature
+      component_version: <1.18.0
+    # DD_RUNTIME_METRICS_V2_ENABLED defaults to true since dd-trace-go v2.2.0, see https://docs.datadoghq.com/integrations/go-runtime-metrics-v2/
+    # This makes this test obsolete, since that makes runtime metrics available by default.
+    - declaration: irrelevant
+      component_version: '>=2.2.0'
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v1.18.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v1.18.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
@@ -1553,7 +1561,6 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

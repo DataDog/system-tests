@@ -52,7 +52,7 @@ public class AIGuardController {
                 rootSpan.setTag("usr.id", userId);
             }
             if (sessionId != null && !sessionId.isEmpty()) {
-                rootSpan.setTag("session.id", sessionId);
+                rootSpan.setTag("usr.session_id", sessionId);
             }
         }
         try {
