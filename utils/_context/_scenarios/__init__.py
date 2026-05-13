@@ -186,6 +186,16 @@ class _Scenarios:
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
+    telemetry_extended_heartbeat = EndToEndScenario(
+        "TELEMETRY_EXTENDED_HEARTBEAT",
+        weblog_env={
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+            "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+            "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+        },
+        doc="Test app-extended-heartbeat telemetry event with a shortened interval",
+        scenario_groups=[scenario_groups.telemetry],
+    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(

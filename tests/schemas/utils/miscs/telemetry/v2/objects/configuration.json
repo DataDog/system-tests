@@ -29,7 +29,6 @@
     },
     "required": [
       "name",
-      "value",
       "origin"
     ]
   }
