@@ -81,6 +81,12 @@ class Test_DdtraceSchemas:
                 ticket="APMAPI-1270",
             ),
             SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies[].version",
+                condition=context.library == "php",
+                ticket="PHP-XXXX",  # TODO: file ticket — dd-trace-php emits null version for some dependencies in app-extended-heartbeat
+            ),
+            SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[]",
                 condition=context.library >= "php@1.8.3",
@@ -157,6 +163,12 @@ class Test_DdtraceSchemas:
                 data_path="$.payload",
                 condition=context.library > "php@1.7.3",
                 ticket="XXX-1234",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies[].version",
+                condition=context.library == "php",
+                ticket="PHP-XXXX",  # TODO: file ticket — dd-trace-php emits null version for some dependencies in app-extended-heartbeat
             ),
             SchemaBug(
                 endpoint="/api/v2/debugger",
