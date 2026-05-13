@@ -125,9 +125,8 @@ class Test_FFE_Unknown_Operator_Tolerance:
         }
 
     def _setup(self):
-        rc.tracer_rc_state.reset().apply()
         config = self._build_config()
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/ffe-unknown-operator/config", config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/ffe-unknown-operator/config", config).apply()
 
     def setup_unknown_operator_errors(self):
         self._setup()
@@ -218,9 +217,8 @@ class Test_FFE_Flag_Parse_Error_Isolation:
         }
 
     def _setup(self):
-        rc.tracer_rc_state.reset().apply()
         config = self._build_config()
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/ffe-flag-parse-error/config", config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/ffe-flag-parse-error/config", config).apply()
 
     def setup_malformed_flag_returns_default(self):
         self._setup()
@@ -333,10 +331,8 @@ class Test_FFE_Unknown_Fields_Tolerance:
         return config
 
     def setup_unknown_fields_are_ignored(self):
-        rc.tracer_rc_state.reset().apply()
-
         poisoned_config = self._inject_unknown_fields(UFC_FIXTURE_DATA)
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/ffe-unknown-fields/config", poisoned_config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/ffe-unknown-fields/config", poisoned_config).apply()
 
         self.r = weblog.post(
             "/ffe",
@@ -374,13 +370,11 @@ class Test_FFE_RC_Unavailable:
                 return True
             return False
 
-        rc.tracer_rc_state.reset().apply()
-
         self.flag_key = "test-flag"  # From UFC_FIXTURE_DATA, returns "on"
         self.not_delivered_flag_key = "test-flag-not-delivered"
         self.default_value = "default_fallback"
 
-        self.config_state = rc.tracer_rc_state.set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
+        self.config_state = rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
 
         # Baseline: evaluate flag with RC working
         self.baseline_eval = weblog.post(
