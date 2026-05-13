@@ -1146,7 +1146,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: missing_feature (DEBUG-3240)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
