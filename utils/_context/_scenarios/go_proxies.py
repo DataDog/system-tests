@@ -108,8 +108,7 @@ class GoProxiesScenario(DockerScenario):
         logger.debug("Agent ready")
 
     def _set_components(self) -> None:
-        if self._agent_container.agent_version is not None:
-            self.components["agent"] = self._agent_container.agent_version
+        self.components["agent"] = self._agent_container.agent_version
         lib = self.library
         self.components["library"] = lib.version
         self.components[lib.name] = lib.version

@@ -425,7 +425,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.replay:
         setup_properties.load(context.scenario.host_log_folder)
 
-    if len(session.items) == 0:
+    if not session.items:
         if not session.config.option.replay:
             setup_properties.dump(context.scenario.host_log_folder)
         return
