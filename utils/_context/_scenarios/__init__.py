@@ -591,8 +591,8 @@ class _Scenarios:
             "DD_METRICS_OTEL_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
         },
-        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )
