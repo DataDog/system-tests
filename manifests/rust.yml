@@ -71,15 +71,12 @@ manifest:
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_inconsistent: missing_feature (APMSP-2059)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_malformed: missing_feature (APMSP-2059)
   tests/parametric/test_config_consistency.py: '>=0.2.1'  # Modified by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature  # Created by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
-    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
-    - declaration: missing_feature
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v0.3.3
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_default_trace_rate_limit: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_dd_service_override: missing_feature  # Created by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: '>0.3.2'  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v0.3.3
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature  # Created by easy win activation script
