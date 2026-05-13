@@ -48,6 +48,9 @@ class InterfaceValidator:
         return f"{self.name} interface"
 
 
+_QUIET_PERIOD = 0.5  # seconds of silence after last ingest before declaring done
+
+
 class ProxyBasedInterfaceValidator(InterfaceValidator):
     """Interfaces based on proxy container"""
 
@@ -60,6 +63,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._lock = threading.RLock()
         self._data_list: list[dict] = []
         self._ingested_files: set[str] = set()
+        self._last_ingest_time: float = 0.0
 
     def configure(self, host_log_folder: str, *, replay: bool):
         super().configure(host_log_folder, replay=replay)
@@ -93,7 +97,16 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             self._wait_for_event.set()
 
     def wait(self, timeout: int):
-        time.sleep(timeout)
+        if timeout == 0:
+            return
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            last = self._last_ingest_time
+            if last and time.monotonic() - last >= _QUIET_PERIOD:
+                logger.debug(f"{self.name} interface quiet for {_QUIET_PERIOD}s, done waiting")
+                return
+            time.sleep(0.05)
+        logger.debug(f"{self.name} interface timed out after {timeout}s")
 
     def check_deserialization_errors(self):
         """Verify that all proxy deserialization are successful"""
@@ -119,6 +132,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
     def _append_data(self, data: dict):
         self._data_list.append(data)
+        self._last_ingest_time = time.monotonic()
 
     def get_data(self, path_filters: Iterable[str] | str | None = None):
         if path_filters is not None:
