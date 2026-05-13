@@ -811,8 +811,6 @@ class AgentContainer(TestedContainer):
             data = json.load(f)
 
         self.agent_version = ComponentVersion("agent", data["version"]).version
-        logger.stdout(f"Agent: {self.agent_version}")
-        logger.stdout(f"Backend: {self.dd_site}")
 
     @property
     def dd_site(self):
@@ -1128,15 +1126,6 @@ class WeblogContainer(TestedContainer):
             logger.warning(
                 "Library version from healthcheck — add system-tests-library-version label to speed up startup"
             )
-            logger.stdout(f"Library: {self.library}")
-
-            if self.appsec_rules_file:
-                logger.stdout("Using a custom appsec rules file")
-
-            if self.uds_mode:
-                logger.stdout(f"UDS socket: {self.uds_socket}")
-
-            logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
         if self._container is not None:
             exit_code, output = self.exec_run("cat /binaries/metadata.txt")

@@ -1,4 +1,6 @@
 import os
+from collections.abc import Callable  # noqa: TC003 (used at runtime in annotation)
+
 import pytest
 
 from docker.models.networks import Network
@@ -89,15 +91,19 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
-            self.warmups.append(self._log_starting_containers)
-            self.warmups.append(self._create_network)
-            self.warmups.append(self._start_containers)
 
         for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
-        for container in self._containers:
-            self.warmups.append(container.post_start)
+        self._container_warmups: list[Callable] = [
+            lambda: logger.stdout("Starting containers..."),
+            self._create_network,
+            self._start_containers,
+            *(c.post_start for c in self._containers),
+        ]
+
+        if not self.replay:
+            self.warmups.extend(self._container_warmups)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._containers:
@@ -128,9 +134,6 @@ class DockerScenario(Scenario):
             observer.schedule(Event(interface), path=interface.log_folder)
 
         observer.start()
-
-    def _log_starting_containers(self):
-        logger.stdout("Starting containers...")
 
     def _create_network(self) -> None:
         name = "system-tests-ipv6" if self.enable_ipv6 else "system-tests-ipv4"
@@ -335,55 +338,41 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
-        if not self.replay:
-            self.post_collection_warmups.append(self._wait_for_app_readiness)
-            self.post_collection_warmups.append(self._set_weblog_domain)
+        # Resolve component versions (from image labels when available, else as a warmup).
+        library_known = self.weblog_container._library is not None  # noqa: SLF001
+        agent_known = self.agent_container.agent_version is not None
 
-        if (
-            not self.replay
-            and self.weblog_container._library is not None  # noqa: SLF001
-            and self.agent_container.agent_version is not None
-        ):
-            # Both versions known from image labels: defer container startup to post-collection
-            # so containers are skipped entirely when no tests are selected
+        if library_known:
             self._set_library_component()
-            self._set_agent_component()
-            self.warmups.append(self._log_agent_info)
-            self.warmups.append(self._log_weblog_info)
-            self._defer_container_startup()
-        elif self.weblog_container._library is not None:  # noqa: SLF001
-            self._set_library_component()
-            self.warmups.append(self._log_weblog_info)
-            self.warmups.append(self._set_agent_component)
-            if not self.replay:
-                self.warmups.insert(2, self._start_interfaces_watchdog)
-                self.warmups.append(self._get_weblog_system_info)
         else:
             self.warmups.append(self._set_library_component)
-            self.warmups.append(self._set_agent_component)
-            if not self.replay:
-                self.warmups.insert(2, self._start_interfaces_watchdog)
-                self.warmups.append(self._get_weblog_system_info)
+        self.warmups.append(self._log_weblog_info)
 
-    def _defer_container_startup(self):
-        """Move container startup warmups to post_collection_warmups (inserted before interface warmups)."""
-        container_warmups = [
-            self._log_starting_containers,
-            self._create_network,
-            self._start_containers,
-            *[c.post_start for c in self._containers],
-        ]
-        for w in container_warmups:
-            self.warmups.remove(w)
-        # Watchdog must start after network creation but before containers to capture early output
-        self.post_collection_warmups[0:0] = [
-            self._log_starting_containers,
-            self._create_network,
-            self._start_interfaces_watchdog,
-            self._start_containers,
-            *[c.post_start for c in self._containers],
-            self._get_weblog_system_info,
-        ]
+        if agent_known:
+            self._set_agent_component()
+        else:
+            self.warmups.append(self._set_agent_component)
+        self.warmups.append(self._log_agent_info)
+
+        if self.replay:
+            return
+
+        self.post_collection_warmups.append(self._wait_for_app_readiness)
+        self.post_collection_warmups.append(self._set_weblog_domain)
+
+        if library_known and agent_known:
+            # Both versions known upfront: defer container startup to post-collection so an empty
+            # test session skips Docker entirely. Watchdog must run after network/before containers.
+            for step in self._container_warmups:
+                self.warmups.remove(step)
+            steps = list(self._container_warmups)
+            steps.insert(2, self._start_interfaces_watchdog)
+            steps.append(self._get_weblog_system_info)
+            self.post_collection_warmups[0:0] = steps
+        else:
+            net_idx = self.warmups.index(self._create_network)
+            self.warmups.insert(net_idx + 1, self._start_interfaces_watchdog)
+            self.warmups.append(self._get_weblog_system_info)
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
