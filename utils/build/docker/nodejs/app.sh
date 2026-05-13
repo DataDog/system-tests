@@ -7,8 +7,7 @@ fi
 set -e
 
 if [ -e /volumes/dd-trace-js ]; then
-    cd /volumes/dd-trace-js
-    npm link
-    cd /usr/app
-    npm link dd-trace
+    mkdir -p /usr/app/node_modules
+    rm -rf /usr/app/node_modules/dd-trace
+    ln -s /volumes/dd-trace-js /usr/app/node_modules/dd-trace
 fi

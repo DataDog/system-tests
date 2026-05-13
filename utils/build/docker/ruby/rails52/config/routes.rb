@@ -68,4 +68,6 @@ Rails.application.routes.draw do
   get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
 
   post '/ai_guard/evaluate' => 'ai_guard#evaluate'
+
+  get '/inferred-proxy/span-creation' => 'system_test#inferred_proxy_span_creation'
 end

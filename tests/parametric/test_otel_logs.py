@@ -153,7 +153,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "service"
         assert attrs.get("service.version") == "2.0"
-        assert attrs.get("deployment.environment") == "otelenv"
+        assert attrs.get("deployment.environment") == "otelenv" or attrs.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -180,7 +180,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "ddservice"
         assert attrs.get("service.version") == "ddver"
-        assert attrs.get("deployment.environment") == "ddenv"
+        assert attrs.get("deployment.environment") == "ddenv" or attrs.get("deployment.environment.name") == "ddenv"
 
 
 @features.otel_logs_enabled
@@ -553,8 +553,11 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
+        assert (
+            resource_attrs.get("deployment.environment") == "testenv"
+            or resource_attrs.get("deployment.environment.name") == "testenv"
+        )
 
         # Verify no duplication in log record attributes
         log_attrs = find_attributes(log_record)
@@ -594,8 +597,11 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
+        assert (
+            resource_attrs.get("deployment.environment") == "testenv"
+            or resource_attrs.get("deployment.environment.name") == "testenv"
+        )
 
 
 @features.otel_logs_enabled

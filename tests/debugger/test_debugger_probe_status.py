@@ -57,7 +57,8 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"])
+        if not self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"]):
+            self.setup_failures.append(f"Timed out waiting for probe diagnostics: {self.probe_ids}")
 
     def _assert(self):
         self.collect()
