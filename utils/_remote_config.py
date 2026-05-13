@@ -584,9 +584,9 @@ class _RemoteConfigState:
         return result
 
     def apply(self, *, wait_for_acknowledged_status: bool = True) -> RemoteConfigStateResults:
-        # Go requires an explicit empty-config apply before new configs are sent;
-        # without it, previously-loaded configs are not deactivated between test runs.
-        if self._reset_pending and self.targets and context.library.name == "golang":
+        # Go and Java require an explicit empty-config apply before new configs are
+        # sent; without it, previously-loaded configs are not deactivated between runs.
+        if self._reset_pending and self.targets and context.library.name in ("golang", "java"):
             saved = dict(self.targets)
             self.targets.clear()
             self.version += 1
