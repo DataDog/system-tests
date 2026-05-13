@@ -640,14 +640,14 @@ class _Scenarios:
     apm_tracing_otlp_metrics = EndToEndScenario(
         "APM_TRACING_OTLP_METRICS",
         weblog_env={
-            "DD_TRACE_OTEL_METRICS_ENABLED": "true",
+            "DD_TRACE_OTEL_STATS_COMPUTATION_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
             "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
         },
         include_opentelemetry=True,
         library_interface_timeout=20,
-        doc="Validate that dd.trace.span.* metrics are exported as OTLP metrics to /v1/metrics "
-        "when DD_TRACE_OTEL_METRICS_ENABLED=true.",
+        doc="Validate that the dd.trace.span.duration histogram is exported as an OTLP metric "
+        "to /v1/metrics when DD_TRACE_OTEL_STATS_COMPUTATION_ENABLED=true.",
     )
 
     apm_tracing_efficient_payload = EndToEndScenario(

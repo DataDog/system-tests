@@ -2912,9 +2912,11 @@ class _Features:
     def otlp_trace_metrics(test_object):
         """OTLP Trace Metrics Export
 
-        Client-side span stats (dd.trace.span.hits, dd.trace.span.errors,
-        dd.trace.span.top_level_hits, dd.trace.span.duration) exported as OTLP
-        metrics to /v1/metrics when DD_TRACE_OTEL_METRICS_ENABLED=true.
+        Client-side span stats exported as a single dd.trace.span.duration histogram
+        to /v1/metrics when DD_TRACE_OTEL_STATS_COMPUTATION_ENABLED=true.  Data points
+        are split by an (error, dd.top_level) attribute matrix; the error attribute is
+        only present when error=true.  Enabling OTLP stats suppresses the DD-native
+        /v0.6/stats export to avoid double-counting.
         """
         return _mark_test_object(test_object, feature_id=554, owner=_Owner.sdk_capabilities)
 
