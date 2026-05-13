@@ -1,11 +1,3 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
-WORKDIR /app
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-COPY utils/build/docker/dotnet/GetAssemblyVersion ./
-RUN dotnet publish -c Release -o out
-
-#########
-
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
@@ -35,7 +27,7 @@ COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
 RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 
 # extract library version from installed assembly if install script could not determine it
-COPY --from=build-version-tool /app/out /tmp/get-assembly-version/
+COPY --from=system_tests/dotnet-version-tool /out /tmp/get-assembly-version/
 RUN if [ ! -f /system-tests-library-version ]; then \
         dll=$(ls /opt/datadog/net*/Datadog.Trace.dll 2>/dev/null | head -1); \
         if [ -n "$dll" ]; then \

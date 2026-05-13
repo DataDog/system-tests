@@ -291,6 +291,17 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
+                # Pre-build the .NET assembly-version tool image so both poc/uds Dockerfiles can
+                # COPY --from=system_tests/dotnet-version-tool without each duplicating the stage.
+                if [[ $TEST_LIBRARY == dotnet ]]; then
+                    run_build_command docker buildx build \
+                        --load \
+                        ${DOCKER_PLATFORM_ARGS} \
+                        -f utils/build/docker/dotnet/version-tool.Dockerfile \
+                        -t system_tests/dotnet-version-tool \
+                        .
+                fi
+
                 GITHUB_TOKEN_SECRET_ARG=""
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
@@ -318,12 +329,11 @@ build() {
                     $EXTRA_DOCKER_ARGS \
                     .
 
+                # Read library version baked into the image by install_ddtrace.sh and re-tag
+                # with a system-tests-library-version label so the scenario can skip the
+                # post-start healthcheck round-trip when no tests are selected.
                 CID=$(docker create system_tests/weblog)
-                LIBRARY_VERSION=""
-                for _path in /system-tests-library-version /app/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION /builds/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VERSION; do
-                    LIBRARY_VERSION=$(docker cp "${CID}:${_path}" - 2>/dev/null | tar -xO 2>/dev/null | tr -d '[:space:]')
-                    [ -n "${LIBRARY_VERSION}" ] && break
-                done
+                LIBRARY_VERSION=$(docker cp "${CID}:/system-tests-library-version" - 2>/dev/null | tar -xO 2>/dev/null | tr -d '[:space:]' || true)
                 docker rm "${CID}" > /dev/null
                 if [ -n "${LIBRARY_VERSION}" ]; then
                     docker build \
