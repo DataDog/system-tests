@@ -480,19 +480,9 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: v3.7.0
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.6.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        uds: '>=3.36.0'
-        poc: '>=3.36.0'
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability:  # Created by easy win activation script
-    - weblog_declaration:
-        uds: missing_feature
-        poc: missing_feature
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat:  # Created by easy win activation script
-    - weblog_declaration:
-        uds: missing_feature
-        poc: missing_feature
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.36.0
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability: v3.44.0
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat: v3.44.0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v3.4.0
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v3.26.3
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
@@ -525,8 +515,8 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
   tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v3.4.0
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: missing_feature
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: missing_feature
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.44.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.44.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v1.29.0
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v2.7.0
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: missing_feature
