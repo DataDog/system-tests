@@ -21,13 +21,13 @@ if [ -e /binaries/dd-trace-rs ]; then
     # get the version from the cargo.lock
     current_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "datadog-opentelemetry") | .version')
 
-    # bump minor (middle segment); reset patch to 0 — expects MAJOR.MINOR.PATCH
+    # bump patch (right segment); — expects MAJOR.MINOR.PATCH
     IFS=. read -r major minor patch <<<"$current_version"
     if [[ -z "${minor:-}" || -z "${patch:-}" ]]; then
         echo "expected semver MAJOR.MINOR.PATCH, got: $current_version" >&2
         exit 1
     fi
-    new_version="${major}.$((minor + 1)).0"
+    new_version="${major}.${minor}.$((patch + 1))"
 
     if [ -e /binaries/dd-trace-rs/.git ]; then
         dev_version="${new_version}-dev+$(git -C /binaries/dd-trace-rs rev-parse --short HEAD)"
