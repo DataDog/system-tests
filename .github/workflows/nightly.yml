@@ -2,8 +2,11 @@ name: Nightly
 
 on:
   workflow_dispatch: {}
-  # schedule:
-  #   - cron:  '00 03 * * 1-5'
+  push:
+    branches:
+      - "main"
+  schedule:
+    - cron:  '00 03 * * *'
 
 
 jobs:
@@ -29,13 +32,13 @@ jobs:
           - library: rust
             version: dev
       fail-fast: false
-    uses:  DataDog/system-tests/.github/workflows/system-tests.yml@main
+    uses: ./.github/workflows/system-tests.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     permissions:
       contents: read
-      packages: write
+      id-token: write
     with:
       scenarios_groups: tracer_release
       library: ${{ matrix.library }}
