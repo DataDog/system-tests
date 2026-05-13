@@ -83,7 +83,7 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.dependencies[].version",
-                condition=context.library == "php",
+                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
                 ticket="APMAPI-1938",
             ),
             SchemaBug(
@@ -167,7 +167,7 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.dependencies[].version",
-                condition=context.library == "php",
+                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
                 ticket="APMAPI-1938",
             ),
             SchemaBug(
