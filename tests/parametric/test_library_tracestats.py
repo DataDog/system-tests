@@ -22,6 +22,21 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
+def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
+    """Return the deserialized raw /v0.6/stats payload from the test agent.
+
+    The decoded view exposed by `test_agent.get_v06_stats_requests()` is intentionally narrow
+    (it omits fields like HTTPMethod, HTTPEndpoint, RuntimeID, Sequence). For spec assertions
+    on those fields we need the raw msgpack body.
+    """
+    raw_body: bytes | None = None
+    for request in test_agent.requests():
+        if "v0.6/stats" in request["url"]:
+            raw_body = request["body"]
+    assert raw_body is not None, "Could not find /v0.6/stats request in test agent transcript"
+    return msgpack.unpackb(base64.b64decode(raw_body))
+
+
 def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
@@ -444,3 +459,31 @@ class Test_Library_Tracestats:
 
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_http_method_endpoint_TS011(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When spans carry HTTP method and route metadata
+        The stats aggregation entry must include HTTPMethod and HTTPEndpoint fields populated from
+        the span's http.method and http.route metadata. CSS spec v1.2.0 §5 (ClientGroupedStats).
+        """
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", resource="GET /users/:id", service="webserver") as span,
+        ):
+            span.set_meta(key="span.kind", val="server")
+            span.set_meta(key="http.method", val="GET")
+            span.set_meta(key="http.route", val="/users/:id")
+            span.set_meta(key="http.status_code", val="200")
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+        stats_entries = raw_stats["Stats"][0]["Stats"]
+        web_entry = next((s for s in stats_entries if s.get("Name") == "web.request"), None)
+        assert web_entry is not None, f"web.request stats entry not found in {stats_entries}"
+
+        assert web_entry.get("HTTPMethod") == "GET", (
+            f"Expected HTTPMethod='GET' in stats, got: {web_entry.get('HTTPMethod')!r}"
+        )
+        assert web_entry.get("HTTPEndpoint") == "/users/:id", (
+            f"Expected HTTPEndpoint='/users/:id' in stats, got: {web_entry.get('HTTPEndpoint')!r}"
+        )
