@@ -1239,6 +1239,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  # TODO(andrei): un-skip when v4.10.0 is released
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)

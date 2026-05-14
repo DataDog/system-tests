@@ -125,6 +125,11 @@ class BaseDebuggerTest:
     probe_spans: dict[str, list[DataDogAgentSpan]] = {}
     all_spans: list[DataDogAgentSpan] = []
     symbols: list[dict[str, Any]] = []
+    # symdb_upload_events holds the parsed JSON metadata blobs from each
+    # /symdb/v1/input upload (the "event" multipart part, alongside the
+    # gzipped symbols attachment). Each entry is the deserialized event
+    # JSON (e.g. {"ddsource": ..., "service": ..., "type": "symdb", ...}).
+    symdb_upload_events: list[dict[str, Any]] = []
 
     start_time: int | None = None
 
@@ -688,6 +693,7 @@ class BaseDebuggerTest:
         self._collect_snapshots()
         self._collect_spans()
         self._collect_symbols()
+        self._collect_symdb_upload_events()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
@@ -895,6 +901,31 @@ class BaseDebuggerTest:
             return result
 
         self.symbols = _get_symbols()
+
+    def _collect_symdb_upload_events(self):
+        """Collect the JSON event metadata from each /symdb/v1/input upload.
+
+        Each request to /symdb/v1/input is a multipart with two parts: the
+        gzipped symbols attachment (collected by _collect_symbols) and a
+        small JSON blob describing the upload (the "event" part). This
+        populates self.symdb_upload_events with the parsed event JSON for
+        every captured upload, matched by Content-Disposition name="event".
+        """
+        events: list[dict[str, Any]] = []
+        raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+        for data in raw_data:
+            if not isinstance(data, dict) or "request" not in data:
+                continue
+            for part in data["request"].get("content", []) or []:
+                if not isinstance(part, dict):
+                    continue
+                disposition = part.get("headers", {}).get("content-disposition", "")
+                if 'name="event"' not in disposition:
+                    continue
+                content = part.get("content")
+                if isinstance(content, dict):
+                    events.append(content)
+        self.symdb_upload_events = events
 
     def get_tracer(self) -> dict[str, str]:
         if not BaseDebuggerTest.tracer:
