@@ -25,6 +25,12 @@ _LANG_CONFIG: dict[str, dict[str, str]] = {
         "path": "app.py",
         "symbol": "sca_requests_vulnerable_call",
     },
+    "java": {
+        "cve_id": "GHSA-mjmj-j48q-9wg2",
+        "vulnerable_dep": "org.yaml:snakeyaml",
+        "path": "com.datadoghq.system_tests.springboot.ScaReachability",
+        "symbol": "scaVulnerableCall",
+    },
 }
 
 
