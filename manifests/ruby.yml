@@ -2203,6 +2203,7 @@ manifest:
   :  # Modified by easy win activation script
     - declaration: "missing_feature (\"Issue: does not escape '~' characters to '=' in _dd.p.usr.id\")"
       component_version: <2.27.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (ruby has not implemented stats computation yet)

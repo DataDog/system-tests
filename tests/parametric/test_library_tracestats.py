@@ -513,3 +513,30 @@ class Test_Library_Tracestats:
         )
         # Sequence may legitimately be 0 on the first payload, so only require it's an int.
         assert isinstance(raw_stats["Sequence"], int), f"Sequence must be an integer, got {type(raw_stats['Sequence'])}"
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_agent_populated_fields_empty_TS013(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """The tracer must leave agent-populated fields empty in the ClientStatsPayload.
+        CSS spec v1.2.0 §3: ContainerID, Tags, ImageTag, AgentAggregation, and ProcessTagsHash
+        are populated by the agent and must be empty/absent when the payload leaves the tracer.
+        """
+        with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
+            pass
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+
+        # Each of these may either be absent from the msgpack payload or present with an empty value.
+        for field in ("ContainerID", "ImageTag", "AgentAggregation"):
+            value = raw_stats.get(field)
+            assert value in (None, "", b""), (
+                f"{field} must be left empty by the tracer for the agent to populate, got: {value!r}"
+            )
+
+        tags = raw_stats.get("Tags")
+        assert tags in (None, [], ()), f"Tags must be left empty for the agent to populate, got: {tags!r}"
+
+        process_tags_hash = raw_stats.get("ProcessTagsHash")
+        assert process_tags_hash in (None, 0), (
+            f"ProcessTagsHash must be left empty/zero for the agent to populate, got: {process_tags_hash!r}"
+        )
