@@ -487,3 +487,29 @@ class Test_Library_Tracestats:
         assert web_entry.get("HTTPEndpoint") == "/users/:id", (
             f"Expected HTTPEndpoint='/users/:id' in stats, got: {web_entry.get('HTTPEndpoint')!r}"
         )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_payload_metadata_TS012(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """The ClientStatsPayload must include deployment-level metadata fields.
+        CSS spec v1.2.0 §3 mandates Hostname, Env, Version, Service, RuntimeID, and Sequence
+        are populated by the tracer (constant per tracer instance, deployment-level identifiers).
+        """
+        with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
+            pass
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+
+        # Required identifiers per spec
+        for field in ("Hostname", "Env", "Version", "Service", "RuntimeID", "Sequence"):
+            assert field in raw_stats, f"Required ClientStatsPayload field {field!r} missing: {list(raw_stats.keys())}"
+
+        assert isinstance(raw_stats["Hostname"], str) and raw_stats["Hostname"], "Hostname must be a non-empty string"
+        # Env may default to "unknown-env" per spec when not set; here we just assert it's a non-empty string.
+        assert isinstance(raw_stats["Env"], str) and raw_stats["Env"], "Env must be a non-empty string"
+        assert isinstance(raw_stats["Service"], str) and raw_stats["Service"], "Service must be a non-empty string"
+        assert isinstance(raw_stats["RuntimeID"], str) and raw_stats["RuntimeID"], (
+            "RuntimeID must be a non-empty string used for message uniqueness"
+        )
+        # Sequence may legitimately be 0 on the first payload, so only require it's an int.
+        assert isinstance(raw_stats["Sequence"], int), f"Sequence must be an integer, got {type(raw_stats['Sequence'])}"
