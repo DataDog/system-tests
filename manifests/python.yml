@@ -1240,12 +1240,9 @@ manifest:
         "*": missing_feature
         *flask: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:  # Modified by easy win activation script
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
       component_version: <4.3.1
-      weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
-    - declaration: missing_feature (DEBUG-3550)
-      excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.11.0
