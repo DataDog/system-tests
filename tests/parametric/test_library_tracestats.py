@@ -540,3 +540,33 @@ class Test_Library_Tracestats:
         assert process_tags_hash in (None, 0), (
             f"ProcessTagsHash must be left empty/zero for the agent to populate, got: {process_tags_hash!r}"
         )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_partial_version_excluded_TS014(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Spans marked as partial snapshots (`_dd.partial_version` >= 0) must NOT contribute to stats.
+        CSS spec v1.2.0 §7 (Span Exclusions).
+        """
+        with test_library:
+            # A normal top-level span — must produce stats.
+            with test_library.dd_start_span(
+                name="web.request", resource="/users", service="webserver", typestr="web"
+            ):
+                pass
+
+            # A span flagged as a partial snapshot — must NOT produce stats.
+            with test_library.dd_start_span(
+                name="partial.snapshot", resource="/partial", service="webserver", typestr="web"
+            ) as partial_span:
+                partial_span.set_metric(key="_dd.partial_version", val=0)
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+        stats_entries = raw_stats["Stats"][0]["Stats"]
+        names = {s.get("Name") for s in stats_entries}
+
+        assert "web.request" in names, (
+            f"Sanity check: regular span should produce stats, but web.request missing from {names}"
+        )
+        assert "partial.snapshot" not in names, (
+            f"Spans with _dd.partial_version set must be excluded from stats, but found in {names}"
+        )
