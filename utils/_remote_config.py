@@ -532,6 +532,7 @@ class _RemoteConfigState:
         self.version: int = 0
         self.expires: str = expires or _RemoteConfigState.expires
         self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
+        self._reset_pending: bool = False
 
     def set_config(self, path: str, config: dict, config_file_version: int | None = None) -> "_RemoteConfigState":
         """Set a file in current state."""
@@ -552,6 +553,7 @@ class _RemoteConfigState:
     def reset(self) -> "_RemoteConfigState":
         """Remove all files."""
         self.targets.clear()
+        self._reset_pending = True
         return self
 
     def serialize_targets(self, *, deserialized: bool = False):
@@ -582,6 +584,16 @@ class _RemoteConfigState:
         return result
 
     def apply(self, *, wait_for_acknowledged_status: bool = True) -> RemoteConfigStateResults:
+        # Go and Java require an explicit empty-config apply before new configs are
+        # sent; without it, previously-loaded configs are not deactivated between runs.
+        if self._reset_pending and self.targets and context.library.name in ("golang", "java"):
+            saved = dict(self.targets)
+            self.targets.clear()
+            self.version += 1
+            send_state(self.to_payload(), target=self.target, state_version=self.version)
+            self.targets = saved
+
+        self._reset_pending = False
         self.version += 1
         command = self.to_payload()
         return send_state(
