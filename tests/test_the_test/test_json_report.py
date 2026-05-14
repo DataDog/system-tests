@@ -73,7 +73,7 @@ class Test_Json_Report:
         # Check custom components ( set on TestTheTest scenario)
         assert "testedDependencies" in self.report
         assert self.report["testedDependencies"][0]["name"] == "mock_comp1"
-        assert self.report["testedDependencies"][0]["version"] == "mock_comp1_value"
+        assert self.report["testedDependencies"][0]["version"] == "0.0.1"
 
     def test_feature_id(self):
         test = self.get_test_fp("Test_Mock::test_mock")

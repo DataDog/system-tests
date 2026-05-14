@@ -18,6 +18,7 @@
 # * Java Lambda:   S3 (same binary as Java)
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
+# * Node.js Lambda: Fetch from GitHub Actions artifact
 # * C++:           Direct from github source
 # * Python:        S3 https://dd-trace-py-builds.s3.amazonaws.com/<GIT_REF>/index.html
 # * Ruby:          Direct from github source
@@ -290,6 +291,12 @@ elif [ "$TARGET" = "python_lambda" ]; then
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
     get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" $LIBRARY_TARGET_BRANCH "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip" "false"
+
+elif [ "$TARGET" = "nodejs_lambda" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    get_github_action_artifact "DataDog/datadog-lambda-js" "build_layer.yml" $LIBRARY_TARGET_BRANCH "datadog_lambda_node18.12" "datadog_lambda_node18.12.zip" "false"
 
 elif [ "$TARGET" = "otel_collector" ]; then
     assert_version_is_dev

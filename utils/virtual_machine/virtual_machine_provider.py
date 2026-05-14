@@ -114,7 +114,8 @@ class VmProvider:
         # We commit the branch reference of the CI_COMMIT_BRANCH env variable only if the gitlab project is system-tests
         # Proabably we need to change this in the future, and translate this logic to the pipelines or another class
         # Not for windows, because we don't have git installed on windows
-        if vm.os_type != "windows":
+        # Only applied for ruby provisions (other languages don't need this checkout step, because they are handling less number of files)
+        if vm.os_type != "windows" and context.library.name == "ruby":
             ci_commit_branch = os.getenv("GITLAB_CI")
             if ci_commit_branch:
                 ci_commit_branch = (

@@ -17,6 +17,7 @@
         "execution_trace_size_limit": "execution_trace_size_limit",
         "goarch": "go_goarch",
         "goos": "go_goos",
+        "goroutine_leak_profile_enabled": "profiling_goroutine_leak_enabled",
         "goroutine_profile_enabled": "profiling_goroutine_enabled",
         "goroutine_wait_profile_enabled": "profiling_goroutine_wait_enabled",
         "heap_profile_enabled": "profiling_heap_enabled",

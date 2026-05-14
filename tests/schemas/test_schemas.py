@@ -38,12 +38,6 @@ class Test_DdtraceSchemas:
                 ticket="APPSEC-52845",
             ),
             SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
-                ticket="APMS-12697",
-            ),
-            SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
@@ -69,6 +63,12 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-3734",
             ),
             SchemaBug(
+                endpoint="/debugger/v2/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
                 condition=context.library == "dotnet" and context.scenario is scenarios.debugger_symdb,
@@ -79,6 +79,12 @@ class Test_DdtraceSchemas:
                 data_path="$.payload",
                 condition=context.library > "php@1.7.3",
                 ticket="APMAPI-1270",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies[].version",
+                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
+                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
@@ -141,12 +147,6 @@ class Test_DdtraceSchemas:
                 endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
             ),  # the main payload sent by the agent may be an array i/o an object
             SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
-                ticket="APMS-12697",
-            ),
-            SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
@@ -163,6 +163,12 @@ class Test_DdtraceSchemas:
                 data_path="$.payload",
                 condition=context.library > "php@1.7.3",
                 ticket="XXX-1234",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies[].version",
+                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
+                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/api/v2/debugger",
