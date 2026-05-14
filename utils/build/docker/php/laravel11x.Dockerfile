@@ -27,6 +27,7 @@ RUN /tmp/php/apache-mod/build.sh laravel11x
 RUN touch /tmp/laravel.db && \
     cd /var/www/html && \
     php artisan migrate --force --no-interaction && \
+    php artisan db:seed --force --no-interaction && \
     chmod 666 /tmp/laravel.db
 
 # Install ddtrace (same pattern as apache-mod-X.Y.Dockerfiles)
