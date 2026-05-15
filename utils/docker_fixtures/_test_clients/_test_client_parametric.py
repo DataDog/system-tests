@@ -1082,8 +1082,11 @@ class APMLibrary:
 
         See docs/parametric/remote-config-apply-contract.md.
 
-        Tests typically call this immediately after `set_and_wait_rc()` to
-        eliminate the ACK-vs-apply race in the tracer.
+        Most tests do not need to call this directly: `set_and_wait_rc()`
+        already invokes `flush_remote_config()` after the ACK on tracers that
+        implement the endpoint, eliminating the ACK-vs-apply race. Call this
+        directly only to assert the contract itself or to drain RC that was
+        published without going through `set_and_wait_rc()`.
         """
         return self._client.flush_remote_config(timeout=timeout)
 

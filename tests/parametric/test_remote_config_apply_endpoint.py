@@ -25,7 +25,7 @@ from tests.parametric.test_dynamic_configuration import (
     _RC_APPLY_ENDPOINT_LANGS,
     _create_rc_config,
     _set_rc,
-    set_and_wait_rc_applied,
+    set_and_wait_rc,
 )
 
 
@@ -100,11 +100,9 @@ class TestRemoteConfigApplyEndpoint:
     # to 0.2s so the ACK lands in time. Scoped to this test only — see the class docstring
     # for why the endpoint-contract tests deliberately run under the default poll interval.
     @pytest.mark.parametrize("library_env", [DEFAULT_ENVVARS])
-    def test_set_and_wait_rc_applied_returns_after_apply(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        """set_and_wait_rc_applied calls set_and_wait_rc then flush_remote_config."""
-        rc_state = set_and_wait_rc_applied(
+    def test_set_and_wait_rc_applies_synchronously(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """set_and_wait_rc waits for the ACK and then synchronously drains the tracer."""
+        rc_state = set_and_wait_rc(
             test_agent,
             test_library,
             config_overrides={"tracing_sampling_rate": 0.7},

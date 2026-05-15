@@ -7,16 +7,18 @@ See also: `tests/parametric/test_dynamic_configuration.py::set_and_wait_rc`,
 
 ## Why this exists
 
-The existing `set_and_wait_rc()` helper waits for the test-agent to report an
+`set_and_wait_rc()` originally waited only for the test-agent to report an
 `APM_TRACING ACKNOWLEDGED` from the tracer. That ACK fires when the RC client
 has received and validated the payload — **not** when the tracer's subscribers
 have actually applied it. The gap is small for in-process tracers (Python, Go,
 Java, Node.js, .NET, Ruby, Rust) and large for out-of-process ones (PHP via
-sidecar). Tests that read tracer state immediately after `set_and_wait_rc()`
-flake on the small gap and reliably fail on the large one.
+sidecar). Tests that read tracer state immediately after the ACK flake on the
+small gap and reliably fail on the large one.
 
 This endpoint closes the gap by giving tests a synchronous, deterministic
-"process pending RC now" call.
+"process pending RC now" call. `set_and_wait_rc()` now calls this endpoint
+internally after the ACK on tracers that implement it (see
+`_RC_APPLY_ENDPOINT_LANGS`), so callers do not need to invoke it explicitly.
 
 ## Endpoint
 
@@ -136,27 +138,30 @@ exists. Coordinate with the PHP tracer team before starting.
 
 ## Test-framework helper
 
-The Python test framework exposes:
+The Python test framework exposes the low-level call:
 
 ```python
 test_library.flush_remote_config(timeout: float = 10.0) -> list[dict]
 ```
 
-and a higher-level convenience:
+and the high-level helper that tests use directly:
 
 ```python
-set_and_wait_rc_applied(test_agent, test_library, config_overrides, config_id=None)
+set_and_wait_rc(test_agent, test_library, config_overrides, config_id=None)
 ```
 
-which is `set_and_wait_rc()` followed by `test_library.flush_remote_config()`.
+`set_and_wait_rc()` waits for the test-agent ACK and then, on tracers in
+`_RC_APPLY_ENDPOINT_LANGS`, calls `flush_remote_config()` to synchronously
+drain pending RC. Tracers outside the allowlist get the ACK-only path with
+no behavior change.
 
 ## Adoption
 
-`set_and_wait_rc()` continues to work unchanged for tracers that have not yet
-implemented the endpoint. Tests opt in to the deterministic variant by calling
-`flush_remote_config()` explicitly or using `set_and_wait_rc_applied()`. Once
-all tracers implement the endpoint, the retry-loop workaround in
-`get_sampled_trace()` and similar helpers can be removed in a follow-up.
+For tracers that have not yet implemented the endpoint, `set_and_wait_rc()`
+falls back to the ACK-only path automatically. Add the tracer's language to
+`_RC_APPLY_ENDPOINT_LANGS` once the endpoint is implemented; no test changes
+are required. The probabilistic retry loop inside `get_sampled_trace()`
+remains (it handles sampling-by-chance, not the RC race).
 
 ## Open questions
 

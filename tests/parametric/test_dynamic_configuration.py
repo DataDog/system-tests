@@ -193,37 +193,10 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
     return rc_config
 
 
-def set_and_wait_rc(
-    test_agent: TestAgentAPI,
-    config_overrides: dict[str, Any],
-    config_id: str | int | None = None,
-) -> dict[str, Any]:
-    """Helper to create an RC configuration with the given settings and wait for it to be applied.
-
-    It is assumed that the configuration is successfully applied.
-
-    Uses config_id filtering so we only match ACKs for the config we just set—avoids
-    matching stale ACKs from prior configs. When config_id is passed (reuse case),
-    clears before set_rc to discard buffered RC requests so we only see responses
-    from our update.
-    """
-    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
-    if config_id is not None:
-        # Reuse case: discard stale ACKs from prior updates at the same path
-        test_agent.clear()
-    used_config_id: str = _set_rc(test_agent, rc_config, config_id)
-    return test_agent.wait_for_rc_apply_state(
-        "APM_TRACING",
-        state=RemoteConfigApplyState.ACKNOWLEDGED,
-        clear=True,
-        config_id=used_config_id,
-    )
-
-
 _RC_APPLY_ENDPOINT_LANGS: frozenset[str] = frozenset({"python"})
 
 
-def set_and_wait_rc_applied(
+def set_and_wait_rc(
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
     config_overrides: dict[str, Any],
@@ -231,20 +204,33 @@ def set_and_wait_rc_applied(
 ) -> dict[str, Any]:
     """Set an RC config, wait for the agent ACK, then synchronously drain the tracer.
 
-    This is the deterministic variant of set_and_wait_rc(). It eliminates the
-    race between the test-agent ACK (which fires when the RC client validates
-    the payload) and the tracer's subscriber dispatch (which actually applies
-    it). See docs/parametric/remote-config-apply-contract.md.
+    Eliminates the race between the test-agent ACK (which fires when the RC
+    client validates the payload) and the tracer's subscriber dispatch (which
+    actually applies it). See docs/parametric/remote-config-apply-contract.md.
 
-    The deterministic drain is only triggered for tracers that have implemented
-    POST /trace/remote-config/apply. For other tracers this helper degrades
-    transparently to set_and_wait_rc() so converted tests keep running on the
-    existing ACK-based pattern (with whatever retry-loop workaround already
-    handled the race).
+    The deterministic drain runs only for tracers that have implemented
+    POST /trace/remote-config/apply (see _RC_APPLY_ENDPOINT_LANGS). For other
+    tracers this helper degrades to the ACK-only path and tests behave the
+    same as before the apply-contract work.
 
-    Returns the rc_state dict from the test agent (same as set_and_wait_rc).
+    Uses config_id filtering so we only match ACKs for the config we just
+    set—avoids matching stale ACKs from prior configs. When config_id is
+    passed (reuse case), clears before set_rc to discard buffered RC requests
+    so we only see responses from our update.
+
+    Returns the rc_state dict from the test agent.
     """
-    rc_state = set_and_wait_rc(test_agent, config_overrides, config_id)
+    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    if config_id is not None:
+        # Reuse case: discard stale ACKs from prior updates at the same path
+        test_agent.clear()
+    used_config_id: str = _set_rc(test_agent, rc_config, config_id)
+    rc_state = test_agent.wait_for_rc_apply_state(
+        "APM_TRACING",
+        state=RemoteConfigApplyState.ACKNOWLEDGED,
+        clear=True,
+        config_id=used_config_id,
+    )
     if test_library.lang in _RC_APPLY_ENDPOINT_LANGS:
         test_library.flush_remote_config()
     return rc_state
@@ -431,7 +417,7 @@ class TestDynamicConfigV1:
         configuration has been applied by the tracer.
         """
         assert test_library.is_alive(), "library container is not alive"
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": 0.5})
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
@@ -448,12 +434,12 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
@@ -480,7 +466,7 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        rc_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        rc_state = set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
@@ -491,6 +477,7 @@ class TestDynamicConfigV1:
         # and then create a new trace to assert the configuration has been applied.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_sampling_rate": 0.6},
             config_id=config_id,
         )
@@ -500,6 +487,7 @@ class TestDynamicConfigV1:
         # Unset the RC sample rate to ensure the previous setting is reapplied.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_sampling_rate": None},
             config_id=config_id,
         )
@@ -528,6 +516,7 @@ class TestDynamicConfigV1:
         # apply to env_service spans but should apply to all others.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_sampling_rate": rc_sampling_rule_rate},
         )
 
@@ -537,7 +526,7 @@ class TestDynamicConfigV1:
         assert_sampling_rate(trace, rc_sampling_rule_rate)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="env_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
@@ -557,7 +546,7 @@ class TestDynamicConfigV1:
         There is no way (at the time of writing) to check the logs produced by the library.
         """
         assert test_library.is_alive(), "library container is not alive"
-        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        cfg_state = set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rate": None})
         assert cfg_state["apply_state"] == 2
 
 
@@ -731,6 +720,7 @@ class TestDynamicConfigV2:
         # Ensure local tags are overridden and RC tags applied.
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]},
         )
         with (
@@ -743,7 +733,7 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
-        set_and_wait_rc(test_agent, config_overrides={})
+        set_and_wait_rc(test_agent, test_library, config_overrides={})
         with (
             test_library,
             test_library.dd_start_span("test") as span,
@@ -818,7 +808,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Create a remote config entry with two rules at different sample rates.
-        set_and_wait_rc_applied(
+        set_and_wait_rc(
             test_agent,
             test_library,
             config_overrides={
@@ -854,7 +844,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-12"
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc_applied(test_agent, test_library, config_overrides={"tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
@@ -876,6 +866,7 @@ class TestDynamicConfigSamplingRules:
 
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
                 "tracing_sampling_rules": [
@@ -906,7 +897,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Unset RC to ensure local settings
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, test_library, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
@@ -950,6 +941,7 @@ class TestDynamicConfigSamplingRules:
         # Create a remote config entry with two rules at different sample rates.
         rc_state = set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
                 "tracing_sampling_rules": [
@@ -1021,6 +1013,7 @@ class TestDynamicConfigSamplingRules:
         # RC config using dynamic sampling
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_id=config_id,
             config_overrides={
                 "dynamic_sampling_enabled": "true",
@@ -1071,10 +1064,10 @@ class TestDynamicConfigSamplingRules:
         """Only the last set of sampling rules should be applied"""
         old_rate: float = 0.5
         new_rate: float = 0.1
-        max_propagation_retries: int = 30
 
         rc_state: dict = set_and_wait_rc(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
@@ -1091,6 +1084,7 @@ class TestDynamicConfigSamplingRules:
 
         set_and_wait_rc(
             test_agent,
+            test_library,
             config_id=config_id,
             config_overrides={
                 "tracing_sampling_rules": [
@@ -1104,18 +1098,7 @@ class TestDynamicConfigSamplingRules:
             },
         )
 
-        # After updating the RC config, the library may briefly still be applying the
-        # previous sampling rules. set_and_wait_rc waits for telemetry and RC acknowledgment,
-        # but these signals can be satisfied by stale events from the prior config, causing a
-        # window where the new rules aren't yet active. Retry to allow for full propagation.
-        trace: list[Span] | None = None
-        for _ in range(max_propagation_retries):
-            trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
-            span: Span = find_first_span_in_trace_payload(trace)
-            if span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(new_rate):
-                break
-            time.sleep(0.1)
-        assert trace is not None
+        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
         assert_sampling_rate(trace, new_rate)
 
         trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
