@@ -76,6 +76,24 @@ Route::get('/read_file', function (Request $request) {
     return response($content === false ? '' : $content, 200, ['Content-Type' => 'text/plain']);
 });
 
+Route::get('/users', function (Request $request) {
+    $user = $request->query('user');
+
+    \DDTrace\set_user($user, [
+        'name'       => 'usr.name',
+        'email'      => 'usr.email',
+        'session_id' => 'usr.session_id',
+        'role'       => 'usr.role',
+        'scope'      => 'usr.scope',
+    ]);
+
+    if ($user === 'sdkUser') {
+        \datadog\appsec\track_authenticated_user_event($user);
+    }
+
+    return response('OK', 200, ['Content-Type' => 'text/plain']);
+});
+
 Route::get('/identify', function () {
     \DDTrace\set_user('usr.id', [
         'name'       => 'usr.name',
@@ -102,12 +120,9 @@ Route::get('/identify-propagate', function () {
 
 $wafResponse = static fn () => response('Hello, WAF!', 200, ['Content-Type' => 'text/plain']);
 
-Route::get('/waf', $wafResponse);
-Route::post('/waf', $wafResponse);
-Route::get('/waf/', $wafResponse);
-Route::post('/waf/', $wafResponse);
-Route::get('/waf/{extra}', $wafResponse)->where('extra', '.+');
-Route::post('/waf/{extra}', $wafResponse)->where('extra', '.+');
+Route::match(['get', 'post'], '/waf', $wafResponse);
+Route::match(['get', 'post'], '/waf/', $wafResponse);
+Route::match(['get', 'post'], '/waf/{path}', $wafResponse)->where('path', '.*');
 
 Route::get('/headers', function () {
     return response('Hello, headers!', 200, [
@@ -191,22 +206,12 @@ Route::post('/shell_execution', function (Request $request) {
     return response($out, 200, ['Content-Type' => 'text/plain']);
 });
 
-Route::post('/tag_value/{tag_value}/{status_code}', function (string $tag_value, string $status_code, Request $request) {
-    $rootSpan = \DDTrace\root_span();
-    if ($rootSpan !== null) {
-        $rootSpan->meta['http.route'] = '/tag_value/{tag_value}/{status_code}';
-    }
+Route::match(['get', 'post', 'options'], '/tag_value/{tag_value}/{status_code}', function (string $tag_value, string $status_code, Request $request) {
     $responseCodeStr = strtok($status_code, '?') ?: $status_code;
     if (! is_numeric($responseCodeStr)) {
         return response('Error parsing uri', 400);
     }
     $responseCode = (int) $responseCodeStr;
-    if (function_exists('\datadog\appsec\push_addresses')) {
-        \datadog\appsec\push_addresses(['server.request.path_params' => [
-            'tag_value'    => $tag_value,
-            'status_code'  => (string) $responseCode,
-        ]]);
-    }
     \datadog\appsec\track_custom_event('system_tests_appsec_event', [
         'value' => $tag_value,
     ]);
