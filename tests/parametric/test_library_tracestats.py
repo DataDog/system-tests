@@ -29,7 +29,7 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
     (it omits fields like HTTPMethod, HTTPEndpoint, RuntimeID, Sequence). For spec assertions
     on those fields we need the raw msgpack body.
     """
-    raw_body: bytes | None = None
+    raw_body: str | None = None
     for request in test_agent.requests():
         if "v0.6/stats" in request["url"]:
             raw_body = request["body"]
