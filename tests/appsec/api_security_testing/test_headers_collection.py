@@ -93,7 +93,15 @@ class Test_SecurityTestingHeaders:
         /waf but not here) is caught.
         """
         self._assert_collected(self.r_distant)
-        outgoing = self._outgoing_header_keys(json.loads(self.r_distant.text).get("request_headers") or {})
+        data = json.loads(self.r_distant.text)
+        # Require evidence of a successful inner request before asserting absence.
+        # Some weblogs serialize request_headers as null on client errors, in which case
+        # an "empty headers" assertion would trivially pass without ever observing the
+        # outbound request -- defeating the purpose of the propagation check.
+        assert data.get("status_code") == 200, f"inner /make_distant_call request did not succeed: {data}"
+        request_headers = data.get("request_headers")
+        assert request_headers is not None, f"weblog did not report outbound request_headers: {data}"
+        outgoing = self._outgoing_header_keys(request_headers)
         assert "x-datadog-endpoint-scan" not in outgoing, (
             f"x-datadog-endpoint-scan was propagated to downstream request: {outgoing}"
         )
