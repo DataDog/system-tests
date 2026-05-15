@@ -488,6 +488,34 @@ class ParametricTestClientApi(TestClientApi):
 
         return HTTPStatus(r.status_code).is_success
 
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]]:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Contract: docs/parametric/remote-config-apply-contract.md.
+
+        Args:
+            timeout: Client-side HTTP timeout in seconds. The server has its own
+                timeout (default 10s) and may return 504 before this fires.
+
+        Returns:
+            List of {"config_id": str, "product": str} dicts describing
+            configs the tracer currently has applied. Empty list if no RC
+            has been received yet — that is not an error.
+
+        Raises:
+            requests.exceptions.HTTPError: if the server returns non-2xx
+                (504 on server-side timeout, 5xx on tracer-side error).
+            requests.exceptions.Timeout: if the client-side timeout fires.
+        """
+        resp = self._session.post(
+            self._url("/trace/remote-config/apply"),
+            json={},
+            timeout=timeout,
+        )
+        resp.raise_for_status()
+        body = resp.json()
+        return body.get("applied_configs", [])
+
     def write_log(
         self,
         logger_name: str,
@@ -1047,6 +1075,16 @@ class APMLibrary:
 
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
+
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]]:
+        """Synchronously process any pending Remote Config and return the applied set.
+
+        See docs/parametric/remote-config-apply-contract.md.
+
+        Tests typically call this immediately after `set_and_wait_rc()` to
+        eliminate the ACK-vs-apply race in the tracer.
+        """
+        return self._client.flush_remote_config(timeout=timeout)
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
