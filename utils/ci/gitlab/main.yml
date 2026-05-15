@@ -9,6 +9,9 @@ spec:
     scenarios_groups:
       description: "Comma-separated list of scenario groups to run"
       default: "all"
+    excluded_scenarios:
+      description: "Comma-separated list of scenarios not to run"
+      default: "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
 ---
 
 build_test_pipeline:
@@ -21,9 +24,8 @@ build_test_pipeline:
     - source venv/bin/activate
     - pip install Jinja2
     - >
-      EXCLUDED_SCENARIOS="APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS";
       for library in $[[ inputs.libraries ]]; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios $EXCLUDED_SCENARIOS --scenarios "$[[ inputs.scenarios ]]" --output params_${library}.json;
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --output params_${library}.json;
         python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json >> generated-pipeline.yml;
       done
   artifacts:
