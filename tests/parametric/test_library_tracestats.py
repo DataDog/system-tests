@@ -460,12 +460,22 @@ class Test_Library_Tracestats:
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
 
-    @enable_tracestats()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # dd-trace-java only extracts HTTPMethod/HTTPEndpoint when this is on.
+                "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            }
+        ],
+    )
     @enable_agent_version()
     def test_http_method_endpoint_TS011(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When spans carry HTTP method and route metadata
+        """When spans carry HTTP method and endpoint metadata
         The stats aggregation entry must include HTTPMethod and HTTPEndpoint fields populated from
-        the span's http.method and http.route metadata. CSS spec v1.2.0 §5 (ClientGroupedStats).
+        the span's http.method and http.endpoint/http.route metadata. CSS spec v1.2.0 §5 (ClientGroupedStats).
         """
         with (
             test_library,
@@ -473,6 +483,9 @@ class Test_Library_Tracestats:
         ):
             span.set_meta(key="span.kind", val="server")
             span.set_meta(key="http.method", val="GET")
+            # Tracers diverge on which tag they read for HTTP_endpoint: dd-trace-go uses `http.endpoint`,
+            # others may use `http.route`. Set both so this test is implementation-agnostic.
+            span.set_meta(key="http.endpoint", val="/users/:id")
             span.set_meta(key="http.route", val="/users/:id")
             span.set_meta(key="http.status_code", val="200")
 
@@ -488,7 +501,17 @@ class Test_Library_Tracestats:
             f"Expected HTTPEndpoint='/users/:id' in stats, got: {web_entry.get('HTTPEndpoint')!r}"
         )
 
-    @enable_tracestats()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # Tracers in the parametric harness don't auto-detect hostname; pin it explicitly.
+                "DD_HOSTNAME": "test-host",
+            }
+        ],
+    )
     @enable_agent_version()
     def test_payload_metadata_TS012(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """The ClientStatsPayload must include deployment-level metadata fields.
