@@ -506,6 +506,7 @@ class ParametricTestClientApi(TestClientApi):
             requests.exceptions.HTTPError: if the server returns non-2xx
                 (504 on server-side timeout, 5xx on tracer-side error).
             requests.exceptions.Timeout: if the client-side timeout fires.
+
         """
         resp = self._session.post(
             self._url("/trace/remote-config/apply"),

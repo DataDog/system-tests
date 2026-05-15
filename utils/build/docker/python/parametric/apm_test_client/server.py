@@ -499,8 +499,7 @@ def trace_remote_config_apply(
         log.warning("rc-apply drain raised: %r", drain_error[0])
 
     applied: List[dict] = [
-        {"config_id": metadata.id, "product": metadata.product_name}
-        for metadata in client._applied_configs.values()
+        {"config_id": metadata.id, "product": metadata.product_name} for metadata in client._applied_configs.values()
     ]
     return JSONResponse(status_code=200, content={"applied_configs": applied})
 
