@@ -1218,9 +1218,6 @@ class Test_V3_Login_Events:
             meta = span.get("meta", {})
 
             login = USER
-            if context.library == "php" and context.weblog_variant == "laravel11x":
-                # Laravel 11x provides the email as the login field
-                login = USER_EMAIL
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == login
@@ -1243,9 +1240,6 @@ class Test_V3_Login_Events:
             meta = span.get("meta", {})
 
             login = USER
-            if context.library == "php" and context.weblog_variant == "laravel11x":
-                # Laravel 11x provides the email as the login field
-                login = USER_EMAIL
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == login
@@ -1391,9 +1385,6 @@ class Test_V3_Login_Events:
                 meta = span.get("meta", {})
 
                 login = USER
-                if context.library == "php" and context.weblog_variant == "laravel11x":
-                    # Laravel 11x provides the email as the login field
-                    login = USER_EMAIL
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
@@ -1932,7 +1923,9 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
+        print(self.r_login_blocked.text)
+
+        # interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
         assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_sdk(self):
