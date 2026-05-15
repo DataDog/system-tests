@@ -71,8 +71,13 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_extended_configs: missing_feature (extended configs are not supported)
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py: missing_feature
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: ">1.0.0"
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: ">1.0.0"
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: ">1.0.0"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (APMAPI-1592)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: missing_feature (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: ">1.0.0"
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: ">1.0.0"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: ">1.0.0"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_match_service_target_case_insensitively:
     - declaration: missing_feature (Tracer does case-sensitive checks for service and env)
