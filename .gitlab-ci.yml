@@ -1,7 +1,8 @@
 include:
-  - local: "/.gitlab/mock.yml"
+  - local: "/utils/ci/gitlab/main.yml"
     inputs:
       stage: "test"
+      libraries: "python"
 stages:
   - build
   - test
