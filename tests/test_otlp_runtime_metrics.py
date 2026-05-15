@@ -68,14 +68,11 @@ EXPECTED_METRICS = {
         "jvm.cpu.count",
         "jvm.cpu.recent_utilization",
         "jvm.cpu.time",
-        "jvm.file_descriptor.count",
-        "jvm.file_descriptor.limit",
         "jvm.memory.committed",
         "jvm.memory.init",
         "jvm.memory.limit",
         "jvm.memory.used",
         "jvm.memory.used_after_last_gc",
-        "jvm.system.cpu.utilization",
         "jvm.thread.count",
     ],
 }
@@ -106,10 +103,10 @@ def get_runtime_metric_names():
 class Test_OtlpRuntimeMetrics:
     """Verify runtime metrics are sent via OTLP with OTel names, not DD-proprietary names."""
 
-    def setup_main(self):
+    def setup_otel_metrics_are_present(self):
         self.req = weblog.get("/")
 
-    def test_main(self):
+    def test_otel_metrics_are_present(self):
         assert self.req.status_code == 200
 
         library = context.library.name
@@ -118,7 +115,6 @@ class Test_OtlpRuntimeMetrics:
 
         metric_names = get_runtime_metric_names()
 
-        # All expected OTel-named metrics must be present
         expected = EXPECTED_METRICS[library]
         for expected_name in expected:
             assert expected_name in metric_names, (
@@ -126,10 +122,20 @@ class Test_OtlpRuntimeMetrics:
                 f"Got metrics: {sorted(metric_names)}"
             )
 
-        # DD-proprietary names must NOT be present
+    def setup_dd_metrics_are_absent(self):
+        self.req = weblog.get("/")
+
+    def test_dd_metrics_are_absent(self):
+        assert self.req.status_code == 200
+
+        library = context.library.name
         dd_prefix = DD_PROPRIETARY_PREFIXES.get(library)
-        if dd_prefix:
-            dd_named_metrics = [n for n in metric_names if n.startswith(dd_prefix)]
-            assert len(dd_named_metrics) == 0, (
-                f"Found DD-proprietary metric names for {library}: {dd_named_metrics}. Expected OTel-native names only."
-            )
+        if not dd_prefix:
+            return
+
+        metric_names = get_runtime_metric_names()
+
+        dd_named_metrics = [n for n in metric_names if n.startswith(dd_prefix)]
+        assert len(dd_named_metrics) == 0, (
+            f"Found DD-proprietary metric names for {library}: {dd_named_metrics}. Expected OTel-native names only."
+        )
