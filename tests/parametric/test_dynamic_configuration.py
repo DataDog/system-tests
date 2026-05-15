@@ -808,8 +808,9 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Create a remote config entry with two rules at different sample rates.
-        set_and_wait_rc(
+        set_and_wait_rc_applied(
             test_agent,
+            test_library,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
@@ -843,7 +844,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-12"
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
+        set_and_wait_rc_applied(test_agent, test_library, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is restored to "-3"
