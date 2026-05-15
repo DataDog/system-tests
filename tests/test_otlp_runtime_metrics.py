@@ -82,7 +82,7 @@ DD_PROPRIETARY_PREFIXES = {
     "dotnet": "runtime.dotnet.",
     "golang": "runtime.go.",
     "nodejs": "runtime.node.",
-    "java": "jvm.heap_memory",
+    "java": "jvm.",
 }
 
 
