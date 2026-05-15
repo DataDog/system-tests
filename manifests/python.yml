@@ -1147,7 +1147,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: missing_feature (DEBUG-3240)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1241,13 +1240,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  # TODO(andrei): un-skip when v4.10.0 is released
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:  # Modified by easy win activation script
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
       component_version: <4.3.1
-      weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
-    - declaration: missing_feature (DEBUG-3550)
-      excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.11.0
@@ -2249,6 +2247,7 @@ manifest:
       component_version: '>=1.18.0-rc1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v4.6.5
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
