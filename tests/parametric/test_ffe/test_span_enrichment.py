@@ -1,6 +1,6 @@
 """Test feature flag span enrichment via parametric tests.
 
-All FFE span tags (ffe_flags_enc, ffe_subjects_enc, ffe_defaults) are added to the
+All FFE span tags (ffe_flags_enc, ffe_subjects_enc, ffe_runtime_defaults) are added to the
 ROOT SPAN of the trace, regardless of which span context the flag was evaluated in.
 This follows the specification for chunk-level tagging.
 
@@ -12,9 +12,9 @@ This module tests:
 5. ffe_subjects_enc: Multiple subjects tracked separately with SHA256 hashed keys
 6. ffe_subjects_enc: Single subject with multiple flags combines serial IDs
 7. ffe_subjects_enc: Max 10 subjects limit
-8. ffe_defaults: Flag not found adds coded-default fallback
-9. ffe_defaults: Value truncated at 64 chars
-10. ffe_defaults: Max 5 flag keys limit
+8. ffe_runtime_defaults: Flag not found adds runtime default fallback
+9. ffe_runtime_defaults: Value truncated at 64 chars
+10. ffe_runtime_defaults: Max 5 flag keys limit
 11. Delta varint encoding correctness (unit tests)
 """
 
@@ -283,18 +283,19 @@ class Test_Span_Enrichment_Max_Serial_IDs:
 @scenarios.parametric
 @features.feature_flags_event_enrichment
 class Test_Span_Enrichment_Default_Fallback:
-    """Test ffe_defaults tag behavior when flag evaluation falls back to default value."""
+    """Test ffe_runtime_defaults tag behavior when flag evaluation falls back to default value."""
 
-    CODED_DEFAULT_PREFIX = "coded-default:"
-    MAX_FFE_DEFAULTS_VALUE_LENGTH = 64
+    MAX_FFE_RUNTIME_DEFAULTS_VALUE_LENGTH = 64
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_flag_not_found_adds_ffe_defaults_tag(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test that evaluating a non-existent flag adds ffe_defaults tag with coded-default.
+    def test_flag_not_found_adds_ffe_runtime_defaults_tag(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test that evaluating a non-existent flag adds ffe_runtime_defaults tag.
 
         When a flag is not found in the UFC config and falls back to default_value,
-        an ffe_defaults tag should be added with the format:
-        {"flag-name": "coded-default:<default_value>"}
+        an ffe_runtime_defaults tag should be added with the format:
+        {"flag-name": "<default_value>"}
         """
         _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
 
@@ -320,40 +321,38 @@ class Test_Span_Enrichment_Default_Fallback:
         root_span = traces[0][0]
         meta = root_span.get("meta", {})
 
-        assert "ffe_defaults" in meta, f"ffe_defaults not found in span meta: {list(meta.keys())}"
+        assert "ffe_runtime_defaults" in meta, f"ffe_runtime_defaults not found in span meta: {list(meta.keys())}"
 
-        ffe_defaults = meta["ffe_defaults"]
+        ffe_runtime_defaults = meta["ffe_runtime_defaults"]
 
         # Parse if string (JSON)
-        if isinstance(ffe_defaults, str):
-            ffe_defaults = json.loads(ffe_defaults)
+        if isinstance(ffe_runtime_defaults, str):
+            ffe_runtime_defaults = json.loads(ffe_runtime_defaults)
 
-        assert isinstance(ffe_defaults, dict), f"Expected dict, got {type(ffe_defaults)}"
-        assert flag_name in ffe_defaults, f"Flag '{flag_name}' not found in ffe_defaults: {list(ffe_defaults.keys())}"
-
-        flag_value = ffe_defaults[flag_name]
-        assert flag_value.startswith(self.CODED_DEFAULT_PREFIX), (
-            f"Expected value to start with '{self.CODED_DEFAULT_PREFIX}', got: {flag_value}"
+        assert isinstance(ffe_runtime_defaults, dict), f"Expected dict, got {type(ffe_runtime_defaults)}"
+        assert flag_name in ffe_runtime_defaults, (
+            f"Flag '{flag_name}' not found in ffe_runtime_defaults: {list(ffe_runtime_defaults.keys())}"
         )
 
-        # Verify the default value is included after the prefix
-        expected_value = f"{self.CODED_DEFAULT_PREFIX}{default_value}"
-        assert flag_value == expected_value, f"Expected '{expected_value}', got '{flag_value}'"
+        # Verify the default value is stored directly (no prefix)
+        flag_value = ffe_runtime_defaults[flag_name]
+        assert flag_value == default_value, f"Expected '{default_value}', got '{flag_value}'"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_defaults_value_truncated_at_64_chars(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test that ffe_defaults values are truncated to 64 characters.
+    def test_ffe_runtime_defaults_value_truncated_at_64_chars(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test that ffe_runtime_defaults values are truncated to 64 characters.
 
-        The total value length (including 'coded-default:' prefix) should not exceed 64 chars.
+        The value length should not exceed 64 chars.
         """
         _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
 
         success = test_library.ffe_start()
         assert success, "Failed to start FFE provider"
 
-        # Create a default value that would exceed 64 chars when combined with prefix
-        # Prefix "coded-default:" is 14 chars, so max default value is 50 chars
-        long_default = "x" * 100  # Much longer than the 50 char limit
+        # Create a default value that exceeds 64 chars
+        long_default = "x" * 100  # Much longer than the 64 char limit
 
         flag_name = "nonexistent-long-default"
         with test_library.dd_start_span(name="test-span", service="test-service") as span:
@@ -372,41 +371,36 @@ class Test_Span_Enrichment_Default_Fallback:
         root_span = traces[0][0]
         meta = root_span.get("meta", {})
 
-        assert "ffe_defaults" in meta, f"ffe_defaults not found in span meta: {list(meta.keys())}"
+        assert "ffe_runtime_defaults" in meta, f"ffe_runtime_defaults not found in span meta: {list(meta.keys())}"
 
-        ffe_defaults = meta["ffe_defaults"]
+        ffe_runtime_defaults = meta["ffe_runtime_defaults"]
 
-        if isinstance(ffe_defaults, str):
-            ffe_defaults = json.loads(ffe_defaults)
+        if isinstance(ffe_runtime_defaults, str):
+            ffe_runtime_defaults = json.loads(ffe_runtime_defaults)
 
-        assert flag_name in ffe_defaults, f"Flag '{flag_name}' not found in ffe_defaults"
+        assert flag_name in ffe_runtime_defaults, f"Flag '{flag_name}' not found in ffe_runtime_defaults"
 
-        flag_value = ffe_defaults[flag_name]
+        flag_value = ffe_runtime_defaults[flag_name]
 
         # Verify the value is truncated to max length
-        assert len(flag_value) <= self.MAX_FFE_DEFAULTS_VALUE_LENGTH, (
-            f"ffe_defaults value should be at most {self.MAX_FFE_DEFAULTS_VALUE_LENGTH} chars, "
+        assert len(flag_value) <= self.MAX_FFE_RUNTIME_DEFAULTS_VALUE_LENGTH, (
+            f"ffe_runtime_defaults value should be at most {self.MAX_FFE_RUNTIME_DEFAULTS_VALUE_LENGTH} chars, "
             f"got {len(flag_value)}: {flag_value}"
         )
 
-        # Verify it still has the prefix
-        assert flag_value.startswith(self.CODED_DEFAULT_PREFIX), (
-            f"Truncated value should still start with '{self.CODED_DEFAULT_PREFIX}', got: {flag_value}"
-        )
-
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_max_5_flag_keys_in_ffe_defaults(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test that at most 5 flag keys are included in ffe_defaults.
+    def test_max_5_flag_keys_in_ffe_runtime_defaults(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test that at most 5 flag keys are included in ffe_runtime_defaults.
 
         When more than 5 flags fall back to default values, only the first 5
-        should appear in the ffe_defaults tag.
+        should appear in the ffe_runtime_defaults tag.
         """
         _set_and_wait_ffe_rc(test_agent, UFC_SPAN_ENRICHMENT_DATA)
 
         success = test_library.ffe_start()
         assert success, "Failed to start FFE provider"
 
-        # Evaluate 10 non-existent flags to trigger coded-default fallback
+        # Evaluate 10 non-existent flags to trigger runtime default fallback
         with test_library.dd_start_span(name="test-span", service="test-service") as span:
             for i in range(10):
                 test_library.ffe_evaluate(
@@ -424,18 +418,18 @@ class Test_Span_Enrichment_Default_Fallback:
         root_span = traces[0][0]
         meta = root_span.get("meta", {})
 
-        assert "ffe_defaults" in meta, f"ffe_defaults not found in span meta: {list(meta.keys())}"
+        assert "ffe_runtime_defaults" in meta, f"ffe_runtime_defaults not found in span meta: {list(meta.keys())}"
 
-        ffe_defaults = meta["ffe_defaults"]
+        ffe_runtime_defaults = meta["ffe_runtime_defaults"]
 
-        if isinstance(ffe_defaults, str):
-            ffe_defaults = json.loads(ffe_defaults)
+        if isinstance(ffe_runtime_defaults, str):
+            ffe_runtime_defaults = json.loads(ffe_runtime_defaults)
 
-        assert isinstance(ffe_defaults, dict), f"Expected dict, got {type(ffe_defaults)}"
+        assert isinstance(ffe_runtime_defaults, dict), f"Expected dict, got {type(ffe_runtime_defaults)}"
 
-        num_keys = len(ffe_defaults)
-        assert num_keys <= 5, f"ffe_defaults should have at most 5 flag keys, got {num_keys}"
-        assert num_keys > 0, "ffe_defaults should have at least some flag keys"
+        num_keys = len(ffe_runtime_defaults)
+        assert num_keys <= 5, f"ffe_runtime_defaults should have at most 5 flag keys, got {num_keys}"
+        assert num_keys > 0, "ffe_runtime_defaults should have at least some flag keys"
 
 
 @scenarios.parametric
