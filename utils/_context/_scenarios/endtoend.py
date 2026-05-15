@@ -19,6 +19,7 @@ from utils._context.containers import (
     BuddyContainer,
     TestedContainer,
 )
+from utils.proxy.mocked_response import TraceFiltersConfig
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 
 from utils._logger import logger
@@ -46,6 +47,7 @@ class DockerScenario(Scenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
+        trace_filters: TraceFiltersConfig | None = None,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -57,6 +59,7 @@ class DockerScenario(Scenario):
         self.meta_structs_disabled = False
         self.span_events = span_events
         self.client_drop_p0s = client_drop_p0s
+        self.trace_filters = trace_filters
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -74,6 +77,7 @@ class DockerScenario(Scenario):
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 client_drop_p0s=client_drop_p0s,
+                trace_filters=trace_filters,
                 enable_ipv6=enable_ipv6,
                 mocked_backend=mocked_backend,
             )
@@ -201,6 +205,7 @@ class EndToEndScenario(DockerScenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
+        trace_filters: TraceFiltersConfig | None = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
@@ -226,6 +231,7 @@ class EndToEndScenario(DockerScenario):
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
             client_drop_p0s=client_drop_p0s,
+            trace_filters=trace_filters,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent

@@ -18,6 +18,9 @@ from .ports import ProxyPorts
 MOCKED_TRACER_RESPONSES_PATH = "/mocked_tracer_responses"
 MOCKED_BACKEND_RESPONSES_PATH = "/mocked_backend_responses"
 
+FilterTagsConfig = dict[str, list[str]]
+TraceFiltersConfig = dict[str, FilterTagsConfig | list[str]]
+
 
 def _get_proxy_domain() -> str:
     """Get the proxy domain from environment variables."""
@@ -347,6 +350,27 @@ class SetClientDropP0s(_InternalMockedTracerResponse):
         return {
             "type": self.__class__.__name__,
             "client_drop_p0s": self.client_drop_p0s,
+        }
+
+
+class SetTraceFilters(_InternalMockedTracerResponse):
+    """Adds trace filter configuration to the agent's /info response."""
+
+    def __init__(self, *, trace_filters: TraceFiltersConfig):
+        super().__init__(path="/info")
+        self.trace_filters = trace_filters
+        """Trace filter configuration exposed to tracers through /info."""
+
+    def execute(self, flow: HTTPFlow) -> None:
+        if flow.response.status_code == HTTPStatus.OK:
+            c = json.loads(flow.response.content)
+            c.update(self.trace_filters)
+            flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "trace_filters": self.trace_filters,
         }
 
 

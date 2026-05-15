@@ -119,6 +119,53 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_trace_filter_reject = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT",
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+        },
+        trace_filters={
+            "filter_tags": {
+                "reject": ["appsec.events.system_tests_appsec_event.value:tf-reject-exact"],
+            },
+            "filter_tags_regex": {
+                "reject": ["appsec.events.system_tests_appsec_event.value:tf-reject-regex-.*"],
+            },
+            "ignore_resources": [".*(stats-unique|StatsUniqueHandler).*"],
+        },
+        doc=(
+            "End to end testing with client-side stats enabled and agent /info trace filters configured "
+            "to reject traces by resource, exact root-span tag, and regex root-span tag."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_trace_filter_require = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE",
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+        },
+        trace_filters={
+            "filter_tags": {
+                "require": ["appsec.events.system_tests_appsec_event.value:tf-required"],
+            },
+            "filter_tags_regex": {
+                "require": ["http.status_code:20[78]"],
+            },
+        },
+        doc=(
+            "End to end testing with client-side stats enabled and agent /info trace filters configured "
+            "to require exact and regex root-span tag matches."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,

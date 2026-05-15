@@ -23,11 +23,13 @@ from utils._context.ports import ContainerPorts
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
+    TraceFiltersConfig,
     RemoveMetaStructsSupport,
     MockedTracerResponse,
     MockedBackendResponse,
     SetSpanEventFlags,
     SetClientDropP0s,
+    SetTraceFilters,
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
 )
@@ -589,6 +591,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         client_drop_p0s: bool | None = None,
+        trace_filters: TraceFiltersConfig | None = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
     ) -> None:
@@ -634,6 +637,9 @@ class ProxyContainer(TestedContainer):
 
         if client_drop_p0s is not None:
             self.internal_mocked_tracer_responses.append(SetClientDropP0s(client_drop_p0s=client_drop_p0s))
+
+        if trace_filters is not None:
+            self.internal_mocked_tracer_responses.append(SetTraceFilters(trace_filters=trace_filters))
 
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints
