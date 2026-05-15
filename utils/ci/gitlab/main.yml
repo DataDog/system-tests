@@ -18,6 +18,9 @@ spec:
     binaries_artifact:
       description: "Name of the upstream job whose artifacts contain the pre-built binaries to test"
       default: ""
+    force_execute:
+      description: "Comma-separated test node IDs to force-execute"
+      default: ""
 ---
 
 build_test_pipeline:
@@ -43,6 +46,8 @@ run_test_pipeline:
   needs:
     - job: build_test_pipeline
       artifacts: true
+  variables:
+    SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
   trigger:
     include:
       - artifact: generated-pipeline.yml
