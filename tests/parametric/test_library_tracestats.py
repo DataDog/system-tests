@@ -549,9 +549,7 @@ class Test_Library_Tracestats:
         """
         with test_library:
             # A normal top-level span — must produce stats.
-            with test_library.dd_start_span(
-                name="web.request", resource="/users", service="webserver", typestr="web"
-            ):
+            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver", typestr="web"):
                 pass
 
             # A span flagged as a partial snapshot — must NOT produce stats.
