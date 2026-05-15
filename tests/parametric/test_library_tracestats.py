@@ -507,7 +507,11 @@ class Test_Library_Tracestats:
             {
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",
-                # Tracers in the parametric harness don't auto-detect hostname; pin it explicitly.
+                # dd-trace-go and dd-trace-java only populate the Hostname field on the
+                # ClientStatsPayload when DD_TRACE_REPORT_HOSTNAME is on (option.go:297 /
+                # Config.java:2005). Pin both the flag and the value so the assertion is
+                # deterministic across SDKs.
+                "DD_TRACE_REPORT_HOSTNAME": "true",
                 "DD_HOSTNAME": "test-host",
                 # Spec §3 says payload-level Service is the main service name from configuration.
                 # The parametric harness doesn't set DD_SERVICE by default — pin it.
