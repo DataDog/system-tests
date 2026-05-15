@@ -78,3 +78,23 @@ class TestRemoteConfigApplyEndpoint:
         test_library.flush_remote_config(timeout=10.0)
         elapsed = time.monotonic() - start
         assert elapsed < 10.0, f"endpoint took {elapsed:.2f}s, expected <10s under normal load"
+
+    def test_set_and_wait_rc_applied_returns_after_apply(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """set_and_wait_rc_applied calls set_and_wait_rc then flush_remote_config."""
+        from tests.parametric.test_dynamic_configuration import set_and_wait_rc_applied
+
+        rc_state = set_and_wait_rc_applied(
+            test_agent,
+            test_library,
+            config_overrides={"tracing_sampling_rate": 0.7},
+            config_id="combined-helper-1",
+        )
+        # set_and_wait_rc returns the rc state dict from the test agent
+        assert rc_state is not None
+        assert rc_state.get("apply_state") in (2, "2"), f"unexpected rc_state: {rc_state!r}"
+
+        # And after the call, the config is applied (visible via the endpoint directly)
+        applied = test_library.flush_remote_config()
+        assert any(c["config_id"] == "combined-helper-1" for c in applied)

@@ -220,6 +220,26 @@ def set_and_wait_rc(
     )
 
 
+def set_and_wait_rc_applied(
+    test_agent: TestAgentAPI,
+    test_library: APMLibrary,
+    config_overrides: dict[str, Any],
+    config_id: str | int | None = None,
+) -> dict[str, Any]:
+    """Set an RC config, wait for the agent ACK, then synchronously drain the tracer.
+
+    This is the deterministic variant of set_and_wait_rc(). It eliminates the
+    race between the test-agent ACK (which fires when the RC client validates
+    the payload) and the tracer's subscriber dispatch (which actually applies
+    it). See docs/parametric/remote-config-apply-contract.md.
+
+    Returns the rc_state dict from the test agent (same as set_and_wait_rc).
+    """
+    rc_state = set_and_wait_rc(test_agent, config_overrides, config_id)
+    test_library.flush_remote_config()
+    return rc_state
+
+
 def assert_sampling_rate(trace: list[dict], rate: float):
     """Asserts that a trace returned from the test agent is consistent with the given sample rate.
 
