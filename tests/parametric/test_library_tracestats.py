@@ -509,6 +509,9 @@ class Test_Library_Tracestats:
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",
                 # Tracers in the parametric harness don't auto-detect hostname; pin it explicitly.
                 "DD_HOSTNAME": "test-host",
+                # Spec §3 says payload-level Service is the main service name from configuration.
+                # The parametric harness doesn't set DD_SERVICE by default — pin it.
+                "DD_SERVICE": "tracestats-test",
             }
         ],
     )

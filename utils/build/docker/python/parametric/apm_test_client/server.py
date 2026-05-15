@@ -429,14 +429,29 @@ class TraceStatsFlushReturn(BaseModel):
 
 @app.post("/trace/stats/flush")
 def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
-    stats_proc = [
-        p
-        for p in ddtrace.tracer._span_processors
-        if hasattr(ddtrace.internal.processor, "stats")
-        if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
-    ]
-    if len(stats_proc):
-        stats_proc[0].periodic()
+    # Legacy path: older dd-trace-py versions used a Python-side SpanStatsProcessorV06.
+    if hasattr(ddtrace.internal.processor, "stats"):
+        stats_proc = [
+            p
+            for p in ddtrace.tracer._span_processors
+            if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
+        ]
+        if stats_proc:
+            stats_proc[0].periodic()
+            return TraceStatsFlushReturn()
+
+    # Modern path: dd-trace-py >= 3.x delegates CSS to libdatadog's native TraceExporter.
+    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown,
+    # so we force a shutdown+recreate to flush stats deterministically for the test.
+    writer = getattr(ddtrace.tracer._span_aggregator, "writer", None)
+    if writer is not None and hasattr(writer, "on_shutdown") and hasattr(writer, "recreate"):
+        writer.on_shutdown()
+        try:
+            ddtrace.tracer._span_aggregator.writer = writer.recreate()
+        except Exception:
+            # If recreate is unavailable or raises, the writer is left stopped — acceptable
+            # since the test client is reset after each parametric test.
+            pass
     return TraceStatsFlushReturn()
 
 
