@@ -205,7 +205,7 @@ jobs:
         if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         with:
           repository: DataDog/commit-headless
-          ref: action/v2.0.3
+          ref: action/v3.3.0
           path: .commit-headless
 
       - name: Push signed branches and create PRs
