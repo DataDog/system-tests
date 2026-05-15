@@ -220,6 +220,9 @@ def set_and_wait_rc(
     )
 
 
+_RC_APPLY_ENDPOINT_LANGS: frozenset[str] = frozenset({"python"})
+
+
 def set_and_wait_rc_applied(
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
@@ -233,10 +236,17 @@ def set_and_wait_rc_applied(
     the payload) and the tracer's subscriber dispatch (which actually applies
     it). See docs/parametric/remote-config-apply-contract.md.
 
+    The deterministic drain is only triggered for tracers that have implemented
+    POST /trace/remote-config/apply. For other tracers this helper degrades
+    transparently to set_and_wait_rc() so converted tests keep running on the
+    existing ACK-based pattern (with whatever retry-loop workaround already
+    handled the race).
+
     Returns the rc_state dict from the test agent (same as set_and_wait_rc).
     """
     rc_state = set_and_wait_rc(test_agent, config_overrides, config_id)
-    test_library.flush_remote_config()
+    if test_library.lang in _RC_APPLY_ENDPOINT_LANGS:
+        test_library.flush_remote_config()
     return rc_state
 
 

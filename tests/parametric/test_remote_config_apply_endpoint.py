@@ -3,16 +3,25 @@
 These tests exercise the synchronous RC-apply endpoint added in this PR.
 They are intentionally tracer-agnostic — they only assert the contract
 documented in docs/parametric/remote-config-apply-contract.md.
+
+The endpoint is currently only implemented in the Python parametric app
+(this is a pilot). For other languages the test class skips at runtime
+until each tracer adds its own implementation of POST
+/trace/remote-config/apply. See the per-language section in the contract
+doc for the implementation outline.
 """
 
 import time
 from typing import Any
+
+import pytest
 
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_dynamic_configuration import (
+    _RC_APPLY_ENDPOINT_LANGS,
     _create_rc_config,
     _set_rc,
     set_and_wait_rc_applied,
@@ -23,6 +32,14 @@ from tests.parametric.test_dynamic_configuration import (
 @features.dynamic_configuration
 class TestRemoteConfigApplyEndpoint:
     """Black-box tests of the /trace/remote-config/apply contract."""
+
+    @pytest.fixture(autouse=True)
+    def _skip_unsupported_languages(self, test_library: APMLibrary) -> None:
+        if test_library.lang not in _RC_APPLY_ENDPOINT_LANGS:
+            pytest.skip(
+                f"{test_library.lang} does not yet implement POST /trace/remote-config/apply; "
+                f"see docs/parametric/remote-config-apply-contract.md"
+            )
 
     def test_apply_returns_empty_when_no_rc_received(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """When no RC has been sent, the endpoint returns 200 with applied_configs=[]."""

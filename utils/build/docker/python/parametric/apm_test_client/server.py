@@ -9,6 +9,7 @@ from typing import Union
 import logging
 import os
 import enum
+import threading
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -447,6 +448,13 @@ class TraceRemoteConfigApplyReturn(BaseModel):
     applied_configs: List[AppliedConfigEntry]
 
 
+# Single-flight lock around the RC-apply drain. If a previous request timed
+# out, its worker thread may still be running against the shared
+# remoteconfig_poller client. Serialize subsequent requests behind this lock
+# so concurrent drains can't race on the global RC state.
+_rc_apply_lock = threading.Lock()
+
+
 @app.post("/trace/remote-config/apply")
 def trace_remote_config_apply(
     args: TraceRemoteConfigApplyArgs,
@@ -462,46 +470,78 @@ def trace_remote_config_apply(
          the connector and invokes registered product callbacks.
 
     Enforces a 10s server-side timeout by running the drain in a background
-    thread and joining with a deadline. On timeout, returns 504.
+    thread and joining with a deadline. On timeout, returns 504. A process-wide
+    lock serializes overlapping requests so a previously-timed-out drain
+    cannot race a fresh apply.
     """
-    import threading
     from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
 
     timeout_seconds = 10.0
     client = remoteconfig_poller._client
 
-    drain_error: List[BaseException] = []
-
-    def _drain() -> None:
-        try:
-            client.request()
-            client._global_subscriber.periodic()
-        except BaseException as exc:  # noqa: BLE001 — re-raised below
-            drain_error.append(exc)
-
-    worker = threading.Thread(target=_drain, name="rc-apply-drain", daemon=True)
-    worker.start()
-    worker.join(timeout=timeout_seconds)
-
-    if worker.is_alive():
+    # If a previous drain is still in flight (timeout left it running), refuse
+    # to start a second one — it would race against the shared client state.
+    if not _rc_apply_lock.acquire(blocking=False):
         return JSONResponse(
             status_code=504,
             content={
-                "error": "timeout waiting for remote config to apply",
+                "error": "previous remote-config apply still in progress",
                 "timeout_seconds": timeout_seconds,
             },
         )
 
-    if drain_error:
-        # The drain swallows most exceptions internally; this catches anything
-        # that escaped. Log it server-side but still return whatever is
-        # currently applied, per the contract's "drain what you can" rule.
-        log.warning("rc-apply drain raised: %r", drain_error[0])
+    lock_ownership_transferred = False
+    try:
+        drain_error: List[BaseException] = []
 
-    applied: List[dict] = [
-        {"config_id": metadata.id, "product": metadata.product_name} for metadata in client._applied_configs.values()
-    ]
-    return JSONResponse(status_code=200, content={"applied_configs": applied})
+        def _drain() -> None:
+            try:
+                client.request()
+                client._global_subscriber.periodic()
+            except BaseException as exc:  # noqa: BLE001 — captured for logging
+                drain_error.append(exc)
+
+        worker = threading.Thread(target=_drain, name="rc-apply-drain", daemon=True)
+        worker.start()
+        worker.join(timeout=timeout_seconds)
+
+        if worker.is_alive():
+            # The drain didn't finish in time. Hand the lock to a watcher
+            # thread that releases it only after the worker actually exits.
+            # Until then, follow-up requests get 504 from the non-blocking
+            # acquire above instead of overlapping a stuck drain.
+            log.warning("rc-apply drain exceeded %.1fs; holding lock until worker exits", timeout_seconds)
+            lock_ownership_transferred = True
+
+            def _release_when_done(t: threading.Thread) -> None:
+                t.join()
+                _rc_apply_lock.release()
+
+            threading.Thread(
+                target=_release_when_done, args=(worker,), name="rc-apply-lock-releaser", daemon=True
+            ).start()
+            return JSONResponse(
+                status_code=504,
+                content={
+                    "error": "timeout waiting for remote config to apply",
+                    "timeout_seconds": timeout_seconds,
+                },
+            )
+
+        if drain_error:
+            # The drain swallows most exceptions internally; this catches anything
+            # that escaped. Log it server-side but still return whatever is
+            # currently applied, per the contract's "drain what you can" rule.
+            log.warning("rc-apply drain raised: %r", drain_error[0])
+
+        applied: List[dict] = [
+            {"config_id": metadata.id, "product": metadata.product_name}
+            for metadata in client._applied_configs.values()
+        ]
+        return JSONResponse(status_code=200, content={"applied_configs": applied})
+    finally:
+        if not lock_ownership_transferred:
+            _rc_apply_lock.release()
 
 
 class TraceSpanErrorArgs(BaseModel):
