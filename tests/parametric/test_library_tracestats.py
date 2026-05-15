@@ -504,13 +504,12 @@ class Test_Library_Tracestats:
         for field in ("Hostname", "Env", "Version", "Service", "RuntimeID", "Sequence"):
             assert field in raw_stats, f"Required ClientStatsPayload field {field!r} missing: {list(raw_stats.keys())}"
 
-        assert isinstance(raw_stats["Hostname"], str) and raw_stats["Hostname"], "Hostname must be a non-empty string"
-        # Env may default to "unknown-env" per spec when not set; here we just assert it's a non-empty string.
-        assert isinstance(raw_stats["Env"], str) and raw_stats["Env"], "Env must be a non-empty string"
-        assert isinstance(raw_stats["Service"], str) and raw_stats["Service"], "Service must be a non-empty string"
-        assert isinstance(raw_stats["RuntimeID"], str) and raw_stats["RuntimeID"], (
-            "RuntimeID must be a non-empty string used for message uniqueness"
-        )
+        # Env may default to "unknown-env" per spec when not set; we just assert these are non-empty strings.
+        for field in ("Hostname", "Env", "Service", "RuntimeID"):
+            value = raw_stats[field]
+            assert isinstance(value, str), f"{field} must be a string, got {type(value)}"
+            assert value, f"{field} must be a non-empty string, got {value!r}"
+
         # Sequence may legitimately be 0 on the first payload, so only require it's an int.
         assert isinstance(raw_stats["Sequence"], int), f"Sequence must be an integer, got {type(raw_stats['Sequence'])}"
 
