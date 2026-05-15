@@ -434,6 +434,71 @@ def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
     return TraceStatsFlushReturn()
 
 
+class TraceRemoteConfigApplyArgs(BaseModel):
+    pass  # Reserved for future per-config_id semantics; see contract doc.
+
+
+class AppliedConfigEntry(BaseModel):
+    config_id: str
+    product: str
+
+
+class TraceRemoteConfigApplyReturn(BaseModel):
+    applied_configs: List[AppliedConfigEntry]
+
+
+@app.post("/trace/remote-config/apply")
+def trace_remote_config_apply(
+    args: TraceRemoteConfigApplyArgs,
+) -> TraceRemoteConfigApplyReturn:
+    """Synchronously drain pending Remote Config and return the applied set.
+
+    See docs/parametric/remote-config-apply-contract.md for the cross-tracer
+    contract. The Python implementation uses dd-trace-py's existing primitives:
+
+      1. remoteconfig_poller._client.request() — fetches from the test agent
+         and publishes payloads to the global connector.
+      2. remoteconfig_poller._client._global_subscriber.periodic() — drains
+         the connector and invokes registered product callbacks (e.g. the
+         APM_TRACING handler that updates samplers).
+
+    Both calls are synchronous. The endpoint completes only after callbacks
+    have run, so by the time it returns, the tracer's in-memory state
+    reflects the latest RC.
+    """
+    from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+    client = remoteconfig_poller._client
+
+    # Step 1: fetch + publish. request() returns False on transport/parse error
+    # but does not raise; per the contract we still return whatever is currently
+    # applied rather than failing the call.
+    try:
+        client.request()
+    except Exception:  # pragma: no cover — defensive; request() is documented to swallow
+        log.exception("remoteconfig_poller._client.request() raised unexpectedly")
+
+    # Step 2: drain the connector and invoke callbacks synchronously.
+    try:
+        client._global_subscriber.periodic()
+    except Exception:  # pragma: no cover — defensive; periodic() also swallows internally
+        log.exception("remoteconfig_poller._client._global_subscriber.periodic() raised")
+
+    # Step 3: report what is currently applied. _applied_configs is a dict
+    # keyed by target path ("datadog/2/APM_TRACING/<config_id>/config") with
+    # ConfigMetadata values.
+    applied: List[AppliedConfigEntry] = []
+    for metadata in client._applied_configs.values():
+        applied.append(
+            AppliedConfigEntry(
+                config_id=metadata.id,
+                product=metadata.product_name,
+            )
+        )
+
+    return TraceRemoteConfigApplyReturn(applied_configs=applied)
+
+
 class TraceSpanErrorArgs(BaseModel):
     span_id: int
     type: str
