@@ -835,7 +835,7 @@ class TestDynamicConfigSamplingRules:
         # Unset the RC sample rate to ensure the previous setting is reapplied.
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
         # Retry: RC ACK can precede full application of the unset (same as test_remote_sampling_rules_retention).
-        trace = None
+        trace: list[Span] | None = None
         for _ in range(max_propagation_retries):
             trace = get_sampled_trace(test_library, test_agent, service=TEST_SERVICE, name="op_name")
             if find_first_span_in_trace_payload(trace)["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(
@@ -906,7 +906,7 @@ class TestDynamicConfigSamplingRules:
         # Unset RC to ensure local settings
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
         # Retry: RC ACK can precede full application of the unset (same as test_remote_sampling_rules_retention).
-        trace = None
+        trace: list[Span] | None = None
         for _ in range(max_propagation_retries):
             trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
             if find_first_span_in_trace_payload(trace)["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(
