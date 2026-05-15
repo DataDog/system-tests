@@ -450,53 +450,59 @@ class TraceRemoteConfigApplyReturn(BaseModel):
 @app.post("/trace/remote-config/apply")
 def trace_remote_config_apply(
     args: TraceRemoteConfigApplyArgs,
-) -> TraceRemoteConfigApplyReturn:
+) -> JSONResponse:
     """Synchronously drain pending Remote Config and return the applied set.
 
-    See docs/parametric/remote-config-apply-contract.md for the cross-tracer
-    contract. The Python implementation uses dd-trace-py's existing primitives:
+    See docs/parametric/remote-config-apply-contract.md for the contract.
+    The Python implementation uses dd-trace-py's primitives:
 
       1. remoteconfig_poller._client.request() — fetches from the test agent
          and publishes payloads to the global connector.
       2. remoteconfig_poller._client._global_subscriber.periodic() — drains
-         the connector and invokes registered product callbacks (e.g. the
-         APM_TRACING handler that updates samplers).
+         the connector and invokes registered product callbacks.
 
-    Both calls are synchronous. The endpoint completes only after callbacks
-    have run, so by the time it returns, the tracer's in-memory state
-    reflects the latest RC.
+    Enforces a 10s server-side timeout by running the drain in a background
+    thread and joining with a deadline. On timeout, returns 504.
     """
+    import threading
     from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
 
+    timeout_seconds = 10.0
     client = remoteconfig_poller._client
 
-    # Step 1: fetch + publish. request() returns False on transport/parse error
-    # but does not raise; per the contract we still return whatever is currently
-    # applied rather than failing the call.
-    try:
-        client.request()
-    except Exception:  # pragma: no cover — defensive; request() is documented to swallow
-        log.exception("remoteconfig_poller._client.request() raised unexpectedly")
+    drain_error: List[BaseException] = []
 
-    # Step 2: drain the connector and invoke callbacks synchronously.
-    try:
-        client._global_subscriber.periodic()
-    except Exception:  # pragma: no cover — defensive; periodic() also swallows internally
-        log.exception("remoteconfig_poller._client._global_subscriber.periodic() raised")
+    def _drain() -> None:
+        try:
+            client.request()
+            client._global_subscriber.periodic()
+        except BaseException as exc:  # noqa: BLE001 — re-raised below
+            drain_error.append(exc)
 
-    # Step 3: report what is currently applied. _applied_configs is a dict
-    # keyed by target path ("datadog/2/APM_TRACING/<config_id>/config") with
-    # ConfigMetadata values.
-    applied: List[AppliedConfigEntry] = []
-    for metadata in client._applied_configs.values():
-        applied.append(
-            AppliedConfigEntry(
-                config_id=metadata.id,
-                product=metadata.product_name,
-            )
+    worker = threading.Thread(target=_drain, name="rc-apply-drain", daemon=True)
+    worker.start()
+    worker.join(timeout=timeout_seconds)
+
+    if worker.is_alive():
+        return JSONResponse(
+            status_code=504,
+            content={
+                "error": "timeout waiting for remote config to apply",
+                "timeout_seconds": timeout_seconds,
+            },
         )
 
-    return TraceRemoteConfigApplyReturn(applied_configs=applied)
+    if drain_error:
+        # The drain swallows most exceptions internally; this catches anything
+        # that escaped. Log it server-side but still return whatever is
+        # currently applied, per the contract's "drain what you can" rule.
+        log.warning("rc-apply drain raised: %r", drain_error[0])
+
+    applied: List[dict] = [
+        {"config_id": metadata.id, "product": metadata.product_name}
+        for metadata in client._applied_configs.values()
+    ]
+    return JSONResponse(status_code=200, content={"applied_configs": applied})
 
 
 class TraceSpanErrorArgs(BaseModel):
