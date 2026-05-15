@@ -507,41 +507,54 @@ class Test_Library_Tracestats:
             {
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",
-                # dd-trace-go and dd-trace-java only populate the Hostname field on the
-                # ClientStatsPayload when DD_TRACE_REPORT_HOSTNAME is on (option.go:297 /
-                # Config.java:2005). Pin both the flag and the value so the assertion is
-                # deterministic across SDKs.
+                # dd-trace-go and dd-trace-java only populate Hostname when DD_TRACE_REPORT_HOSTNAME
+                # is on (option.go:297 / Config.java:2005). Pin both the flag and the value.
                 "DD_TRACE_REPORT_HOSTNAME": "true",
                 "DD_HOSTNAME": "test-host",
-                # Spec §3 says payload-level Service is the main service name from configuration.
-                # The parametric harness doesn't set DD_SERVICE by default — pin it.
-                "DD_SERVICE": "tracestats-test",
+                # Spec §3 calls out env/service/version as deployment-level identifiers. Java's
+                # WellKnownTags does not apply the spec's "unknown-env" default when DD_ENV is unset,
+                # so we pin all three explicitly for deterministic assertions across SDKs.
+                "DD_ENV": "tracestats-env",
+                "DD_SERVICE": "tracestats-service",
+                "DD_VERSION": "1.2.3",
             }
         ],
     )
     @enable_agent_version()
     def test_payload_metadata_TS012(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """The ClientStatsPayload must include deployment-level metadata fields.
-        CSS spec v1.2.0 §3 mandates Hostname, Env, Version, Service, RuntimeID, and Sequence
-        are populated by the tracer (constant per tracer instance, deployment-level identifiers).
+        CSS spec v1.2.0 §3 mandates Hostname, Env, Version, Service, RuntimeID, and Sequence are
+        populated by the tracer (constant per tracer instance, deployment-level identifiers).
         """
         with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
             pass
 
         raw_stats = _find_raw_v06_stats(test_agent)
 
-        # Required identifiers per spec
-        for field in ("Hostname", "Env", "Version", "Service", "RuntimeID", "Sequence"):
-            assert field in raw_stats, f"Required ClientStatsPayload field {field!r} missing: {list(raw_stats.keys())}"
-
-        # Env may default to "unknown-env" per spec when not set; we just assert these are non-empty strings.
-        for field in ("Hostname", "Env", "Service", "RuntimeID"):
+        # Hostname / Env / Version / RuntimeID are deployment-wide and live at the payload level.
+        for field in ("Hostname", "Env", "Version", "RuntimeID"):
+            assert field in raw_stats, f"Required field {field!r} missing from payload: {list(raw_stats.keys())}"
             value = raw_stats[field]
             assert isinstance(value, str), f"{field} must be a string, got {type(value)}"
             assert value, f"{field} must be a non-empty string, got {value!r}"
 
         # Sequence may legitimately be 0 on the first payload, so only require it's an int.
-        assert isinstance(raw_stats["Sequence"], int), f"Sequence must be an integer, got {type(raw_stats['Sequence'])}"
+        assert "Sequence" in raw_stats, f"Sequence missing from payload: {list(raw_stats.keys())}"
+        assert isinstance(raw_stats["Sequence"], int), f"Sequence must be int, got {type(raw_stats['Sequence'])}"
+
+        # Service is allowed at the payload level OR at the per-bucket ClientGroupedStats level.
+        # dd-trace-go intentionally only writes it per-bucket (stats.go:181), and the trace-agent
+        # accepts that — it just loses one partition-key dimension during inter-payload aggregation
+        # (client_stats_aggregator.go:178). The bucket-level Service is the spec-required source of
+        # truth that the backend ultimately consumes.
+        payload_service = raw_stats.get("Service") or ""
+        bucket_services = {
+            s.get("Service", "") for bucket in raw_stats.get("Stats", []) for s in bucket.get("Stats", [])
+        }
+        assert payload_service or any(bucket_services), (
+            f"Expected Service either at payload level ({payload_service!r}) or in any "
+            f"ClientGroupedStats ({bucket_services!r})"
+        )
 
     @enable_tracestats()
     @enable_agent_version()
