@@ -21,6 +21,7 @@ from utils.docker_fixtures import TestAgentAPI
 
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_dynamic_configuration import (
+    DEFAULT_ENVVARS,
     _RC_APPLY_ENDPOINT_LANGS,
     _create_rc_config,
     _set_rc,
@@ -31,7 +32,15 @@ from tests.parametric.test_dynamic_configuration import (
 @scenarios.parametric
 @features.dynamic_configuration
 class TestRemoteConfigApplyEndpoint:
-    """Black-box tests of the /trace/remote-config/apply contract."""
+    """Black-box tests of the /trace/remote-config/apply contract.
+
+    The endpoint-contract tests deliberately run under the tracer's *default* RC poll
+    interval. The contract is that POST /trace/remote-config/apply performs a synchronous
+    drain — if a tracer's implementation accidentally relied on background polling to pick
+    up the freshly published config instead, these tests would still see the config applied
+    only because a fast poll caught up in time. Keeping the default interval (~5s) ensures
+    a non-synchronous drain would visibly fail.
+    """
 
     @pytest.fixture(autouse=True)
     def _skip_unsupported_languages(self, test_library: APMLibrary) -> None:
@@ -85,6 +94,12 @@ class TestRemoteConfigApplyEndpoint:
         elapsed = time.monotonic() - start
         assert elapsed < 10.0, f"endpoint took {elapsed:.2f}s, expected <10s under normal load"
 
+    # set_and_wait_rc() waits for the tracer to poll RC and ACK back to the test agent.
+    # With the ddtrace default poll interval of 5s, that ACK won't arrive inside the test
+    # agent's ~4s wait window. DEFAULT_ENVVARS drops DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS
+    # to 0.2s so the ACK lands in time. Scoped to this test only — see the class docstring
+    # for why the endpoint-contract tests deliberately run under the default poll interval.
+    @pytest.mark.parametrize("library_env", [DEFAULT_ENVVARS])
     def test_set_and_wait_rc_applied_returns_after_apply(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
