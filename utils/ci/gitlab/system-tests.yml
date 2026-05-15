@@ -4,6 +4,11 @@ build_{{library}}_{{variant}}:
   tags:
     - docker-in-docker:amd64
   stage: {{stage}}
+  {% if binaries_artifact %}
+  needs:
+    - job: {{binaries_artifact}}
+      artifacts: true
+  {% endif %}
   variables:
     WEBLOG_VARIANT: {{variant}}
   script:

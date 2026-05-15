@@ -15,6 +15,9 @@ spec:
     weblogs:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
       default: ""
+    binaries_artifact:
+      description: "Name of the upstream job whose artifacts contain the pre-built binaries to test"
+      default: ""
 ---
 
 build_test_pipeline:
@@ -28,7 +31,7 @@ build_test_pipeline:
     - pip install Jinja2
     - >
       for library in $[[ inputs.libraries ]]; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --output params_${library}.json;
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --output params_${library}.json;
         python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json >> generated-pipeline.yml;
       done
   artifacts:
