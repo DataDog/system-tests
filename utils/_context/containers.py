@@ -49,6 +49,8 @@ _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
+_AGENT_SOCKET_HOST_DIR = "interfaces/test_agent_socket"
+_APM_SOCKET_CONTAINER_DIR = "/var/run/datadog"
 
 
 def create_network() -> Network:
@@ -182,6 +184,14 @@ class TestedContainer:
     @property
     def log_folder_path(self):
         return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
+
+    def _mount_agent_socket_dir(self) -> None:
+        socket_dir = Path(self.host_project_dir) / self.host_log_folder / _AGENT_SOCKET_HOST_DIR
+        socket_dir.mkdir(mode=0o777, exist_ok=True, parents=True)
+        self.volumes[f"./{self.host_log_folder}/{_AGENT_SOCKET_HOST_DIR}"] = {
+            "bind": _APM_SOCKET_CONTAINER_DIR,
+            "mode": "rw",
+        }
 
     def get_existing_container(self) -> Container:
         for container in get_docker_client().containers.list(all=True, filters={"name": self.container_name}):
@@ -614,6 +624,7 @@ class ProxyContainer(TestedContainer):
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
+                "PROXY_APM_RECEIVER_SOCKET": os.environ.get("PROXY_APM_RECEIVER_SOCKET"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
@@ -682,6 +693,7 @@ class ProxyContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
+        self._mount_agent_socket_dir()
 
         # Write tracer mocked responses JSON
         tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
@@ -998,6 +1010,11 @@ class WeblogContainer(TestedContainer):
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
+
+        if self.uds_mode:
+            self._mount_agent_socket_dir()
+            self.environment.pop("DD_AGENT_HOST", None)
+            self.environment.pop("DD_TRACE_AGENT_PORT", None)
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
         # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
@@ -1479,10 +1496,7 @@ class APMTestAgentContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
-        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
-            "bind": "/var/run/datadog/",
-            "mode": "rw",
-        }
+        self._mount_agent_socket_dir()
 
 
 class VCRCassettesContainer(TestedContainer):
@@ -1587,10 +1601,7 @@ class DockerSSIContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
-        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
-            "bind": "/var/run/datadog/",
-            "mode": "rw",
-        }
+        self._mount_agent_socket_dir()
 
     def get_env(self, env_var: str):
         """Get env variables from the container"""

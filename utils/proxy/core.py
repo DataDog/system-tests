@@ -3,10 +3,12 @@ from . import scrubber  # noqa: F401
 
 import asyncio
 from collections import defaultdict
+import contextlib
 import json
 import logging
 import os
 import ssl
+from pathlib import Path
 from typing import Any, Literal, cast
 from datetime import datetime, UTC
 
@@ -36,6 +38,7 @@ messages_counts: dict[str, int] = defaultdict(int)
 
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+_DEFAULT_APM_RECEIVER_SOCKET = "/var/run/datadog/apm.socket"
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -80,6 +83,72 @@ async def _start_udp_forwarder(
         local_addr=(listen_host, listen_port),
     )
     return cast("asyncio.DatagramTransport", server_transport)
+
+
+async def _close_stream_writer(writer: asyncio.StreamWriter) -> None:
+    writer.close()
+    with contextlib.suppress(OSError):
+        await writer.wait_closed()
+
+
+async def _pipe_stream(
+    reader: asyncio.StreamReader,
+    writer: asyncio.StreamWriter,
+    *,
+    direction: str,
+) -> None:
+    try:
+        while data := await reader.read(64 * 1024):
+            writer.write(data)
+            await writer.drain()
+    except (BrokenPipeError, ConnectionResetError, OSError) as e:
+        logger.debug(f"UDS APM forwarder {direction} closed: {e}")
+    finally:
+        await _close_stream_writer(writer)
+
+
+async def _uds_apm_receiver_handler(
+    uds_reader: asyncio.StreamReader,
+    uds_writer: asyncio.StreamWriter,
+    *,
+    target_host: str,
+    target_port: int,
+) -> None:
+    try:
+        tcp_reader, tcp_writer = await asyncio.open_connection(target_host, target_port)
+    except OSError as e:
+        logger.error(f"UDS APM forwarder failed to connect to {target_host}:{target_port}: {e}")
+        await _close_stream_writer(uds_writer)
+        return
+
+    logger.info(f"UDS APM forwarder connected to {target_host}:{target_port}")
+    await asyncio.gather(
+        _pipe_stream(uds_reader, tcp_writer, direction="uds-to-tcp"),
+        _pipe_stream(tcp_reader, uds_writer, direction="tcp-to-uds"),
+    )
+
+
+async def _start_uds_apm_receiver(*, socket_path: str, target_host: str, target_port: int) -> asyncio.Server:
+    socket_file = Path(socket_path)
+    socket_file.parent.mkdir(mode=0o777, parents=True, exist_ok=True)
+    socket_file.parent.chmod(0o777)
+
+    if socket_file.exists() or socket_file.is_symlink():
+        if socket_file.is_dir() and not socket_file.is_symlink():
+            raise RuntimeError(f"UDS APM receiver path is a directory: {socket_file}")
+        socket_file.unlink()
+
+    server = await asyncio.start_unix_server(
+        lambda reader, writer: _uds_apm_receiver_handler(
+            reader,
+            writer,
+            target_host=target_host,
+            target_port=target_port,
+        ),
+        path=str(socket_file),
+    )
+    socket_file.chmod(0o777)
+    return server
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -402,7 +471,7 @@ def start_proxy() -> None:
     proxy.addons.add(_RequestLogger())
 
     async def _run() -> None:
-        await _start_udp_forwarder(
+        udp_transport = await _start_udp_forwarder(
             listen_host=listen_host,
             listen_port=ProxyPorts.dogstatsd_weblog,
             target_host="agent",
@@ -412,7 +481,23 @@ def start_proxy() -> None:
             "DogStatsD UDP forwarder started on port "
             f"{ProxyPorts.dogstatsd_weblog} to agent:{ProxyPorts.dogstatsd_weblog}"
         )
-        await proxy.run()
+        uds_target_host = "::1" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "127.0.0.1"
+        uds_socket_path = os.environ.get("PROXY_APM_RECEIVER_SOCKET", _DEFAULT_APM_RECEIVER_SOCKET)
+        uds_server = await _start_uds_apm_receiver(
+            socket_path=uds_socket_path,
+            target_host=uds_target_host,
+            target_port=ProxyPorts.weblog,
+        )
+        logger.info(
+            f"UDS APM receiver listening on {uds_socket_path} and forwarding to {uds_target_host}:{ProxyPorts.weblog}"
+        )
+
+        try:
+            await proxy.run()
+        finally:
+            uds_server.close()
+            await uds_server.wait_closed()
+            udp_transport.close()
 
     loop.run_until_complete(_run())
 

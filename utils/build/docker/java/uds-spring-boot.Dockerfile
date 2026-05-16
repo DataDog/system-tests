@@ -25,9 +25,6 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
-COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-RUN apt-get update && apt-get install socat -y
-ENV UDS_WEBLOG=1
 COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY utils/build/docker/java/spring-boot/app.sh app.sh
