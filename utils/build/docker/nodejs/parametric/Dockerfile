@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests:parametric-nodejs.base-v6903
+FROM ghcr.io/datadog/system-tests/weblog/nodejs:parametric-v6903
 
 COPY utils/build/docker/nodejs/parametric/package.json /usr/app/
 COPY utils/build/docker/nodejs/parametric/*.js /usr/app/

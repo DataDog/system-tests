@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests:fastify.base-v6903
+FROM ghcr.io/datadog/system-tests/weblog/nodejs:fastify-v6903
 
 COPY utils/build/docker/nodejs/fastify /usr/app
 

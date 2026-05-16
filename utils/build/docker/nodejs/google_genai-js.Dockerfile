@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests:google_genai-js.base-v6903
+FROM ghcr.io/datadog/system-tests/weblog/nodejs:google_genai-js-v6903
 ARG FRAMEWORK_VERSION
 
 COPY utils/build/docker/nodejs/google_genai_app /usr/app
