@@ -250,6 +250,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build nodejs weblog base images
         if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
+        env:
+          VERSION: ${{ github.event.pull_request.number }}
         run: |
           ./utils/build/build_nodejs_base_images.sh --push
       - name: Build weblog

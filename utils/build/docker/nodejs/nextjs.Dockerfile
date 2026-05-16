@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests:nextjs.base-v1
+FROM ghcr.io/datadog/system-tests:nextjs.base-v6903
 
 COPY utils/build/docker/nodejs/nextjs /usr/app
 

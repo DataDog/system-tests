@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests:anthropic-js.base-v1
+FROM ghcr.io/datadog/system-tests:anthropic-js.base-v6903
 ARG FRAMEWORK_VERSION
 
 COPY utils/build/docker/nodejs/anthropic_app /usr/app
