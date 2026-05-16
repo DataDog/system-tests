@@ -50,7 +50,4 @@ CMD [ "./app.sh" ]
 # The lines above is a copy of poc.Dockerfile
 # The lines below are added for the UDS version only
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y socat
-ENV UDS_WEBLOG=1
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
