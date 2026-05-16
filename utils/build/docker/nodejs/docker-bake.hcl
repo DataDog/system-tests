@@ -17,53 +17,53 @@ group "default" {
 target "express4" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4.base.Dockerfile"
-  tags       = ["datadog/system-tests:express4.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:express4.base-v1"]
 }
 
 target "express5" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express5.base.Dockerfile"
-  tags       = ["datadog/system-tests:express5.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:express5.base-v1"]
 }
 
 target "fastify" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/fastify.base.Dockerfile"
-  tags       = ["datadog/system-tests:fastify.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:fastify.base-v1"]
 }
 
 target "express4-typescript" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4-typescript.base.Dockerfile"
-  tags       = ["datadog/system-tests:express4-typescript.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:express4-typescript.base-v1"]
 }
 
 target "nextjs" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/nextjs.base.Dockerfile"
-  tags       = ["datadog/system-tests:nextjs.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:nextjs.base-v1"]
 }
 
 target "anthropic-js" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/anthropic-js.base.Dockerfile"
-  tags       = ["datadog/system-tests:anthropic-js.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:anthropic-js.base-v1"]
 }
 
 target "openai-js" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/openai-js.base.Dockerfile"
-  tags       = ["datadog/system-tests:openai-js.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:openai-js.base-v1"]
 }
 
 target "google_genai-js" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/google_genai-js.base.Dockerfile"
-  tags       = ["datadog/system-tests:google_genai-js.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:google_genai-js.base-v1"]
 }
 
 target "parametric" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/parametric.base.Dockerfile"
-  tags       = ["datadog/system-tests:parametric-nodejs.base-v1"]
+  tags       = ["ghcr.io/datadog/system-tests:parametric-nodejs.base-v1"]
 }

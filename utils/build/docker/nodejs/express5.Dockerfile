@@ -1,4 +1,4 @@
-FROM datadog/system-tests:express5.base-v1
+FROM ghcr.io/datadog/system-tests:express5.base-v1
 
 COPY utils/build/docker/nodejs/express /usr/app
 COPY utils/build/docker/nodejs/express5/package.json ./

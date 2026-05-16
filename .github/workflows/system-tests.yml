@@ -241,10 +241,17 @@ jobs:
         if: inputs.library == 'php' && inputs._build_php_base_images
         run: |
           ./utils/build/build_php_base_images.sh
+      - name: Login to GHCR for nodejs base images
+        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build nodejs weblog base images
         if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
         run: |
-          ./utils/build/build_nodejs_base_images.sh
+          ./utils/build/build_nodejs_base_images.sh --push
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
