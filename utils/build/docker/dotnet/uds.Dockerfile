@@ -46,8 +46,3 @@ COPY --from=build-app /app/out .
 
 COPY utils/build/docker/dotnet/weblog/app.sh app.sh
 CMD [ "./app.sh" ]
-
-# The lines above is a copy of poc.Dockerfile
-# The lines below are added for the UDS version only
-
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket

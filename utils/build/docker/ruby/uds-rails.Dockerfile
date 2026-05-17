@@ -19,8 +19,6 @@ RUN /binaries/install_ddtrace.sh
 
 RUN bundle exec rails db:prepare
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-
 RUN echo "#!/bin/bash\nbundle exec puma -b tcp://0.0.0.0 -p 7777 -w 1" > app.sh
 RUN chmod +x app.sh
 

@@ -24,8 +24,6 @@ ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./echo
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-
 CMD ["./app.sh"]
 
 # Datadog setup

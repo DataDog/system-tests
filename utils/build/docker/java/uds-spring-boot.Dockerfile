@@ -25,6 +25,5 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY utils/build/docker/java/spring-boot/app.sh app.sh

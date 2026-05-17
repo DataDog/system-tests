@@ -19,6 +19,7 @@ from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize
+from .config import DEFAULT_APM_RECEIVER_SOCKET
 from .ports import ProxyPorts
 from .mocked_response import (
     MOCKED_TRACER_RESPONSES_PATH,
@@ -38,7 +39,6 @@ messages_counts: dict[str, int] = defaultdict(int)
 
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
-_DEFAULT_APM_RECEIVER_SOCKET = "/var/run/datadog/apm.socket"
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -482,7 +482,7 @@ def start_proxy() -> None:
             f"{ProxyPorts.dogstatsd_weblog} to agent:{ProxyPorts.dogstatsd_weblog}"
         )
         uds_target_host = "::1" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "127.0.0.1"
-        uds_socket_path = os.environ.get("PROXY_APM_RECEIVER_SOCKET", _DEFAULT_APM_RECEIVER_SOCKET)
+        uds_socket_path = os.environ.get("PROXY_APM_RECEIVER_SOCKET", DEFAULT_APM_RECEIVER_SOCKET)
         uds_server = await _start_uds_apm_receiver(
             socket_path=uds_socket_path,
             target_host=uds_target_host,

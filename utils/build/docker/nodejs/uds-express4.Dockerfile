@@ -8,8 +8,6 @@ ENV PGDATABASE=system_tests_dbname
 ENV PGHOST=postgres
 ENV PGPORT=5433
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-
 ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup

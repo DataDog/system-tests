@@ -21,8 +21,6 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
 ENV FLASK_APP=app.py
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .

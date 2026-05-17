@@ -20,6 +20,7 @@ import requests
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context.ports import ContainerPorts
+from utils.proxy.config import DEFAULT_APM_RECEIVER_SOCKET
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -1013,8 +1014,7 @@ class WeblogContainer(TestedContainer):
 
         if self.uds_mode:
             self._mount_agent_socket_dir()
-            self.environment.pop("DD_AGENT_HOST", None)
-            self.environment.pop("DD_TRACE_AGENT_PORT", None)
+            self.environment["DD_APM_RECEIVER_SOCKET"] = DEFAULT_APM_RECEIVER_SOCKET
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
         # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
@@ -1163,12 +1163,11 @@ class WeblogContainer(TestedContainer):
 
     @property
     def uds_socket(self):
-        assert self.image.env is not None, "No env set"
-        return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
+        return self.environment.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
     def uds_mode(self):
-        return self.uds_socket is not None
+        return self.weblog_variant.startswith("uds")
 
     @property
     def telemetry_heartbeat_interval(self):
