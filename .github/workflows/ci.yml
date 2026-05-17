@@ -60,22 +60,12 @@ jobs:
   build_nodejs_base_images:
     name: Build Node.js base images
     if: contains(github.event.pull_request.labels.*.name, 'build-nodejs-base-images')
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/publish-nodejs-base-images.yml
     permissions:
       contents: read
       packages: write
-    steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
-      - name: Login to GHCR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push
-        env:
-          VERSION: ${{ github.event.pull_request.number }}
-        run: ./utils/build/build_nodejs_base_images.sh --push
+    with:
+      version: ${{ github.event.pull_request.number }}
 
   system_tests:
     name: System Tests
