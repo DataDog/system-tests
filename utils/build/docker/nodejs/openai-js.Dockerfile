@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests/weblog/nodejs:openai-js-v6903
+FROM datadog/system-tests:openai-js.base-v1
 ARG FRAMEWORK_VERSION
 
 COPY utils/build/docker/nodejs/openai_app /usr/app

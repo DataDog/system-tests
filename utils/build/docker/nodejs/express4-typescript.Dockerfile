@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/system-tests/weblog/nodejs:express4-typescript-v6903
+FROM datadog/system-tests:express4-typescript.base-v1
 
 COPY utils/build/docker/nodejs/express4-typescript /usr/app
 

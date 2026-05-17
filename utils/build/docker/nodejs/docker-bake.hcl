@@ -1,9 +1,5 @@
 # Docker Buildx bake file for Node.js base images
 
-variable "VERSION" {
-  default = "latest"
-}
-
 group "default" {
   targets = [
     "express4",
@@ -21,62 +17,53 @@ group "default" {
 target "express4" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:express4-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:express4.base-v1"]
 }
 
 target "express5" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express5.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:express5-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:express5.base-v1"]
 }
 
 target "fastify" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/fastify.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:fastify-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:fastify.base-v1"]
 }
 
 target "express4-typescript" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4-typescript.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:express4-typescript-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:express4-typescript.base-v1"]
 }
 
 target "nextjs" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/nextjs.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:nextjs-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:nextjs.base-v1"]
 }
 
 target "anthropic-js" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/anthropic-js.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:anthropic-js-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:anthropic-js.base-v1"]
 }
 
 target "openai-js" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/openai-js.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:openai-js-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:openai-js.base-v1"]
 }
 
 target "google_genai-js" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/google_genai-js.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:google_genai-js-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:google_genai-js.base-v1"]
 }
 
 target "parametric" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/parametric.base.Dockerfile"
-  tags       = ["ghcr.io/datadog/system-tests/weblog/nodejs:parametric-v${VERSION}"]
-  labels     = { "org.opencontainers.image.source" = "https://github.com/DataDog/system-tests" }
+  tags       = ["datadog/system-tests:parametric-nodejs.base-v1"]
 }
