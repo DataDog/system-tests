@@ -141,8 +141,13 @@ run_build_command() {
     return "${exit_code}"
 }
 
-# shellcheck source=load_base_image.sh
-source "${SCRIPT_DIR}/load_base_image.sh"
+load_base_image() {
+    local f="binaries/${TEST_LIBRARY:-}-${WEBLOG_VARIANT:-}-base-image.tar.zst"
+    if [ -f "$f" ]; then
+        echo "Loading base image from $f"
+        zstd -d -c "$f" | docker load
+    fi
+}
 
 build() {
     CACHE_TO=

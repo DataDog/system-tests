@@ -7,7 +7,6 @@ group "default" {
     "fastify",
     "express4-typescript",
     "nextjs",
-    "parametric",
   ]
 }
 
@@ -39,10 +38,4 @@ target "nextjs" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/nextjs.base.Dockerfile"
   tags       = ["datadog/system-tests:nextjs.base-v1"]
-}
-
-target "parametric" {
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/parametric.base.Dockerfile"
-  tags       = ["datadog/system-tests:parametric-nodejs.base-v1"]
 }
