@@ -4,7 +4,7 @@ set -eu
 
 cd /usr/app
 
-BUN_ARGS=(--network-concurrency 8)
+BUN_ARGS=(--network-concurrency 8 --trust)
 
 run_without_node_env () {
     (
