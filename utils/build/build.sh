@@ -141,14 +141,6 @@ run_build_command() {
     return "${exit_code}"
 }
 
-load_base_image() {
-    local f="binaries/${TEST_LIBRARY:-}-${WEBLOG_VARIANT:-}-base-image.tar.zst"
-    if [ -f "$f" ]; then
-        echo "Loading base image from $f"
-        zstd -d -c "$f" | docker load
-    fi
-}
-
 build() {
     CACHE_TO=
     CACHE_FROM=
@@ -264,21 +256,23 @@ build() {
                 cd ..
             fi
 
-            if [[ $TEST_LIBRARY == nodejs ]] && [[ $SAVE_TO_BINARIES == 1 ]]; then
-                BASE_IMAGE=$(awk '/^FROM/{print $2; exit}' "utils/build/docker/nodejs/${WEBLOG_VARIANT}.Dockerfile")
-                echo "Saving base image $BASE_IMAGE to binaries/"
-                docker save "$BASE_IMAGE" | zstd > "binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-base-image.tar.zst"
-                continue
-            fi
-
-            load_base_image
-
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
+
+            if [[ $TEST_LIBRARY == nodejs ]] && [[ $SAVE_TO_BINARIES == 1 ]]; then
+                BASE_IMAGE=$(awk '/^FROM/{print $2; exit}' "utils/build/docker/nodejs/${WEBLOG_VARIANT}.Dockerfile")
+                echo "Saving base image $BASE_IMAGE to $BINARIES_FILENAME"
+                docker save "$BASE_IMAGE" | zstd > "$BINARIES_FILENAME"
+                continue
+            fi
 
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
                 zstd -d -c "$BINARIES_FILENAME" | docker load
+            fi
+
+            if docker image inspect system_tests/weblog >/dev/null 2>&1; then
+                echo "Using pre-loaded weblog image"
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -359,7 +353,6 @@ build() {
                     docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
 
-            fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
             run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \

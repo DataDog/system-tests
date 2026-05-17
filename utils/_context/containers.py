@@ -959,8 +959,7 @@ class WeblogContainer(TestedContainer):
 
         # If an image is saved as a file in binaries, we don't need any image
         filename = f"binaries/{library}-{weblog}-weblog.tar.zst"
-        base_image_filename = f"binaries/{library}-{weblog}-base-image.tar.zst"
-        if Path(filename).is_file() or Path(base_image_filename).is_file():
+        if Path(filename).is_file():
             return []
 
         # else, parse the Dockerfile and extract all images reference in a FROM section"""
