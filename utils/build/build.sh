@@ -339,7 +339,7 @@ build() {
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                    docker save system_tests/weblog | pigz > $BINARIES_FILENAME
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
