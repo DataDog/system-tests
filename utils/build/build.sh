@@ -353,6 +353,7 @@ build() {
                     docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
 
+            fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
             run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
