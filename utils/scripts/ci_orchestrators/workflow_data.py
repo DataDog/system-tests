@@ -286,7 +286,7 @@ def _get_endtoend_weblogs(
     ci_environment: str,
     binaries_artifact: str,
     *,
-    build_weblog_images: bool = False,
+    build_weblog_images: bool = True,
 ) -> list[Weblog]:
     result: list[Weblog] = []
 
@@ -361,7 +361,7 @@ def get_endtoend_definitions(
     unique_id: str,
     binaries_artifact: str,
     *,
-    build_weblog_images: bool = False,
+    build_weblog_images: bool = True,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
