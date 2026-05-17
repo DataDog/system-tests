@@ -8,6 +8,9 @@ set -e
 set -u
 set -o pipefail
 
+# shellcheck source=utils/build/load_base_image.sh
+source "$(dirname "${BASH_SOURCE[0]}")/utils/build/load_base_image.sh"
+
 function hint() {
     local program="${BASH_SOURCE[0]##*/}"
     echo "see ${program} ++help for documentation"
@@ -520,6 +523,9 @@ function main() {
         fi
         ####
 
+        if [[ "${scenario}" == "PARAMETRIC" ]]; then
+            WEBLOG_VARIANT=parametric load_base_image
+        fi
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }

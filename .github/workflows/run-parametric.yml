@@ -66,11 +66,6 @@ on:
         default: "1"
         required: false
         type: string
-      _build_nodejs_base_images:
-        description: "Shall we build nodejs base images for tests on nodejs tracer"
-        default: false
-        required: false
-        type: boolean
       push_to_test_optimization:
         description: "Push test result to DataDog Test Optimization"
         default: false
@@ -126,10 +121,6 @@ jobs:
           path: binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Build nodejs weblog base images
-        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
-        run: |
-          ./utils/build/build_nodejs_base_images.sh
       - name: Run PARAMETRIC scenario
         run: |
           ./run.sh PARAMETRIC\

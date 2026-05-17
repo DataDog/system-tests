@@ -193,7 +193,6 @@ jobs:
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
-      _build_nodejs_base_images: ${{ inputs._build_nodejs_base_images }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
       test_optimization_datadog_site: ${{ inputs.test_optimization_datadog_site }}
 

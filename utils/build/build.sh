@@ -141,6 +141,9 @@ run_build_command() {
     return "${exit_code}"
 }
 
+# shellcheck source=load_base_image.sh
+source "${SCRIPT_DIR}/load_base_image.sh"
+
 build() {
     CACHE_TO=
     CACHE_FROM=
@@ -256,6 +259,8 @@ build() {
                 cd ..
             fi
 
+            load_base_image
+
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
@@ -338,8 +343,14 @@ build() {
                 fi
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                    echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
+                    if [[ $TEST_LIBRARY == nodejs ]]; then
+                        BASE_IMAGE=$(awk '/^FROM/{print $2; exit}' "utils/build/docker/nodejs/${WEBLOG_VARIANT}.Dockerfile")
+                        echo "Saving base image $BASE_IMAGE to binaries/"
+                        docker save "$BASE_IMAGE" | zstd > "binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-base-image.tar.zst"
+                    else
+                        echo "Saving image to $BINARIES_FILENAME"
+                        docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
+                    fi
                 fi
 
             fi
