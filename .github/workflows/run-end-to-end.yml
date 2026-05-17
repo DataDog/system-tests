@@ -47,11 +47,6 @@ on:
         default: 'custom'
         required: false
         type: string
-      _weblog_ghcr_image:
-        description: "GHCR image to pull instead of building from artifact (e.g. ghcr.io/datadog/system-tests/weblog/nodejs:express4-run-12345)"
-        default: ''
-        required: false
-        type: string
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -141,18 +136,6 @@ jobs:
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
-    - name: Login to GHCR
-      if: inputs._weblog_ghcr_image != ''
-      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Pull weblog image from GHCR
-      if: inputs._weblog_ghcr_image != ''
-      run: |
-        docker pull "${{ inputs._weblog_ghcr_image }}"
-        docker tag "${{ inputs._weblog_ghcr_image }}" system_tests/weblog
     - name: Build buddies weblog images
       if: inputs._build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh

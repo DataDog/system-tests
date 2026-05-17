@@ -5,28 +5,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  prune-weblog-images:
-    name: Prune weblog run images (${{ matrix.library }})
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        library: [nodejs, python, java, dotnet, ruby, php, golang, cpp]
-      fail-fast: false
-    steps:
-    - name: Prune registry
-      uses: vlaurin/action-ghcr-prune@0a539594d122b915e71c59733a5b115bfaaf5d52 #v0.5.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        organization: Datadog
-        container: system-tests/weblog/${{ matrix.library }}
-        keep-younger-than: 3 # days, matches artifact_retention_days in ci.yml
-        prune-tags-regexes: |
-          ^[a-z0-9_-]+-run-[0-9]+$
-        prune-untagged: true
-
   prune-init-images:
     if: ${{ false }} #Enable when Github support fix the problem related to the image versions.
     name: Prune dd-lib-java-init docker images

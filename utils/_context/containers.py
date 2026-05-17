@@ -958,6 +958,9 @@ class WeblogContainer(TestedContainer):
         """Returns images needed to build the weblog"""
 
         # If an image is saved as a file in binaries, we don't need any image
+        filename = f"binaries/{library}-{weblog}-weblog.tar.zst"
+        if Path(filename).is_file():
+            return []
 
         # else, parse the Dockerfile and extract all images reference in a FROM section"""
         result: list[str] = []
