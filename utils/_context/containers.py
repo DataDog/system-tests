@@ -1015,6 +1015,8 @@ class WeblogContainer(TestedContainer):
         if self.uds_mode:
             self._mount_agent_socket_dir()
             self.environment["DD_APM_RECEIVER_SOCKET"] = DEFAULT_APM_RECEIVER_SOCKET
+            self.environment.pop("DD_AGENT_HOST", None)
+            self.environment.pop("DD_TRACE_AGENT_PORT", None)
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
         # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.

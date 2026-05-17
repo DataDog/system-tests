@@ -1,6 +1,7 @@
 import pytest
 
 from utils._logger import logger
+from utils.proxy.ports import ProxyPorts
 
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
@@ -67,13 +68,12 @@ class DebuggerScenario(EndToEndScenario):
             # when run from macOS as well.
             self.agent_container.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "ro"}
             self.agent_container.volumes["/sys/fs/cgroup"] = {"bind": "/sys/fs/cgroup", "mode": "ro"}
-            # Set the system-probe to output to the proxy the same way the
-            # libraries are being told to. For golang, the system-probe acts
-            # as a tracer library and sends data to the trace-agent just like
-            # the other libraries.
-            weblog_env = self.weblog_container.environment
-            self.agent_container.environment["DD_TRACE_AGENT_PORT"] = weblog_env["DD_TRACE_AGENT_PORT"]
-            self.agent_container.environment["DD_AGENT_HOST"] = weblog_env["DD_AGENT_HOST"]
+            # For golang, the system-probe acts as a tracer library and sends
+            # data to the trace-agent. Route it through the proxy explicitly;
+            # UDS weblogs do not keep DD_AGENT_HOST/DD_TRACE_AGENT_PORT in
+            # their container environment.
+            self.agent_container.environment["DD_TRACE_AGENT_PORT"] = str(ProxyPorts.weblog)
+            self.agent_container.environment["DD_AGENT_HOST"] = "proxy"
 
         if not self.replay:
             self.warmups.append(self._wait_for_agent_debugging)
