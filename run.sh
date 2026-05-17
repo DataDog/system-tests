@@ -524,7 +524,7 @@ function main() {
         ####
 
         if [[ "${scenario}" == "PARAMETRIC" ]]; then
-            WEBLOG_VARIANT=parametric load_base_image
+            TEST_LIBRARY="${libraries[0]:-}" WEBLOG_VARIANT=parametric load_base_image
         fi
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
