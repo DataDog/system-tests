@@ -44,7 +44,7 @@ on:
         type: string
       _system_tests_dev_mode:
         description: "Shall we run system tests in dev mode (library and agent dev binary)"
-        default: false
+        default: true
         required: false
         type: boolean
       _system_tests_library_target_branch_map:
@@ -54,7 +54,7 @@ on:
         type: string
       _build_weblog_images:
         description: "When true, Node.js weblogs get a build job to save the base image artifact. When false, parallel_weblogs is empty and run jobs rebuild from Docker Hub."
-        default: false
+        default: true
         required: false
         type: boolean
 
