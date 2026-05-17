@@ -311,14 +311,23 @@ def _get_endtoend_weblogs(
 
         for name in names:
             if name not in integration_frameworks_weblogs:
-                result.append(
-                    Weblog(
-                        name=name,
-                        require_build=library != "nodejs",
-                        build_in_run=library == "nodejs",
-                        artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                if library == "nodejs":
+                    result.append(
+                        Weblog(
+                            name=name,
+                            require_build=False,
+                            build_in_run=True,
+                            artifact_name=binaries_artifact,
+                        )
                     )
-                )
+                else:
+                    result.append(
+                        Weblog(
+                            name=name,
+                            require_build=True,
+                            artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                        )
+                    )
             else:
                 for version in integration_frameworks_weblogs[name]:
                     result.append(
