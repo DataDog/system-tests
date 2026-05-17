@@ -201,6 +201,7 @@ class Weblog:
     name: str
     require_build: bool
     artifact_name: str
+    build_in_run: bool = False
 
     def serialize(self) -> dict:
         return {"name": self.name, "artifact_name": self.artifact_name}
@@ -232,7 +233,7 @@ class Job:
             "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog.name,
-            "weblog_build_required": self.weblog.require_build,
+            "weblog_build_required": self.weblog.require_build or self.weblog.build_in_run,
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
@@ -313,7 +314,8 @@ def _get_endtoend_weblogs(
                 result.append(
                     Weblog(
                         name=name,
-                        require_build=True,
+                        require_build=library != "nodejs",
+                        build_in_run=library == "nodejs",
                         artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
                     )
                 )
