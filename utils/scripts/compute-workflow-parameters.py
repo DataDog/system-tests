@@ -286,9 +286,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
     )
-    parser.add_argument(
-        "--build-weblog-images", type=str, help="When true, weblogs get a build job", default="true"
-    )
+    parser.add_argument("--build-weblog-images", type=str, help="When true, weblogs get a build job", default="true")
     parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
 
     args = parser.parse_args()
