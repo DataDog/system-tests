@@ -22,6 +22,6 @@ RUN printf 'node app.js' >> app.sh
 COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 CMD ./app.sh
 
-COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+COPY utils/build/docker/nodejs/install_ddtrace_bun.sh binaries* /binaries/
+RUN /binaries/install_ddtrace_bun.sh
 ENV DD_TRACE_HEADER_TAGS=user-agent
