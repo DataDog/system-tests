@@ -4,7 +4,7 @@ set -eu
 
 cd /usr/app
 
-BUN_ARGS=(--network-concurrency 8 --trust --linker=hoisted)
+BUN_ARGS=(--network-concurrency 16 --trust --linker=hoisted)
 
 run_without_node_env () {
     (
