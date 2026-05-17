@@ -7,9 +7,6 @@ group "default" {
     "fastify",
     "express4-typescript",
     "nextjs",
-    "anthropic-js",
-    "openai-js",
-    "google_genai-js",
     "parametric",
   ]
 }
@@ -42,24 +39,6 @@ target "nextjs" {
   context    = "."
   dockerfile = "utils/build/docker/nodejs/nextjs.base.Dockerfile"
   tags       = ["datadog/system-tests:nextjs.base-v1"]
-}
-
-target "anthropic-js" {
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/anthropic-js.base.Dockerfile"
-  tags       = ["datadog/system-tests:anthropic-js.base-v1"]
-}
-
-target "openai-js" {
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/openai-js.base.Dockerfile"
-  tags       = ["datadog/system-tests:openai-js.base-v1"]
-}
-
-target "google_genai-js" {
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/google_genai-js.base.Dockerfile"
-  tags       = ["datadog/system-tests:google_genai-js.base-v1"]
 }
 
 target "parametric" {

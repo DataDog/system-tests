@@ -1,7 +1,17 @@
-FROM datadog/system-tests:openai-js.base-v1
+FROM node:22-alpine
 ARG FRAMEWORK_VERSION
 
+RUN apk add --no-cache bash curl git jq
+
+RUN uname -r
+
+# print versions
+RUN node --version && npm --version && curl --version
+
+WORKDIR /usr/app
+
 COPY utils/build/docker/nodejs/openai_app /usr/app
+RUN npm ci || (sleep 30 && npm ci)
 
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         npm install openai; \
