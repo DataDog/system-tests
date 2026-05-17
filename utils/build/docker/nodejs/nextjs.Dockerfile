@@ -6,7 +6,7 @@ EXPOSE 7777
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-RUN npm run build
+RUN bun run build
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker startup

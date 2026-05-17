@@ -4,17 +4,13 @@ set -eu
 
 cd /usr/app
 
+BUN_ARGS=(--network-concurrency 8 --trust --linker=hoisted)
+
 run_without_node_env () {
     (
         unset NODE_ENV
         "$@"
     )
-}
-
-install_custom_target () {
-    local target=$1
-
-    run_without_node_env npm install "$target" || run_without_node_env npm install "$target"
 }
 
 if [ -e /binaries/nodejs-load-from-local ]; then
@@ -23,16 +19,14 @@ else
     if [ -e /binaries/nodejs-load-from-npm ]; then
         target=$(</binaries/nodejs-load-from-npm)
         echo "install from: $target"
-        install_custom_target "$target"
+        run_without_node_env bun add "${BUN_ARGS[@]}" "$target" || run_without_node_env bun add "${BUN_ARGS[@]}" "$target"
 
     elif [ -e /binaries/dd-trace-js ]; then
-        target=$(run_without_node_env npm pack /binaries/dd-trace-js)
         echo "install from local folder /binaries/dd-trace-js"
-        install_custom_target "$target"
+        run_without_node_env bun add "${BUN_ARGS[@]}" /binaries/dd-trace-js || run_without_node_env bun add "${BUN_ARGS[@]}" /binaries/dd-trace-js
 
     else
-        target="dd-trace"
         echo "install from NPM"
-        npm install "$target" || npm install "$target"
+        run_without_node_env bun add "${BUN_ARGS[@]}" dd-trace || run_without_node_env bun add "${BUN_ARGS[@]}" dd-trace
     fi
 fi

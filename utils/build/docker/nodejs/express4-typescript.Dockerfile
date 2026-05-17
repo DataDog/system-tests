@@ -14,7 +14,7 @@ ENV DD_DATA_STREAMS_ENABLED=true
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-RUN npm run build
+RUN bun run build
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
