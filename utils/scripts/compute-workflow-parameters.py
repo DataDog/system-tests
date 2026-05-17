@@ -43,6 +43,7 @@ class CiData:
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
+        build_weblog_images: bool = False,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
@@ -87,6 +88,7 @@ class CiData:
             maximum_parallel_jobs=256,
             unique_id=self.unique_id,
             binaries_artifact=self.binaries_artifact,
+            build_weblog_images=build_weblog_images,
         )
 
         self.data["parametric"] = {
@@ -284,6 +286,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
     )
+    parser.add_argument(
+        "--build-weblog-images", type=str, help="When true, Node.js weblogs get a build job", default="false"
+    )
     parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
 
     args = parser.parse_args()
@@ -304,4 +309,5 @@ if __name__ == "__main__":
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
+        build_weblog_images=args.build_weblog_images != "false",
     ).export(export_format=args.format, output=args.output)

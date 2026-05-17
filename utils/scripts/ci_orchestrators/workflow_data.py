@@ -201,6 +201,7 @@ class Weblog:
     name: str
     require_build: bool
     artifact_name: str
+    build_in_run: bool = False
 
     def serialize(self) -> dict:
         return {"name": self.name, "artifact_name": self.artifact_name}
@@ -232,7 +233,7 @@ class Job:
             "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog.name,
-            "weblog_build_required": self.weblog.require_build,
+            "weblog_build_required": self.weblog.require_build or self.weblog.build_in_run,
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
@@ -279,7 +280,12 @@ class Job:
 
 
 def _get_endtoend_weblogs(
-    library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
+    library: str,
+    weblogs_filter: list[str],
+    unique_id: str,
+    ci_environment: str,
+    binaries_artifact: str,
+    build_weblog_images: bool = False,
 ) -> list[Weblog]:
     result: list[Weblog] = []
 
@@ -310,13 +316,23 @@ def _get_endtoend_weblogs(
 
         for name in names:
             if name not in integration_frameworks_weblogs:
-                result.append(
-                    Weblog(
-                        name=name,
-                        require_build=True,
-                        artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                if not build_weblog_images:
+                    result.append(
+                        Weblog(
+                            name=name,
+                            require_build=False,
+                            build_in_run=True,
+                            artifact_name=binaries_artifact,
+                        )
                     )
-                )
+                else:
+                    result.append(
+                        Weblog(
+                            name=name,
+                            require_build=True,
+                            artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                        )
+                    )
             else:
                 for version in integration_frameworks_weblogs[name]:
                     result.append(
@@ -343,6 +359,7 @@ def get_endtoend_definitions(
     maximum_parallel_jobs: int,
     unique_id: str,
     binaries_artifact: str,
+    build_weblog_images: bool = False,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -352,7 +369,12 @@ def get_endtoend_definitions(
 
     # get the list of end-to-end weblogs for the given library
     weblogs: list[Weblog] = _get_endtoend_weblogs(
-        library, weblogs_filter, ci_environment=ci_environment, unique_id=unique_id, binaries_artifact=binaries_artifact
+        library,
+        weblogs_filter,
+        ci_environment=ci_environment,
+        unique_id=unique_id,
+        binaries_artifact=binaries_artifact,
+        build_weblog_images=build_weblog_images,
     )
 
     # check that jobs can be splitted
