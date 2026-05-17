@@ -309,70 +309,37 @@ build() {
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
+                run_build_command docker buildx build \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --load \
+                    --progress=plain \
+                    ${DOCKER_PLATFORM_ARGS} \
+                    ${GITHUB_TOKEN_SECRET_ARG} \
+                    -f ${DOCKERFILE} \
+                    --label "system-tests-library=${TEST_LIBRARY}" \
+                    --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
+                    -t system_tests/weblog \
+                    $CACHE_TO \
+                    $CACHE_FROM \
+                    $EXTRA_DOCKER_ARGS \
+                    .
+
                 if test -f "binaries/waf_rule_set.json"; then
-                    # WAF case: first build must --load so the WAF build can use it as base,
-                    # then the WAF build outputs directly to avoid docker save | gzip.
+
                     run_build_command docker buildx build \
                         --build-arg BUILDKIT_INLINE_CACHE=1 \
                         --load \
                         --progress=plain \
                         ${DOCKER_PLATFORM_ARGS} \
-                        ${GITHUB_TOKEN_SECRET_ARG} \
-                        -f ${DOCKERFILE} \
-                        --label "system-tests-library=${TEST_LIBRARY}" \
-                        --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
+                        -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                         -t system_tests/weblog \
-                        $CACHE_TO \
-                        $CACHE_FROM \
                         $EXTRA_DOCKER_ARGS \
                         .
+                fi
 
-                    if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                        echo "Saving image to $BINARIES_FILENAME"
-                        run_build_command docker buildx build \
-                            --build-arg BUILDKIT_INLINE_CACHE=1 \
-                            --output "type=docker,dest=${BINARIES_FILENAME}" \
-                            --progress=plain \
-                            ${DOCKER_PLATFORM_ARGS} \
-                            -f utils/build/docker/overwrite_waf_rules.Dockerfile \
-                            $EXTRA_DOCKER_ARGS \
-                            .
-                    else
-                        run_build_command docker buildx build \
-                            --build-arg BUILDKIT_INLINE_CACHE=1 \
-                            --load \
-                            --progress=plain \
-                            ${DOCKER_PLATFORM_ARGS} \
-                            -f utils/build/docker/overwrite_waf_rules.Dockerfile \
-                            -t system_tests/weblog \
-                            $EXTRA_DOCKER_ARGS \
-                            .
-                    fi
-                else
-                    # No WAF: output directly from the build, skipping docker save | gzip.
-                    local output_arg="--load"
-                    if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                        output_arg="--output type=docker,dest=${BINARIES_FILENAME}"
-                    fi
-
-                    run_build_command docker buildx build \
-                        --build-arg BUILDKIT_INLINE_CACHE=1 \
-                        ${output_arg} \
-                        --progress=plain \
-                        ${DOCKER_PLATFORM_ARGS} \
-                        ${GITHUB_TOKEN_SECRET_ARG} \
-                        -f ${DOCKERFILE} \
-                        --label "system-tests-library=${TEST_LIBRARY}" \
-                        --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
-                        -t system_tests/weblog \
-                        $CACHE_TO \
-                        $CACHE_FROM \
-                        $EXTRA_DOCKER_ARGS \
-                        .
-
-                    if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                        echo "Saved image to $BINARIES_FILENAME"
-                    fi
+                if [[ $SAVE_TO_BINARIES == 1 ]]; then
+                    echo "Saving image to $BINARIES_FILENAME"
+                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
