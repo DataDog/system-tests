@@ -42,3 +42,26 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
 
 {% endfor %}{% endfor %}
+{% if parametric.enable %}
+{% for job_index in parametric.job_matrix %}
+run_{{library}}_PARAMETRIC_{{job_index}}:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  tags:
+    - docker-in-docker:amd64
+  stage: {{stage}}
+  {% if binaries_artifact %}
+  needs:
+    - job: {{binaries_artifact}}
+      artifacts: true
+  {% endif %}
+  script:
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+
+{% endfor %}
+{% endif %}

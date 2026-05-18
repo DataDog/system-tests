@@ -16,9 +16,10 @@ with open(args.params) as f:
 scenario_list = params["endtoend"]["scenarios"]
 weblog_variants = params["endtoend"]["weblogs"]
 binaries_artifact = params["miscs"]["binaries_artifact"]
+parametric = params["parametric"]
 
 env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), autoescape=select_autoescape())
 
 template = env.get_template("system-tests.yml")
 
-print(template.render(scenarios=scenario_list, stage=args.stage, library=args.library, weblog_variants=weblog_variants, binaries_artifact=binaries_artifact))
+print(template.render(scenarios=scenario_list, stage=args.stage, library=args.library, weblog_variants=weblog_variants, binaries_artifact=binaries_artifact, parametric=parametric))
