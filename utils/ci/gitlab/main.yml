@@ -44,8 +44,6 @@ build_test_pipeline:
     - arch:amd64
   stage: build
   script:
-    - ./build.sh -i runner
-    - source venv/bin/activate
     - >
       for library in $[[ inputs.libraries ]]; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
@@ -56,6 +54,7 @@ build_test_pipeline:
       - generated-pipeline.yml
   before_script:
     - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
 
 run_test_pipeline:
   stage: run
