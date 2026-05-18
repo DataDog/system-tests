@@ -15,6 +15,11 @@ from utils import features, scenarios, context, missing_feature
 class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
+        # Ruby's Remote Configuration poller (Remote::Tie.boot) starts lazily
+        # from the Rack middleware on the first request, not at tracer init.
+        # Without an HTTP request first, the RC worker never starts and the
+        # tracer never processes the symdb RC command below. This helper sends
+        # a GET to /debugger/init for Ruby and is a no-op for other tracers.
         self.initialize_weblog_remote_config()
         self.send_rc_symdb()
 
@@ -70,6 +75,12 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
             ]:
                 return True
 
+            # Always recurse when this scope doesn't itself match both name and
+            # type. Earlier this function short-circuited on a name match alone,
+            # which broke Ruby: its root scope has scope_type FILE and a name
+            # like "/app/.../debugger_controller.rb" — the regex matched the
+            # name, FILE failed the type check, and the recursion was skipped,
+            # so the nested CLASS(DebuggerController) was never found.
             return any(check_scope(nested_scope) for nested_scope in scope.get("scopes", []))
 
         for symbol in self.symbols:
