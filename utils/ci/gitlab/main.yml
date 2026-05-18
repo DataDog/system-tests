@@ -38,6 +38,10 @@ spec:
       default: "datadoghq.com"
 ---
 
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
 build_test_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags:
