@@ -36,11 +36,17 @@ spec:
     test_optimization_datadog_site:
       description: "Datadog site to use for Test Optimization"
       default: "datadoghq.com"
+    auto_cancel_on_new_commit:
+      description: "Auto-cancel strategy when a new commit is pushed (interruptible, conservative, disabled)"
+      default: "interruptible"
 ---
 
 workflow:
-  auto_cancel:
-    on_new_commit: interruptible
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - when: always
+      auto_cancel:
+        on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
 build_test_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
