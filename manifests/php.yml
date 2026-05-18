@@ -93,7 +93,10 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters: v1.10.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body: v0.99.1
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: v1.6.2
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:
+    - weblog_declaration:
+        "*": v1.6.2
+        laravel11x: missing_feature (PHP tracer Laravel integration collects response body schema regardless of DD_API_SECURITY_PARSE_RESPONSE_BODY=false)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
