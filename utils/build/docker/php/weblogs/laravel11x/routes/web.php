@@ -309,7 +309,7 @@ Route::post('/user_login_failure_event_v2', function (Request $request) {
     return response('OK', 200, ['Content-Type' => 'text/plain']);
 });
 
-Route::get('/rasp/lfi', function (Request $request) {
+Route::match(['get', 'post'], '/rasp/lfi', function (Request $request) {
     $file = null;
     $contentType = $request->header('Content-Type', '');
     if ($contentType === 'application/json') {
@@ -319,14 +319,14 @@ Route::get('/rasp/lfi', function (Request $request) {
         $decoded = simplexml_load_string(stripslashes($request->getContent()));
         $file = (string) ($decoded[0] ?? '');
     } else {
-        $file = urldecode($request->query('file', ''));
+        $file = urldecode($request->input('file', ''));
     }
     @file_get_contents($file);
 
     return response('Hello, LFI!', 200, ['Content-Type' => 'text/plain']);
 });
 
-Route::get('/rasp/ssrf', function (Request $request) {
+Route::match(['get', 'post'], '/rasp/ssrf', function (Request $request) {
     $domain = null;
     $contentType = $request->header('Content-Type', '');
     if ($contentType === 'application/json') {
@@ -336,11 +336,19 @@ Route::get('/rasp/ssrf', function (Request $request) {
         $decoded = simplexml_load_string(stripslashes($request->getContent()));
         $domain = (string) ($decoded[0] ?? '');
     } else {
-        $domain = urldecode($request->query('domain', ''));
+        $domain = urldecode($request->input('domain', ''));
     }
     @file_get_contents('http://'.$domain);
 
     return response('Hello, SSRF!', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/rasp/multiple', function (Request $request) {
+    @file_get_contents(urldecode($request->query('file1', '')));
+    @file_get_contents(urldecode($request->query('file2', '')));
+    @file_get_contents('../etc/passwd');
+
+    return response('Hello, multiple rasp!', 200, ['Content-Type' => 'text/plain']);
 });
 
 Route::get('/db', function (Request $request) {
