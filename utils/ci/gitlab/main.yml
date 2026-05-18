@@ -48,6 +48,15 @@ workflow:
       auto_cancel:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
+print_registry_path:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  interruptible: true
+  tags:
+    - arch:amd64
+  stage: $[[ inputs.stage ]]
+  script:
+    - echo "CI_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE"
+
 build_test_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   interruptible: true
