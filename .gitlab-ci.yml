@@ -3,6 +3,7 @@ include:
     inputs:
       stage: "test"
       libraries: "python"
+      scenarios_groups: "all"
 stages:
   - build
   - test

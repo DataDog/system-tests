@@ -8,7 +8,7 @@ spec:
       default: ""
     scenarios_groups:
       description: "Comma-separated list of scenario groups to run"
-      default: "all"
+      default: ""
     excluded_scenarios:
       description: "Comma-separated list of scenarios not to run"
       default: "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
@@ -30,7 +30,7 @@ spec:
       type: number
       default: 1
     push_to_test_optimization:
-      description: "Push test results to Datadog Test Optimization (requires TEST_OPTIMIZATION_API_KEY CI variable)"
+      description: "Push test results to Datadog Test Optimization"
       type: boolean
       default: false
     test_optimization_datadog_site:
