@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--stage", required=True, help="GitLab CI stage for the generated jobs")
 parser.add_argument("--library", required=True, default="", help="Library name, used to prefix job names")
 parser.add_argument("--params", required=True, help="Path to JSON output from compute-workflow-parameters.py")
+parser.add_argument("--ci-image", required=True, help="Full CI image reference for generated jobs")
 parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
 parser.add_argument("--test-optimization-datadog-site", default="datadoghq.com", help="Datadog site for Test Optimization")
 args = parser.parse_args()
@@ -31,6 +32,7 @@ print(template.render(
     weblog_variants=weblog_variants,
     binaries_artifact=binaries_artifact,
     parametric=parametric,
+    ci_image=args.ci_image,
     push_to_test_optimization=args.push_to_test_optimization == "true",
     test_optimization_datadog_site=args.test_optimization_datadog_site,
 ))

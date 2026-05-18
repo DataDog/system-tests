@@ -1,6 +1,6 @@
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  image: {{ci_image}}
   interruptible: true
   tags:
     - docker-in-docker:amd64
@@ -29,7 +29,7 @@ build_{{library}}_{{variant}}:
 {% endfor %}
 {% for scenario in scenarios %}{% for variant in weblog_variants %}
 run_{{library}}_{{scenario}}_{{variant}}:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  image: {{ci_image}}
   interruptible: true
   tags:
     - docker-in-docker:amd64
@@ -61,7 +61,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
 {% if parametric.enable %}
 {% for job_index in parametric.job_matrix %}
 run_{{library}}_PARAMETRIC_{{job_index}}:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  image: {{ci_image}}
   interruptible: true
   tags:
     - docker-in-docker:amd64
@@ -91,7 +91,7 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
 {% endif %}
 {% if push_to_test_optimization %}
 push_{{library}}_test_optimization:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  image: {{ci_image}}
   tags:
     - docker-in-docker:amd64
   stage: {{stage}}

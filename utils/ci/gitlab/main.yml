@@ -48,17 +48,44 @@ workflow:
       auto_cancel:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
+build_ci_image:
+  image: registry.ddbuild.io/images/docker:20.10.13-jammy
+  interruptible: true
+  tags:
+    - docker-in-docker:amd64
+  stage: $[[ inputs.stage ]]
+  script:
+    - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
+    - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
+    - >
+      if docker manifest inspect registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG > /dev/null 2>&1; then
+        echo "Image already exists, skipping build";
+      else
+        docker build -f utils/ci/gitlab/docker/system-tests.Dockerfile -t registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG . &&
+        docker push registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG;
+      fi
+  artifacts:
+    reports:
+      dotenv: build.env
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+
 build_test_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  image: $CI_IMAGE
   interruptible: true
   tags:
     - arch:amd64
-  stage: build
+  stage: $[[ inputs.stage ]]
+  needs:
+    - job: build_ci_image
+      artifacts: true
   script:
     - >
       for library in $[[ inputs.libraries ]]; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
-        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" >> generated-pipeline.yml;
+        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" >> generated-pipeline.yml;
       done
   artifacts:
     paths:
