@@ -13,10 +13,10 @@ import java.util.List;
 
 import datadog.trace.api.llmobs.LLMObs;
 import datadog.trace.api.llmobs.LLMObsSpan;
-import datadog.trace.api.GlobalTracer;
-import datadog.trace.bootstrap.instrumentation.api.AgentSpan;
-import datadog.trace.bootstrap.instrumentation.api.AgentTracer;
-import datadog.trace.bootstrap.instrumentation.api.AgentScope;
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.util.GlobalTracer;
 
 // OpenAI imports
 import com.openai.client.OpenAIClient;
@@ -389,7 +389,7 @@ public class SingleFileServer {
   }
 
   private static String doGetSDKInfo (Context ctx) {
-    Package tracerPackage = GlobalTracer.class.getPackage();
+    Package tracerPackage = datadog.trace.api.GlobalTracer.class.getPackage();
     String version = tracerPackage.getImplementationVersion();
 
     Map<String, String> responseMap = Map.of(
@@ -428,20 +428,14 @@ public class SingleFileServer {
         span.finish();
       }
     } else {
-      AgentSpan span = AgentTracer
-          .get()
-          .buildSpan(name)
-          .start();
-
-      AgentScope scope = AgentTracer
-        .get()
-        .activateSpan(span);
-
-      JSONArray children = traceStructure.optJSONArray("children");
-      doTraceChildren(children);
-
-      span.finish();
-      scope.close();
+      Tracer tracer = GlobalTracer.get();
+      Span span = tracer.buildSpan(name).start();
+      try (Scope scope = tracer.activateSpan(span)) {
+        JSONArray children = traceStructure.optJSONArray("children");
+        doTraceChildren(children);
+      } finally {
+        span.finish();
+      }
     }
 
     return toJson(
