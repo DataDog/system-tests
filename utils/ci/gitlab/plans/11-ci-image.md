@@ -39,10 +39,11 @@ None of the following are called by any CI pipeline script:
 `install_kube_dependencies.sh` is **not** moved to the system-tests repo — it is
 deleted entirely from `libdatadog-build`.
 
-### 1b. Replace the git clone with a COPY
+### 1b. Replace the git clone with a COPY + `./build.sh -i runner`
 
-Instead of cloning system-tests at image build time (stale, slow, depends on
-GitHub), copy only `requirements.txt` and build the venv directly from it:
+Since the Dockerfile now lives inside the system-tests repo, the Docker build
+context is the repo itself. Replace the git clone with a `COPY` of the files
+needed by `./build.sh -i runner`, then run it directly:
 
 ```dockerfile
 # Remove:
@@ -50,15 +51,16 @@ RUN git clone https://github.com/DataDog/system-tests.git /system-tests
 RUN ./build.sh -i runner
 
 # Replace with:
-COPY requirements.txt /system-tests/requirements.txt
+COPY build.sh build.sh
+COPY utils/build/build.sh utils/build/build.sh
+COPY requirements.txt requirements.txt
+COPY pyproject.toml pyproject.toml
 WORKDIR /system-tests
-RUN python3.12 -m venv venv && \
-    venv/bin/pip install --upgrade pip setuptools==75.8.0 && \
-    venv/bin/pip install -r requirements.txt
+RUN ./build.sh -i runner
 ```
 
-The editable `pip install -e .` is intentionally dropped: CI jobs already handle
-package resolution via `PYTHONPATH=$CI_PROJECT_DIR`.
+The `WORKDIR` and `COPY` destination paths mirror the original clone layout so
+`./build.sh -i runner` runs identically to before.
 
 ---
 
