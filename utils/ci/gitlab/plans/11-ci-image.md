@@ -39,28 +39,35 @@ None of the following are called by any CI pipeline script:
 `install_kube_dependencies.sh` is **not** moved to the system-tests repo — it is
 deleted entirely from `libdatadog-build`.
 
-### 1b. Replace the git clone with a COPY + `./build.sh -i runner`
+### 1b. Use a multi-stage build
 
 Since the Dockerfile now lives inside the system-tests repo, the Docker build
-context is the repo itself. Replace the git clone with a `COPY` of the files
-needed by `./build.sh -i runner`, then run it directly:
+context is the repo itself. Use a two-stage build:
+
+- **Builder stage**: copies the full repo and runs `./build.sh -i runner` to
+  produce the venv. Copying everything keeps the Dockerfile simple and ensures
+  `./build.sh` has access to any file it may need.
+- **Final stage**: copies only `/system-tests/venv/` from the builder. All other
+  repo content is discarded, keeping the image lean.
 
 ```dockerfile
-# Remove:
-RUN git clone https://github.com/DataDog/system-tests.git /system-tests
-RUN ./build.sh -i runner
-
-# Replace with:
-COPY build.sh build.sh
-COPY utils/build/build.sh utils/build/build.sh
-COPY requirements.txt requirements.txt
-COPY pyproject.toml pyproject.toml
+# ---- builder ----
+FROM <base> AS builder
+# ... system package installation ...
+COPY . /system-tests
 WORKDIR /system-tests
 RUN ./build.sh -i runner
+
+# ---- final ----
+FROM <base>
+# ... system package installation ...
+COPY --from=builder /system-tests/venv /system-tests/venv
+WORKDIR /
 ```
 
-The `WORKDIR` and `COPY` destination paths mirror the original clone layout so
-`./build.sh -i runner` runs identically to before.
+Both stages share the same base image and system package installation. The
+`COPY --from=builder` line is the only addition over the original single-stage
+Dockerfile.
 
 ---
 
