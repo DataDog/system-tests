@@ -13,13 +13,12 @@ build_{{library}}_{{variant}}:
     WEBLOG_VARIANT: {{variant}}
   script:
     - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
-    - datadog-ci trace --name "Build {{library}} weblog {{variant}}" --no-fail -- ./build.sh {{library}} --save-to-binaries
+    - ./build.sh {{library}} --save-to-binaries
     - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
   artifacts:
     paths:
       - binaries/
   before_script:
-    - npm install -g @datadog/datadog-ci
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
@@ -38,17 +37,16 @@ run_{{library}}_{{scenario}}_{{variant}}:
     WEBLOG_VARIANT: {{variant}}
   script:
     - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
-    - datadog-ci trace --name "Build {{library}} weblog {{variant}}" --no-fail -- ./build.sh {{library}}
+    - ./build.sh {{library}}
     - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
     - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning {{scenario}}"
-    - datadog-ci trace --name "Run {{scenario}}" --no-fail -- ./run.sh {{scenario}}
+    - ./run.sh {{scenario}}
     - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
   artifacts:
     when: always
     paths:
       - logs*/reportJunit.xml
   before_script:
-    - npm install -g @datadog/datadog-ci
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
@@ -68,18 +66,17 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
   {% endif %}
   script:
     - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding runner"
-    - datadog-ci trace --name "Build runner" --no-fail -- ./build.sh -i runner
+    - ./build.sh -i runner
     - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
     - source venv/bin/activate
     - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
-    - datadog-ci trace --name "Run PARAMETRIC (group {{job_index}}/{{parametric.job_count}})" --no-fail -- ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
+    - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
     - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
   artifacts:
     when: always
     paths:
       - logs*/reportJunit.xml
   before_script:
-    - npm install -g @datadog/datadog-ci
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
