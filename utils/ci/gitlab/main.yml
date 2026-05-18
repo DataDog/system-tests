@@ -44,6 +44,7 @@ workflow:
 
 build_test_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  interruptible: true
   tags:
     - arch:amd64
   stage: build
@@ -62,6 +63,7 @@ build_test_pipeline:
     - export PYTHONPATH=$CI_PROJECT_DIR
 
 run_test_pipeline:
+  interruptible: true
   stage: run
   needs:
     - job: build_test_pipeline
