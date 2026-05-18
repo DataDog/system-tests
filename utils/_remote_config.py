@@ -117,7 +117,9 @@ def send_state(
         state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
         targets_version = state.get("targets_version")
         config_states = state.get("config_states", [])
-        logger.info(f"RC poll: targets_version={targets_version} (waiting for {version}), config_states={config_states}")
+        logger.info(
+            f"RC poll: targets_version={targets_version} (waiting for {version}), config_states={config_states}"
+        )
 
         if len(client_configs) == 0:
             found = state["targets_version"] == state_version and state.get("config_states", []) == []
@@ -137,7 +139,10 @@ def send_state(
         if wait_for_acknowledged_status:
             for state in current_states.configs.values():
                 if state["apply_state"] == ApplyState.UNKNOWN:
-                    logger.info(f"RC config {state['id']} still unacknowledged: apply_state={state['apply_state']}, apply_error={state.get('apply_error')}")
+                    logger.info(
+                        f"RC config {state['id']} still unacknowledged: "
+                        f"apply_state={state['apply_state']}, apply_error={state.get('apply_error')}"
+                    )
                     return False
 
         current_states.state = ApplyState.ACKNOWLEDGED
@@ -146,9 +151,12 @@ def send_state(
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
     rv = library.wait_for(remote_config_applied, timeout=30)
     if not rv:
-        logger.error(f"RC timed out. Last known state: targets_version={state.get('targets_version')}, config_states={state.get('config_states', [])}")
+        logger.error(
+            f"RC timed out. Last known state: targets_version={state.get('targets_version')}, "
+            f"config_states={state.get('config_states', [])}"
+        )
         logger.error(f"Expected version={version}, configs={list(current_states.configs.keys())}")
-    assert rv, 'Remote config was not applied'
+    assert rv, "Remote config was not applied"
     # ensure the library has enough time to apply the config to all subprocesses
     time.sleep(2)
 
