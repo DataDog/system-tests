@@ -2933,5 +2933,16 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=554, owner=_Owner.ml_observability)
 
+    @staticmethod
+    def api_security_testing_headers_collection(test_object):
+        """API Security Testing - Headers collection: tracers unconditionally tag the
+        x-datadog-endpoint-scan and x-datadog-security-test request headers on service
+        entry spans as http.request.headers.<name>, regardless of DD_TRACE_HEADER_TAGS
+        or AppSec being enabled. These markers are not propagated downstream.
+
+        https://feature-parity.us1.prod.dog/#/?feature=556
+        """
+        return _mark_test_object(test_object, feature_id=556, owner=_Owner.asm)
+
 
 features = _Features()
