@@ -20,12 +20,12 @@ Reference files:
 
 ## 1. Move the Dockerfile and helper script into the system-tests repo
 
-Create `utils/ci/docker/` and add two files:
+Create `utils/ci/gitlab/docker/` and add two files:
 
-### `utils/ci/docker/install_kube_dependencies.sh`
+### `utils/ci/gitlab/docker/install_kube_dependencies.sh`
 Copy verbatim from `libdatadog-build/docker/install_kube_dependencies.sh`.
 
-### `utils/ci/docker/system-tests.Dockerfile`
+### `utils/ci/gitlab/docker/system-tests.Dockerfile`
 Based on the existing Dockerfile with two changes:
 
 1. **Replace the git clone with a `COPY`** of only the files needed to build the
@@ -51,7 +51,7 @@ Based on the existing Dockerfile with two changes:
 2. **Replace the `COPY docker/install_kube_dependencies.sh`** path with the new
    location inside the repo:
    ```dockerfile
-   COPY utils/ci/docker/install_kube_dependencies.sh .
+   COPY utils/ci/gitlab/docker/install_kube_dependencies.sh .
    ```
 
 ---
@@ -61,11 +61,11 @@ Based on the existing Dockerfile with two changes:
 The image tag is the first 12 hex characters of the SHA-256 hash of the files that
 fully determine the image content:
 
-- `utils/ci/docker/system-tests.Dockerfile`
+- `utils/ci/gitlab/docker/system-tests.Dockerfile`
 - `requirements.txt`
 
 ```bash
-IMAGE_TAG=$(cat utils/ci/docker/system-tests.Dockerfile requirements.txt \
+IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt \
     | sha256sum | cut -c1-12)
 ```
 
@@ -105,7 +105,7 @@ build_ci_image:
   stage: $[[ inputs.stage ]]
   script:
     - >
-      IMAGE_TAG=$(cat utils/ci/docker/system-tests.Dockerfile requirements.txt
+      IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt
       | sha256sum | cut -c1-12)
     - echo "CI_IMAGE=$CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG" >> build.env
     - >
@@ -113,7 +113,7 @@ build_ci_image:
         echo "Image already exists, skipping build";
       else
         docker build
-          -f utils/ci/docker/system-tests.Dockerfile
+          -f utils/ci/gitlab/docker/system-tests.Dockerfile
           -t $CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG
           . &&
         docker push $CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG;
@@ -189,8 +189,8 @@ Once the above is in place and the new image is in use:
 
 | File | Change |
 |---|---|
-| `utils/ci/docker/system-tests.Dockerfile` | New — moved + adapted from `libdatadog-build` |
-| `utils/ci/docker/install_kube_dependencies.sh` | New — moved verbatim |
+| `utils/ci/gitlab/docker/system-tests.Dockerfile` | New — moved + adapted from `libdatadog-build` |
+| `utils/ci/gitlab/docker/install_kube_dependencies.sh` | New — moved verbatim |
 | `utils/ci/gitlab/main.yml` | Add `build_ci_image` job; `build_test_pipeline` needs it and uses `$CI_IMAGE`; pass `--ci-image` to `build_pipeline.py` |
 | `utils/ci/gitlab/build_pipeline.py` | Add `--ci-image` arg, pass to template |
 | `utils/ci/gitlab/system-tests.yml` | Replace hardcoded image with `{{ci_image}}` |
