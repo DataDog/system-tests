@@ -29,6 +29,13 @@ spec:
       description: "Number of parallel jobs for the PARAMETRIC scenario"
       type: number
       default: 1
+    push_to_test_optimization:
+      description: "Push test results to Datadog Test Optimization (requires TEST_OPTIMIZATION_API_KEY CI variable)"
+      type: boolean
+      default: false
+    test_optimization_datadog_site:
+      description: "Datadog site to use for Test Optimization"
+      default: "datadoghq.com"
 ---
 
 build_test_pipeline:
@@ -43,7 +50,7 @@ build_test_pipeline:
     - >
       for library in $[[ inputs.libraries ]]; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
-        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json >> generated-pipeline.yml;
+        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" >> generated-pipeline.yml;
       done
   artifacts:
     paths:

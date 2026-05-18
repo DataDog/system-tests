@@ -36,6 +36,10 @@ run_{{library}}_{{scenario}}_{{variant}}:
   script:
     - ./build.sh {{library}}
     - ./run.sh {{scenario}}
+  artifacts:
+    when: always
+    paths:
+      - logs*/reportJunit.xml
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
@@ -58,10 +62,41 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
     - ./build.sh -i runner
     - source venv/bin/activate
     - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
+  artifacts:
+    when: always
+    paths:
+      - logs*/reportJunit.xml
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
 
 {% endfor %}
+{% endif %}
+{% if push_to_test_optimization %}
+push_{{library}}_test_optimization:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  tags:
+    - docker-in-docker:amd64
+  stage: {{stage}}
+  when: always
+  needs:
+    {% for scenario in scenarios %}{% for variant in weblog_variants %}
+    - job: run_{{library}}_{{scenario}}_{{variant}}
+      artifacts: true
+    {% endfor %}{% endfor %}
+    {% if parametric.enable %}{% for job_index in parametric.job_matrix %}
+    - job: run_{{library}}_PARAMETRIC_{{job_index}}
+      artifacts: true
+    {% endfor %}{% endif %}
+  script:
+    - npm install -g @datadog/datadog-ci
+    - >
+      datadog-ci junit upload logs*/reportJunit.xml
+      --service system-tests
+      --env ci
+      --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+  variables:
+    DATADOG_SITE: {{test_optimization_datadog_site}}
+    DATADOG_API_KEY: "$TEST_OPTIMIZATION_API_KEY"
 {% endif %}
