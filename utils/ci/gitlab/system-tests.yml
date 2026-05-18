@@ -12,7 +12,9 @@ build_{{library}}_{{variant}}:
   variables:
     WEBLOG_VARIANT: {{variant}}
   script:
+    - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
     - ./build.sh {{library}} --save-to-binaries
+    - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
   artifacts:
     paths:
       - binaries/
@@ -34,8 +36,12 @@ run_{{library}}_{{scenario}}_{{variant}}:
   variables:
     WEBLOG_VARIANT: {{variant}}
   script:
+    - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
     - ./build.sh {{library}}
+    - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
+    - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning {{scenario}}"
     - ./run.sh {{scenario}}
+    - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
   artifacts:
     when: always
     paths:
@@ -59,9 +65,13 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
       artifacts: true
   {% endif %}
   script:
+    - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding runner"
     - ./build.sh -i runner
+    - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
     - source venv/bin/activate
+    - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
     - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
+    - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
   artifacts:
     when: always
     paths:
