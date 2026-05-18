@@ -55,6 +55,7 @@ build_test_pipeline:
   before_script:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
+    - export PYTHONPATH=$CI_PROJECT_DIR
 
 run_test_pipeline:
   stage: run

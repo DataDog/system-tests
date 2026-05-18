@@ -23,6 +23,7 @@ build_{{library}}_{{variant}}:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
     - ln -sf /system-tests/venv venv
+    - export PYTHONPATH=$CI_PROJECT_DIR
 
 {% endfor %}
 {% for scenario in scenarios %}{% for variant in weblog_variants %}
@@ -52,6 +53,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
     - ln -sf /system-tests/venv venv
+    - export PYTHONPATH=$CI_PROJECT_DIR
 
 {% endfor %}{% endfor %}
 {% if parametric.enable %}
@@ -80,6 +82,7 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
+    - export PYTHONPATH=$CI_PROJECT_DIR
 
 {% endfor %}
 {% endif %}
