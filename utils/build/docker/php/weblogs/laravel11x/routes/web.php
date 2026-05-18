@@ -275,6 +275,40 @@ Route::match(['GET', 'POST'], '/login', [LoginController::class, 'login']);
 
 Route::post('/signup', [LoginController::class, 'signup']);
 
+Route::post('/user_login_success_event_v2', function (Request $request) {
+    $decoded = $request->json()->all();
+    $login = $decoded['login'] ?? null;
+    $userId = $decoded['user_id'] ?? null;
+    $metadata = $decoded['metadata'] ?? null;
+
+    if ($login !== null && $userId !== null && $metadata !== null) {
+        \datadog\appsec\v2\track_user_login_success($login, $userId, $metadata);
+    } elseif ($login !== null && $userId !== null) {
+        \datadog\appsec\v2\track_user_login_success($login, $userId);
+    } else {
+        \datadog\appsec\v2\track_user_login_success($login);
+    }
+
+    return response('OK', 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::post('/user_login_failure_event_v2', function (Request $request) {
+    $decoded = $request->json()->all();
+    $login = $decoded['login'] ?? null;
+    $exists = isset($decoded['exists']) ? ($decoded['exists'] === 'true' || $decoded['exists'] === true) : null;
+    $metadata = $decoded['metadata'] ?? null;
+
+    if ($login !== null && $exists !== null && $metadata !== null) {
+        \datadog\appsec\v2\track_user_login_failure($login, $exists, $metadata);
+    } elseif ($login !== null && $exists !== null) {
+        \datadog\appsec\v2\track_user_login_failure($login, $exists);
+    } else {
+        \datadog\appsec\v2\track_user_login_failure($login);
+    }
+
+    return response('OK', 200, ['Content-Type' => 'text/plain']);
+});
+
 Route::get('/rasp/lfi', function (Request $request) {
     $file = null;
     $contentType = $request->header('Content-Type', '');
