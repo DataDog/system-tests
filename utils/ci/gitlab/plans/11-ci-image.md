@@ -90,14 +90,11 @@ The concatenation order must be kept stable across changes.
 
 ## 3. Define the registry target
 
-Use the GitLab project's built-in registry:
+The image is pushed to a hardcoded path:
 
 ```
-$CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG
+registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG
 ```
-
-`$CI_REGISTRY_IMAGE` expands to the project's registry prefix automatically in
-GitLab CI (e.g. `registry.ddbuild.io/datadog/system-tests`).
 
 ---
 
@@ -121,16 +118,16 @@ build_ci_image:
     - >
       IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt
       | sha256sum | cut -c1-12)
-    - echo "CI_IMAGE=$CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG" >> build.env
+    - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
     - >
-      if docker manifest inspect $CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG > /dev/null 2>&1; then
+      if docker manifest inspect registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG > /dev/null 2>&1; then
         echo "Image already exists, skipping build";
       else
         docker build
           -f utils/ci/gitlab/docker/system-tests.Dockerfile
-          -t $CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG
+          -t registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG
           . &&
-        docker push $CI_REGISTRY_IMAGE/ci-image:$IMAGE_TAG;
+        docker push registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG;
       fi
   artifacts:
     reports:
