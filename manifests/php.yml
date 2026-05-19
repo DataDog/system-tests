@@ -495,8 +495,8 @@ manifest:
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
     - weblog_declaration:
         laravel11x: missing_feature (pending to implement on this weblog)
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
-    - weblog_declaration:
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  : - weblog_declaration:
         laravel11x: missing_feature (pending to implement on this weblog)
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_no_extended_request_body_collection_without_event
   : v1.17.0
@@ -507,11 +507,11 @@ manifest:
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc:
     - weblog_declaration:
         laravel11x: missing_feature (pending to implement on this weblog)
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers:
-    - weblog_declaration:
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers
+  : - weblog_declaration:
         laravel11x: missing_feature (pending to implement on this weblog)
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit:
-    - weblog_declaration:
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit
+  : - weblog_declaration:
         laravel11x: missing_feature (pending to implement on this weblog)
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_no_extended_data_collection_without_event
   : v1.17.0
