@@ -258,6 +258,8 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction::test_lfi_get:
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
+      excluded_weblog:
+        - laravel11x
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: v1.7.0
@@ -404,7 +406,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_failure_local:
     - weblog_declaration:
         "*": v1.8.0
-        laravel11x: missing_feature (SDK not implemented in Laravel weblog)
+        laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -440,7 +442,10 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:
+    - weblog_declaration:
+        "*": missing_feature
+        laravel11x: v1.6.2
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.6.2
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
@@ -519,6 +524,8 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405:
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
+      excluded_weblog:
+        - laravel11x
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v1.6.2
@@ -545,6 +552,8 @@ manifest:
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker:
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
+      excluded_weblog:
+        - laravel11x
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v1.12.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
@@ -604,8 +613,17 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_SSRF: v0.68.3
   tests/appsec/waf/test_rules.py::Test_Scanners: v0.68.3
   tests/appsec/waf/test_rules.py::Test_XSS: v0.68.3
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics:
+    - weblog_declaration:
+        "*": missing_feature
+        laravel11x: v1.6.2
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_headers_are_correct:
+    - weblog_declaration:
+        laravel11x: missing_feature
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_init: '>=1.16.0'
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
+    - weblog_declaration:
+        laravel11x: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
@@ -1074,7 +1092,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: v1.4.0
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: v1.2.0
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default:
+    - weblog_declaration:
+        "*": missing_feature
+        laravel11x: v1.17.0
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_400:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_500: v1.17.0
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: v1.3.0  # Unknown initial version
@@ -1118,7 +1142,13 @@ manifest:
   tests/test_identify.py::Test_Basic: v0.85.0
   tests/test_identify.py::Test_Propagate: v0.85.0
   tests/test_identify.py::Test_Propagate_Legacy: v0.85.0
-  tests/test_library_conf.py::Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Default:
+    - weblog_declaration:
+        "*": incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+        laravel11x: v1.17.0
+  tests/test_library_conf.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_single_tracecontext: v1.17.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -1195,7 +1225,10 @@ manifest:
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: v1.14.0
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys:
+    - weblog_declaration:
+        "*": missing_feature
+        laravel11x: v1.14.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
@@ -1209,7 +1242,10 @@ manifest:
     - component_version: <0.68.2
       declaration: bug (APMRP-360)
   tests/test_semantic_conventions.py::Test_Meta::test_meta_language_tag: bug (APMAPI-923)
-  tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind: bug (APMAPI-924)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind:
+    - weblog_declaration:
+        "*": bug (APMAPI-924)
+        laravel11x: v1.0.0
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v0.83.1
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0

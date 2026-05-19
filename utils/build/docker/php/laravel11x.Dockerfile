@@ -19,7 +19,7 @@ RUN cp /tmp/php/weblogs/laravel11x/.apache.conf /tmp/php/apache-mod/php.conf
 # Pre-create .env with APP_KEY and in-memory session (no DB, no file I/O that would trigger RASP LFI evals)
 RUN mkdir -p /var/www/html && \
     php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" > /var/www/html/.env && \
-    echo "SESSION_DRIVER=array" >> /var/www/html/.env && \
+    echo "SESSION_DRIVER=file" >> /var/www/html/.env && \
     echo "APP_DEBUG=true" >> /var/www/html/.env
 
 RUN chmod +x /tmp/php/apache-mod/build.sh

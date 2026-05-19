@@ -681,3 +681,20 @@ Route::get('/otel_drop_in_baggage_api_datadog', function (Request $request) {
         'response_headers' => $responseHeaders,
     ]);
 });
+Route::get('/returnheaders', function (Request $request) {
+    $headers = [];
+    foreach ($request->headers->all() as $key => $values) {
+        $headers[$key] = implode(', ', $values);
+    }
+
+    return response()->json($headers);
+});
+
+Route::get('/requestdownstream', function (Request $request) {
+    $ch = curl_init('http://127.0.0.1:7777/returnheaders');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $body = curl_exec($ch);
+    curl_close($ch);
+
+    return response($body, 200, ['Content-Type' => 'application/json']);
+});
