@@ -11,6 +11,11 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -18,6 +23,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature
   tests/apm_tracing_e2e/: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/: irrelevant (ASM is not implemented in C++)
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
@@ -140,7 +146,9 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: missing_feature
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: missing_feature
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: missing_feature (not implemented yet)
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:  # TODO: a lower version might be supported
+    - declaration: missing_feature (not implemented yet)
+      component_version: <1.0.5
   tests/test_data_integrity.py::Test_LibraryHeaders::test_headers: '>=1.0.3'  # Modified by easy win activation script
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: missing_feature (Missing endpoint)
   tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature
@@ -182,16 +190,17 @@ manifest:
   tests/test_smoke.py::Test_Library::test_receive_request_trace: missing_feature (For some reason, span type is server i/o web)
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py: irrelevant
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: '>1.0.4'
   tests/test_telemetry.py::Test_Log_Generation: '>=1.0.3'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_MessageBatch: '>=1.0.3'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=1.0.4'  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: '>=1.0.5'  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: '>=1.0.5'  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: '>=1.0.5'  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
@@ -209,6 +218,5 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature
   tests/test_v1_payloads.py: missing_feature

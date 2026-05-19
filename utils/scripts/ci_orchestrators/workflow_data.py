@@ -500,6 +500,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     is_lambda_library = library in (
         "python_lambda",
         "java_lambda",
+        "nodejs_lambda",
     )
     is_lambda_scenario = scenario in (
         "APPSEC_LAMBDA_DEFAULT",
@@ -634,6 +635,7 @@ if __name__ == "__main__":
             "IPV6",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+            "OTLP_RUNTIME_METRICS",
             "PERFORMANCES",
             "PROFILING",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",

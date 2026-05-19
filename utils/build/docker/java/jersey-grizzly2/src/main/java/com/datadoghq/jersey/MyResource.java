@@ -240,6 +240,13 @@ public class MyResource {
         return data;
     }
 
+    @POST
+    @Path("/waf")
+    @Consumes("multipart/form-data")
+    public String postWafMultipart(org.glassfish.jersey.media.multipart.FormDataMultiPart multiPart) {
+        return "ok";
+    }
+
     @GET
     @Path("/status")
     public Response status(@QueryParam("code") Integer code) {

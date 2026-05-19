@@ -914,6 +914,7 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_DOGSTATSD_HOST"] = "proxy"
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
@@ -952,18 +953,6 @@ class WeblogContainer(TestedContainer):
     @property
     def trace_agent_port(self):
         return ProxyPorts.weblog
-
-    @staticmethod
-    def _get_image_list_from_dockerfile(dockerfile: str) -> list[str]:
-        result = []
-
-        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
-        with open(dockerfile, encoding="utf-8") as f:
-            for line in f:
-                if match := pattern.match(line):
-                    result.append(match.group("image_name"))
-
-        return result
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Returns images needed to build the weblog"""
@@ -1064,7 +1053,7 @@ class WeblogContainer(TestedContainer):
                     path_str = str(Path(path).resolve())
                     self.volumes[path_str] = {
                         "bind": "/volumes/dd-trace-js",
-                        "mode": "ro",
+                        "mode": "rw",
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
@@ -1125,6 +1114,11 @@ class WeblogContainer(TestedContainer):
         self._library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
+
+        if self._container is not None:
+            exit_code, output = self.exec_run("cat /binaries/metadata.txt")
+            if exit_code == 0 and output:
+                logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
 
         if self.appsec_rules_file:
             logger.stdout("Using a custom appsec rules file")
@@ -1364,10 +1358,17 @@ class MySqlContainer(SqlDbTestedContainer):
 
 class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self) -> None:
+        options = "-S 127.0.0.1 -U sa -P 'yourStrong(!)Password' -Q 'SELECT 1' -b -C"
         healthcheck = {
             # Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             # -C : trust self signed certificates
-            "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
+            # Fall back to mssql-tools (arm64) if mssql-tools18 (x86_64) is absent
+            "test": (
+                'bash -c "'
+                f"(/opt/mssql-tools18/bin/sqlcmd {options}) 2>/dev/null || "
+                f"/opt/mssql-tools/bin/sqlcmd {options}"
+                '"'
+            ),
             "retries": 20,
         }
 

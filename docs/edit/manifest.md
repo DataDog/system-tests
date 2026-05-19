@@ -31,6 +31,7 @@ Each component has its own manifest file in the `manifests/` directory.
 - `manifests/java_lambda.yml` - Java AWS Lambda library
 - `manifests/java_otel.yml` - Java OpenTelemetry
 - `manifests/nodejs.yml` - Node.js library
+- `manifests/nodejs_lambda.yml` - Node.js AWS Lambda
 - `manifests/nodejs_otel.yml` - Node.js OpenTelemetry
 - `manifests/php.yml` - PHP library
 - `manifests/python.yml` - Python library

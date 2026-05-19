@@ -83,6 +83,7 @@ class lfi(StrEnum):
     crs_930_100 = "crs-930-100"  # Obfuscated Path Traversal Attack (/../)
     crs_930_110 = "crs-930-110"  # Simple Path Traversal Attack (/../)
     crs_930_120 = "crs-930-120"  # OS File Access Attempt
+    dog_920_110 = "dog-920-110"  # Zipslip Attack - Unsafe Zip extraction via server.io.fs.file_write
 
 
 class rfi(StrEnum):

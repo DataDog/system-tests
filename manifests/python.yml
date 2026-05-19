@@ -7,6 +7,17 @@ manifest:
   tests/:  # Easy win for tornado and version 4.3.1
     - weblog_declaration:
         tornado: v4.4.0-rc2
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.9.0-rc2
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": bug (APPSEC-62204)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -35,6 +46,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.6.0-rc1
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Tag_Probabilities: missing_feature (APPSEC-61898)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
@@ -122,6 +134,7 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.9.0-rc2
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -365,7 +378,8 @@ manifest:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
-        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+        "*": bug (APPSEC-62470)
+        # "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -374,10 +388,12 @@ manifest:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
-        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+        "*": bug (APPSEC-62470)
+        # "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
-        "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+        "*": bug (APPSEC-62470)
+        # "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -620,6 +636,7 @@ manifest:
         "*": v2.10.0
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
+  tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.1.0-rc2
@@ -708,6 +725,8 @@ manifest:
         *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.16.1
@@ -892,6 +911,26 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.10.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.10.1
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in flask weblog)
+        *flask: v4.8.0.dev
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in flask weblog)
+        *flask: v4.8.0.dev
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in flask weblog)
+        *flask: v4.8.0.dev
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in flask weblog)
+        *flask: v4.8.0.dev
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in flask weblog)
+        *flask: v4.8.0.dev
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v3.12.0.dev
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: irrelevant (drop support in v3.12.0.dev)
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: irrelevant (drop support in v3.12.0.dev)
@@ -945,6 +984,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.6
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         *django: v1.1.0
@@ -1107,22 +1147,26 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: missing_feature (DEBUG-3240)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
     - declaration: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask: v4.9.0-dev
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
-  : bug (DEBUG-5000)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay
+  : - declaration: bug (DEBUG-5579)
+      component_version: <4.9.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
@@ -1142,8 +1186,6 @@ manifest:
     - declaration: bug (DEBUG-3746)
       component_version: <4.3.1
       weblog: [uds-flask, uwsgi-poc, flask-poc]
-    - declaration: bug (DEBUG-3746)
-      excluded_weblog: [uds-flask, uwsgi-poc, flask-poc]
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
@@ -1198,13 +1240,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  # TODO(andrei): un-skip when v4.10.0 is released
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:  # Modified by easy win activation script
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
       component_version: <4.3.1
-      weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
-    - declaration: missing_feature (DEBUG-3550)
-      excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.11.0
@@ -1226,18 +1267,12 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_exposures.py: v4.2.0-dev
-  tests/ffe/test_flag_eval_metrics.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: v4.8.0-dev
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create: missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_content_block: missing_feature  # ephemeral cache TTL metrics not yet released
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
-  ? tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_multiple_system_prompts
-  : missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_redact_image_input: missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_stream_method: missing_feature  # ephemeral cache TTL metrics not yet released
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result: bug (MLOB-1234)
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_with_tools: missing_feature  # ephemeral cache TTL metrics not yet released
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: v3.11.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: v3.13.0
@@ -1651,7 +1686,7 @@ manifest:
         flask-poc: v2.19.0
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v4.8.0
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -1764,6 +1799,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags merged in dd-trace-py#17628, not yet in a released version — bump to the version once released)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0
@@ -1863,7 +1899,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: flaky (APMAPI-734)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.8.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v3.14.0.dev
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v4.7.0
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: v2.8.0
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
@@ -1940,6 +1976,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v4.7.0
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName::test_process_tag_svc_auto: v4.8.0-dev
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
@@ -2141,6 +2178,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
@@ -2191,6 +2229,7 @@ manifest:
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: bug (APPSEC-62204)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
@@ -2208,6 +2247,7 @@ manifest:
       component_version: '>=1.18.0-rc1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v4.6.5
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

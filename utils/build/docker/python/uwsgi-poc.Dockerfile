@@ -5,6 +5,9 @@ WORKDIR /app
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
+# Install OTel OTLP exporter for FFE metrics
+RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
+
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/flask/uwsgi_app.sh /app/app.sh
 COPY utils/build/docker/python/iast.py /app/iast.py

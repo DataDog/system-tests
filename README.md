@@ -15,7 +15,7 @@ You need **bash**, **Docker** (20.10+), and **Python 3.12**.
 
 ```bash
 # 1. Build images for the language you want to test
-./build.sh python          # or: java, nodejs, ruby, php, dotnet, cpp, golang
+./build.sh python          # or: java, nodejs, ruby, php, dotnet, golang
 
 # 2. Run the tests
 ./run.sh                   # run all default tests

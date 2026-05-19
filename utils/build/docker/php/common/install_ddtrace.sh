@@ -7,7 +7,14 @@ IS_APACHE=${1:-0}
 cd /binaries
 
 ARCH=$(uname -m)
-PKG=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKGS=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKG_COUNT=$(echo "$PKGS" | grep -c . || true)
+if [ "$PKG_COUNT" -gt 1 ]; then
+  echo "ERROR: multiple dd-library-php tarballs found for ${ARCH} in /binaries — keep only one:"
+  echo "$PKGS"
+  exit 1
+fi
+PKG=$PKGS
 SETUP=/binaries/datadog-setup.php
 
 DDTRACE_SO=/binaries/ddtrace.so
@@ -149,3 +156,9 @@ mkdir -p /etc/dd-appsec
 find /opt -name recommended.json -exec ln -s '{}' /etc/dd-appsec/ \;
 
 rm -rf /tmp/{dd-library-php-setup.php,dd-library,dd-appsec}
+
+if [[ $IS_APACHE -eq 1 ]]; then
+  if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
+      grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini
+  fi
+fi

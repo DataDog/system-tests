@@ -290,6 +290,13 @@ public class MyResource {
         return data;
     }
 
+    @POST
+    @Path("/waf")
+    @Consumes("multipart/form-data")
+    public String postWafMultipart(org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput input) {
+        return "ok";
+    }
+
     @GET
     @Path("/status")
     public Response status(@QueryParam("code") Integer code) {

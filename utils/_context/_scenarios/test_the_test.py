@@ -1,5 +1,5 @@
 import pytest
-from utils._context.component_version import ComponentVersion
+from utils._context.component_version import ComponentVersion, Version
 from .core import Scenario
 
 
@@ -9,7 +9,7 @@ class TestTheTestScenario(Scenario):
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(name, doc=doc, github_workflow="testthetest")
-        self.components["mock_comp1"] = "mock_comp1_value"
+        self.components["mock_comp1"] = Version("0.0.1")
 
     @property
     def parametrized_tests_metadata(self):

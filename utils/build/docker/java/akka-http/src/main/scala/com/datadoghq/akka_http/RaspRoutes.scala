@@ -9,7 +9,7 @@ import com.datadoghq.akka_http.Resources.dataSource
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.datadoghq.system_tests.iast.utils._
 
-import java.io.File
+import java.io.{File, FileOutputStream}
 import java.net.{MalformedURLException, URL, URLConnection}
 
 import scala.util.{Try, Using}
@@ -67,6 +67,18 @@ object RaspRoutes {
           }
         }
     } ~
+      pathPrefix("lfi_write") {
+        get {
+          parameter("file") { file =>
+            complete(executeLfiWrite(file))
+          }
+        } ~
+          post {
+            formFieldMap { fields: Map[String, String] =>
+              complete(executeLfiWrite(fields("file")))
+            }
+          }
+      } ~
       pathPrefix("lfi") {
         get {
           parameter("file") { file =>
@@ -197,6 +209,13 @@ object RaspRoutes {
   private def executeFli(file: String): Try[String] = {
     new File(file)
     Try("ok")
+  }
+
+  private def executeLfiWrite(file: String): Try[String] = {
+    Try {
+      new FileOutputStream(file).close()
+      "OK"
+    }
   }
 
   private def executeShi(cmd: String): String = {
