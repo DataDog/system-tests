@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -47,19 +47,10 @@ ssi_tests:
             done
           done
         fi
-        # Install npm/Node.js (NodeSource setup script only configures the apt repo; apt-get install actually installs Node.js + npm)
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-        apt-get install -y nodejs
-
-        # Install datadog-ci (use npm's built-in retry to survive transient registry failures)
-        npm install -g --fetch-retries=5 --fetch-retry-mintimeout=10000 @datadog/datadog-ci
-        datadog-ci plugin list
 
         # Push JUnit results to Datadog Test Optimization
-        # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
-        # TODO: replace mocked env vars below with real values (e.g. Vault / AWS SSM parameters)
-        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"                          # MOCK: not present in GitLab
-        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
+        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
         export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
         if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
             datadog-ci junit upload \
