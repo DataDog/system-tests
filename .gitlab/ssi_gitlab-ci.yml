@@ -59,7 +59,7 @@ ssi_tests:
         # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
         # TODO: replace mocked env vars below with real values (e.g. Vault / AWS SSM parameters)
         export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"                          # MOCK: not present in GitLab
-        export DATADOG_API_KEY="${DATADOG_API_KEY:-MOCK_DATADOG_API_KEY}"             # MOCK: not present in GitLab
+        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.dd_api_key --with-decryption --query "Parameter.Value" --out text)
         export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
         if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
             datadog-ci junit upload \
