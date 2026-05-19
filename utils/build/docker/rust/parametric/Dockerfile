@@ -5,7 +5,9 @@ COPY utils/build/docker/rust/parametric/../install_ddtrace.sh ./binaries/ /binar
 COPY utils/build/docker/rust/parametric/Cargo.toml /usr/app/
 COPY utils/build/docker/rust/parametric/src /usr/app/
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git jq build-essential perl libssl-dev
+
+RUN cargo install cargo-release@0.25.18 --locked
 
 RUN /binaries/install_ddtrace.sh
 
