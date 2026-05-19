@@ -4,6 +4,7 @@ include:
       stage: "test"
       libraries: "python"
       scenarios_groups: "all"
+      ref: "$CI_COMMIT_SHA"
 
 stages:
   - build

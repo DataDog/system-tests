@@ -1,6 +1,7 @@
 spec:
   inputs:
     stage:
+      description: "CI stage for the jobs"
     libraries:
       default: "java python nodejs"
     scenarios:
@@ -41,8 +42,14 @@ spec:
       default: "interruptible"
     ref:
       description: "system-tests ref to use when called from another repository (branch, tag or SHA)"
-      default: ""
+      default: "main"
 ---
+
+include:
+  - local: /utils/ci/gitlab/templates.yml
+    inputs:
+      stage: $[[ inputs.stage ]]
+      ref: $[[ inputs.ref ]]
 
 workflow:
   rules:
@@ -52,11 +59,9 @@ workflow:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
 build_test_pipeline:
-  image: $CI_IMAGE
-  interruptible: true
+  extends: .system_tests_base
   tags:
     - arch:amd64
-  stage: $[[ inputs.stage ]]
   needs:
     - job: build_ci_image
       artifacts: true
@@ -68,17 +73,7 @@ build_test_pipeline:
       done
   artifacts:
     paths:
-      - generated-pipeline.yml
-  before_script:
-    - |
-      if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
-        REF="$[[ inputs.ref ]]"
-        git clone --depth 1 ${REF:+--branch "$REF"} https://github.com/DataDog/system-tests.git /tmp/system-tests
-        cp -a /tmp/system-tests/. $CI_PROJECT_DIR/
-      fi
-    - ln -sf /system-tests/venv venv
-    - source venv/bin/activate
-    - export PYTHONPATH=$CI_PROJECT_DIR
+      - system-tests/generated-pipeline.yml
 
 run_test_pipeline:
   interruptible: true
@@ -91,7 +86,7 @@ run_test_pipeline:
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
   trigger:
     include:
-      - artifact: generated-pipeline.yml
+      - artifact: system-tests/generated-pipeline.yml
         job: build_test_pipeline
     strategy: depend
 
