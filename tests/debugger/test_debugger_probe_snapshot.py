@@ -152,10 +152,10 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._validate_spans()
 
     ### metric probe ###
-    def setup_metric_method_snapshot(self):
-        self._setup("probe_snapshot_metric_method", "/debugger/metric/1", "metric", lines=None)
+    def setup_metric_method_expression(self):
+        self._setup("probe_expression_metric_method", "/debugger/metric/1", "metric", lines=None)
 
-    def test_metric_method_snapshot(self):
+    def test_metric_method_expression(self):
         self._assert()
 
     ### mix log probe ###
