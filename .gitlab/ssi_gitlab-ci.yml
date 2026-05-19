@@ -53,6 +53,7 @@ ssi_tests:
 
         # Install datadog-ci (use npm's built-in retry to survive transient registry failures)
         npm install -g --fetch-retries=5 --fetch-retry-mintimeout=10000 @datadog/datadog-ci
+        datadog-ci plugin list
     retry:
       max: 2
       when:
