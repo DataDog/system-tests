@@ -13,6 +13,15 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/stats-unique', function (Request $request) {
+    $code = (int) $request->query('code', 200);
+    return response('', $code);
+});
+
+Route::get('/sample_rate_route/{i}', function () {
+    return response('OK', 200, ['Content-Type' => 'text/plain']);
+});
+
 Route::get('/healthcheck', function () {
     $version = phpversion('ddtrace') ?: 'unknown';
 
@@ -602,6 +611,68 @@ Route::get('/otel_drop_in_baggage_api_otel', function (Request $request) {
             $scope->detach();
         }
     }
+
+    return response()->json([
+        'url'              => $url,
+        'status_code'      => $statusCode,
+        'request_headers'  => $requestHeaders,
+        'response_headers' => $responseHeaders,
+    ]);
+});
+
+Route::get('/otel_drop_in_baggage_api_datadog', function (Request $request) {
+    $url = $request->query('url');
+    if ($url === null) {
+        return response()->json(['error' => 'Specify the url to call in the query string'], 400);
+    }
+
+    $span = \DDTrace\root_span();
+    if ($span !== null) {
+        $baggageRemove = $request->query('baggage_remove');
+        if ($baggageRemove !== null) {
+            foreach (explode(',', $baggageRemove) as $key) {
+                unset($span->baggage[trim($key)]);
+            }
+        }
+
+        $baggageSet = $request->query('baggage_set');
+        if ($baggageSet !== null) {
+            foreach (explode(',', $baggageSet) as $item) {
+                $parts = explode('=', $item, 2);
+                if (count($parts) === 2) {
+                    $span->baggage[trim($parts[0])] = trim($parts[1]);
+                }
+            }
+        }
+    }
+
+    $responseHeaders = [];
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+    curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
+        $len = strlen($header);
+        $parts = explode(':', $header, 2);
+        if (count($parts) === 2) {
+            $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
+        }
+
+        return $len;
+    });
+    curl_exec($ch);
+    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $requestHeaders = [];
+    $rawRequestHeaders = curl_getinfo($ch, CURLINFO_HEADER_OUT);
+    if ($rawRequestHeaders) {
+        foreach (explode("\r\n", $rawRequestHeaders) as $line) {
+            if (strpos($line, ':') !== false) {
+                [$key, $value] = explode(':', $line, 2);
+                $requestHeaders[trim($key)] = trim($value);
+            }
+        }
+    }
+    curl_close($ch);
 
     return response()->json([
         'url'              => $url,
