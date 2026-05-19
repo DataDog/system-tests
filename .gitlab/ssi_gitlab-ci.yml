@@ -54,6 +54,23 @@ ssi_tests:
         # Install datadog-ci (use npm's built-in retry to survive transient registry failures)
         npm install -g --fetch-retries=5 --fetch-retry-mintimeout=10000 @datadog/datadog-ci
         datadog-ci plugin list
+
+        # Push JUnit results to Datadog Test Optimization
+        # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
+        # TODO: replace mocked env vars below with real values (e.g. Vault / AWS SSM parameters)
+        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"                          # MOCK: not present in GitLab
+        export DATADOG_API_KEY="${DATADOG_API_KEY:-MOCK_DATADOG_API_KEY}"             # MOCK: not present in GitLab
+        export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
+        if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
+            datadog-ci junit upload \
+                reports/logs*/reportJunit.xml \
+                --service system-tests \
+                --env ci \
+                --verbose \
+                --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+        else
+            echo "No reports/logs*/reportJunit.xml found; skipping Test Optimization upload"
+        fi
     retry:
       max: 2
       when:
