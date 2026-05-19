@@ -47,8 +47,9 @@ ssi_tests:
             done
           done
         fi
-        # Install npm/Node.js
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+        # Install npm/Node.js (NodeSource setup script only configures the apt repo; apt-get install actually installs Node.js + npm)
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+        apt-get install -y nodejs
 
         # Install datadog-ci (use npm's built-in retry to survive transient registry failures)
         npm install -g --fetch-retries=5 --fetch-retry-mintimeout=10000 @datadog/datadog-ci
