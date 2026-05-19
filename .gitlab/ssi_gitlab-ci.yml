@@ -47,8 +47,11 @@ ssi_tests:
             done
           done
         fi
-        #Install datadog-ci
-        npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
+        # Install npm/Node.js
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+
+        # Install datadog-ci (use npm's built-in retry to survive transient registry failures)
+        npm install -g --fetch-retries=5 --fetch-retry-mintimeout=10000 @datadog/datadog-ci
     retry:
       max: 2
       when:
