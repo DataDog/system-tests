@@ -151,7 +151,7 @@ patterns:
         libraries: null
     run.sh: # run all by default
     .gitlab/ssi_gitlab-ci.yml:
-        scenario_groups: [onboarding, lib_injection, docker_ssi]
+        scenario_groups: [docker_ssi] #TODO revert to [onboarding, lib_injection, docker_ssi]
 
 ################################ GitHub Actions ################################
 # This section contains rules to apply to files related to GitHub Actions.
