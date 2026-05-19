@@ -81,17 +81,13 @@ tests/path/test.py::TestClass:
     component_version: '<5.0.0'
 ```
 
-### Inferring the Next Release Version (nodejs only)
+### Inferring the Next Release Version (specific to dd-trace-js, do not apply to other tracers)
 
-When activating a test in `manifests/nodejs.yml` after a `dd-trace-js` PR has merged,
-do NOT infer the next release version from `vX.Y.Z-proposal` branches in the
-`dd-trace-js` repo. Those branches are cut early in the release cycle, and PRs
-merged to `master` afterwards still ship in that same version — not the next one.
-
-If the upcoming version is unclear, ask the user instead of guessing.
-
-This rule is specific to `dd-trace-js`. Other tracers may follow different release
-conventions — check with the user before applying similar logic to other manifests.
+Don't try to predict the next `dd-trace-js` minimum version yourself.
+`vX.Y.Z-proposal` branches are mutable — PRs continue to be merged into them
+until the release is cut, so a PR landing on `master` after a proposal branch
+exists may still ship in that same version. When activating a test, ask the user
+which version contains the change.
 
 ### After Modifying Manifests
 

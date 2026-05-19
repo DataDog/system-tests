@@ -10,9 +10,7 @@ All coding agents MUST read and follow all rules from these files:
 
 ## Always Applied Rules
 
-These rules apply in EVERY interaction. The `@`-imports below inline each file at
-session start so the rules are loaded automatically (Cursor reads them via its own
-`alwaysApply: true` frontmatter).
+These rules apply in EVERY interaction.
 
 - @.cursor/rules/general-behavior.mdc — Communication style, documentation references, Slack support
 - @.cursor/rules/system-tests-overview.mdc — Project overview, main concepts, terminology
