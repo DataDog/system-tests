@@ -47,6 +47,8 @@ ssi_tests:
             done
           done
         fi
+        #Install datadog-ci
+        npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
     retry:
       max: 2
       when:
