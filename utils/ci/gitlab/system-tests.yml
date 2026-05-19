@@ -4,6 +4,9 @@ include:
       stage: {{stage}}
       ref: {{ref}}
 
+variables:
+  CI_IMAGE: {{ci_image}}
+
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:
   extends: .system_tests_base

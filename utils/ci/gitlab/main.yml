@@ -58,12 +58,33 @@ workflow:
       auto_cancel:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
+resolve_ci_image:
+  image: alpine/git
+  tags:
+    - arch:amd64
+  stage: $[[ inputs.stage ]]
+  interruptible: true
+  variables:
+    GIT_STRATEGY: none
+  needs:
+    - job: build_ci_image
+      optional: true
+      artifacts: false
+  script:
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
+    - git -C system-tests checkout $[[ inputs.ref ]]
+    - IMAGE_TAG=$(cat system-tests/utils/ci/gitlab/docker/system-tests.Dockerfile system-tests/requirements.txt | sha256sum | cut -c1-12)
+    - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
 build_test_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
   needs:
-    - job: build_ci_image
+    - job: resolve_ci_image
       artifacts: true
   script:
     - >
