@@ -698,3 +698,8 @@ Route::get('/requestdownstream', function (Request $request) {
 
     return response($body, 200, ['Content-Type' => 'application/json']);
 });
+
+Route::get('/load_dependency', function () {
+    $acme = new \Acme\Acme();
+    return response('ok', 200, ['Content-Type' => 'text/plain']);
+});

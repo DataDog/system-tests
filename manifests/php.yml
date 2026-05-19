@@ -488,10 +488,31 @@ manifest:
   ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata
   : irrelevant (dd-trace-php only accepts string metadata values)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection:
+    - weblog_declaration:
+        "*": missing_feature
+        laravel11x: v1.17.0
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_no_extended_request_body_collection_without_event
   : v1.17.0
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection:
+    - weblog_declaration:
+        "*": missing_feature
+        laravel11x: v1.17.0
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to implement on this weblog)
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_no_extended_data_collection_without_event
   : v1.17.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
