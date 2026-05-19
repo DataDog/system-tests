@@ -151,6 +151,13 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._assert()
         self._validate_spans()
 
+    ### metric probe ###
+    def setup_metric_method_snapshot(self):
+        self._setup("probe_snapshot_metric_method", "/debugger/metric/1", "metric", lines=None)
+
+    def test_metric_method_snapshot(self):
+        self._assert()
+
     ### mix log probe ###
     def setup_mix_snapshot(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)

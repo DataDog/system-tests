@@ -1713,6 +1713,7 @@ manifest:
         rails80: v2.8.0
         uds-rails: v2.12.0
     - declaration: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_metric_method_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": irrelevant
