@@ -13,7 +13,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": missing_feature (APPSEC-62450)
+        "flask-poc": v4.9.0-rc2
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -134,6 +134,7 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.9.0-rc2
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -1128,8 +1129,12 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: irrelevant (PROF-11296)
       component_version: <3.0.0
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - declaration: bug (DEBUG-5601)
+      component_version: <4.9.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
+    - declaration: bug (DEBUG-5601)
+      component_version: <4.9.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -1146,7 +1151,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: missing_feature (DEBUG-3240)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1242,13 +1246,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  # TODO(andrei): un-skip when v4.10.0 is released
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:  # Modified by easy win activation script
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
       component_version: <4.3.1
-      weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
-    - declaration: missing_feature (DEBUG-3550)
-      excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.11.0
@@ -2250,6 +2253,7 @@ manifest:
       component_version: '>=1.18.0-rc1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v4.6.5
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

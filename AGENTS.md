@@ -10,20 +10,20 @@ All coding agents MUST read and follow all rules from these files:
 
 ## Always Applied Rules
 
-Read and follow these rules in EVERY interaction:
+These rules apply in EVERY interaction.
 
-1. **`.cursor/rules/general-behavior.mdc`** - Communication style, documentation references, Slack support
-2. **`.cursor/rules/system-tests-overview.mdc`** - Project overview, main concepts, terminology
-3. **`.cursor/rules/repository-structure.mdc`** - Repository structure, test class conventions
-4. **`.cursor/rules/fine-tuning-guidance.mdc`** - Documentation navigation, scenario discovery
-5. **`.cursor/rules/code-format-standards.mdc`** - Code formatting requirements (shellcheck, mypy, YAML)
-6. **`.cursor/rules/aws-ssi-testing.mdc`** - AWS SSI testing guidelines
-7. **`.cursor/rules/end-to-end-testing.mdc`** - End-to-end testing guidelines
-8. **`.cursor/rules/parametric-testing.mdc`** - Parametric scenario testing; use `--skip-parametric-build` when re-running parametric tests without image changes
-9. **`.cursor/rules/k8s-ssi.mdc`** - Kubernetes library injection testing
-10. **`.cursor/rules/test-activation.mdc`** - Test activation/deactivation rules
-11. **`.cursor/rules/doc.mdc`** - Rules for editing the documentation
-12. **`.cursor/rules/devtools.mdc`** - Developer tools: MCP, GitHub (gh), GitLab (glab) usage
+- @.cursor/rules/general-behavior.mdc — Communication style, documentation references, Slack support
+- @.cursor/rules/system-tests-overview.mdc — Project overview, main concepts, terminology
+- @.cursor/rules/repository-structure.mdc — Repository structure, test class conventions
+- @.cursor/rules/fine-tuning-guidance.mdc — Documentation navigation, scenario discovery
+- @.cursor/rules/code-format-standards.mdc — Code formatting requirements (shellcheck, mypy, YAML)
+- @.cursor/rules/aws-ssi-testing.mdc — AWS SSI testing guidelines
+- @.cursor/rules/end-to-end-testing.mdc — End-to-end testing guidelines
+- @.cursor/rules/parametric-testing.mdc — Parametric scenario testing; use `--skip-parametric-build` when re-running parametric tests without image changes
+- @.cursor/rules/k8s-ssi.mdc — Kubernetes library injection testing
+- @.cursor/rules/test-activation.mdc — Test activation/deactivation rules
+- @.cursor/rules/doc.mdc — Rules for editing the documentation
+- @.cursor/rules/devtools.mdc — Developer tools: MCP, GitHub (gh), GitLab (glab) usage
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 
