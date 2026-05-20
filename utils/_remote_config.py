@@ -161,11 +161,7 @@ def send_state(
     # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate
     # keeps that invariant while letting local debugging see the failure at
     # the timeout point.
-    if (
-        not rv
-        and context.library == "ruby"
-        and os.environ.get("SYSTEM_TESTS_FAIL_FAST", "").lower() == "true"
-    ):
+    if not rv and context.library == "ruby" and os.environ.get("SYSTEM_TESTS_FAIL_FAST", "").lower() == "true":
         raise AssertionError("Remote config was not applied")
     # ensure the library has enough time to apply the config to all subprocesses
     time.sleep(2)
