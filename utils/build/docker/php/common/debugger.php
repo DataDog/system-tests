@@ -274,10 +274,14 @@ class DebuggerController {
 
 // Request handling
 $controller = new DebuggerController();
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+// PATH_INFO is set by Apache for both mod_php and FPM and always reflects the
+// path-after-script-name from the final rewritten URL.  REQUEST_URI behaves
+// differently: mod_php exposes the rewritten URL (e.g. /debugger.php/exceptionreplay/simple)
+// while FPM retains the original client URL.  PATH_INFO avoids that discrepancy.
+$path = !empty($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $parts = explode('/', trim($path, '/'));
 
-// Remove the 'debugger' prefix if it exists
+// Remove the 'debugger' prefix if present (when falling back to REQUEST_URI on FPM)
 if (count($parts) > 0 && $parts[0] === 'debugger') {
     array_shift($parts);
 }
