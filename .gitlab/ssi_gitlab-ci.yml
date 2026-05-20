@@ -55,7 +55,7 @@ ssi_tests:
         if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
             datadog-ci junit upload \
                 reports/logs*/reportJunit.xml \
-                --service system-tests-temp \
+                --service system-tests \
                 --env ci \
                 --verbose \
                 --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
