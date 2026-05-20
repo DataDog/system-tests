@@ -182,6 +182,7 @@ manifest:
         graphql23: missing_feature (no way to separate request paths)
         rack: missing_feature (performance impact of JSON parsing)
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1713,6 +1714,7 @@ manifest:
         rails80: v2.8.0
         uds-rails: v2.12.0
     - declaration: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_metric_method_expression: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": irrelevant
