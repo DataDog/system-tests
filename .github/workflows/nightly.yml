@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     needs:
       - nightly
     runs-on: ubuntu-latest
