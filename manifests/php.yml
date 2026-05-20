@@ -360,14 +360,14 @@ manifest:
         laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_failure_local:
     - weblog_declaration:
-        laravel11x: irrelevant (SDK it not relevant for a framework)
+        laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_local:
     - weblog_declaration:
-        laravel11x: irrelevant (SDK it not relevant for a framework)
+        laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -397,7 +397,7 @@ manifest:
         laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_local:
     - weblog_declaration:
-        laravel11x: irrelevant (SDK it not relevant for a framework)
+        laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
