@@ -30,7 +30,10 @@ RUN clean-apt install \
     ca-certificates \
     git \
     python3.12 \
-    python3.12-venv
+    python3.12-venv \
+    npm
+
+RUN npm install -g @datadog/datadog-ci
 
 ARG TARGETARCH
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
@@ -41,6 +44,9 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
     unzip -q awscliv2.zip && \
     ./aws/install && \
     apt-get clean
+
+COPY --from=registry.ddbuild.io/dd-sts:v0.1.4@sha256:1f4bc8861cca86b0c977ae70843990f9368f9b69dbfc4979cf5c515a97a3ea15 \
+    /usr/local/bin/dd-sts /usr/local/bin/dd-sts
 
 COPY --from=builder /system-tests/venv /system-tests/venv
 

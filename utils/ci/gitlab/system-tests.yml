@@ -7,6 +7,18 @@ include:
 variables:
   CI_IMAGE: {{ci_image}}
 
+.push_to_test_optimization:
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
+  after_script:
+    - dd-sts debug
+    - >
+      dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
+      --service system-tests
+      --env ci
+      --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:
   extends: .system_tests_base
@@ -32,7 +44,11 @@ build_{{library}}_{{variant}}:
 {% endfor %}
 {% for scenario in scenarios %}{% for variant in weblog_variants %}
 run_{{library}}_{{scenario}}_{{variant}}:
-  extends: .system_tests_base
+  extends:
+    - .system_tests_base
+{% if push_to_test_optimization %}
+    - .push_to_test_optimization
+{% endif %}
   needs:
     - job: build_{{library}}_{{variant}}
       artifacts: true
@@ -53,7 +69,11 @@ run_{{library}}_{{scenario}}_{{variant}}:
 {% if parametric.enable %}
 {% for job_index in parametric.job_matrix %}
 run_{{library}}_PARAMETRIC_{{job_index}}:
-  extends: .system_tests_base
+  extends:
+    - .system_tests_base
+{% if push_to_test_optimization %}
+    - .push_to_test_optimization
+{% endif %}
   {% if binaries_artifact %}
   needs:
     - job: {{binaries_artifact}}
@@ -69,31 +89,4 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
       - system-tests/logs*/reportJunit.xml
 
 {% endfor %}
-{% endif %}
-{% if push_to_test_optimization %}
-push_{{library}}_test_optimization:
-  image: {{ci_image}}
-  tags:
-    - docker-in-docker:amd64
-  stage: {{stage}}
-  when: always
-  needs:
-    {% for scenario in scenarios %}{% for variant in weblog_variants %}
-    - job: run_{{library}}_{{scenario}}_{{variant}}
-      artifacts: true
-    {% endfor %}{% endfor %}
-    {% if parametric.enable %}{% for job_index in parametric.job_matrix %}
-    - job: run_{{library}}_PARAMETRIC_{{job_index}}
-      artifacts: true
-    {% endfor %}{% endif %}
-  script:
-    - npm install -g @datadog/datadog-ci
-    - >
-      datadog-ci junit upload system-tests/logs*/reportJunit.xml
-      --service system-tests
-      --env ci
-      --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
-  variables:
-    DATADOG_SITE: {{test_optimization_datadog_site}}
-    DATADOG_API_KEY: "$TEST_OPTIMIZATION_API_KEY"
 {% endif %}

@@ -6,6 +6,7 @@ include:
       scenarios_groups: "all"
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE"
       ref: "$CI_COMMIT_SHA"
+      push_to_test_optimization: true
 
 stages:
   - build
