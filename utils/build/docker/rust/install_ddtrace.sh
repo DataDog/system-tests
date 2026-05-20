@@ -36,7 +36,8 @@ if [ -e /binaries/dd-trace-rs ]; then
     fi
 
     echo "generating dev version $dev_version from $current_version"
-    cargo release version -p datadog-opentelemetry "$dev_version" -x --no-confirm
+    # cargo release requires a git repo; use sed to rewrite the workspace version directly
+    sed -i "s/^version = \"${current_version}\"/version = \"${dev_version}\"/" /binaries/dd-trace-rs/Cargo.toml
 
     cd /usr/app
     cargo add datadog-opentelemetry --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc

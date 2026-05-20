@@ -284,6 +284,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -3695,7 +3696,7 @@ manifest:
   tests/parametric/test_otel_metrics.py: '>=1.62.0'
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter::test_otel_create_instruments_by_distinct:
     - declaration: bug (APMAPI-1937)
-      component_version: <1.63.0
+      component_version: <1.63.0-SNAPSHOT
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: irrelevant (OTel API does not support scope attributes on Java)
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
   : incomplete_test_app (GPRC fails for system-test but works with real collector)
