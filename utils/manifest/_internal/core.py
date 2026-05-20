@@ -11,7 +11,7 @@ from .const import default_manifests_path
 from .format import yml_sort
 
 
-_LOWER_BOUND_RE = re.compile(r"(?:>=?|\^)(\d+\.\d+(?:\.\d+)?[.\w+-]*)")
+_RANGE_RE = re.compile(r"(?:>=?|<=?|\^)(\d+\.\d+(?:\.\d+)?[.\w+-]*)")
 
 
 class Manifest:
@@ -126,7 +126,7 @@ class Manifest:
                     if sem_range is None:
                         continue
 
-                    for match in _LOWER_BOUND_RE.finditer(sem_range.expression):
+                    for match in _RANGE_RE.finditer(sem_range.expression):
                         try:
                             declared = Version(match.group(1))
                         except (ValueError, TypeError):
