@@ -15,12 +15,10 @@ def execute_command(
     *,
     quiet: bool = False,
 ) -> str | None:
-    """Call shell-command and either return its output or kill it
-    if it doesn't normally exit within timeout seconds and return None.
+    """Run a shell command with a timeout.
 
-    Uses subprocess.run with capture_output to drain stdout/stderr concurrently,
-    avoiding pipe-buffer deadlocks on commands that emit a lot of output
-    (e.g. `helm install --debug` on large charts).
+    Drains stdout/stderr concurrently to avoid pipe-buffer deadlocks on
+    verbose commands (e.g. `helm install --debug` on large charts).
     """
     applied_timeout = 90 if timeout is None else timeout
 
@@ -30,25 +28,22 @@ def execute_command(
         subprocess_env = os.environ.copy()
 
     output = ""
-    log_file_handle = None
     try:
         if logfile:
-            log_file_handle = open(logfile, "w")
-            try:
-                subprocess.run(
-                    shlex.split(command),
-                    stdout=log_file_handle,
-                    stderr=log_file_handle,
-                    env=subprocess_env,
-                    timeout=applied_timeout,
-                    check=False,
-                )
-            except subprocess.TimeoutExpired:
-                if timeout is None:
-                    # If when we call this method we don't specify a timeout, we return None
-                    return None
-                # if we specify a timeout, we raise an exception
-                raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
+            with open(logfile, "w") as log_file_handle:
+                try:
+                    subprocess.run(
+                        shlex.split(command),
+                        stdout=log_file_handle,
+                        stderr=log_file_handle,
+                        env=subprocess_env,
+                        timeout=applied_timeout,
+                        check=False,
+                    )
+                except subprocess.TimeoutExpired:
+                    if timeout is None:
+                        return None
+                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
             return output
 
         try:
@@ -76,10 +71,7 @@ def execute_command(
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
-        raise ex
-    finally:
-        if log_file_handle is not None:
-            log_file_handle.close()
+        raise
 
     return output
 
@@ -101,8 +93,8 @@ def helm_install_chart(
     set_dict: dict[str, str] = {},
     value_file: str | None = None,
     *,
-    upgrade: bool = False,  # noqa: ARG001  # kept for backward compatibility; `helm upgrade --install` is now always used
-    timeout: int = 90,
+    upgrade: bool = False,  # noqa: ARG001  # unused; retained for call-site compatibility
+    timeout: int | None = 90,
     namespace: str = "datadog",
     chart_version: str | None = None,
 ) -> None:
