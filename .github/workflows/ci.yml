@@ -81,7 +81,6 @@ jobs:
       excluded_scenarios: OTEL_COLLECTOR_E2E${{ matrix.version == 'dev' && matrix.library == 'python' && ',FEATURE_FLAGGING_AND_EXPERIMENTATION' || '' }}  # rely on real backend
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
-      display_summary: true
       desired_execution_time: ${{ needs.compute_libraries_and_scenarios.outputs.desired_execution_time }}
       artifact_retention_days: 3
       _build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
