@@ -227,7 +227,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: *ref_4_21_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: *ref_5_104_0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
