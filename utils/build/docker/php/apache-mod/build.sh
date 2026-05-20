@@ -11,7 +11,6 @@ export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 
 mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
-cp -rf /tmp/php/apache-mod/php.conf /etc/apache2/mods-available/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
 cp -rf /tmp/php/common/* /var/www/html/
 cp -rf /tmp/php/common/php.ini /etc/php/
@@ -37,9 +36,9 @@ curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/downlo
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]]; then
-	sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.{conf,load};
+	sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.load;
 else
-  sed -i "s/%PHP_MAJOR_VERSION/${PHP_MAJOR_VERSION}/g" /etc/apache2/mods-available/php.{conf,load};
+  sed -i "s/%PHP_MAJOR_VERSION/${PHP_MAJOR_VERSION}/g" /etc/apache2/mods-available/php.load;
 fi
 
 if php-config --prefix | grep -q release-zts; \
