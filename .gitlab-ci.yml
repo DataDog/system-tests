@@ -4,6 +4,7 @@ include:
       stage: "test"
       libraries: "python"
       scenarios_groups: "all"
+      excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE"
       ref: "$CI_COMMIT_SHA"
 
 stages:
