@@ -115,9 +115,16 @@ default-weblog() {
 run_build_command() {
     local log_file
     local exit_code
-    log_file=$(mktemp)
-
     echo "Running command: $*"
+    # During development, we prefer non-verbose output in the absence of errors. This adds less clutter
+    # in terminals, and saves a significant amount of useless tokens for coding agents.
+    # In CI, however, we keep full logs that sometimes help troubleshooting build times.
+    if [[ ${CI:-} = true ]]; then
+	    "$@"
+	    exit_code=$?
+	    return $exit_code
+    fi
+    log_file=$(mktemp /tmp/system-tests-build-XXXXXXX.log)
     echo "Build log file: ${log_file}"
 
     set +e
@@ -131,7 +138,6 @@ run_build_command() {
     fi
     echo "Build command failed: $*" >&2
     cat "${log_file}" >&2
-    rm -f "${log_file}"
     return "${exit_code}"
 }
 

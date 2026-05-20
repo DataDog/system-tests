@@ -3321,6 +3321,9 @@
   "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status": [
     "DEBUGGER_PROBES_STATUS"
   ],
+  "tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata": [
+    "DEBUGGER_SYMDB"
+  ],
   "tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload": [
     "DEBUGGER_SYMDB"
   ],
