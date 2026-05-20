@@ -32,7 +32,7 @@ def execute_command(
         if logfile:
             with open(logfile, "w") as log_file_handle:
                 try:
-                    subprocess.run(
+                    file_result = subprocess.run(
                         shlex.split(command),
                         stdout=log_file_handle,
                         stderr=log_file_handle,
@@ -44,6 +44,8 @@ def execute_command(
                     if timeout is None:
                         return None
                     raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
+            if file_result.returncode != 0:
+                logger.error(f"Command exited {file_result.returncode}: {command} (output in {logfile})")
             return output
 
         try:
@@ -126,9 +128,12 @@ def helm_install_chart(
     # Always use `helm upgrade --install` so that retries are idempotent: if a previous
     # attempt left a release record (e.g. timed out after creating resources), the next
     # attempt upgrades it instead of failing with "cannot re-use a name that is still in use".
+    # `--wait` is intentionally omitted in the custom-values branch: callers (e.g. cluster
+    # agent install) own their own readiness wait afterwards, and a 90s Python-side timeout
+    # would race helm's 5m default `--timeout` and kill it before pods are ready.
     if custom_value_file:
         command = (
-            f"helm upgrade {name} --install {wait} {set_str} --debug -f {custom_value_file} "
+            f"helm upgrade {name} --install {set_str} --debug -f {custom_value_file} "
             f"{chart}{version_str} --namespace={namespace}"
         )
     else:
