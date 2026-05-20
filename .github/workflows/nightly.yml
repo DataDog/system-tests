@@ -2,7 +2,6 @@ name: Nightly
 
 on:
   workflow_dispatch: {}
-  pull_request:
   push:
     branches:
       - "main"
@@ -41,8 +40,7 @@ jobs:
       contents: read
       id-token: write
     with:
-      # scenarios_groups: tracer_release
-      scenarios: DEFAULT
+      scenarios_groups: tracer_release
       library: ${{ matrix.library }}
       parametric_job_count: 8
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
