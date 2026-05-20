@@ -1,7 +1,8 @@
 services:
   datadog:
     container_name: dd-agent
-    image: gcr.io/datadoghq/agent:7.78.0
+    # Pin to 7.78.4 agent release. APMSP-3059
+    image: gcr.io/datadoghq/agent:7.78.4
     environment:
       - DD_API_KEY=${DD_API_KEY}
       - DD_SITE=datadoghq.com
