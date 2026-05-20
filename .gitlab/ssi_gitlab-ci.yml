@@ -145,10 +145,12 @@ ssi_tests:
             done
           done
         fi
-        # Log all file of the reports folder and subfolders to gitlab collapsible section
-        for file in reports/**/*; do
-          ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}" "Logs for ${SCENARIO_SUFIX}"
-        done
+        # Log all files in the reports folder and its subfolders to a gitlab collapsible section
+        # (folders themselves are skipped, only regular files are listed)
+        while IFS= read -r -d '' file; do
+          section_id=$(echo "$file" | tr -c '[:alnum:]' '_')
+          ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
+        done < <(find reports -type f -print0)
     retry:
       max: 2
       when:
