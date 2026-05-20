@@ -295,8 +295,8 @@ class DockerSSIScenario(Scenario):
 
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.datadog-apm-library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+        result["dd_tags[systest.suite.context.agent]"] = self.components["agent"]
         result["dd_tags[systest.suite.context.datadog-apm-inject.version]"] = self.dd_apm_inject_version
         result["dd_tags[systest.suite.context.datadog-installer.version]"] = self.components["datadog-installer"]
         result["dd_tags[systest.suite.context.installed_language_runtime]"] = self.installed_language_runtime or ""
