@@ -1749,8 +1749,6 @@ manifest:
         rails72: v2.34.0-dev
         rails80: v2.34.0-dev
         uds-rails: v2.34.0-dev
-  # TODO: drop the -dev suffix when v2.34.0 is released
-  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": irrelevant
