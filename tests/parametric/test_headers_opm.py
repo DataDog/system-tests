@@ -122,6 +122,7 @@ class Test_HeadersOPM_Injection:
     def test_local_opm_overrides_inbound_opm(self, test_library: APMLibrary) -> None:
         """Local OPM known -> inject local OPM regardless of any inbound OPM."""
         with test_library:
+            test_library.ensure_agent_info()
             headers = test_library.dd_make_child_span_and_get_headers(
                 _inbound(("x-datadog-tags", f"_dd.p.opm={FOREIGN_OPM}"))
             )
@@ -135,6 +136,7 @@ class Test_HeadersOPM_Injection:
     def test_opm_injected_in_both_styles(self, test_library: APMLibrary) -> None:
         """When both datadog & tracecontext styles inject, OPM appears in both header families."""
         with test_library:
+            test_library.ensure_agent_info()
             headers = test_library.dd_make_child_span_and_get_headers(_inbound())
 
         assert f"_dd.p.opm={LOCAL_OPM}" in _x_dd_tags(headers)
@@ -181,6 +183,7 @@ class Test_HeadersOPM_ExtractEnabled:
     @_enable_guard()
     def test_match_continues_trace(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Inbound OPM == local OPM -> sampling / origin / propagated tags preserved."""
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -205,6 +208,7 @@ class Test_HeadersOPM_ExtractEnabled:
     @_enable_guard()
     def test_match_continues_trace_w3c(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Same match-path semantics when OPM arrives only via the W3C carrier."""
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -225,6 +229,7 @@ class Test_HeadersOPM_ExtractEnabled:
     @_enable_guard()
     def test_mismatch_strips_dd_state(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Inbound OPM != local OPM -> drop sampling, origin, propagated _dd.p.* tags."""
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -254,19 +259,30 @@ class Test_HeadersOPM_ExtractEnabled:
 
     @_local_opm_agent_env()
     @_enable_guard()
-    def test_mismatch_strips_dd_tracestate_member(self, test_library: APMLibrary) -> None:
-        """On mismatch, outbound tracestate must not carry the inbound dd state, but foreign vendors survive."""
+    def test_mismatch_strips_dd_tracestate_member(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """On mismatch, outbound tracestate must not carry the inbound dd state, but foreign vendors survive.
+        The trace_id and parent_id from traceparent must be preserved on the span (RFC cyclic-call guarantee).
+        traceparent: trace-id low-64 = 0x0000000000000001 = 1, parent-id = 0x0000000000000001 = 1
+        """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.ensure_agent_info()
+            with test_library.dd_extract_headers_and_make_child_span(
+                "guard_mismatch_tracestate",
                 [
                     ("traceparent", "00-11111111111111110000000000000001-0000000000000001-01"),
                     ("tracestate", f"dd=s:2;t.dm:-4;t.opm:{FOREIGN_OPM},foo=1"),
-                ]
-            )
+                ],
+            ) as span:
+                outbound = dict(test_library.dd_inject_headers(span.span_id))
 
-        ts = _tracestate(headers)
-        # The outbound tracestate may contain a *new* dd= segment created locally,
-        # but it must not carry the inbound foreign OPM, dm, or sampling decision.
+        # Parent linkage from traceparent is preserved even on enforcement
+        # traceparent trace-id low-64 = 0x0000000000000001 = 1, parent-id = 0x0000000000000001 = 1
+        recorded_span = test_agent.wait_for_num_traces(1)[0][0]
+        assert recorded_span.get("trace_id") == 1
+        assert recorded_span.get("parent_id") == 1
+
+        ts = outbound.get("tracestate", "")
+        # The outbound tracestate must not carry the inbound foreign OPM, dm, or sampling decision.
         assert f"t.opm:{FOREIGN_OPM}" not in ts
         assert "t.dm:-4" not in ts
         assert "foo=1" in ts
@@ -281,6 +297,7 @@ class Test_HeadersOPM_ExtractEnabled:
         "guard dropped baggage" with "baggage was never an active propagator".
         """
         with test_library:
+            test_library.ensure_agent_info()
             headers = test_library.dd_make_child_span_and_get_headers(
                 _inbound(
                     ("x-datadog-tags", f"_dd.p.opm={FOREIGN_OPM}"),
@@ -300,6 +317,7 @@ class Test_HeadersOPM_ExtractEnabled:
         - Injection: the outbound carries the local OPM so the next hop sees it.
         """
         with test_library:
+            test_library.ensure_agent_info()
             headers = test_library.dd_make_child_span_and_get_headers(_inbound(("x-datadog-tags", "_dd.p.dm=-4")))
 
         # Extraction side: trace continued, propagated tags preserved
@@ -320,6 +338,7 @@ class Test_HeadersOPM_TrustedOpms:
     @_local_opm_agent_env()
     @_enable_guard({"DD_TRACE_ORG_GUARD_TRUSTED_OPMS": f"{TRUSTED_OPM},{FOREIGN_OPM}"})
     def test_trusted_inbound_opm_passes_through(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -335,6 +354,7 @@ class Test_HeadersOPM_TrustedOpms:
     @_local_opm_agent_env()
     @_enable_guard({"DD_TRACE_ORG_GUARD_TRUSTED_OPMS": TRUSTED_OPM})
     def test_untrusted_inbound_opm_is_enforced(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -358,6 +378,7 @@ class Test_HeadersOPM_Strict:
     @_local_opm_agent_env()
     @_enable_guard({"DD_TRACE_ORG_GUARD_STRICT": "true"})
     def test_strict_missing_inbound_enforces(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -378,6 +399,7 @@ class Test_HeadersOPM_Strict:
     @_local_opm_agent_env()
     @_enable_guard({"DD_TRACE_ORG_GUARD_STRICT": "true"})
     def test_strict_match_continues(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        test_library.ensure_agent_info()
         with (
             test_library,
             test_library.dd_extract_headers_and_make_child_span(
@@ -406,9 +428,7 @@ class Test_HeadersOPM_AgentInfo:
     def test_tracer_consumes_info_opm(self, test_library: APMLibrary) -> None:
         """Once the tracer has fetched /info, outbound headers carry the local OPM."""
         with test_library:
-            # Warm up: a first span so the tracer has time to poll /info before injecting.
-            with test_library.dd_start_span(name="warmup"):
-                pass
+            test_library.ensure_agent_info()
             headers = test_library.dd_make_child_span_and_get_headers(_inbound())
 
         assert f"_dd.p.opm={LOCAL_OPM}" in _x_dd_tags(headers)

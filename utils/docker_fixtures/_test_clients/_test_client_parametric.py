@@ -722,6 +722,10 @@ class ParametricTestClientApi(TestClientApi):
         data = resp.json()
         return data["value"]
 
+    def ensure_agent_info(self) -> bool:
+        r = self._session.get(self._url("/trace/agent/ensure_agent_info"))
+        return HTTPStatus(r.status_code).is_success
+
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
@@ -1078,6 +1082,9 @@ class APMLibrary:
             end_on_exit=end_on_exit,
         ) as span:
             yield span
+
+    def ensure_agent_info(self) -> bool:
+        return self._client.ensure_agent_info()
 
     def dd_flush(self) -> bool:
         return self._client.dd_flush()

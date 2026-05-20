@@ -96,6 +96,7 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/trace/agent/ensure_agent_info", s.ensureAgentInfoHandler)
 	http.HandleFunc("/trace/span/manual_keep", s.spanManualKeepHandler)
 	http.HandleFunc("/trace/span/manual_drop", s.spanManualDropHandler)
 

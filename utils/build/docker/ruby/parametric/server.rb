@@ -960,6 +960,8 @@ class MyApp
       handle_trace_span_finish(req, res)
     when '/trace/span/set_meta'
       handle_trace_span_set_meta(req, res)
+    when '/trace/agent/ensure_agent_info'
+      res.write({ ready: true }.to_json)
     when '/trace/config'
       handle_trace_config(req, res)
     when '/trace/span/set_metric'
