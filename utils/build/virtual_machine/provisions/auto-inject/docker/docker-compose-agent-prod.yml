@@ -1,7 +1,7 @@
 services:
   datadog:
     container_name: dd-agent
-    image: gcr.io/datadoghq/agent:7
+    image: gcr.io/datadoghq/agent:7.78.0
     environment:
       - DD_API_KEY=${DD_API_KEY}
       - DD_SITE=datadoghq.com

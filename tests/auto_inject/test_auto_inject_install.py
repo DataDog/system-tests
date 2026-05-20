@@ -247,7 +247,6 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
     )
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
-    @bug(reason="APMSP-3059")
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
         logger.info(
