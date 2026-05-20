@@ -145,6 +145,10 @@ ssi_tests:
             done
           done
         fi
+        # Log all file of the reports folder and subfolders to gitlab collapsible section
+        for file in reports/**/*; do
+          ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}" "Logs for ${SCENARIO_SUFIX}"
+        done
     retry:
       max: 2
       when:
