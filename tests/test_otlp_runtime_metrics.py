@@ -68,11 +68,16 @@ EXPECTED_METRICS = {
         "jvm.cpu.count",
         "jvm.cpu.recent_utilization",
         "jvm.cpu.time",
+        "jvm.file_descriptor.count",
+        "jvm.file_descriptor.limit",
+        # "jvm.gc.duration",  # histogram only emitted after a real GC fires; the test can't reliably capture one
         "jvm.memory.committed",
         "jvm.memory.init",
         "jvm.memory.limit",
         "jvm.memory.used",
         "jvm.memory.used_after_last_gc",
+        "jvm.system.cpu.load_1m",
+        "jvm.system.cpu.utilization",
         "jvm.thread.count",
     ],
 }
