@@ -800,7 +800,11 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:
     - declaration: bug (APMAPI-1539)
       component_version: '>=1.11.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: v1.19.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:
+    - declaration: "missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)"
+      component_version: '>=1.19.0'
+    - declaration: missing_feature (php has not implemented stats computation yet)
+      component_version: <1.19.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0

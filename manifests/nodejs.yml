@@ -2072,8 +2072,13 @@ manifest:
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : "missing_feature (\"Issue: the decision maker is removed. Is that allowed behavior?\")"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: "missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: "missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-js does not filter spans with _dd.partial_version metric set; span_stats.js onSpanFinished only filters by TOP_LEVEL_KEY/MEASURED)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: "missing_feature (CSS v1.2.0: dd-trace-js does not drop P0 traces when DD_TRACE_SAMPLE_RATE=0; traces are still emitted with _sampling_priority_v1=-1 instead of being dropped client-side)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: "missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: "missing_feature (CSS v1.2.0: dd-trace-js does not produce stats for nested top-level (service-entry) child spans when parent and child are in different services; only the outer span yields a stats entry)"
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: *ref_5_83_0

@@ -451,9 +451,7 @@ $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(functio
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/stats/flush', new ClosureRequestHandler(function () use (&$spans) {
-    # dd_trace_synchronous_flush invokes ddog_sidecar_flush with traces_and_stats=true,
-    # which drains both span and CSS buckets through the sidecar transport.
-    dd_trace_synchronous_flush(1000);
+    # NOP: php doesn't expose an API to flush trace stats
     return jsonResponse([]);
 }));
 $router->addRoute('GET', '/trace/agent/ensure_agent_info', new ClosureRequestHandler(function () {
