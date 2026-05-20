@@ -2944,5 +2944,16 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=556, owner=_Owner.asm)
 
+    @staticmethod
+    def api_security_normalized_route(test_object):
+        """API Security Testing - Normalized Route: tracers emit a per-request
+        `_dd.appsec.normalized_route` span tag on every request span that already
+        carries `http.route` when API Security is enabled. The tag follows the
+        RFC-1103 normalized-route grammar.
+
+        https://feature-parity.us1.prod.dog/#/?feature=557
+        """
+        return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
+
 
 features = _Features()
