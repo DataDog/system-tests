@@ -9,6 +9,9 @@
       local_path: binaries/
 
   remote-command: |
+    # Pin to 7.78.4 agent release. APMSP-3059
+    export DD_AGENT_MAJOR_VERSION=7
+    export DD_AGENT_MINOR_VERSION=78.4
     # Check if Docker is installed and ensure it's running
     if command -v docker >/dev/null 2>&1; then
         echo "Docker is installed, ensuring service is enabled and running..."
@@ -85,8 +88,6 @@
       export DD_INSTALLER_REGISTRY_URL_AGENT_PACKAGE='installtesting.datad0g.com'
       export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT="${DD_INSTALLER_AGENT_VERSION}"
     fi
-    # Pin to 7.78.4 agent release. APMSP-3059
-    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT="7.78.4"
 
     if [ -n "${DD_INSTALLER_INSTALLER_VERSION}" ]; then
       export DD_INSTALLER_REGISTRY_URL_INSTALLER_PACKAGE='installtesting.datad0g.com'
@@ -190,8 +191,6 @@
       $env:DD_INSTALLER_REGISTRY_URL_AGENT_PACKAGE = "installtesting.datad0g.com";
       $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT = $env:DD_INSTALLER_AGENT_VERSION;
     }
-    # Pin to 7.78.4 agent release. APMSP-3059
-    $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT = "7.78.4";
 
     if ($env:DD_INSTALLER_INSTALLER_VERSION) {
       $env:DD_INSTALLER_REGISTRY_URL_INSTALLER_PACKAGE = "installtesting.datad0g.com";
