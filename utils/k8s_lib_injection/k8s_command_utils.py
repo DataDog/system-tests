@@ -95,7 +95,6 @@ def helm_install_chart(
     set_dict: dict[str, str] = {},
     value_file: str | None = None,
     *,
-    upgrade: bool = False,  # noqa: ARG001  # unused; retained for call-site compatibility
     timeout: int | None = 90,
     namespace: str = "datadog",
     chart_version: str | None = None,
@@ -112,7 +111,6 @@ def helm_install_chart(
 
         with open(custom_value_file, "w") as fp:
             fp.write(value_data)
-            fp.seek(0)
 
     set_str = ""
     if set_dict:
