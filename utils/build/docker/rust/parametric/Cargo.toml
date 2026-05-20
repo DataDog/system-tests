@@ -8,7 +8,7 @@ readme        = "README.md"
 publish       = false
 
 resolver      = "3"
-rust-version  = "1.85.1" # should match Dockerfile rustc version
+rust-version  = "1.87" # should match Dockerfile rustc version
 
 [[bin]]
 name = "ddtrace-rs-client"
