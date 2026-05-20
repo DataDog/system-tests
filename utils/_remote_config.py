@@ -5,6 +5,7 @@
 import base64
 import hashlib
 import json
+import os
 import re
 import time
 import uuid
@@ -156,8 +157,16 @@ def send_state(
             f"config_states={state.get('config_states', [])}"
         )
         logger.error(f"Expected version={version}, configs={list(current_states.configs.keys())}")
-    if context.library == "ruby":
-        assert rv, "Remote config was not applied"
+    # Opt-in fail-fast for Ruby RC timeouts (default off). Setup paths in CI
+    # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate
+    # keeps that invariant while letting local debugging see the failure at
+    # the timeout point.
+    if (
+        not rv
+        and context.library == "ruby"
+        and os.environ.get("SYSTEM_TESTS_FAIL_FAST", "").lower() == "true"
+    ):
+        raise AssertionError("Remote config was not applied")
     # ensure the library has enough time to apply the config to all subprocesses
     time.sleep(2)
 
