@@ -24,9 +24,10 @@ build_{{library}}_{{variant}}:
     - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
     - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
     - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
+    - mv binaries ..
   artifacts:
     paths:
-      - system-tests/binaries/
+      - binaries/
 
 {% endfor %}
 {% for scenario in scenarios %}{% for variant in weblog_variants %}
@@ -36,6 +37,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - job: build_{{library}}_{{variant}}
       artifacts: true
   script:
+    - mv ../binaries/* binaries/
     - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
     - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
     - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
