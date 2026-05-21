@@ -3001,4 +3001,19 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers:
     - declaration: missing_feature (dd-client-library-version missing)
       component_version: <1.22.0
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.33.0'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        rack: missing_feature
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        rack: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        rack: missing_feature
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        rack: missing_feature
