@@ -250,37 +250,6 @@ static enum MHD_Result answer_to_connection(void *cls, struct MHD_Connection *co
     const char *status_str = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "status");
     const char *value = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "value");
 
-    if (strcmp(url, "/read_file") == 0) {
-        const char *val = MHD_lookup_connection_value (connection, MHD_GET_ARGUMENT_KIND, "file");
-        if (!val) {
-            return MHD_NO;
-        }
-
-        const int fd = open(val, O_RDONLY);
-        if (fd < 0) {
-            return MHD_NO;
-        }
-
-        struct stat st;
-        if (fstat(fd, &st) != 0) {
-            close(fd);
-            return MHD_NO;
-        }
-        const size_t file_size = st.st_size;
-
-        struct MHD_Response *response;
-        if (file_size == 0) {
-            response = MHD_create_response_from_callback(-1, 512, read_data, (void*)(uintptr_t)fd, close_fd);
-        } else {
-            response = MHD_create_response_from_fd((uint64_t)file_size, fd);
-        }
-
-        MHD_add_response_header(response, "Content-Type", "application/octet-stream");
-        int ret = MHD_queue_response(connection, 200, response);
-        MHD_destroy_response(response);
-        return ret;
-    }
-
     if (strcmp(url, "/returnheaders") == 0) {
         char *json_buffer = malloc(MAX_JSON_SIZE);
         if (!json_buffer) {

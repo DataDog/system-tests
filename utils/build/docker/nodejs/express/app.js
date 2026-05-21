@@ -14,7 +14,6 @@ const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
 const http = require('http')
-const fs = require('fs')
 const crypto = require('crypto')
 const winston = require('winston')
 const api = require('@opentelemetry/api')
@@ -515,17 +514,6 @@ app.all('/tag_value/:tag_value/:status_code', (req, res) => {
   } else {
     res.send('Value tagged')
   }
-})
-
-app.get('/read_file', (req, res) => {
-  const path = req.query.file
-  fs.readFile(path, (err, data) => {
-    if (err) {
-      console.error(err)
-      res.status(500).send('ko')
-    }
-    res.send(data)
-  })
 })
 
 app.get('/db', async (req, res) => {
