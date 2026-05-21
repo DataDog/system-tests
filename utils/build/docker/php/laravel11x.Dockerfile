@@ -24,6 +24,8 @@ RUN mkdir -p /var/www/html && \
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
 RUN /tmp/php/apache-mod/build.sh laravel11x
+# dom and pdo_sqlite are needed by Laravel but are built-in on older PHP, so we add them only here
+RUN printf "extension=dom.so\nextension=pdo_sqlite.so\n" >> /etc/php/php.ini
 RUN touch /tmp/laravel.db && \
     cd /var/www/html && \
     php artisan migrate --force --no-interaction && \
