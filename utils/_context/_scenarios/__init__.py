@@ -554,7 +554,11 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
+        weblog_env={
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            "DD_TRACE_LOGGING_RATE": "0",
+            "DD_TRACE_DEBUG": "true",
+        },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
