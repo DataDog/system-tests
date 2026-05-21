@@ -1,0 +1,54 @@
+{
+    "name": "php/laravel-weblog",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "laravel/tinker": "^2.9",
+        "weblog/acme": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./Acme",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        },
+        "platform": {
+            "ext-ctype": "8.2.0",
+            "ext-curl": "8.2.0",
+            "ext-dom": "8.2.0",
+            "ext-fileinfo": "8.2.0",
+            "ext-filter": "8.2.0",
+            "ext-hash": "8.2.0",
+            "ext-json": "8.2.0",
+            "ext-mbstring": "8.2.0",
+            "ext-openssl": "8.2.0",
+            "ext-pcre": "8.2.0",
+            "ext-pdo": "8.2.0",
+            "ext-session": "8.2.0",
+            "ext-tokenizer": "8.2.0",
+            "ext-xml": "8.2.0",
+            "ext-xmlwriter": "8.2.0"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
