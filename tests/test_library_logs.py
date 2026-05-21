@@ -91,13 +91,6 @@ class Test_NoExceptions:
         if context.weblog_variant == "spring-boot-wildfly":
             # APPSEC-56111:
             allowed_patterns.append(re.escape("Failed to determine dependency for uri {}"))
-        if context.weblog_variant in ("vertx3", "vertx4"):
-            # AIDM-583:
-            allowed_patterns.append(
-                re.escape(
-                    "Failed to handle exception in instrumentation for io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder"
-                )
-            )
         compiled_paterns = [re.compile(p, re.MULTILINE | re.DOTALL) for p in allowed_patterns]
         data = interfaces.library.get_telemetry_data()
         data = [d["request"]["content"] for d in data]
