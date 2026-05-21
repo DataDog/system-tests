@@ -1,9 +1,5 @@
 {
     "normalization_rules": {
-        "cloudpayloadtagging.request": "cloud_payload_tagging_requests_enabled",
-        "cloudpayloadtagging.response": "cloud_payload_tagging_responses_enabled",
-        "dbm.injectsqlbasehash": "dbm_inject_sql_basehash",
-        "dd_runtime_metrics_native": "runtime_metrics_native",
         "DD_TRACE_AMQP10_ENABLED": "trace_amqp10_enabled",
         "DD_TRACE_AMQPLIB_ENABLED": "trace_amqplib_enabled",
         "DD_TRACE_CASSANDRA_DRIVER_ENABLED": "trace_cassandra_driver_enabled",
@@ -17,6 +13,10 @@
         "DD_TRACE_SELENIUM_ENABLED": "trace_selenium_enabled",
         "DD_TRACE_SELENIUM_WEBDRIVER_ENABLED": "trace_selenium_webdriver_enabled",
         "DD_TRACE_TELEMETRY_ENABLED": "instrumentation_telemetry_enabled",
+        "cloudpayloadtagging.request": "cloud_payload_tagging_requests_enabled",
+        "cloudpayloadtagging.response": "cloud_payload_tagging_responses_enabled",
+        "dbm.injectsqlbasehash": "dbm_inject_sql_basehash",
+        "dd_runtime_metrics_native": "runtime_metrics_native",
         "dynamicinstrumentation.capturetimeoutms": "dynamic_instrumentation_capture_timeout",
         "experimental.aiguard.block": "experimental_ai_guard_block",
         "experimental.flaggingprovider.enabled": "experimental_flagging_provider_enabled",

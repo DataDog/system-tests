@@ -95,4 +95,6 @@ Rails.application.routes.draw do
   post '/ffe/evaluate' => 'open_feature#evaluate'
 
   post '/ai_guard/evaluate' => 'ai_guard#evaluate'
+
+  get '/inferred-proxy/span-creation' => 'system_test#inferred_proxy_span_creation'
 end

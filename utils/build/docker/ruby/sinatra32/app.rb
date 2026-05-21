@@ -41,7 +41,6 @@ get '/healthcheck' do
 
   gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
   version = gemspec.version.to_s
-  version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
   {
     status: 'ok',
     library: {
@@ -386,4 +385,10 @@ get '/flush' do
   end
 
   'OK'
+end
+
+get '/inferred-proxy/span-creation' do
+  content_type :text
+  status (params['status_code'] || 200).to_i
+  'ok'
 end

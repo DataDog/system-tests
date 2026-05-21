@@ -96,6 +96,8 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: v1.6.2
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -526,8 +528,15 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_SSRF: v0.68.3
   tests/appsec/waf/test_rules.py::Test_Scanners: v0.68.3
   tests/appsec/waf/test_rules.py::Test_XSS: v0.68.3
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_init: '>=1.16.0'
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
+    - weblog_declaration:
+        "*": missing_feature (only the rust helper, default on PHP 8.4+, emits all boolean tags on every series; the c++ helper omits them when false)
+        php-fpm-8.4: v1.20.0
+        php-fpm-8.5: v1.20.0
+        apache-mod-8.4: v1.20.0
+        apache-mod-8.5: v1.20.0
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: '>=1.20.0'
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
@@ -1112,6 +1121,7 @@ manifest:
       component_version: '>=0.93.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.75.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v1.20.0
   tests/test_telemetry.py::Test_Log_Generation:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -1512,5 +1522,4 @@ manifest:
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v0.99.1
   tests/test_telemetry.py::Test_TelemetryV2: v0.90
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing (both in libdatadog and php))
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py: missing_feature
