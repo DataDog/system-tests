@@ -38,6 +38,13 @@ section_start "${SECTION_NAME}" "${SECTION_HEADER}"
 
 if [[ -f "${LOG_FILE}" ]]; then
   cat "${LOG_FILE}"
+  # Ensure the section_end marker starts on a fresh line even when the file
+  # does not end with a newline; otherwise GitLab cannot parse the marker
+  # (it gets glued to the previous content line) and the section is rendered
+  # as always open in the job log UI.
+  if [[ -s "${LOG_FILE}" ]] && [[ -n "$(tail -c1 "${LOG_FILE}")" ]]; then
+    echo
+  fi
 else
   echo "Log file not found: ${LOG_FILE}"
 fi

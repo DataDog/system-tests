@@ -145,8 +145,12 @@ ssi_tests:
             done
           done
         fi
-        # Log all files in the reports folder and its subfolders to a gitlab collapsible section
-        # (folders themselves are skipped, only regular files are listed)
+
+        printf '\n%s\n  Logs for %s — expand any section below to inspect each log file\n  How to interpret these logs: %s\n%s\n\n' \
+          "================================================================================" \
+          "${SCENARIO_SUFIX}" \
+          "https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results" \
+          "================================================================================"
         while IFS= read -r -d '' file; do
           section_id=$(echo "$file" | tr -c '[:alnum:]' '_')
           ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
