@@ -3463,14 +3463,25 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_system: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_not_obfuscate_query: missing_feature (The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_runtime_id: missing_feature (not implemented yet)
-  tests/integrations/test_dbm.py::Test_Dbm: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.39.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.39.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.39.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -4369,6 +4380,8 @@ manifest:
         jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature
         ratpack: missing_feature
+        vertx3: missing_feature
+        vertx4: missing_feature
   tests/test_telemetry.py::Test_MessageBatch:
     - weblog_declaration:
         "*": v1.23.0
