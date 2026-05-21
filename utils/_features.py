@@ -1921,6 +1921,14 @@ class _Features:
         )  # tracing/context-propagation, apm/dbm, idm-sugar
 
     @staticmethod
+    def database_monitoring_dynamic_service(test_object):
+        """DBM: dynamic_service propagation mode — injects ddsh into SQL comments and _dd.propagated_hash onto spans
+
+        https://docs.google.com/document/d/1v-NuhF_0LNCY3zkSQlL6nPxrvlKfvm9LDkeZlEOyO3w/edit?tab=t.0
+        """
+        return _mark_test_object(test_object, feature_id=558, owner=_Owner.idm)
+
+    @staticmethod
     def rasp_stack_trace(test_object):
         """Appsec RASP: Stack Trace
 
