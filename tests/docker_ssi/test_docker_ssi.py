@@ -174,7 +174,7 @@ class TestDockerSSIFeatures:
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()
         events = sorted(events, key=lambda x: x["timestamp_millis"])
-        assert len(events) >= 2
+        assert len(events) >= 3
 
         starting = [e for e in events if e["result"] == "starting"]
         assert len(starting) >= 1, "expected an early 'starting' injection-metadata record"
