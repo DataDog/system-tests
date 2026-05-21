@@ -7,6 +7,7 @@ from utils import (
     context,
     irrelevant,
     bug,
+    missing_feature,
     interfaces,
     weblog,
     logger,
@@ -163,6 +164,7 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
+    @missing_feature(reason="auto_inject#1075 adds early 'starting' injection-metadata event; not yet released")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
@@ -174,13 +176,25 @@ class TestDockerSSIFeatures:
         events = sorted(events, key=lambda x: x["timestamp_millis"])
         assert len(events) >= 2
 
-        injector_event = events[0]
+        starting = [e for e in events if e["result"] == "starting"]
+        assert len(starting) >= 1, "expected an early 'starting' injection-metadata record"
+        assert starting[0]["component"] == "injector"
+        assert starting[0]["command_line"], "starting record should carry command_line"
+
+        non_starting_events = sorted(
+            [e for e in events if e["result"] != "starting"],
+            key=lambda x: x["timestamp_millis"],
+        )
+
+        assert len(non_starting_events) >= 2
+
+        injector_event = non_starting_events[0]
         assert injector_event["component"] == "injector"
         assert injector_event["result"] == "success"
         assert injector_event["result_class"] == "success"
         assert injector_event["result_reason"] != ""
 
-        tracer_event = events[1]
+        tracer_event = non_starting_events[1]
         assert tracer_event["result"] == "success"
         assert tracer_event["result_class"] == "success"
         assert tracer_event["result_reason"] != ""
