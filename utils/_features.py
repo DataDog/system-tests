@@ -1924,6 +1924,7 @@ class _Features:
     def database_monitoring_dynamic_service(test_object):
         """DBM: dynamic_service propagation mode — injects ddsh into SQL comments and _dd.propagated_hash onto spans
 
+        https://feature-parity.us1.prod.dog/#/?feature=558
         https://docs.google.com/document/d/1v-NuhF_0LNCY3zkSQlL6nPxrvlKfvm9LDkeZlEOyO3w/edit?tab=t.0
         """
         return _mark_test_object(test_object, feature_id=558, owner=_Owner.idm)
