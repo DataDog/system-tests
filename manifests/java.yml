@@ -4395,6 +4395,8 @@ manifest:
         jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature
         ratpack: missing_feature
+        vertx3: missing_feature
+        vertx4: missing_feature
   tests/test_telemetry.py::Test_MessageBatch:
     - weblog_declaration:
         "*": v1.23.0
