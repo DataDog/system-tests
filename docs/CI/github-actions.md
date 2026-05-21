@@ -47,7 +47,6 @@ jobs:
 | -------------------------------- | ----------------------------------------------------------------------------------------------- | ------- | -------- | ------------- |
 | `artifact_retention_days`        | How long should artifacts produced by the workflow should be retained                           | number  | false    | 14            |
 | `binaries_artifact`              | Artifact name containing the binaries to test                                                   | string  | false    | *empty*       |
-| `display_summary`                | Display a workflow summary containing owners of failed tests                                    | boolean | false    | false         |
 | `desired_execution_time`         | In seconds, system-tests will try to respect this time budget.                                  | number  | false    | *empty*       |
 | `excluded_scenarios`             | Comma-separated list of scenarios not to run                                                    | string  | false    | *empty*       |
 | `force_execute`                  | Comma-separated list of tests to run even if they are skipped by manifest or decorators         | string  | false    | *empty*       |

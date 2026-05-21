@@ -54,6 +54,17 @@ class Test_Dbm:
                         weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                     ]
                 )
+        elif self.library_name == "java":
+            self.requests = [
+                weblog.get("/dbm", params={"integration": "postgresql"}),
+            ]
+            if self.scenario_name == "INTEGRATIONS":
+                self.requests.extend(
+                    [
+                        weblog.get("/dbm", params={"integration": "mysql"}),
+                        weblog.get("/dbm", params={"integration": "mssql"}),
+                    ]
+                )
 
     def _get_db_span(self, response: HttpResponse) -> DataDogLibrarySpan:
         assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
@@ -153,12 +164,19 @@ class _BaseDbmComment:
         except json.decoder.JSONDecodeError as e:
             raise ValueError(f"Response from {self.r.request.url} should have been JSON") from e
 
-        expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
-
         assert "status" in data
         assert data["status"] == "ok"
         assert "traceparent" in data["dbm_comment"]
-        assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
+
+        # Field order varies by tracer — check each field and the SQL suffix individually
+        comment = remove_traceparent(data["dbm_comment"])
+        assert f"dddb='{self.dddb}'" in comment, f"dddb not found in: {comment}"
+        assert f"dddbs='{self.dddbs}'" in comment, f"dddbs not found in: {comment}"
+        assert f"dde='{self.dde}'" in comment, f"dde not found in: {comment}"
+        assert f"ddh='{self.ddh}'" in comment, f"ddh not found in: {comment}"
+        assert f"ddps='{self.ddps}'" in comment, f"ddps not found in: {comment}"
+        assert f"ddpv='{self.ddpv}'" in comment, f"ddpv not found in: {comment}"
+        assert comment.endswith("*/ SELECT version()"), f"SQL suffix not found in: {comment}"
 
 
 @features.database_monitoring_support
@@ -325,4 +343,58 @@ class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
     ddh = "postgres"  # container name
 
 
-# no dbm batch comment injection for mysql2
+# no dbm batch comment injection for pg
+
+
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Postgres(_BaseDbmComment):
+    """DBM comment format test for PostgreSQL — one class, all libraries.
+
+    Per-library differences (integration name, dddbs) are resolved at runtime
+    via context.library.name.  Unsupported libraries are gated with
+    missing_feature in manifests/*.yml rather than separate irrelevant entries.
+    """
+
+    operation = "execute"
+    dddb = "system_tests_dbname"
+    ddh = "postgres"
+
+    # Maps library name → (integration param, dddbs value)
+    _LIBRARY_CONFIG = {
+        "java": ("postgresql", "postgresql"),
+        "golang": ("pg", "postgres.db"),
+        "ruby": ("pg", "pg"),
+        "php": ("pdo-pgsql", "pdo"),
+    }
+
+    @property
+    def integration(self):
+        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
+
+    @property
+    def dddbs(self):
+        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
+
+
+@features.database_monitoring_support
+@scenarios.integrations
+class Test_Dbm_Comment_Mysql(_BaseDbmComment):
+    """DBM comment format test for MySQL — one class, all libraries."""
+
+    operation = "execute"
+    dddb = "mysql_dbname"
+    ddh = "mysqldb"
+
+    _LIBRARY_CONFIG = {
+        "java": ("mysql", "mysql"),
+        "php": ("pdo-mysql", "pdo"),
+    }
+
+    @property
+    def integration(self):
+        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
+
+    @property
+    def dddbs(self):
+        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
