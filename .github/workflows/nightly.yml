@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     needs:
       - nightly
     runs-on: ubuntu-latest
@@ -79,7 +79,7 @@ jobs:
   test_activation:
     name: Test activation
     runs-on: ubuntu-latest
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     strategy:
       fail-fast: false
       matrix:
