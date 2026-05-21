@@ -146,13 +146,21 @@ ssi_tests:
           done
         fi
 
-        printf '\n%s\n  Logs for %s — expand any section below to inspect each log file\n  How to interpret these logs: %s\n%s\n\n' \
-          "================================================================================" \
-          "${SCENARIO_SUFIX}" \
-          "https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results" \
-          "================================================================================"
+        # The first user section emitted inside `after_script` (a parent that
+        # GitLab Runner marks `[collapsed=false]`) is forced open by a GitLab
+        # nesting bug: gitlab-org/gitlab#29766 / gitlab-runner!4272.
+        # Workaround: make the FIRST section an intentionally-open banner that
+        # links to the docs, so the quirk is absorbed by a section that wants
+        # to be open. All log-file sections below it then respect collapsed=true.
+        ts=$(date +%s)
+        printf '\e[0Ksection_start:%s:logs_%s_index[collapsed=false]\r\e[0KLogs index for %s — expand any section below to inspect each log file\n' \
+          "${ts}" "${SCENARIO_SUFIX}" "${SCENARIO_SUFIX}"
+        echo "  How to interpret these logs:"
+        echo "  https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+        printf '\e[0Ksection_end:%s:logs_%s_index\r\e[0K\n' "${ts}" "${SCENARIO_SUFIX}"
+
         while IFS= read -r -d '' file; do
-          section_id=$(echo "$file" | tr -c '[:alnum:]' '_')
+          section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
           ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
         done < <(find reports -type f -print0)
     retry:
