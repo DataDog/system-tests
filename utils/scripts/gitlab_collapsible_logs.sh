@@ -13,6 +13,12 @@
 # the frontend section parser when the affected line also contains an embedded
 # ISO timestamp (e.g. dockerd's `time="2026-...Z"`).
 #
+# Individual file lines longer than MAX_LINE_BYTES are hard-wrapped before
+# emission. The GitLab Runner trace stream is internally chunked (~8 KB), and
+# the web log viewer can lose the upcoming section_end marker when a single
+# trace line is multi-KB (typical victims: tracer Config{} dumps in app.log
+# and containerd `starting cri plugin` JSON dumps in syslog.log).
+#
 # Usage:
 #   ./gitlab_collapsible_logs.sh <log_file> <section_name> <section_header>
 #
@@ -31,6 +37,7 @@ SECTION_HEADER="$3"
 
 readonly MAX_TRACE_BYTES=$((300 * 1024))  # comfortable margin under GitLab's 500 KB UI limit
 readonly TRACE_LINE_OVERHEAD=32           # bytes added by GitLab Runner per trace line
+readonly MAX_LINE_BYTES=1000              # wrap longer file lines; above this the UI loses section_end
 
 # Capture a stable timestamp once so we can advance it per-section. Distinct
 # timestamps make start/end pairs trivially unique for the UI to match, even
@@ -74,6 +81,18 @@ for (( i=1; i<=parts; i++ )); do
   start_line=$(( (i - 1) * lines_per_chunk + 1 ))
   end_line=$(( i * lines_per_chunk ))
   section_start "${name}" "${header}"
-  awk -v s="${start_line}" -v e="${end_line}" 'NR>=s && NR<=e' "${LOG_FILE}"
+  # Emit each in-range file line, hard-wrapping anything longer than
+  # MAX_LINE_BYTES so no single trace line confuses the UI section parser.
+  awk -v s="${start_line}" -v e="${end_line}" -v max="${MAX_LINE_BYTES}" '
+    NR < s { next }
+    NR > e { exit }
+    {
+      while (length($0) > max) {
+        print substr($0, 1, max)
+        $0 = substr($0, max + 1)
+      }
+      print
+    }
+  ' "${LOG_FILE}"
   section_end "${name}"
 done
