@@ -1801,6 +1801,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql: irrelevant (covered by language-specific mysql tests)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1815,6 +1816,7 @@ manifest:
         express5: *ref_5_13_0
         fastify: *ref_5_13_0
         uds-express4: *ref_5_13_0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres: irrelevant (covered by language-specific postgres tests)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)

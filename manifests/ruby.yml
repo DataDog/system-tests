@@ -1883,8 +1883,16 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql: irrelevant
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres:
+    - weblog_declaration:
+        "*": irrelevant
+        sinatra14: v2.0
+        sinatra22: v2.0
+        sinatra32: v2.0
+        sinatra41: v2.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -2137,20 +2145,11 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: missing_feature (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
-  tests/parametric/test_otel_logs.py: '>=2.27.0'  # Modified by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
+  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature (Ruby net/http titlecases header names; test checks lowercase; fix requires overriding OTLP exporter HTTP headers)
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature (OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is not supported)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (opentelemetry-logs-sdk >= 0.5.1 required for scope attributes; upgrade Docker image to ruby:3.3+)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (opentelemetry-logs-sdk >= 0.5.1 required for schema_url; upgrade Docker image to ruby:3.3+)
   tests/parametric/test_otel_metrics.py: v2.24.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_asynchronous_counter_constant_callback_value: missing_feature (Measurements are not aggregated by Exporter)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_asynchronous_gauge_constant_callback_value: missing_feature (Measurements are not aggregated by Exporter)
@@ -2170,7 +2169,6 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference::test_otel_aggregation_temporality: missing_feature (default Histogram bucket ranges is not up to spec)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v1.17.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
@@ -2215,9 +2213,6 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
