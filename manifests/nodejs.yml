@@ -1047,6 +1047,7 @@ manifest:
     - weblog_declaration:
         express4: *ref_5_99_0
         express5: *ref_5_99_0
+        "*": irrelevant (one weblog is enough coverage)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": *ref_5_39_0
