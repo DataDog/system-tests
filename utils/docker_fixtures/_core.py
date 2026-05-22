@@ -49,7 +49,17 @@ def docker_run(
     ports: dict[str, int],
     log_file: TextIO,
     command: list[str] | None = None,
+    stop_timeout: int = 1,
 ) -> Generator[Container, None, None]:
+    """Run a docker container in detached mode and stop it on teardown.
+
+    ``stop_timeout`` is the SIGTERM grace period (seconds) before SIGKILL. The default of 1s
+    keeps cheap shutdown for fixtures that hold no state (e.g. the test agent). Containers that
+    run user code with background threads holding host ports (e.g. parametric library clients
+    with gRPC/OTLP exporters) should pass a larger value so those threads can drain cleanly;
+    SIGKILLing mid-shutdown can leave host ports in TIME_WAIT and cause rare startup flakes for
+    the next test on the same xdist worker.
+    """
     logger.info(f"Run container {name} from image {image} with ports {ports}")
 
     try:
@@ -75,7 +85,7 @@ def docker_run(
         yield container
     finally:
         logger.info(f"Stopping {name}")
-        container.stop(timeout=1)
+        container.stop(timeout=stop_timeout)
         logs = container.logs()
         log_file.write(logs.decode("utf-8"))
         log_file.flush()
