@@ -14,6 +14,7 @@ variables:
   after_script:
     - echo -e "section_start:$(date +%s):test_optim[collapsed=true]\r\e[0KPush to tests optimization"
     - dd-sts debug
+    - dd-sts exchange --policy system-tests-gitlab -- echo "Success" || echo "Failure"
     - >
       dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
       --service system-tests
