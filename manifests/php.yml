@@ -645,10 +645,15 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature (code origin entry spans not captured in PHP-FPM; RC toggle works but no spans to verify)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v1.20.0
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: v1.19.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full: v1.19.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets:
@@ -664,9 +669,16 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_log_method_snapshot:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to be implemented on this weblog)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_method_snapshot:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
-  ? tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot
-  : v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot:
+    - weblog_declaration:
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (line probe infrastructure not implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
