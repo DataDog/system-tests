@@ -1,4 +1,4 @@
-FROM registry.ddbuild.io/images/docker:20.10.13-jammy AS builder
+FROM registry.ddbuild.io/images/docker:29.4.0-noble AS builder
 USER root
 
 RUN apt update && apt upgrade -y
@@ -18,7 +18,7 @@ COPY . /system-tests
 WORKDIR /system-tests
 RUN ./build.sh -i runner
 
-FROM registry.ddbuild.io/images/docker:20.10.13-jammy
+FROM registry.ddbuild.io/images/docker:29.4.0-noble
 USER root
 
 RUN apt update && apt upgrade -y
