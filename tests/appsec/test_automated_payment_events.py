@@ -372,6 +372,7 @@ DISABLE_STRIPE = (
     },
 )
 
+
 @scenarios.default
 @features.appsec_automated_payment_events
 class Test_Automated_Payment_Events_Stripe_RC_disablement:
@@ -416,4 +417,3 @@ class Test_Automated_Payment_Events_Stripe_RC_disablement:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
 
         assert_no_payment_event(self.r_disabled, 200)
-        
