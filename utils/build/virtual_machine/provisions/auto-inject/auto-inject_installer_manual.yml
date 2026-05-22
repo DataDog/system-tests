@@ -16,7 +16,7 @@
     #export TESTING_APT_REPO_VERSION="pipeline-114327295-a7-x86_64 7"
     export TESTING_YUM_URL="yumtesting.datad0g.com"
     #export TESTING_YUM_VERSION_PATH="testing/pipeline-114327295-a7/7"
-
+    export TESTING_KEYS_URL='apttesting.datad0g.com/test-keys'
 
 
     # Check if Docker is installed and ensure it's running
