@@ -13,9 +13,6 @@ EXPOSE 7777/tcp
 ADD binaries* /binaries/
 ADD utils/build/docker/php /tmp/php
 
-# Use Laravel-specific Apache config (DocumentRoot public/, AllowOverride All)
-RUN cp /tmp/php/weblogs/laravel11x/.apache.conf /tmp/php/apache-mod/php.conf
-
 # Pre-create .env with APP_KEY and in-memory session (no DB, no file I/O that would trigger RASP LFI evals)
 RUN mkdir -p /var/www/html && \
     php -r "echo 'APP_KEY=base64:' . base64_encode(random_bytes(32)) . PHP_EOL;" > /var/www/html/.env && \
@@ -24,6 +21,10 @@ RUN mkdir -p /var/www/html && \
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
 RUN /tmp/php/apache-mod/build.sh laravel11x
+# Use Laravel-specific Apache config (DocumentRoot public/, AllowOverride All) — mirrors apache-mod Dockerfiles pattern
+RUN cp /tmp/php/weblogs/laravel11x/.apache.conf /etc/apache2/mods-available/php.conf && \
+    sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.conf && \
+    ln -sf /etc/apache2/mods-available/php.conf /etc/apache2/mods-enabled/php.conf
 # dom and pdo_sqlite are needed by Laravel but are built-in on older PHP, so we add them only here
 RUN printf "extension=dom.so\nextension=pdo_sqlite.so\n" >> /etc/php/php.ini
 RUN touch /tmp/laravel.db && \
