@@ -28,10 +28,13 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y
 RUN clean-apt install \
     jq \
     ca-certificates \
+    curl \
     git \
     python3.12 \
-    python3.12-venv \
-    npm
+    python3.12-venv
+
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    clean-apt install nodejs
 
 RUN npm install -g @datadog/datadog-ci
 
