@@ -3,8 +3,30 @@
 
 set -e
 
-# Dump agent logs on exit (including failure) so health check issues are always visible
-trap 'if [ -f docker-compose-agent-prod.yml ]; then echo "..:: DATADOG AGENT OUTPUT (trap) ::.." && sudo docker-compose -f docker-compose-agent-prod.yml logs datadog 2>&1 || true; fi' EXIT
+_dd_agent_diagnostics_dumped=0
+
+dump_dd_agent_diagnostics() {
+    if [ "$_dd_agent_diagnostics_dumped" -eq 1 ]; then
+        return 0
+    fi
+    if [ ! -f docker-compose-agent-prod.yml ]; then
+        return 0
+    fi
+    _dd_agent_diagnostics_dumped=1
+    echo "..:: DD-AGENT DIAGNOSTICS ::.."
+    sudo docker-compose -f docker-compose-agent-prod.yml ps 2>&1 || true
+    if sudo docker inspect dd-agent >/dev/null 2>&1; then
+        echo "..:: DD-AGENT HEALTH ::.."
+        sudo docker inspect dd-agent --format '{{json .State.Health}}' 2>&1 || true
+        echo "..:: DD-AGENT LOGS (docker logs) ::.."
+        sudo docker logs dd-agent 2>&1 | tail -300 || true
+    fi
+    echo "..:: DD-AGENT LOGS (docker-compose logs) ::.."
+    sudo docker-compose -f docker-compose-agent-prod.yml logs --no-color datadog 2>&1 || true
+}
+
+# Dump agent diagnostics on any failure (deduplicated if already printed)
+trap 'status=$?; if [ "$status" -ne 0 ]; then dump_dd_agent_diagnostics; fi; exit "$status"' EXIT
 
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
@@ -41,9 +63,12 @@ done
 if [ -f docker-compose-agent-prod.yml ]; then
     # Agent may be installed in a different way
     echo "DD_API_KEY=${DD_API_KEY}" > .env
-    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120
+    if ! sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120; then
+        dump_dd_agent_diagnostics
+        exit 1
+    fi
 fi
-#Env variables set on the scenario definition. Write to file and load  
+#Env variables set on the scenario definition. Write to file and load
 if [ ! -f scenario_app.env ]
 then
    SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
@@ -53,7 +78,7 @@ then
 fi
 sudo -E docker-compose -f docker-compose.yml up -d test-app
 
-echo "..:: RUNNING DOCKER SERVICES ::.." 
+echo "..:: RUNNING DOCKER SERVICES ::.."
 sudo docker-compose ps
 if [ -f docker-compose-agent-prod.yml ]; then
     echo "..:: DATADOG AGENT OUTPUT ::.."
