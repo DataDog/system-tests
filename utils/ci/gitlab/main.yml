@@ -75,6 +75,7 @@ resolve_ci_image:
     - git -C system-tests checkout $[[ inputs.ref ]]
     - IMAGE_TAG=$(cat system-tests/utils/ci/gitlab/docker/system-tests.Dockerfile system-tests/requirements.txt | sha256sum | cut -c1-12)
     - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
+    - cat build.env
   artifacts:
     reports:
       dotenv: build.env

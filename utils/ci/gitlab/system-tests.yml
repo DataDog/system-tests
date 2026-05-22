@@ -12,12 +12,14 @@ variables:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   after_script:
+    - section_start "test_optim" "Push to tests optimization"
     - dd-sts debug
     - >
       dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
       --service system-tests
       --env ci
       --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+    - section_end "test_optim"
 
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:
@@ -28,15 +30,15 @@ build_{{library}}_{{variant}}:
       artifacts: true
   {% endif %}
   script:
-    - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KSetting up docker hub"
+    - section_start "docker_auth" "Docker hub auth"
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-    - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-    - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
+    - section_end "docker_auth"
+    - section_start "build" "Building weblog"
     - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
-    - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
     - mv binaries ..
+    - section_end "build"
   artifacts:
     paths:
       - binaries/
@@ -53,13 +55,13 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - job: build_{{library}}_{{variant}}
       artifacts: true
   script:
+    - section_start "weblog_setup" "Setting up the weblog"
     - mv ../binaries/* binaries/
-    - echo -e "\e[0Ksection_start:$(date +%s):build\r\e[0KBuilding {{library}} weblog {{variant}}"
     - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
-    - echo -e "\e[0Ksection_end:$(date +%s):build\r\e[0K"
-    - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning {{scenario}}"
+    - section_end "weblog_setup"
+    - section_start "scenario_run" "Running scenario"
     - ./run.sh {{scenario}}
-    - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
+    - section_end "scenario_run"
   artifacts:
     when: always
     paths:

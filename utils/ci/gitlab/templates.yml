@@ -15,9 +15,12 @@ spec:
   stage: $[[ inputs.stage ]]
   interruptible: true
   before_script:
+    - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
     - cd system-tests
     - git checkout $[[ inputs.ref ]]
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
+    - source utils/ci/gitlab/section.sh
+    - echo -e "section_end:`date +%s`:setup\r\e[0K"
