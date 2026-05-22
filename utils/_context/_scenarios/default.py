@@ -58,6 +58,7 @@ class DefaultScenario(EndToEndScenario):
     def __init__(self, name: str):
         super().__init__(
             name,
+            rc_api_enabled=True,
             weblog_env={
                 "DD_DBM_PROPAGATION_MODE": "service",
                 "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked

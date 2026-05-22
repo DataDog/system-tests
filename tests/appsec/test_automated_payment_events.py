@@ -9,6 +9,7 @@ from utils import (
     scenarios,
     weblog,
 )
+from utils import remote_config as rc
 from utils._weblog import HttpResponse
 from utils.dd_types import DataDogLibrarySpan
 
@@ -355,3 +356,64 @@ class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPayment
 @rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
 class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
     pass
+
+
+DISABLE_STRIPE = (
+    "datadog/2/ASM/disable_stripe/config",
+    {
+        "rules_override": [
+            {
+                "rules_target": [
+                    {"rule_id": "api-100-001"},
+                ],
+                "enabled": False,
+            },
+        ],
+    },
+)
+
+@scenarios.default
+@features.appsec_automated_payment_events
+class Test_Automated_Payment_Events_Stripe_RC_disablement:
+    def setup_disable_stripe_rules(self):
+        rc.tracer_rc_state.reset().apply()
+
+        self.r_enabled = weblog.post(
+            "/stripe/create_payment_intent",
+            json={
+                "amount": 6969,
+                "currency": "eur",
+                "payment_method": "pm_FAKE",
+                "receipt_email": "gaben@valvesoftware.com",
+            },
+        )
+
+        self.config_state_1 = rc.tracer_rc_state.set_config(*DISABLE_STRIPE).apply()
+
+        self.r_disabled = weblog.post(
+            "/stripe/create_payment_intent",
+            json={
+                "amount": 6969,
+                "currency": "eur",
+                "payment_method": "pm_FAKE",
+                "receipt_email": "gaben@valvesoftware.com",
+            },
+        )
+
+    def test_disable_stripe_rules(self):
+        def validator(span: DataDogLibrarySpan):
+            assert span["meta"]["appsec.events.payments.creation.id"] == "pi_FAKE"
+            assert span["metrics"]["appsec.events.payments.creation.amount"] == 6969
+            assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
+            assert span["metrics"]["appsec.events.payments.creation.livemode"] == 1
+            assert span["meta"]["appsec.events.payments.creation.payment_method"] == "pm_FAKE"
+            assert "appsec.events.payments.creation.receipt_email" not in span["meta"]
+
+            return True
+
+        assert_payment_event(self.r_enabled, validator)
+
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+
+        assert_no_payment_event(self.r_disabled, 200)
+        
