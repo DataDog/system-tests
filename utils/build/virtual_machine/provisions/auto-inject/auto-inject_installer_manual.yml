@@ -10,21 +10,21 @@
 
   remote-command: |
     #  APMSP-3059
-    #export DD_INSTALLER_AGENT_VERSION="pipeline-114327295"
-    #export DD_INSTALLER_INSTALLER_VERSION="pipeline-114327295"
+    #export DD_INSTALLER_AGENT_VERSION="pipeline-114793458"
+    #export DD_INSTALLER_INSTALLER_VERSION="pipeline-114793458"
 
     #export TESTING_APT_URL="apttesting.datad0g.com"
-    #export TESTING_APT_REPO_VERSION="pipeline-114327295-a7-x86_64 7"
+    #export TESTING_APT_REPO_VERSION="pipeline-114793458-a7-x86_64 7"
     #export TESTING_YUM_URL="yumtesting.datad0g.com"
-    #export TESTING_YUM_VERSION_PATH="testing/pipeline-114327295-a7/7"
+    #export TESTING_YUM_VERSION_PATH="testing/pipeline-114793458-a7/7"
     #export TESTING_KEYS_URL="apttesting.datad0g.com/test-keys"
 
-    export DD_INSTALLER_AGENT_VERSION="pipeline-114327295"
-    export DD_INSTALLER_INSTALLER_VERSION="pipeline-114327295"
-    export TESTING_APT_URL="apttesting.datad0g.com/datadog-agent/pipeline-114327295-a7"
+    export DD_INSTALLER_AGENT_VERSION="pipeline-114793458"
+    export DD_INSTALLER_INSTALLER_VERSION="pipeline-114793458"
+    export TESTING_APT_URL="apttesting.datad0g.com/datadog-agent/pipeline-114793458-a7"
     export TESTING_APT_REPO_VERSION="stable-x86_64 7"
     export TESTING_YUM_URL="yumtesting.datad0g.com"
-    export TESTING_YUM_VERSION_PATH="testing/pipeline-114327295-a7/7"
+    export TESTING_YUM_VERSION_PATH="testing/pipeline-114793458-a7/7"
     export TESTING_KEYS_URL="apttesting.datad0g.com/test-keys"
 
     # Check if Docker is installed and ensure it's running
