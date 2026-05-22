@@ -52,6 +52,10 @@ trap 'status=$?; if [ "$status" -ne 0 ]; then dump_dd_agent_diagnostics; fi; exi
 
 echo "..:: ${SCRIPT_MARKER} ::.."
 
+# Writable by log download even when provision fails before vm_logs step
+sudo mkdir -p /var/log/datadog_weblog 2>/dev/null || true
+sudo chmod 777 /var/log/datadog_weblog 2>/dev/null || true
+
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
 

@@ -158,7 +158,12 @@ class _VirtualMachineScenario(Scenario):
 
     def close_targets(self):
         if self.is_main_worker:
-            # Extract logs from the VM before destroy
+            # Extract logs from the VM before destroy (including after provision failures)
+            if self.virtual_machine.provision_install_error is not None:
+                logger.stdout(
+                    "Provision failed — downloading VM logs via SSH/SFTP "
+                    f"(see {self.host_log_folder}/var/log/datadog_weblog/dd-agent-diagnostics.log)"
+                )
             download_vm_logs(
                 vm=self.virtual_machine,
                 remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"],  # noqa: S108
