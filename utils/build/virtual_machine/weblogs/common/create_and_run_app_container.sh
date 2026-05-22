@@ -3,6 +3,9 @@
 
 set -e
 
+# Dump agent logs on exit (including failure) so health check issues are always visible
+trap 'if [ -f docker-compose-agent-prod.yml ]; then echo "..:: DATADOG AGENT OUTPUT (trap) ::.." && sudo docker-compose -f docker-compose-agent-prod.yml logs datadog 2>&1 || true; fi' EXIT
+
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
 
