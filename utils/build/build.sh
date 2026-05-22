@@ -259,9 +259,20 @@ build() {
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
+            if [[ $TEST_LIBRARY == nodejs ]] && [[ $SAVE_TO_BINARIES == 1 ]]; then
+                BASE_IMAGE=$(awk '/^FROM/{print $2; exit}' "utils/build/docker/nodejs/${WEBLOG_VARIANT}.Dockerfile")
+                echo "Saving base image $BASE_IMAGE to $BINARIES_FILENAME"
+                docker save "$BASE_IMAGE" | zstd > "$BINARIES_FILENAME"
+                continue
+            fi
+
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
                 zstd -d -c "$BINARIES_FILENAME" | docker load
+            fi
+
+            if docker image inspect system_tests/weblog >/dev/null 2>&1; then
+                echo "Using pre-loaded weblog image"
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -341,6 +352,7 @@ build() {
                     echo "Saving image to $BINARIES_FILENAME"
                     docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
+
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
             run_build_command docker buildx build \
