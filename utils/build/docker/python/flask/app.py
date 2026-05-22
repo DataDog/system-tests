@@ -2183,28 +2183,33 @@ def ai_guard_evaluate():
 
     try:
         from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+        from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
         messages = flask_request.get_json()
+
+        user_id = flask_request.headers.get("X-User-Id")
+        session_id = flask_request.headers.get("X-Session-Id")
+        if user_id and session_id:
+            track_user_id(user_id, session_id=session_id)
 
         client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
         evaluation = client.evaluate(messages, Options(block=should_block))
         return jsonify(evaluation), 200
 
+    except AIGuardAbortError as e:
+        error_response = {
+            "action": getattr(e, "action", ""),
+            "reason": getattr(e, "reason", ""),
+            "tags": getattr(e, "tags", []),
+            "sds": getattr(e, "sds", []),
+        }
+        tag_probs = getattr(e, "tag_probs", None)
+        if tag_probs is not None:
+            error_response["tag_probs"] = tag_probs
+        return jsonify(error_response), 403
     except Exception as e:
-        if isinstance(e, AIGuardAbortError):
-            error_response = {
-                "action": getattr(e, "action", ""),
-                "reason": getattr(e, "reason", ""),
-                "tags": getattr(e, "tags", []),
-                "sds": getattr(e, "sds", []),
-            }
-            tag_probs = getattr(e, "tag_probs", None)
-            if tag_probs is not None:
-                error_response["tag_probs"] = tag_probs
-            return jsonify(error_response), 403
-        else:
-            return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
+        return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
 
 
 @app.route("/stripe/create_checkout_session", methods=["POST"])

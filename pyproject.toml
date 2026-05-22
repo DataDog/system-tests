@@ -203,8 +203,6 @@ ignore = [
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
 "tests/auto_inject/*" = [
-    "ANN001",  # missing-type-function-argument: TODO
-    "RUF059",   # unused-unpacked-variable: TODO
     "SLF001",  # private-member-access: TODO
 ]
 "tests/fuzzer/*" = [
@@ -224,11 +222,9 @@ ignore = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
 "utils/_context/_scenarios/auto_injection.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "PLC0415",  # import-outside-top-level TODO
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "E501",     # line-too-long: TODO
     "T201",     # print: TODO
     "RET504",   # unnecessary-assign: TODO
@@ -242,11 +238,6 @@ ignore = [
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
-"utils/docker_ssi/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ANN205",  # issing-return-type-static-method: TODO
-]
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "ANN003",   # missing-type-kwargs: TODO
@@ -288,7 +279,6 @@ ignore = [
     "UP017",   # datetime-timezone-utc: TODO
 ]
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO
 ]
      

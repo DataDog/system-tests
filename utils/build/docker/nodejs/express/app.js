@@ -759,6 +759,11 @@ app.post('/ai_guard/evaluate', async (req, res) => {
   const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
+  const userId = req.headers['x-user-id']
+  const sessionId = req.headers['x-session-id']
+  if (userId && sessionId) {
+    tracer.setUser({ id: userId, session_id: sessionId })
+  }
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
     res.status(200).json(renameAttrs(evaluation))

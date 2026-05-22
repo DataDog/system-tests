@@ -23,6 +23,7 @@ require (
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.3
 	github.com/labstack/echo/v4 v4.11.1
+	github.com/lib/pq v1.10.2
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/open-feature/go-sdk v1.17.0
 	github.com/sirupsen/logrus v1.9.3

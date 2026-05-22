@@ -19,9 +19,9 @@ class AiGuardController < ApplicationController
         Datadog::AIGuard.message(role: message_data[:role]) do |m|
           message_data[:content].each do |part|
             case part[:type]
-            when "text"
+            when 'text'
               m.text(part[:text])
-            when "image_url"
+            when 'image_url'
               m.image_url(part.dig(:image_url, :url))
             end
           end
@@ -31,7 +31,11 @@ class AiGuardController < ApplicationController
       end
     end
 
-    allow_raise = request.headers['X-AI-Guard-Block']&.downcase == "true"
+    user_id = request.headers['X-User-Id']
+    session_id = request.headers['X-Session-Id']
+    Datadog::Kit::Identity.set_user(id: user_id, session_id: session_id) if user_id.present? && session_id.present?
+
+    allow_raise = request.headers['X-AI-Guard-Block']&.downcase == 'true'
     result = Datadog::AIGuard.evaluate(*messages, allow_raise: allow_raise)
 
     response_data = {
@@ -48,7 +52,7 @@ class AiGuardController < ApplicationController
     error_data[:tag_probabilities] = e.tag_probabilities if e.respond_to?(:tag_probabilities)
     error_data[:sds_findings] = e.sds_findings if e.respond_to?(:sds_findings)
     render json: error_data, status: 403
-  rescue => e
-    render json: {error: e.to_s, type: e.class.name}, status: 500
+  rescue StandardError => e
+    render json: { error: e.to_s, type: e.class.name }, status: 500
   end
 end

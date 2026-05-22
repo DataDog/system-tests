@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-04 (119 PR merged)
+
+* 2026-04-23 [feat(features): resolve test owner to per-repo sub-team in CI](https://github.com/DataDog/system-tests/pull/6796) by @cbeauchesne
+* 2026-04-21 [Automatically close stale PRs](https://github.com/DataDog/system-tests/pull/6783) by @cbeauchesne
+* 2026-04-21 [Check that declared version are not ahead of tested version in dev mode](https://github.com/DataDog/system-tests/pull/6774) by @cbeauchesne
+* 2026-04-13 [Intercept HTTPS CONNECT tunnels in mocked backend mode](https://github.com/DataDog/system-tests/pull/6725) by @cbeauchesne
+
+
 ### 2026-03 (196 PR merged)
 
 * 2026-03-19 [Deprecate force_skip argument](https://github.com/DataDog/system-tests/pull/6515) by @cbeauchesne

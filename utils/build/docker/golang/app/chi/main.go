@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/dbm"
 	"systemtests.weblog/_shared/grpc"
 	"systemtests.weblog/_shared/rasp"
 
@@ -369,6 +370,7 @@ func main() {
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
+	mux.HandleFunc("/stub_dbm", dbm.StubDbmHandler)
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

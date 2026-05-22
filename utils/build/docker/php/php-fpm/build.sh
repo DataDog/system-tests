@@ -92,13 +92,3 @@ fi
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;
 
-export TRACER_VERSION=latest
-export APPSEC_VERSION=latest
-cp /tmp/php/common/install_ddtrace.sh /
-/install_ddtrace.sh 0
-
-rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
-
-SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
-echo "datadog.trace.request_init_hook = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/bridge/dd_wrap_autoloader.php" >> /etc/php/$PHP_VERSION/fpm/php.ini
-echo "datadog.trace.sources_path = /opt/datadog/dd-library/$SYSTEM_TESTS_LIBRARY_VERSION/dd-trace-sources/src" >> /etc/php/$PHP_VERSION/fpm/php.ini

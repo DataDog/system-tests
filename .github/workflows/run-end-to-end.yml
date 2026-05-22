@@ -47,11 +47,6 @@ on:
         default: 'custom'
         required: false
         type: string
-      _build_python_base_images:
-        description: "Shall we build python base images for tests on python tracer"
-        default: false
-        required: false
-        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -137,14 +132,10 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
       if : ${{ inputs.binaries_artifact != '' }}
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
-    - name: Build python's weblog base images
-      if: inputs.library == 'python' && inputs._build_python_base_images
-      run: |
-        ./utils/build/build_python_base_images.sh
     - name: Build buddies weblog images
       if: inputs._build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh
@@ -395,6 +386,9 @@ jobs:
     - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
       run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
+    - name: Run TELEMETRY_EXTENDED_HEARTBEAT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_EXTENDED_HEARTBEAT"')
+      run: ./run.sh TELEMETRY_EXTENDED_HEARTBEAT
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
@@ -513,6 +507,9 @@ jobs:
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
+    - name: Run AI_GUARD_TELEMETRY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_TELEMETRY"')
+      run: ./run.sh AI_GUARD_TELEMETRY
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

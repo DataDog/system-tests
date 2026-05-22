@@ -26,7 +26,6 @@ Build images used for system tests.
 
 ## Libraries names
 
-* `cpp`
 * `dotnet`
 * `golang`
 * `java`
@@ -35,10 +34,10 @@ Build images used for system tests.
 * `python`
 * `ruby`
 
+`cpp` is not available for `build.sh` because only parametric tests are runnable for `dd-trace-cpp`.
 
 ## Weblog variants
 
-* For `cpp`: `poc` (default)
 * For `dotnet`: `poc` (default), `uds`
 * For `golang`: `net-http` (default), `gin`, `echo`, `chi`
   + Specific to the `GRAPHQL_APPSEC` scenario: `gqlgen`, `graph-gophers`, `graphql-go`

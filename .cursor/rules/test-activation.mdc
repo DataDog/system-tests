@@ -81,6 +81,14 @@ tests/path/test.py::TestClass:
     component_version: '<5.0.0'
 ```
 
+### Inferring the Next Release Version (specific to dd-trace-js, do not apply to other tracers)
+
+Don't try to predict the next `dd-trace-js` minimum version yourself.
+`vX.Y.Z-proposal` branches are mutable — PRs continue to be merged into them
+until the release is cut, so a PR landing on `master` after a proposal branch
+exists may still ship in that same version. When activating a test, ask the user
+which version contains the change.
+
 ### After Modifying Manifests
 
 **ALWAYS run `./format.sh` after any manifest modification.**
