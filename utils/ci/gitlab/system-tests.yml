@@ -12,14 +12,14 @@ variables:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   after_script:
-    - section_start "test_optim" "Push to tests optimization"
+    - echo -e "section_start:$(date +%s):test_optim[collapsed=true]\r\e[0KPush to tests optimization"
     - dd-sts debug
     - >
       dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
       --service system-tests
       --env ci
       --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
-    - section_end "test_optim"
+    - echo -e "section_end:$(date +%s):test_optim\r\e[0K"
 
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:
