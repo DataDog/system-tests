@@ -1914,7 +1914,7 @@ manifest:
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
         spring-boot-jetty: missing_feature (no instrumentation for Jetty)
-        spring-boot-payara: missing_feature (APPSEC-61873)
+        spring-boot-payara: v1.63.0-SNAPSHOT
         vertx3: missing_feature (no instrumentation for Vert.x async multipart)
         vertx4: missing_feature (no instrumentation for Vert.x async multipart)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
@@ -1922,6 +1922,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.62.0-SNAPSHOT
+        spring-boot-payara: v1.63.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
