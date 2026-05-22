@@ -72,7 +72,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.zst file."
     echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -257,11 +257,11 @@ build() {
             fi
 
             # keep this name consistent with WeblogContainer.get_image_list()
-            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
-            if [ -f $BINARIES_FILENAME ]; then
+            if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
-                docker load --input $BINARIES_FILENAME
+                zstd -d -c "$BINARIES_FILENAME" | docker load
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -339,7 +339,7 @@ build() {
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then

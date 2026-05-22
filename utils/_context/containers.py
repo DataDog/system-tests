@@ -958,7 +958,7 @@ class WeblogContainer(TestedContainer):
         """Returns images needed to build the weblog"""
 
         # If an image is saved as a file in binaries, we don't need any image
-        filename = f"binaries/{library}-{weblog}-weblog.tar.gz"
+        filename = f"binaries/{library}-{weblog}-weblog.tar.zst"
         if Path(filename).is_file():
             return []
 
