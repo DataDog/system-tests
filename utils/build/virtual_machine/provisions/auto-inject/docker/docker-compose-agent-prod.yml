@@ -7,7 +7,7 @@ services:
     environment:
       - DD_API_KEY=${DD_API_KEY}
       # EC2 Docker: explicit hostname required (Agent >=7.40, APMSP-3059)
-      - DD_HOSTNAME=system-tests-ssi-agent
+      #- DD_HOSTNAME=system-tests-ssi-agent
       - DD_SITE=datadoghq.com
       - DD_APM_ENABLED=true
       - DD_LOG_LEVEL=TRACE
