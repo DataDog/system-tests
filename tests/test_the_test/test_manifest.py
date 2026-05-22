@@ -533,3 +533,20 @@ class Test_VersionsNotAheadOfCurrent:
         )
         errors = manifest.assert_versions_not_ahead_of_current()
         assert len(errors) == 2
+
+    def test_inferior_to(self):
+        """Error should be raised if using inferior to"""
+        manifest = manifest_init(
+            components={"python": Version("4.9.0-rc2")},
+            manifest_data={
+                "tests/foo.py::TestFoo": [
+                    {
+                        "component": "python",
+                        "component_version": CustomSpec("<4.9.0"),
+                        "declaration": SkipDeclaration("bug"),
+                    }
+                ],
+            },
+        )
+        errors = manifest.assert_versions_not_ahead_of_current()
+        assert len(errors) == 1
