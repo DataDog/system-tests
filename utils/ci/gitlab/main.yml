@@ -87,6 +87,9 @@ build_test_pipeline:
   needs:
     - job: resolve_ci_image
       artifacts: true
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
     - >
       for library in $[[ inputs.libraries ]]; do
