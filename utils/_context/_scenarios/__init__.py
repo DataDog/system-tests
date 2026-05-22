@@ -556,6 +556,7 @@ class _Scenarios:
         appsec_enabled=False,
         weblog_env={
             "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            # configs below will used to debug connection failures in ddtrace-py
             "DD_TRACE_LOGGING_RATE": "0",
             "DD_TRACE_DEBUG": "true",
         },
