@@ -143,34 +143,30 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_probe_status_log_line_with_unknown_path_prefix(self):
         self._setup("probe_status_log_line", "log", path_prefix="unknown-prefix")
 
+    def test_probe_status_log_line_with_unknown_path_prefix(self):
         # Validate that the source file actually contains a path separator to ensure
         # this test is meaningful (i.e., it's actually testing prefix stripping)
         for probe in self.probe_definitions:
-            if "where" not in probe:
-                self.setup_failures.append("`where` object missing in probe")
-            elif "sourceFile" not in probe["where"]:
-                self.setup_failures.append(
-                    "Test expects source `sourceFile` to be present in `where` object."
-                    "This suggests the tracer's source path doesn't include subdirectories "
-                    "making this edge case test meaningless."
-                )
-            else:
-                source_file = probe["where"]["sourceFile"]
+            assert "where" in probe, "`where` object missing in probe"
+            assert "sourceFile" in probe["where"], (
+                "Test expects source `sourceFile` to be present in `where` object."
+                "This suggests the tracer's source path doesn't include subdirectories "
+                "making this edge case test meaningless."
+            )
 
-                if not isinstance(source_file, str):
-                    self.setup_failures.append(
-                        f"Test expects source `sourceFile` to be a string in `where` object, got `{source_file}`"
-                        "This suggests the tracer's source path doesn't include subdirectories "
-                        "making this edge case test meaningless."
-                    )
-                elif "/" not in source_file and "\\" not in source_file:
-                    self.setup_failures.append(
-                        f"Test expects source file to contain a path separator, but got: {source_file}. "
-                        f"This suggests the tracer's source path doesn't include subdirectories, "
-                        f"making this edge case test meaningless. See DEBUG-5101 for .NET."
-                    )
+            source_file = probe["where"]["sourceFile"]
+            assert isinstance(source_file, str), (
+                f"Test expects source `sourceFile` to be a string in `where` object, got `{source_file}`"
+                "This suggests the tracer's source path doesn't include subdirectories "
+                "making this edge case test meaningless."
+            )
 
-    def test_probe_status_log_line_with_unknown_path_prefix(self):
+            assert "/" in source_file or "\\" in source_file, (
+                f"Test expects source file to contain a path separator, but got: {source_file}. "
+                f"This suggests the tracer's source path doesn't include subdirectories, "
+                f"making this edge case test meaningless. See DEBUG-5101 for .NET."
+            )
+
         self._assert()
 
     ############ log line probe with different casing ############
