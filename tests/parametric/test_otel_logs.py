@@ -767,6 +767,7 @@ class Test_FR11_Telemetry:
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_METRICS_AGGREGATION_INTERVAL": "0.1",
                 "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
                 "DD_TRACE_DEBUG": None,
             },
