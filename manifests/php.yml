@@ -623,13 +623,19 @@ manifest:
         apache-mod-8.0: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
   : bug (DEBUG-5706)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: v1.19.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
+    - weblog_declaration:
+        "*": v1.19.0
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20: irrelevant (The PHP weblog does not have non-user code, which could serve as boundary)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: v1.19.0
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
+    - weblog_declaration:
+        "*": v1.19.0
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception
   : '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators
@@ -665,20 +671,17 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
+    - weblog_declaration:
+        "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_log_method_snapshot:
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
+        "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
-  ? tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot
-  : - weblog_declaration:
-        laravel11x: missing_feature (pending to be implemented on this weblog)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_method_snapshot:
-    - weblog_declaration:
-        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (line probe infrastructure not implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
