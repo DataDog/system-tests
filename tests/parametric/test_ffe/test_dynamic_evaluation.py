@@ -23,7 +23,7 @@ parametrize = pytest.mark.parametrize
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
-    fixture_path = Path(__file__).parent / "flags-v1.json"
+    fixture_path = Path(__file__).parent / "ffe-data/config/ufc-config.json"
 
     if not fixture_path.exists():
         pytest.skip(f"Fixture file not found: {fixture_path}")
@@ -34,11 +34,11 @@ def _load_ufc_fixture() -> dict[str, Any]:
 
 def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
-    test_data_dir = Path(__file__).parent
+    test_data_dir = Path(__file__).parent / "ffe-data/evaluation-cases"
     if not test_data_dir.exists():
         return []
 
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name != "flags-v1.json"]
+    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json"]
 
 
 # Load fixture at module level for reuse across tests
@@ -117,7 +117,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 pytest.skip("OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
 
         # Load the test case file
-        test_case_path = Path(__file__).parent / test_case_file
+        test_case_path = Path(__file__).parent / "ffe-data/evaluation-cases" / test_case_file
 
         if not test_case_path.exists():
             pytest.skip(f"Test case file not found: {test_case_path}")

@@ -1,0 +1,3 @@
+[submodule "tests/parametric/test_ffe/ffe-data"]
+	path = tests/parametric/test_ffe/ffe-data
+	url = https://github.com/DataDog/ffe-system-test-data
