@@ -171,13 +171,15 @@ ssi_tests:
 
         # Dump every log file as a collapsible section. Skip report.json (no
         # user value) and tests.log (already in the standard output above).
-        # The helper script bounds each section to ~200 KB and hard-wraps
-        # individual lines longer than 1 KB so GitLab's UI parser can always
-        # find the matching section_end marker.
+        # Order files BIG -> SMALL so the biggest files are emitted FIRST and
+        # end up outside GitLab's last-500-KiB UI rendering window (their
+        # markers don't get cut, so they don't confuse the parser), while the
+        # small files land within the window with their start+end intact and
+        # collapse reliably in the live UI.
         while IFS= read -r -d '' file; do
           section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
           ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
-        done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+        done < <(find reports -type f \! -name report.json \! -name tests.log -printf '%s\t%p\0' | sort -zrn | cut -zf2-)
     retry:
       max: 2
       when:
