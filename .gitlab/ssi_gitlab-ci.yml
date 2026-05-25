@@ -82,18 +82,10 @@ ssi_tests:
               chmod +x binaries/install_script_agent7.sh
             fi
         - |
-            # Wrap `./build.sh -i runner` in a custom GitLab collapsible section.
-            # Note: this sub-section is rendered inside the runner's auto
-            # "step_script" section (which is emitted as [collapsed=false]),
-            # so it lives at depth 2 in the trace structure. Depth >= 2 is
-            # known to be unreliable for collapsing in the GitLab UI
-            # (gitlab#29766); kept here as an experiment.
             BUILD_SECTION_TS=$(date +%s)
             printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KBuild runner image (./build.sh -i runner)\n' "${BUILD_SECTION_TS}"
             SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-            BUILD_RUNNER_EXIT=$?
             printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
-            exit "${BUILD_RUNNER_EXIT}"
         - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
