@@ -609,7 +609,10 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: v1.19.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
+    - weblog_declaration:
+        "*": v1.19.0
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: irrelevant (HTTP entry spans in PHP-FPM/Apache are C-level; execute stack is empty at span close time so no user frames are captured)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - weblog_declaration:
@@ -649,21 +652,21 @@ manifest:
   : '>=1.16.0'
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature (code origin entry spans not captured in PHP-FPM; RC toggle works but no spans to verify)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v1.20.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
-  : - weblog_declaration:
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+    - weblog_declaration:
+        "*": v1.20.0
         laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: v1.19.0
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
+        "*": v1.19.0
         laravel11x: missing_feature (pending to be implemented on this weblog)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets:
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
-        laravel11x: missing_feature
+        "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: missing_feature
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
@@ -675,7 +678,10 @@ manifest:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
         laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot:
+    - weblog_declaration:
+        "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
@@ -689,7 +695,10 @@ manifest:
     - declaration: flaky (DEBUG-3814)
       component_version: '>1.8.3'
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
+    - weblog_declaration:
+        "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+        laravel11x: missing_feature (pending to be implemented on this weblog)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
