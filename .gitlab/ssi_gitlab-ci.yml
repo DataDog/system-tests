@@ -146,6 +146,18 @@ ssi_tests:
           done
         fi
 
+        # Close GitLab Runner's automatic "after_script" section before
+        # emitting our own collapsible sections. GitLab's web UI has a known
+        # bug (gitlab#29766) where nested sub-sections do NOT collapse
+        # reliably: the inner [collapsed=true] hint is ignored intermittently
+        # depending on render timing, total trace size and chunk boundaries.
+        # By closing "after_script" first our log sections become top-level
+        # siblings (depth 1) instead of sub-sections (depth 2), which is the
+        # only depth the UI actually collapses dependably. The duplicate
+        # section_end:after_script that the runner emits when after_script
+        # finishes is harmless (the UI ignores stray end markers).
+        printf '\e[0Ksection_end:%s:after_script\r\e[0K\n' "$(date +%s)"
+
         # Banner pointing to the docs that explain how to read each log file
         printf '\n%s\n  Logs for %s\n  How to interpret these logs:\n  %s\n%s\n\n' \
           "================================================================================" \
@@ -155,8 +167,9 @@ ssi_tests:
 
         # Dump every log file as a collapsible section. Skip report.json (no
         # user value) and tests.log (already in the standard output above).
-        # Files larger than 500 KB are split into multiple sections by the
-        # helper script so GitLab's UI can render them correctly.
+        # The helper script bounds each section to ~200 KB and hard-wraps
+        # individual lines longer than 1 KB so GitLab's UI parser can always
+        # find the matching section_end marker.
         while IFS= read -r -d '' file; do
           section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
           ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
