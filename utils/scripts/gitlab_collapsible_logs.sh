@@ -4,17 +4,18 @@
 #
 # GitLab's web UI refuses to collapse a section whose rendered size exceeds
 # ~500 KB. GitLab Runner prepends a ~32-byte timestamp prefix to every line of
-# the job trace, so a chunk's *trace* size is `file_bytes + line_count * 32`.
-# We size each chunk against that trace budget (not the raw file bytes) so the
-# UI always collapses every section, regardless of average line length.
-#
-# Chunks are partitioned on LINE boundaries (not bytes). Cutting mid-line
-# leaves dangling quotes and partial fields in the trace, which can confuse
-# the frontend section parser when the affected line also contains an embedded
-# ISO timestamp (e.g. dockerd's `time="2026-...Z"`).
+# the job trace, so a chunk's *trace* size is `sum(line_bytes + overhead)` over
+# all emitted (post-wrap) lines. We split the file using a byte-accurate,
+# streaming algorithm: we walk line-by-line, hard-wrap any line longer than
+# MAX_LINE_BYTES, and start a new section as soon as the next emitted sub-line
+# would push the running trace-byte budget over MAX_TRACE_BYTES. This bounds
+# every section regardless of how line lengths are distributed across the file
+# (a previous line-count-based split produced wildly uneven chunks: parts that
+# happened to land where long lines clustered ballooned to 400+ KB, which the
+# UI then refused to collapse).
 #
 # Individual file lines longer than MAX_LINE_BYTES are hard-wrapped before
-# emission. The GitLab Runner trace stream is internally chunked (~8 KB), and
+# emission. The GitLab Runner trace stream is internally chunked (~8 KB) and
 # the web log viewer can lose the upcoming section_end marker when a single
 # trace line is multi-KB (typical victims: tracer Config{} dumps in app.log
 # and containerd `starting cri plugin` JSON dumps in syslog.log).
@@ -35,64 +36,98 @@ LOG_FILE="$1"
 SECTION_NAME="$2"
 SECTION_HEADER="$3"
 
-readonly MAX_TRACE_BYTES=$((300 * 1024))  # comfortable margin under GitLab's 500 KB UI limit
+readonly MAX_TRACE_BYTES=$((200 * 1024))  # generous margin under GitLab's 500 KB UI limit
 readonly TRACE_LINE_OVERHEAD=32           # bytes added by GitLab Runner per trace line
 readonly MAX_LINE_BYTES=1000              # wrap longer file lines; above this the UI loses section_end
 
-# Capture a stable timestamp once so we can advance it per-section. Distinct
-# timestamps make start/end pairs trivially unique for the UI to match, even
-# when many sections are emitted within the same Unix second.
+# Capture a stable timestamp once. We advance it per-section (ts + part - 1)
+# so consecutive start/end pairs use distinct timestamps -- this makes them
+# trivially unique for the UI to match, even when emitted within the same
+# Unix second.
 section_ts=$(date +%s)
-current_ts=0
-
-section_start() {
-  current_ts=$((section_ts++))
-  echo -e "\e[0Ksection_start:${current_ts}:${1}[collapsed=true]\r\e[0K${2}"
-}
-
-section_end() {
-  echo -e "\e[0Ksection_end:${current_ts}:${1}\r\e[0K"
-}
 
 if [[ ! -f "${LOG_FILE}" ]]; then
-  section_start "${SECTION_NAME}" "${SECTION_HEADER}"
+  printf '\033[0Ksection_start:%d:%s[collapsed=true]\r\033[0K%s\n' \
+         "${section_ts}" "${SECTION_NAME}" "${SECTION_HEADER}"
   echo "Log file not found: ${LOG_FILE}"
-  section_end "${SECTION_NAME}"
+  printf '\033[0Ksection_end:%d:%s\r\033[0K\n' "${section_ts}" "${SECTION_NAME}"
   exit 0
 fi
 
-size=$(wc -c <"${LOG_FILE}")
-# Use awk to count records (matches NR semantics used below), so files without
-# a trailing newline still get their last line included.
-lines=$(awk 'END { print NR }' "${LOG_FILE}")
-[[ "${lines}" -eq 0 ]] && lines=1
-trace_bytes=$(( size + lines * TRACE_LINE_OVERHEAD ))
-parts=$(( trace_bytes > MAX_TRACE_BYTES ? (trace_bytes + MAX_TRACE_BYTES - 1) / MAX_TRACE_BYTES : 1 ))
-lines_per_chunk=$(( (lines + parts - 1) / parts ))
-
-for (( i=1; i<=parts; i++ )); do
-  if (( parts > 1 )); then
-    name="${SECTION_NAME}_part${i}"
-    header="${SECTION_HEADER} (part ${i}/${parts})"
-  else
-    name="${SECTION_NAME}"
-    header="${SECTION_HEADER}"
-  fi
-  start_line=$(( (i - 1) * lines_per_chunk + 1 ))
-  end_line=$(( i * lines_per_chunk ))
-  section_start "${name}" "${header}"
-  # Emit each in-range file line, hard-wrapping anything longer than
-  # MAX_LINE_BYTES so no single trace line confuses the UI section parser.
-  awk -v s="${start_line}" -v e="${end_line}" -v max="${MAX_LINE_BYTES}" '
-    NR < s { next }
-    NR > e { exit }
-    {
-      while (length($0) > max) {
-        print substr($0, 1, max)
-        $0 = substr($0, max + 1)
-      }
-      print
+# First pass: byte-accurate, wrap-aware simulation that counts how many
+# sections we'll produce. We need this up front so the second pass can
+# emit accurate "part i/N" headers.
+parts=$(awk -v max_trace="${MAX_TRACE_BYTES}" \
+            -v overhead="${TRACE_LINE_OVERHEAD}" \
+            -v max_line="${MAX_LINE_BYTES}" '
+  BEGIN { parts = 1; used = 0 }
+  function commit(sub_len,    cost) {
+    cost = sub_len + 1 + overhead
+    if (used > 0 && used + cost > max_trace) { parts++; used = 0 }
+    used += cost
+  }
+  {
+    line = $0
+    while (length(line) > max_line) {
+      commit(max_line)
+      line = substr(line, max_line + 1)
     }
-  ' "${LOG_FILE}"
-  section_end "${name}"
-done
+    commit(length(line))
+  }
+  END { print parts }
+' "${LOG_FILE}")
+
+[[ -z "${parts}" ]] && parts=1
+
+# Second pass: stream the file, wrap long lines, and emit section markers
+# when the next sub-line would overflow the budget. Markers are emitted from
+# awk itself so the byte accounting and the section switching share state.
+awk -v ts="${section_ts}" \
+    -v name="${SECTION_NAME}" \
+    -v header="${SECTION_HEADER}" \
+    -v parts="${parts}" \
+    -v max_trace="${MAX_TRACE_BYTES}" \
+    -v overhead="${TRACE_LINE_OVERHEAD}" \
+    -v max_line="${MAX_LINE_BYTES}" '
+  BEGIN {
+    esc  = sprintf("%c[0K", 27)
+    cr   = sprintf("%c", 13)
+    part = 1
+    used = 0
+    open_section()
+  }
+  function section_label() {
+    return (parts == 1) ? name : (name "_part" part)
+  }
+  function header_label() {
+    return (parts == 1) ? header : (header " (part " part "/" parts ")")
+  }
+  function open_section() {
+    printf "%ssection_start:%d:%s[collapsed=true]%s%s%s\n", \
+           esc, ts + part - 1, section_label(), cr, esc, header_label()
+  }
+  function close_section() {
+    printf "%ssection_end:%d:%s%s%s\n", \
+           esc, ts + part - 1, section_label(), cr, esc
+  }
+  function emit(sub_line,    cost) {
+    cost = length(sub_line) + 1 + overhead
+    if (used > 0 && used + cost > max_trace) {
+      close_section()
+      part++
+      used = 0
+      open_section()
+    }
+    print sub_line
+    used += cost
+  }
+  {
+    line = $0
+    while (length(line) > max_line) {
+      emit(substr(line, 1, max_line))
+      line = substr(line, max_line + 1)
+    }
+    emit(line)
+  }
+  END { close_section() }
+' "${LOG_FILE}"
