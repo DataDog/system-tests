@@ -86,7 +86,14 @@ ssi_tests:
             printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KBuild runner image (./build.sh -i runner)\n' "${BUILD_SECTION_TS}"
             SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
             printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
-        - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+        - |
+            # Run the tests and capture stdout+stderr to a file so the
+            # after_script can re-print the summary at the end of the trace
+            # (where GitLab's UI 500-KiB window will always include it).
+            # `set -o pipefail` ensures the real run.sh exit code propagates
+            # through the `tee` pipeline instead of being masked by tee's 0.
+            set -o pipefail
+            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
@@ -169,17 +176,27 @@ ssi_tests:
           "https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results" \
           "================================================================================"
 
-        # Dump every log file as a collapsible section. Skip report.json (no
-        # user value) and tests.log (already in the standard output above).
-        # Order files BIG -> SMALL so the biggest files are emitted FIRST and
-        # end up outside GitLab's last-500-KiB UI rendering window (their
-        # markers don't get cut, so they don't confuse the parser), while the
-        # small files land within the window with their start+end intact and
-        # collapse reliably in the live UI.
+        # Dump every log file as a collapsible section (full content). For
+        # very large jobs the trace may exceed GitLab's ~500 KiB UI parsing
+        # window: in that case some of these sections render uncollapsed in
+        # the live view, but they collapse correctly in "Show complete raw"
+        # and the original files are always available in S3 and in the
+        # `reports/` artifact.
         while IFS= read -r -d '' file; do
           section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
           ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
-        done < <(find reports -type f \! -name report.json \! -name tests.log -printf '%s\t%p\0' | sort -zrn | cut -zf2-)
+        done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+
+        # Re-print the captured run.sh summary at the END of the trace so the
+        # test result is always inside GitLab's last-500-KiB UI window and
+        # visible without scrolling, no matter how big the per-file log
+        # sections above end up being.
+        if [ -f "${CI_PROJECT_DIR}/run_output.log" ]; then
+          printf '\n%s\n  Test run summary (captured from script: step)\n%s\n\n' \
+            "================================================================================" \
+            "================================================================================"
+          tail -c 200000 "${CI_PROJECT_DIR}/run_output.log"
+        fi
     retry:
       max: 2
       when:
