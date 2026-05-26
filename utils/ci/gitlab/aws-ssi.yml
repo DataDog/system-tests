@@ -29,8 +29,6 @@ compute_pipeline:
     CI_ENVIRONMENT: "prod"
   script:
     - |
-      [ -n "$[[ inputs.scenarios ]]" ] && export SYSTEM_TESTS_SCENARIOS="$[[ inputs.scenarios ]]"
-      [ -n "$[[ inputs.scenarios_groups ]]" ] && export SYSTEM_TESTS_SCENARIOS_GROUPS="$[[ inputs.scenarios_groups ]]"
       if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined. Computing changes..."
         SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
@@ -62,14 +60,16 @@ compute_pipeline:
         source venv/bin/activate
       fi
     - |
-      touch ssi_check.env
+      [ -n "$[[ inputs.scenarios ]]" ] && scenarios="$[[ inputs.scenarios ]]"
+      [ -n "$[[ inputs.scenarios_groups ]]" ] && scenarios_groups="$[[ inputs.scenarios_groups ]]"
+      touch "$CI_PROJECT_DIR/ssi_check.env"
       for library in $[[ inputs.libraries ]]; do
-        python utils/scripts/compute-workflow-parameters.py $library --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+        python utils/scripts/compute-workflow-parameters.py $library -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
         library_upper=$(echo "$library" | tr '[:lower:]' '[:upper:]')
         if [ -f "${library}_ssi_gitlab_pipeline.yml" ]; then
-          echo "${library_upper}_HAS_SSI_JOBS=true" >> ssi_check.env
+          echo "${library_upper}_HAS_SSI_JOBS=true" >> "$CI_PROJECT_DIR/ssi_check.env"
         else
-          echo "${library_upper}_HAS_SSI_JOBS=false" >> ssi_check.env
+          echo "${library_upper}_HAS_SSI_JOBS=false" >> "$CI_PROJECT_DIR/ssi_check.env"
         fi
       done
     - |
