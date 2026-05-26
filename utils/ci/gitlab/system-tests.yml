@@ -73,7 +73,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
     - section_end "weblog_setup"
     - section_start "scenario_run" "Running scenario"
-    - ./run.sh {{scenario}}
+    - ./run.sh {{scenario}} -L {{library}}
     - section_end "scenario_run"
   artifacts:
     when: always
