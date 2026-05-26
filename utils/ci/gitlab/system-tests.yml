@@ -1,3 +1,6 @@
+workflow:
+  name: "{{library}}"
+
 include:
   - local: /utils/ci/gitlab/templates.yml
     inputs:
