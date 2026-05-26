@@ -82,7 +82,10 @@ nodejs_ssi_pipeline:
 
 java_ssi_pipeline:
   stage: $[[ inputs.stage ]]
-  needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -97,7 +100,10 @@ java_ssi_pipeline:
 
 dotnet_ssi_pipeline:
   stage: $[[ inputs.stage ]]
-  needs: ["compute_pipeline", "java_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: java_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -112,7 +118,10 @@ dotnet_ssi_pipeline:
 
 python_ssi_pipeline:
   stage: $[[ inputs.stage ]]
-  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: dotnet_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -127,7 +136,10 @@ python_ssi_pipeline:
 
 php_ssi_pipeline:
   stage: $[[ inputs.stage ]]
-  needs: ["compute_pipeline", "python_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: python_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -142,7 +154,10 @@ php_ssi_pipeline:
 
 ruby_ssi_pipeline:
   stage: $[[ inputs.stage ]]
-  needs: ["compute_pipeline", "php_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: php_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
