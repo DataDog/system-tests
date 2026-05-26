@@ -62,15 +62,8 @@ compute_pipeline:
     - |
       [ -n "$[[ inputs.scenarios ]]" ] && scenarios="$[[ inputs.scenarios ]]"
       [ -n "$[[ inputs.scenarios_groups ]]" ] && scenarios_groups="$[[ inputs.scenarios_groups ]]"
-      touch "$CI_PROJECT_DIR/ssi_check.env"
       for library in $[[ inputs.libraries ]]; do
         python utils/scripts/compute-workflow-parameters.py $library -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-        library_upper=$(echo "$library" | tr '[:lower:]' '[:upper:]')
-        if [ -f "${library}_ssi_gitlab_pipeline.yml" ]; then
-          echo "${library_upper}_HAS_SSI_JOBS=true" >> "$CI_PROJECT_DIR/ssi_check.env"
-        else
-          echo "${library_upper}_HAS_SSI_JOBS=false" >> "$CI_PROJECT_DIR/ssi_check.env"
-        fi
       done
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
@@ -82,8 +75,6 @@ compute_pipeline:
   artifacts:
     paths:
       - "*_ssi_gitlab_pipeline.yml"
-    reports:
-      dotenv: ssi_check.env
 
 nodejs_ssi_pipeline:
   stage: $[[ inputs.stage ]]
@@ -96,8 +87,8 @@ nodejs_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /nodejs/ && $NODEJS_HAS_SSI_JOBS == "true"'
-    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /nodejs/ && $NODEJS_HAS_SSI_JOBS == "true"'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /nodejs/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /nodejs/'
   when: always
 
 java_ssi_pipeline:
@@ -114,8 +105,8 @@ java_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /java/ && $JAVA_HAS_SSI_JOBS == "true"'
-    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /java/ && $JAVA_HAS_SSI_JOBS == "true"'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /java/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /java/'
   when: always
 
 dotnet_ssi_pipeline:
@@ -132,8 +123,8 @@ dotnet_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /dotnet/ && $DOTNET_HAS_SSI_JOBS == "true"'
-    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /dotnet/ && $DOTNET_HAS_SSI_JOBS == "true"'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /dotnet/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /dotnet/'
   when: always
 
 python_ssi_pipeline:
@@ -150,8 +141,8 @@ python_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /python/ && $PYTHON_HAS_SSI_JOBS == "true"'
-    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /python/ && $PYTHON_HAS_SSI_JOBS == "true"'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /python/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /python/'
   when: always
 
 php_ssi_pipeline:
@@ -168,8 +159,8 @@ php_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /php/ && $PHP_HAS_SSI_JOBS == "true"'
-    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /php/ && $PHP_HAS_SSI_JOBS == "true"'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /php/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /php/'
   when: always
 
 ruby_ssi_pipeline:
@@ -186,8 +177,8 @@ ruby_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /ruby/ && $RUBY_HAS_SSI_JOBS == "true"'
-    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /ruby/ && $RUBY_HAS_SSI_JOBS == "true"'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /ruby/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /ruby/'
   when: always
 
 delete_amis:

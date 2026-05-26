@@ -81,8 +81,8 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
         and not matrix_data["dockerssi_scenario_defs"]
         and not matrix_data["libinjection_scenario_defs"]
     ):
-        print(f"No SSI scenarios to run for {language}, skipping pipeline generation")
-        return
+        result_pipeline["stages"].append("SSI_TESTS")
+        result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
     if matrix_data["aws_ssi_scenario_defs"]:
         # Copy the base job for the onboarding system tests
