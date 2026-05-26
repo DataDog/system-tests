@@ -30,6 +30,11 @@ printf '\033[0Ksection_start:%d:%s[collapsed=true]\r\033[0K%s\n' \
 
 if [[ -f "${LOG_FILE}" ]]; then
   cat "${LOG_FILE}"
+  #Ensure GitLab section markers start on a new line, without
+  #adding extra blank lines.
+  if [[ -s "${LOG_FILE}" ]] && [[ -n "$(tail -c1 "${LOG_FILE}")" ]]; then
+    printf '\n'
+  fi
 else
   echo "Log file not found: ${LOG_FILE}"
 fi

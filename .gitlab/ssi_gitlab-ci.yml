@@ -87,11 +87,7 @@ ssi_tests:
             SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
             printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
         - |
-            # Run the tests and capture stdout+stderr to a file so the
-            # after_script can re-print the summary at the end of the trace
-            # (where GitLab's UI 500-KiB window will always include it).
-            # `set -o pipefail` ensures the real run.sh exit code propagates
-            # through the `tee` pipeline instead of being masked by tee's 0.
+            # Run the tests and capture stdout+stderr to a file
             set -o pipefail
             timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
@@ -171,8 +167,8 @@ ssi_tests:
         printf '  - Each log file above is wrapped in its own collapsible section.\n'
         printf '    Click the triangle on the section header to expand/collapse it.\n'
         printf '  - If some sections appear uncollapsed in this view, click\n'
-        printf '    "Show complete raw" (top-right of the job log) - that view\n'
-        printf '    parses every collapsible section correctly.\n'
+        printf '    "View full log" To view all collapsed sections (all logs)\n'
+        printf '  - You can always download the logs attached to the job\n'
         if [ -n "${AWS_CONSOLE_URL}" ]; then
           printf '  - Full raw logs (including files >50MB stripped from the artifact)\n'
           printf '    are uploaded to S3:\n      %s\n' "${AWS_CONSOLE_URL}"
