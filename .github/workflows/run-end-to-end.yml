@@ -222,7 +222,30 @@ jobs:
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
     - name: Run INTEGRATIONS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATIONS"')
-      run: ./run.sh INTEGRATIONS
+      run: |
+        # [DIAG do-not-merge] For .NET, loop the INTEGRATIONS scenario 10x to amplify the
+        # Test_SqlServiceNameSource stall reproduction rate. Each iteration's logs are
+        # renamed to logs_integrations_iter_N so they all end up in the artifact tarball
+        # (which globs logs*/). The job fails if any iteration fails so CI surfaces it.
+        if [ "${{ inputs.library }}" = "dotnet" ]; then
+          iter_fail=0
+          for i in $(seq 1 10); do
+            echo "===== [DIAG] INTEGRATIONS iteration $i / 10 ====="
+            rm -rf logs_integrations
+            ./run.sh INTEGRATIONS || iter_fail=$((iter_fail + 1))
+            if [ -d logs_integrations ]; then
+              mv logs_integrations "logs_integrations_iter_$(printf %02d $i)"
+            fi
+          done
+          echo "===== [DIAG] INTEGRATIONS summary: $iter_fail failed iterations / 10 ====="
+          # Mirror the last iteration's logs into logs_integrations so downstream steps that
+          # expect that path keep working.
+          last_dir=$(ls -d logs_integrations_iter_* 2>/dev/null | tail -1)
+          if [ -n "$last_dir" ]; then cp -r "$last_dir" logs_integrations; fi
+          if [ "$iter_fail" -gt 0 ]; then exit 1; fi
+        else
+          ./run.sh INTEGRATIONS
+        fi
     - name: Run INTEGRATIONS_AWS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
       run: ./run.sh INTEGRATIONS_AWS
