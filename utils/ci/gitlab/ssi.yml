@@ -23,9 +23,9 @@ spec:
 
 ---
 
-# AWS SSI pipeline — mirrors the end-to-end pattern:
+# SSI pipeline — mirrors the end-to-end pattern:
 #   compute_pipeline  →  generated-ssi-pipeline.yml  →  run_ssi_pipeline
-# All Docker/K8s SSI scenarios run in main.yml instead.
+# Covers all SSI workflows: aws_ssi, dockerssi, libinjection.
 
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml

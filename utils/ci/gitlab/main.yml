@@ -59,7 +59,7 @@ include:
     inputs:
       stage: $[[ inputs.stage ]]
       ref: $[[ inputs.ref ]]
-  - local: /utils/ci/gitlab/aws-ssi.yml
+  - local: /utils/ci/gitlab/ssi.yml
     inputs:
       stage: $[[ inputs.stage ]]
       libraries: $[[ inputs.libraries ]]
