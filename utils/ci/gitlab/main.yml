@@ -1,7 +1,13 @@
 spec:
   inputs:
     stage:
-      description: "CI stage for the jobs"
+      description: "CI stage for the generated test jobs (inside the child pipeline)"
+    build_stage:
+      description: "CI stage for build_test_pipeline and resolve_ci_image"
+      default: "build"
+    run_stage:
+      description: "CI stage for run_test_pipeline"
+      default: "run"
     libraries:
       default: "java python nodejs"
     scenarios:
@@ -43,6 +49,15 @@ spec:
     ref:
       description: "system-tests ref to use when called from another repository (branch, tag or SHA)"
       default: "main"
+    ssi_library_version:
+      description: "DD_INSTALLER_LIBRARY_VERSION to inject into generated jobs (Docker/K8s SSI)"
+      default: ""
+    k8s_lib_init_img:
+      description: "K8S_LIB_INIT_IMG to inject into generated libinjection jobs"
+      default: ""
+    ssi_injector_version:
+      description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
+      default: ""
 ---
 
 include:
@@ -62,7 +77,7 @@ resolve_ci_image:
   image: registry.ddbuild.io/system-tests/git
   tags:
     - arch:amd64
-  stage: $[[ inputs.stage ]]
+  stage: $[[ inputs.build_stage ]]
   interruptible: true
   variables:
     GIT_STRATEGY: none
@@ -84,6 +99,7 @@ build_test_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
+  stage: $[[ inputs.build_stage ]]
   needs:
     - job: resolve_ci_image
       artifacts: true
@@ -94,7 +110,7 @@ build_test_pipeline:
     - >
       for library in $[[ inputs.libraries ]]; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
-        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" >> generated-pipeline.yml;
+        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" --ssi-library-version "$[[ inputs.ssi_library_version ]]" --k8s-lib-init-img "$[[ inputs.k8s_lib_init_img ]]" --ssi-injector-version "$[[ inputs.ssi_injector_version ]]" >> generated-pipeline.yml;
       done
   artifacts:
     paths:
@@ -102,7 +118,7 @@ build_test_pipeline:
 
 run_test_pipeline:
   interruptible: true
-  stage: run
+  stage: $[[ inputs.run_stage ]]
   needs:
     - job: build_test_pipeline
       artifacts: true
