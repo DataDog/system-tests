@@ -53,18 +53,6 @@ def _enable_guard(extra: dict[str, str] | None = None) -> pytest.MarkDecorator:
     return parametrize("library_env", [env])
 
 
-def _both_styles() -> pytest.MarkDecorator:
-    return parametrize(
-        "library_env",
-        [
-            {
-                "DD_TRACE_PROPAGATION_STYLE_INJECT": "datadog,tracecontext",
-                "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext",
-            }
-        ],
-    )
-
-
 def _inbound(*extra: tuple[str, str]) -> list[tuple[str, str]]:
     """Datadog-style inbound headers with the standard trace/parent ids and an
     explicit USER_KEEP sampling priority. Pass extras to add `_dd.p.opm`,
@@ -119,6 +107,20 @@ class Test_HeadersOPM_Injection:
         assert f"_dd.p.opm={FOREIGN_OPM}" in _x_dd_tags(headers)
 
     @_local_opm_agent_env()
+    def test_guard_disabled_propagates_inbound_opm(self, test_library: APMLibrary) -> None:
+        """Guard disabled: local OPM is not injected, inbound OPM propagates as-is."""
+        with test_library:
+            test_library.ensure_agent_info()
+            headers = test_library.dd_make_child_span_and_get_headers(
+                _inbound(("x-datadog-tags", f"_dd.p.opm={FOREIGN_OPM}"))
+            )
+
+        x_dd_tags = _x_dd_tags(headers)
+        assert f"_dd.p.opm={FOREIGN_OPM}" in x_dd_tags
+        assert f"_dd.p.opm={LOCAL_OPM}" not in x_dd_tags
+
+    @_local_opm_agent_env()
+    @_enable_guard()
     def test_local_opm_overrides_inbound_opm(self, test_library: APMLibrary) -> None:
         """Local OPM known -> inject local OPM regardless of any inbound OPM."""
         with test_library:
@@ -132,7 +134,16 @@ class Test_HeadersOPM_Injection:
         assert f"_dd.p.opm={FOREIGN_OPM}" not in x_dd_tags
 
     @_local_opm_agent_env()
-    @_both_styles()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_ORG_GUARD_ENABLED": "true",
+                "DD_TRACE_PROPAGATION_STYLE_INJECT": "datadog,tracecontext",
+                "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext",
+            }
+        ],
+    )
     def test_opm_injected_in_both_styles(self, test_library: APMLibrary) -> None:
         """When both datadog & tracecontext styles inject, OPM appears in both header families."""
         with test_library:
@@ -425,6 +436,7 @@ class Test_HeadersOPM_AgentInfo:
         assert info.get("org_prop_marker") == LOCAL_OPM
 
     @_local_opm_agent_env()
+    @_enable_guard()
     def test_tracer_consumes_info_opm(self, test_library: APMLibrary) -> None:
         """Once the tracer has fetched /info, outbound headers carry the local OPM."""
         with test_library:
