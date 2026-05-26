@@ -63,7 +63,7 @@ compute_pipeline:
       [ -n "$[[ inputs.scenarios ]]" ] && scenarios="$[[ inputs.scenarios ]]"
       [ -n "$[[ inputs.scenarios_groups ]]" ] && scenarios_groups="$[[ inputs.scenarios_groups ]]"
       for library in $[[ inputs.libraries ]]; do
-        python utils/scripts/compute-workflow-parameters.py $library -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+        python utils/scripts/compute-workflow-parameters.py $library --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
       done
       python3 utils/ci/gitlab/build_ssi_pipeline.py $[[ inputs.libraries ]]
     - |
