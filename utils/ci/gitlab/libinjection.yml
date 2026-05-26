@@ -1,0 +1,67 @@
+{% for scenario, weblogs in libinjection_scenario_defs.items() %}
+run_{{library}}_{{scenario}}:
+  extends: .system_tests_base
+  variables:
+    TEST_LIBRARY: {{library}}
+    K8S_SCENARIO: {{scenario}}
+    REPORT_ENVIRONMENT: {{ci_environment}}
+    PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    PRIVATE_DOCKER_REGISTRY_USER: AWS
+{% if k8s_lib_init_img %}
+    K8S_LIB_INIT_IMG: "{{k8s_lib_init_img}}"
+{% endif %}
+  parallel:
+    matrix:
+{% for weblog in weblogs %}
+      - K8S_WEBLOG: {{weblog}}
+        K8S_WEBLOG_IMG: ${PRIVATE_DOCKER_REGISTRY}/system-tests/{{weblog}}
+{% endfor %}
+  script:
+    - section_start "ecr_auth" "ECR auth"
+    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+    - export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
+    - section_end "ecr_auth"
+    - section_start "build" "Building runner"
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+    - section_end "build"
+    - section_start "weblog_build" "Building weblog image"
+    - |
+      if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
+        TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
+        ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
+          --push-tag ${K8S_WEBLOG_IMG}:${TAG_NAME} \
+          --docker-platform linux/amd64
+      else
+        TAG_NAME="latest"
+      fi
+    - section_end "weblog_build"
+    - section_start "run" "Running {{scenario}}"
+    - >
+      ./run.sh ${K8S_SCENARIO}
+      --k8s-library ${TEST_LIBRARY}
+      --k8s-weblog ${K8S_WEBLOG}
+      --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME}
+      --k8s-lib-init-img ${K8S_LIB_INIT_IMG}
+      --k8s-injector-img ${K8S_INJECTOR_IMG:-None}
+      --k8s-cluster-img ${K8S_CLUSTER_IMG:-None}
+      --report-run-url $CI_JOB_URL
+      --report-environment ${REPORT_ENVIRONMENT}
+    - section_end "run"
+  after_script: |
+    kind delete clusters --all || true
+    mkdir -p reports
+    cp -R logs_*/ reports/ || true
+  retry:
+    max: 2
+    when:
+      - job_execution_timeout
+      - unknown_failure
+      - runner_system_failure
+    exit_codes:
+      - 3
+  artifacts:
+    when: always
+    paths:
+      - system-tests/reports/
+
+{% endfor %}
