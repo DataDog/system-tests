@@ -161,4 +161,10 @@ if [[ $IS_APACHE -eq 1 ]]; then
   if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
       grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini
   fi
+
+  # Add /stub_dbm route to the loaded Apache PHP config (the file actually read by Apache)
+  APACHE_PHP_CONF="/etc/apache2/mods-available/php.conf"
+  if [ -f "$APACHE_PHP_CONF" ] && grep -q '"/dbm/"' "$APACHE_PHP_CONF" && ! grep -q 'stub_dbm' "$APACHE_PHP_CONF"; then
+      sed -i '/\"\/dbm\/\"/a\        RewriteRule "^\/stub_dbm" "\/stub_dbm.php" [QSA,L]' "$APACHE_PHP_CONF"
+  fi
 fi

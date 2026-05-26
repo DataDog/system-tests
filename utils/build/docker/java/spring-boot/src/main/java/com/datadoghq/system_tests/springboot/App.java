@@ -104,11 +104,13 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import test.TestConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -1240,6 +1242,77 @@ public class App {
         }
 
         return "OK";
+    }
+
+    @RequestMapping("/dbm")
+    String dbm(@RequestParam String integration) throws Exception {
+        String sql = "mssql".equals(integration) ? "SELECT @@version" : "SELECT version()";
+        try (Connection con = getTracedJdbcConnection(integration)) {
+            con.createStatement().execute(sql);
+        }
+        return "OK";
+    }
+
+    private Connection getTracedJdbcConnection(String integration) throws Exception {
+        switch (integration) {
+            case "postgresql":
+                Class.forName("org.postgresql.Driver");
+                return DriverManager.getConnection(
+                        "jdbc:postgresql://postgres:5433/system_tests_dbname",
+                        "system_tests_user", "system_tests");
+            case "mysql":
+                Class.forName("com.mysql.jdbc.Driver");
+                return DriverManager.getConnection(
+                        "jdbc:mysql://mysqldb:3306/mysql_dbname",
+                        "mysqldb", "mysqldb");
+            case "mssql":
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                return DriverManager.getConnection(
+                        "jdbc:sqlserver://mssql:1433;DatabaseName=master;trustServerCertificate=true;encrypt=true",
+                        "SA", "yourStrong(!)Password");
+            default:
+                throw new UnsupportedOperationException("Unknown integration: " + integration);
+        }
+    }
+
+    @RequestMapping("/stub_dbm")
+    String stub_dbm(@RequestParam String integration,
+                    @RequestParam(defaultValue = "execute") String operation) throws Exception {
+        try (TestConnection testCon = new TestConnection(getRawJdbcConnection(integration))) {
+            testCon.createStatement().execute("SELECT version()");
+            Map<String, String> result = new HashMap<>();
+            result.put("status", "ok");
+            result.put("dbm_comment", testCon.getLastSql());
+            return new ObjectMapper().writeValueAsString(result);
+        }
+    }
+
+    private Connection getRawJdbcConnection(String integration) throws Exception {
+        switch (integration) {
+            case "postgresql": {
+                Properties p = new Properties();
+                p.setProperty("user", "system_tests_user");
+                p.setProperty("password", "system_tests");
+                return new org.postgresql.Driver()
+                        .connect("jdbc:postgresql://postgres:5433/system_tests_dbname", p);
+            }
+            case "mysql": {
+                Properties p = new Properties();
+                p.setProperty("user", "mysqldb");
+                p.setProperty("password", "mysqldb");
+                return new com.mysql.jdbc.Driver()
+                        .connect("jdbc:mysql://mysqldb:3306/mysql_dbname", p);
+            }
+            case "mssql": {
+                Properties p = new Properties();
+                p.setProperty("user", "SA");
+                p.setProperty("password", "yourStrong(!)Password");
+                return DriverManager.getConnection(
+                        "jdbc:sqlserver://mssql:1433;DatabaseName=master", p);
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown integration: " + integration);
+        }
     }
 
     @RequestMapping("/otel_drop_in")

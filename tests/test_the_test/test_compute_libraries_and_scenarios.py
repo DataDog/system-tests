@@ -362,6 +362,19 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_nix_workflow(self):
+        inputs = build_inputs([".github/workflows/nix.yml"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
     @set_env("GITLAB_CI", "true")
     @set_env("CI_PIPELINE_SOURCE", "pull_request")
     @set_env("CI_COMMIT_REF_NAME", "")

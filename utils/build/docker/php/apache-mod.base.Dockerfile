@@ -17,7 +17,6 @@ RUN chmod +x /tmp/php/apache-mod/build.sh
 RUN /tmp/php/apache-mod/build.sh
 RUN rm -rf /tmp/php/
 
-ADD utils/build/docker/php/apache-mod/entrypoint.sh /entrypoint.sh
 WORKDIR /binaries
 ENTRYPOINT []
 RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
