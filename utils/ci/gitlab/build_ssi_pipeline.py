@@ -43,13 +43,13 @@ def _merge(libraries: list[str]) -> dict:
         for k, v in data.get("variables", {}).items():
             merged["variables"].setdefault(k, v)
 
-        # Prefix stage names with the library to avoid cross-language conflicts
-        stage_map: dict[str, str] = {}
+        # Stages are shared across languages — jobs from different libraries
+        # run in parallel within the same stage (e.g. INSTALLER_AUTO_INJECTION).
+        # Base jobs reference stage names directly via extends:, so stage names
+        # must not be prefixed.
         for stage in data.get("stages", []):
-            new_stage = f"{lib.upper()}_{stage}"
-            stage_map[stage] = new_stage
-            if new_stage not in merged["stages"]:
-                merged["stages"].append(new_stage)
+            if stage not in merged["stages"]:
+                merged["stages"].append(stage)
 
         for key, value in data.items():
             if key in _PIPELINE_KEYS:
@@ -59,10 +59,7 @@ def _merge(libraries: list[str]) -> dict:
                 merged.setdefault(key, value)
             else:
                 # Regular job — prefix with library to guarantee uniqueness
-                job = dict(value)
-                if "stage" in job:
-                    job["stage"] = stage_map.get(job["stage"], job["stage"])
-                merged[f"{lib}_{key}"] = job
+                merged[f"{lib}_{key}"] = value
 
     return merged
 
