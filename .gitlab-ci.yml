@@ -7,11 +7,22 @@ include:
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
+  - local: "/utils/ci/gitlab/aws-ssi.yml"
 
 stages:
   - build
   - test
   - run
+  - configure
+  - nodejs
+  - java
+  - dotnet
+  - python
+  - php
+  - ruby
+  - pipeline-status
+  - system-tests-utils
+  - publish
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
@@ -32,3 +43,75 @@ build_ci_image:
   artifacts:
     reports:
       dotenv: build.env
+
+check_merge_labels:
+  image: registry.ddbuild.io/system-tests/base-image-builder
+  tags:
+    - arch:amd64
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  needs: []
+  stage: system-tests-utils
+  before_script:
+    - dd-octo-sts version
+    - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
+    - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+  script:
+    - export GITHUB_TOKEN=$(cat token.txt)
+    - ./utils/scripts/get_pr_merged_labels.sh
+  after_script:
+    - dd-octo-sts revoke -t $(cat token.txt)
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+generate_system_tests_lambda_proxy_image:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  tags: ["docker-in-docker:amd64"]
+  needs: []
+  stage: system-tests-utils
+  allow_failure: false
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+  script:
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i lambda-proxy
+    - docker push datadog/system-tests:lambda-proxy-v1
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+      changes:
+        - utils/build/docker/lambda_proxy/pyproject.toml
+        - utils/build/docker/lambda-proxy.Dockerfile
+
+generate_system_tests_lib_injection_images:
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  stage: system-tests-utils
+  allow_failure: true
+  variables:
+    PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    PRIVATE_DOCKER_REGISTRY_USER: AWS
+  script:
+    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+    - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
+  rules:
+    - if: '$SCHEDULED_JOB == "generate_system_tests_lib_injection_images"'
+    - when: manual
+
+publish_gitlab_component:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  tags: ["arch:amd64"]
+  needs: []
+  stage: publish
+  script:
+    - aws s3 cp utils/ci/gitlab/main.yml s3://gitlab-templates.ddbuild.io/system-tests/include/main.yml
+    - aws s3 cp utils/ci/gitlab/system-tests.yml s3://gitlab-templates.ddbuild.io/system-tests/include/system-tests.yml
+    - aws s3 cp utils/ci/gitlab/dockerssi.yml s3://gitlab-templates.ddbuild.io/system-tests/include/dockerssi.yml
+    - aws s3 cp utils/ci/gitlab/libinjection.yml s3://gitlab-templates.ddbuild.io/system-tests/include/libinjection.yml
+    - aws s3 cp utils/ci/gitlab/build_pipeline.py s3://gitlab-templates.ddbuild.io/system-tests/include/build_pipeline.py
+    - aws s3 cp utils/ci/gitlab/templates.yml s3://gitlab-templates.ddbuild.io/system-tests/include/templates.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
