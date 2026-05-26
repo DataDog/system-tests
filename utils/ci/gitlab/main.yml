@@ -62,6 +62,7 @@ include:
   - local: /utils/ci/gitlab/aws-ssi.yml
     inputs:
       stage: $[[ inputs.stage ]]
+      libraries: $[[ inputs.libraries ]]
 
 workflow:
   rules:

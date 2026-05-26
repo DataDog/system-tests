@@ -2,6 +2,9 @@ spec:
   inputs:
     stage:
       description: "CI stage for all jobs in this component"
+    libraries:
+      description: "Space-separated list of libraries to test (e.g. 'java python nodejs')"
+      default: "java python nodejs"
 
 ---
 
@@ -50,12 +53,7 @@ compute_pipeline:
         SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
         source venv/bin/activate
       fi
-    - python utils/scripts/compute-workflow-parameters.py nodejs --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py java --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py dotnet --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py python --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py php --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py ruby --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - for library in $[[ inputs.libraries ]]; do python utils/scripts/compute-workflow-parameters.py $library --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab; done
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
@@ -65,12 +63,7 @@ compute_pipeline:
     - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
-      - nodejs_ssi_gitlab_pipeline.yml
-      - java_ssi_gitlab_pipeline.yml
-      - dotnet_ssi_gitlab_pipeline.yml
-      - python_ssi_gitlab_pipeline.yml
-      - php_ssi_gitlab_pipeline.yml
-      - ruby_ssi_gitlab_pipeline.yml
+      - "*_ssi_gitlab_pipeline.yml"
 
 nodejs_ssi_pipeline:
   stage: $[[ inputs.stage ]]
@@ -83,8 +76,8 @@ nodejs_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /nodejs/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /nodejs/'
   when: always
 
 java_ssi_pipeline:
@@ -98,8 +91,8 @@ java_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /java/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /java/'
   when: always
 
 dotnet_ssi_pipeline:
@@ -113,8 +106,8 @@ dotnet_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /dotnet/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /dotnet/'
   when: always
 
 python_ssi_pipeline:
@@ -128,8 +121,8 @@ python_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /python/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /python/'
   when: always
 
 php_ssi_pipeline:
@@ -143,8 +136,8 @@ php_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /php/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /php/'
   when: always
 
 ruby_ssi_pipeline:
@@ -158,8 +151,8 @@ ruby_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /ruby/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /ruby/'
   when: always
 
 delete_amis:
