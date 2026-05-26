@@ -7,9 +7,6 @@ include:
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
-  - local: "/utils/ci/gitlab/aws-ssi.yml"
-    inputs:
-      stage: "build"
 
 stages:
   - build

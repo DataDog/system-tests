@@ -59,6 +59,9 @@ include:
     inputs:
       stage: $[[ inputs.stage ]]
       ref: $[[ inputs.ref ]]
+  - local: /utils/ci/gitlab/aws-ssi.yml
+    inputs:
+      stage: $[[ inputs.stage ]]
 
 workflow:
   rules:
