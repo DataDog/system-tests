@@ -431,9 +431,6 @@ function main() {
           if [ "${library}" = "dotnet" ]; then
             pytest_numprocesses=1
           fi
-          if [ "${library}" = "php" ] && [ "${pytest_numprocesses}" = "auto" ]; then
-            pytest_numprocesses=4
-          fi
       done
     fi
 
