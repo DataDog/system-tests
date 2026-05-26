@@ -4497,4 +4497,55 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
   tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
   tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        vertx4: '>=1.62.0'
+        jersey-grizzly2: '>=1.62.0'
+        ratpack: '>=1.62.0'
+        uds-spring-boot: '>=1.62.0'
+        spring-boot-wildfly: '>=1.62.0'
+        spring-boot-undertow: '>=1.62.0'
+        spring-boot-payara: '>=1.62.0'
+        play: '>=1.62.0'
+        spring-boot: '>=1.62.0'
+        spring-boot-openliberty: '>=1.62.0'
+        resteasy-netty3: '>=1.62.0'
+        vertx3: '>=1.62.0'
+        akka-http: '>=1.62.0'
+        spring-boot-jetty: '>=1.62.0'
+        spring-boot-3-native: '>=1.62.0'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        vertx3: missing_feature
+        spring-boot-openliberty: missing_feature
+        resteasy-netty3: missing_feature
+        vertx4: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-3-native: missing_feature
+        play: missing_feature
+        spring-boot-payara: missing_feature
+        spring-boot-undertow: missing_feature
+        spring-boot-wildfly: missing_feature
+        akka-http: missing_feature
+        ratpack: missing_feature
+        uds-spring-boot: missing_feature
+        spring-boot: missing_feature
+        jersey-grizzly2: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanEvents:
+    - weblog_declaration:
+        vertx3: missing_feature
+        spring-boot-openliberty: missing_feature
+        resteasy-netty3: missing_feature
+        vertx4: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-3-native: missing_feature
+        play: missing_feature
+        spring-boot-payara: missing_feature
+        spring-boot-undertow: missing_feature
+        spring-boot-wildfly: missing_feature
+        akka-http: missing_feature
+        ratpack: missing_feature
+        uds-spring-boot: missing_feature
+        spring-boot: missing_feature
+        jersey-grizzly2: missing_feature
