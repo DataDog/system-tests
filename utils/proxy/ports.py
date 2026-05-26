@@ -13,6 +13,7 @@ class ProxyPorts(IntEnum):
     weblog = 8126
     open_telemetry_weblog = 8127
     otel_collector = 8128
+    dogstatsd_weblog = 8125
 
     agent = 8200
 

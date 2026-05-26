@@ -186,6 +186,16 @@ class _Scenarios:
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
+    telemetry_extended_heartbeat = EndToEndScenario(
+        "TELEMETRY_EXTENDED_HEARTBEAT",
+        weblog_env={
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+            "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+            "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+        },
+        doc="Test app-extended-heartbeat telemetry event with a shortened interval",
+        scenario_groups=[scenario_groups.telemetry],
+    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
@@ -544,7 +554,12 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
+        weblog_env={
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            # configs below will used to debug connection failures in ddtrace-py
+            "DD_TRACE_LOGGING_RATE": "0",
+            "DD_TRACE_DEBUG": "true",
+        },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
@@ -587,12 +602,21 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            # set_provider() in Python blocks until we receive RC
+            # configuration for feature flags. But it is only sent
+            # after weblog sucessfully boots and tests start
+            # executing. Unfortunately, Python's OpenFeature SDK does
+            # not have "set provider and don't wait," so we reduce the
+            # timeout here, so that the provider initialization fails
+            # fast, weblog boots, and provider recovers when we set RC
+            # configuration later.
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             "DD_METRICS_OTEL_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
         },
-        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )
@@ -1194,10 +1218,6 @@ class _Scenarios:
         # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
         weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
-        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
-        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
-        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
-        use_proxy_for_weblog=False,
         library_interface_timeout=20,
         doc="Test runtime metrics",
     )

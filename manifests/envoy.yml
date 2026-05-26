@@ -2,6 +2,8 @@
 ---
 manifest:
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
   tests/appsec/test_alpha.py: v1.72.0
   tests/appsec/test_blocking_addresses.py: v1.72.0
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant

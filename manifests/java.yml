@@ -283,6 +283,8 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1912,7 +1914,7 @@ manifest:
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
         spring-boot-jetty: missing_feature (no instrumentation for Jetty)
-        spring-boot-payara: missing_feature (APPSEC-61873)
+        spring-boot-payara: v1.63.0-SNAPSHOT
         vertx3: missing_feature (no instrumentation for Vert.x async multipart)
         vertx4: missing_feature (no instrumentation for Vert.x async multipart)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
@@ -1920,6 +1922,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.62.0-SNAPSHOT
+        spring-boot-payara: v1.63.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
@@ -3120,6 +3123,8 @@ manifest:
         spring-boot-openliberty: v1.38.0
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
+  # TODO(andrei): un-skip when v1.63.0 is released
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": missing_feature
@@ -3474,14 +3479,25 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_system: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_not_obfuscate_query: missing_feature (The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_runtime_id: missing_feature (not implemented yet)
-  tests/integrations/test_dbm.py::Test_Dbm: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.39.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.39.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.39.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -3698,32 +3714,24 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
-  tests/parametric/test_otel_logs.py: '>=1.58.2+06122213c8'  # Modified by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py: '>=1.62.0'
+  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols::test_otlp_protocols: incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py: '>=1.58.2+06122213c8'  # Modified by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled::test_otlp_metrics_enabled: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature (OTel config reported under internal alias)
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature (not yet implemented)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: irrelevant (OTel API does not support scope attributes on Java)
+  tests/parametric/test_otel_metrics.py: '>=1.62.0'
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter::test_otel_create_instruments_by_distinct:
+    - declaration: bug (APMAPI-1937)
+      component_version: <1.63.0-SNAPSHOT
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: irrelevant (OTel API does not support scope attributes on Java)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
+  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
+  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol::test_otlp_protocol_grpc: incomplete_test_app (GPRC fails for system-test but works with real collector)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature (not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
       component_version: <1.40.0
@@ -4083,7 +4091,7 @@ manifest:
     - weblog_declaration:
         vertx3: v1.60.1  # TODO: a lower version might be supported
         vertx4: v1.60.1  # TODO: a lower version might be supported
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.64.0
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: irrelevant (Java noted as an exception to runtime metrics off by default in the RFC)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled:
     - weblog_declaration:
         "*": v0.64.0
@@ -4247,7 +4255,8 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_dd_metrics_are_absent: bug (APMAPI-1952)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_otel_metrics_are_present: missing_feature
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         akka-http: v1.22.0
@@ -4357,6 +4366,10 @@ manifest:
       component_version: '>=1.21.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.107.1
   tests/test_telemetry.py::Test_DependencyEnable: v1.7.0
+  tests/test_telemetry.py::Test_ExtendedHeartbeat:
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot: v1.23.0
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -4383,6 +4396,8 @@ manifest:
         jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature
         ratpack: missing_feature
+        vertx3: missing_feature
+        vertx4: missing_feature
   tests/test_telemetry.py::Test_MessageBatch:
     - weblog_declaration:
         "*": v1.23.0
@@ -4482,4 +4497,55 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
   tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
   tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        vertx4: '>=1.62.0'
+        jersey-grizzly2: '>=1.62.0'
+        ratpack: '>=1.62.0'
+        uds-spring-boot: '>=1.62.0'
+        spring-boot-wildfly: '>=1.62.0'
+        spring-boot-undertow: '>=1.62.0'
+        spring-boot-payara: '>=1.62.0'
+        play: '>=1.62.0'
+        spring-boot: '>=1.62.0'
+        spring-boot-openliberty: '>=1.62.0'
+        resteasy-netty3: '>=1.62.0'
+        vertx3: '>=1.62.0'
+        akka-http: '>=1.62.0'
+        spring-boot-jetty: '>=1.62.0'
+        spring-boot-3-native: '>=1.62.0'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        vertx3: missing_feature
+        spring-boot-openliberty: missing_feature
+        resteasy-netty3: missing_feature
+        vertx4: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-3-native: missing_feature
+        play: missing_feature
+        spring-boot-payara: missing_feature
+        spring-boot-undertow: missing_feature
+        spring-boot-wildfly: missing_feature
+        akka-http: missing_feature
+        ratpack: missing_feature
+        uds-spring-boot: missing_feature
+        spring-boot: missing_feature
+        jersey-grizzly2: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanEvents:
+    - weblog_declaration:
+        vertx3: missing_feature
+        spring-boot-openliberty: missing_feature
+        resteasy-netty3: missing_feature
+        vertx4: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-3-native: missing_feature
+        play: missing_feature
+        spring-boot-payara: missing_feature
+        spring-boot-undertow: missing_feature
+        spring-boot-wildfly: missing_feature
+        akka-http: missing_feature
+        ratpack: missing_feature
+        uds-spring-boot: missing_feature
+        spring-boot: missing_feature
+        jersey-grizzly2: missing_feature
