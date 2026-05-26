@@ -68,8 +68,6 @@ print(template.render(
     ref=args.ref,
     push_to_test_optimization=args.push_to_test_optimization == "true",
     test_optimization_datadog_site=args.test_optimization_datadog_site,
-    ssi_library_version=args.ssi_library_version,
-    k8s_lib_init_img=args.k8s_lib_init_img,
 ))
 
 if dockerssi_scenario_defs:

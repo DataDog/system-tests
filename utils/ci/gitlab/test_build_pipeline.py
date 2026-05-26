@@ -305,29 +305,14 @@ class TestLibInjection:
         assert yaml.safe_load(output) is not None
 
 
-class TestSsiVariablesInEndToEndJobs:
-    def test_ssi_library_version_in_run_job(self, run):
+class TestSsiVariablesNotLeakedIntoEndToEndJobs:
+    def test_no_ssi_variables_in_endtoend_run_job(self, run):
         output = run(
             _params(scenarios=["DEFAULT"], weblogs=["flask"]),
-            extra_args=["--ssi-library-version", "2.0.0"],
+            extra_args=["--ssi-library-version", "2.0.0", "--k8s-lib-init-img", "my-registry/lib-init:v1"],
         )
         jobs = yaml.safe_load(output)
         job = jobs[f"run_{LIBRARY}_DEFAULT_flask"]
-        assert job["variables"]["DD_INSTALLER_LIBRARY_VERSION"] == "2.0.0"
-
-    def test_k8s_lib_init_img_in_run_job(self, run):
-        output = run(
-            _params(scenarios=["DEFAULT"], weblogs=["flask"]),
-            extra_args=["--k8s-lib-init-img", "my-registry/lib-init:v1"],
-        )
-        jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_DEFAULT_flask"]
-        assert job["variables"]["K8S_LIB_INIT_IMG"] == "my-registry/lib-init:v1"
-
-    def test_no_ssi_variables_by_default(self, run):
-        output = run(_params(scenarios=["DEFAULT"], weblogs=["flask"]))
-        jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_DEFAULT_flask"]
-        variables = job.get("variables", {})
+        variables = job.get("variables") or {}
         assert "DD_INSTALLER_LIBRARY_VERSION" not in variables
         assert "K8S_LIB_INIT_IMG" not in variables

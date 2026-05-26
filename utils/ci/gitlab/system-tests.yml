@@ -62,14 +62,6 @@ run_{{library}}_{{scenario}}_{{variant}}:
   needs:
     - job: build_{{library}}_{{variant}}
       artifacts: true
-  variables:
-    WEBLOG_VARIANT: {{variant}}
-{% if ssi_library_version %}
-    DD_INSTALLER_LIBRARY_VERSION: "{{ssi_library_version}}"
-{% endif %}
-{% if k8s_lib_init_img %}
-    K8S_LIB_INIT_IMG: "{{k8s_lib_init_img}}"
-{% endif %}
   script:
     - section_start "docker_auth" "Docker hub auth"
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
