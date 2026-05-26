@@ -4,7 +4,7 @@
 
 import time
 
-from utils import context, weblog, interfaces, scenarios, features, irrelevant
+from utils import context, weblog, interfaces, scenarios, features, irrelevant, logger
 
 
 @features.service_override_source
@@ -34,10 +34,10 @@ class Test_SqlServiceNameSource:
     def test_sql_srv_src(self):
         # [DIAG do-not-merge] surface every attempt that stalled or failed.
         slow = [(i, r, e) for (i, r, e) in self.responses if r.status_code != 200 or e > 1.0]
-        print(f"[DIAG] /rasp/sqli stall summary: {len(slow)}/{len(self.responses)} slow-or-failed")
+        logger.warning(f"[DIAG] /rasp/sqli stall summary: {len(slow)}/{len(self.responses)} slow-or-failed")
         for i, r, e in slow:
             rid = r.get_rid() if r.status_code is not None else "<no-rid>"
-            print(f"[DIAG]   iter={i} status={r.status_code} elapsed={e:.3f}s rid={rid}")
+            logger.warning(f"[DIAG]   iter={i} status={r.status_code} elapsed={e:.3f}s rid={rid}")
         # Surface a stall as a test failure so CI flags the run and we collect artifacts.
         assert not slow, f"{len(slow)} stalls detected across {len(self.responses)} attempts"
 
