@@ -63,6 +63,8 @@ include:
     inputs:
       stage: $[[ inputs.stage ]]
       libraries: $[[ inputs.libraries ]]
+      scenarios: $[[ inputs.scenarios ]]
+      scenarios_groups: $[[ inputs.scenarios_groups ]]
 
 workflow:
   rules:
