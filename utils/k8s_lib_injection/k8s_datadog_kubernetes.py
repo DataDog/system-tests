@@ -27,7 +27,7 @@ class K8sDatadog:
     def configure(
         self,
         k8s_cluster_info: K8sClusterInfo,
-        dd_cluster_feature: dict[str, str] = {},
+        dd_cluster_feature: dict[str, str] | None = None,
         *,
         dd_cluster_uds: bool | None = None,
         dd_cluster_img: str | None = None,
@@ -37,7 +37,7 @@ class K8sDatadog:
         helm_chart_operator_version: str | None = None,
     ) -> None:
         self.k8s_cluster_info = k8s_cluster_info
-        self.dd_cluster_feature = dd_cluster_feature
+        self.dd_cluster_feature = dd_cluster_feature or {}
         self.dd_cluster_uds = dd_cluster_uds
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
@@ -252,7 +252,7 @@ class K8sDatadog:
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
-        for i in range(20):
+        for _ in range(20):
             daemonset_status = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set_status(
                 name="datadog", namespace=namespace
             )
@@ -290,7 +290,7 @@ class K8sDatadog:
         cluster_agent_status = None
         datadog_cluster_name = None
 
-        for i in range(20):
+        for _ in range(20):
             try:
                 if datadog_cluster_name is None:
                     pods = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(
