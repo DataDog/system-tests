@@ -1,7 +1,10 @@
 {% for scenario, weblogs in dockerssi_scenario_defs.items() %}
 {% for weblog, archs in weblogs.items() %}
 {% for arch_short, images in archs.items() %}
-run_{{library}}_{{scenario}}_{{weblog}}_{{arch_short}}:
+{% for img in images %}
+{% for runtime in img.runtimes %}
+{% set runtime_suffix = ('_' + runtime | replace('.', '_')) if runtime else '' %}
+run_{{library}}_{{scenario}}_{{weblog}}_{{arch_short}}{{runtime_suffix}}:
   extends: .system_tests_base
   tags:
     - docker-in-docker:{{arch_short}}
@@ -11,6 +14,9 @@ run_{{library}}_{{scenario}}_{{weblog}}_{{arch_short}}:
     SCENARIO: {{scenario}}
     ONBOARDING_FILTER_ENV: {{ci_environment}}
     WEBLOG: {{weblog}}
+    IMAGE: {{img.image}}
+    ARCH: linux/{{arch_short}}
+    RUNTIME: "{{runtime}}"
     PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
     PRIVATE_DOCKER_REGISTRY_USER: AWS
 {% if ssi_library_version %}
@@ -19,13 +25,6 @@ run_{{library}}_{{scenario}}_{{weblog}}_{{arch_short}}:
 {% if ssi_injector_version %}
     DD_INSTALLER_INJECTOR_VERSION: "{{ssi_injector_version}}"
 {% endif %}
-  parallel:
-    matrix:
-{% for img in images %}
-      - IMAGE: "{{img.image}}"
-        ARCH: "linux/{{arch_short}}"
-        RUNTIME: [{% for r in img.runtimes %}"{{r}}"{% if not loop.last %}, {% endif %}{% endfor %}]
-{% endfor %}
   script:
     - section_start "ecr_auth" "ECR auth"
     - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
@@ -63,6 +62,8 @@ run_{{library}}_{{scenario}}_{{weblog}}_{{arch_short}}:
     paths:
       - system-tests/reports/
 
+{% endfor %}
+{% endfor %}
 {% endfor %}
 {% endfor %}
 {% endfor %}

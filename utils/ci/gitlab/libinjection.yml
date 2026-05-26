@@ -1,21 +1,18 @@
 {% for scenario, weblogs in libinjection_scenario_defs.items() %}
-run_{{library}}_{{scenario}}:
+{% for weblog in weblogs %}
+run_{{library}}_{{scenario}}_{{weblog}}:
   extends: .system_tests_base
   variables:
     TEST_LIBRARY: {{library}}
     K8S_SCENARIO: {{scenario}}
+    K8S_WEBLOG: {{weblog}}
+    K8S_WEBLOG_IMG: ${PRIVATE_DOCKER_REGISTRY}/system-tests/{{weblog}}
     REPORT_ENVIRONMENT: {{ci_environment}}
     PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
     PRIVATE_DOCKER_REGISTRY_USER: AWS
 {% if k8s_lib_init_img %}
     K8S_LIB_INIT_IMG: "{{k8s_lib_init_img}}"
 {% endif %}
-  parallel:
-    matrix:
-{% for weblog in weblogs %}
-      - K8S_WEBLOG: {{weblog}}
-        K8S_WEBLOG_IMG: ${PRIVATE_DOCKER_REGISTRY}/system-tests/{{weblog}}
-{% endfor %}
   script:
     - section_start "ecr_auth" "ECR auth"
     - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
@@ -64,4 +61,5 @@ run_{{library}}_{{scenario}}:
     paths:
       - system-tests/reports/
 
+{% endfor %}
 {% endfor %}

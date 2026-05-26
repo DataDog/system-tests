@@ -231,19 +231,19 @@ class TestDockerSSI:
     def test_dockerssi_jobs_created(self, run):
         output = run(_params(dockerssi_scenario_defs=_DOCKERSSI_DEFS))
         jobs = yaml.safe_load(output)
-        assert f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64" in jobs
-        assert f"run_{LIBRARY}_DOCKER_SSI_my-weblog_arm64" in jobs
+        # one job per (weblog, arch, runtime) combination
+        assert f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64_3_8" in jobs
+        assert f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64_3_9" in jobs
+        assert f"run_{LIBRARY}_DOCKER_SSI_my-weblog_arm64_3_8" in jobs
 
-    def test_dockerssi_job_has_parallel_matrix(self, run):
+    def test_dockerssi_job_has_static_variables(self, run):
         output = run(_params(dockerssi_scenario_defs=_DOCKERSSI_DEFS))
         jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64"]
-        assert "parallel" in job
-        matrix = job["parallel"]["matrix"]
-        assert len(matrix) == 1
-        assert matrix[0]["IMAGE"] == "ubuntu:22.04"
-        assert "3.8" in matrix[0]["RUNTIME"]
-        assert "3.9" in matrix[0]["RUNTIME"]
+        job = jobs[f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64_3_8"]
+        assert job["variables"]["IMAGE"] == "ubuntu:22.04"
+        assert job["variables"]["RUNTIME"] == "3.8"
+        assert job["variables"]["ARCH"] == "linux/amd64"
+        assert "parallel" not in job
 
     def test_dockerssi_job_sets_ssi_library_version(self, run):
         output = run(
@@ -251,13 +251,13 @@ class TestDockerSSI:
             extra_args=["--ssi-library-version", "1.2.3"],
         )
         jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64"]
+        job = jobs[f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64_3_8"]
         assert job["variables"]["DD_INSTALLER_LIBRARY_VERSION"] == "1.2.3"
 
     def test_dockerssi_job_no_ssi_version_by_default(self, run):
         output = run(_params(dockerssi_scenario_defs=_DOCKERSSI_DEFS))
         jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64"]
+        job = jobs[f"run_{LIBRARY}_DOCKER_SSI_my-weblog_amd64_3_8"]
         assert "DD_INSTALLER_LIBRARY_VERSION" not in job.get("variables", {})
 
     def test_output_is_valid_yaml_with_dockerssi(self, run):
@@ -274,16 +274,17 @@ class TestLibInjection:
     def test_libinjection_jobs_created(self, run):
         output = run(_params(libinjection_scenario_defs=_LIBINJECTION_DEFS))
         jobs = yaml.safe_load(output)
-        assert f"run_{LIBRARY}_K8S_LIB_INJECTION" in jobs
-        assert f"run_{LIBRARY}_K8S_LIB_INJECTION_NO_AC" in jobs
+        # one job per (scenario, weblog) combination
+        assert f"run_{LIBRARY}_K8S_LIB_INJECTION_weblog1" in jobs
+        assert f"run_{LIBRARY}_K8S_LIB_INJECTION_weblog2" in jobs
+        assert f"run_{LIBRARY}_K8S_LIB_INJECTION_NO_AC_weblog1" in jobs
 
-    def test_libinjection_job_has_parallel_matrix(self, run):
+    def test_libinjection_job_has_static_variables(self, run):
         output = run(_params(libinjection_scenario_defs=_LIBINJECTION_DEFS))
         jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_K8S_LIB_INJECTION"]
-        assert "parallel" in job
-        weblogs = {e["K8S_WEBLOG"] for e in job["parallel"]["matrix"]}
-        assert weblogs == {"weblog1", "weblog2"}
+        job = jobs[f"run_{LIBRARY}_K8S_LIB_INJECTION_weblog1"]
+        assert job["variables"]["K8S_WEBLOG"] == "weblog1"
+        assert "parallel" not in job
 
     def test_libinjection_job_sets_k8s_lib_init_img(self, run):
         output = run(
@@ -291,13 +292,13 @@ class TestLibInjection:
             extra_args=["--k8s-lib-init-img", "my-registry/lib-init:latest"],
         )
         jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_K8S_LIB_INJECTION"]
+        job = jobs[f"run_{LIBRARY}_K8S_LIB_INJECTION_weblog1"]
         assert job["variables"]["K8S_LIB_INIT_IMG"] == "my-registry/lib-init:latest"
 
     def test_libinjection_job_no_k8s_img_by_default(self, run):
         output = run(_params(libinjection_scenario_defs=_LIBINJECTION_DEFS))
         jobs = yaml.safe_load(output)
-        job = jobs[f"run_{LIBRARY}_K8S_LIB_INJECTION"]
+        job = jobs[f"run_{LIBRARY}_K8S_LIB_INJECTION_weblog1"]
         assert "K8S_LIB_INIT_IMG" not in job.get("variables", {})
 
     def test_output_is_valid_yaml_with_libinjection(self, run):
