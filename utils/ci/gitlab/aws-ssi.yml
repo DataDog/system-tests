@@ -1,7 +1,13 @@
-# AWS SSI pipeline — sequential per-language stages driven by Pulumi/EC2.
+spec:
+  inputs:
+    stage:
+      description: "CI stage for all jobs in this component"
+
+---
+
+# AWS SSI pipeline — sequential per-language execution driven by Pulumi/EC2.
 # All Docker/K8s SSI scenarios run in main.yml instead.
-# This file is included by .gitlab-ci.yml for system-tests own CI, and used
-# by tracer repos that run AWS SSI tests.
+# Execution order is expressed through needs: chains; stages are not used for ordering.
 
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
@@ -9,7 +15,7 @@ include:
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags: ["arch:amd64"]
-  stage: configure
+  stage: $[[ inputs.stage ]]
   variables:
     CI_ENVIRONMENT: "prod"
   script:
@@ -67,7 +73,7 @@ compute_pipeline:
       - ruby_ssi_gitlab_pipeline.yml
 
 nodejs_ssi_pipeline:
-  stage: nodejs
+  stage: $[[ inputs.stage ]]
   needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -82,7 +88,7 @@ nodejs_ssi_pipeline:
   when: always
 
 java_ssi_pipeline:
-  stage: java
+  stage: $[[ inputs.stage ]]
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -97,7 +103,7 @@ java_ssi_pipeline:
   when: always
 
 dotnet_ssi_pipeline:
-  stage: dotnet
+  stage: $[[ inputs.stage ]]
   needs: ["compute_pipeline", "java_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -112,7 +118,7 @@ dotnet_ssi_pipeline:
   when: always
 
 python_ssi_pipeline:
-  stage: python
+  stage: $[[ inputs.stage ]]
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -127,7 +133,7 @@ python_ssi_pipeline:
   when: always
 
 php_ssi_pipeline:
-  stage: php
+  stage: $[[ inputs.stage ]]
   needs: ["compute_pipeline", "python_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -142,7 +148,7 @@ php_ssi_pipeline:
   when: always
 
 ruby_ssi_pipeline:
-  stage: ruby
+  stage: $[[ inputs.stage ]]
   needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -158,7 +164,7 @@ ruby_ssi_pipeline:
 
 delete_amis:
   extends: .base_job_onboarding
-  stage: system-tests-utils
+  stage: $[[ inputs.stage ]]
   allow_failure: false
   variables:
     AMI_RETENTION_DAYS: 10
@@ -174,7 +180,7 @@ delete_amis:
 
 delete_amis_by_name_or_lang:
   extends: .base_job_onboarding
-  stage: system-tests-utils
+  stage: $[[ inputs.stage ]]
   allow_failure: false
   script:
     - |
@@ -197,7 +203,7 @@ delete_amis_by_name_or_lang:
 
 delete_ec2_instances:
   extends: .base_job_onboarding
-  stage: system-tests-utils
+  stage: $[[ inputs.stage ]]
   allow_failure: false
   variables:
     EC2_AGE_MINUTES: 45
@@ -211,7 +217,7 @@ delete_ec2_instances:
 
 count_amis:
   extends: .base_job_onboarding
-  stage: system-tests-utils
+  stage: $[[ inputs.stage ]]
   allow_failure: false
   script:
     - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner

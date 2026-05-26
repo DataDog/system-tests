@@ -1,28 +1,19 @@
 include:
   - local: "/utils/ci/gitlab/main.yml"
     inputs:
-      stage: "test"
+      stage: "build"
       libraries: "python"
       scenarios_groups: "all"
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
   - local: "/utils/ci/gitlab/aws-ssi.yml"
+    inputs:
+      stage: "build"
 
 stages:
   - build
-  - test
-  - run
-  - configure
-  - nodejs
-  - java
-  - dotnet
-  - python
-  - php
-  - ruby
-  - pipeline-status
   - system-tests-utils
-  - publish
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
@@ -101,17 +92,3 @@ generate_system_tests_lib_injection_images:
     - if: '$SCHEDULED_JOB == "generate_system_tests_lib_injection_images"'
     - when: manual
 
-publish_gitlab_component:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
-  tags: ["arch:amd64"]
-  needs: []
-  stage: publish
-  script:
-    - aws s3 cp utils/ci/gitlab/main.yml s3://gitlab-templates.ddbuild.io/system-tests/include/main.yml
-    - aws s3 cp utils/ci/gitlab/system-tests.yml s3://gitlab-templates.ddbuild.io/system-tests/include/system-tests.yml
-    - aws s3 cp utils/ci/gitlab/dockerssi.yml s3://gitlab-templates.ddbuild.io/system-tests/include/dockerssi.yml
-    - aws s3 cp utils/ci/gitlab/libinjection.yml s3://gitlab-templates.ddbuild.io/system-tests/include/libinjection.yml
-    - aws s3 cp utils/ci/gitlab/build_pipeline.py s3://gitlab-templates.ddbuild.io/system-tests/include/build_pipeline.py
-    - aws s3 cp utils/ci/gitlab/templates.yml s3://gitlab-templates.ddbuild.io/system-tests/include/templates.yml
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"

@@ -1,13 +1,7 @@
 spec:
   inputs:
     stage:
-      description: "CI stage for the generated test jobs (inside the child pipeline)"
-    build_stage:
-      description: "CI stage for build_test_pipeline and resolve_ci_image"
-      default: "build"
-    run_stage:
-      description: "CI stage for run_test_pipeline"
-      default: "run"
+      description: "CI stage for all jobs in this component and the generated child pipeline"
     libraries:
       default: "java python nodejs"
     scenarios:
@@ -77,7 +71,7 @@ resolve_ci_image:
   image: registry.ddbuild.io/system-tests/git
   tags:
     - arch:amd64
-  stage: $[[ inputs.build_stage ]]
+  stage: $[[ inputs.stage ]]
   interruptible: true
   variables:
     GIT_STRATEGY: none
@@ -99,7 +93,6 @@ build_test_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
-  stage: $[[ inputs.build_stage ]]
   needs:
     - job: resolve_ci_image
       artifacts: true
@@ -118,7 +111,7 @@ build_test_pipeline:
 
 run_test_pipeline:
   interruptible: true
-  stage: $[[ inputs.run_stage ]]
+  stage: $[[ inputs.stage ]]
   needs:
     - job: build_test_pipeline
       artifacts: true
