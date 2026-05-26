@@ -46,8 +46,8 @@ run_{{library}}_{{scenario}}_{{weblog}}_{{arch_short}}{{runtime_suffix}}:
     - section_end "run"
   after_script: |
     SCENARIO_SUFFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
-    mkdir -p reports/
-    cp -R logs_"${SCENARIO_SUFFIX}" reports/ || true
+    mkdir -p system-tests/reports/
+    cp -R system-tests/logs_"${SCENARIO_SUFFIX}" system-tests/reports/ || true
   retry:
     max: 2
     when:

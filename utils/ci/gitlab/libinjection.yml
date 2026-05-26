@@ -46,8 +46,8 @@ run_{{library}}_{{scenario}}_{{weblog}}:
     - section_end "run"
   after_script: |
     kind delete clusters --all || true
-    mkdir -p reports
-    cp -R logs_*/ reports/ || true
+    mkdir -p system-tests/reports
+    cp -R system-tests/logs_*/ system-tests/reports/ || true
   retry:
     max: 2
     when:

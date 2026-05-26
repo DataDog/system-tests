@@ -41,26 +41,6 @@ def _params(
     }
 
 
-def _run(params, extra_args=(), ref="abc1234"):
-    params_file = pytest.tmp_path_factory.mktemp("params") / "params.json"
-    params_file.write_text(json.dumps(params))
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(SCRIPT),
-            "--stage", STAGE,
-            "--library", LIBRARY,
-            "--params", str(params_file),
-            "--ci-image", CI_IMAGE,
-            "--ref", ref,
-            *extra_args,
-        ],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return result.stdout
-
 
 @pytest.fixture()
 def run(tmp_path):
@@ -165,7 +145,10 @@ class TestPushTestOptimization:
         assert f"push_{LIBRARY}_test_optimization" not in jobs
 
     def test_push_job_created_when_enabled(self, run):
-        output = run(_params(scenarios=["DEFAULT"], weblogs=["flask"]), extra_args=["--push-to-test-optimization", "true"])
+        output = run(
+            _params(scenarios=["DEFAULT"], weblogs=["flask"]),
+            extra_args=["--push-to-test-optimization", "true"],
+        )
         jobs = yaml.safe_load(output)
         assert f"push_{LIBRARY}_test_optimization" in jobs
 
