@@ -65,6 +65,9 @@ include:
       libraries: $[[ inputs.libraries ]]
       scenarios: $[[ inputs.scenarios ]]
       scenarios_groups: $[[ inputs.scenarios_groups ]]
+      ssi_library_version: $[[ inputs.ssi_library_version ]]
+      k8s_lib_init_img: $[[ inputs.k8s_lib_init_img ]]
+      ssi_injector_version: $[[ inputs.ssi_injector_version ]]
 
 workflow:
   rules:
@@ -109,7 +112,7 @@ build_test_pipeline:
     - >
       for library in $[[ inputs.libraries ]]; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
-        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" --ssi-library-version "$[[ inputs.ssi_library_version ]]" --k8s-lib-init-img "$[[ inputs.k8s_lib_init_img ]]" --ssi-injector-version "$[[ inputs.ssi_injector_version ]]" >> generated-pipeline.yml;
+        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" >> generated-pipeline.yml;
       done
   artifacts:
     paths:

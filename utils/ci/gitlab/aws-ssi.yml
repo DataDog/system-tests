@@ -11,6 +11,15 @@ spec:
     scenarios_groups:
       description: "Comma-separated list of scenario groups to run (all if empty)"
       default: ""
+    ssi_library_version:
+      description: "DD_INSTALLER_LIBRARY_VERSION to inject into generated jobs (Docker/K8s SSI)"
+      default: ""
+    k8s_lib_init_img:
+      description: "K8S_LIB_INIT_IMG to inject into generated libinjection jobs"
+      default: ""
+    ssi_injector_version:
+      description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
+      default: ""
 
 ---
 
@@ -62,8 +71,11 @@ compute_pipeline:
     - |
       [ -n "$[[ inputs.scenarios ]]" ] && scenarios="$[[ inputs.scenarios ]]"
       [ -n "$[[ inputs.scenarios_groups ]]" ] && scenarios_groups="$[[ inputs.scenarios_groups ]]"
+      [ -n "$[[ inputs.ssi_library_version ]]" ] && export DD_INSTALLER_LIBRARY_VERSION="$[[ inputs.ssi_library_version ]]"
+      [ -n "$[[ inputs.k8s_lib_init_img ]]" ] && export K8S_LIB_INIT_IMG="$[[ inputs.k8s_lib_init_img ]]"
+      [ -n "$[[ inputs.ssi_injector_version ]]" ] && export DD_INSTALLER_INJECTOR_VERSION="$[[ inputs.ssi_injector_version ]]"
       for library in $[[ inputs.libraries ]]; do
-        python utils/scripts/compute-workflow-parameters.py $library --workflows aws_ssi -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+        python utils/scripts/compute-workflow-parameters.py $library -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
       done
       python3 utils/ci/gitlab/build_ssi_pipeline.py $[[ inputs.libraries ]]
     - |
