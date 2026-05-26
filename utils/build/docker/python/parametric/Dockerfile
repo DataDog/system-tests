@@ -5,7 +5,7 @@ RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-expo
 COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN mkdir -p /go/src/github.com/DataDog/apm-reliability/dd-trace-py/pywheels
-RUN cp -sr `ls -d $PWD/binaries/ddtrace_internal*` /go/src/github.com/DataDog/apm-reliability/dd-trace-py/pywheels/
+RUN cp -sr `ls -d /app/binaries/ddtrace_internal*` /go/src/github.com/DataDog/apm-reliability/dd-trace-py/pywheels/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
