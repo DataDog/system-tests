@@ -1,0 +1,25 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "LogProbe",
+            "sourceFile": null
+        },
+        "when": {
+            "dsl": "notARealOperator(foo)",
+            "json": {
+                "notARealOperator": [
+                    {"ref": "foo"}
+                ]
+            }
+        },
+        "captureSnapshot": true,
+        "segments": [
+            {"str": "invalid-condition-dsl probe fired (should never happen)"}
+        ]
+    }
+]

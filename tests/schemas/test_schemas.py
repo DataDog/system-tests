@@ -57,6 +57,12 @@ class Test_DdtraceSchemas:
                 ticket="APMRP-360",
             ),
             SchemaBug(
+                endpoint="/debugger/v2/input",
+                data_path="$[].debugger.snapshot.stack",
+                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                ticket="DEBUG-0000",
+            ),
+            SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.probe.location.method",
                 condition=context.library == "dotnet",
@@ -157,6 +163,12 @@ class Test_DdtraceSchemas:
                 data_path="$[]",
                 condition=context.library == "dotnet" and context.scenario is scenarios.debugger_symdb,
                 ticket="DEBUG-3298",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                ticket="DEBUG-0000",
             ),
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",

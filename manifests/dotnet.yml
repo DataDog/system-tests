@@ -598,6 +598,12 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (Not yet implemented)
       excluded_weblog: [uds, poc]
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL::test_invalid_condition_dsl_probe_rejected: missing_feature (Dotnet compiles probe conditions lazily on first evaluation, so there is no install-time validation step to reject the probe.)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error: v2.53.0
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
+  : bug (DEBUG-5699)
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
+  : bug (DEBUG-5703)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": v2.50.0
