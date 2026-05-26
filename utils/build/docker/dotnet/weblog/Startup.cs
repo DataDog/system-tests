@@ -16,6 +16,8 @@ namespace weblog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSerilog((services, lc) => lc
+                // [DIAG do-not-merge] surface Kestrel + ASP.NET Hosting Debug events for stall diagnosis
+                .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
                 .WriteTo.Console(new CompactJsonFormatter()));
 
@@ -49,6 +51,25 @@ namespace weblog
             }
 
             Sql.Setup();
+
+            // [DIAG do-not-merge] front-of-pipeline timing to localize the 5s stall on Test_SqlServiceNameSource.
+            // Compare timestamps with: Kestrel "Request starting", DIAG-CTRL ENTER/EXIT, and DIAG-POOL.
+            app.Use(async (ctx, next) =>
+            {
+                var t0 = System.DateTime.UtcNow;
+                var cid = ctx.Connection.Id;
+                var ua = ctx.Request.Headers.UserAgent.ToString();
+                System.Console.WriteLine($"[DIAG-MW-IN ] {t0:HH:mm:ss.fffffff} cid={cid} {ctx.Request.Method} {ctx.Request.Path}{ctx.Request.QueryString} ua={ua}");
+                try
+                {
+                    await next();
+                }
+                finally
+                {
+                    var t1 = System.DateTime.UtcNow;
+                    System.Console.WriteLine($"[DIAG-MW-OUT] {t1:HH:mm:ss.fffffff} cid={cid} status={ctx.Response.StatusCode} elapsed_ms={(t1 - t0).TotalMilliseconds:F1}");
+                }
+            });
 
             app.UseSession();
             app.UseRouting();

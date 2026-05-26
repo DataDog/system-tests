@@ -38,6 +38,14 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_DATA_STREAMS_ENABLED=true
 ENV DD_INTERNAL_TELEMETRY_V2_ENABLED=true
 
+# [DIAG do-not-merge] enable verbose tracer logs to diagnose Test_SqlServiceNameSource stall
+ENV DD_TRACE_DEBUG=true
+ENV DD_INTERNAL_LOG_LEVEL=debug
+# [DIAG do-not-merge] enable Kestrel + ASP.NET pipeline debug logs to see connection accept events
+ENV Logging__LogLevel__Default=Debug
+ENV Logging__LogLevel__Microsoft.AspNetCore.Server.Kestrel=Debug
+ENV Logging__LogLevel__Microsoft.AspNetCore.Hosting=Debug
+
 # .NET runtime config
 ENV ASPNETCORE_hostBuilder__reloadConfigOnChange=false
 # - Enable dump on crash

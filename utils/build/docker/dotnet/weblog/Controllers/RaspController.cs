@@ -219,13 +219,26 @@ namespace weblog
         [HttpGet("sqli")]
         public IActionResult SqliGet(string user_id)
         {
-            if (!string.IsNullOrEmpty(user_id))
+            // [DIAG do-not-merge] timing in SqliGet to localize the 5s stall on Test_SqlServiceNameSource.
+            var t0 = System.DateTime.UtcNow;
+            System.Console.WriteLine($"[DIAG-CTRL ] {t0:HH:mm:ss.fffffff} SqliGet ENTER user_id={user_id}");
+            try
             {
-                return Content(SqlQuery(user_id));
+                if (!string.IsNullOrEmpty(user_id))
+                {
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+                    var result = SqlQuery(user_id);
+                    System.Console.WriteLine($"[DIAG-CTRL ] {System.DateTime.UtcNow:HH:mm:ss.fffffff} SqliGet SqlQuery done in {sw.Elapsed.TotalMilliseconds:F2}ms");
+                    return Content(result);
+                }
+                else
+                {
+                    return BadRequest("No params provided");
+                }
             }
-            else
+            finally
             {
-                return BadRequest("No params provided");
+                System.Console.WriteLine($"[DIAG-CTRL ] {System.DateTime.UtcNow:HH:mm:ss.fffffff} SqliGet EXIT elapsed_ms={(System.DateTime.UtcNow - t0).TotalMilliseconds:F2}");
             }
         }
 
@@ -281,19 +294,36 @@ namespace weblog
 
         private string SqlQuery(string user)
         {
+            // [DIAG do-not-merge] sub-step timing inside the SQLite path.
+            var swTotal = System.Diagnostics.Stopwatch.StartNew();
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("Insecure SQL command executed:");
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             using var conn = Sql.GetSqliteConnection();
+            var tCreate = sw.Elapsed.TotalMilliseconds;
+
+            sw.Restart();
             conn.Open();
+            var tOpen = sw.Elapsed.TotalMilliseconds;
+
+            sw.Restart();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT * FROM users WHERE id='" + user + "'";
-            using var reader = cmd.ExecuteReader();
+            var tCmd = sw.Elapsed.TotalMilliseconds;
 
+            sw.Restart();
+            using var reader = cmd.ExecuteReader();
+            var tExec = sw.Elapsed.TotalMilliseconds;
+
+            sw.Restart();
             while (reader.Read())
             {
                 sb.AppendLine($"{reader["user"]}, {reader["pwd"]}");
             }
+            var tRead = sw.Elapsed.TotalMilliseconds;
 
+            System.Console.WriteLine($"[DIAG-SQL  ] {System.DateTime.UtcNow:HH:mm:ss.fffffff} SqlQuery user='{user}' total={swTotal.Elapsed.TotalMilliseconds:F2}ms create={tCreate:F2} open={tOpen:F2} cmd={tCmd:F2} exec={tExec:F2} read={tRead:F2}");
             return sb.ToString();
         }
     }
