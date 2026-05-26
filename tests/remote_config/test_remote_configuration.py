@@ -35,7 +35,7 @@ class Test_NoError:
 
             for state in config_states:
                 error = state.get("apply_error", "")  # Allow unset or empty string
-                if error is not "":
+                if error != "":
                     raise Exception(f"Error in remote config application: {error}")
 
         interfaces.library.validate_all_remote_configuration(no_error, allow_no_data=True)
