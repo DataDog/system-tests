@@ -6,6 +6,7 @@ COPY utils/build/docker/python/parametric/system_tests_library_version.sh system
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN mkdir -p /go/src/github.com/DataDog/apm-reliability/dd-trace-py/pywheels
 RUN cp -sr `ls -d /binaries/ddtrace_internal*` /go/src/github.com/DataDog/apm-reliability/dd-trace-py/pywheels/
+RUN ls -al /go/src/github.com/DataDog/apm-reliability/dd-trace-py/pywheels/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
