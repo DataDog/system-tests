@@ -43,6 +43,7 @@ class CiData:
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
+        workflows: str = "",
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
@@ -77,6 +78,10 @@ class CiData:
             scenario_group_names=groups.split(","),
             excluded_scenario_names=excluded_scenarios.split(","),
         )
+
+        if workflows:
+            allowed = set(_clean_input_value(workflows).split(","))
+            scenario_map = {k: v for k, v in scenario_map.items() if k in allowed}
 
         self.data |= get_endtoend_definitions(
             library,
@@ -286,6 +291,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
 
+    parser.add_argument(
+        "--workflows",
+        type=str,
+        help="Restrict to specific CI workflow types (comma-separated, e.g. 'aws_ssi')",
+        default="",
+    )
+
     args = parser.parse_args()
 
     if args.ci_environment is not None:
@@ -304,4 +316,5 @@ if __name__ == "__main__":
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
+        workflows=args.workflows,
     ).export(export_format=args.format, output=args.output)
