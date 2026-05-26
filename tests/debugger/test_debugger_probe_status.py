@@ -182,7 +182,7 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
             source_file = probe["where"]["sourceFile"]
             assert isinstance(source_file, str)
 
-            assert not source_file.islower(), (
+            assert source_file.isupper(), (
                 f"Test expects source file to be uppercased, but got: {source_file}. "
                 f"This suggests the uppercase transformation didn't work."
             )
