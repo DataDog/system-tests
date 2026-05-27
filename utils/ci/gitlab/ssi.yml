@@ -77,7 +77,6 @@ compute_pipeline:
       for library in $[[ inputs.libraries ]]; do
         python utils/scripts/compute-workflow-parameters.py $library -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
       done
-      python3 utils/ci/gitlab/build_ssi_pipeline.py $[[ inputs.libraries ]]
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
@@ -87,24 +86,138 @@ compute_pipeline:
     - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
-      - generated-ssi-pipeline.yml
+      - "*_ssi_gitlab_pipeline.yml"
 
-run_ssi_pipeline:
-  interruptible: true
+# SSI child pipelines run sequentially per language to respect AWS EC2 / subnet
+# quotas. Order mirrors the legacy pipeline on main:
+# nodejs → java → dotnet → python → php → ruby.
+# Each trigger is gated on whether the language is in `inputs.libraries`;
+# `needs.optional: true` on every earlier library makes the chain skip
+# unrequested languages while keeping order between the ones that are selected.
+nodejs_ssi_pipeline:
   stage: $[[ inputs.stage ]]
   needs:
     - job: compute_pipeline
-      artifacts: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: generated-ssi-pipeline.yml
+      - artifact: nodejs_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /nodejs/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /nodejs/'
+  when: always
+
+java_ssi_pipeline:
+  stage: $[[ inputs.stage ]]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: java_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /java/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /java/'
+  when: always
+
+dotnet_ssi_pipeline:
+  stage: $[[ inputs.stage ]]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
+    - job: java_ssi_pipeline
+      optional: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: dotnet_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /dotnet/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /dotnet/'
+  when: always
+
+python_ssi_pipeline:
+  stage: $[[ inputs.stage ]]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
+    - job: java_ssi_pipeline
+      optional: true
+    - job: dotnet_ssi_pipeline
+      optional: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: python_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /python/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /python/'
+  when: always
+
+php_ssi_pipeline:
+  stage: $[[ inputs.stage ]]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
+    - job: java_ssi_pipeline
+      optional: true
+    - job: dotnet_ssi_pipeline
+      optional: true
+    - job: python_ssi_pipeline
+      optional: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: php_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /php/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /php/'
+  when: always
+
+ruby_ssi_pipeline:
+  stage: $[[ inputs.stage ]]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
+    - job: java_ssi_pipeline
+      optional: true
+    - job: dotnet_ssi_pipeline
+      optional: true
+    - job: python_ssi_pipeline
+      optional: true
+    - job: php_ssi_pipeline
+      optional: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: ruby_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /ruby/'
+    - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /ruby/'
   when: always
 
 delete_amis:
