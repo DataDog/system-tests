@@ -18,3 +18,7 @@ alwaysApply: true
 * For provision files in system-tests AWS SSI scenarios, check both the scenario provision (in utils/build/virtual_machine/provisions/[name]/provision.yml) and weblog provision (in utils/build/virtual_machine/weblogs/[lang]/provision_[weblog].yml). These YAML files define environment variables, installation steps, and commands to run by OS type. Each provision step can include remote commands, local commands, and file copying operations with OS-specific targeting through os_type, os_distro, and os_cpu keys. Remember that the tested_components section must return a valid JSON with component versions.
 * When analyzing results or troubleshooting AWS SSI tests, always consult `docs/understand/scenarios/onboarding.md` (sections 'How to debug your environment and tests results' and 'Troubleshooting') as the authoritative reference to interpret the tests’ standard output and the possible failures. 
 * When analyzing results or troubleshooting AWS SSI tests, always consult `docs/understand/scenarios/onboarding.md` (sections 'How to debug your environment and tests results' and 'Troubleshooting') try to mention the logs file that the user should check depending the failure type.
+
+## Troubleshooting SSI tests on GitLab CI
+
+* you MUST ALWAYS download all the job attached artifacts to perform the investigation following the guide document `docs/understand/scenarios/onboarding.md` (sections 'How to debug your environment and tests results' and 'Troubleshooting')

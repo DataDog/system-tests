@@ -18,6 +18,16 @@ alwaysApply: true
 
 - When interacting with GitLab (gitlab.ddbuild.io), ALWAYS use `glab` on the command line.
 - If `glab` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitLab CLI](mdc:docs/ai/ai-tools-integration-guide.md#gitlab-cli-glab)
+- To download job artifacts by job ID, use the GitLab API with the token from `glab`. The `glab` CLI does not support downloading artifacts by job ID directly, so use `curl`:
+
+```bash
+GITLAB_TOKEN=$(glab auth status --hostname gitlab.ddbuild.io --show-token 2>&1 | grep "Token:" | awk '{print $NF}')
+curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+  "https://gitlab.ddbuild.io/api/v4/projects/<PROJECT_ID>/jobs/<JOB_ID>/artifacts" \
+  -o /tmp/artifacts_<JOB_ID>.zip
+```
+
+  The GitLab project ID for system-tests is `2185`. After downloading, extract with `unzip -o`.
 
 
 ## Handling the Pull Request and CI
