@@ -3,7 +3,7 @@ spec:
     stage:
       description: "CI stage for all jobs in this component"
     libraries:
-      description: "Space-separated list of libraries to test (e.g. 'java python nodejs')"
+      description: "Space- or comma-separated list of libraries to test (e.g. 'java python nodejs' or 'java,python,nodejs')"
       default: "java python nodejs"
     scenarios:
       description: "Comma-separated list of scenarios to run (all if empty)"
@@ -74,7 +74,7 @@ compute_pipeline:
       [ -n "$[[ inputs.ssi_library_version ]]" ] && export DD_INSTALLER_LIBRARY_VERSION="$[[ inputs.ssi_library_version ]]"
       [ -n "$[[ inputs.k8s_lib_init_img ]]" ] && export K8S_LIB_INIT_IMG="$[[ inputs.k8s_lib_init_img ]]"
       [ -n "$[[ inputs.ssi_injector_version ]]" ] && export DD_INSTALLER_INJECTOR_VERSION="$[[ inputs.ssi_injector_version ]]"
-      for library in $[[ inputs.libraries ]]; do
+      for library in $(echo "$[[ inputs.libraries ]]" | tr ',' ' '); do
         python utils/scripts/compute-workflow-parameters.py $library -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
       done
     - |
