@@ -60,7 +60,7 @@ class Test_DdtraceSchemas:
                 endpoint="/debugger/v2/input",
                 data_path="$[].debugger.snapshot.stack",
                 condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
-                ticket="DEBUG-0000",
+                ticket="DEBUG-5715",
             ),
             SchemaBug(
                 endpoint="/debugger/v1/input",
@@ -168,7 +168,7 @@ class Test_DdtraceSchemas:
                 endpoint="/api/v2/debugger",
                 data_path="$[]",
                 condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
-                ticket="DEBUG-0000",
+                ticket="DEBUG-5715",
             ),
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
