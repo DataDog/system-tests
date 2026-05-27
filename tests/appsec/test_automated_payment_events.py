@@ -374,7 +374,7 @@ DISABLE_STRIPE = (
 
 
 @scenarios.default
-@features.appsec_automated_payment_events
+@features.appsec_auto_events_rc
 class Test_Automated_Payment_Events_Stripe_RC_disablement:
     def setup_disable_stripe_rules(self):
         rc.tracer_rc_state.reset().apply()

@@ -365,6 +365,7 @@ class _Scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
+        # here
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
@@ -420,6 +421,7 @@ class _Scenarios:
             Scenario to test User ID collection config change via Remote config
         """,
         scenario_groups=[scenario_groups.appsec],
+        other_weblog_containers=(InternalServerContainer,),
     )
 
     runtime_sca_reachability = EndToEndScenario(
