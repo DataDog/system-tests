@@ -83,6 +83,82 @@ class Test_FFE_First_Remote_Config_Request:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_dynamic_evaluation
+class Test_FFE_RC_Down_Then_Up:
+    """FFE must recover when RC is unavailable before the tracer receives flags.
+
+    This covers the startup race we care about: the app starts, the tracer cannot
+    get FFE config from the Agent/RC endpoint yet, and evaluations correctly use
+    defaults. Once RC becomes available and sends FFE_FLAGS, the same app must
+    start using the delivered flag value without a restart.
+    """
+
+    def setup_ffe_rc_down_then_up_recovers(self):
+        self.config_request_data = None
+        self.flag_key = "test-flag"
+        self.default_before_config = "default-before-config"
+        self.default_after_config = "default-after-config"
+
+        def wait_for_config_503(data: dict) -> bool:
+            if data["path"] == "/v0.7/config" and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
+                self.config_request_data = data
+                return True
+            return False
+
+        StaticJsonMockedTracerResponse(
+            path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
+        ).send()
+
+        interfaces.library.wait_for(wait_for_config_503, timeout=60)
+
+        self.default_eval = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_before_config,
+                "targetingKey": "user-before-rc-recovery",
+                "attributes": {},
+            },
+        )
+
+        self.config_state = (
+            rc.tracer_rc_state.reset()
+            .set_config(f"{RC_PATH}/ffe-rc-down-then-up/config", UFC_FIXTURE_DATA)
+            .apply()
+        )
+
+        self.recovered_eval = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_after_config,
+                "targetingKey": "user-after-rc-recovery",
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_rc_down_then_up_recovers(self):
+        assert self.config_request_data is not None, "No /v0.7/config 503 response was captured"
+        assert self.config_request_data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE, (
+            f"Expected 503, got {self.config_request_data['response']['status_code']}"
+        )
+
+        assert self.default_eval.status_code == 200, f"Default evaluation failed: {self.default_eval.text}"
+        default_result = json.loads(self.default_eval.text)
+        assert default_result["value"] == self.default_before_config, (
+            f"Expected default before config recovery, got '{default_result['value']}'"
+        )
+
+        assert self.recovered_eval.status_code == 200, f"Recovered evaluation failed: {self.recovered_eval.text}"
+        recovered_result = json.loads(self.recovered_eval.text)
+        assert recovered_result["value"] == "on", (
+            f"Expected delivered flag value after config recovery, got '{recovered_result['value']}'"
+        )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_dynamic_evaluation
 class Test_FFE_Unknown_Operator_Tolerance:
     """SDKs must ignore only the affected flag when a condition has an unknown operator.
 
