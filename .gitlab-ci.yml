@@ -2,7 +2,7 @@ include:
   - local: "/utils/ci/gitlab/main.yml"
     inputs:
       stage: "build"
-      libraries: "python,java"
+      libraries: "python,java,php"
       scenarios_groups: "all"
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
       ref: "$CI_COMMIT_SHA"
