@@ -47,8 +47,8 @@ def assert_payment_event(request: HttpResponse, validator: Callable[[DataDogLibr
         if span.get("parent_id") not in (0, None):
             return False
 
-        assert span["metrics"]["_sampling_priority_v1"] == 1
         assert span["meta"]["appsec.events.payments.integration"] == "stripe"
+        assert span["metrics"]["_sampling_priority_v1"] == 2
 
         return validator(span)
 
@@ -64,10 +64,7 @@ def assert_no_payment_event(request: HttpResponse, status_code: int):
     interfaces.library.validate_all_spans(request, validator=validator)
 
 
-@scenarios.appsec_rasp
-@features.appsec_automated_payment_events
-@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
-class Test_Automated_Payment_Events_Stripe:
+class BaseTestAutomatedPaymentEventsStripe:
     def setup_checkout_session(self):
         self.r = weblog.post(
             "/stripe/create_checkout_session",
@@ -344,3 +341,17 @@ class Test_Automated_Payment_Events_Stripe:
     def test_unsupported_event(self):
         """R6.2"""
         assert_no_payment_event(self.r, 200)
+
+
+@scenarios.appsec_rasp
+@features.appsec_automated_payment_events
+@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
+class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPaymentEventsStripe):
+    pass
+
+
+@scenarios.default
+@features.appsec_automated_payment_events
+@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
+class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
+    pass
