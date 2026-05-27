@@ -1,18 +1,19 @@
 FROM node:22-alpine
 
 RUN apk add --no-cache bash curl git jq
+COPY --from=oven/bun:1.3.13-alpine /usr/local/bin/bun /usr/local/bin/bun
 
 RUN uname -r
 
 # print versions
-RUN node --version && npm --version && curl --version
+RUN node --version && npm --version && bun --version && curl --version
 
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
 COPY utils/build/docker/nodejs/fastify /usr/app
-RUN npm ci || (sleep 30 && npm ci)
+RUN bun install --frozen-lockfile --linker=hoisted --network-concurrency 8
 
 EXPOSE 7777
 
