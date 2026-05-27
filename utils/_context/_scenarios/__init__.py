@@ -36,6 +36,7 @@ from utils._context.containers import (
     PostgresContainer,
     RabbitMqContainer,
     VCRCassettesContainer,
+    InternalServerContainer,
 )
 
 update_environ_with_local_env()
@@ -365,7 +366,6 @@ class _Scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        # here
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
