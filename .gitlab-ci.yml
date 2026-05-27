@@ -18,7 +18,7 @@ compute_libraries:
     - if: $CI_PIPELINE_SOURCE == "push"
   script:
     - git fetch --unshallow 2>/dev/null || true
-    - git fetch origin $CI_DEFAULT_BRANCH
+    - git fetch origin main
     - mkdir original
     - git archive FETCH_HEAD manifests/ | tar -x -C original/
     - |
