@@ -92,13 +92,16 @@ def helm_install_chart(
     k8s_cluster_info: "K8sClusterInfo",
     name: str,
     chart: str,
-    set_dict: dict[str, str] = {},
+    set_dict: dict[str, str] | None = None,
     value_file: str | None = None,
     *,
     timeout: int | None = 90,
     namespace: str = "datadog",
     chart_version: str | None = None,
 ) -> None:
+    if set_dict is None:
+        set_dict = {}
+
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:

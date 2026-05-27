@@ -61,24 +61,24 @@ class K8sClusterProvider:
 
     def __init__(self, *, is_local_managed: bool = False) -> None:
         self.is_local_managed = is_local_managed
-        self._cluster_info = None
+        self._cluster_info: K8sClusterInfo | None = None
 
-    def configure(self):
+    def configure(self) -> None:
         self.configure_cluster()
         self.configure_networking()
         # self.configure_cluster_api_connection()
 
-    def configure_cluster(self):
+    def configure_cluster(self) -> None:
         """Configure the cluster properties"""
         raise NotImplementedError
 
-    def get_cluster_info(self):
+    def get_cluster_info(self) -> K8sClusterInfo:
         """It should return a K8sClusterInfo object with the cluster information"""
         if self._cluster_info is None:
             raise ValueError("Cluster not configured")
         return self._cluster_info
 
-    def configure_networking(self):
+    def configure_networking(self) -> None:
         """Configure the networking properties for the cluster"""
 
         if self._cluster_info is None:
@@ -91,15 +91,15 @@ class K8sClusterProvider:
         self._cluster_info.internal_weblog_port = 18080
         self._cluster_info.cluster_host_name = "localhost"
 
-    def configure_cluster_api_connection(self):
+    def configure_cluster_api_connection(self) -> None:
         """Configure the k8s cluster api connection"""
         try:
             config.load_kube_config()
         except Exception as e:
             logger.error(f"Error loading kube config: {e}")
-            raise e
+            raise
 
-    def ensure_cluster(self):
+    def ensure_cluster(self) -> None:
         """All local managed clusters should be created here"""
         if self.is_local_managed:
             raise NotImplementedError
@@ -108,13 +108,13 @@ class K8sClusterProvider:
         )
         self.configure_cluster_api_connection()
 
-    def destroy_cluster(self):
+    def destroy_cluster(self) -> None:
         # TODO RMM review sleep mode failures on get cluter logs
         if self.is_local_managed:
             raise NotImplementedError
         logger.info("Using an external K8s cluster: Remember to clean up the resources!!")
 
-    def create_spak_service_account(self):
+    def create_spak_service_account(self) -> None:
         """Create service account for launching spark application in k8s"""
         execute_command(f"kubectl create serviceaccount spark --namespace=default")
         execute_command(
@@ -187,22 +187,22 @@ class K8sClusterInfo:
         self.docker_in_docker = False
         self.cluster_template = cluster_template
 
-    def get_agent_port(self):
+    def get_agent_port(self) -> int | None:
         if self.docker_in_docker:
             return self.internal_agent_port
         return self.agent_port
 
-    def get_weblog_port(self):
+    def get_weblog_port(self) -> int | None:
         if self.docker_in_docker:
             return self.internal_weblog_port
         return self.weblog_port
 
-    def core_v1_api(self):
+    def core_v1_api(self) -> client.CoreV1Api:
         """Provides de CoreV1Api object (from kubernetes python api) to interact with the k8s cluster"""
         # return client.CoreV1Api(api_client=config.new_client_from_config(context=self.context_name))
         return client.CoreV1Api()
 
-    def apps_api(self):
+    def apps_api(self) -> client.AppsV1Api:
         """Provides de AppsV1Api object (from kubernetes python api) to interact with the k8s cluster"""
         # return client.AppsV1Api(api_client=config.new_client_from_config(context=self.context_name))
         return client.AppsV1Api()
@@ -214,10 +214,10 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
     def __init__(self):
         super().__init__(is_local_managed=True)
 
-    def configure_cluster(self):
+    def configure_cluster(self) -> None:
         self._cluster_info = K8sClusterInfo(cluster_name="minikube", context_name="minikube")
 
-    def ensure_cluster(self):
+    def ensure_cluster(self) -> None:
         logger.info("Ensuring MiniKube cluster")
         execute_command("minikube start --driver docker --ports 18080:18080 --ports 8126:8126")
         execute_command("minikube status")
@@ -233,7 +233,7 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
         if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
 
-    def destroy_cluster(self):
+    def destroy_cluster(self) -> None:
         logger.info("Destroying MiniKube cluster")
         execute_command("minikube delete")
 
@@ -248,13 +248,13 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
     def __init__(self):
         super().__init__(is_local_managed=False)
 
-    def configure_cluster(self):
+    def configure_cluster(self) -> None:
         self._cluster_info = K8sClusterInfo(
             cluster_name="montero2Sandbox.us-east-1.eksctl.io",
             context_name="roberto.montero@datadoghq.com@montero2Sandbox.us-east-1.eksctl.io",
         )
 
-    def configure_networking(self):
+    def configure_networking(self) -> None:
         """Configure the networking properties for the cluster"""
 
         if self._cluster_info is None:
@@ -267,7 +267,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
         self._cluster_info.internal_weblog_port = 18080
         self._cluster_info.cluster_host_name = None
 
-    def configure_cluster_api_connection(self):
+    def configure_cluster_api_connection(self) -> None:
         """Configure the k8s cluster api connection"""
         try:
             # Update context name
@@ -319,7 +319,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
 
         except Exception as e:
             logger.error(f"Error loading kube config: {e}")
-            raise e
+            raise
 
     def execute_piped_command(self, command: str) -> str:
         # awk_comm = 'kubectl config get-contexts |  awk \'{if ($1 ~ "@lib-injection-testing-eks-sandbox") print $1}\''
@@ -340,14 +340,14 @@ class K8sKindClusterProvider(K8sClusterProvider):
     def __init__(self):
         super().__init__(is_local_managed=True)
 
-    def configure_cluster(self):
+    def configure_cluster(self) -> None:
         self._cluster_info = K8sClusterInfo(
             cluster_name="lib-injection-testing",
             context_name="kind-lib-injection-testing",
             cluster_template="utils/k8s_lib_injection/resources/kind-config-template.yaml",
         )
 
-    def configure_networking(self):
+    def configure_networking(self) -> None:
         """Configure the networking properties for the cluster"""
 
         if self._cluster_info is None:
@@ -360,7 +360,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
         self._cluster_info.internal_weblog_port = 18080
         self._cluster_info.cluster_host_name = "localhost"
 
-    def ensure_cluster(self):
+    def ensure_cluster(self) -> None:
         logger.info("Ensuring kind cluster")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
 
@@ -380,7 +380,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
 
-    def destroy_cluster(self):
+    def destroy_cluster(self) -> None:
         logger.info("Destroying kind cluster")
         try:
             execute_command(f"kind delete cluster --name {self.get_cluster_info().cluster_name}")
@@ -388,7 +388,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
         except Exception as e:
             logger.error(f"Error destroying the cluster: {e}")
 
-    def _setup_kind_in_gitlab(self):
+    def _setup_kind_in_gitlab(self) -> None:
         # The build runs in a docker container:
         #    - Docker commands are forwarded to the host.
         #    - The kind container is a sibling to the build container
