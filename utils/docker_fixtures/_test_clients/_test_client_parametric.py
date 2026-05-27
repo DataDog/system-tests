@@ -88,6 +88,10 @@ class ParametricTestClientFactory(TestClientFactory):
                 volumes=self.container_volumes,
                 log_file=log_file,
                 network=test_agent.network,
+                # Give ddtrace/OTLP/gRPC background threads time to drain on SIGTERM before
+                # the next test on this xdist worker reuses the same host port. SIGKILLing
+                # mid-shutdown was the most likely cause of rare container-exit flakes.
+                stop_timeout=5,
             ) as container,
         ):
             test_server_timeout = 60

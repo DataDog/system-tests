@@ -931,7 +931,8 @@ class BaseDebuggerTest:
         gzipped symbols attachment (collected by _collect_symbols) and a
         small JSON blob describing the upload (the "event" part). This
         populates self.symdb_upload_events with the parsed event JSON for
-        every captured upload, matched by Content-Disposition name="event".
+        every captured upload, matched by the Content-Disposition name
+        parameter equaling "event".
         """
         events: list[dict[str, Any]] = []
         raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
@@ -942,7 +943,9 @@ class BaseDebuggerTest:
                 if not isinstance(part, dict):
                     continue
                 disposition = part.get("headers", {}).get("content-disposition", "")
-                if 'name="event"' not in disposition:
+                # Disposition arrives quoted from some tracers (Python) and
+                # unquoted from others (.NET); normalize before checking.
+                if "name=event" not in disposition.replace('"', ""):
                     continue
                 content = part.get("content")
                 if isinstance(content, dict):
