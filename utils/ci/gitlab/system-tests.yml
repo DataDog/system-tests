@@ -1,5 +1,5 @@
 workflow:
-  name: "{{library}}"
+  name: "System-tests end to end"
 
 include:
   - local: /utils/ci/gitlab/templates.yml
