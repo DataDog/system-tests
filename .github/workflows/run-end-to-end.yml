@@ -223,21 +223,23 @@ jobs:
     - name: Run INTEGRATIONS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: |
-        # [DIAG do-not-merge] For .NET, loop the INTEGRATIONS scenario 10x to amplify the
-        # Test_SqlServiceNameSource stall reproduction rate. Each iteration's logs are
-        # renamed to logs_integrations_iter_N so they all end up in the artifact tarball
-        # (which globs logs*/). The job fails if any iteration fails so CI surfaces it.
+        # [DIAG do-not-merge] For .NET, loop the INTEGRATIONS scenario 30x to amplify the
+        # Test_SqlServiceNameSource stall reproduction rate. Each iteration is a fresh scenario
+        # run (new containers, new tracer process), which is what the bug appears to need —
+        # looping inside a single scenario doesn't repro past the first call. Each iteration's
+        # logs are renamed to logs_integrations_iter_NN so they all end up in the artifact
+        # tarball (which globs logs*/). The job fails if any iteration fails so CI surfaces it.
         if [ "${{ inputs.library }}" = "dotnet" ]; then
           iter_fail=0
-          for i in $(seq 1 10); do
-            echo "===== [DIAG] INTEGRATIONS iteration $i / 10 ====="
+          for i in $(seq 1 30); do
+            echo "===== [DIAG] INTEGRATIONS iteration $i / 30 ====="
             rm -rf logs_integrations
             ./run.sh INTEGRATIONS || iter_fail=$((iter_fail + 1))
             if [ -d logs_integrations ]; then
               mv logs_integrations "logs_integrations_iter_$(printf %02d $i)"
             fi
           done
-          echo "===== [DIAG] INTEGRATIONS summary: $iter_fail failed iterations / 10 ====="
+          echo "===== [DIAG] INTEGRATIONS summary: $iter_fail failed iterations / 30 ====="
           # Mirror the last iteration's logs into logs_integrations so downstream steps that
           # expect that path keep working.
           last_dir=$(ls -d logs_integrations_iter_* 2>/dev/null | tail -1)

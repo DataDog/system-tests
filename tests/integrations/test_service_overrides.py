@@ -13,9 +13,12 @@ from utils import context, weblog, interfaces, scenarios, features, irrelevant, 
 class Test_SqlServiceNameSource:
     """Verify that _dd.svc_src is set on SQL spans when the integration overrides the service name"""
 
-    # [DIAG do-not-merge] number of attempts to amplify the ~2% stall rate.
-    # With 100 attempts the chance of seeing at least one stall per CI run is ~87%.
-    _DIAG_ATTEMPTS = 100
+    # [DIAG do-not-merge] number of attempts per scenario run. Kept small (3) because the bug
+    # appears to be position-sensitive — looping inside one scenario doesn't reproduce it past
+    # the first call. The repeated calls instead let us compare timing of "second call" vs
+    # "third call" in case the bug is specifically the first repeat.
+    # The real amplification happens via the scenario-loop in run-end-to-end.yml.
+    _DIAG_ATTEMPTS = 3
 
     def setup_sql_srv_src(self):
         # [DIAG do-not-merge] loop the request to amplify the stall reproduction rate.
