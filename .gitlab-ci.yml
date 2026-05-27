@@ -15,18 +15,14 @@ compute_libraries:
     - job: build_ci_image
       artifacts: true
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "push"
   script:
     - mkdir original
     - git fetch origin main
     - git archive origin/main manifests/ | tar -x -C original/
     - |
-      if [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then
-        git diff --name-only "$CI_MERGE_REQUEST_DIFF_BASE_SHA" > modified_files.txt
-      else
-        touch modified_files.txt
-      fi
+      BASE_SHA=$(git merge-base HEAD origin/$CI_DEFAULT_BRANCH)
+      git diff --name-only "$BASE_SHA" > modified_files.txt
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - export PYTHONPATH="$PWD"
@@ -53,8 +49,7 @@ trigger_system_tests:
     - job: compute_libraries
       artifacts: true
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "push"
   trigger:
     include:
       - artifact: generated-wrapper.yml
