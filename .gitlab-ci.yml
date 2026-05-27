@@ -14,16 +14,12 @@ compute_libraries:
   needs:
     - job: build_ci_image
       artifacts: true
-  variables:
-    GIT_STRATEGY: none
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - git clone $CI_REPOSITORY_URL
-    - cd system-tests
-    - git checkout $CI_COMMIT_SHA
     - mkdir original
+    - git fetch origin main
     - git archive origin/main manifests/ | tar -x -C original/
     - |
       if [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then
