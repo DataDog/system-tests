@@ -38,6 +38,7 @@ import (
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
@@ -51,6 +52,9 @@ func main() {
 
 	// Add Datadog context log hook
 	logrus.AddHook(&dd_logrus.DDContextLogHook{})
+	if err := ddmetric.InstallGlobal(); err != nil {
+		logrus.WithError(err).Warn("failed to install DD OTel MeterProvider")
+	}
 	tracer.Start()
 	defer tracer.Stop()
 
