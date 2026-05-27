@@ -17,11 +17,12 @@ compute_libraries:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
   script:
+    - git fetch --unshallow 2>/dev/null || true
+    - git fetch origin $CI_DEFAULT_BRANCH
     - mkdir original
-    - git fetch origin main
-    - git archive origin/main manifests/ | tar -x -C original/
+    - git archive FETCH_HEAD manifests/ | tar -x -C original/
     - |
-      BASE_SHA=$(git merge-base HEAD origin/$CI_DEFAULT_BRANCH)
+      BASE_SHA=$(git merge-base HEAD FETCH_HEAD)
       git diff --name-only "$BASE_SHA" > modified_files.txt
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
