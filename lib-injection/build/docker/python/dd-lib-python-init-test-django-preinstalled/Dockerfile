@@ -6,7 +6,7 @@ WORKDIR /src
 ADD . /src
 
 # Install ddtrace beforehand to ensure it doesn't get overridden.
-RUN pip install django ddtrace==1.12.0
+RUN pip install django==4.2.29 ddtrace==1.12.0
 EXPOSE 18080
 
 # Many users run a non-root user, ensure this is supported by the injection mechanism

@@ -1,11 +1,11 @@
-PyYAML
-tornado
+PyYAML==6.0.3
+tornado==6.5.5
 cryptography==42.0.8
-pycryptodome
-jinja2
-psycopg2-binary
+pycryptodome==3.23.0
+jinja2==3.1.6
+psycopg2-binary==2.9.11
 packaging==25.0
 xmltodict==0.14.2
 openfeature-sdk==0.8.3
 stripe==11.6.0
-httpx
+httpx==0.28.1

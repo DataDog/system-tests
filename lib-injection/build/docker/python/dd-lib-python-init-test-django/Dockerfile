@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
 ADD . /src
-RUN pip install django
+RUN pip install django==5.2.12
 EXPOSE 18080
 
 # Many users run a non-root user, ensure this is supported by the injection mechanism
