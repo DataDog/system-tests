@@ -20,10 +20,20 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Logs\LogRecord;
+use OpenTelemetry\API\Logs\LoggerInterface as OtelLoggerInterface;
+use OpenTelemetry\API\Logs\LoggerProviderInterface as OtelLoggerProviderInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\Contrib\Logs\Monolog\Handler as OtelMonologHandler;
+use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
+use OpenTelemetry\SDK\Common\Time\ClockFactory;
+use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
+use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
+use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -111,6 +121,34 @@ $scopes = [];
 $activeSpan = null;
 /** @var array[] $spansDistributedTracingHeaders */
 $spansDistributedTracingHeaders = [];
+/** @var Logger[] $loggerDict */
+$loggerDict = [];
+
+// Construct the OTel LoggerProvider directly when DD_LOGS_OTEL_ENABLED=true.
+// Mirrors how a user would wire up OTLP logs export themselves. dd-trace-php's
+// DatadogResolver fills in OTEL_EXPORTER_OTLP_LOGS_ENDPOINT from the agent host
+// and the resource detector hooks (Service / Environment / Host) populate the
+// ResourceInfo with DD_SERVICE / DD_ENV / DD_VERSION / DD_HOSTNAME.
+$sdkLoggerProvider = SDKLoggerProvider::builder()->build();
+if (\dd_trace_env_config('DD_LOGS_OTEL_ENABLED')) {
+    try {
+        $sdkLoggerProvider = SDKLoggerProvider::builder()
+            ->setResource(ResourceInfoFactory::defaultResource())
+            ->addLogRecordProcessor(
+                new BatchLogRecordProcessor(
+                    (new LogsExporterFactory())->create(),
+                    ClockFactory::getDefault()
+                )
+            )
+            ->build();
+    } catch (\Throwable $e) {
+        // Fall back to a noop provider when the OTLP transport for the
+        // configured protocol isn't available (e.g. grpc without ext-grpc +
+        // open-telemetry/transport-grpc). Lets the server keep responding so
+        // tests fail cleanly on missing payloads rather than 500s.
+        \error_log('Datadog: failed to build OTLP LoggerProvider: ' . $e->getMessage());
+    }
+}
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
@@ -500,6 +538,118 @@ $router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHand
     }
 
     return jsonResponse([]);
+}));
+$router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$sdkLoggerProvider) {
+    $name = arg($req, 'name');
+
+    if (isset($loggerDict[$name])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    $version = arg($req, 'version');
+    $schemaUrl = arg($req, 'schema_url');
+    $attributes = arg($req, 'attributes') ?? [];
+
+    // Route through Monolog + OTel handler so the LogsIntegration (PSR-3 hook)
+    // runs and we exercise the actual log-injection mutex behavior. The handler
+    // calls $provider->getLogger($monologChannel) without the scope params from
+    // create_logger, so we wrap the SDK provider to inject them when asked.
+    $scopedProvider = new class($sdkLoggerProvider, $version, $schemaUrl, $attributes) implements OtelLoggerProviderInterface {
+        public function __construct(
+            private OtelLoggerProviderInterface $inner,
+            private ?string $version,
+            private ?string $schemaUrl,
+            private iterable $attributes,
+        ) {}
+        public function getLogger(string $name, ?string $version = null, ?string $schemaUrl = null, iterable $attributes = []): OtelLoggerInterface {
+            return $this->inner->getLogger($name, $this->version, $this->schemaUrl, $this->attributes);
+        }
+    };
+
+    // Use a subclass of the OTel Monolog handler so the LogsIntegration
+    // instanceof check still matches, but override write() to emit with OTel-
+    // canonical severity_text values ("WARN"/"FATAL") instead of Monolog's
+    // "WARNING"/"CRITICAL"/etc — LogRecord::with() doesn't let us mutate
+    // level_name (it's derived from the Level enum), so re-implementing the
+    // small write() body is the cleanest path.
+    $handler = new class($scopedProvider, Logger::DEBUG) extends OtelMonologHandler {
+        public function __construct(private OtelLoggerProviderInterface $provider, $level) {
+            parent::__construct($provider, $level);
+        }
+        protected function write($record): void {
+            static $severity = [
+                'DEBUG'     => [5,  'DEBUG'],
+                'INFO'      => [9,  'INFO'],
+                'NOTICE'    => [10, 'INFO'],
+                'WARNING'   => [13, 'WARN'],
+                'ERROR'     => [17, 'ERROR'],
+                'CRITICAL'  => [21, 'FATAL'],
+                'ALERT'     => [22, 'FATAL'],
+                'EMERGENCY' => [23, 'FATAL'],
+            ];
+            [$number, $text] = $severity[$record['level_name']] ?? [9, 'INFO'];
+            $logRecord = (new LogRecord())
+                ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
+                ->setSeverityNumber($number)
+                ->setSeverityText($text)
+                ->setBody($record['message']);
+            $this->provider->getLogger($record['channel'])->emit($logRecord);
+        }
+    };
+
+    $monologLogger = new Logger($name);
+    $monologLogger->pushHandler($handler);
+    $loggerDict[$name] = $monologLogger;
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$otelSpans, &$spans) {
+    $loggerName = arg($req, 'logger_name');
+    $level = arg($req, 'level');
+    $message = arg($req, 'message');
+    $spanId = arg($req, 'span_id');
+
+    if (!isset($loggerDict[$loggerName])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    // Map the test client's level string to a PSR-3 level. The OTel Monolog
+    // handler then maps PSR-3 -> OTel SeverityNumber.
+    $psr3Map = [
+        'TRACE' => 'debug',
+        'DEBUG' => 'debug',
+        'INFO'  => 'info',
+        'WARN'  => 'warning',
+        'ERROR' => 'error',
+        'FATAL' => 'critical',
+    ];
+    $psr3Level = $psr3Map[strtoupper((string)$level)] ?? 'info';
+
+    $scope = null;
+    if ($spanId !== null) {
+        if (isset($otelSpans[$spanId])) {
+            $scope = $otelSpans[$spanId]->activate();
+        } elseif (isset($spans[$spanId])) {
+            \DDTrace\switch_stack($spans[$spanId]);
+        }
+    }
+    try {
+        $loggerDict[$loggerName]->log($psr3Level, $message);
+    } finally {
+        if ($scope !== null) {
+            $scope->detach();
+        }
+    }
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$sdkLoggerProvider) {
+    try {
+        $sdkLoggerProvider->forceFlush();
+        return jsonResponse(['success' => true, 'message' => get_class($sdkLoggerProvider)]);
+    } catch (\Throwable $e) {
+        return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
 }));
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
