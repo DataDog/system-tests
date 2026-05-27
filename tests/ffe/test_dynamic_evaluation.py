@@ -1,10 +1,12 @@
 """Test feature flags dynamic evaluation via Remote Config."""
 
+import base64
 import copy
 import json
 import uuid
 from http import HTTPStatus
 
+from utils.dd_constants import Capabilities
 from utils import (
     weblog,
     interfaces,
@@ -17,6 +19,11 @@ from utils.proxy.mocked_response import StaticJsonMockedTracerResponse
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
+
+
+def _decode_capabilities(capabilities: list[int] | str) -> int:
+    raw_capabilities = bytes(capabilities) if isinstance(capabilities, list) else base64.b64decode(capabilities)
+    return int.from_bytes(raw_capabilities, byteorder="big")
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -41,6 +48,37 @@ UFC_FIXTURE_DATA = {
         }
     },
 }
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_dynamic_evaluation
+class Test_FFE_First_Remote_Config_Request:
+    """The tracer must subscribe to FFE on its first RC request.
+
+    This covers the warm-Agent case: the Agent can already be running without
+    any FFE cache, then a tracer starts. If the tracer only adds FFE on a later
+    RC poll, the Agent can miss the fast new-client backend fetch and the app
+    may keep default flag values during startup.
+    """
+
+    def test_first_remote_config_request_subscribes_to_ffe(self) -> None:
+        remote_config_requests = list(interfaces.library.get_data(path_filters="/v0.7/config"))
+        assert remote_config_requests, "Expected the tracer to send at least one remote config request"
+
+        first_request = remote_config_requests[0]
+        client = first_request["request"]["content"]["client"]
+        products = client.get("products", [])
+        assert RC_PRODUCT in products, (
+            f"Expected first remote config request to subscribe to {RC_PRODUCT}, got products={products}. "
+            "If FFE appears only on a later poll, an already-running Agent can miss its new-client backend fetch."
+        )
+
+        capabilities = client.get("capabilities")
+        assert capabilities is not None, "Expected first remote config request to include capabilities"
+        decoded_capabilities = _decode_capabilities(capabilities)
+        assert (decoded_capabilities >> Capabilities.FFE_FLAG_CONFIGURATION_RULES) & 1 == 1, (
+            f"Expected first remote config request to advertise {Capabilities.FFE_FLAG_CONFIGURATION_RULES.name}."
+        )
 
 
 @scenarios.feature_flagging_and_experimentation
