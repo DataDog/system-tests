@@ -35,7 +35,7 @@ compute_libraries:
     - python utils/scripts/compute_libraries_and_scenarios.py -o compute_output.env
     - source compute_output.env
     - |
-      python utils/ci/gitlab/generate_wrapper_pipeline.py \
+      python utils/scripts/ci_orchestrators/generate_wrapper_pipeline.py \
         --libraries "$libraries" \
         --scenarios "$scenarios" \
         --scenarios-groups "$scenarios_groups" \
