@@ -1,16 +1,66 @@
-include:
-  - local: "/utils/ci/gitlab/main.yml"
-    inputs:
-      stage: "build"
-      libraries: "python,java,php"
-      scenarios_groups: "all"
-      excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
-      ref: "$CI_COMMIT_SHA"
-      push_to_test_optimization: true
-
 stages:
   - build
   - system-tests-utils
+
+compute_libraries:
+  image: $CI_IMAGE
+  tags:
+    - arch:amd64
+  stage: build
+  interruptible: true
+  needs:
+    - job: build_ci_image
+      artifacts: true
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - git clone $CI_REPOSITORY_URL
+    - cd system-tests
+    - git checkout $CI_COMMIT_SHA
+    - mkdir original
+    - git archive origin/main manifests/ | tar -x -C original/
+    - |
+      if [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then
+        git diff --name-only "$CI_MERGE_REQUEST_DIFF_BASE_SHA" > modified_files.txt
+      else
+        touch modified_files.txt
+      fi
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+    - export PYTHONPATH="$PWD"
+    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+    - python utils/scripts/compute_libraries_and_scenarios.py -o compute_output.env
+    - source compute_output.env
+    - |
+      python utils/ci/gitlab/generate_wrapper_pipeline.py \
+        --libraries "$libraries" \
+        --scenarios "$scenarios" \
+        --scenarios-groups "$scenarios_groups" \
+        --excluded-scenarios "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL" \
+        --ref "$CI_COMMIT_SHA" \
+        --push-to-test-optimization "true" \
+        -o "$CI_PROJECT_DIR/generated-wrapper.yml"
+  artifacts:
+    paths:
+      - generated-wrapper.yml
+
+trigger_system_tests:
+  stage: build
+  interruptible: true
+  needs:
+    - job: compute_libraries
+      artifacts: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  trigger:
+    include:
+      - artifact: generated-wrapper.yml
+        job: compute_libraries
+    strategy: depend
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
