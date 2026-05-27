@@ -700,6 +700,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_Then_Up: bug (FFL-2339)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
   tests/ffe/test_exposures.py: v3.36.0
   tests/ffe/test_flag_eval_metrics.py: missing_feature (FFL-2257 - Requires Datadog.FeatureFlags.OpenFeature 2.3.0 NuGet package to be published)

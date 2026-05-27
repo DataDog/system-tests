@@ -1273,7 +1273,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-603)
       component_version: '>=3.0.0-dev'
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_First_Remote_Config_Request: v4.11.0-dev
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_First_Remote_Config_Request: bug (FFL-2339)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_Then_Up: v4.11.0-dev
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
