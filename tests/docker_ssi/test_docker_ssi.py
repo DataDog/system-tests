@@ -7,7 +7,6 @@ from utils import (
     context,
     irrelevant,
     bug,
-    missing_feature,
     interfaces,
     weblog,
     logger,
@@ -164,7 +163,6 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
-    @missing_feature(reason="auto_inject#1075 adds early 'starting' injection-metadata event; not yet released")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
