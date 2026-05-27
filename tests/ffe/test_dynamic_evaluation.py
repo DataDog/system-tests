@@ -122,9 +122,7 @@ class Test_FFE_RC_Down_Then_Up:
         )
 
         self.config_state = (
-            rc.tracer_rc_state.reset()
-            .set_config(f"{RC_PATH}/ffe-rc-down-then-up/config", UFC_FIXTURE_DATA)
-            .apply()
+            rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/ffe-rc-down-then-up/config", UFC_FIXTURE_DATA).apply()
         )
 
         self.recovered_eval = weblog.post(
