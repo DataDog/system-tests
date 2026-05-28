@@ -1972,9 +1972,13 @@ manifest:
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource:
     - weblog_declaration:
         "*": v2.35.0-dev
+        graphql23: irrelevant (endpoint not available)
         rack: irrelevant (endpoint not available)
         sinatra14: irrelevant (endpoint not available)
         sinatra22: irrelevant (endpoint not available)
+        sinatra32: irrelevant (endpoint not available)
+        sinatra41: irrelevant (endpoint not available)
+        uds-sinatra: irrelevant (endpoint not available)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v2.0.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v2.0.0
