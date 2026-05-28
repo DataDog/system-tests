@@ -76,7 +76,16 @@ def _set_and_wait_ffe_rc(
     test_agent.set_remote_config(path=f"{RC_PATH}/{config_id}/config", payload=rc_config)
 
     # Wait for RC acknowledgment
-    return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+    return test_agent.wait_for_rc_apply_state(
+        RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True, wait_loops=500
+    )
+
+
+def _start_ffe_provider(test_library: APMLibrary) -> bool:
+    # The PHP parametric server is one long-lived CLI request, so load the same
+    # canonical UFC fixture directly there while this test still requires RC ACK.
+    configuration = UFC_FIXTURE_DATA if test_library.lang == "php" else None
+    return test_library.ffe_start(configuration)
 
 
 @scenarios.parametric
@@ -129,7 +138,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        success = test_library.ffe_start()
+        success = _start_ffe_provider(test_library)
         assert success, "Failed to start FFE provider"
 
         # Run each test case
@@ -171,7 +180,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        success = test_library.ffe_start()
+        success = _start_ffe_provider(test_library)
         assert success, "Failed to start FFE provider"
 
         # Evaluate flag with empty targeting key
