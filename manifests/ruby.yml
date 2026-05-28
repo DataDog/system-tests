@@ -116,9 +116,51 @@ manifest:
         uds-sinatra: irrelevant
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.34.0'
+        uds-sinatra: '>=2.34.0'
+        rails80: '>=2.34.0'
+        sinatra32: '>=2.34.0'
+        sinatra41: '>=2.34.0'
+        rack: '>=2.34.0'
+        sinatra14: '>=2.34.0'
+        uds-rails: '>=2.34.0'
+        rails72: '>=2.34.0'
+        sinatra22: '>=2.34.0'
+        rails61: '>=2.34.0'
+        rails52: '>=2.34.0'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.34.0'
+        uds-sinatra: '>=2.34.0'
+        rails80: '>=2.34.0'
+        sinatra32: '>=2.34.0'
+        sinatra41: '>=2.34.0'
+        rack: '>=2.34.0'
+        sinatra14: '>=2.34.0'
+        uds-rails: '>=2.34.0'
+        rails72: '>=2.34.0'
+        sinatra22: '>=2.34.0'
+        rails61: '>=2.34.0'
+        rails52: '>=2.34.0'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.34.0'
+        uds-sinatra: '>=2.34.0'
+        rails80: '>=2.34.0'
+        sinatra32: '>=2.34.0'
+        sinatra41: '>=2.34.0'
+        rack: '>=2.34.0'
+        sinatra14: '>=2.34.0'
+        uds-rails: '>=2.34.0'
+        rails72: '>=2.34.0'
+        sinatra22: '>=2.34.0'
+        rails61: '>=2.34.0'
+        rails52: '>=2.34.0'
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.18.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.18.0
@@ -2286,8 +2328,11 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v2.4.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.4.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v2.34.0
-  tests/parametric/test_tracer.py::Test_TracerBaseService: v2.34.0
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: '>=2.34.0'  # TODO: a lower version might be supported
+  tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <2.33.0
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: v2.35.0-dev
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_srv_src_inherited_on_child_span: irrelevant (Ruby does not have service inheritance)
@@ -2643,7 +2688,21 @@ manifest:
         sinatra14: v2.27.0  # Modified by easy win activation script
         rails80: v2.27.0  # Modified by easy win activation script
         uds-sinatra: v2.27.0  # Modified by easy win activation script
-  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.34.0'
+        uds-sinatra: '>=2.34.0'
+        rails80: '>=2.34.0'
+        sinatra32: '>=2.34.0'
+        sinatra41: '>=2.34.0'
+        rack: '>=2.34.0'
+        sinatra14: '>=2.34.0'
+        uds-rails: '>=2.34.0'
+        rails72: '>=2.34.0'
+        sinatra22: '>=2.34.0'
+        rails61: '>=2.34.0'
+        rails52: '>=2.34.0'
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
