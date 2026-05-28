@@ -610,6 +610,8 @@ manifest:
       component_version: "<1.21.0-dev"
     - declaration: missing_feature (DDTrace FeatureFlags runtime is not in this dev build)
       component_version: 1.21.0+c197795aa7d7d4e52819b5ff35c2e02e89841bfd
+    - declaration: missing_feature (DDTrace FeatureFlags runtime is not in this dev build)
+      component_version: 1.21.0+e402ea5f89cfb3c20033c65138df860ba680dec2
   tests/ffe/test_exposures.py: missing_feature
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
@@ -740,6 +742,8 @@ manifest:
       component_version: "<1.21.0-dev"
     - declaration: missing_feature (DDTrace FeatureFlags runtime is not in this dev build)
       component_version: 1.21.0+c197795aa7d7d4e52819b5ff35c2e02e89841bfd
+    - declaration: missing_feature (DDTrace FeatureFlags runtime is not in this dev build)
+      component_version: 1.21.0+e402ea5f89cfb3c20033c65138df860ba680dec2
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <1.16.0
@@ -882,6 +886,8 @@ manifest:
       component_version: "<1.21.0-dev"
     - declaration: missing_feature (DDTrace FeatureFlags runtime is not in this dev build)
       component_version: 1.21.0+c197795aa7d7d4e52819b5ff35c2e02e89841bfd
+    - declaration: missing_feature (DDTrace FeatureFlags runtime is not in this dev build)
+      component_version: 1.21.0+e402ea5f89cfb3c20033c65138df860ba680dec2
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
