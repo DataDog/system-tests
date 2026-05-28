@@ -2,6 +2,7 @@
 
 import json
 import pytest
+import time
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,8 @@ from tests.parametric.conftest import APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
+FFE_READY_RETRY_ATTEMPTS = 10
+FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 
 parametrize = pytest.mark.parametrize
 
@@ -37,7 +40,9 @@ def _get_test_case_files() -> list[str]:
     if not test_data_dir.exists():
         return []
 
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name != "flags-v1.json"]
+    # Exclude base fixtures that aren't test cases
+    excluded = {"flags-v1.json", "span-enrichment-flags.json"}
+    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
 
 
 # Load fixture at module level for reuse across tests
@@ -76,6 +81,44 @@ def _set_and_wait_ffe_rc(
 
     # Wait for RC acknowledgment
     return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+
+
+def _is_ffe_waiting_for_rc(result: dict[str, Any]) -> bool:
+    provider_state = result.get("providerState")
+    return result.get("errorCode") == "PROVIDER_NOT_READY" or (
+        isinstance(provider_state, dict) and provider_state.get("hasConfig") is False
+    )
+
+
+def _ffe_evaluate_with_rc_retry(
+    test_library: APMLibrary,
+    *,
+    flag: str,
+    variation_type: str,
+    default_value: bool | str | float | dict[str, Any],
+    targeting_key: str,
+    attributes: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    result = test_library.ffe_evaluate(
+        flag=flag,
+        variation_type=variation_type,
+        default_value=default_value,
+        targeting_key=targeting_key,
+        attributes=attributes,
+    )
+    for _ in range(FFE_READY_RETRY_ATTEMPTS - 1):
+        if not _is_ffe_waiting_for_rc(result):
+            return result
+        time.sleep(FFE_READY_RETRY_INTERVAL_SECONDS)
+        result = test_library.ffe_evaluate(
+            flag=flag,
+            variation_type=variation_type,
+            default_value=default_value,
+            targeting_key=targeting_key,
+            attributes=attributes,
+        )
+
+    return result
 
 
 @scenarios.parametric
@@ -121,7 +164,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        success = test_library.ffe_start(UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
         assert success, "Failed to start FFE provider"
 
         # Run each test case
@@ -133,12 +176,17 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             attributes = test_case.get("attributes", {})
             expected_result = test_case["result"]["value"]
 
-            result = test_library.ffe_evaluate(
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
                 flag=flag,
                 variation_type=variation_type,
                 default_value=default_value,
                 targeting_key=targeting_key,
                 attributes=attributes,
+            )
+            assert not _is_ffe_waiting_for_rc(result), (
+                f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
+                f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
             actual_value = result.get("value")
 

@@ -737,18 +737,14 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
-    def ffe_start(self, configuration: dict | None = None) -> bool:
+    def ffe_start(self) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
 
         """
-        payload = {}
-        if configuration is not None:
-            payload["configuration"] = configuration
-
-        resp = self._session.post(self._url("/ffe/start"), json=payload)
+        resp = self._session.post(self._url("/ffe/start"), json={})
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
@@ -759,6 +755,7 @@ class ParametricTestClientApi(TestClientApi):
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -768,21 +765,23 @@ class ParametricTestClientApi(TestClientApi):
             default_value: The default value to return if evaluation fails
             targeting_key: The targeting key (usually user ID) for evaluation context
             attributes: Optional additional attributes for evaluation context
+            span_id: Optional span ID to activate during evaluation (for span enrichment)
 
         Returns:
             dict: Evaluation result containing 'value' and 'reason'
 
         """
-        resp = self._session.post(
-            self._url("/ffe/evaluate"),
-            json={
-                "flag": flag,
-                "variationType": variation_type,
-                "defaultValue": default_value,
-                "targetingKey": targeting_key,
-                "attributes": attributes or {},
-            },
-        )
+        payload = {
+            "flag": flag,
+            "variationType": variation_type,
+            "defaultValue": default_value,
+            "targetingKey": targeting_key,
+            "attributes": attributes or {},
+        }
+        if span_id is not None:
+            payload["span_id"] = str(span_id)
+
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
 
     def otel_get_meter(
@@ -1167,9 +1166,9 @@ class APMLibrary:
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
 
-    def ffe_start(self, configuration: dict | None = None) -> bool:
+    def ffe_start(self) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
-        return self._client.ffe_start(configuration)
+        return self._client.ffe_start()
 
     def ffe_evaluate(
         self,
@@ -1179,6 +1178,7 @@ class APMLibrary:
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1187,6 +1187,7 @@ class APMLibrary:
             default_value=default_value,
             targeting_key=targeting_key,
             attributes=attributes,
+            span_id=span_id,
         )
 
     def llmobs_trace(
