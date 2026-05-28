@@ -487,9 +487,7 @@ class Test_Span_Enrichment_Max_Experiments_Per_Subject:
     """Test 20 experiments per subject limit enforcement per RFC."""
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_max_20_experiments_per_subject_enforced(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_max_20_experiments_per_subject_enforced(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test that at most 20 serial IDs are tracked per subject in ffe_subjects_enc.
 
         When a single subject evaluates more than 20 doLog=true flags,
