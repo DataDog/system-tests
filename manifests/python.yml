@@ -138,7 +138,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         "*": missing_feature
-        fastapi: v4.10.0-rc1
+        fastapi: v4.11.0-rc1
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
