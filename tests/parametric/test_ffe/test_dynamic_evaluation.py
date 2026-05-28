@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
-    context,
     features,
     scenarios,
 )
@@ -16,6 +15,7 @@ from tests.parametric.conftest import APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
+DEDICATED_TEST_CASE_FILES = {"test-case-of-7-empty-targeting-key.json"}
 
 parametrize = pytest.mark.parametrize
 
@@ -38,7 +38,11 @@ def _get_test_case_files() -> list[str]:
     if not test_data_dir.exists():
         return []
 
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name != "flags-v1.json"]
+    return [
+        f.name
+        for f in test_data_dir.iterdir()
+        if f.suffix == ".json" and f.name != "flags-v1.json" and f.name not in DEDICATED_TEST_CASE_FILES
+    ]
 
 
 # Load fixture at module level for reuse across tests
@@ -76,16 +80,7 @@ def _set_and_wait_ffe_rc(
     test_agent.set_remote_config(path=f"{RC_PATH}/{config_id}/config", payload=rc_config)
 
     # Wait for RC acknowledgment
-    return test_agent.wait_for_rc_apply_state(
-        RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True, wait_loops=500
-    )
-
-
-def _start_ffe_provider(test_library: APMLibrary) -> bool:
-    # The PHP parametric server is one long-lived CLI request, so load the same
-    # canonical UFC fixture directly there while this test still requires RC ACK.
-    configuration = UFC_FIXTURE_DATA if test_library.lang == "php" else None
-    return test_library.ffe_start(configuration)
+    return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
 @scenarios.parametric
@@ -118,13 +113,6 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
-        # Skip OF.7 (empty targeting key) test for libraries with known bugs
-        # Java: FFL-1729 - OpenFeature Java SDK rejects empty targeting keys
-        # Node.js: FFL-1730 - OpenFeature JS SDK rejects empty targeting keys
-        if test_case_file == "test-case-of-7-empty-targeting-key.json":
-            if context.library.name in ("java", "nodejs"):
-                pytest.skip("OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
-
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
 
@@ -138,7 +126,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        success = _start_ffe_provider(test_library)
+        success = test_library.ffe_start(UFC_FIXTURE_DATA)
         assert success, "Failed to start FFE provider"
 
         # Run each test case
@@ -180,7 +168,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        success = _start_ffe_provider(test_library)
+        success = test_library.ffe_start(UFC_FIXTURE_DATA)
         assert success, "Failed to start FFE provider"
 
         # Evaluate flag with empty targeting key
