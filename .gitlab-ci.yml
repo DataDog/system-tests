@@ -1,61 +1,69 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+  - local: "/utils/ci/gitlab/main.yml"
+    inputs:
+      stage: "build"
+      libraries: "python,java,php"
+      scenarios_groups: "all"
+      excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
+      ref: "$CI_COMMIT_SHA"
+      push_to_test_optimization: true
 
 stages:
   - build
   - system-tests-utils
 
-compute_libraries:
-  image: $CI_IMAGE
-  tags:
-    - arch:amd64
-  stage: build
-  interruptible: true
-  needs:
-    - job: build_ci_image
-      artifacts: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-  script:
-    - git fetch --unshallow 2>/dev/null || true
-    - git fetch origin main
-    - mkdir original
-    - git archive FETCH_HEAD manifests/ | tar -x -C original/
-    - |
-      BASE_SHA=$(git merge-base HEAD FETCH_HEAD)
-      git diff --name-only "$BASE_SHA" > modified_files.txt
-    - ln -sf /system-tests/venv venv
-    - source venv/bin/activate
-    - export PYTHONPATH="$PWD"
-    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-    - python utils/scripts/compute_libraries_and_scenarios.py -o compute_output.env
-    - source compute_output.env
-    - |
-      python utils/scripts/ci_orchestrators/generate_wrapper_pipeline.py \
-        --libraries "$libraries" \
-        --scenarios "$scenarios" \
-        --scenarios-groups "$scenarios_groups" \
-        --excluded-scenarios "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL" \
-        --ref "$CI_COMMIT_SHA" \
-        --push-to-test-optimization "true" \
-        -o "$CI_PROJECT_DIR/generated-wrapper.yml"
-  artifacts:
-    paths:
-      - generated-wrapper.yml
-
-trigger_system_tests:
-  stage: build
-  interruptible: true
-  needs:
-    - job: compute_libraries
-      artifacts: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-  trigger:
-    include:
-      - artifact: generated-wrapper.yml
-        job: compute_libraries
-    strategy: depend
+# compute_libraries:
+#   image: $CI_IMAGE
+#   tags:
+#     - arch:amd64
+#   stage: build
+#   interruptible: true
+#   needs:
+#     - job: build_ci_image
+#       artifacts: true
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "push"
+#   script:
+#     - git fetch --unshallow 2>/dev/null || true
+#     - git fetch origin main
+#     - mkdir original
+#     - git archive FETCH_HEAD manifests/ | tar -x -C original/
+#     - |
+#       BASE_SHA=$(git merge-base HEAD FETCH_HEAD)
+#       git diff --name-only "$BASE_SHA" > modified_files.txt
+#     - ln -sf /system-tests/venv venv
+#     - source venv/bin/activate
+#     - export PYTHONPATH="$PWD"
+#     - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+#     - python utils/scripts/compute_libraries_and_scenarios.py -o compute_output.env
+#     - source compute_output.env
+#     - |
+#       python utils/scripts/ci_orchestrators/generate_wrapper_pipeline.py \
+#         --libraries "$libraries" \
+#         --scenarios "$scenarios" \
+#         --scenarios-groups "$scenarios_groups" \
+#         --excluded-scenarios "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL" \
+#         --ref "$CI_COMMIT_SHA" \
+#         --push-to-test-optimization "true" \
+#         -o "$CI_PROJECT_DIR/generated-wrapper.yml"
+#   artifacts:
+#     paths:
+#       - generated-wrapper.yml
+#
+# trigger_system_tests:
+#   stage: build
+#   interruptible: true
+#   needs:
+#     - job: compute_libraries
+#       artifacts: true
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "push"
+#   trigger:
+#     include:
+#       - artifact: generated-wrapper.yml
+#         job: compute_libraries
+#     strategy: depend
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
