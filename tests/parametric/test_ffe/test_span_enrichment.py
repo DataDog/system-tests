@@ -12,10 +12,11 @@ This module tests:
 5. ffe_subjects_enc: Multiple subjects tracked separately with SHA256 hashed keys
 6. ffe_subjects_enc: Single subject with multiple flags combines serial IDs
 7. ffe_subjects_enc: Max 10 subjects limit
-8. ffe_runtime_defaults: Flag not found adds runtime default fallback
-9. ffe_runtime_defaults: Value truncated at 64 chars
-10. ffe_runtime_defaults: Max 5 flag keys limit
-11. Delta varint encoding correctness (unit tests)
+8. ffe_subjects_enc: Max 20 experiments per subject limit
+9. ffe_runtime_defaults: Flag not found adds runtime default fallback
+10. ffe_runtime_defaults: Value truncated at 64 chars
+11. ffe_runtime_defaults: Max 5 flag keys limit
+12. Delta varint encoding correctness (unit tests)
 """
 
 import json
@@ -478,6 +479,76 @@ class Test_Span_Enrichment_Max_Subjects:
             if isinstance(subjects_encoded, dict):
                 num_subjects = len(subjects_encoded)
                 assert num_subjects <= 10, f"Should have at most 10 subjects, got {num_subjects}"
+
+
+@scenarios.parametric
+@features.feature_flags_event_enrichment
+class Test_Span_Enrichment_Max_Experiments_Per_Subject:
+    """Test 20 experiments per subject limit enforcement per RFC."""
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_max_20_experiments_per_subject_enforced(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test that at most 20 serial IDs are tracked per subject in ffe_subjects_enc.
+
+        When a single subject evaluates more than 20 doLog=true flags,
+        only the first 20 serial IDs should appear in ffe_subjects_enc for that subject.
+        The global ffe_flags_enc should still contain all serial IDs (up to MAX_SERIAL_IDS).
+        """
+        # Generate 30 flags with doLog=true to exceed the 20 per-subject limit
+        num_flags = 30
+        ufc_config = _generate_ufc_config(num_flags)
+        _set_and_wait_ffe_rc(test_agent, ufc_config, config_id="max-experiments-per-subject-test")
+
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        # Evaluate all 30 flags with a single targeting key
+        single_subject = "single-subject-limit-test"
+        with test_library.dd_start_span(name="test-span", service="test-service") as span:
+            for i in range(num_flags):
+                test_library.ffe_evaluate(
+                    flag=f"generated-flag-{i:04d}",
+                    variation_type="BOOLEAN",
+                    default_value=False,
+                    targeting_key=single_subject,
+                    attributes={},
+                    span_id=span.span_id,
+                )
+
+        traces = test_agent.wait_for_num_traces(1, clear=True)
+        assert len(traces) > 0, "No traces received"
+
+        root_span = traces[0][0]
+        meta = root_span.get("meta", {})
+
+        # Verify ffe_flags_enc contains all 30 serial IDs (global limit is 200)
+        assert "ffe_flags_enc" in meta, f"ffe_flags_enc not found in span meta: {list(meta.keys())}"
+        decoded_global_ids = decode_delta_varint(meta["ffe_flags_enc"])
+        assert len(decoded_global_ids) == num_flags, (
+            f"ffe_flags_enc should contain all {num_flags} serial IDs, got {len(decoded_global_ids)}"
+        )
+
+        # Verify ffe_subjects_enc has at most 20 serial IDs for the single subject
+        assert "ffe_subjects_enc" in meta, f"ffe_subjects_enc not found in span meta: {list(meta.keys())}"
+
+        subjects_encoded = meta["ffe_subjects_enc"]
+        if isinstance(subjects_encoded, str):
+            subjects_encoded = json.loads(subjects_encoded)
+
+        assert isinstance(subjects_encoded, dict), f"Expected dict, got {type(subjects_encoded)}"
+        assert len(subjects_encoded) == 1, f"Expected 1 subject, got {len(subjects_encoded)}"
+
+        # Get the subject's serial IDs
+        subject_hash = hash_targeting_key(single_subject)
+        assert subject_hash in subjects_encoded, f"Subject hash {subject_hash} not found in subjects_encoded"
+
+        subject_serial_ids = decode_delta_varint(subjects_encoded[subject_hash])
+        assert len(subject_serial_ids) <= 20, (
+            f"Should have at most 20 serial IDs per subject, got {len(subject_serial_ids)}"
+        )
+        assert len(subject_serial_ids) > 0, "Should have at least some serial IDs for the subject"
 
 
 @scenarios.parametric
