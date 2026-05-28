@@ -1043,6 +1043,11 @@ manifest:
         express4: *ref_5_99_0
         express5: *ref_5_99_0
         "*": irrelevant (one weblog is enough coverage)
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement:
+    - weblog_declaration:
+        express4: *ref_5_99_0
+        express5: *ref_5_99_0
+        "*": irrelevant (one weblog is enough coverage)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": *ref_5_39_0
@@ -1828,6 +1833,13 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
+    - weblog_declaration:
+        "*": missing_feature (Missing on weblog)
+        express4: v6.0.0-pre
+        express5: v6.0.0-pre
+        fastify: v6.0.0-pre
+        uds-express4: v6.0.0-pre
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -2218,7 +2230,8 @@ manifest:
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes: missing_feature (nodejs overrides the manually set service name)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: *ref_3_21_0
   tests/parametric/test_tracer.py::Test_TracerSCITagging::test_tracer_repository_url_strip_credentials: missing_feature (nodejs does not strip credentials yet)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: v5.105.0
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_srv_src_inherited_on_child_span: irrelevant (nodejs does not support service name inheritance)
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: *ref_5_15_0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature (Only plaintext files are sent presently)
