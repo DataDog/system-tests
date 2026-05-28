@@ -88,7 +88,11 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
     - section_end "weblog_setup"
     - section_start "scenario_run" "Running scenario"
+    {% if scenario in ("INTEGRATION_FRAMEWORKS") %}
+    - ./run.sh {{scenario}} -L {{library}}
+    {% else %}
     - ./run.sh {{scenario}}
+    {% endif %}
     - section_end "scenario_run"
   artifacts:
     when: always
