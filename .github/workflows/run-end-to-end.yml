@@ -226,6 +226,9 @@ jobs:
     - name: Run INTEGRATIONS_AWS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
       run: ./run.sh INTEGRATIONS_AWS
+    - name: Run DBM_DYNAMIC_SERVICE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DBM_DYNAMIC_SERVICE"')
+      run: ./run.sh DBM_DYNAMIC_SERVICE
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: |
