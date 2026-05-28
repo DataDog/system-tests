@@ -8,7 +8,12 @@ from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
-from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
+from .integrations import (
+    CrossedTracingLibraryScenario,
+    DbmDynamicServiceScenario,
+    IntegrationsScenario,
+    AWSIntegrationsScenario,
+)
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
@@ -56,6 +61,7 @@ class _Scenarios:
     )
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
+    dbm_dynamic_service = DbmDynamicServiceScenario()
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
