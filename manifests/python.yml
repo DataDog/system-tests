@@ -134,11 +134,11 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.9.0-rc2
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.11.0-rc1
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         "*": missing_feature
-        fastapi: v4.10.0-rc1
+        fastapi: v4.11.0-rc1
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -698,7 +698,9 @@ manifest:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
-  tests/appsec/test_automated_payment_events.py: v4.2.0
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules: v4.2.0
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules: irrelevant (APPSEC-65755)
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement: irrelevant (APPSEC-65755)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev
@@ -1605,6 +1607,7 @@ manifest:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
         uds-flask: bug (APMAPI-1058)
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
   tests/integrations/test_dbm.py::_BaseDbmComment::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
@@ -1810,7 +1813,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (failure 2.8.0)  # Created by easy win activation script
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags merged in dd-trace-py#17628, not yet in a released version — bump to the version once released)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: v4.9.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0

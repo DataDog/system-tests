@@ -81,8 +81,15 @@ ssi_tests:
               aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}/install_script_agent7.sh binaries/
               chmod +x binaries/install_script_agent7.sh
             fi
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-        - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+        - |
+            BUILD_SECTION_TS=$(date +%s)
+            printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KBuild runner image (./build.sh -i runner)\n' "${BUILD_SECTION_TS}"
+            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+            printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
+        - |
+            # Run the tests and capture stdout+stderr to a file
+            set -o pipefail
+            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
@@ -106,26 +113,18 @@ ssi_tests:
         else
             LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
         fi
-        # Upload to S3
+        # Upload to S3 (the URL is printed once at the end of the after_script).
+        AWS_CONSOLE_URL=""
         if [ -d "$LOGS_FOLDER" ]; then
-            echo "Uploading logs to S3..."
             EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
             LAST_DIRECTORY=$(basename "$LOGS_FOLDER")
             S3_BUCKET="system-tests-aws-ssi-apm"
             S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
-
-            echo "Uploading folder to S3 bucket: ${S3_BUCKET}"
-            echo "Local folder: ${LOGS_FOLDER}"
-            echo "S3 destination: ${S3_DESTINATION}"
+            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
 
             aws s3 cp "$LOGS_FOLDER" "$S3_DESTINATION" --recursive --quiet || echo "Failed to upload logs to S3"
 
-            # Generate AWS Console URL for the uploaded folder
-            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
-            echo "S3 logs URL (AWS Console): ${AWS_CONSOLE_URL}"
-
             # Delete large files (>50MB) to avoid CI/CD archiving
-            echo "Deleting large files to avoid CI/CD archiving..."
             find "$LOGS_FOLDER" -type f -size +50M -exec sh -c 'echo "Deleting large file ($(du -h "$1" | cut -f1)): $1" && rm "$1"' _ {} \; || echo "Failed to delete some large files"
         fi
 
@@ -145,6 +144,40 @@ ssi_tests:
             done
           done
         fi
+
+        # Dump every log file as a collapsible section (full content).
+        while IFS= read -r -d '' file; do
+          section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
+          ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
+        done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+
+        # Re-print the captured run.sh summary at the END
+        if [ -f "${CI_PROJECT_DIR}/run_output.log" ]; then
+          printf '\n%s\n  Test run summary (captured from script: step)\n%s\n\n' \
+            "================================================================================" \
+            "================================================================================"
+          tail -c 200000 "${CI_PROJECT_DIR}/run_output.log"
+        fi
+
+        # Final info banner with everything the user needs to navigate the log.
+        printf '\n%s\n  Logs for %s\n%s\n' \
+          "================================================================================" \
+          "${SCENARIO_SUFIX}" \
+          "--------------------------------------------------------------------------------"
+        printf '  - Each log file above is wrapped in its own collapsible section.\n'
+        printf '    Click the triangle on the section header to expand/collapse it.\n'
+        printf '  - If some sections appear uncollapsed in this view, click\n'
+        printf '    "View full log" To view all collapsed sections (all logs)\n'
+        printf '  - You can always download the logs attached to the job\n'
+        if [ -n "${AWS_CONSOLE_URL}" ]; then
+          printf '  - Full raw logs (including files >50MB stripped from the artifact)\n'
+          printf '    are uploaded to S3:\n      %s\n' "${AWS_CONSOLE_URL}"
+        fi
+        printf '  - How to interpret these logs:\n      %s\n' \
+          "https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+        printf '%s\n\n' \
+          "================================================================================"
+
     retry:
       max: 2
       when:

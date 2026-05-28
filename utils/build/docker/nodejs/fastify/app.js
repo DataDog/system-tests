@@ -319,15 +319,12 @@ fastify.get('/stub_dbm', async (request, reply) => {
   const operation = request.query.operation
 
   if (integration === 'pg') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const dbmComment = await pgsql.doOperation(operation)
     return { status: 'ok', dbm_comment: dbmComment }
   } else if (integration === 'mysql2') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const result = await mysql.doOperation(operation)
     return { status: 'ok', dbm_comment: result }
   } else if (integration === 'mssql') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     return await mssql.doOperation(operation)
   }
 })
