@@ -15,7 +15,6 @@ from tests.parametric.conftest import APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-DEDICATED_TEST_CASE_FILES = {"test-case-of-7-empty-targeting-key.json"}
 
 parametrize = pytest.mark.parametrize
 
@@ -38,11 +37,7 @@ def _get_test_case_files() -> list[str]:
     if not test_data_dir.exists():
         return []
 
-    return [
-        f.name
-        for f in test_data_dir.iterdir()
-        if f.suffix == ".json" and f.name != "flags-v1.json" and f.name not in DEDICATED_TEST_CASE_FILES
-    ]
+    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name != "flags-v1.json"]
 
 
 # Load fixture at module level for reuse across tests
@@ -153,33 +148,3 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"flag='{flag}', targetingKey='{targeting_key}', "
                 f"expected={expected_result}, actual={actual_value}"
             )
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_of7_empty_targeting_key(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """OF.7: Empty string is a valid targeting key.
-
-        This test validates that flag evaluation succeeds when the targeting key
-        is an empty string. The flag should still match allocations and return
-        the expected value, not fail with TARGETING_KEY_MISSING.
-
-        Temporary dedicated test until FFL-1729 (Java) and FFL-1730 (Node.js) are resolved.
-        """
-        # Set up UFC Remote Config and wait for it to be applied
-        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-
-        # Initialize FFE provider
-        success = test_library.ffe_start(UFC_FIXTURE_DATA)
-        assert success, "Failed to start FFE provider"
-
-        # Evaluate flag with empty targeting key
-        result = test_library.ffe_evaluate(
-            flag="empty-targeting-key-flag",
-            variation_type="STRING",
-            default_value="default",
-            targeting_key="",
-            attributes={},
-        )
-
-        assert result.get("value") == "on-value", (
-            f"OF.7 failed: empty targeting key should return 'on-value', got '{result.get('value')}'"
-        )
