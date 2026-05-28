@@ -2274,7 +2274,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <2.33.0
-  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <2.34.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
