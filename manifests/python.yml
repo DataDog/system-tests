@@ -700,6 +700,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules: v4.2.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules: irrelevant (APPSEC-65755)
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement: irrelevant (APPSEC-65755)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev

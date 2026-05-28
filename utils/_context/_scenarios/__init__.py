@@ -36,6 +36,7 @@ from utils._context.containers import (
     PostgresContainer,
     RabbitMqContainer,
     VCRCassettesContainer,
+    InternalServerContainer,
 )
 
 update_environ_with_local_env()
@@ -420,6 +421,7 @@ class _Scenarios:
             Scenario to test User ID collection config change via Remote config
         """,
         scenario_groups=[scenario_groups.appsec],
+        other_weblog_containers=(InternalServerContainer,),
     )
 
     runtime_sca_reachability = EndToEndScenario(
