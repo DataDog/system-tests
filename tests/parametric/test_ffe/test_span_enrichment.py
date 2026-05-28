@@ -7,7 +7,7 @@ This follows the specification for chunk-level tagging.
 This module tests:
 1. ffe_flags_enc: Multiple flag evaluations combine serial IDs correctly
 2. ffe_flags_enc: Child span flag evaluation propagates to root span
-3. ffe_flags_enc: Max 128 serial IDs limit
+3. ffe_flags_enc: Max 200 serial IDs limit
 4. ffe_subjects_enc: doLog=true adds subjects, doLog=false does not
 5. ffe_subjects_enc: Multiple subjects tracked separately with SHA256 hashed keys
 6. ffe_subjects_enc: Single subject with multiple flags combines serial IDs
@@ -235,16 +235,16 @@ class Test_Span_Enrichment_Child_Span_Propagation:
 @scenarios.parametric
 @features.feature_flags_event_enrichment
 class Test_Span_Enrichment_Max_Serial_IDs:
-    """Test 128 serial ID limit enforcement (provisional - may adjust during code review)."""
+    """Test 200 serial ID limit enforcement per RFC."""
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_max_128_serial_ids_enforced(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test that at most 128 unique serial IDs are encoded.
+    def test_max_200_serial_ids_enforced(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test that at most 200 unique serial IDs are encoded.
 
-        Evaluates 150 flags (each with unique serial ID) and verifies
-        the encoded result contains at most 128 serial IDs.
+        Evaluates 250 flags (each with unique serial ID) and verifies
+        the encoded result contains at most 200 serial IDs.
         """
-        num_flags = 150
+        num_flags = 250
         ufc_config = _generate_ufc_config(num_flags)
         _set_and_wait_ffe_rc(test_agent, ufc_config, config_id="max-serial-ids-test")
 
@@ -274,8 +274,8 @@ class Test_Span_Enrichment_Max_Serial_IDs:
 
         decoded_ids = decode_delta_varint(meta["ffe_flags_enc"])
 
-        # Verify we don't exceed 128 limit
-        assert len(decoded_ids) <= 128, f"Should have at most 128 serial IDs, got {len(decoded_ids)}"
+        # Verify we don't exceed 200 limit
+        assert len(decoded_ids) <= 200, f"Should have at most 200 serial IDs, got {len(decoded_ids)}"
 
         # Verify we have some serial IDs (sanity check)
         assert len(decoded_ids) > 0, "Should have at least some serial IDs encoded"
