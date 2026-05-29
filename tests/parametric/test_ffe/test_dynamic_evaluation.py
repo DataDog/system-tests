@@ -38,7 +38,9 @@ def _get_test_case_files() -> list[str]:
     if not test_data_dir.exists():
         return []
 
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name != "flags-v1.json"]
+    # Exclude base fixtures that aren't test cases
+    excluded = {"flags-v1.json", "span-enrichment-flags.json"}
+    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
 
 
 # Load fixture at module level for reuse across tests

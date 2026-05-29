@@ -1921,6 +1921,15 @@ class _Features:
         )  # tracing/context-propagation, apm/dbm, idm-sugar
 
     @staticmethod
+    def database_monitoring_dynamic_service(test_object):
+        """DBM: dynamic_service propagation mode — injects ddsh into SQL comments and _dd.propagated_hash onto spans
+
+        https://feature-parity.us1.prod.dog/#/?feature=558
+        https://docs.google.com/document/d/1v-NuhF_0LNCY3zkSQlL6nPxrvlKfvm9LDkeZlEOyO3w/edit?tab=t.0
+        """
+        return _mark_test_object(test_object, feature_id=558, owner=_Owner.idm)
+
+    @staticmethod
     def rasp_stack_trace(test_object):
         """Appsec RASP: Stack Trace
 
@@ -2675,6 +2684,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_event_enrichment(test_object):
+        """Feature Flags Event Enrichment (APM span tags)
+
+        https://feature-parity.us1.prod.dog/#/?feature=551
+        """
+        return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
@@ -2932,6 +2949,28 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=554
         """
         return _mark_test_object(test_object, feature_id=554, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def api_security_testing_headers_collection(test_object):
+        """API Security Testing - Headers collection: tracers unconditionally tag the
+        x-datadog-endpoint-scan and x-datadog-security-test request headers on service
+        entry spans as http.request.headers.<name>, regardless of DD_TRACE_HEADER_TAGS
+        or AppSec being enabled. These markers are not propagated downstream.
+
+        https://feature-parity.us1.prod.dog/#/?feature=556
+        """
+        return _mark_test_object(test_object, feature_id=556, owner=_Owner.asm)
+
+    @staticmethod
+    def api_security_normalized_route(test_object):
+        """API Security Testing - Normalized Route: tracers emit a per-request
+        `_dd.appsec.normalized_route` span tag on every request span that already
+        carries `http.route` when API Security is enabled. The tag follows the
+        RFC-1103 normalized-route grammar.
+
+        https://feature-parity.us1.prod.dog/#/?feature=557
+        """
+        return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
 
 
 features = _Features()

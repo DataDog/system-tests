@@ -18,9 +18,11 @@ SCA_REACHABILITY_RFC = "https://docs.google.com/document/d/1xDw9iG6h41VCEgJGTqoJ
 # Only populate entries once the language's tracer supports SCA reachability
 # and the expected values are confirmed. Missing languages gracefully
 # degrade: structural assertions still run, but value comparisons are skipped.
-_LANG_CONFIG: dict[str, dict[str, str]] = {
+# `cve_id` is a list to support retrocompatibility across tracer versions that
+# may emit different identifiers (e.g. CVE id vs GHSA id) for the same advisory.
+_LANG_CONFIG: dict[str, dict[str, Any]] = {
     "python": {
-        "cve_id": "CVE-2024-35195",
+        "cve_id": ["CVE-2024-35195", "GHSA-652x-xj99-gmcc"],
         "vulnerable_dep": "requests",
         "path": "app.py",
         "symbol": "sca_requests_vulnerable_call",
@@ -34,12 +36,12 @@ _LANG_CONFIG: dict[str, dict[str, str]] = {
 }
 
 
-def _get_lang_config() -> dict[str, str]:
+def _get_lang_config() -> dict[str, Any]:
     """Return per-language SCA reachability config, or empty dict if not configured."""
     return _LANG_CONFIG.get(context.library.name, {})
 
 
-def _cve_id() -> str:
+def _cve_id() -> list[str]:
     val = _get_lang_config().get("cve_id")
     assert val is not None, f"No cve_id configured for '{context.library.name}'. Add entry to _LANG_CONFIG."
     return val
@@ -69,8 +71,12 @@ def get_request_type(data: dict[str, Any]) -> str | None:
     return get_request_content(data).get("request_type")
 
 
-def _get_dependency_cve_metadata(dep_name: str, cve_id: str) -> list[dict[str, Any]]:
-    """Collect all reachability metadata entries for a dep+CVE across all telemetry events."""
+def _get_dependency_cve_metadata(dep_name: str, cve_ids: list[str]) -> list[dict[str, Any]]:
+    """Collect all reachability metadata entries for a dep+CVE across all telemetry events.
+
+    `cve_ids` is a list of acceptable identifiers (for retrocompatibility across
+    tracer versions that may emit different identifiers for the same advisory).
+    """
     results: list[dict[str, Any]] = []
     for data in interfaces.library.get_telemetry_data():
         if get_request_type(data) != "app-dependencies-loaded":
@@ -82,7 +88,7 @@ def _get_dependency_cve_metadata(dep_name: str, cve_id: str) -> list[dict[str, A
                 if meta.get("type") != "reachability":
                     continue
                 value = json.loads(meta["value"])
-                if value.get("id") == cve_id:
+                if value.get("id") in cve_ids:
                     results.append(value)
     return results
 

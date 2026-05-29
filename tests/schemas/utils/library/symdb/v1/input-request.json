@@ -44,12 +44,21 @@
       }
     },
     "json_content": {
+      "$comment": "Loose: only the fields old tracers always sent are required. New fields (type, version, language, uploadId, batchNum, final, attachmentSize) are type-validated if present, but presence is enforced separately by Test_Debugger_SymDb.test_event_metadata, which is gated per tracer version via the manifests.",
       "type": "object",
       "required": ["ddsource", "service", "runtimeId"],
       "properties": {
         "ddsource": { "type": "string" },
         "service": { "type": "string" },
-        "runtimeId": { "type": "string" }
+        "version": { "type": "string" },
+        "language": { "type": "string" },
+        "runtimeId": { "type": "string" },
+        "parentId": { "type": ["string", "null"] },
+        "type": { "type": "string" },
+        "uploadId": { "type": "string" },
+        "batchNum": { "type": "integer", "minimum": 1 },
+        "final": { "type": "boolean" },
+        "attachmentSize": { "type": "integer", "minimum": 1 }
       }
     },
     "gzip_content": {

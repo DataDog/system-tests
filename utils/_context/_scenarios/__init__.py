@@ -8,7 +8,12 @@ from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
-from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
+from .integrations import (
+    CrossedTracingLibraryScenario,
+    DbmDynamicServiceScenario,
+    IntegrationsScenario,
+    AWSIntegrationsScenario,
+)
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
@@ -36,6 +41,7 @@ from utils._context.containers import (
     PostgresContainer,
     RabbitMqContainer,
     VCRCassettesContainer,
+    InternalServerContainer,
 )
 
 update_environ_with_local_env()
@@ -55,6 +61,7 @@ class _Scenarios:
     )
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
+    dbm_dynamic_service = DbmDynamicServiceScenario()
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
@@ -420,6 +427,7 @@ class _Scenarios:
             Scenario to test User ID collection config change via Remote config
         """,
         scenario_groups=[scenario_groups.appsec],
+        other_weblog_containers=(InternalServerContainer,),
     )
 
     runtime_sca_reachability = EndToEndScenario(
@@ -554,7 +562,12 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
+        weblog_env={
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            # configs below will used to debug connection failures in ddtrace-py
+            "DD_TRACE_LOGGING_RATE": "0",
+            "DD_TRACE_DEBUG": "true",
+        },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
@@ -597,12 +610,21 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            # set_provider() in Python blocks until we receive RC
+            # configuration for feature flags. But it is only sent
+            # after weblog sucessfully boots and tests start
+            # executing. Unfortunately, Python's OpenFeature SDK does
+            # not have "set provider and don't wait," so we reduce the
+            # timeout here, so that the provider initialization fails
+            # fast, weblog boots, and provider recovers when we set RC
+            # configuration later.
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             "DD_METRICS_OTEL_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
         },
-        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )

@@ -1,6 +1,6 @@
 use ::opentelemetry::global::{self, BoxedTracer};
-use ::opentelemetry::InstrumentationScope;
 use ::opentelemetry::metrics::Meter;
+use ::opentelemetry::InstrumentationScope;
 use anyhow::{Context, Result};
 use axum::{
     body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
@@ -8,7 +8,9 @@ use axum::{
 };
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
-use opentelemetry_sdk::{logs::SdkLoggerProvider, metrics::SdkMeterProvider, trace::SdkTracerProvider};
+use opentelemetry_sdk::{
+    logs::SdkLoggerProvider, metrics::SdkMeterProvider, trace::SdkTracerProvider,
+};
 use serde::Deserialize;
 use serde_json::json;
 use std::{
@@ -48,8 +50,9 @@ struct AppState {
     meter_provider: Arc<Mutex<Option<SdkMeterProvider>>>,
     otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
     otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
-        logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
+    logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
     otel_loggers: Arc<Mutex<HashMap<String, InstrumentationScope>>>,
+    dd_config: datadog_opentelemetry::configuration::Config,
 }
 
 #[derive(Default, Clone)]
@@ -66,8 +69,12 @@ impl ContextWithParent {
 
 #[tokio::main]
 async fn main() {
+    let config = datadog_opentelemetry::configuration::Config::builder()
+        .set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug)
+        .build();
+
     // If tracing initialization fails, nevertheless emit a structured log event.
-    let result = init_tracing();
+    let result = init_tracing(&config);
     let tracer = match result {
         Ok(tracer) => tracer,
         Err(ref error) => {
@@ -76,14 +83,14 @@ async fn main() {
         }
     };
 
-    let meter_provider = init_metrics();
-    let logger_provider = init_logs();
+    let meter_provider = init_metrics(&config);
+    let logger_provider = init_logs(&config);
 
     // Replace the default panic hook with one that uses structured logging at ERROR level.
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
 
     // Run and log any error.
-    if let Err(ref error) = run(tracer, meter_provider, logger_provider).await {
+    if let Err(ref error) = run(tracer, meter_provider, logger_provider, config).await {
         error!(
             error = format!("{error:#}"),
             backtrace = %error.backtrace(),
@@ -92,7 +99,9 @@ async fn main() {
     }
 }
 
-fn init_tracing() -> Result<SdkTracerProvider> {
+fn init_tracing(
+    config: &datadog_opentelemetry::configuration::Config,
+) -> Result<SdkTracerProvider> {
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
@@ -105,20 +114,20 @@ fn init_tracing() -> Result<SdkTracerProvider> {
         .try_init()
         .context("initialize tracing subscriber");
 
-    let mut builder = datadog_opentelemetry::configuration::Config::builder();
-    builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
     Ok(datadog_opentelemetry::tracing()
-        .with_config(builder.build())
+        .with_config(config.clone())
         .init())
 }
 
-fn init_metrics() -> SdkMeterProvider {
+fn init_metrics(config: &datadog_opentelemetry::configuration::Config) -> SdkMeterProvider {
     datadog_opentelemetry::metrics()
+        .with_config(config.clone())
         .init()
 }
 
-fn init_logs() -> SdkLoggerProvider {
+fn init_logs(config: &datadog_opentelemetry::configuration::Config) -> SdkLoggerProvider {
     datadog_opentelemetry::logs()
+        .with_config(config.clone())
         .init()
 }
 
@@ -149,6 +158,7 @@ pub async fn serve(
     tracer_provider: SdkTracerProvider,
     meter_provider: SdkMeterProvider,
     logger_provider: SdkLoggerProvider,
+    dd_config: datadog_opentelemetry::configuration::Config,
 ) -> Result<()> {
     let Config {
         addr,
@@ -168,6 +178,7 @@ pub async fn serve(
         otel_meter_instruments: Arc::new(Mutex::new(HashMap::new())),
         logger_provider: Arc::new(Mutex::new(Some(logger_provider))),
         otel_loggers: Arc::new(Mutex::new(HashMap::new())),
+        dd_config,
     };
 
     let app = Router::new()
@@ -270,7 +281,12 @@ fn make_span(request: &Request<Body>) -> Span {
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 
-async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider, logger_provider: SdkLoggerProvider) -> Result<()> {
+async fn run(
+    tracer: SdkTracerProvider,
+    meter_provider: SdkMeterProvider,
+    logger_provider: SdkLoggerProvider,
+    dd_config: datadog_opentelemetry::configuration::Config,
+) -> Result<()> {
     let port = u16::from_str_radix(
         &env::var("APM_TEST_CLIENT_SERVER_PORT").unwrap_or("8080".to_string()),
         10,
@@ -284,5 +300,5 @@ async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider, logger
 
     info!(?config, "starting");
 
-    serve(config, tracer, meter_provider, logger_provider).await
+    serve(config, tracer, meter_provider, logger_provider, dd_config).await
 }

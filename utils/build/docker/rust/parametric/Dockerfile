@@ -1,11 +1,11 @@
-FROM rust:1.85.1-slim-bookworm AS builder
+FROM rust:1.87-slim-bookworm AS builder
 WORKDIR /usr/app
 COPY utils/build/docker/rust/parametric .
 COPY utils/build/docker/rust/parametric/../install_ddtrace.sh ./binaries/ /binaries/
 COPY utils/build/docker/rust/parametric/Cargo.toml /usr/app/
 COPY utils/build/docker/rust/parametric/src /usr/app/
 
-RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git jq build-essential perl libssl-dev
 
 RUN /binaries/install_ddtrace.sh
 
