@@ -309,6 +309,9 @@ generate_system_tests_lib_injection_images:
 # End-to-end pipeline — only on direct pushes
 # ──────────────────────────────────────────────
 
+variables:
+  SYSTEM_TESTS_E2E_ENABLED: "true"
+
 include:
   - local: /utils/ci/gitlab/main.yml
     inputs:
@@ -318,7 +321,6 @@ include:
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
-      only_on_push: true
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
