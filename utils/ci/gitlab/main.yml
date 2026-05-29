@@ -127,6 +127,11 @@ build_test_pipeline:
         fi
         idx=$((idx + 1))
       done
+      # Ensure chunk-1 always exists: trigger include requires both files regardless of library count
+      if [ ! -f generated-pipeline-chunk-1.yml ]; then
+        first_job=$(grep -nm1 '^build_' generated-pipeline-chunk-0.yml | cut -d: -f1)
+        head -n $((first_job - 1)) generated-pipeline-chunk-0.yml > generated-pipeline-chunk-1.yml
+      fi
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
@@ -147,7 +152,9 @@ run_test_pipeline:
     LIBRARIES: $LIBRARIES
   trigger:
     include:
-      - artifact: system-tests/generated-pipeline-chunk-*.yml
+      - artifact: system-tests/generated-pipeline-chunk-0.yml
+        job: build_test_pipeline
+      - artifact: system-tests/generated-pipeline-chunk-1.yml
         job: build_test_pipeline
     strategy: depend
 
