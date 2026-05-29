@@ -246,6 +246,24 @@ $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Requ
         ]));
     }
 
+    $configuration = arg($req, 'configuration');
+    if ($configuration !== null) {
+        if (!function_exists('\\DDTrace\\Testing\\ffe_load_config')) {
+            return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false,
+                'message' => 'DDTrace\\Testing\\ffe_load_config is not available',
+            ]));
+        }
+
+        $configurationJson = json_encode($configuration);
+        if (!is_string($configurationJson) || !\DDTrace\Testing\ffe_load_config($configurationJson)) {
+            return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false,
+                'message' => 'Failed to load FFE test configuration',
+            ]));
+        }
+    }
+
     $ffeClient = new \DDTrace\FeatureFlags\Client();
 
     return jsonResponse(['success' => true]);

@@ -164,7 +164,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        success = test_library.ffe_start()
+        success = test_library.ffe_start(UFC_FIXTURE_DATA)
         assert success, "Failed to start FFE provider"
 
         # Run each test case

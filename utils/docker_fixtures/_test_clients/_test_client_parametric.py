@@ -737,14 +737,18 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
-    def ffe_start(self) -> bool:
+    def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
 
         """
-        resp = self._session.post(self._url("/ffe/start"), json={})
+        payload = {}
+        if configuration is not None:
+            payload["configuration"] = configuration
+
+        resp = self._session.post(self._url("/ffe/start"), json=payload)
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
@@ -1166,9 +1170,9 @@ class APMLibrary:
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
 
-    def ffe_start(self) -> bool:
+    def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
-        return self._client.ffe_start()
+        return self._client.ffe_start(configuration)
 
     def ffe_evaluate(
         self,
