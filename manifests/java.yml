@@ -4260,7 +4260,10 @@ manifest:
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_dd_metrics_are_absent: bug (APMAPI-1952)
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_otel_metrics_are_present_and_attributed: v1.63.0-SNAPSHOT
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_otel_metrics_are_present_and_attributed:
+    - weblog_declaration:
+        "*": v1.63.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         akka-http: v1.22.0
