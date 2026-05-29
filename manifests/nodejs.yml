@@ -698,15 +698,6 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_headers: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_status: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type:
-    - weblog_declaration:
-        express4: *ref_5_106_0
-        express5: *ref_5_106_0
-        "*": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing:
     - weblog_declaration:
         express4: *ref_5_106_0
@@ -717,6 +708,15 @@ manifest:
         express4: *ref_5_106_0
         express5: *ref_5_106_0
         "*": irrelevant
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type:
+    - weblog_declaration:
+        express4: *ref_5_106_0
+        express5: *ref_5_106_0
+        "*": irrelevant
+  tests/appsec/rasp/test_api10.py::Test_API10_response_headers: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_status: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: *ref_5_87_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": *ref_5_30_0

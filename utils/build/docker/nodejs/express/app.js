@@ -667,7 +667,7 @@ app.get('/add_event', (req, res) => {
 const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
   'invalid_content_type',
   'content_length_missing',
-  'content_length_too_big',
+  'content_length_too_big'
 ])
 
 function forwardExternalRequest (req, res, downstreamPath) {
@@ -694,7 +694,7 @@ function forwardExternalRequest (req, res, downstreamPath) {
     port: 8089,
     path,
     method: req.method,
-    headers,
+    headers
   }
 
   const request = http.request(options, (response) => {
@@ -708,7 +708,7 @@ function forwardExternalRequest (req, res, downstreamPath) {
       res.status(200).json({
         status: response.statusCode,
         payload,
-        headers: response.headers,
+        headers: response.headers
       })
     })
   })
@@ -722,6 +722,16 @@ function forwardExternalRequest (req, res, downstreamPath) {
 
 app.all('/external_request', (req, res) => {
   forwardExternalRequest(req, res)
+})
+
+app.all('/external_request/:failureReason', (req, res) => {
+  const { failureReason } = req.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    res.status(404).json({ error: 'unknown failure reason' })
+    return
+  }
+
+  forwardExternalRequest(req, res, `/downstream_response/${failureReason}`)
 })
 
 app.get('/external_request/redirect', (req, res) => {
@@ -760,16 +770,6 @@ app.get('/external_request/redirect', (req, res) => {
 
   // Start the redirect chain
   followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
-})
-
-app.all('/external_request/:failureReason', (req, res) => {
-  const { failureReason } = req.params
-  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
-    res.status(404).json({ error: 'unknown failure reason' })
-    return
-  }
-
-  forwardExternalRequest(req, res, `/downstream_response/${failureReason}`)
 })
 
 require('./rasp')(app)
