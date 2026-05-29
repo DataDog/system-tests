@@ -2333,7 +2333,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <2.33.0
-  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <2.34.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: v2.35.0-dev  # Easy win for all weblogs and version 2.34.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_srv_src_inherited_on_child_span: irrelevant (Ruby does not have service inheritance)
