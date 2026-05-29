@@ -322,6 +322,9 @@ system-tests-param:
     - arch:amd64
   script:
     - echo 'LIBRARIES="python"' > param.env
+  artifacts:
+    reports:
+      dotenv: param.env
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
