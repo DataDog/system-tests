@@ -175,7 +175,14 @@ class Test_Sampling_Span_Tags:
         )
 
     @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}])}]
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
     )
     def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)

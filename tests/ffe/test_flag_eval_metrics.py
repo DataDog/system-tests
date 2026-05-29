@@ -84,11 +84,9 @@ class Test_FFE_Eval_Metric_Basic:
     """Test that a flag evaluation produces a feature_flag.evaluations metric."""
 
     def setup_ffe_eval_metric_basic(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-metric-basic"
         self.flag_key = "eval-metric-basic-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.r = weblog.post(
             "/ffe",
@@ -135,11 +133,9 @@ class Test_FFE_Eval_Metric_Count:
     """Test that multiple evaluations of the same flag produce correct metric count."""
 
     def setup_ffe_eval_metric_count(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-metric-count"
         self.flag_key = "eval-metric-count-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.eval_count = 5
         self.responses = []
@@ -186,8 +182,6 @@ class Test_FFE_Eval_Metric_Different_Flags:
     """Test that different flags produce separate metric series."""
 
     def setup_ffe_eval_metric_different_flags(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-metric-diff"
         self.flag_a = "eval-metric-flag-a"
         self.flag_b = "eval-metric-flag-b"
@@ -234,7 +228,7 @@ class Test_FFE_Eval_Metric_Different_Flags:
                 },
             },
         }
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", fixture).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", fixture).apply()
 
         self.r_a = weblog.post(
             "/ffe",
@@ -453,11 +447,9 @@ class Test_FFE_Eval_Reason_Targeting:
     """Test that matching targeting rules produce reason=targeting_match."""
 
     def setup_ffe_eval_reason_targeting(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-reason-targeting"
         self.flag_key = "reason-targeting-flag"
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_targeting_fixture(self.flag_key, "tier", "premium")
         ).apply()
 
@@ -494,11 +486,11 @@ class Test_FFE_Eval_Reason_Split:
     """Test that shard-based allocation produces reason=split."""
 
     def setup_ffe_eval_reason_split(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-reason-split"
         self.flag_key = "reason-split-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_split_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_split_fixture(self.flag_key)
+        ).apply()
 
         self.r = weblog.post(
             "/ffe",
@@ -532,12 +524,10 @@ class Test_FFE_Eval_Reason_Default:
     """Test that unmatched targeting rules produce reason=default."""
 
     def setup_ffe_eval_reason_default(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-reason-default"
         self.flag_key = "reason-default-flag"
         # Flag requires tier=premium, but we'll send tier=basic
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_targeting_fixture(self.flag_key, "tier", "premium")
         ).apply()
 
@@ -573,11 +563,9 @@ class Test_FFE_Eval_Reason_Disabled:
     """Test that a disabled flag produces reason=disabled."""
 
     def setup_ffe_eval_reason_disabled(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-reason-disabled"
         self.flag_key = "reason-disabled-flag"
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, enabled=False)
         ).apply()
 
@@ -647,11 +635,11 @@ class Test_FFE_Eval_Config_Exists_Flag_Missing:
     """
 
     def setup_ffe_eval_config_exists_flag_missing(self):
-        rc.tracer_rc_state.reset().apply()
-
         # Set up config with a different flag than what we'll request
         config_id = "ffe-eval-metric-error"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         self.flag_key = "non-existent-eval-metric-flag"
         self.r = weblog.post(
@@ -698,12 +686,10 @@ class Test_FFE_Eval_Metric_Type_Mismatch:
     """
 
     def setup_ffe_eval_metric_type_mismatch(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-metric-type-mismatch"
         self.flag_key = "eval-metric-type-mismatch-flag"
         # Flag is configured as STRING
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, variation_type="STRING")
         ).apply()
 
@@ -747,11 +733,9 @@ class Test_FFE_Eval_Metric_Numeric_To_Integer:
     """
 
     def setup_ffe_eval_metric_numeric_to_integer(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-metric-numeric-to-int"
         self.flag_key = "eval-metric-numeric-to-int-flag"
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, variation_type="NUMERIC")
         ).apply()
 
@@ -800,11 +784,9 @@ class Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex:
     """
 
     def setup_ffe_eval_metric_parse_error_invalid_regex(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-metric-parse-error"
         self.flag_key = "eval-metric-parse-error-flag"
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_invalid_regex_fixture(self.flag_key)
         ).apply()
 
@@ -853,11 +835,9 @@ class Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch:
     """
 
     def setup_ffe_eval_metric_parse_error_variant_type_mismatch(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-eval-variant-type-mismatch"
         self.flag_key = "eval-variant-type-mismatch-flag"
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_variant_type_mismatch_fixture(self.flag_key)
         ).apply()
 
@@ -961,11 +941,9 @@ class Test_FFE_Eval_Targeting_Key_Optional:
     """
 
     def setup_ffe_eval_targeting_key_optional(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-targeting-key-optional"
         self.flag_key = "targeting-key-optional-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         # Evaluate without a targeting key - should still succeed for most SDKs
         self.r = weblog.post(
@@ -1021,11 +999,9 @@ class Test_FFE_Eval_Nested_Attributes_Ignored:
     """
 
     def setup_ffe_eval_nested_attributes_ignored(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-nested-attrs"
         self.flag_key = "nested-attrs-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         # Pass a nested dict as an attribute value - this should be IGNORED, not error
         self.r = weblog.post(
@@ -1072,11 +1048,9 @@ class Test_FFE_Eval_Lowercase_Consistency:
     """
 
     def setup_ffe_lowercase_reason(self):
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-lowercase-test"
         self.flag_key = "lowercase-test-flag"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.r = weblog.post(
             "/ffe",
@@ -1103,11 +1077,11 @@ class Test_FFE_Eval_Lowercase_Consistency:
                 assert reason == reason.lower(), f"Reason '{reason}' is not lowercase. Tags: {tags}"
 
     def setup_ffe_lowercase_error_type(self):
-        rc.tracer_rc_state.reset().apply()
-
         # Set up config with a different flag than what we'll request
         config_id = "ffe-lowercase-error-test"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         # Request non-existent flag to trigger error
         self.error_flag_key = "lowercase-error-flag"

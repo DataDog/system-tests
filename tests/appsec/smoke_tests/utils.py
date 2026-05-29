@@ -4,12 +4,13 @@
 
 """AppSec smoke tests at the agent interface level"""
 
-from utils import interfaces, remote_config as rc, weblog
+from utils import context, interfaces, remote_config as rc, weblog
 from utils.dd_types import is_same_boolean
 from utils._weblog import HttpResponse
 
 SMOKE_RC_RULE_ID = "smoke-rc-0001"
 SMOKE_RC_RASP_RULE_ID = "rasp-930-100"
+SMOKE_RC_IP_BLOCK_RULE_ID = "blk-001-001"
 SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
     "datadog/2/ASM_DD/rules/config",
     {
@@ -60,6 +61,25 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
                             ],
                         },
                         "operator": "lfi_detector",
+                    }
+                ],
+                "transformers": [],
+                "on_match": ["block"],
+            },
+            {
+                "id": SMOKE_RC_IP_BLOCK_RULE_ID,
+                "name": "Block IP Addresses",
+                "tags": {
+                    "type": "block_ip",
+                    "category": "security_response",
+                },
+                "conditions": [
+                    {
+                        "parameters": {
+                            "inputs": [{"address": "http.client_ip"}],
+                            "data": "blocked_ips",
+                        },
+                        "operator": "ip_match",
                     }
                 ],
                 "transformers": [],
@@ -232,6 +252,7 @@ class BaseRemoteConfigSmokeTests:
     def setup_remote_config_smoke(self) -> None:
         self.config_state = rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply().state
         self.r = weblog.get("/waf", headers={"X-Smoke-Test": "rc-smoke"})
+        rc.tracer_rc_state.reset().apply()
 
     def test_remote_config_smoke(self) -> None:
         assert self.config_state == rc.ApplyState.ACKNOWLEDGED, (
@@ -250,9 +271,18 @@ class BaseRemoteConfigSmokeTests:
         """Push RASP LFI blocking rule via RC, then trigger the attack."""
         rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).apply()
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
+        rc.tracer_rc_state.reset().apply()
 
     def test_rasp_blocking_smoke(self) -> None:
         assert self.r.status_code == 403
+        _assert_rasp_attack(
+            self.r,
+            "rasp-930-100",
+            {
+                "resource": {"address": "server.io.fs.file", "value": "../etc/passwd"},
+                "params": {"address": "server.request.query", "value": "../etc/passwd"},
+            },
+        )
 
     def setup_ip_blocking_smoke(self) -> None:
         config = {
@@ -260,12 +290,15 @@ class BaseRemoteConfigSmokeTests:
                 {
                     "id": "blocked_ips",
                     "type": "ip_with_expiration",
-                    "data": [{"value": "10.10.10.1", "expiration": 9999999999}],
+                    "data": [{"value": "1.2.3.4", "expiration": 9999999999}],
                 }
             ]
         }
-        rc.tracer_rc_state.reset().set_config("datadog/2/ASM_DATA/blocked_ips/config", config).apply()
-        self.r = weblog.get("/waf", headers={"X-Forwarded-For": "10.10.10.1"})
+        rc.tracer_rc_state.reset().set_config(*SMOKE_RC_RULE_FILE).set_config(
+            "datadog/2/ASM_DATA/blocked_ips/config", config
+        ).apply()
+        self.r = weblog.get("/waf", headers={"X-Forwarded-For": "1.2.3.4"})
+        rc.tracer_rc_state.reset().apply()
 
     def test_ip_blocking_smoke(self) -> None:
         assert self.r.status_code == 403
@@ -297,7 +330,9 @@ class BaseUserEventsSmokeTests:
     """Verify user login events are tracked in standalone mode."""
 
     def setup_login_success_smoke(self) -> None:
-        self.r = weblog.post("/login?auth=local", data={"username": "test", "password": "1234"})
+        username_key = "user[username]" if "rails" in context.weblog_variant else "username"
+        password_key = "user[password]" if "rails" in context.weblog_variant else "password"
+        self.r = weblog.post("/login?auth=local", data={username_key: "test", password_key: "1234"})
 
     def test_login_success_smoke(self) -> None:
         for _, span in interfaces.agent.get_spans(self.r):

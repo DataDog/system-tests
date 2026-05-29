@@ -132,7 +132,7 @@ app.post('/trace/span/start', (req, res) => {
   });
 
   if (ddContext[request.parent_id]) {
-    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link.context, link.attributes)
+    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link)
   }
 
   spans[span.context().toSpanId()] = span;
@@ -143,9 +143,9 @@ app.post('/trace/span/add_link', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
   if (spans[request.parent_id]) {
-    span.addLink(spans[request.parent_id].context(), request.attributes)
+    span.addLink({ context: spans[request.parent_id].context(), attributes: request.attributes })
   } else {
-    span.addLink(ddContext[request.parent_id], request.attributes)
+    span.addLink({ context: ddContext[request.parent_id], attributes: request.attributes })
   }
   res.json({});
 });
@@ -491,35 +491,46 @@ app.post('/ffe/start', async (req, res) => {
 })
 
 app.post('/ffe/evaluate', async (req, res) => {
-  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
   let value, reason;
   const context = { targetingKey, ...attributes }
 
-  try {
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break;
-      case 'STRING':
-        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
-        break;
-      case 'INTEGER':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'NUMERIC':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'JSON':
-        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break;
-      default:
-        value = defaultValue;
-    }
+  // Helper function to perform the actual flag evaluation
+  const doEvaluate = async () => {
+    try {
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          break;
+        case 'STRING':
+          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          break;
+        case 'INTEGER':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break;
+        case 'NUMERIC':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break;
+        case 'JSON':
+          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          break;
+        default:
+          value = defaultValue;
+      }
 
-    reason = 'DEFAULT';
-  } catch (error) {
-    value = defaultValue;
-    reason = 'ERROR';
+      reason = 'DEFAULT';
+    } catch (error) {
+      value = defaultValue;
+      reason = 'ERROR';
+    }
+  }
+
+  // If a span_id is provided, activate that span during the evaluation
+  // so that the SpanEnrichmentHook can find the root span
+  if (span_id && spans[span_id]) {
+    await tracer.scope().activate(spans[span_id], doEvaluate)
+  } else {
+    await doEvaluate()
   }
 
   res.json({

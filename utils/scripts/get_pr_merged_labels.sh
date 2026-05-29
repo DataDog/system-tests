@@ -22,8 +22,9 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
 
     is_build_buddies=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-buddies-images"))');
     is_build_python_base_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-python-base-images"))');
+    is_build_php_base_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-php-base-images"))');
 
-    if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ]
+    if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ] && [ -z "$is_build_php_base_images" ]
     then
         echo "The PR $PR_NUMBER doesn't contain any docker build label "
         exit 0
@@ -48,6 +49,16 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER contains the 'build-python-base-images' label. Launching the images generation process "
         ./utils/build/build_python_base_images.sh --push
         echo "------------- The python base images have been built and pushed ------------- "
+    fi
+
+    #BUILD PHP BASE IMAGES
+    if [ -z "$is_build_php_base_images" ]
+    then
+        echo "The PR $PR_NUMBER doesn't contain the 'build-php-base-images' label "
+    else
+        echo "The PR $PR_NUMBER contains the 'build-php-base-images' label. Launching the images generation process "
+        ./utils/build/build_php_base_images.sh --push
+        echo "------------- The php base images have been built and pushed ------------- "
     fi
 
 else

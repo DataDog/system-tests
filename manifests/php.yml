@@ -2,6 +2,10 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -92,6 +96,8 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: v1.6.2
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -242,6 +248,9 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction::test_lfi_get:
+    - component_version: ">=1.19.0"
+      declaration: bug (APPSEC-62534)
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: v1.7.0
@@ -356,6 +365,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.6.2
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: irrelevant (On php it is not possible change the status code once its header is sent)
@@ -430,6 +440,9 @@ manifest:
   tests/appsec/test_rate_limiter.py::Test_Main: v1.11.0
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v1.12.0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v1.6.2
+  tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405:
+    - component_version: ">=1.19.0"
+      declaration: bug (APPSEC-62534)
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v1.6.2
@@ -440,6 +453,11 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.6.2
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
@@ -448,6 +466,9 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_1st_argument: bug (APPSEC-55673)
   tests/appsec/test_span_tags_headers.py: v1.17.0-dev
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker:
+    - component_version: ">=1.19.0"
+      declaration: bug (APPSEC-62534)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v1.12.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
@@ -463,6 +484,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (PHP normalizes into dashes; additionally, matching on keys is not supported)
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams: v0.71.0
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0
@@ -506,8 +528,15 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_SSRF: v0.68.3
   tests/appsec/waf/test_rules.py::Test_Scanners: v0.68.3
   tests/appsec/waf/test_rules.py::Test_XSS: v0.68.3
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_init: '>=1.16.0'
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
+    - weblog_declaration:
+        "*": missing_feature (only the rust helper, default on PHP 8.4+, emits all boolean tags on every series; the c++ helper omits them when false)
+        php-fpm-8.4: v1.20.0
+        php-fpm-8.5: v1.20.0
+        apache-mod-8.4: v1.20.0
+        apache-mod-8.5: v1.20.0
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: '>=1.20.0'
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
@@ -516,14 +545,17 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: v1.19.0
+  tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: irrelevant (HTTP entry spans in PHP-FPM/Apache are C-level; execute stack is empty at span close time so no user frames are captured)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: v1.19.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20: irrelevant (The PHP weblog does not have non-user code, which could serve as boundary)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: v1.19.0
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception
+  : '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators
   : '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_contextual_variables
@@ -534,21 +566,28 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : '>=1.16.0'
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature (code origin entry spans not captured in PHP-FPM; RC toggle works but no spans to verify)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v1.20.0
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: v1.19.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full: v1.19.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (PHP reports EMITTING instead of INSTALLED status)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
+  ? tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot
+  : v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (line probe infrastructure not implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -556,10 +595,8 @@ manifest:
     - declaration: flaky (DEBUG-3814)
       component_version: '>1.8.3'
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0
@@ -614,14 +651,17 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql: v0.91.1
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres: v0.91.1
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
@@ -692,6 +732,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <1.16.0
@@ -779,8 +820,11 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_traces_parentbased_on:
     - declaration: missing_feature (The always_on sampler mapping is properly implemented in v1.2.0)
       component_version: <=1.1.0
-  tests/parametric/test_otel_logs.py: missing_feature
+  tests/parametric/test_otel_logs.py: v1.20.0
+  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature (gRPC requires user-installed open-telemetry/transport-grpc + ext-grpc; http/protobuf is exercised via FR01/FR05/FR08)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature (OTel config telemetry tracking out of scope for initial PR)
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature (OTel config telemetry tracking out of scope for initial PR)
   tests/parametric/test_otel_metrics.py: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
@@ -911,6 +955,9 @@ manifest:
       component_version: '>1.3.2'
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  ? tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging::test_tracer_update_sequence
+  : - declaration: flaky (DEBUG-5540)
+      component_version: ">=1.19.1"
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
@@ -995,6 +1042,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:
     - declaration: missing_feature (profiling seems not to be activated)
       component_version: <1.16.0
@@ -1069,6 +1117,7 @@ manifest:
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace: irrelevant (Trace method does not reach php-land)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62222)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v1.9.0
   tests/test_standard_tags.py::Test_StandardTagsRoute: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.75.0
@@ -1087,6 +1136,7 @@ manifest:
       component_version: '>=0.93.0'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.75.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: v1.20.0
   tests/test_telemetry.py::Test_Log_Generation:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -1487,5 +1537,4 @@ manifest:
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v0.99.1
   tests/test_telemetry.py::Test_TelemetryV2: v0.90
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing (both in libdatadog and php))
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py: missing_feature

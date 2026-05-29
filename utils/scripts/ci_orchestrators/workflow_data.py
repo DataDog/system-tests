@@ -493,6 +493,10 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
     return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
 
 
+def _is_uds_weblog(weblog: str) -> bool:
+    return weblog == "uds" or weblog.startswith("uds-")
+
+
 def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
 
@@ -544,8 +548,9 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     if scenario in ("PERFORMANCES",):
         return False
 
-    if scenario == "IPV6" and library == "ruby":
-        return False
+    if scenario == "IPV6":
+        if library == "ruby" or _is_uds_weblog(weblog):
+            return False
 
     if scenario in ("CROSSED_TRACING_LIBRARIES",):
         if weblog in ("python3.12", "django-py3.13", "spring-boot-payara"):
@@ -635,6 +640,7 @@ if __name__ == "__main__":
             "IPV6",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
             "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+            "OTLP_RUNTIME_METRICS",
             "PERFORMANCES",
             "PROFILING",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",

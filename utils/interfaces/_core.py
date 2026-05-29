@@ -147,8 +147,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         If no payload satisfies validator(), then validate_one will fail
         """
-
+        n_iters = 0
         for data in self.get_data(path_filters=path_filters):
+            n_iters += 1
             try:
                 if validator(data) is True:
                     return
@@ -163,7 +164,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
                 raise
 
-        raise ValueError(f"No data has been observed on {path_filters}")
+        if n_iters:
+            raise ValueError(f"{n_iters} observed on path filter {path_filters} but none matched the validator")
+        raise ValueError(f"No data observed on path filter {path_filters}")
 
     def validate_all(
         self,
@@ -196,16 +199,17 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         if not allow_no_data and data_is_missing:
             raise ValueError(f"No data has been observed on {path_filters}")
 
-    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> None:
+    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> bool:
         if self.replay:
-            return
+            # We actually don't know if the wait succeeded originally
+            return True
 
         # first, try existing data
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
                     logger.info(f"wait for {wait_for_function} finished in success with existing data")
-                    return
+                    return True
 
             # then set the lock, and wait for append_data to release it
             self._wait_for_event.clear()
@@ -214,10 +218,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         # release the main lock, and sleep !
         if self._wait_for_event.wait(timeout):
             logger.info(f"wait for {wait_for_function} finished in success")
+            rv = True
         else:
             logger.error(f"Wait for {wait_for_function} finished in error")
+            rv = False
 
         self._wait_for_function = None
+        return rv
 
     def assert_response_header(
         self, path_filters: list[str] | str, header_name_pattern: str, header_value_pattern: str

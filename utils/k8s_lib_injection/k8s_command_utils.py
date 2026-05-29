@@ -1,4 +1,4 @@
-import subprocess, datetime, os, time, signal, shlex
+import subprocess, os, shlex
 from typing import TYPE_CHECKING
 from utils._logger import logger
 from retry import retry
@@ -15,56 +15,65 @@ def execute_command(
     *,
     quiet: bool = False,
 ) -> str | None:
-    """Call shell-command and either return its output or kill it
-    if it doesn't normally exit within timeout seconds and return None
+    """Run a shell command with a timeout.
+
+    Drains stdout/stderr concurrently to avoid pipe-buffer deadlocks on
+    verbose commands (e.g. `helm install --debug` on large charts).
     """
-    applied_timeout = 90
-    if timeout is not None:
-        applied_timeout = timeout
+    applied_timeout = 90 if timeout is None else timeout
 
     logger.debug(f"Launching Command: {command} ")
-    command_out_redirect = subprocess.PIPE
-    if logfile:
-        command_out_redirect = open(logfile, "w")
 
     if not subprocess_env:
         subprocess_env = os.environ.copy()
 
     output = ""
     try:
-        start = datetime.datetime.now()
-        process = subprocess.Popen(
-            shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env
-        )
+        if logfile:
+            with open(logfile, "w") as log_file_handle:
+                try:
+                    file_result = subprocess.run(
+                        shlex.split(command),
+                        stdout=log_file_handle,
+                        stderr=log_file_handle,
+                        env=subprocess_env,
+                        timeout=applied_timeout,
+                        check=False,
+                    )
+                except subprocess.TimeoutExpired:
+                    if timeout is None:
+                        return None
+                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
+            if file_result.returncode != 0:
+                logger.error(f"Command exited {file_result.returncode}: {command} (output in {logfile})")
+            return output
 
-        while process.poll() is None:
-            time.sleep(0.1)
-            now = datetime.datetime.now()
-            if (now - start).seconds > applied_timeout:
-                os.kill(process.pid, signal.SIGKILL)
-                os.waitpid(-1, os.WNOHANG)
-                if timeout is None:
-                    # If when we call this method we don't specify a timeout, we return None
-                    return None
-                else:
-                    # if we specify a timeout, we raise an exception
-                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds")
-        if not logfile:
-            output = process.stdout.read()
-            output = str(output, "utf-8")
-            if not quiet:
-                logger.debug(f"Command: {command} \n {output}")
-            else:
-                logger.info(f"Command: {command}")
-            if process.returncode != 0:
-                output_error = process.stderr.read()
-                output_error_str = str(output_error, "utf-8")
-                logger.debug(f"Command: {command} \n {output_error_str}")
-                raise Exception(f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}")
+        try:
+            result = subprocess.run(
+                shlex.split(command),
+                capture_output=True,
+                env=subprocess_env,
+                timeout=applied_timeout,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            if timeout is None:
+                return None
+            raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
+
+        output = result.stdout.decode("utf-8", errors="replace")
+        if not quiet:
+            logger.debug(f"Command: {command} \n {output}")
+        else:
+            logger.info(f"Command: {command}")
+        if result.returncode != 0:
+            output_error_str = result.stderr.decode("utf-8", errors="replace")
+            logger.debug(f"Command: {command} \n {output_error_str}")
+            raise Exception(f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
-        raise ex
+        raise
 
     return output
 
@@ -83,14 +92,16 @@ def helm_install_chart(
     k8s_cluster_info: "K8sClusterInfo",
     name: str,
     chart: str,
-    set_dict: dict[str, str] = {},
+    set_dict: dict[str, str] | None = None,
     value_file: str | None = None,
     *,
-    upgrade: bool = False,
-    timeout: int = 90,
+    timeout: int | None = 90,
     namespace: str = "datadog",
     chart_version: str | None = None,
 ) -> None:
+    if set_dict is None:
+        set_dict = {}
+
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -103,7 +114,6 @@ def helm_install_chart(
 
         with open(custom_value_file, "w") as fp:
             fp.write(value_data)
-            fp.seek(0)
 
     set_str = ""
     if set_dict:
@@ -116,14 +126,18 @@ def helm_install_chart(
 
     version_str = f" --version {chart_version}" if chart_version else ""
 
-    command = f"helm install {name} --debug {wait} {set_str} {chart}{version_str} --namespace={namespace}"
-    if upgrade:
-        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart}{version_str} --namespace={namespace}"
+    # Always use `helm upgrade --install` so that retries are idempotent: if a previous
+    # attempt left a release record (e.g. timed out after creating resources), the next
+    # attempt upgrades it instead of failing with "cannot re-use a name that is still in use".
+    # `--wait` is intentionally omitted in the custom-values branch: callers (e.g. cluster
+    # agent install) own their own readiness wait afterwards, and a 90s Python-side timeout
+    # would race helm's 5m default `--timeout` and kill it before pods are ready.
     if custom_value_file:
         command = (
-            f"helm install {name} {set_str} --debug -f {custom_value_file} {chart}{version_str} --namespace={namespace}"
+            f"helm upgrade {name} --install {set_str} --debug -f {custom_value_file} "
+            f"{chart}{version_str} --namespace={namespace}"
         )
-        if upgrade:
-            command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}{version_str} --namespace={namespace}"
+    else:
+        command = f"helm upgrade {name} --install --debug {wait} {set_str} {chart}{version_str} --namespace={namespace}"
     execute_command("kubectl config current-context")
     execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs

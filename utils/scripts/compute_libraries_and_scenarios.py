@@ -151,7 +151,6 @@ class LibraryProcessor:
                 "version": "prod",
             }
             for library in sorted(self.selected)
-            if library not in ("rust",)
         ] + [
             {
                 "library": library,

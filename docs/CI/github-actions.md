@@ -47,7 +47,6 @@ jobs:
 | -------------------------------- | ----------------------------------------------------------------------------------------------- | ------- | -------- | ------------- |
 | `artifact_retention_days`        | How long should artifacts produced by the workflow should be retained                           | number  | false    | 14            |
 | `binaries_artifact`              | Artifact name containing the binaries to test                                                   | string  | false    | *empty*       |
-| `display_summary`                | Display a workflow summary containing owners of failed tests                                    | boolean | false    | false         |
 | `desired_execution_time`         | In seconds, system-tests will try to respect this time budget.                                  | number  | false    | *empty*       |
 | `excluded_scenarios`             | Comma-separated list of scenarios not to run                                                    | string  | false    | *empty*       |
 | `force_execute`                  | Comma-separated list of tests to run even if they are skipped by manifest or decorators         | string  | false    | *empty*       |
@@ -100,5 +99,6 @@ Those parameters are used only by system-tests own CI
 | `_build_buddies_images`               | Shall we build buddies images                                        | boolean | false    | false      |
 | `_build_proxy_image`                  | Shall we build proxy image                                           | boolean | false    | false      |
 | `_build_lambda_proxy_image`           | Shall we build the lambda-proxy image                                | boolean | false    | false      |
+| `_build_php_base_images`              | Shall we build php base images for tests on python tracer            | boolean | false    | false      |
 | `_build_python_base_images`           | Shall we build python base images for tests on python tracer         | boolean | false    | false      |
 | `_enable_replay_scenarios`            | Enable replay scenarios, should only be used in system-tests CI      | boolean | false    | false      |

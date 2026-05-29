@@ -27,6 +27,7 @@ default_libs_with_prod = [
     "python",
     "python_lambda",
     "ruby",
+    "rust",
 ]
 default_libs_with_dev = [
     "cpp",
@@ -350,6 +351,19 @@ class Test_ComputeLibrariesAndScenarios:
 
     def test_doc(self):
         inputs = build_inputs(["binaries/dd-trace-go/_tools/README.md"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_nix_workflow(self):
+        inputs = build_inputs([".github/workflows/nix.yml"])
 
         assert_github_processor(
             inputs,

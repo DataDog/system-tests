@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/dbm"
 	"systemtests.weblog/_shared/grpc"
 	"systemtests.weblog/_shared/rasp"
 
@@ -56,6 +57,7 @@ func main() {
 	r := echo.New()
 
 	r.Use(echotrace.Middleware())
+	r.OnAddRouteHandler = echotrace.OnAddRouteHandler
 
 	r.Any("/", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/plain")
@@ -372,6 +374,7 @@ func main() {
 
 	r.Any("/external_request", echoHandleFunc(rasp.ExternalRequest))
 	r.GET("/external_request/redirect", echoHandleFunc(rasp.ExternalRedirectRequest))
+	r.Any("/stub_dbm", echoHandleFunc(dbm.StubDbmHandler))
 
 	r.Any("/requestdownstream", echoHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))

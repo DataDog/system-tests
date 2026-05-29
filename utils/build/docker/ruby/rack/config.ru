@@ -71,7 +71,6 @@ module Healthcheck
   def run
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
-    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     response = {
       status: 'ok',
       library: {
@@ -575,6 +574,9 @@ app = proc do |env|
     Flush.run(request)
   elsif request.path.start_with?('/resource_renaming')
     ResourceRenaming.run
+  elsif request.path == '/inferred-proxy/span-creation'
+    status_code = (request.params['status_code'] || 200).to_i
+    [status_code, { 'Content-Type' => 'text/plain' }, ['ok']]
   else
     NotFound.run
   end

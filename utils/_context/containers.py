@@ -914,6 +914,7 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_DOGSTATSD_HOST"] = "proxy"
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
@@ -952,18 +953,6 @@ class WeblogContainer(TestedContainer):
     @property
     def trace_agent_port(self):
         return ProxyPorts.weblog
-
-    @staticmethod
-    def _get_image_list_from_dockerfile(dockerfile: str) -> list[str]:
-        result = []
-
-        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
-        with open(dockerfile, encoding="utf-8") as f:
-            for line in f:
-                if match := pattern.match(line):
-                    result.append(match.group("image_name"))
-
-        return result
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Returns images needed to build the weblog"""
@@ -1125,6 +1114,11 @@ class WeblogContainer(TestedContainer):
         self._library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
+
+        if self._container is not None:
+            exit_code, output = self.exec_run("cat /binaries/metadata.txt")
+            if exit_code == 0 and output:
+                logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
 
         if self.appsec_rules_file:
             logger.stdout("Using a custom appsec rules file")
