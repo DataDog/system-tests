@@ -1921,6 +1921,15 @@ class _Features:
         )  # tracing/context-propagation, apm/dbm, idm-sugar
 
     @staticmethod
+    def database_monitoring_dynamic_service(test_object):
+        """DBM: dynamic_service propagation mode — injects ddsh into SQL comments and _dd.propagated_hash onto spans
+
+        https://feature-parity.us1.prod.dog/#/?feature=558
+        https://docs.google.com/document/d/1v-NuhF_0LNCY3zkSQlL6nPxrvlKfvm9LDkeZlEOyO3w/edit?tab=t.0
+        """
+        return _mark_test_object(test_object, feature_id=558, owner=_Owner.idm)
+
+    @staticmethod
     def rasp_stack_trace(test_object):
         """Appsec RASP: Stack Trace
 
@@ -2673,6 +2682,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=548
         """
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_event_enrichment(test_object):
+        """Feature Flags Event Enrichment (APM span tags)
+
+        https://feature-parity.us1.prod.dog/#/?feature=551
+        """
+        return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):

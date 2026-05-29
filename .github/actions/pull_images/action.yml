@@ -73,12 +73,26 @@ runs:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
-#retry
     - name: Pull
-      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-      with:
-        shell: bash
-        command: docker compose pull
-        timeout_minutes: 15
-        retry_wait_seconds: 10
-        max_attempts: 3
+      shell: bash
+      run: |
+        max_attempts=3
+        retry_wait_seconds=10
+        timeout_seconds=900
+        attempt=1
+        while true; do
+          echo "Running docker compose pull (attempt ${attempt}/${max_attempts}, timeout ${timeout_seconds}s)..."
+
+          if timeout "${timeout_seconds}" docker compose pull; then
+            break
+          fi
+
+          if [ "${attempt}" -ge "${max_attempts}" ]; then
+            echo "docker compose pull failed after ${attempt} attempts"
+            exit 1
+          fi
+
+          echo "docker compose pull failed (attempt ${attempt}/${max_attempts}), retrying in ${retry_wait_seconds}s..."
+          sleep "${retry_wait_seconds}"
+          attempt=$((attempt + 1))
+        done
