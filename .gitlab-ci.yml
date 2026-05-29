@@ -304,18 +304,29 @@ generate_system_tests_lib_injection_images:
         - echo "⏳ Waiting before triggering the child pipeline..."
     when: delayed
     start_in: 5 minutes
----
-include:
-  - local: "/utils/ci/gitlab/main.yml"
-    inputs:
-      stage: "build"
-      libraries: "python"
-      scenarios_groups: "all"
-      excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
-      ref: "$CI_COMMIT_SHA"
-      push_to_test_optimization: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
+
+# ──────────────────────────────────────────────
+# End-to-end pipeline — only on direct pushes
+# ──────────────────────────────────────────────
+
+.system_tests_base:
+  image: $CI_IMAGE
+  tags:
+    - docker-in-docker:amd64
+  variables:
+    GIT_STRATEGY: none
+  stage: build
+  interruptible: true
+  before_script:
+    - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
+    - cd system-tests
+    - git checkout $CI_COMMIT_SHA
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+    - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
+    - source utils/ci/gitlab/section.sh
+    - echo -e "section_end:`date +%s`:setup\r\e[0K"
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
@@ -338,3 +349,197 @@ build_ci_image:
       dotenv: build.env
   rules:
     - if: $CI_PIPELINE_SOURCE == "push"
+
+resolve_ci_image:
+  image: registry.ddbuild.io/system-tests/git
+  tags:
+    - arch:amd64
+  stage: build
+  interruptible: true
+  variables:
+    GIT_STRATEGY: none
+  needs:
+    - job: build_ci_image
+      optional: true
+      artifacts: false
+  script:
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
+    - git -C system-tests checkout $CI_COMMIT_SHA
+    - IMAGE_TAG=$(cat system-tests/utils/ci/gitlab/docker/system-tests.Dockerfile system-tests/requirements.txt | sha256sum | cut -c1-12)
+    - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
+    - cat build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+build_test_pipeline:
+  extends: .system_tests_base
+  tags:
+    - arch:amd64
+  needs:
+    - job: resolve_ci_image
+      artifacts: true
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
+  script:
+    - >
+      for library in $(echo "python" | tr ',' ' '); do
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "all" --excluded-scenarios "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL" --parametric-job-count 1 --output params_${library}.json;
+        python3 utils/ci/gitlab/build_pipeline.py --stage build --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$CI_COMMIT_SHA" --push-to-test-optimization "true" > generated-pipeline-${library}.yml;
+      done
+  artifacts:
+    paths:
+      - system-tests/generated-pipeline-*.yml
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+.run_test_pipeline_base:
+  interruptible: true
+  stage: build
+  needs:
+    - job: build_test_pipeline
+      artifacts: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+  variables:
+    SYSTEM_TESTS_FORCE_EXECUTE: ""
+    SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "false"
+
+run_test_pipeline_java:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-java.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_java_otel:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-java_otel.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_java_lambda:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-java_lambda.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_python:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-python.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_python_otel:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-python_otel.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_python_lambda:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-python_lambda.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_nodejs:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-nodejs.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_nodejs_otel:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-nodejs_otel.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_nodejs_lambda:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-nodejs_lambda.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_dotnet:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-dotnet.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_golang:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-golang.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_php:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-php.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_ruby:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-ruby.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_cpp:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-cpp.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_cpp_nginx:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-cpp_nginx.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_cpp_kong:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-cpp_kong.yml
+        job: build_test_pipeline
+    strategy: depend
+
+run_test_pipeline_cpp_httpd:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-cpp_httpd.yml
+        job: build_test_pipeline
+    strategy: depend
