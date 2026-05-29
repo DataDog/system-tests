@@ -111,16 +111,27 @@ build_test_pipeline:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   script:
-    - >
-      for library in $(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' '); do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$[[ inputs.scenarios ]],$SCENARIOS" --weblogs "$[[ inputs.weblogs ]],$WEBLOGS" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
-        python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" > generated-pipeline-${library}.yml;
+    - |
+      libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ')
+      count=0
+      for lib in $libraries; do count=$((count + 1)); done
+      half=$(( (count + 1) / 2 ))
+      idx=0
+      for library in $libraries; do
+        [ $idx -lt $half ] && chunk=0 || chunk=1
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$[[ inputs.scenarios ]],$SCENARIOS" --weblogs "$[[ inputs.weblogs ]],$WEBLOGS" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
+        if [ ! -f generated-pipeline-chunk-${chunk}.yml ]; then
+          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" > generated-pipeline-chunk-${chunk}.yml
+        else
+          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" --skip-header >> generated-pipeline-chunk-${chunk}.yml
+        fi
+        idx=$((idx + 1))
       done
   artifacts:
     paths:
-      - system-tests/generated-pipeline-*.yml
+      - system-tests/generated-pipeline-chunk-*.yml
 
-.run_test_pipeline_base:
+run_test_pipeline:
   interruptible: true
   stage: $[[ inputs.stage ]]
   needs:
@@ -134,174 +145,9 @@ build_test_pipeline:
     SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
     LIBRARIES: $LIBRARIES
-
-run_test_pipeline_java:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bjava\b/'
   trigger:
     include:
-      - artifact: system-tests/generated-pipeline-java.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_java_otel:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bjava_otel\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-java_otel.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_java_lambda:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bjava_lambda\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-java_lambda.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_python:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bpython\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-python.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_python_otel:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bpython_otel\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-python_otel.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_python_lambda:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bpython_lambda\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-python_lambda.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_nodejs:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bnodejs\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-nodejs.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_nodejs_otel:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bnodejs_otel\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-nodejs_otel.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_nodejs_lambda:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bnodejs_lambda\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-nodejs_lambda.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_dotnet:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bdotnet\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-dotnet.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_golang:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bgolang\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-golang.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_php:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bphp\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-php.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_ruby:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bruby\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-ruby.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_cpp:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-cpp.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_cpp_nginx:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp_nginx\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-cpp_nginx.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_cpp_kong:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp_kong\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-cpp_kong.yml
-        job: build_test_pipeline
-    strategy: depend
-
-run_test_pipeline_cpp_httpd:
-  extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp_httpd\b/'
-  trigger:
-    include:
-      - artifact: system-tests/generated-pipeline-cpp_httpd.yml
+      - artifact: system-tests/generated-pipeline-chunk-*.yml
         job: build_test_pipeline
     strategy: depend
 
