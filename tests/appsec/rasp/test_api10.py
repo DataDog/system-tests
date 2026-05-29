@@ -368,7 +368,7 @@ class Test_API10_response_body_ignored_content_type(API10ResponseBodyIgnored):
     ]
 
     def setup_api10_response_body_ignored_content_type(self):
-        self.r = weblog.get("/external_request/invalid_content_type")
+        self.r = weblog.get("/external_request/body_limit/invalid_content_type")
 
     def test_api10_response_body_ignored_content_type(self):
         assert self.r.status_code == 200
@@ -386,7 +386,7 @@ class Test_API10_response_body_ignored_content_length_missing(API10ResponseBodyI
     ]
 
     def setup_api10_response_body_ignored_content_length_missing(self):
-        self.r = weblog.get("/external_request/content_length_missing")
+        self.r = weblog.get("/external_request/body_limit/content_length_missing")
 
     def test_api10_response_body_ignored_content_length_missing(self):
         assert self.r.status_code == 200
@@ -404,7 +404,7 @@ class Test_API10_response_body_ignored_content_length_too_big(API10ResponseBodyI
     ]
 
     def setup_api10_response_body_ignored_content_length_too_big(self):
-        self.r = weblog.get("/external_request/content_length_too_big")
+        self.r = weblog.get("/external_request/body_limit/content_length_too_big")
 
     def test_api10_response_body_ignored_content_length_too_big(self):
         assert self.r.status_code == 200

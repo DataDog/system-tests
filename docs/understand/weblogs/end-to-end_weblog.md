@@ -198,10 +198,10 @@ if the request to `internal_server` is a failure, it must return a json body wit
 - `status` the status code of the `internal_server` response if available or a null value
 - `error` a string describing the error, for debug purposes
 
-### GET /external_request/{failure_reason}
-### POST /external_request/{failure_reason}
-### TRACE /external_request/{failure_reason}
-### PUT /external_request/{failure_reason}
+### GET /external_request/body_limit/{failure_reason}
+### POST /external_request/body_limit/{failure_reason}
+### TRACE /external_request/body_limit/{failure_reason}
+### PUT /external_request/body_limit/{failure_reason}
 
 Same behavior as `/external_request`, but the downstream call targets `http://internal_server:8089/downstream_response/{failure_reason}`.
 

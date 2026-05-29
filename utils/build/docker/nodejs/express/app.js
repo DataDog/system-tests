@@ -724,7 +724,7 @@ app.all('/external_request', (req, res) => {
   forwardExternalRequest(req, res)
 })
 
-app.all('/external_request/:failureReason', (req, res) => {
+app.all('/external_request/body_limit/:failureReason', (req, res) => {
   const { failureReason } = req.params
   if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
     res.status(404).json({ error: 'unknown failure reason' })
