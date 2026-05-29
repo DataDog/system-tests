@@ -5,6 +5,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -44,37 +45,24 @@ Route::get('/make_distant_call', function (Request $request) {
     if ($url === '') {
         return response()->json(['error' => 'url parameter required'], 400);
     }
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HEADER, false);
-    curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-    $responseHeaders = [];
-    curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
-        $len = strlen($header);
-        $parts = explode(':', $header, 2);
-        if (count($parts) === 2) {
-            $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
-        }
 
-        return $len;
-    });
-    curl_exec($ch);
-    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $requestHeaders = [];
-    $rawRequestHeaders = curl_getinfo($ch, CURLINFO_HEADER_OUT);
-    if ($rawRequestHeaders) {
-        foreach (explode("\r\n", $rawRequestHeaders) as $line) {
-            if (strpos($line, ':') !== false) {
-                [$key, $value] = explode(':', $line, 2);
-                $requestHeaders[strtolower(trim($key))] = trim($value);
+    $response = Http::throw(false)
+        ->beforeSending(function ($outgoingRequest) use (&$requestHeaders) {
+            foreach ($outgoingRequest->headers() as $name => $values) {
+                $requestHeaders[strtolower($name)] = implode(', ', $values);
             }
-        }
+        })
+        ->get($url);
+
+    $responseHeaders = [];
+    foreach ($response->headers() as $name => $values) {
+        $responseHeaders[strtolower($name)] = implode(', ', $values);
     }
-    curl_close($ch);
 
     return response()->json([
         'url'              => $url,
-        'status_code'      => $statusCode,
+        'status_code'      => $response->status(),
         'request_headers'  => $requestHeaders,
         'response_headers' => $responseHeaders,
     ]);
