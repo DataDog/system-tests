@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\LoginController;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -365,59 +367,57 @@ Route::get('/db', function (Request $request) {
     $operation = $request->query('operation', '');
 
     $mysqlOp = static function (string $op): void {
-        $pdo = new PDO('mysql:dbname=mysql_dbname;host=mysqldb', 'mysqldb', 'mysqldb');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db = DB::connection('mysql');
         switch ($op) {
             case 'init':
-                $pdo->exec('CREATE TABLE IF NOT EXISTS demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
-                $pdo->exec("INSERT IGNORE INTO demo (id, name, age) VALUES (1, 'test', 16)");
-                $pdo->exec("INSERT IGNORE INTO demo (id, name, age) VALUES (2, 'test2', 17)");
-                $pdo->exec('DROP PROCEDURE IF EXISTS test_procedure');
-                $pdo->exec('CREATE PROCEDURE test_procedure(IN test_id INT, IN other VARCHAR(20))
+                $db->statement('CREATE TABLE IF NOT EXISTS demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
+                $db->statement("INSERT IGNORE INTO demo (id, name, age) VALUES (1, 'test', 16)");
+                $db->statement("INSERT IGNORE INTO demo (id, name, age) VALUES (2, 'test2', 17)");
+                $db->statement('DROP PROCEDURE IF EXISTS test_procedure');
+                $db->unprepared('CREATE PROCEDURE test_procedure(IN test_id INT, IN other VARCHAR(20))
 BEGIN
     SELECT demo.id, demo.name, demo.age FROM demo WHERE demo.id = test_id;
 END');
                 break;
             case 'select':
-                $pdo->query('SELECT * from demo where id=1 or id IN (3, 4)')->fetchAll();
+                $db->select('SELECT * from demo where id=1 or id IN (3, 4)');
                 break;
             case 'insert':
                 try {
-                    $pdo->exec("insert into demo (id, name, age) values(3, 'test3', 163)");
-                } catch (\PDOException $e) {}
+                    $db->statement("insert into demo (id, name, age) values(3, 'test3', 163)");
+                } catch (QueryException $e) {}
                 break;
             case 'update':
-                $pdo->exec('update demo set age=22 where id=1');
+                $db->statement('update demo set age=22 where id=1');
                 break;
             case 'delete':
-                $pdo->exec('delete from demo where id=2 or id=11111111');
+                $db->statement('delete from demo where id=2 or id=11111111');
                 break;
             case 'procedure':
-                $pdo->exec("call test_procedure(1, 'test')");
+                $db->statement("call test_procedure(1, 'test')");
                 break;
             case 'select_error':
                 try {
-                    $pdo->query('SELECT * from demosssss where id=1 or id=233333');
-                } catch (\PDOException $e) {}
+                    $db->select('SELECT * from demosssss where id=1 or id=233333');
+                } catch (QueryException $e) {}
                 break;
         }
     };
 
     $postgresOp = static function (string $op): void {
-        $pdo = new PDO('pgsql:dbname=system_tests_dbname;host=postgres;port=5433', 'system_tests_user', 'system_tests');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db = DB::connection('postgresql');
         switch ($op) {
             case 'init':
                 try {
-                    $pdo->exec('CREATE TABLE demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
-                } catch (\PDOException $e) {}
+                    $db->statement('CREATE TABLE demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
+                } catch (QueryException $e) {}
                 try {
-                    $pdo->exec("INSERT INTO demo (id, name, age) VALUES (1, 'test', 16)");
-                } catch (\PDOException $e) {}
+                    $db->statement("INSERT INTO demo (id, name, age) VALUES (1, 'test', 16)");
+                } catch (QueryException $e) {}
                 try {
-                    $pdo->exec("INSERT INTO demo (id, name, age) VALUES (2, 'test2', 17)");
-                } catch (\PDOException $e) {}
-                $pdo->exec("CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10))
+                    $db->statement("INSERT INTO demo (id, name, age) VALUES (2, 'test2', 17)");
+                } catch (QueryException $e) {}
+                $db->unprepared("CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10))
 LANGUAGE plpgsql
 AS \$\$
 BEGIN
@@ -426,26 +426,26 @@ END;
 \$\$");
                 break;
             case 'select':
-                $pdo->query('SELECT * from demo where id=1 or id IN (3, 4)')->fetchAll();
+                $db->select('SELECT * from demo where id=1 or id IN (3, 4)');
                 break;
             case 'insert':
                 try {
-                    $pdo->exec("insert into demo (id, name, age) values(3, 'test3', 163)");
-                } catch (\PDOException $e) {}
+                    $db->statement("insert into demo (id, name, age) values(3, 'test3', 163)");
+                } catch (QueryException $e) {}
                 break;
             case 'update':
-                $pdo->exec("update demo set age=22 where name like '%tes%'");
+                $db->statement("update demo set age=22 where name like '%tes%'");
                 break;
             case 'delete':
-                $pdo->exec('delete from demo where id=2 or id=11111111');
+                $db->statement('delete from demo where id=2 or id=11111111');
                 break;
             case 'procedure':
-                $pdo->exec("call helloworld(1, 'test')");
+                $db->statement("call helloworld(1, 'test')");
                 break;
             case 'select_error':
                 try {
-                    $pdo->query('SELECT * from demosssssssss where id=1 or id=233333');
-                } catch (\PDOException $e) {}
+                    $db->select('SELECT * from demosssssssss where id=1 or id=233333');
+                } catch (QueryException $e) {}
                 break;
         }
     };
