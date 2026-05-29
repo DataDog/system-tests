@@ -52,6 +52,10 @@ spec:
     ssi_injector_version:
       description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
       default: ""
+    only_on_push:
+      description: "Only run jobs on direct push events"
+      type: boolean
+      default: false
 ---
 
 include:
@@ -88,6 +92,11 @@ resolve_ci_image:
     - job: build_ci_image
       optional: true
       artifacts: false
+  rules:
+    - if: $[[ inputs.only_on_push ]] && $CI_PIPELINE_SOURCE == "push"
+      when: always
+    - if: $[[ inputs.only_on_push ]]
+      when: never
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
     - git -C system-tests checkout $[[ inputs.ref ]]
@@ -108,6 +117,11 @@ build_test_pipeline:
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
+  rules:
+    - if: $[[ inputs.only_on_push ]] && $CI_PIPELINE_SOURCE == "push"
+      when: always
+    - if: $[[ inputs.only_on_push ]]
+      when: never
   script:
     - >
       for library in $(echo "$[[ inputs.libraries ]]" | tr ',' ' '); do
@@ -124,6 +138,11 @@ build_test_pipeline:
   needs:
     - job: build_test_pipeline
       artifacts: true
+  rules:
+    - if: $[[ inputs.only_on_push ]] && $CI_PIPELINE_SOURCE == "push"
+      when: always
+    - if: $[[ inputs.only_on_push ]]
+      when: never
   variables:
     SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
