@@ -605,7 +605,7 @@ manifest:
       component_version: <1.12.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v1.8.3
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
-  tests/ffe/test_dynamic_evaluation.py: missing_feature
+  tests/ffe/test_dynamic_evaluation.py: v1.21.0-dev
   tests/ffe/test_exposures.py: missing_feature
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
@@ -731,7 +731,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
-  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:
     - declaration: missing_feature (Need to remove b3=b3multi alias)
@@ -870,7 +870,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v1.21.0-dev
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
