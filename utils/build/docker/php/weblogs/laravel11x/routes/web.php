@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\Process\Exception\RuntimeException as ProcessRuntimeException;
 
 Route::get('/', function () {
     Auth::user();
@@ -193,15 +195,16 @@ Route::post('/shell_execution', function (Request $request) {
     if ($isShell) {
         $c = implode(' ', $c);
     }
-    $p = proc_open($c, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-    if (! is_resource($p)) {
+
+    try {
+        $result = $isShell
+            ? Process::shell($c)->run()
+            : Process::run($c);
+    } catch (ProcessRuntimeException) {
         return response('Failed to open process', 500);
     }
-    $stdout = stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-    $out = "STDOUT:\n$stdout\nSTDERR:\n$stderr\nexit code: ".proc_close($p)."\n";
+
+    $out = "STDOUT:\n{$result->output()}\nSTDERR:\n{$result->errorOutput()}\nexit code: {$result->exitCode()}\n";
 
     return response($out, 200, ['Content-Type' => 'text/plain']);
 });
