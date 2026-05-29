@@ -491,35 +491,46 @@ app.post('/ffe/start', async (req, res) => {
 })
 
 app.post('/ffe/evaluate', async (req, res) => {
-  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
   let value, reason;
   const context = { targetingKey, ...attributes }
 
-  try {
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break;
-      case 'STRING':
-        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
-        break;
-      case 'INTEGER':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'NUMERIC':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'JSON':
-        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break;
-      default:
-        value = defaultValue;
-    }
+  // Helper function to perform the actual flag evaluation
+  const doEvaluate = async () => {
+    try {
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          break;
+        case 'STRING':
+          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          break;
+        case 'INTEGER':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break;
+        case 'NUMERIC':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break;
+        case 'JSON':
+          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          break;
+        default:
+          value = defaultValue;
+      }
 
-    reason = 'DEFAULT';
-  } catch (error) {
-    value = defaultValue;
-    reason = 'ERROR';
+      reason = 'DEFAULT';
+    } catch (error) {
+      value = defaultValue;
+      reason = 'ERROR';
+    }
+  }
+
+  // If a span_id is provided, activate that span during the evaluation
+  // so that the SpanEnrichmentHook can find the root span
+  if (span_id && spans[span_id]) {
+    await tracer.scope().activate(spans[span_id], doEvaluate)
+  } else {
+    await doEvaluate()
   }
 
   res.json({

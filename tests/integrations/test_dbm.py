@@ -465,6 +465,7 @@ class Test_Dbm_DynamicService_Postgres(_BaseDbmDynamicService):
         "java": "postgresql",
         "ruby": "pg",
         "php": "pdo-pgsql",
+        "dotnet": "npgsql",
     }
 
     @property
