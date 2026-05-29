@@ -146,6 +146,7 @@ run_test_pipeline_java:
     include:
       - artifact: system-tests/generated-pipeline-java.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_java_otel:
@@ -156,6 +157,7 @@ run_test_pipeline_java_otel:
     include:
       - artifact: system-tests/generated-pipeline-java_otel.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_java_lambda:
@@ -166,6 +168,7 @@ run_test_pipeline_java_lambda:
     include:
       - artifact: system-tests/generated-pipeline-java_lambda.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_python:
@@ -176,6 +179,7 @@ run_test_pipeline_python:
     include:
       - artifact: system-tests/generated-pipeline-python.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_python_otel:
@@ -186,6 +190,7 @@ run_test_pipeline_python_otel:
     include:
       - artifact: system-tests/generated-pipeline-python_otel.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_python_lambda:
@@ -196,6 +201,7 @@ run_test_pipeline_python_lambda:
     include:
       - artifact: system-tests/generated-pipeline-python_lambda.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_nodejs:
@@ -206,6 +212,7 @@ run_test_pipeline_nodejs:
     include:
       - artifact: system-tests/generated-pipeline-nodejs.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_nodejs_otel:
@@ -216,6 +223,7 @@ run_test_pipeline_nodejs_otel:
     include:
       - artifact: system-tests/generated-pipeline-nodejs_otel.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_nodejs_lambda:
@@ -226,6 +234,7 @@ run_test_pipeline_nodejs_lambda:
     include:
       - artifact: system-tests/generated-pipeline-nodejs_lambda.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_dotnet:
@@ -236,6 +245,7 @@ run_test_pipeline_dotnet:
     include:
       - artifact: system-tests/generated-pipeline-dotnet.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_golang:
@@ -246,6 +256,7 @@ run_test_pipeline_golang:
     include:
       - artifact: system-tests/generated-pipeline-golang.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_php:
@@ -256,6 +267,7 @@ run_test_pipeline_php:
     include:
       - artifact: system-tests/generated-pipeline-php.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_ruby:
@@ -266,6 +278,7 @@ run_test_pipeline_ruby:
     include:
       - artifact: system-tests/generated-pipeline-ruby.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_cpp:
@@ -276,6 +289,7 @@ run_test_pipeline_cpp:
     include:
       - artifact: system-tests/generated-pipeline-cpp.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_cpp_nginx:
@@ -286,6 +300,7 @@ run_test_pipeline_cpp_nginx:
     include:
       - artifact: system-tests/generated-pipeline-cpp_nginx.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_cpp_kong:
@@ -296,6 +311,7 @@ run_test_pipeline_cpp_kong:
     include:
       - artifact: system-tests/generated-pipeline-cpp_kong.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
 run_test_pipeline_cpp_httpd:
@@ -306,5 +322,6 @@ run_test_pipeline_cpp_httpd:
     include:
       - artifact: system-tests/generated-pipeline-cpp_httpd.yml
         job: build_test_pipeline
+        optional: true
     strategy: depend
 
