@@ -3,7 +3,7 @@ spec:
     stage:
       description: "CI stage for all jobs in this component and the generated child pipeline"
     libraries:
-      default: "java python nodejs"
+      default: ""
     scenarios:
       description: "Comma-separated list of scenarios to run"
       default: ""
@@ -59,19 +59,18 @@ include:
     inputs:
       stage: $[[ inputs.stage ]]
       ref: $[[ inputs.ref ]]
-  - local: /utils/ci/gitlab/ssi.yml
-    inputs:
-      stage: $[[ inputs.stage ]]
-      libraries: $[[ inputs.libraries ]]
-      scenarios: $[[ inputs.scenarios ]]
-      scenarios_groups: $[[ inputs.scenarios_groups ]]
-      ssi_library_version: $[[ inputs.ssi_library_version ]]
-      k8s_lib_init_img: $[[ inputs.k8s_lib_init_img ]]
-      ssi_injector_version: $[[ inputs.ssi_injector_version ]]
+  # - local: /utils/ci/gitlab/ssi.yml
+  #   inputs:
+  #     stage: $[[ inputs.stage ]]
+  #     libraries: $[[ inputs.libraries ]]
+  #     scenarios: $[[ inputs.scenarios ]]
+  #     scenarios_groups: $[[ inputs.scenarios_groups ]]
+  #     ssi_library_version: $[[ inputs.ssi_library_version ]]
+  #     k8s_lib_init_img: $[[ inputs.k8s_lib_init_img ]]
+  #     ssi_injector_version: $[[ inputs.ssi_injector_version ]]
 
 workflow:
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - when: always
       auto_cancel:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
@@ -88,9 +87,6 @@ resolve_ci_image:
     - job: build_ci_image
       optional: true
       artifacts: false
-  rules:
-    - if: $SYSTEM_TESTS_E2E_ENABLED != "true"
-      when: never
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
     - git -C system-tests checkout $[[ inputs.ref ]]
@@ -108,16 +104,16 @@ build_test_pipeline:
   needs:
     - job: resolve_ci_image
       artifacts: true
+    - job: system-tests-param
+      optional: true
+      artifacts: true
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
-  rules:
-    - if: $SYSTEM_TESTS_E2E_ENABLED != "true"
-      when: never
   script:
     - >
-      for library in $(echo "$[[ inputs.libraries ]]" | tr ',' ' '); do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]]" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$[[ inputs.scenarios ]]" --weblogs "$[[ inputs.weblogs ]]" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
+      for library in $(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' '); do
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$[[ inputs.scenarios ]],$SCENARIOS" --weblogs "$[[ inputs.weblogs ]],$WEBLOGS" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json;
         python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" > generated-pipeline-${library}.yml;
       done
   artifacts:
@@ -131,197 +127,181 @@ build_test_pipeline:
     - job: build_test_pipeline
       optional: true
       artifacts: true
-  rules:
-    - if: $SYSTEM_TESTS_E2E_ENABLED != "true"
-      when: never
+    - job: system-tests-param
+      optional: true
+      artifacts: true
   variables:
     SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
+    LIBRARIES: $LIBRARIES
 
 run_test_pipeline_java:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bjava\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bjava\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-java.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_java_otel:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bjava_otel\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bjava_otel\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-java_otel.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_java_lambda:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bjava_lambda\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bjava_lambda\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-java_lambda.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_python:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bpython\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bpython\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-python.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_python_otel:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bpython_otel\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bpython_otel\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-python_otel.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_python_lambda:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bpython_lambda\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bpython_lambda\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-python_lambda.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_nodejs:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bnodejs\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bnodejs\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-nodejs.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_nodejs_otel:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bnodejs_otel\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bnodejs_otel\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-nodejs_otel.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_nodejs_lambda:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bnodejs_lambda\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bnodejs_lambda\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-nodejs_lambda.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_dotnet:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bdotnet\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bdotnet\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-dotnet.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_golang:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bgolang\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bgolang\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-golang.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_php:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bphp\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bphp\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-php.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_ruby:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bruby\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bruby\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-ruby.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_cpp:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bcpp\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-cpp.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_cpp_nginx:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bcpp_nginx\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp_nginx\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-cpp_nginx.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_cpp_kong:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bcpp_kong\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp_kong\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-cpp_kong.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
 run_test_pipeline_cpp_httpd:
   extends: .run_test_pipeline_base
   rules:
-    - if: '"$[[ inputs.libraries ]]" =~ /\bcpp_httpd\b/'
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\bcpp_httpd\b/'
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-cpp_httpd.yml
         job: build_test_pipeline
-        optional: true
     strategy: depend
 
