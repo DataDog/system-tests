@@ -321,7 +321,7 @@ system-tests-param:
   tags:
     - arch:amd64
   script:
-    - echo 'LIBRARIES="python"' > param.env
+    - echo 'LIBRARIES=python' > param.env
   artifacts:
     reports:
       dotenv: param.env
