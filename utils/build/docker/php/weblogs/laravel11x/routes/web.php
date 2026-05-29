@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -262,9 +263,11 @@ Route::get('/log/library', function (Request $request) {
     }
     $msg = $request->query('msg', '');
     if ($msg !== '') {
-        $logger = new \Monolog\Logger('webapp');
-        $logger->pushHandler(new \Monolog\Handler\StreamHandler($dir.'/helper.log', \Monolog\Logger::DEBUG));
-        $logger->info('', ['message' => $msg]);
+        Log::build([
+            'driver' => 'single',
+            'path'   => $dir.'/helper.log',
+            'level'  => 'debug',
+        ])->info('', ['message' => $msg]);
     }
 
     return response('', 200);
