@@ -50,8 +50,7 @@ Route::get('/make_distant_call', function (Request $request) {
     }
 
     $requestHeaders = [];
-    $response = Http::throw(false)
-        ->beforeSending(function ($outgoingRequest) use (&$requestHeaders) {
+    $response = Http::beforeSending(function ($outgoingRequest) use (&$requestHeaders) {
             foreach ($outgoingRequest->headers() as $name => $values) {
                 $requestHeaders[strtolower($name)] = implode(', ', $values);
             }
@@ -197,9 +196,7 @@ Route::post('/shell_execution', function (Request $request) {
     }
 
     try {
-        $result = $isShell
-            ? Process::shell($c)->run()
-            : Process::run($c);
+        $result = Process::run($c);
     } catch (ProcessRuntimeException) {
         return response('Failed to open process', 500);
     }
