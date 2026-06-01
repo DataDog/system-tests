@@ -84,7 +84,7 @@ ci_root_cause_analysis:
   script:
     - |
       export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
-      export DD_APP_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_app_key --with-decryption --query "Parameter.Value" --out text)
+      export DD_APP_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.ddworkflow.app_key --with-decryption --query "Parameter.Value" --out text)
       if [[ -z "${DD_API_KEY}" || -z "${DD_APP_KEY}" ]]; then
         echo "::error::DD_API_KEY and/or DD_APPLICATION_KEY secrets are not set"
         exit 1
