@@ -1,4 +1,6 @@
-import subprocess, os, shlex
+import subprocess
+import os
+import shlex
 from typing import TYPE_CHECKING
 from utils._logger import logger
 from retry import retry
@@ -83,7 +85,7 @@ def helm_add_repo(name: str, url: str, k8s_cluster_info: "K8sClusterInfo", *, up
     logger.info(f"Adding helm repo {name} with url {url} for cluster {k8s_cluster_info.cluster_name}")
     execute_command(f"helm repo add {name} {url}")
     if update:
-        execute_command(f"helm repo update")
+        execute_command("helm repo update")
 
 
 @retry(delay=1, tries=5)

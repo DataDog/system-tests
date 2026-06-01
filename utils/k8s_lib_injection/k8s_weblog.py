@@ -55,7 +55,8 @@ class K8sWeblog:
         """
 
         logger.info(
-            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
+            "[Deploy weblog] Creating weblog pod configuration. "
+            "weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (self.app_image, self.library, self.library_init_image)
         )
         library_lib = "js" if self.library == "nodejs" else self.library
