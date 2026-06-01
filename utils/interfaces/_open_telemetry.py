@@ -60,7 +60,7 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                 scope_spans = resource_span.get("scopeSpans")
                 for scope_span in scope_spans:
                     for span in scope_span.get("spans"):
-                        parent_span_id = span.get("parentId")
+                        parent_span_id = span.get("parentSpanId")
                         attributes = span.get("attributes", {})
                         request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
                         user_agent_value = attributes.get("http.useragent", "")
