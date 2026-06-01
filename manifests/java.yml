@@ -3781,7 +3781,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otlp_trace_metrics.py::Test_Otlp_Trace_Metrics: missing_feature (OTLP trace metrics export is only implemented in Python)
+  tests/parametric/test_otlp_trace_metrics.py: missing_feature (OTLP trace metrics export is only implemented in Python)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
     - declaration: incomplete_test_app (baggage endpoints are not implemented)
