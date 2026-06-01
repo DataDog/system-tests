@@ -16,7 +16,7 @@ COPY utils/build/docker/python/tornado/main.py /app/main.py
 COPY utils/build/docker/python/iast.py /app/iast.py
 
 # docker startup
-CMD ./app.sh
+CMD ["./app.sh"]
 
 # docker build -f utils/build/docker/python/tornado.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
