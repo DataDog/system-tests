@@ -1,3 +1,4 @@
+import time
 from typing import Any
 
 import pytest
@@ -11,12 +12,16 @@ from .conftest import APMLibrary
 SPAN_DURATION_METRIC = "dd.trace.span.duration"
 SERVICE = "test-otlp-stats-svc"
 TRUTHY = ("yes", "true", "1")
+# OTLP AggregationTemporality enum: DELTA == 1.
+AGGREGATION_TEMPORALITY_DELTA = 1
 
-# Common env shared by every test. Flush quickly so the client-computed stats are
-# exported within the test window.
+# Common env shared by every test. The native OTLP stats worker ticks (and closes stat buckets)
+# on the stats writer interval, and only releases buckets older than 2 intervals, so use a short
+# interval to keep client-computed stats exported within the test window.
 _BASE_ENVVARS = {
     "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
     "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+    "_DD_TRACE_STATS_WRITER_INTERVAL": "1",
     "DD_SERVICE": SERVICE,
 }
 
@@ -39,16 +44,16 @@ def find_metric_by_name(scope_metric: dict, name: str) -> dict:
 
 
 def _attr_value(item: dict) -> Any:  # noqa: ANN401
-    """Read an OTLP attribute value across the possible typed fields."""
+    """Read an OTLP attribute value across the possible typed fields (OTLP/JSON uses camelCase)."""
     value = item["value"]
-    if "string_value" in value:
-        return value["string_value"]
-    if "bool_value" in value:
-        return value["bool_value"]
-    if "int_value" in value:
-        return int(value["int_value"])
-    if "double_value" in value:
-        return value["double_value"]
+    if "stringValue" in value:
+        return value["stringValue"]
+    if "boolValue" in value:
+        return value["boolValue"]
+    if "intValue" in value:
+        return int(value["intValue"])
+    if "doubleValue" in value:
+        return value["doubleValue"]
     return None
 
 
@@ -60,11 +65,11 @@ def _duration_data_points(metrics: list[Any]) -> list[dict]:
     """Collect dd.trace.span.duration data points across all captured payloads / resources / scopes."""
     data_points: list[dict] = []
     for payload in metrics:
-        for resource_metric in payload["resource_metrics"]:
-            for scope_metric in resource_metric["scope_metrics"]:
+        for resource_metric in payload["resourceMetrics"]:
+            for scope_metric in resource_metric["scopeMetrics"]:
                 for metric in scope_metric["metrics"]:
                     if metric["name"] == SPAN_DURATION_METRIC:
-                        data_points.extend(metric.get("histogram", {}).get("data_points", []))
+                        data_points.extend(metric.get("histogram", {}).get("dataPoints", []))
     return data_points
 
 
@@ -77,7 +82,18 @@ def _find_data_point(data_points: list[dict], **attrs: Any) -> dict | None:  # n
 
 
 def _resource_attributes(metrics: list[Any]) -> dict[str, Any]:
-    return {item["key"]: _attr_value(item) for item in metrics[0]["resource_metrics"][0]["resource"]["attributes"]}
+    return {item["key"]: _attr_value(item) for item in metrics[0]["resourceMetrics"][0]["resource"]["attributes"]}
+
+
+def _wait_for_v06_stats(test_agent: TestAgentAPI, *, wait_loops: int = 80) -> list[Any]:
+    """Poll for client-computed v0.6 stats, which are flushed on the stats writer interval."""
+    requests: list[Any] = []
+    for _ in range(wait_loops):
+        requests = test_agent.get_v06_stats_requests()
+        if requests:
+            return requests
+        time.sleep(0.1)
+    return requests
 
 
 @scenarios.parametric
@@ -210,7 +226,7 @@ class Test_FR02_Mutual_Exclusion:
                 pass
             t.dd_flush()
 
-        assert test_agent.get_v06_stats_requests(), "Native v0.6 stats should be sent when OTLP is disabled"
+        assert _wait_for_v06_stats(test_agent), "Native v0.6 stats should be sent when OTLP is disabled"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_otlp_metrics(num=1)
 
@@ -234,7 +250,7 @@ class Test_FR03_Metric_Shape:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         assert scope_metrics, "No scope metrics received"
         assert len(scope_metrics[0]["metrics"]) == 1
         metric = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)
@@ -254,10 +270,10 @@ class Test_FR03_Metric_Shape:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         metric = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)
         assert metric["unit"] == "s"
-        data_point = metric["histogram"]["data_points"][0]
+        data_point = metric["histogram"]["dataPoints"][0]
         # A near-instant span is well under a second; a nanosecond value would be enormous.
         assert 0 < float(data_point["sum"]) < 60, f"Duration sum not in seconds: {data_point['sum']}"
 
@@ -275,9 +291,10 @@ class Test_FR03_Metric_Shape:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         histogram = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)["histogram"]
-        assert str(histogram["aggregation_temporality"]).casefold() == "aggregation_temporality_delta"
+        # OTLP AggregationTemporality: DELTA == 1.
+        assert histogram["aggregationTemporality"] == AGGREGATION_TEMPORALITY_DELTA
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr03_4_scope(
@@ -293,7 +310,7 @@ class Test_FR03_Metric_Shape:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope = metrics[0]["resource_metrics"][0]["scope_metrics"][0]["scope"]
+        scope = metrics[0]["resourceMetrics"][0]["scopeMetrics"][0]["scope"]
         assert scope["name"] == "dd-trace"
         assert scope.get("version"), "Scope version should be set to the tracer version"
 
@@ -317,7 +334,7 @@ class Test_FR03_Metric_Shape:
         assert int(data_point["count"]) == 1
         assert float(data_point["sum"]) > 0
         assert data_point["min"] == data_point["max"]
-        assert sum(int(count) for count in data_point["bucket_counts"]) == 1
+        assert sum(int(count) for count in data_point["bucketCounts"]) == 1
 
 
 @scenarios.parametric
@@ -522,19 +539,23 @@ class Test_FR06_Top_Level_Tagging:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A child span with the same service as its parent is not top-level."""
+        """A child span with the same service as its parent is not top-level.
+
+        The child is marked measured so it is emitted (a non-top-level, non-measured span is filtered
+        out per FR07.2); the assertion verifies it carries dd.top_level=false.
+        """
         with test_library as t:
             with (
                 t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as parent,
-                t.dd_start_span(name="child.op", service=SERVICE, parent_id=parent.span_id),
+                t.dd_start_span(name="child.op", service=SERVICE, parent_id=parent.span_id) as child,
             ):
-                pass
+                child.set_metric(SPAN_MEASURED_KEY, 1)
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        child = _find_data_point(_duration_data_points(metrics), **{"dd.operation.name": "child.op"})
-        assert child is not None, "No data point for the child span"
-        assert _data_point_attrs(child).get("dd.top_level") is False
+        child_point = _find_data_point(_duration_data_points(metrics), **{"dd.operation.name": "child.op"})
+        assert child_point is not None, "No data point for the child span"
+        assert _data_point_attrs(child_point).get("dd.top_level") is False
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr06_3_child_different_service(
@@ -675,7 +696,9 @@ class Test_FR08_Resource_Attributes:
 class Test_FR09_Sampling_Independence:
     """FR09: Trace metrics are computed before head-based sampling, from 100% of spans."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_SAMPLE_RATE": "0"}])
+    @pytest.mark.parametrize(
+        "library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}]
+    )
     def test_fr09_1_metrics_computed_before_sampling(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
