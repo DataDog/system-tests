@@ -13,20 +13,27 @@ run_without_node_env () {
     )
 }
 
+install_custom_target () {
+    local target=$1
+    run_without_node_env bun add "${BUN_ARGS[@]}" "$target" || (sleep 30 && run_without_node_env bun add "${BUN_ARGS[@]}" "$target")
+}
+
 if [ -e /binaries/nodejs-load-from-local ]; then
     echo "using local version that will be mounted at runtime"
 else
     if [ -e /binaries/nodejs-load-from-npm ]; then
         target=$(</binaries/nodejs-load-from-npm)
         echo "install from: $target"
-        run_without_node_env bun add "${BUN_ARGS[@]}" "$target" || run_without_node_env bun add "${BUN_ARGS[@]}" "$target"
+        install_custom_target "$target"
 
     elif [ -e /binaries/dd-trace-js ]; then
+        # bun pm pack runs prepack/prepare lifecycle hooks needed to build dd-trace-js
+        target=$(cd /binaries/dd-trace-js && run_without_node_env bun pm pack --destination /usr/app --quiet)
         echo "install from local folder /binaries/dd-trace-js"
-        run_without_node_env bun add "${BUN_ARGS[@]}" /binaries/dd-trace-js || run_without_node_env bun add "${BUN_ARGS[@]}" /binaries/dd-trace-js
+        install_custom_target "$target"
 
     else
         echo "install from NPM"
-        run_without_node_env bun add "${BUN_ARGS[@]}" dd-trace || run_without_node_env bun add "${BUN_ARGS[@]}" dd-trace
+        install_custom_target dd-trace
     fi
 fi
