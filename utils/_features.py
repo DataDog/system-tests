@@ -18,7 +18,7 @@ def _get_ci_repo_name() -> str | None:
         return repo
     # Azure Pipelines
     if repo := os.environ.get("BUILD_REPOSITORY_NAME"):
-        return repo
+        return repo.split("/")[-1]
     return None
 
 
