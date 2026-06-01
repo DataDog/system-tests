@@ -696,9 +696,7 @@ class Test_FR08_Resource_Attributes:
 class Test_FR09_Sampling_Independence:
     """FR09: Trace metrics are computed before head-based sampling, from 100% of spans."""
 
-    @pytest.mark.parametrize(
-        "library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}]
-    )
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}])
     def test_fr09_1_metrics_computed_before_sampling(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
