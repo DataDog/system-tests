@@ -63,7 +63,7 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:dev-llmobs-meta-struct",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.59.0",
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
