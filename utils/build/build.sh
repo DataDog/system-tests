@@ -20,10 +20,10 @@ readonly ALIAS_CACHE_TO="W" #write cache
 readonly DEFAULT_TEST_LIBRARY=nodejs
 readonly DEFAULT_BUILD_IMAGES=weblog,runner
 readonly DEFAULT_DOCKER_MODE=0
-readonly DEFAULT_SAVE_TO_BINARIES=0
 
 # Define default weblog variants.
 # XXX: Avoid associative arrays for Bash 3 compatibility.
+readonly DEFAULT_SAVE_TO_BINARIES=0
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
 readonly DEFAULT_ruby=rails72
@@ -72,7 +72,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.zst file."
     echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -257,11 +257,22 @@ build() {
             fi
 
             # keep this name consistent with WeblogContainer.get_image_list()
-            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
-            if [ -f $BINARIES_FILENAME ]; then
+            if [[ $TEST_LIBRARY == nodejs ]] && [[ $SAVE_TO_BINARIES == 1 ]]; then
+                BASE_IMAGE=$(awk '/^FROM/{print $2; exit}' "utils/build/docker/nodejs/${WEBLOG_VARIANT}.Dockerfile")
+                echo "Saving base image $BASE_IMAGE to $BINARIES_FILENAME"
+                docker save "$BASE_IMAGE" | zstd > "$BINARIES_FILENAME"
+                continue
+            fi
+
+            if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
-                docker load --input $BINARIES_FILENAME
+                zstd -d -c "$BINARIES_FILENAME" | docker load
+            fi
+
+            if docker image inspect system_tests/weblog >/dev/null 2>&1; then
+                echo "Using pre-loaded weblog image"
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -339,8 +350,9 @@ build() {
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
+
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
             run_build_command docker buildx build \
@@ -370,13 +382,13 @@ while [[ "$#" -gt 0 ]]; do
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
-        -s|--save-to-binaries) SAVE_TO_BINARIES=1 ;;
         --github-token-file) GITHUB_TOKEN_FILE="$2"; shift ;;
         --binary-url) BINARY_URL="$2"; shift ;;
         --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
+        -s|--save-to-binaries) SAVE_TO_BINARIES=1 ;;
         -h|--help) print_usage; exit 0 ;;
         --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;  # deprecated
         *)
@@ -395,11 +407,11 @@ DOCKER_CACHE_MODE="${DOCKER_CACHE_MODE:-}"
 EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS:-}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
 DOCKER_MODE="${DOCKER_MODE:-${DEFAULT_DOCKER_MODE}}"
-SAVE_TO_BINARIES="${SAVE_TO_BINARIES:-${DEFAULT_SAVE_TO_BINARIES}}"
 BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
+SAVE_TO_BINARIES="${SAVE_TO_BINARIES:-${DEFAULT_SAVE_TO_BINARIES}}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
 
 if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then

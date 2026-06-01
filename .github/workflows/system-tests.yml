@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_nodejs_base_images:
+        description: "Shall we build Node.js base images for tests on Node.js tracer"
+        default: false
+        required: false
+        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -168,6 +173,7 @@ jobs:
       binaries_artifact: ${{ inputs.binaries_artifact }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
       _system_tests_library_target_branch_map: ${{ inputs._system_tests_library_target_branch_map }}
+      _build_weblog_images: ${{ inputs.library != 'nodejs' || inputs._build_nodejs_base_images }}
 
   parametric:
     needs:
@@ -236,6 +242,10 @@ jobs:
         if: inputs.library == 'php' && inputs._build_php_base_images
         run: |
           ./utils/build/build_php_base_images.sh
+      - name: Build nodejs weblog base images
+        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
+        run: |
+          ./utils/build/build_nodejs_base_images.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
