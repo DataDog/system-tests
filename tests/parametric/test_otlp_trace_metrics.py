@@ -20,7 +20,7 @@ DEFAULT_ENVVARS = {
 def otlp_trace_metrics_library_env(library_env: dict[str, str], test_agent: TestAgentAPI):
     """Point the OTLP metrics exporter at the test agent's OTLP HTTP receiver."""
     library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
-    yield library_env
+    return library_env
 
 
 def find_metric_by_name(scope_metric: dict, name: str) -> dict:
