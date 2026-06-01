@@ -123,10 +123,15 @@ ssi_tests:
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         # Upload logs to S3 and delete large files
+        # When this template is included from downstream repos (dd-trace-*), the
+        # system-tests checkout lives under a `system-tests/` subdirectory, so
+        # all relative paths into the system-tests repo need that prefix.
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
+            COLLAPSIBLE_LOGS_SCRIPT="./utils/scripts/gitlab_collapsible_logs.sh"
         else
             LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
+            COLLAPSIBLE_LOGS_SCRIPT="./system-tests/utils/scripts/gitlab_collapsible_logs.sh"
         fi
         # Upload to S3 (the URL is printed once at the end of the after_script).
         AWS_CONSOLE_URL=""
@@ -161,10 +166,14 @@ ssi_tests:
         fi
 
         # Dump every log file as a collapsible section (full content).
-        while IFS= read -r -d '' file; do
-          section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
-          ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
-        done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+        if [ -f "${COLLAPSIBLE_LOGS_SCRIPT}" ]; then
+          while IFS= read -r -d '' file; do
+            section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
+            bash "${COLLAPSIBLE_LOGS_SCRIPT}" "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
+          done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+        else
+          echo "Skipping collapsible log dump: ${COLLAPSIBLE_LOGS_SCRIPT} not found"
+        fi
 
         # Re-print the captured run.sh summary at the END
         if [ -f "${CI_PROJECT_DIR}/run_output.log" ]; then
