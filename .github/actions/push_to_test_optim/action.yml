@@ -53,3 +53,10 @@ runs:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY:  ${{ inputs.datadog_api_key != '' && inputs.datadog_api_key || steps.dd-sts.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
+    - shell: bash
+      run: |
+        datadog-ci tag --level pipeline --tags green_ci.excluded:true
+        datadog-ci tag --level job --tags green_ci.excluded:true
+      env:
+        DATADOG_SITE: ${{ inputs.datadog_site }}
+        DATADOG_API_KEY:  ${{ inputs.datadog_api_key != '' && inputs.datadog_api_key || steps.dd-sts.outputs.api_key }}
