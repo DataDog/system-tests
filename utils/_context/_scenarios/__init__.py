@@ -100,6 +100,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
@@ -117,6 +118,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         client_drop_p0s=False,
         doc=(
@@ -136,6 +138,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         obfuscation_version=99,
         doc=(
@@ -155,6 +158,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         obfuscation_version="MISSING",
         doc=(
@@ -174,6 +178,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         obfuscation_version=0,
         doc=(
@@ -193,6 +198,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         agent_env={
             "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
