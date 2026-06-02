@@ -72,7 +72,6 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/asm-cpp",
                                 "nginx-datadog":    "@DataDog/asm-cpp",
                             })
-    injection_platform = _OwnerDef("@DataDog/unified-instrumentation-setup")
     debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
                                 "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
                                 "dd-trace-go":      "@DataDog/debugger-go",
