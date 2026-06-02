@@ -12,8 +12,10 @@ from .conftest import APMLibrary
 SPAN_DURATION_METRIC = "dd.trace.span.duration"
 SERVICE = "test-otlp-stats-svc"
 TRUTHY = ("yes", "true", "1")
-# OTLP AggregationTemporality enum: DELTA == 1.
-AGGREGATION_TEMPORALITY_DELTA = 1
+# OTLP AggregationTemporality enum: DELTA == 1. Protobuf's canonical JSON mapping serializes enums
+# as their string name (see https://protobuf.dev/programming-guides/json/), but parsers must also
+# accept the integer, so a standards-compliant OTLP/JSON exporter may emit either representation.
+AGGREGATION_TEMPORALITY_DELTA: tuple[int, str] = (1, "AGGREGATION_TEMPORALITY_DELTA")
 
 # Common env shared by every test. The native OTLP stats worker ticks (and closes stat buckets)
 # on the stats writer interval, and only releases buckets older than 2 intervals, so use a short
@@ -293,8 +295,8 @@ class Test_FR03_Metric_Shape:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         histogram = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)["histogram"]
-        # OTLP AggregationTemporality: DELTA == 1.
-        assert histogram["aggregationTemporality"] == AGGREGATION_TEMPORALITY_DELTA
+        # Accept the integer or the Protobuf JSON enum name, since either is standards-compliant.
+        assert histogram["aggregationTemporality"] in AGGREGATION_TEMPORALITY_DELTA
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr03_4_scope(
