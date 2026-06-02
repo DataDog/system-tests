@@ -218,8 +218,13 @@ public class OpenTracingController implements Closeable {
         .map(KeyValue::value)
         .findFirst()
         .orElse(null);
-    if (baggage != null && !context.toTraceId().isEmpty()) {
-      this.extractedBaggageHeaders.put(DDTraceId.from(context.toTraceId()).toLong(), baggage);
+    if (!context.toTraceId().isEmpty()) {
+      long traceKey = DDTraceId.from(context.toTraceId()).toLong();
+      if (baggage != null) {
+        this.extractedBaggageHeaders.put(traceKey, baggage);
+      } else {
+        this.extractedBaggageHeaders.remove(traceKey);
+      }
     }
     return new SpanExtractHeadersResult(spanId);
   }
