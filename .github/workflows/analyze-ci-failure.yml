@@ -34,11 +34,23 @@ jobs:
   trigger-datadog-workflow:
     name: Trigger Datadog workflow
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # required for dd-sts OIDC token exchange
+      contents: read
     steps:
+      # This repo has no static DD_API_KEY/DD_APPLICATION_KEY secrets; Datadog
+      # credentials are minted at runtime via OIDC, same as push_to_test_optim.
+      # The `system-tests` dd-sts policy must grant an app_key with permission
+      # to create workflow instances for the call below to succeed.
+      - name: Get Datadog credentials
+        id: dd-sts
+        uses: DataDog/dd-sts-action@2e8187910199bd93129520183c093e19aa585c75 # v1.0.0
+        with:
+          policy: system-tests
       - name: Trigger Datadog workflow instance
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+          DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
+          DD_APP_KEY: ${{ steps.dd-sts.outputs.app_key }}
           # On push events there are no inputs, so fall back to test defaults.
           CI_URL: ${{ (github.event_name == 'workflow_dispatch' && inputs.ci_url) || 'https://github.com/DataDog/system-tests/actions/runs/26634388026' }}
           INPUT_PROMPT: ${{ (github.event_name == 'workflow_dispatch' && inputs.prompt) || '' }}
@@ -47,7 +59,7 @@ jobs:
           set -euo pipefail
 
           if [[ -z "${DD_API_KEY}" || -z "${DD_APP_KEY}" ]]; then
-            echo "::error::DD_API_KEY and/or DD_APPLICATION_KEY secrets are not set"
+            echo "::error::dd-sts did not return an api_key and/or app_key. The 'system-tests' dd-sts policy must grant an application key with workflow-instance permissions."
             exit 1
           fi
 
