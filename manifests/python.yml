@@ -2046,6 +2046,7 @@ manifest:
     - weblog_declaration:
         "*": v2.1.1
         django-py3.13: v3.15.0.dev (v2.1.1 but fixed incompatibility issue with gevent 25.8.2)
+        uwsgi-poc: flaky (APPSEC-68195)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
