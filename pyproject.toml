@@ -240,11 +240,6 @@ ignore = [
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
-    "RET505",   # superfluous-else-return: TODO
-    "RET508",   # superfluous-else-break: TODO
-    "RUF059",   # unused-unpacked-variable: TODO
-    "SIM108",   # if-else-block-instead-of-if-exp: TODO
-    "SIM115",   # open-file-with-context-handler: TODO
     "SLF001",   # private-member-access: TODO
     "TRY002",   # raise-vanilla-class: TODO
     "TRY201",   # verbose-raise: TODO

@@ -266,7 +266,7 @@ class K8sDatadog:
                 logger.info("[Test agent] daemonset status datadog running!")
                 daemonset_created = True
                 break
-            elif daemonset_status is None:
+            if daemonset_status is None:
                 logger.info("[Test agent] daemonset status datadog not found")
             time.sleep(5)
 

@@ -48,12 +48,11 @@ class K8sProviderFactory:
         logger.info(f"Using {provider_id} provider")
         if provider_id == "kind":
             return K8sKindClusterProvider()
-        elif provider_id == "minikube":
+        if provider_id == "minikube":
             return K8sMiniKubeClusterProvider()
-        elif provider_id == "eksremote":
+        if provider_id == "eksremote":
             return K8sEKSRemoteClusterProvider()
-        else:
-            raise ValueError("Not supported provided", provider_id)
+        raise ValueError("Not supported provided", provider_id)
 
 
 class K8sClusterProvider:
@@ -276,7 +275,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
             # Current context name is like:
             # "arn:aws:eks:us-east-1:601427279990:cluster/lib-injection-testing-eks-sandbox"
             # I only take "lib-injection-testing-eks-sandbox"
-            arn, cluster_context = execute_command("kubectl config current-context").split("/")
+            _arn, cluster_context = execute_command("kubectl config current-context").split("/")
             current_context_name = cluster_context.strip()
 
             ##weird: There is other context like: user@email.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io
@@ -328,7 +327,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
     def execute_piped_command(self, command: str) -> str:
         # awk_comm = 'kubectl config get-contexts |  awk \'{if ($1 ~ "@lib-injection-testing-eks-sandbox") print $1}\''
         p2 = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)  # noqa: S602
-        res, err = p2.communicate()
+        res, _err = p2.communicate()
         return res.decode("utf-8").strip()
 
     def get_token(self, cluster_name: str) -> str:
