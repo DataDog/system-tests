@@ -72,7 +72,6 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/asm-cpp",
                                 "nginx-datadog":    "@DataDog/asm-cpp",
                             })
-    auto_instrumentation = _OwnerDef("@DataDog/unified-instrumentation-setup")
     debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
                                 "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
                                 "dd-trace-go":      "@DataDog/debugger-go",
@@ -854,7 +853,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=89
         """
-        return _mark_test_object(test_object, feature_id=89, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=89, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_auto_instrumentation(test_object):
@@ -862,7 +861,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=90
         """
-        return _mark_test_object(test_object, feature_id=90, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=90, owner=_Owner.injection_platform)
 
     # @staticmethod
     # def collect_http_post_data_and_headers(test_object):
@@ -1780,7 +1779,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=274
         """
-        return _mark_test_object(test_object, feature_id=274, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=274, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_auto_installation_script(test_object):
@@ -1788,7 +1787,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=275
         """
-        return _mark_test_object(test_object, feature_id=275, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=275, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_block_list(test_object):
@@ -1796,7 +1795,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
-        return _mark_test_object(test_object, feature_id=276, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=276, owner=_Owner.injection_platform)
 
     @staticmethod
     def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1860,7 +1859,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
-        return _mark_test_object(test_object, feature_id=288, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=288, owner=_Owner.injection_platform)
 
     @staticmethod
     def f_otel_interoperability(test_object):
@@ -1884,7 +1883,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=292
         """
-        return _mark_test_object(test_object, feature_id=292, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=292, owner=_Owner.injection_platform)
 
     @staticmethod
     def rasp_local_file_inclusion(test_object):
@@ -1959,7 +1958,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
-        return _mark_test_object(test_object, feature_id=302, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=302, owner=_Owner.injection_platform)
 
     @staticmethod
     def appsec_standalone_experimental(test_object):
@@ -2023,7 +2022,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
-        return _mark_test_object(test_object, feature_id=306, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=306, owner=_Owner.injection_platform)
 
     @staticmethod
     def origin_detection(test_object):
@@ -2041,7 +2040,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=307
         """
-        return _mark_test_object(test_object, feature_id=307, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=307, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_guardrail(test_object):
@@ -2049,7 +2048,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=308
         """
-        return _mark_test_object(test_object, feature_id=308, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=308, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_guardrail(test_object):
@@ -2057,7 +2056,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=309
         """
-        return _mark_test_object(test_object, feature_id=309, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=309, owner=_Owner.injection_platform)
 
     @staticmethod
     def datastreams_monitoring_support_for_manual_checkpoints(test_object):
@@ -2153,7 +2152,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=322
         """
-        return _mark_test_object(test_object, feature_id=322, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=322, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_crashtracking(test_object):
@@ -2161,7 +2160,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=340
         """
-        return _mark_test_object(test_object, feature_id=340, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=340, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_service_naming(test_object):
@@ -2169,7 +2168,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=326
         """
-        return _mark_test_object(test_object, feature_id=326, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=326, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_service_tracking(test_object):
@@ -2577,7 +2576,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=478
         """
-        return _mark_test_object(test_object, feature_id=478, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=478, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_auto_installation_script_appsec(test_object):
@@ -2585,7 +2584,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=479
         """
-        return _mark_test_object(test_object, feature_id=479, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=479, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_auto_installation_script_appsec(test_object):
@@ -2593,7 +2592,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=480
         """
-        return _mark_test_object(test_object, feature_id=480, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=480, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_injection_metadata(test_object):
