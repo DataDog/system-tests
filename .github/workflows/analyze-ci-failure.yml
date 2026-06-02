@@ -18,6 +18,18 @@ on:
         default: "feb92c49-f433-48b0-954c-7ccde4a80338"
         type: string
 
+  # ─── TEMPORARY: delete this whole `push:` block before merging ───
+  # Lets you test THIS branch's version of the workflow without it first
+  # being on the default branch. Push to the branch named below and the job
+  # runs using the fallback CI_URL / WORKFLOW_ID in the job env (push events
+  # carry no inputs). Rename the branch here to match the one you push.
+  push:
+    branches:
+      - danielcarmo/ci-root-cause-analysis
+    paths:
+      - .github/workflows/analyze-ci-failure.yml
+  # ─── END TEMPORARY ───
+
 jobs:
   trigger-datadog-workflow:
     name: Trigger Datadog workflow
@@ -27,9 +39,10 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
           DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-          CI_URL: ${{ inputs.ci_url }}
-          INPUT_PROMPT: ${{ inputs.prompt }}
-          WORKFLOW_ID: ${{ inputs.workflow_id }}
+          # On push events there are no inputs, so fall back to test defaults.
+          CI_URL: ${{ (github.event_name == 'workflow_dispatch' && inputs.ci_url) || 'https://github.com/DataDog/system-tests/actions/runs/26634388026' }}
+          INPUT_PROMPT: ${{ (github.event_name == 'workflow_dispatch' && inputs.prompt) || '' }}
+          WORKFLOW_ID: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow_id) || 'feb92c49-f433-48b0-954c-7ccde4a80338' }}
         run: |
           set -euo pipefail
 
