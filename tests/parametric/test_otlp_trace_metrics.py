@@ -17,9 +17,9 @@ AGGREGATION_TEMPORALITY_DELTA = 1
 
 # Common env shared by every test. The native OTLP stats worker ticks (and closes stat buckets)
 # on the stats writer interval, and only releases buckets older than 2 intervals, so use a short
-# interval to keep client-computed stats exported within the test window.
+# interval to keep client-computed stats exported within the test window. The initial implementation only supports json export.
 _BASE_ENVVARS = {
-    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json",
     "OTEL_METRIC_EXPORT_INTERVAL": "1000",
     "_DD_TRACE_STATS_WRITER_INTERVAL": "1",
     "DD_SERVICE": SERVICE,
