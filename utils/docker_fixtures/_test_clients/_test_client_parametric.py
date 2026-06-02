@@ -724,7 +724,9 @@ class ParametricTestClientApi(TestClientApi):
 
     def ensure_agent_info(self) -> bool:
         r = self._session.get(self._url("/trace/agent/ensure_agent_info"))
-        return HTTPStatus(r.status_code).is_success
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+        return r.json().get("ready", True)
 
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
