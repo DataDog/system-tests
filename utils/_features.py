@@ -72,6 +72,7 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/asm-cpp",
                                 "nginx-datadog":    "@DataDog/asm-cpp",
                             })
+    injection_platform = _OwnerDef("@DataDog/unified-instrumentation-setup")
     debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
                                 "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
                                 "dd-trace-go":      "@DataDog/debugger-go",
@@ -848,7 +849,7 @@ class _Features:
         return _mark_test_object(test_object, feature_id=88, owner=_Owner.asm)
 
     @staticmethod
-    def host_injection_platform(test_object):
+    def host_auto_instrumentation(test_object):
         """Host auto-instrumentation
 
         https://feature-parity.us1.prod.dog/#/?feature=89
@@ -856,7 +857,7 @@ class _Features:
         return _mark_test_object(test_object, feature_id=89, owner=_Owner.injection_platform)
 
     @staticmethod
-    def container_injection_platform(test_object):
+    def container_auto_instrumentation(test_object):
         """Container auto-instrumentation
 
         https://feature-parity.us1.prod.dog/#/?feature=90
@@ -1878,7 +1879,7 @@ class _Features:
         return _mark_test_object(test_object, feature_id=291, owner=_Owner.debugger)
 
     @staticmethod
-    def installer_injection_platform(test_object):
+    def installer_auto_instrumentation(test_object):
         """Installer auto-instrumentation
 
         https://feature-parity.us1.prod.dog/#/?feature=292
@@ -1953,7 +1954,7 @@ class _Features:
         return _mark_test_object(test_object, feature_id=303, owner=_Owner.debugger)
 
     @staticmethod
-    def injection_platform_profiling(test_object):
+    def auto_instrumentation_profiling(test_object):
         """auto-instrumentation with profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=302
@@ -2571,7 +2572,7 @@ class _Features:
         return _mark_test_object(test_object, feature_id=477, owner=_Owner.sdk_capabilities)  # tracing/correlation/logs
 
     @staticmethod
-    def injection_platform_appsec(test_object):
+    def auto_instrumentation_appsec(test_object):
         """Appsec works when manually enabled with library injection in Host environments
 
         https://feature-parity.us1.prod.dog/#/?feature=478
