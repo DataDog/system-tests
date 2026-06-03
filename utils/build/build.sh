@@ -262,10 +262,6 @@ build() {
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
                 zstd -d -c "$BINARIES_FILENAME" | docker load
-            fi
-
-            if docker image inspect system_tests/weblog >/dev/null 2>&1; then
-                echo "Using pre-loaded weblog image"
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -345,7 +341,6 @@ build() {
                     echo "Saving image to $BINARIES_FILENAME"
                     docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
-
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
             run_build_command docker buildx build \
