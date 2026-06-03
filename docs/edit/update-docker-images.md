@@ -6,5 +6,6 @@ If you need to update them, you will need to follow those
 2. create your PR, and add the relevant label to rebuild the image in the CI
   * `build-python-base-images` for python weblogs
   * `build-php-base-images` for PHP weblogs
+  * `build-nodejs-base-images` for Node.js weblogs
   * `build-proxy-image` for proxy image
 3. just before merging your PR, ping somebody from Reliability & Performance team to push your image to hub.docker.com (`#apm-shared-testing` on slack)

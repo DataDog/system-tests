@@ -1,24 +1,12 @@
-FROM node:20-alpine
-
-COPY --from=oven/bun:1.3.13-alpine /usr/local/bin/bun /usr/local/bin/bun
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
+FROM datadog/system-tests:nextjs.base-v1
 
 COPY utils/build/docker/nodejs/nextjs /usr/app
-RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-RUN npm run build
+RUN bun run build
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker startup

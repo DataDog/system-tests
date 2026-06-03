@@ -113,6 +113,10 @@ app.post('/trace/span/extract_headers', (req, res) => {
   res.json({ span_id: extractedSpanID });
 });
 
+app.get('/trace/agent/ensure_agent_info', (req, res) => {
+  res.json({ ready: true })
+})
+
 app.get('/trace/crash', (req, res) => {
   process.kill(process.pid, 'SIGSEGV');
   res.json({});
