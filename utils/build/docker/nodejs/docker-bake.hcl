@@ -39,7 +39,7 @@ target "express4-typescript" {
   inherits   = ["_common"]
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4-typescript.base.Dockerfile"
-  tags       = ["datadog/system-tests:express4-typescript.base-v1"]
+  tags       = ["datadog/system-tests:express4-typescript.base-v2"]
 }
 
 target "nextjs" {
