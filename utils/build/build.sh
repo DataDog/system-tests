@@ -259,13 +259,6 @@ build() {
             # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
-            if [[ $TEST_LIBRARY == nodejs ]] && [[ $SAVE_TO_BINARIES == 1 ]]; then
-                BASE_IMAGE=$(awk '/^FROM/{print $2; exit}' "utils/build/docker/nodejs/${WEBLOG_VARIANT}.Dockerfile")
-                echo "Saving base image $BASE_IMAGE to $BINARIES_FILENAME"
-                docker save "$BASE_IMAGE" | zstd > "$BINARIES_FILENAME"
-                continue
-            fi
-
             if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
                 zstd -d -c "$BINARIES_FILENAME" | docker load
