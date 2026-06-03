@@ -11,5 +11,8 @@ WORKDIR /usr/app
 COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/bun.lock ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 
-# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v1 .
-# docker push datadog/system-tests:nextjs.base-v1
+COPY utils/build/docker/nodejs/nextjs /usr/app
+RUN bun run build
+
+# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v2 .
+# docker push datadog/system-tests:nextjs.base-v2
