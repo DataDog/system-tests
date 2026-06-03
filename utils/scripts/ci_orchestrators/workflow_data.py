@@ -307,7 +307,7 @@ def _get_endtoend_weblogs(
         if len(weblogs_filter) != 0:
             # filter weblogs by the weblogs_filter set
             names = [weblog for weblog in names if weblog in weblogs_filter]
-        
+
         # skipping dd-trace-go span pool weblog while it's not released
         if ci_environment == "prod":
             names = [weblog for weblog in names if weblog != "net-http-span-pool"]
