@@ -330,6 +330,10 @@ def _get_endtoend_weblogs(
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
+    
+    # skipping dd-trace-go span pool weblog while it's not released
+    if ci_environment == "prod":
+        names = [weblog for weblog in names if weblog != "net-http-span-pool"]
 
     return sorted(result, key=lambda w: w.name)
 
