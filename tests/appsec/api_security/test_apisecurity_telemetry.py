@@ -36,6 +36,7 @@ FRAMEWORKS = {
         "gin": "github.com/gin-gonic/gin",
         "net-http": "net/http",
         "net-http-orchestrion": "net/http",
+        "net-http-span-pool": "net/http",
         "uds-echo": "github.com/labstack/echo/v4",
     },
 }
