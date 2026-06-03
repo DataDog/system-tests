@@ -454,6 +454,10 @@ $router->addRoute('POST', '/trace/stats/flush', new ClosureRequestHandler(functi
     # NOP: php doesn't expose an API to flush trace stats
     return jsonResponse([]);
 }));
+$router->addRoute('GET', '/trace/agent/ensure_agent_info', new ClosureRequestHandler(function () {
+    $ready = dd_trace_internal_fn('await_agent_info');
+    return jsonResponse(['ready' => $ready]);
+}));
 $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(function () use (&$spans, &$activeSpan) {
     $span = $activeSpan;
 
