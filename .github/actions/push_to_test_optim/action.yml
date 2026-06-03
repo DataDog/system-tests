@@ -4,8 +4,6 @@ inputs:
   datadog_site:
     description: Which DataDog site shoud be used
     default: datadoghq.com
-  datadog_api_key:
-    description: "A valid DD_API_KEY"
   ci_environment:
     description: "CI environment running the tests (dev/prod/custom), used for Test Optimization tagging"
     default: ""
@@ -51,5 +49,5 @@ runs:
           --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
-        DATADOG_API_KEY:  ${{ inputs.datadog_api_key != '' && inputs.datadog_api_key || steps.dd-sts.outputs.api_key }}
+        DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
