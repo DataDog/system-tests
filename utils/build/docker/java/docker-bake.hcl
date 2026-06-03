@@ -7,6 +7,6 @@ group "default" {
 target "java-jetty-classpath" {
   context    = "."
   dockerfile = "utils/build/docker/java/jetty-classpath.base.Dockerfile"
-  args       = { JETTY_VERSION = "9.4.56.v20240826" }
-  tags       = ["datadog/system-tests:java-jetty-9.4.56.v20240826.base-v1"]
+  args       = { JETTY_VERSION = "9.4.58.v20250814" }
+  tags       = ["datadog/system-tests:java-jetty-9.4.58.v20250814.base-v1"]
 }

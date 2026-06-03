@@ -5,7 +5,7 @@ set -e
 sudo chmod -R 755 *
 
 echo "Compiling Java app"
-JETTY_VERSION=9.4.56.v20240826
+JETTY_VERSION=9.4.58.v20250814
 JETTY_FILE="jetty-distribution-$JETTY_VERSION.tar.gz"
 PORT=$1
 if [ -f "$JETTY_FILE" ]; then

@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-ARG JETTY_CLASSPATH_IMAGE=datadog/system-tests:java-jetty-9.4.56.v20240826.base-v1
+ARG JETTY_CLASSPATH_IMAGE=datadog/system-tests:java-jetty-9.4.58.v20250814.base-v1
 ARG BASE_IMAGE
 
 FROM ${JETTY_CLASSPATH_IMAGE} AS jetty_classpath

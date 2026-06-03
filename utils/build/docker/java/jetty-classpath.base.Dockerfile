@@ -1,6 +1,6 @@
 FROM public.ecr.aws/docker/library/debian:bookworm-slim
 
-ARG JETTY_VERSION=9.4.56.v20240826
+ARG JETTY_VERSION=9.4.58.v20250814
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl findutils tar \
