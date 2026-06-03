@@ -172,6 +172,11 @@ class TraceConfigReturn(BaseModel):
     config: dict[str, Optional[str]]
 
 
+@app.get("/trace/agent/ensure_agent_info")
+def trace_ensure_agent_info():
+    return {"ready": True}
+
+
 @app.get("/trace/config")
 def trace_config() -> TraceConfigReturn:
     return TraceConfigReturn(
