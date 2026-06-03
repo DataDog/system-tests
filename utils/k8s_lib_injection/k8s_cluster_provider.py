@@ -8,7 +8,7 @@ import base64
 import time
 from pathlib import Path
 from utils._logger import logger
-from utils.k8s_lib_injection.k8s_command_utils import execute_command
+from utils.k8s_lib_injection.k8s_command_utils import K8sLibInjectionError, execute_command
 from kubernetes import client, config
 
 
@@ -414,7 +414,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
             "--format '{{.NetworkSettings.Networks.bridge.IPAddress}}'"
         ).strip()
         if not correct_control_plane_ip:
-            raise Exception("Unable to find correct control plane IP")
+            raise K8sLibInjectionError("Unable to find correct control plane IP")
         logger.debug(f"[setup_kind_in_gitlab] correct_control_plane_ip: {correct_control_plane_ip}")
 
         control_plane_address_in_config = execute_command(
@@ -423,7 +423,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
             ':{{index .NetworkSettings.Ports "6443/tcp" 0 "HostPort"}}\''
         ).strip()
         if not control_plane_address_in_config:
-            raise Exception("Unable to find control plane address from config")
+            raise K8sLibInjectionError("Unable to find control plane address from config")
         logger.debug(f"[setup_kind_in_gitlab] control_plane_address_in_config: {control_plane_address_in_config}")
 
         # Replace server config with dns name + internal port

@@ -7,6 +7,7 @@ from kubernetes import client, watch
 from kubernetes.client.rest import ApiException
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
+    K8sLibInjectionError,
     helm_add_repo,
     helm_install_chart,
     execute_command,
@@ -271,8 +272,8 @@ class K8sDatadog:
             time.sleep(5)
 
         if not daemonset_created:
-            logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
-            raise Exception("Daemonset not created")
+            logger.info(f"[Test agent] Daemonset not created. Last status: {daemonset_status}")
+            raise K8sLibInjectionError("Daemonset not created")
 
         w = watch.Watch()
         for event in w.stream(
@@ -325,13 +326,13 @@ class K8sDatadog:
             time.sleep(5)
 
         if not cluster_agent_ready:
-            logger.error("Cluster agent not created. Last status: %s" % cluster_agent_status)
+            logger.error(f"Cluster agent not created. Last status: {cluster_agent_status}")
             if datadog_cluster_name:
                 cluster_agent_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
                     name=datadog_cluster_name, namespace=namespace
                 )
                 logger.error(f"Cluster agent logs: {cluster_agent_logs}")
-            raise Exception("Cluster agent not created")
+            raise K8sLibInjectionError("Cluster agent not created")
         # At this point the cluster_agent should be ready, we are going to wait a little bit more
         # to make sure the cluster_agent is ready (some times the cluster_agent is ready but the
         # cluster agent is not ready yet)
@@ -353,7 +354,7 @@ class K8sDatadog:
         if ret is not None:
             for i in ret.items:
                 k8s_logger(self.output_folder, "get.pods").info(
-                    "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+                    f"{i.status.pod_ip}\t{i.metadata.namespace}\t{i.metadata.name}"
                 )
                 execute_command(
                     f"kubectl get event --field-selector involvedObject.name={i.metadata.name}",
