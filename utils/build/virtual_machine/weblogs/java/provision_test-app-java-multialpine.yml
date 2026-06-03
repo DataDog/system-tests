@@ -35,8 +35,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/docker-compose.yml
           - name: copy-java-app
             local_path: lib-injection/build/docker/java/jetty-app
-          - name: compile-app-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
           - name: run-app-script
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
           - name: copy-jdk8-app-dockerfile
@@ -53,6 +51,4 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
-        remote-command: |
-          sh compile_app.sh 18080
-          sh create_and_run_app_multicontainer.sh
+        remote-command: sh create_and_run_app_multicontainer.sh

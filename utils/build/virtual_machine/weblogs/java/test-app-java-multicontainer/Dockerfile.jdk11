@@ -1,8 +1,13 @@
+ARG JETTY_CLASSPATH_IMAGE=datadog/system-tests:java-jetty-9.4.56.v20240826.base-v1
+FROM ${JETTY_CLASSPATH_IMAGE} AS jetty_classpath
+
 FROM public.ecr.aws/docker/library/openjdk:11
 
-COPY jetty-classpath/. /opt/jetty-classpath
-COPY JettyServletMain.class /usr/local/app/
-COPY CrashServlet.class /usr/local/app/
+COPY --from=jetty_classpath /opt/jetty-classpath /opt/jetty-classpath
+COPY JettyServletMain.java /usr/local/app/
+COPY CrashServlet.java /usr/local/app/
 COPY run_app.sh /usr/local/app/
 WORKDIR /usr/local/app/
+RUN javac -cp "/opt/jetty-classpath/*:." JettyServletMain.java CrashServlet.java
+
 ENTRYPOINT ["/usr/local/app/run_app.sh"]

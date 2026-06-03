@@ -7,4 +7,5 @@ If you need to update them, you will need to follow those
   * `build-python-base-images` for python weblogs
   * `build-php-base-images` for PHP weblogs
   * `build-proxy-image` for proxy image
+  * `build-java-base-images` for Java weblog base images
 3. just before merging your PR, ping somebody from Reliability & Performance team to push your image to hub.docker.com (`#apm-shared-testing` on slack)

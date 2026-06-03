@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_java_base_images:
+        description: "Shall we build Java base images for tests on Java tracer"
+        default: false
+        required: false
+        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -236,6 +241,10 @@ jobs:
         if: inputs.library == 'php' && inputs._build_php_base_images
         run: |
           ./utils/build/build_php_base_images.sh
+      - name: Build java weblog base images
+        if: inputs.library == 'java' && inputs._build_java_base_images
+        run: |
+          ./utils/build/build_java_base_images.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

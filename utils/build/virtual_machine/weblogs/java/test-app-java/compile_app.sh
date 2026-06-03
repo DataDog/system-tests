@@ -12,8 +12,24 @@ if [ -f "$JETTY_FILE" ]; then
     echo "Jetty already downloaded."
 else
     echo "Downloading Jetty runtime"
-    wget -q https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$JETTY_VERSION/jetty-distribution-$JETTY_VERSION.tar.gz
-    sudo tar -xf jetty-distribution-$JETTY_VERSION.tar.gz -C /opt/
+    JETTY_URL="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$JETTY_VERSION/jetty-distribution-$JETTY_VERSION.tar.gz"
+    for attempt in 1 2 3 4 5; do
+        if command -v curl >/dev/null 2>&1; then
+            curl -fsSL -o "$JETTY_FILE" "$JETTY_URL" && break
+        else
+            wget -q -O "$JETTY_FILE" "$JETTY_URL" && break
+        fi
+
+        rm -f "$JETTY_FILE"
+        if [ "$attempt" = "5" ]; then
+            echo "Failed to download Jetty runtime after $attempt attempts"
+            exit 1
+        fi
+
+        echo "Retrying Jetty runtime download in 5 seconds... ($attempt/5)"
+        sleep 5
+    done
+    sudo tar -xf "$JETTY_FILE" -C /opt/
 fi
 
 mkdir -p jetty-classpath
