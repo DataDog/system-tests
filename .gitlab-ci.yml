@@ -80,43 +80,16 @@ ci_root_cause_analysis:
   stage: configure
   variables:
     CI_PIPELINE_URL: $CI_PIPELINE_URL
-    WORKFLOW_ID: "feb92c49-f433-48b0-954c-7ccde4a80338"
   script:
     - |
       export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
       export DD_APP_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.ddworkflow.app_key --with-decryption --query "Parameter.Value" --out text)
-      if [[ -z "${DD_API_KEY}" || -z "${DD_APP_KEY}" ]]; then
-        echo "::error::DD_API_KEY and/or DD_APPLICATION_KEY secrets are not set"
-        exit 1
-      fi
-
-      PROMPT="${INPUT_PROMPT:-}"
-      if [[ -z "${PROMPT}" ]]; then
-        PROMPT="Why did this pipeline fail? ${CI_PIPELINE_URL}"
-      fi
-
-      # Build the JSON body with jq so the prompt is safely escaped.
-      PAYLOAD="$(jq -n --arg p "${PROMPT}" '{meta: {payload: {prompt: $p}}}')"
-
-      echo "Triggering Datadog workflow ${WORKFLOW_ID} with prompt:"
-      echo "  ${PROMPT}"
-
-      HTTP_CODE="$(curl -sS -o response.json -w '%{http_code}' -X POST \
-        -H "Content-Type: application/json" \
-        -H "Accept: application/json" \
-        -H "DD-API-KEY: ${DD_API_KEY}" \
-        -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-        -d "${PAYLOAD}" \
-        "https://api.datadoghq.com/api/v2/workflows/${WORKFLOW_ID}/instances")"
-
-      echo "HTTP ${HTTP_CODE}"
-      cat response.json
-      echo
-
-      if [[ "${HTTP_CODE}" -lt 200 || "${HTTP_CODE}" -ge 300 ]]; then
-        echo "::error::Datadog workflow trigger failed (HTTP ${HTTP_CODE})"
-        exit 1
-      fi
+    - ./utils/scripts/ci_root_cause_analysis.sh
+  artifacts:
+    expose_as: 'Root Cause Analysis'
+    paths:
+      - ci_root_cause_analysis.md
+    when: always
   rules:
     - when: manual
 nodejs_ssi_pipeline:
