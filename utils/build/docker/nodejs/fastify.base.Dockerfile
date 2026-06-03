@@ -13,5 +13,5 @@ ENV NODE_ENV=production
 COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fastify/bun.lock ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 
-# docker build --progress=plain -f utils/build/docker/nodejs/fastify.base.Dockerfile -t datadog/system-tests:fastify.base-v1 .
-# docker push datadog/system-tests:fastify.base-v1
+# docker build --progress=plain -f utils/build/docker/nodejs/fastify.base.Dockerfile -t datadog/system-tests:fastify.base-v2 .
+# docker push datadog/system-tests:fastify.base-v2

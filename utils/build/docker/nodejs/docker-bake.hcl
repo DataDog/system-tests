@@ -18,21 +18,21 @@ target "express4" {
   inherits   = ["_common"]
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4.base.Dockerfile"
-  tags       = ["datadog/system-tests:express4.base-v1"]
+  tags       = ["datadog/system-tests:express4.base-v2"]
 }
 
 target "express5" {
   inherits   = ["_common"]
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express5.base.Dockerfile"
-  tags       = ["datadog/system-tests:express5.base-v1"]
+  tags       = ["datadog/system-tests:express5.base-v2"]
 }
 
 target "fastify" {
   inherits   = ["_common"]
   context    = "."
   dockerfile = "utils/build/docker/nodejs/fastify.base.Dockerfile"
-  tags       = ["datadog/system-tests:fastify.base-v1"]
+  tags       = ["datadog/system-tests:fastify.base-v2"]
 }
 
 target "express4-typescript" {
@@ -46,5 +46,5 @@ target "nextjs" {
   inherits   = ["_common"]
   context    = "."
   dockerfile = "utils/build/docker/nodejs/nextjs.base.Dockerfile"
-  tags       = ["datadog/system-tests:nextjs.base-v1"]
+  tags       = ["datadog/system-tests:nextjs.base-v2"]
 }
