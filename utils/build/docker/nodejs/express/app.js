@@ -296,15 +296,12 @@ app.get('/stub_dbm', async (req, res) => {
   const operation = req.query.operation
 
   if (integration === 'pg') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const dbmComment = await pgsql.doOperation(operation)
     res.send({ status: 'ok', dbm_comment: dbmComment })
   } else if (integration === 'mysql2') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const result = await mysql.doOperation(operation)
     res.send({ status: 'ok', dbm_comment: result })
   } else if (integration === 'mssql') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     res.send(await mssql.doOperation(operation))
   }
 })
@@ -761,14 +758,8 @@ app.post('/ai_guard/evaluate', async (req, res) => {
   const messages = req.body
   const userId = req.headers['x-user-id']
   const sessionId = req.headers['x-session-id']
-  const rootSpan = tracer.scope().active()?.context()._trace.started[0]
-  if (rootSpan) {
-    if (userId) {
-      rootSpan.setTag('usr.id', userId)
-    }
-    if (sessionId) {
-      rootSpan.setTag('session.id', sessionId)
-    }
+  if (userId && sessionId) {
+    tracer.setUser({ id: userId, session_id: sessionId })
   }
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })

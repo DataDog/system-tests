@@ -1,13 +1,14 @@
 package com.datadoghq.trace.opentelemetry.controller;
 
 import static com.datadoghq.ApmTestClient.LOGGER;
-import static com.datadoghq.trace.opentelemetry.controller.OpenTelemetryTraceController.getSpan;
 
 import com.datadoghq.trace.opentelemetry.dto.*;
+import com.datadoghq.trace.opentracing.controller.OpenTracingController;
+import datadog.trace.api.GlobalTracer;
+import datadog.trace.api.internal.InternalTracer;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.logs.*;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Scope;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,22 +47,32 @@ public class OpenTelemetryLogsController {
       throw new IllegalStateException(
           "Logger " + loggerName + " not found in registered loggers " + loggers.keySet());
     }
-    Scope scope = null;
+    AutoCloseable scope = null;
     if (args.spanId() != 0) {
-      Span span = getSpan(args.spanId());
-      if (span == null) {
-        throw new IllegalStateException("Span not found for span_id: " + args.spanId());
+      Span span = OpenTelemetryTraceController.getSpan(args.spanId());
+      if (span != null) {
+        scope = span.makeCurrent();
+      } else {
+        io.opentracing.Span otSpan = OpenTracingController.getSpan(args.spanId());
+        if (otSpan != null) {
+          scope = io.opentracing.util.GlobalTracer.get().activateSpan(otSpan);
+        } else {
+          throw new IllegalStateException("Span not found for span_id: " + args.spanId());
+        }
       }
-      scope = span.makeCurrent();
     }
     try {
+      Severity severity = Severity.valueOf(args.level().toUpperCase(Locale.ROOT));
       logger.logRecordBuilder()
-          .setSeverity(Severity.valueOf(args.level().toUpperCase(Locale.ROOT)))
+          .setSeverity(severity)
+          .setSeverityText(severity.name())
           .setBody(args.message())
           .emit();
     } finally {
       if (scope != null) {
-        scope.close();
+        try {
+          scope.close();
+        } catch (Exception ignore) {}
       }
     }
   }
@@ -70,7 +81,10 @@ public class OpenTelemetryLogsController {
   public FlushResult flushLogs(@RequestBody FlushArgs args) {
     LOGGER.info("Flushing OTel logs: {}", args);
     try {
-      // TODO: call internal hook to flush logs
+      if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
+        //noinspection JavaReflectionMemberAccess new method not yet in a release
+        InternalTracer.class.getMethod("flushLogs").invoke(internalTracer);
+      }
       return new FlushResult(true);
     } catch (Exception e) {
       LOGGER.warn("Failed to flush OTel logs", e);

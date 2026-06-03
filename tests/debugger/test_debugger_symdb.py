@@ -15,6 +15,12 @@ from utils import features, scenarios, context, missing_feature
 class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
+        # Ruby's Remote Configuration poller (Remote::Tie.boot) starts lazily
+        # from the Rack middleware on the first request, not at tracer init.
+        # Without an HTTP request first, the RC worker never starts and the
+        # tracer never processes the symdb RC command below. This helper sends
+        # a GET to /debugger/init for Ruby and is a no-op for other tracers.
+        self.initialize_weblog_remote_config()
         self.send_rc_symdb()
 
     ############ assert ############
@@ -60,15 +66,21 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
 
         def check_scope(scope: dict):
             name = scope.get("name", "")
-            if re.search(pattern, name):
-                scope_type = scope.get("scope_type", "")
-                return scope_type in [
-                    "CLASS",
-                    "class",
-                    "MODULE",
-                    "struct",  # Go
-                ]
+            scope_type = scope.get("scope_type", "")
+            if re.search(pattern, name) and scope_type in [
+                "CLASS",
+                "class",
+                "MODULE",
+                "struct",  # Go
+            ]:
+                return True
 
+            # Always recurse when this scope doesn't itself match both name and
+            # type. Earlier this function short-circuited on a name match alone,
+            # which broke Ruby: its root scope has scope_type FILE and a name
+            # like "/app/.../debugger_controller.rb" — the regex matched the
+            # name, FILE failed the type check, and the recursion was skipped,
+            # so the nested CLASS(DebuggerController) was never found.
             return any(check_scope(nested_scope) for nested_scope in scope.get("scopes", []))
 
         for symbol in self.symbols:
@@ -82,9 +94,87 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
             "No scope containing debugger controller with scope_type CLASS or MODULE was found in the symbols"
         )
 
+    def _assert_event_metadata(self):
+        """Assert each /symdb/v1/input upload has the expected metadata fields
+        in BOTH the event JSON and the gzipped attachment, and that they agree.
+
+        Each request is a multipart with two parts: a gzipped attachment
+        ("file") and a small JSON metadata blob ("event"). The event uses
+        camelCase keys (uploadId/batchNum/attachmentSize) to match the rest
+        of the EvP event schema; the attachment uses snake_case
+        (upload_id/batch_num/final) to match the rest of the attachment
+        scope schema (scope_type/source_file/...). The (uploadId, batchNum)
+        in the event must equal (upload_id, batch_num) in the attachment.
+
+        BaseDebuggerTest._collect_symdb_upload_events() and
+        BaseDebuggerTest._collect_symbols() walk the same captured requests
+        in the same order, so events[i] pairs with the attachment in
+        symbols[i].
+        """
+        events = self.symdb_upload_events
+        attachments = self.symbols
+        assert events, "No event multipart parts were captured"
+        assert attachments, "No attachment multipart parts were captured"
+        assert len(events) == len(attachments), (
+            f"event count ({len(events)}) does not match attachment count ({len(attachments)})"
+        )
+
+        required_event_fields = (
+            "ddsource",
+            "service",
+            "version",
+            "language",
+            "runtimeId",
+            "type",
+            "uploadId",
+            "batchNum",
+            "final",
+            "attachmentSize",
+        )
+        required_attachment_fields = ("upload_id", "batch_num", "final")
+
+        for event, attachment_part in zip(events, attachments, strict=True):
+            missing = [f for f in required_event_fields if f not in event]
+            assert not missing, f"event missing fields {missing}: {event!r}"
+
+            assert event["type"] == "symdb", f"type is not 'symdb': {event['type']!r}"
+            assert isinstance(event["batchNum"], int), f"batchNum is not an integer: {event['batchNum']!r}"
+            assert event["batchNum"] >= 1, f"batchNum is not >= 1: {event['batchNum']!r}"
+            assert isinstance(event["final"], bool), f"final is not a boolean: {event['final']!r}"
+            assert isinstance(event["attachmentSize"], int), (
+                f"attachmentSize is not an integer: {event['attachmentSize']!r}"
+            )
+            assert event["attachmentSize"] > 0, f"attachmentSize is not > 0: {event['attachmentSize']!r}"
+            assert "debugger" not in event, f"event must not nest fields under 'debugger': {event['debugger']!r}"
+
+            # The attachment body must carry the same upload metadata at the
+            # root, in snake_case to match the rest of the attachment schema.
+            attachment = attachment_part.get("content", {})
+            assert isinstance(attachment, dict), f"attachment is not a JSON object: {attachment!r}"
+            missing_att = [f for f in required_attachment_fields if f not in attachment]
+            assert not missing_att, f"attachment missing fields {missing_att}: keys={list(attachment.keys())}"
+
+            assert attachment["upload_id"] == event["uploadId"], (
+                f"attachment upload_id ({attachment['upload_id']!r}) "
+                f"does not match event uploadId ({event['uploadId']!r})"
+            )
+            assert attachment["batch_num"] == event["batchNum"], (
+                f"attachment batch_num ({attachment['batch_num']!r}) "
+                f"does not match event batchNum ({event['batchNum']!r})"
+            )
+            assert isinstance(attachment["final"], bool), f"attachment final is not a boolean: {attachment['final']!r}"
+
     ############ test ############
     def setup_symdb_upload(self):
         self._setup()
 
     def test_symdb_upload(self):
         self._assert()
+
+    def setup_event_metadata(self):
+        self._setup()
+
+    def test_event_metadata(self):
+        self.collect()
+        self.assert_rc_state_not_error()
+        self._assert_event_metadata()

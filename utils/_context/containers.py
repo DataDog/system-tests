@@ -914,6 +914,7 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_DOGSTATSD_HOST"] = "proxy"
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
@@ -957,7 +958,7 @@ class WeblogContainer(TestedContainer):
         """Returns images needed to build the weblog"""
 
         # If an image is saved as a file in binaries, we don't need any image
-        filename = f"binaries/{library}-{weblog}-weblog.tar.gz"
+        filename = f"binaries/{library}-{weblog}-weblog.tar.zst"
         if Path(filename).is_file():
             return []
 
@@ -1489,7 +1490,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.59.0",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),

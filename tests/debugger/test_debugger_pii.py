@@ -135,6 +135,11 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
 
         if not snapshot_found:
             self.setup_failures.append("Snapshot was not received")
+        else:
+            # The EMITTING diagnostic can arrive after the snapshot itself
+            # (notably on .NET where it is reported asynchronously), so wait
+            # for it explicitly before the assertion runs.
+            self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
     def _assert(self, excluded_identifiers: list[str] | None = None, *, line_probe: bool = False):

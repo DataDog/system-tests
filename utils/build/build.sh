@@ -72,7 +72,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.zst file."
     echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -110,6 +110,35 @@ default-weblog() {
         exit 1
     fi
     echo -n "${!var}"
+}
+
+run_build_command() {
+    local log_file
+    local exit_code
+    echo "Running command: $*"
+    # During development, we prefer non-verbose output in the absence of errors. This adds less clutter
+    # in terminals, and saves a significant amount of useless tokens for coding agents.
+    # In CI, however, we keep full logs that sometimes help troubleshooting build times.
+    if [[ ${CI:-} = true ]]; then
+	    "$@"
+	    exit_code=$?
+	    return $exit_code
+    fi
+    log_file=$(mktemp /tmp/system-tests-build-XXXXXXX.log)
+    echo "Build log file: ${log_file}"
+
+    set +e
+    "$@" >"${log_file}" 2>&1
+    exit_code=$?
+    set -e
+
+    if [ "${exit_code}" -eq 0 ]; then
+        rm -f "${log_file}"
+        return 0
+    fi
+    echo "Build command failed: $*" >&2
+    cat "${log_file}" >&2
+    return "${exit_code}"
 }
 
 build() {
@@ -176,16 +205,16 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip setuptools==75.8.0
+                run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            python -m pip install -e .
+            run_build_command python -m pip install -e .
             if [[ -d "venv/" ]]; then
                 cp requirements.txt venv/requirements.txt
             fi
 
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -195,7 +224,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -228,11 +257,11 @@ build() {
             fi
 
             # keep this name consistent with WeblogContainer.get_image_list()
-            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
-            if [ -f $BINARIES_FILENAME ]; then
+            if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
-                docker load --input $BINARIES_FILENAME
+                zstd -d -c "$BINARIES_FILENAME" | docker load
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -263,7 +292,7 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    run_build_command docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
@@ -280,7 +309,7 @@ build() {
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
-                docker buildx build \
+                run_build_command docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
@@ -297,7 +326,7 @@ build() {
 
                 if test -f "binaries/waf_rule_set.json"; then
 
-                    docker buildx build \
+                    run_build_command docker buildx build \
                         --build-arg BUILDKIT_INLINE_CACHE=1 \
                         --load \
                         --progress=plain \
@@ -310,11 +339,11 @@ build() {
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
