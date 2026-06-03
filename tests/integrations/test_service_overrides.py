@@ -13,40 +13,25 @@ from utils import context, weblog, interfaces, scenarios, features, irrelevant, 
 class Test_SqlServiceNameSource:
     """Verify that _dd.svc_src is set on SQL spans when the integration overrides the service name"""
 
-    # [DIAG do-not-merge] number of attempts per scenario run. Kept small (3) because the bug
-    # appears to be position-sensitive — looping inside one scenario doesn't reproduce it past
-    # the first call. The repeated calls instead let us compare timing of "second call" vs
-    # "third call" in case the bug is specifically the first repeat.
-    # The real amplification happens via the scenario-loop in run-end-to-end.yml.
-    _DIAG_ATTEMPTS = 3
-
     def setup_sql_srv_src(self):
-        # [DIAG do-not-merge] loop the request to amplify the stall reproduction rate.
-        # Each attempt uses timeout=30 (vs the usual 5) so we can see whether the request
-        # eventually completes after the stall, and what the true elapsed time was.
-        self.responses = []
-        for i in range(self._DIAG_ATTEMPTS):
-            t0 = time.monotonic()
-            r = weblog.get("/rasp/sqli?user_id=1", timeout=30)
-            elapsed = time.monotonic() - t0
-            self.responses.append((i, r, elapsed))
-        # Keep the original-shape attribute so the legacy assertion below still has something
-        # to look at (we point it at the last response).
-        self.r = self.responses[-1][1]
+        # [DIAG do-not-merge] timeout=30 (vs the usual 5) so the request can complete after a
+        # stall and we can read the true elapsed time. No in-test looping — looping was suspected
+        # of masking the bug by warming caches/threads.
+        t0 = time.monotonic()
+        self.r = weblog.get("/rasp/sqli?user_id=1", timeout=30)
+        self.r_elapsed = time.monotonic() - t0
 
     def test_sql_srv_src(self):
-        # [DIAG do-not-merge] surface every attempt that stalled or failed.
-        slow = [(i, r, e) for (i, r, e) in self.responses if r.status_code != 200 or e > 1.0]
-        logger.warning(f"[DIAG] /rasp/sqli stall summary: {len(slow)}/{len(self.responses)} slow-or-failed")
-        for i, r, e in slow:
-            rid = r.get_rid() if r.status_code is not None else "<no-rid>"
-            logger.warning(f"[DIAG]   iter={i} status={r.status_code} elapsed={e:.3f}s rid={rid}")
-        # Surface a stall as a test failure so CI flags the run and we collect artifacts.
-        assert not slow, f"{len(slow)} stalls detected across {len(self.responses)} attempts"
-
-        # Original assertions retained against the last response so we still validate the feature
-        # whenever no stall occurs.
-        assert self.r.status_code == 200
+        # [DIAG do-not-merge] log the elapsed time when the call was slow or failed, even if the
+        # assertion below would still pass (e.g., status=200 but elapsed=4.5s).
+        if self.r.status_code != 200 or self.r_elapsed > 1.0:
+            rid = self.r.get_rid() if self.r.status_code is not None else "<no-rid>"
+            logger.warning(
+                f"[DIAG] /rasp/sqli stall: status={self.r.status_code} elapsed={self.r_elapsed:.3f}s rid={rid}"
+            )
+        # [DIAG do-not-merge] also fail on slow-but-200 so CI flags the run for artifact collection.
+        assert self.r.status_code == 200, f"Got status {self.r.status_code} after {self.r_elapsed:.3f}s"
+        assert self.r_elapsed <= 1.0, f"Stalled — request took {self.r_elapsed:.3f}s"
 
         srv_src_found = False
         for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
