@@ -239,13 +239,6 @@ ignore = [
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 
-"utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
-    "SLF001",   # private-member-access: TODO
-    "TRY002",   # raise-vanilla-class: TODO
-    "TRY201",   # verbose-raise: TODO
-    "TRY301",   # raise-within-try: TODO
-    "UP031",    # printf-string-formatting: TODO
-]
 "utils/onboarding/*" = [
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
