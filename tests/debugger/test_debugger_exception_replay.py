@@ -373,6 +373,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         if self.get_tracer()["language"] == "php":
                             stack = re.sub(r"\.php\(\d+\)", ".php(<scrubbed>)", stack)
                         span_meta[meta_key] = stack + "<scrubbed>"
+                    elif meta_key == "http.url":
+                        span_meta[meta_key] = meta_value.replace("http://docker", "http://localhost")
                     elif type(meta_value) in (float, int):
                         keys_to_remove.append(meta_key)
 
