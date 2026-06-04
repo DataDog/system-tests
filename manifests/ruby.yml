@@ -2667,9 +2667,9 @@ manifest:
         sinatra14: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
         rails80: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
         uds-sinatra: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
-  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.36.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.36.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.36.0-dev
   tests/test_library_conf.py::Test_HeaderTags: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.13.0
