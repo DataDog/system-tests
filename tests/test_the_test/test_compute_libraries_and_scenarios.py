@@ -351,6 +351,19 @@ class Test_ComputeLibrariesAndScenarios:
             "lambda_end_to_end",
         )
 
+    def test_ruby_lambda_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/ruby_lambda/ruby-apigw-rest.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["ruby_lambda"],
+            ["ruby_lambda"],
+            600,
+            "false",
+            "DEFAULT",
+            "appsec_lambda",
+        )
+
     def test_doc(self):
         inputs = build_inputs(["binaries/dd-trace-go/_tools/README.md"])
 
