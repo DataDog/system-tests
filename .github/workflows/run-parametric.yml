@@ -156,7 +156,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - name: Push results to Test Optimization
-        if: inputs.push_to_test_optimization && !cancelled()
+        if: inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: ./.github/actions/push_to_test_optim
         with:
           datadog_site: ${{ inputs.test_optimization_datadog_site }}

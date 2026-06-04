@@ -37,7 +37,7 @@ runs:
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
-      if: github.event.pull_request.user.login != 'dependabot[bot]'
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success'
       shell: bash
       run: |
         cd repo
