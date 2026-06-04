@@ -19,7 +19,8 @@ RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && rm -rf \
       node_modules/next/dist/compiled/*experimental \
       node_modules/next/dist/compiled/react-server-dom-turbopack \
-      node_modules/next/dist/compiled/*babel* \
+      node_modules/next/dist/compiled/babel \
+      node_modules/next/dist/compiled/babel-packages \
       node_modules/next/dist/compiled/terser \
  && rm -rf .next/cache /root/.bun
 
