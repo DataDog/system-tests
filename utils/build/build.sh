@@ -402,18 +402,22 @@ BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
 
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
-    echo "Library ${TEST_LIBRARY} not found"
-    echo "Available libraries: $(echo $(list-libraries))"
-    exit 1
-fi
+# When building the weblog image, check the library and weblog variant exist.
+# Some libraries (e.g. cpp) have no default weblog variant.
+if [[ ",${BUILD_IMAGES}," == *",weblog,"* ]]; then
+    if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+        echo "Library ${TEST_LIBRARY} not found"
+        echo "Available libraries: $(echo $(list-libraries))"
+        exit 1
+    fi
 
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
+    WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
 
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
-    echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
-    echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
-    exit 1
+    if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+        echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
+        echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
+        exit 1
+    fi
 fi
 
 "${COMMAND}"
