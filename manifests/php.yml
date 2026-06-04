@@ -606,7 +606,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v1.8.3
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py: v1.21.0-dev
-  tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_exposures.py: v1.21.0-dev
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
@@ -759,6 +759,7 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was updated in v0.98.0 (w3c phase 2))
       component_version: <0.98.0
@@ -866,6 +867,7 @@ manifest:
       component_version: <=0.95.0
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v0.94.0
+  tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)

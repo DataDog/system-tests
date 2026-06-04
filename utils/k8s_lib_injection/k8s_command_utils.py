@@ -9,6 +9,10 @@ if TYPE_CHECKING:
     from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
 
 
+class K8sLibInjectionError(Exception):
+    """Raised when a k8s lib-injection helper fails (command execution, resource not ready, etc.)."""
+
+
 def execute_command(
     command: str,
     timeout: int | None = None,
@@ -45,7 +49,9 @@ def execute_command(
                 except subprocess.TimeoutExpired:
                     if timeout is None:
                         return None
-                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
+                    raise K8sLibInjectionError(
+                        f"Command: {command} timed out after {applied_timeout} seconds"
+                    ) from None
             if file_result.returncode != 0:
                 logger.error(f"Command exited {file_result.returncode}: {command} (output in {logfile})")
             return output
@@ -61,21 +67,26 @@ def execute_command(
         except subprocess.TimeoutExpired:
             if timeout is None:
                 return None
-            raise Exception(f"Command: {command} timed out after {applied_timeout} seconds") from None
+            raise K8sLibInjectionError(f"Command: {command} timed out after {applied_timeout} seconds") from None
 
         output = result.stdout.decode("utf-8", errors="replace")
         if not quiet:
             logger.debug(f"Command: {command} \n {output}")
         else:
             logger.info(f"Command: {command}")
-        if result.returncode != 0:
+        command_failed = result.returncode != 0
+        if command_failed:
             output_error_str = result.stderr.decode("utf-8", errors="replace")
             logger.debug(f"Command: {command} \n {output_error_str}")
-            raise Exception(f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
         raise
+
+    if command_failed:
+        error_message = f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}"
+        logger.error(f"Error executing command: {command} \n {error_message}")
+        raise K8sLibInjectionError(error_message)
 
     return output
 

@@ -1,18 +1,6 @@
-FROM node:22-alpine
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
-
-ENV NODE_ENV=production
+FROM datadog/system-tests:fastify.base-v1
 
 COPY utils/build/docker/nodejs/fastify /usr/app
-RUN npm ci || (sleep 30 && npm ci)
 
 EXPOSE 7777
 

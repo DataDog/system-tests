@@ -60,6 +60,11 @@ public class TraceController {
     }
   }
 
+  @GetMapping("agent/ensure_agent_info")
+  public Map<String, Object> ensureAgentInfo() {
+    return Map.of("ready", true);
+  }
+
   @GetMapping("crash")
   public void crash() {
     LOGGER.info("Crashing client app");

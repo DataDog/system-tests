@@ -555,9 +555,8 @@ jobs:
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Push results to Test Optimization
-      if: inputs.push_to_test_optimization && !cancelled()
+      if: steps.build.outcome == 'success' && inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
       uses: ./.github/actions/push_to_test_optim
       with:
-        datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
         ci_environment: ${{ inputs.ci_environment }}

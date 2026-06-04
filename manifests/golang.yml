@@ -1113,6 +1113,7 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_key_with_asterisk: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was updated in v1.62.0 (w3c phase 2))
       component_version: <1.62.0
@@ -1205,6 +1206,7 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : "irrelevant (\"Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
+  tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)

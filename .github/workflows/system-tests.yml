@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_nodejs_base_images:
+        description: "Shall we build Node.js base images for tests on Node.js tracer"
+        default: false
+        required: false
+        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -115,7 +120,7 @@ on:
         required: false
         type: number
       push_to_test_optimization:
-        description: "Push test result to DataDog Test Optimization, require TEST_OPTIMIZATION_API_KEY secret"
+        description: "Push test result to DataDog Test Optimization"
         default: false
         required: false
         type: boolean
@@ -134,10 +139,6 @@ on:
       DOCKERHUB_USERNAME:
         required: false
       DOCKERHUB_TOKEN:
-        required: false
-      TEST_OPTIMIZATION_API_KEY:
-        required: false
-      CIRCLECI_TOKEN:
         required: false
       DD_API_KEY:
         required: false
@@ -236,6 +237,10 @@ jobs:
         if: inputs.library == 'php' && inputs._build_php_base_images
         run: |
           ./utils/build/build_php_base_images.sh
+      - name: Build nodejs weblog base images
+        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
+        run: |
+          ./utils/build/build_nodejs_base_images.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

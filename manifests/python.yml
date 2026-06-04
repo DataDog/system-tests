@@ -1739,6 +1739,7 @@ manifest:
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v4.8.0
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: missing_feature (128-bit trace ID not propagated to all spans in a trace)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -1762,9 +1763,6 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.11.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.9.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: flaky (APMAPI-857, APMAPI-1860)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: flaky (APMAPI-1860)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: flaky (APMAPI-1051)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: flaky (APMAPI-179)
@@ -1811,6 +1809,7 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v3.7.0
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v2.8.0
   tests/parametric/test_headers_none.py::Test_Headers_None: v2.8.0
+  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: v2.8.0
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was switched to datadog,tracecontext)

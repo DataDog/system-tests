@@ -492,6 +492,29 @@ class ParametricTestClientApi(TestClientApi):
 
         return HTTPStatus(r.status_code).is_success
 
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Contract: docs/parametric/remote-config-apply-contract.md. Returns None on
+        tracers that haven't implemented the endpoint yet (404), as distinct from
+        [] which means the endpoint ran and applied nothing. On any other non-2xx
+        response (e.g. a 504 when the server-side drain timed out), logs a WARNING
+        and returns None instead of raising: a non-2xx response can occur even when
+        the tracer applied RC correctly, so the test should assert on actual tracer
+        state rather than be killed prematurely.
+        """
+        resp = self._session.post(
+            self._url("/trace/remote-config/apply"),
+            json={},
+            timeout=timeout,
+        )
+        if resp.status_code == HTTPStatus.NOT_FOUND:
+            return None
+        if not resp.ok:
+            logger.warning("flush_remote_config got %s: %s", resp.status_code, resp.text)
+            return None
+        return resp.json().get("applied_configs", [])
+
     def write_log(
         self,
         logger_name: str,
@@ -698,6 +721,12 @@ class ParametricTestClientApi(TestClientApi):
         )
         data = resp.json()
         return data["value"]
+
+    def ensure_agent_info(self) -> bool:
+        r = self._session.get(self._url("/trace/agent/ensure_agent_info"))
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+        return r.json().get("ready", True)
 
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
@@ -1056,8 +1085,19 @@ class APMLibrary:
         ) as span:
             yield span
 
+    def ensure_agent_info(self) -> bool:
+        return self._client.ensure_agent_info()
+
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
+
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Returns None on tracers that haven't implemented the endpoint yet.
+        Tests rarely call this directly; set_and_wait_rc() invokes it after the ACK.
+        """
+        return self._client.flush_remote_config(timeout=timeout)
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
