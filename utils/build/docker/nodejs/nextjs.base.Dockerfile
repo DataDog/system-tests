@@ -6,18 +6,16 @@ RUN apk add --no-cache bash curl git jq
 
 RUN node --version && npm --version && bun --version && curl --version
 
-COPY --chmod=755 utils/build/docker/nodejs/cleanup-node-modules.sh \
-    /usr/local/bin/cleanup-node-modules
-
 WORKDIR /usr/app
 
 COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/bun.lock ./
-RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
- && cleanup-node-modules
-
 COPY utils/build/docker/nodejs/nextjs /usr/app
-RUN bun run build \
- && rm -rf .next/cache src README.md bun.lock package-lock.json jsconfig.json
+COPY utils/build/docker/nodejs/nft-prune.mjs ./
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
+ && bun run build \
+ && node nft-prune.mjs node_modules/next/dist/bin/next \
+ && find node_modules -type d -empty -delete \
+ && rm -rf .next/cache src README.md bun.lock package-lock.json jsconfig.json /root/.bun nft-prune.mjs
 
 # docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v2 .
 # docker push datadog/system-tests:nextjs.base-v2

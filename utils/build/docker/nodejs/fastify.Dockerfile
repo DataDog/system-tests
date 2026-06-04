@@ -1,7 +1,5 @@
 FROM datadog/system-tests:fastify.base-v2
 
-COPY utils/build/docker/nodejs/fastify /usr/app
-
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user

@@ -6,16 +6,24 @@ RUN apk add --no-cache bash curl git jq
 
 RUN node --version && npm --version && bun --version && curl --version
 
-COPY --chmod=755 utils/build/docker/nodejs/cleanup-node-modules.sh \
-    /usr/local/bin/cleanup-node-modules
-
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
+COPY utils/build/docker/nodejs/fastify/app.js \
+     utils/build/docker/nodejs/fastify/dsm.js \
+     utils/build/docker/nodejs/fastify/rasp.js \
+     ./
+COPY utils/build/docker/nodejs/fastify/debugger ./debugger
+COPY utils/build/docker/nodejs/fastify/iast ./iast
+COPY utils/build/docker/nodejs/fastify/integrations ./integrations
+COPY utils/build/docker/nodejs/fastify/resources ./resources
 COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fastify/bun.lock ./
+COPY utils/build/docker/nodejs/nft-prune.mjs ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
- && cleanup-node-modules
+ && node nft-prune.mjs app.js \
+ && find node_modules -type d -empty -delete \
+ && rm -rf /root/.bun nft-prune.mjs
 
 # docker build --progress=plain -f utils/build/docker/nodejs/fastify.base.Dockerfile -t datadog/system-tests:fastify.base-v2 .
 # docker push datadog/system-tests:fastify.base-v2

@@ -1,7 +1,5 @@
 FROM datadog/system-tests:express4-typescript.base-v2
 
-COPY utils/build/docker/nodejs/express4-typescript /usr/app
-
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user

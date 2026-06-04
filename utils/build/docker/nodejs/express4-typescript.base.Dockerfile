@@ -6,14 +6,15 @@ RUN apk add --no-cache bash curl git jq
 
 RUN node --version && npm --version && bun --version && curl --version
 
-COPY --chmod=755 utils/build/docker/nodejs/cleanup-node-modules.sh \
-    /usr/local/bin/cleanup-node-modules
-
 WORKDIR /usr/app
 
+COPY utils/build/docker/nodejs/express4-typescript /usr/app
 COPY utils/build/docker/nodejs/express4-typescript/package.json utils/build/docker/nodejs/express4-typescript/bun.lock ./
+COPY utils/build/docker/nodejs/nft-prune.mjs ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
- && cleanup-node-modules --typescript
+ && node nft-prune.mjs --keep-types app.ts node_modules/typescript/bin/tsc \
+ && find node_modules -type d -empty -delete \
+ && rm -rf /root/.bun nft-prune.mjs
 
 # docker build --progress=plain -f utils/build/docker/nodejs/express4-typescript.base.Dockerfile -t datadog/system-tests:express4-typescript.base-v2 .
 # docker push datadog/system-tests:express4-typescript.base-v2
