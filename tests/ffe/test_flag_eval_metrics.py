@@ -1,5 +1,8 @@
 """Test feature flag evaluation metrics via OTel Metrics API."""
 
+import json
+import time
+
 from utils import (
     weblog,
     interfaces,
@@ -78,6 +81,50 @@ def get_tag_value(tags: list[str], key: str):
     return None
 
 
+def find_eval_metric_with_tags(flag_key: str, expected_tags: dict[str, str]):
+    """Find a matching evaluation metric series for the flag and expected tags."""
+    for point in find_eval_metrics(flag_key):
+        tags = point.get("tags", [])
+        if all(get_tag_value(tags, key) == value for key, value in expected_tags.items()):
+            return point
+
+    return None
+
+
+def post_string_eval(flag_key: str, *, targeting_key: str = "user-1", attributes: dict | None = None):
+    return weblog.post(
+        "/ffe",
+        json={
+            "flag": flag_key,
+            "variationType": "STRING",
+            "defaultValue": "default",
+            "targetingKey": targeting_key,
+            "attributes": attributes or {},
+        },
+    )
+
+
+def wait_for_string_eval(flag_key: str, *, variant: str = "on", timeout: float = 10.0):
+    """Wait until the weblog evaluates through a ready provider.
+
+    Remote Config ACK confirms sidecar delivery, not immediate tracer install.
+    Some tracers can still need one evaluation cycle before the provider reports
+    ready, especially immediately after scenario startup.
+    """
+    deadline = time.monotonic() + timeout
+    response = None
+    while time.monotonic() <= deadline:
+        response = post_string_eval(flag_key)
+        if response.status_code == 200:
+            body = json.loads(response.text)
+            if body.get("variant") == variant and body.get("reason") != "ERROR":
+                return response
+        time.sleep(0.25)
+
+    assert response is not None, "Expected at least one FFE evaluation response"
+    return response
+
+
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
 class Test_FFE_Eval_Metric_Basic:
@@ -88,29 +135,28 @@ class Test_FFE_Eval_Metric_Basic:
         self.flag_key = "eval-metric-basic-flag"
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        self.r = weblog.post(
-            "/ffe",
-            json={
-                "flag": self.flag_key,
-                "variationType": "STRING",
-                "defaultValue": "default",
-                "targetingKey": "user-1",
-                "attributes": {},
-            },
-        )
+        self.r = wait_for_string_eval(self.flag_key)
 
     def test_ffe_eval_metric_basic(self):
         """Test that flag evaluation produces a metric with correct tags."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+        result = json.loads(self.r.text)
+        assert result["variant"] == "on", f"Expected evaluated variant 'on', got response: {result}"
+        assert result["value"] == "on-value", f"Expected evaluated value 'on-value', got response: {result}"
 
-        metrics = find_eval_metrics(self.flag_key)
-        assert len(metrics) > 0, (
-            f"Expected at least one feature_flag.evaluations metric for flag '{self.flag_key}', "
-            f"but found none. All eval metrics: {find_eval_metrics()}"
+        point = find_eval_metric_with_tags(
+            self.flag_key,
+            {
+                "feature_flag.result.variant": "on",
+                "feature_flag.result.reason": "static",
+                "feature_flag.result.allocation_key": "default-allocation",
+            },
+        )
+        assert point is not None, (
+            f"Expected a successful feature_flag.evaluations metric for flag '{self.flag_key}', "
+            f"but found none. Matching flag metrics: {find_eval_metrics(self.flag_key)}"
         )
 
-        # Verify tags on the first matching metric point
-        point = metrics[0]
         tags = point.get("tags", [])
 
         assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
