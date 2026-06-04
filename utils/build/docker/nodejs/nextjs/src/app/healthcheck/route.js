@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET (request) {
+export async function GET () {
   const maybeRequire = name => { try { return __non_webpack_require__(name) } catch (e) {} }
 
   const { version } = maybeRequire('dd-trace/package.json')
@@ -13,7 +13,7 @@ export async function GET (request) {
     status: 'ok',
     library: {
       name: 'nodejs',
-      version,
+      version
     }
   }, {
     status: 200
