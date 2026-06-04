@@ -3925,7 +3925,11 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation::test_obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0
