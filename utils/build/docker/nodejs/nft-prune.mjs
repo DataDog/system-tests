@@ -33,6 +33,13 @@ if (keepTypes) {
   }
 }
 
+// .bin shims are symlinks not traced by nft but needed to launch binaries
+try {
+  for await (const fullPath of walk(join(cwd, 'node_modules/.bin'))) {
+    keep.add(relative(cwd, fullPath))
+  }
+} catch {}
+
 let removed = 0
 for await (const fullPath of walk(join(cwd, 'node_modules'))) {
   const rel = relative(cwd, fullPath)
