@@ -13,7 +13,14 @@ COPY utils/build/docker/nodejs/nextjs /usr/app
 COPY utils/build/docker/nodejs/nft-prune.mjs ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && bun run build \
- && node nft-prune.mjs node_modules/next/dist/bin/next \
+ && node nft-prune.mjs \
+      --keep-dir=node_modules/next/dist/compiled \
+      node_modules/next/dist/bin/next \
+ && rm -rf \
+      node_modules/next/dist/compiled/*experimental \
+      node_modules/next/dist/compiled/react-server-dom-turbopack \
+      node_modules/next/dist/compiled/*babel* \
+      node_modules/next/dist/compiled/terser \
  && rm -rf .next/cache /root/.bun
 
 # docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v2 .

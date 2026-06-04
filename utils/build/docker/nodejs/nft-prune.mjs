@@ -9,6 +9,7 @@ import { join, relative } from 'path'
 const cwd = process.cwd()
 const args = process.argv.slice(2)
 const keepTypes = args.includes('--keep-types')
+const keepDirs = args.filter(a => a.startsWith('--keep-dir=')).map(a => a.slice(11))
 const entries = args.filter(a => !a.startsWith('--'))
 
 if (entries.length === 0) {
@@ -39,6 +40,14 @@ try {
     keep.add(relative(cwd, fullPath))
   }
 } catch {}
+
+for (const dir of keepDirs) {
+  try {
+    for await (const fullPath of walk(join(cwd, dir))) {
+      keep.add(relative(cwd, fullPath))
+    }
+  } catch {}
+}
 
 let removed = 0
 for await (const fullPath of walk(join(cwd, 'node_modules'))) {
