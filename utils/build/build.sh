@@ -156,8 +156,6 @@ build() {
     echo "=================================="
     echo "build images for system tests"
     echo ""
-    echo "TEST_LIBRARY:      $TEST_LIBRARY"
-    echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
     echo "BUILD_IMAGES:      $BUILD_IMAGES"
     echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
     echo ""
@@ -241,6 +239,23 @@ build() {
                 find . -mindepth 1 -type d -exec rm -rf {} +
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
+
+            if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+                echo "Library ${TEST_LIBRARY} not found"
+                echo "Available libraries: $(echo $(list-libraries))"
+                exit 1
+            fi
+
+            WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
+
+            if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+                echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
+                echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
+                exit 1
+            fi
+
+            echo "TEST_LIBRARY:      $TEST_LIBRARY"
+            echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
 
             if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
@@ -401,19 +416,5 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
-    echo "Library ${TEST_LIBRARY} not found"
-    echo "Available libraries: $(echo $(list-libraries))"
-    exit 1
-fi
-
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
-    echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
-    echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
-    exit 1
-fi
 
 "${COMMAND}"
