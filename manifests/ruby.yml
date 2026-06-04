@@ -1942,10 +1942,10 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
     - weblog_declaration:
         "*": irrelevant
-        sinatra14: missing_feature
-        sinatra22: missing_feature
-        sinatra32: missing_feature
-        sinatra41: missing_feature
+        sinatra14: v2.35.0  # TODO: a lower version might be supported
+        sinatra22: v2.35.0  # TODO: a lower version might be supported
+        sinatra32: v2.35.0  # TODO: a lower version might be supported
+        sinatra41: v2.35.0  # TODO: a lower version might be supported
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
