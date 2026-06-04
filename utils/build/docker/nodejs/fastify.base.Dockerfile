@@ -22,8 +22,7 @@ COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fa
 COPY utils/build/docker/nodejs/nft-prune.mjs ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && node nft-prune.mjs app.js \
- && find node_modules -type d -empty -delete \
- && rm -rf /root/.bun nft-prune.mjs
+ && rm -rf /root/.bun
 
 # docker build --progress=plain -f utils/build/docker/nodejs/fastify.base.Dockerfile -t datadog/system-tests:fastify.base-v2 .
 # docker push datadog/system-tests:fastify.base-v2

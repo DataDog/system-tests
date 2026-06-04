@@ -15,8 +15,7 @@ COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/e
 COPY utils/build/docker/nodejs/nft-prune.mjs ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && node nft-prune.mjs app.js \
- && find node_modules -type d -empty -delete \
- && rm -rf /root/.bun nft-prune.mjs
+ && rm -rf /root/.bun
 
 # docker build --progress=plain -f utils/build/docker/nodejs/express4.base.Dockerfile -t datadog/system-tests:express4.base-v2 .
 # docker push datadog/system-tests:express4.base-v2
