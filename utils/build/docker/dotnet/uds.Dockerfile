@@ -40,6 +40,12 @@ ENV Logging__LogLevel__Default=Debug
 ENV Logging__LogLevel__Microsoft.AspNetCore.Server.Kestrel=Debug
 ENV Logging__LogLevel__Microsoft.AspNetCore.Hosting=Debug
 
+# [DIAG do-not-merge] hypothesis test: .NET ThreadPool starvation on Kestrel's response-flush path
+# is causing the ~5s stall on /rasp/sqli. Forcing min worker + IOCP threads to 32 should
+# eliminate the starvation. If the stall disappears, root cause confirmed.
+ENV DOTNET_ThreadPool_ForceMinWorkerThreads=32
+ENV DOTNET_ThreadPool_ForceMinIoCompletionThreads=32
+
 # .NET runtime config
 ENV ASPNETCORE_hostBuilder__reloadConfigOnChange=false
 # - Enable dump on crash
