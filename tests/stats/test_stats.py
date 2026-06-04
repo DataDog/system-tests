@@ -218,8 +218,9 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
 
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
 
-        assert len(sql_stats) == 4, (
-            "Expected 4 distincs SQL stats entry, because obfuscation was not applied client-side"
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) == 4, (
+            "Expected 4 distinct SQL stats entries, because obfuscation was not applied client-side"
         )
         # NormalizeOnly mode preserves string literals including surrounding single quotes.
         # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
@@ -271,7 +272,10 @@ class Test_Client_Stats_Future_Obfuscation_Version:
             "Datadog-Obfuscation-Version header should NOT be present when agent reports a future obfuscation version"
         )
 
-        assert len(sql_stats) == 4, "Expected at least one SQL stats entry"
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) == 4, (
+            "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        )
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
                 f"SQL resource should NOT be obfuscated when agent reports a future obfuscation version, "
@@ -316,7 +320,8 @@ class Test_Client_Stats_Missing_Obfuscation_Version:
             "Datadog-Obfuscation-Version header should NOT be present when agent does not advertise obfuscation_version"
         )
 
-        assert len(sql_stats) == 4, (
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) == 4, (
             "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
         )
         for stat in sql_stats:
@@ -363,7 +368,8 @@ class Test_Client_Stats_Obfuscation_Version_Zero:
             "Datadog-Obfuscation-Version header should NOT be present when agent advertises obfuscation_version=0"
         )
 
-        assert len(sql_stats) == 4, (
+        unique_resources = {stat["Resource"] for stat in sql_stats}
+        assert len(unique_resources) == 4, (
             "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
         )
         for stat in sql_stats:
