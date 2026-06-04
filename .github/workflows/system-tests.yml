@@ -120,7 +120,7 @@ on:
         required: false
         type: number
       push_to_test_optimization:
-        description: "Push test result to DataDog Test Optimization, require TEST_OPTIMIZATION_API_KEY secret"
+        description: "Push test result to DataDog Test Optimization"
         default: false
         required: false
         type: boolean
@@ -139,10 +139,6 @@ on:
       DOCKERHUB_USERNAME:
         required: false
       DOCKERHUB_TOKEN:
-        required: false
-      TEST_OPTIMIZATION_API_KEY:
-        required: false
-      CIRCLECI_TOKEN:
         required: false
       DD_API_KEY:
         required: false

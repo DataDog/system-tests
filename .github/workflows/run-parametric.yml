@@ -76,10 +76,6 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
-    secrets:
-      TEST_OPTIMIZATION_API_KEY:
-        description: "API key for pushing test results to DataDog Test Optimization"
-        required: false
 
 env:
   REGISTRY: ghcr.io
@@ -163,6 +159,5 @@ jobs:
         if: inputs.push_to_test_optimization && !cancelled()
         uses: ./.github/actions/push_to_test_optim
         with:
-          datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
           datadog_site: ${{ inputs.test_optimization_datadog_site }}
           ci_environment: ${{ inputs.ci_environment }}
