@@ -322,6 +322,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "dd_apm_inject",
         "k8s_cluster_agent",
         "python_lambda",
+        "ruby_lambda",
         "envoy",
         "haproxy",
     ):
