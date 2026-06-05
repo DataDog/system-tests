@@ -108,7 +108,15 @@ class _Owner(Enum):
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                             })
     ml_observability     = _OwnerDef("@DataDog/ml-observability")
-    profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
+    profiler             = _OwnerDef("@DataDog/profiling", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/profiling-dotnet",
+                                "dd-trace-go":  "@DataDog/profiling-go",
+                                "dd-trace-java":  "@DataDog/profiling-java",
+                                "dd-trace-js":  "@DataDog/profiling-js",
+                                "dd-trace-php":  "@DataDog/profiling-php",
+                                "dd-trace-py":  "@DataDog/profiling-python",
+                                "dd-trace-rb":  "@DataDog/profiling-rb",
+                            })
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
     sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
