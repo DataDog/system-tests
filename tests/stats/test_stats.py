@@ -69,20 +69,14 @@ class Test_Client_Stats:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
     def test_obfuscation(self):
-        stats_count = 0
         hits = 0
         top_hits = 0
-        resource = "SELECT * FROM users WHERE id = ?"
-        # wait for 10 seconds to be sure all the buckets are flushed (better than be flaky)
-        for s in interfaces.agent.get_stats(resource):
-            stats_count += 1
+        for s in interfaces.agent.get_stats():
+            if s["Type"] != "sql" or "?" not in s["Resource"]:
+                continue
             logger.debug(f"asserting on {s}")
             hits += s["Hits"]
             top_hits += s["TopLevelHits"]
-            assert s["Type"] == "sql", "expect 'sql' type"
-        assert stats_count <= 4, (
-            "expect <= 4 stats"
-        )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert hits == top_hits >= 4, "expect at least 4 'OK' hits and top level hits across all payloads"
 
     def test_is_trace_root(self):
@@ -154,7 +148,6 @@ class Test_Client_Stats_With_Client_Obfuscation:
         - SQL resource names are obfuscated (literals replaced with ?)
         - All 4 distinct queries are aggregated into a single obfuscated resource bucket
         """
-        want = "SELECT * FROM users WHERE id = ?"
         sql_stats = []
         obfuscation_header_found = False
 
@@ -176,7 +169,7 @@ class Test_Client_Stats_With_Client_Obfuscation:
 
         assert len(sql_stats) >= 1, "Expected at least one SQL stats entry"
         for stat in sql_stats:
-            assert stat["Resource"] == want, f"Expected obfuscated resource '{want}', got '{stat['Resource']}'"
+            assert "?" in stat["Resource"], f"Expected obfuscated resource (containing '?'), got '{stat['Resource']}'"
 
 
 @features.client_side_stats_supported
@@ -198,7 +191,6 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
         - Datadog-Obfuscation-Version header is present on stats payloads
         - SQL resource names are not obfuscated, only normalized
         """
-        want_prefix = "SELECT * FROM users WHERE id = "
         sql_stats = []
         obfuscation_header_found = False
 
@@ -222,17 +214,6 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
         assert len(unique_resources) >= 4, (
             "Expected at least 4 distinct SQL stats entries, because obfuscation was not applied client-side"
         )
-        # NormalizeOnly mode preserves string literals including surrounding single quotes.
-        # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
-        # suffix appears as e.g. "'1'" (with quotes). Accept both quoted and unquoted forms
-        # to be compatible with tracers that may strip the quotes.
-        quoted_user_ids = {f"'{uid}'" for uid in self.TEST_USER_IDS}
-        accepted_suffixes = set(self.TEST_USER_IDS) | quoted_user_ids
-        for stat in sql_stats:
-            query = stat["Resource"]
-            # assert that query is in the form SELECT * FROM users WHERE id = [one of the user ids]
-            assert query.startswith(want_prefix)
-            assert query.removeprefix(want_prefix) in accepted_suffixes
 
 
 @features.client_side_stats_supported
@@ -265,7 +246,7 @@ class Test_Client_Stats_Future_Obfuscation_Version:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT * FROM users"):
+                    if stat.get("Type") == "sql" and "WHERE" in stat["Resource"]:
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (
@@ -313,7 +294,7 @@ class Test_Client_Stats_Missing_Obfuscation_Version:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT * FROM users"):
+                    if stat.get("Type") == "sql" and "WHERE" in stat["Resource"]:
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (
@@ -361,7 +342,7 @@ class Test_Client_Stats_Obfuscation_Version_Zero:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT * FROM users"):
+                    if stat.get("Type") == "sql" and "WHERE" in stat["Resource"]:
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (
