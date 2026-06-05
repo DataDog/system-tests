@@ -142,16 +142,6 @@ run_build_command() {
 }
 
 build() {
-    CACHE_TO=
-    CACHE_FROM=
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
-        echo "Setting remote cache for read"
-        CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
-        echo "Setting remote cache for write"
-        CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
 
     echo "=================================="
     echo "build images for system tests"
@@ -322,6 +312,17 @@ build() {
 
                     echo "Using GitHub token from $GITHUB_TOKEN_FILE"
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
+                fi
+
+                CACHE_TO=
+                CACHE_FROM=
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+                    echo "Setting remote cache for read"
+                    CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+                fi
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+                    echo "Setting remote cache for write"
+                    CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
                 fi
 
                 run_build_command docker buildx build \
