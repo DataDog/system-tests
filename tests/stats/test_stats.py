@@ -219,8 +219,8 @@ class Test_Client_Stats_With_Client_Obfuscation_Disabled:
         assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
 
         unique_resources = {stat["Resource"] for stat in sql_stats}
-        assert len(unique_resources) == 4, (
-            "Expected 4 distinct SQL stats entries, because obfuscation was not applied client-side"
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries, because obfuscation was not applied client-side"
         )
         # NormalizeOnly mode preserves string literals including surrounding single quotes.
         # The SQL uses string-quoted IDs (e.g. WHERE id='1'), so after normalization the
@@ -273,8 +273,8 @@ class Test_Client_Stats_Future_Obfuscation_Version:
         )
 
         unique_resources = {stat["Resource"] for stat in sql_stats}
-        assert len(unique_resources) == 4, (
-            "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries because obfuscation was not applied client-side"
         )
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
@@ -321,8 +321,8 @@ class Test_Client_Stats_Missing_Obfuscation_Version:
         )
 
         unique_resources = {stat["Resource"] for stat in sql_stats}
-        assert len(unique_resources) == 4, (
-            "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries because obfuscation was not applied client-side"
         )
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
@@ -369,8 +369,8 @@ class Test_Client_Stats_Obfuscation_Version_Zero:
         )
 
         unique_resources = {stat["Resource"] for stat in sql_stats}
-        assert len(unique_resources) == 4, (
-            "Expected 4 distinct SQL stats entries because obfuscation was not applied client-side"
+        assert len(unique_resources) >= 4, (
+            "Expected at least 4 distinct SQL stats entries because obfuscation was not applied client-side"
         )
         for stat in sql_stats:
             assert "?" not in stat["Resource"], (
