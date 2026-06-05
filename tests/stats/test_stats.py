@@ -265,7 +265,7 @@ class Test_Client_Stats_Future_Obfuscation_Version:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT * FROM users"):
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (
@@ -313,7 +313,7 @@ class Test_Client_Stats_Missing_Obfuscation_Version:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT * FROM users"):
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (
@@ -361,7 +361,7 @@ class Test_Client_Stats_Obfuscation_Version_Zero:
             payload = data["request"]["content"]
             for bucket in payload.get("Stats", []):
                 for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
+                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT * FROM users"):
                         sql_stats.append(stat)
 
         assert not obfuscation_header_found, (
