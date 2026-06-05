@@ -8,7 +8,12 @@ import uuid
 import pytest
 
 from .conftest import StableConfigWriter
-from utils.telemetry_utils import TelemetryUtils
+from utils.telemetry_utils import (
+    DD_KEY_SENTINELS,
+    OTLP_HEADER_SENTINELS,
+    TelemetryUtils,
+    assert_no_sensitive_value_in_telemetry,
+)
 
 from utils import context, scenarios, rfc, features, logger
 from utils.docker_fixtures import TestAgentAPI
@@ -1288,3 +1293,72 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled[0].get("value") is None
         else:
             assert all(config_name not in configuration_by_name for config_name in dd_appsec_sca_enabled_names)
+
+
+@rfc("https://docs.google.com/document/d/14vsrCbnAKnXmJAkacX9I6jKPGKmxsq0PKUb3dfiZpWE/edit")
+@scenarios.parametric
+@features.telemetry_app_started_event
+class Test_TelemetryConfigSensitive:
+    """Sensitive configuration values are not reported with their real value in configuration telemetry.
+
+    Covers the OTLP exporter header family and the Datadog key family. Each value is set to a distinct
+    recognizable sentinel; the configured value must not appear in any reported configuration value.
+    Tracers satisfy this by either omitting the configuration entry or by redacting its value, so a
+    single assertion (sentinel-absence) covers both idioms with no per-language carve-out.
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # Each OTLP header variant carries a distinct sentinel value. A tracer that does not read
+                # a given variant simply will not report it, so the same assertion holds for every language.
+                "OTEL_EXPORTER_OTLP_HEADERS": f"dd-api-key={OTLP_HEADER_SENTINELS['OTEL_EXPORTER_OTLP_HEADERS']}",
+                "OTEL_EXPORTER_OTLP_TRACES_HEADERS": (
+                    f"dd-api-key={OTLP_HEADER_SENTINELS['OTEL_EXPORTER_OTLP_TRACES_HEADERS']}"
+                ),
+                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": (
+                    f"dd-api-key={OTLP_HEADER_SENTINELS['OTEL_EXPORTER_OTLP_METRICS_HEADERS']}"
+                ),
+                "OTEL_EXPORTER_OTLP_LOGS_HEADERS": (
+                    f"dd-api-key={OTLP_HEADER_SENTINELS['OTEL_EXPORTER_OTLP_LOGS_HEADERS']}"
+                ),
+            },
+        ],
+    )
+    def test_otlp_headers_not_in_telemetry(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """No OTEL_EXPORTER_OTLP_*_HEADERS value appears in configuration telemetry."""
+        with test_library.dd_start_span("test"):
+            pass
+
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        assert configuration_by_name, "No configuration telemetry was reported"
+
+        assert_no_sensitive_value_in_telemetry(configuration_by_name, list(OTLP_HEADER_SENTINELS.values()))
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # Set the Datadog key family to recognizable sentinels. The parametric scenario points the
+                # tracer at the test agent via DD_TRACE_AGENT_URL, so configuration telemetry is still captured.
+                "DD_API_KEY": DD_KEY_SENTINELS["DD_API_KEY"],
+                "DD_APP_KEY": DD_KEY_SENTINELS["DD_APP_KEY"],
+                # A control config that is reported normally, so we can confirm configuration reporting is active.
+                "DD_SERVICE": "test_telemetry_config_sensitive",
+            },
+        ],
+    )
+    def test_dd_api_key_not_in_telemetry(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """No DD_API_KEY / DD_APP_KEY value appears in configuration telemetry."""
+        with test_library.dd_start_span("test"):
+            pass
+
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        assert configuration_by_name, "No configuration telemetry was reported"
+
+        assert_no_sensitive_value_in_telemetry(configuration_by_name, list(DD_KEY_SENTINELS.values()))

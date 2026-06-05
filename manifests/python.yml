@@ -1893,12 +1893,16 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: v3.15.0
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Python SDK bug - LoggerProvider.get_logger() caching doesn't preserve scope attributes when attributes=None)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature
   tests/parametric/test_otel_metrics.py: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=4.3.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
@@ -2013,6 +2017,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v3.7.0.dev
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1630)
+  tests/parametric/test_telemetry.py::Test_TelemetryConfigSensitive: missing_feature (Sensitive configurations not yet excluded from configuration telemetry)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v2.5.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.9.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_not_propagated:

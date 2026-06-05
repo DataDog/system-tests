@@ -2099,6 +2099,8 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (dd-trace-js does not support scope attributes - hardcoded to empty array in otlp_transformer.js)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: *ref_5_72_0
@@ -2110,6 +2112,8 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Implemented in v5.17.0 & v4.41.0)
@@ -2218,6 +2222,7 @@ manifest:
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
   : - declaration: missing_feature (extended configs are not supported)
       component_version: <=5.75.0
+  tests/parametric/test_telemetry.py::Test_TelemetryConfigSensitive: missing_feature (Sensitive configurations not yet excluded from configuration telemetry)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: *ref_4_23_0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: *ref_5_13_0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant

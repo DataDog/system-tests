@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 import pytest
 
 from utils import features, scenarios
+from utils.telemetry_utils import OTLP_HEADER_SENTINELS, assert_no_otlp_header_value_in_telemetry
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -1869,7 +1870,7 @@ class Test_Otel_Metrics_Telemetry:
                     **DEFAULT_ENVVARS,
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                     "OTEL_EXPORTER_OTLP_TIMEOUT": "30000",
-                    "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
+                    "OTEL_EXPORTER_OTLP_HEADERS": f"dd-api-key={OTLP_HEADER_SENTINELS['OTEL_EXPORTER_OTLP_HEADERS']}",
                     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                     "OTEL_METRIC_EXPORT_INTERVAL": "5000",
                     "OTEL_METRIC_EXPORT_TIMEOUT": "5000",
@@ -1886,7 +1887,11 @@ class Test_Otel_Metrics_Telemetry:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Test configurations starting with OTEL_EXPORTER_OTLP_ are sent to the instrumentation telemetry intake."""
+        """Test non-header OTEL_EXPORTER_OTLP_ configurations are sent to the instrumentation telemetry intake.
+
+        The OTEL_EXPORTER_OTLP_HEADERS value is not reported in configuration telemetry: tracers either
+        omit the entry or redact its value, so the configured header value never appears in any reported value.
+        """
         name = "test_telemetry_exporter_configurations"
 
         with test_library as t:
@@ -1900,7 +1905,6 @@ class Test_Otel_Metrics_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
             ("OTEL_METRIC_EXPORT_INTERVAL", "5000"),
@@ -1916,6 +1920,8 @@ class Test_Otel_Metrics_Telemetry:
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
+        assert_no_otlp_header_value_in_telemetry(configurations_by_name)
+
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
@@ -1924,7 +1930,7 @@ class Test_Otel_Metrics_Telemetry:
                     "DD_METRICS_OTEL_ENABLED": "true",
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                     "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "30000",
-                    "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
+                    "OTEL_EXPORTER_OTLP_METRICS_HEADERS": f"dd-api-key={OTLP_HEADER_SENTINELS['OTEL_EXPORTER_OTLP_METRICS_HEADERS']}",
                     "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 },
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
@@ -1939,7 +1945,11 @@ class Test_Otel_Metrics_Telemetry:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Test Teleemtry configurations starting with OTEL_EXPORTER_OTLP_METRICS_ are sent to the instrumentation telemetry intake."""
+        """Test non-header OTEL_EXPORTER_OTLP_METRICS_ configurations are sent to the instrumentation telemetry intake.
+
+        The OTEL_EXPORTER_OTLP_METRICS_HEADERS value is not reported in configuration telemetry: tracers either
+        omit the entry or redact its value, so the configured header value never appears in any reported value.
+        """
         name = "test_telemetry_exporter_metrics_configurations"
 
         with test_library as t:
@@ -1953,7 +1963,6 @@ class Test_Otel_Metrics_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
         ]:
@@ -1966,6 +1975,8 @@ class Test_Otel_Metrics_Telemetry:
             assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
+
+        assert_no_otlp_header_value_in_telemetry(configurations_by_name)
 
     @pytest.mark.parametrize(
         "library_env",

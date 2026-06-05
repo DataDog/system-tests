@@ -913,9 +913,8 @@ manifest:
   tests/parametric/test_otel_metrics.py: v3.29.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature (Not supported by .NET's System.Diagnostics.Metrics API)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations:  # Modified by easy win activation script
-    - declaration: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
-      component_version: <3.36.0
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: missing_feature (OTLP header configurations not yet excluded from configuration telemetry)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
@@ -1018,6 +1017,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id: missing_feature (Not implemented)
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
   : irrelevant (temporary use case for python, ruby and nodejs)
+  tests/parametric/test_telemetry.py::Test_TelemetryConfigSensitive: missing_feature (Sensitive configurations not yet excluded from configuration telemetry)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v2.45.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.50.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant

@@ -277,6 +277,7 @@ manifest:
   : missing_feature (extended configs are not supported)
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
   : missing_feature (extended configs are not supported)
+  tests/parametric/test_telemetry.py::Test_TelemetryConfigSensitive: missing_feature (Sensitive configurations not yet excluded from configuration telemetry)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: ">1.0.0"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
