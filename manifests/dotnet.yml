@@ -30,7 +30,10 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.50.0
   tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        poc: '>=3.45.0'
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative:  # Modified by easy win activation script
     - weblog_declaration:
@@ -62,7 +65,10 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v2.46.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.26.3
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        poc: '>=3.45.0'
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
@@ -515,7 +521,18 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.26.3
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
-  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-61286)
+      component_version: <3.45.0
+      weblog: [poc]
+    - declaration: bug (APPSEC-61286)
+      excluded_weblog: [poc]
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_No_Blocking:
+    - weblog_declaration:
+        poc: bug (APPSEC-61286)
+  tests/appsec/test_span_tags_headers.py::Test_Headers_No_Event:
+    - weblog_declaration:
+        poc: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v3.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.44.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.44.0
