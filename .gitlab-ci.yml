@@ -325,7 +325,8 @@ system-tests-param:
     - job: build_ci_image
       artifacts: true
   script:
-    - source /system-tests/venv/bin/activate
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
     - export PYTHONPATH=$(pwd)
     - git fetch origin main
     - mkdir -p original && git archive origin/main -- manifests/ | tar -xC original/
