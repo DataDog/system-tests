@@ -330,7 +330,7 @@ system-tests-param:
     - git fetch origin main
     - mkdir -p original && git archive origin/main -- manifests/ | tar -xC original/
     - git diff origin/main...HEAD --name-only > modified_files.txt
-    - mkdir -p logs_mock_the_test && echo '{}' > logs_mock_the_test/scenarios.json
+    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
     - python3 utils/scripts/compute_libraries_and_scenarios.py --output raw_params.txt
     - |
       python3 -c "
@@ -369,5 +369,3 @@ build_ci_image:
   artifacts:
     reports:
       dotenv: build.env
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
