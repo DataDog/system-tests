@@ -1,3 +1,4 @@
+{% if not skip_header %}
 workflow:
   name: "System-tests end to end"
 
@@ -31,6 +32,7 @@ setup:
       aud: dd-sts
   script:
     - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level pipeline --tags "system-tests:true"
+{% endif %}
 
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:

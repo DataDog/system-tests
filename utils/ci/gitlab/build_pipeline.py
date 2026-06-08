@@ -28,7 +28,7 @@ env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), auto
 
 template = env.get_template("system-tests.yml")
 
-output = template.render(
+print(template.render(
     scenarios=scenario_list,
     stage=args.stage,
     library=args.library,
@@ -40,20 +40,5 @@ output = template.render(
     ref=args.ref,
     push_to_test_optimization=args.push_to_test_optimization == "true",
     test_optimization_datadog_site=args.test_optimization_datadog_site,
-)
-
-if args.skip_header:
-    # Start output from the first generated job (build_ or run_)
-    lines = output.splitlines(keepends=True)
-    body_start = 0
-    for i, line in enumerate(lines):
-        if not line.startswith(" ") and ":" in line:
-            key = line.split(":")[0]
-            if key.startswith("build_") or key.startswith("run_"):
-                body_start = i
-                break
-    print("".join(lines[body_start:]), end="")
-else:
-    print(output, end="")
-
-
+    skip_header=args.skip_header,
+), end="")
