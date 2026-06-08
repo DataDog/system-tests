@@ -24,7 +24,11 @@ parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
 # Build variants to compile are those requiring build
 weblog_variants = [w["name"] for w in parallel_weblogs]
 # Flatten scenario/job pairs for run jobs
-scenario_pairs = [(job["weblog"], scenario) for job in parallel_jobs for scenario in job.get("scenarios", [])]
+scenario_pairs = [
+    (job["weblog"], scenario, job.get("weblog_build_required", True))
+    for job in parallel_jobs
+    for scenario in job.get("scenarios", [])
+]
 binaries_artifact = params["miscs"]["binaries_artifact"]
 ci_environment = params["miscs"]["ci_environment"]
 parametric = params["parametric"]

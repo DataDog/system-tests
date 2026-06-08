@@ -63,7 +63,7 @@ build_{{library}}_{{variant}}:
       - binaries/
 
 {% endfor %}
-{% for variant, scenario in scenario_pairs %}
+{% for variant, scenario, build_required in scenario_pairs %}
 run_{{library}}_{{scenario}}_{{variant}}:
   extends:
     - .system_tests_base
@@ -71,8 +71,13 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - .push_to_test_optimization
 {% endif %}
   needs:
+  {% if build_required %}
     - job: build_{{library}}_{{variant}}
       artifacts: true
+  {% elif binaries_artifact %}
+    - job: {{binaries_artifact}}
+      artifacts: true
+  {% endif %}
   script:
     - section_start "docker_auth" "Docker hub auth"
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
