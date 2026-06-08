@@ -575,6 +575,7 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full: v1.19.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: missing_feature
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
