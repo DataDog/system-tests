@@ -124,9 +124,9 @@ build_test_pipeline:
       aud: dd-sts
   script:
     - |
-      libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ')
-      scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS")
-      scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS")
+      libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
+      scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | grep . | tr '\n' ',' | sed 's/,$//')
+      scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | grep . | tr '\n' ',' | sed 's/,$//')
       echo "libraries:       $libraries"
       echo "scenarios:       $scenarios"
       echo "scenario_groups: $scenario_groups"
