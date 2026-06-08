@@ -3,7 +3,6 @@ include:
   - local: /utils/ci/gitlab/main.yml
     inputs:
       stage: "build"
-      scenarios_groups: "all"
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
@@ -318,11 +317,35 @@ variables:
 # ──────────────────────────────────────────────
 
 system-tests-param:
+  image: $CI_IMAGE
   stage: build
   tags:
     - arch:amd64
+  needs:
+    - job: build_ci_image
+      artifacts: true
   script:
-    - echo 'LIBRARIES=python' > param.env
+    - source /system-tests/venv/bin/activate
+    - export PYTHONPATH=$(pwd)
+    - git fetch origin main
+    - mkdir -p original && git archive origin/main -- manifests/ | tar -xC original/
+    - git diff origin/main...HEAD --name-only > modified_files.txt
+    - mkdir -p logs_mock_the_test && echo '{}' > logs_mock_the_test/scenarios.json
+    - python3 utils/scripts/compute_libraries_and_scenarios.py --output raw_params.txt
+    - |
+      python3 -c "
+      import json
+      with open('raw_params.txt') as f:
+          for line in f:
+              line = line.strip()
+              if '=' not in line: continue
+              key, val = line.split('=', 1)
+              val = json.loads(val)
+              if key == 'libraries': print(f'LIBRARIES={val}')
+              elif key == 'scenarios': print(f'SCENARIOS={val}')
+              elif key == 'scenarios_groups': print(f'SCENARIO_GROUPS={val}')
+      " > param.env
+    - cat param.env
   artifacts:
     reports:
       dotenv: param.env
