@@ -9,7 +9,7 @@ spec:
       default: ""
     scenarios_groups:
       description: "Comma-separated list of scenario groups to run"
-      default: "all"
+      default: ""
     excluded_scenarios:
       description: "Comma-separated list of scenarios not to run"
       default: "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
@@ -131,10 +131,12 @@ build_test_pipeline:
       echo "weblogs:         $weblogs"
       count=0
       for lib in $libraries; do count=$((count + 1)); done
-      half=$(( (count + 1) / 2 ))
+      third=$(( (count + 2) / 3 ))
+      [ $third -eq 0 ] && third=1
       idx=0
       for library in $libraries; do
-        [ $idx -lt $half ] && chunk=0 || chunk=1
+        chunk=$(( idx / third ))
+        [ $chunk -gt 2 ] && chunk=2
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
         if [ ! -f generated-pipeline-chunk-${chunk}.yml ]; then
           python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" > generated-pipeline-chunk-${chunk}.yml
@@ -143,15 +145,17 @@ build_test_pipeline:
         fi
         idx=$((idx + 1))
       done
-      # Ensure chunk-1 always exists: trigger include requires both files regardless of library count
-      if [ ! -f generated-pipeline-chunk-1.yml ] && [ -f generated-pipeline-chunk-0.yml ]; then
-        first_job=$(grep -nm1 '^build_' generated-pipeline-chunk-0.yml | cut -d: -f1 || true)
-        if [ -n "$first_job" ]; then
-          head -n $((first_job - 1)) generated-pipeline-chunk-0.yml > generated-pipeline-chunk-1.yml
-        else
-          cp generated-pipeline-chunk-0.yml generated-pipeline-chunk-1.yml
+      # Ensure all 3 chunk files exist: trigger include requires all files regardless of library count
+      for i in 1 2; do
+        if [ ! -f generated-pipeline-chunk-${i}.yml ] && [ -f generated-pipeline-chunk-0.yml ]; then
+          first_job=$(grep -nm1 '^build_' generated-pipeline-chunk-0.yml | cut -d: -f1 || true)
+          if [ -n "$first_job" ]; then
+            head -n $((first_job - 1)) generated-pipeline-chunk-0.yml > generated-pipeline-chunk-${i}.yml
+          else
+            cp generated-pipeline-chunk-0.yml generated-pipeline-chunk-${i}.yml
+          fi
         fi
-      fi
+      done
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
@@ -178,6 +182,8 @@ run_test_pipeline:
       - artifact: system-tests/generated-pipeline-chunk-0.yml
         job: build_test_pipeline
       - artifact: system-tests/generated-pipeline-chunk-1.yml
+        job: build_test_pipeline
+      - artifact: system-tests/generated-pipeline-chunk-2.yml
         job: build_test_pipeline
     strategy: depend
 
