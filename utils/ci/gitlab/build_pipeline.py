@@ -18,8 +18,13 @@ args = parser.parse_args()
 
 with open(args.params) as f:
     params = json.load(f)
-scenario_list = params["endtoend"]["scenarios"]
-weblog_variants = params["endtoend"]["weblogs"]
+# Use per-weblog scenario assignments from endtoend_defs
+parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
+parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
+# Build variants to compile are those requiring build
+weblog_variants = [w["name"] for w in parallel_weblogs]
+# Flatten scenario/job pairs for run jobs
+scenario_pairs = [(job["weblog"], scenario) for job in parallel_jobs for scenario in job.get("scenarios", [])]
 binaries_artifact = params["miscs"]["binaries_artifact"]
 ci_environment = params["miscs"]["ci_environment"]
 parametric = params["parametric"]
@@ -28,8 +33,10 @@ env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), auto
 
 template = env.get_template("system-tests.yml")
 
+# Render the pipeline with per-weblog scenario pairs
 print(template.render(
-    scenarios=scenario_list,
+    # we're now using precomputed scenario pairs instead of flat scenarios list
+    scenario_pairs=scenario_pairs,
     stage=args.stage,
     library=args.library,
     weblog_variants=weblog_variants,

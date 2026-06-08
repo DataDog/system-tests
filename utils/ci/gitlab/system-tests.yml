@@ -63,7 +63,7 @@ build_{{library}}_{{variant}}:
       - binaries/
 
 {% endfor %}
-{% for scenario in scenarios %}{% for variant in weblog_variants %}
+{% for variant, scenario in scenario_pairs %}
 run_{{library}}_{{scenario}}_{{variant}}:
   extends:
     - .system_tests_base
@@ -101,7 +101,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     paths:
       - system-tests/logs*/reportJunit.xml
 
-{% endfor %}{% endfor %}
+{% endfor %}
 {% if parametric.enable %}
 {% for job_index in parametric.job_matrix %}
 run_{{library}}_PARAMETRIC_{{job_index}}:
