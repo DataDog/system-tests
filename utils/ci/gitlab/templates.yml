@@ -12,6 +12,10 @@ spec:
     - docker-in-docker:amd64
   variables:
     GIT_STRATEGY: none
+    # In DinD, DOCKER_HOST is set to tcp://docker:2376 which causes _Weblog to
+    # resolve the weblog as docker:7777 instead of localhost:7777, breaking span
+    # snapshot assertions. Force it back to localhost.
+    SYSTEM_TESTS_WEBLOG_HOST: "localhost"
   stage: $[[ inputs.stage ]]
   interruptible: true
   before_script:
