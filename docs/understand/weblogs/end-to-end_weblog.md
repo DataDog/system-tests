@@ -1026,6 +1026,20 @@ The endpoint must accept a query string parameter `code`, which should be an int
 This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
 stats generating tests.
 
+### POST /ffe
+
+This endpoint is used by the Feature Flags & Experimentation scenario. It must
+accept a JSON body with these fields:
+
+- `flag`: the feature flag key to evaluate.
+- `variationType`: the expected variation type.
+- `defaultValue`: the value to return when evaluation cannot resolve the flag.
+- `targetingKey`: the evaluation subject key.
+- `attributes`: flat scalar targeting attributes.
+
+The response must be JSON and include at least `value` and `reason`. Error
+responses should also include `errorCode` and `errorMessage`.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :

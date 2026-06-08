@@ -15,6 +15,7 @@ public abstract class ApmTestApi
         // By instantiating the Tracer first, that faulty getter code path will not be invoked
         _ = Tracer.Instance;
 
+        app.MapGet("/trace/agent/ensure_agent_info", () => Results.Ok(new { ready = true }));
         app.MapGet("/trace/crash", Crash);
         app.MapGet("/trace/config", GetTracerConfig);
         app.MapPost("/trace/tracer/stop", StopTracer);

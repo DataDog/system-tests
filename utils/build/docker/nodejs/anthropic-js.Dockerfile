@@ -1,22 +1,24 @@
 FROM node:22-alpine
 ARG FRAMEWORK_VERSION
 
+COPY --from=oven/bun:1.3.13-alpine /usr/local/bin/bun /usr/local/bin/bun
+
 RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
 # print versions
-RUN node --version && npm --version && curl --version
+RUN node --version && npm --version && bun --version && curl --version
 
 WORKDIR /usr/app
 
 COPY utils/build/docker/nodejs/anthropic_app /usr/app
-RUN npm ci || (sleep 30 && npm ci)
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
-        npm install @anthropic-ai/sdk; \
+        bun add --network-concurrency 8 @anthropic-ai/sdk; \
     else \
-        npm install @anthropic-ai/sdk@$FRAMEWORK_VERSION; \
+        bun add --network-concurrency 8 @anthropic-ai/sdk@$FRAMEWORK_VERSION; \
     fi
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/

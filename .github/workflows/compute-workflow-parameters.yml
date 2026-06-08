@@ -186,7 +186,6 @@ jobs:
       env:
         LIBRARY_TARGET_BRANCH: "${{ steps.extract_branch.outputs.library_branch }}"
         AGENT_TARGET_BRANCH: "${{ steps.extract_branch.outputs.agent_branch }}"
-        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact

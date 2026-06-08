@@ -787,9 +787,9 @@ These are the main important log/data files:
 
 Note: These files contain the VM name and will vary for each execution depending on the virtual machine used (e.g., Ubuntu_24_amd64, Amazon_Linux_2023_arm64, etc.).
 
-* **[vm_name].log:** Logs related with the remote commands executed on the machine (e.g., Ubuntu_24_amd64.log).
-* **[vm_name]_provision_script.log:** All the provision script for the current machine (e.g., Ubuntu_24_amd64_provision_script.log).
-* **[vm_name]_var_log.log:** Contains the var/log directory contents from the virtual machine (e.g., Ubuntu_24_amd64_var_log.log).
+* **[vm_name].log:** Live execution log of the remote commands run on the VM (e.g., Ubuntu_24_amd64.log). Contains Pulumi `command:remote:Command` stdout/stderr, framework banners, and per-step output blocks. This is the authoritative source for what actually happened on the machine. See [How to read VM log markers](#how-to-read-vm-log-markers-vm_namelog) below for a deterministic reading procedure.
+* **[vm_name]_provision_script.log:** The **rendered shell script template** (the provision script as it was written and uploaded to the VM) for the current machine. This is the **source code of the script**, NOT what the VM actually executed or printed at runtime. Lines such as `echo "Failed to ..."` inside `if` branches do not mean that branch ran.
+* **[vm_name]_var_log.log:** Contents of the `/var/log` directory copied from the virtual machine (e.g., Ubuntu_24_amd64_var_log.log).
 
 ## Datadog Agent and Component Logs
 
@@ -820,6 +820,37 @@ Located in: **var/log/datadog_weblog/**
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
 * **system.timers.log:** System timer logs.
+
+## How to read VM log markers (`[vm_name].log`)
+
+Every provision step that runs on the VM is written to `[vm_name].log` using a fixed marker structure. These markers are easy to misinterpret — read this section before attributing a failure to any step.
+
+### Marker reference
+
+| Marker | Meaning | When it appears |
+|---|---|---|
+| `🚀 Provision step: <name> 🚀` + `Status: ✅ SUCCESS` | The step **succeeded**. This whole block is only written when the Pulumi remote command output resolves successfully. | Only for successful steps. |
+| `📤 Provision step output (<name>) 📤` | The step's `stdout`. | Only for successful steps (same block as above). |
+| `🚨 error output (<name>) 🚨` | The step's `stderr`. **This is NOT a failure indicator** — many successful steps write to stderr (SSH dial retries, debconf warnings, deprecation notices, curl progress, etc.). | Only for successful steps (same block as above). |
+| `command:remote:Command -<vm>-<step> created (Ns)` | Pulumi terminal state: step **succeeded** in `Ns` seconds. | After every successful Pulumi remote command. |
+| `command:remote:Command -<vm>-<step> **creating failed**` | Pulumi terminal state: step **FAILED**. This is the authoritative failure signal. | The **first** occurrence is the root failure step. |
+| `❌ Exception launching aws provision step remote command ❌` | Framework-level confirmation that a provision step failed (emitted by `utils/virtual_machine/aws_provider.py`). | Once per failed scenario, after the failing Pulumi step. |
+| `❌ Exception launching aws provision infraestructure ❌` | Framework-level confirmation that the AWS infrastructure creation failed (before any provision step ran). See [Case 1 — AWS API interaction failure](#case-1--aws-api-interaction-failure). | Once per failed scenario. |
+
+### How to identify the failing step (deterministic procedure)
+
+1. Open `logs_<scenario>/<vm_name>.log`.
+2. Search for `**creating failed**`. The **first** occurrence is the root failure step. Everything after it is **cascade noise** (downstream steps and copy operations that depended on the failed step).
+3. Read the lines immediately preceding and following that `**creating failed**` for the actual error (e.g., `ProtocolError: Connection broken`, `exit status N`, `Connection reset by peer`, `Diagnostics:` block).
+4. Confirm prior steps actually succeeded by finding their `created (Ns)` Pulumi line. Do **NOT** conclude that a step failed just because it has a `🚨 error output` block — that marker is always emitted for stderr on successful steps too.
+5. Cross-check with the framework banner `❌ Exception launching aws provision step remote command ❌` — the failing step name appears in the lines that follow it (and in `tests.log` under the `Diagnostics:` marker, see [Troubleshooting Case 2](#case-2--vm-provisioning-failure-remote-command)).
+
+### Common mistakes to avoid
+
+- ❌ Treating `🚨 error output (<step>) 🚨` as a failure signal on its own. It is `stderr`, not a status word.
+- ❌ Quoting lines from `[vm_name]_provision_script.log` as proof that something ran on the VM. That file is the script source/template; only `[vm_name].log` shows live VM execution.
+- ❌ Skipping the Pulumi `created` / `**creating failed**` verdict and concluding the root cause from a downstream cascade error.
+- ❌ Stopping at the first `Exception` or `Error` substring without locating the step name in the Pulumi resource line.
 
 # How to debug a virtual machine at runtime
 

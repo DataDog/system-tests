@@ -7,11 +7,14 @@ name: Daily Tag
 # which always points to the final commit of that day.
 
 on:
-  schedule:
-    - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
-  push:
-    branches:
-      - main
+# Note: disable schedule and push. So far, this mechanism is not used.
+# Furthermore, the mutability of intraday tags goes against a key concept : tag should not be mutated
+# If ever you want to reactivate this, please modify the logic to only set a imutable tag for D-1
+#   schedule:
+#     - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch: # allow manual trigger too
 
 jobs:

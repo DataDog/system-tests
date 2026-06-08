@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -46,6 +46,21 @@ ssi_tests:
               fi
             done
           done
+        fi
+
+        # Push JUnit results to Datadog Test Optimization
+        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
+        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+        export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
+        if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
+            datadog-ci junit upload \
+                reports/logs*/reportJunit.xml \
+                --service system-tests \
+                --env ci \
+                --verbose \
+                --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+        else
+            echo "No reports/logs*/reportJunit.xml found; skipping Test Optimization upload"
         fi
     retry:
       max: 2
@@ -108,10 +123,15 @@ ssi_tests:
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         # Upload logs to S3 and delete large files
+        # When this template is included from downstream repos (dd-trace-*), the
+        # system-tests checkout lives under a `system-tests/` subdirectory, so
+        # all relative paths into the system-tests repo need that prefix.
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
+            COLLAPSIBLE_LOGS_SCRIPT="./utils/scripts/gitlab_collapsible_logs.sh"
         else
             LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
+            COLLAPSIBLE_LOGS_SCRIPT="./system-tests/utils/scripts/gitlab_collapsible_logs.sh"
         fi
         # Upload to S3 (the URL is printed once at the end of the after_script).
         AWS_CONSOLE_URL=""
@@ -146,10 +166,14 @@ ssi_tests:
         fi
 
         # Dump every log file as a collapsible section (full content).
-        while IFS= read -r -d '' file; do
-          section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
-          ./utils/scripts/gitlab_collapsible_logs.sh "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
-        done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+        if [ -f "${COLLAPSIBLE_LOGS_SCRIPT}" ]; then
+          while IFS= read -r -d '' file; do
+            section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
+            bash "${COLLAPSIBLE_LOGS_SCRIPT}" "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
+          done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
+        else
+          echo "Skipping collapsible log dump: ${COLLAPSIBLE_LOGS_SCRIPT} not found"
+        fi
 
         # Re-print the captured run.sh summary at the END
         if [ -f "${CI_PROJECT_DIR}/run_output.log" ]; then
@@ -245,6 +269,21 @@ ssi_tests:
         done
       done
       fi
+
+    # Push JUnit results to Datadog Test Optimization
+    export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
+    export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+    export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
+    if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
+        datadog-ci junit upload \
+            reports/logs*/reportJunit.xml \
+            --service system-tests \
+            --env ci \
+            --verbose \
+            --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+    else
+        echo "No reports/logs*/reportJunit.xml found; skipping Test Optimization upload"
+    fi
   retry:
     max: 2
     when:
