@@ -52,10 +52,7 @@ spec:
     ssi_injector_version:
       description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
       default: ""
-    skip_resolve_ci_image:
-      description: "Skip resolve_ci_image when build_ci_image already provides CI_IMAGE"
-      type: boolean
-      default: false
+
 ---
 
 include:
@@ -81,7 +78,7 @@ workflow:
 
 resolve_ci_image:
   rules:
-    - if: '$[[ inputs.skip_resolve_ci_image ]]'
+    - if: '$SKIP_RESOLVE_CI_IMAGE == "true"'
       when: never
     - when: always
   image: registry.ddbuild.io/system-tests/git
