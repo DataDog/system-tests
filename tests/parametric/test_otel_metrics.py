@@ -1862,7 +1862,7 @@ class Test_Otel_Metrics_Telemetry:
             )
 
     @pytest.mark.parametrize(
-        ("library_env", "test_agent_otlp_http_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -1874,12 +1874,14 @@ class Test_Otel_Metrics_Telemetry:
                     "OTEL_METRIC_EXPORT_INTERVAL": "5000",
                     "OTEL_METRIC_EXPORT_TIMEOUT": "5000",
                 },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
             ),
         ],
     )
     def test_telemetry_exporter_configurations(
         self,
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1916,7 +1918,7 @@ class Test_Otel_Metrics_Telemetry:
             )
 
     @pytest.mark.parametrize(
-        ("library_env", "test_agent_otlp_http_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -1926,12 +1928,14 @@ class Test_Otel_Metrics_Telemetry:
                     "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
                     "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
                 4325,
             ),
         ],
     )
     def test_telemetry_exporter_metrics_configurations(
         self,
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
