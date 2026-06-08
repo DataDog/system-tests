@@ -102,6 +102,7 @@ class CiData:
                 "java_lambda",
                 "nodejs_lambda",
                 "python_lambda",
+                "ruby_lambda",
                 "envoy",
                 "haproxy",
             ),

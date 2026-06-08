@@ -8,7 +8,7 @@ import re
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils._weblog import HttpResponse
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 def remove_traceparent(s: str) -> str:
@@ -103,7 +103,7 @@ class Test_Dbm:
         meta = span.get("meta", {})
         assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span.raw_span, indent=2)}"
         tag_value = meta.get(self.META_TAG)
-        assert tag_value == "true", f"{self.META_TAG} value is not `true`."
+        assert is_same_boolean(actual=tag_value, expected="true"), f"{self.META_TAG} value is not `true`."
 
     # Setup Methods
     setup_trace_payload_disabled = weblog_trace_payload
