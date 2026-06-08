@@ -21,6 +21,8 @@
         "key2": "val2",
         "language": "jvm",
         "span.kind": "server",
+        "thread.id": "<scrubbed>",
+        "thread.name": "<scrubbed>",
         "version": "<scrubbed>"
       },
       "componentRef": "spring-web-controller",
@@ -61,6 +63,8 @@
         "key2": "val2",
         "language": "jvm",
         "span.kind": "server",
+        "thread.id": "<scrubbed>",
+        "thread.name": "<scrubbed>",
         "version": "<scrubbed>"
       },
       "componentRef": "spring-web-controller",
@@ -101,6 +105,8 @@
         "key2": "val2",
         "language": "jvm",
         "span.kind": "server",
+        "thread.id": "<scrubbed>",
+        "thread.name": "<scrubbed>",
         "version": "<scrubbed>"
       },
       "componentRef": "spring-web-controller",
@@ -141,6 +147,8 @@
         "key2": "val2",
         "language": "jvm",
         "span.kind": "server",
+        "thread.id": "<scrubbed>",
+        "thread.name": "<scrubbed>",
         "version": "<scrubbed>"
       },
       "componentRef": "spring-web-controller",
@@ -181,6 +189,8 @@
         "key2": "val2",
         "language": "jvm",
         "span.kind": "server",
+        "thread.id": "<scrubbed>",
+        "thread.name": "<scrubbed>",
         "version": "<scrubbed>"
       },
       "componentRef": "spring-web-controller",
