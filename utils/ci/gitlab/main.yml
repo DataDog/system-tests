@@ -127,16 +127,18 @@ build_test_pipeline:
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
       scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | grep . | tr '\n' ',' | sed 's/,$//')
       scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | grep . | tr '\n' ',' | sed 's/,$//')
+      weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | grep . | tr '\n' ',' | sed 's/,$//')
       echo "libraries:       $libraries"
       echo "scenarios:       $scenarios"
       echo "scenario_groups: $scenario_groups"
+      echo "weblogs:         $weblogs"
       count=0
       for lib in $libraries; do count=$((count + 1)); done
       half=$(( (count + 1) / 2 ))
       idx=0
       for library in $libraries; do
         [ $idx -lt $half ] && chunk=0 || chunk=1
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$scenarios" --weblogs "$[[ inputs.weblogs ]],$WEBLOGS" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
         if [ ! -f generated-pipeline-chunk-${chunk}.yml ]; then
           python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" > generated-pipeline-chunk-${chunk}.yml
         else
