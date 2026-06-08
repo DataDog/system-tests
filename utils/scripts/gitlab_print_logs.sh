@@ -8,9 +8,12 @@
 # Shared by the SSI / onboarding / k8s jobs so the logic lives in one place.
 #
 # Optional environment variables:
-#   SCENARIO_SUFIX  Label shown in the section headers (defaults to "logs").
-#   CI_PROJECT_DIR  GitLab built-in; used to locate run_output.log.
-#   AWS_CONSOLE_URL S3 console URL printed in the banner when set.
+#   SCENARIO_SUFIX     Label shown in the section headers (defaults to "logs").
+#   CI_PROJECT_DIR     GitLab built-in; used to locate run_output.log.
+#   AWS_CONSOLE_URL    S3 console URL printed in the banner when set.
+#   DEBUG_LOGS_DOC_URL Documentation URL printed in the banner explaining how to
+#                      interpret the logs (defaults to the AWS onboarding debug
+#                      section). Set it per scenario type (k8s, docker-ssi, ...).
 
 set -uo pipefail
 
@@ -19,6 +22,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COLLAPSIBLE_LOGS_SCRIPT="${SCRIPT_DIR}/gitlab_collapsible_logs.sh"
 
 LABEL="${SCENARIO_SUFIX:-logs}"
+DOC_URL="${DEBUG_LOGS_DOC_URL:-https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results}"
 
 # 1. Dump every log file as a collapsible section (full content).
 if [ -f "${COLLAPSIBLE_LOGS_SCRIPT}" ]; then
@@ -53,6 +57,6 @@ if [ -n "${AWS_CONSOLE_URL:-}" ]; then
   printf '    are uploaded to S3:\n      %s\n' "${AWS_CONSOLE_URL}"
 fi
 printf '  - How to interpret these logs:\n      %s\n' \
-  "https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+  "${DOC_URL}"
 printf '%s\n\n' \
   "================================================================================"
