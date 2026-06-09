@@ -60,6 +60,15 @@ dump_dd_agent_diagnostics() {
     sync 2>/dev/null || true
 }
 
+# Dump agent diagnostics on failure, then propagate the original exit status.
+_on_exit() {
+    local status=$?
+    if [ "$status" -ne 0 ]; then
+        dump_dd_agent_diagnostics
+    fi
+    exit "$status"
+}
+
 # ---------------------------------------------------------------------------
 # Steps
 # ---------------------------------------------------------------------------
@@ -145,7 +154,7 @@ print_services_output() {
 # ---------------------------------------------------------------------------
 main() {
     # Always dump agent diagnostics on failure too (trap is deduplicated against the success dump).
-    trap 'status=$?; if [ "$status" -ne 0 ]; then dump_dd_agent_diagnostics; fi; exit "$status"' EXIT
+    trap _on_exit EXIT
 
     echo "..:: ${SCRIPT_MARKER} ::.."
 
