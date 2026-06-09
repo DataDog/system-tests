@@ -52,8 +52,11 @@ func main() {
 
 	// Add Datadog context log hook
 	logrus.AddHook(&dd_logrus.DDContextLogHook{})
-	if err := ddmetric.InstallGlobal(); err != nil {
-		logrus.WithError(err).Warn("failed to install DD OTel MeterProvider")
+	if mp, err := ddmetric.NewMeterProvider(ddmetric.WithProducer(ddmetric.NewRuntimeProducer())); err != nil {
+		logrus.WithError(err).Warn("failed to create DD OTel MeterProvider")
+	} else {
+		otel.SetMeterProvider(mp)
+		defer ddmetric.Shutdown(context.Background(), mp)
 	}
 	tracer.Start()
 	defer tracer.Stop()
