@@ -332,13 +332,13 @@ def api_security_sampling(i):
     return "OK"
 
 
-@app.route("/api_security/multi-params-in-segment/<string:id>-<string:format>")
+@app.route("/api_security/multi-params-in-segment/<string:id>.<string:format>")
 def api_security_multi_params_in_segment(id: str, format: str) -> str:  # noqa: A002
     return "ok"
 
 
 @app.route("/api_security/optional-params/<string:id>")
-@app.route("/api_security/optional-params/<string:id>-<string:format>")
+@app.route("/api_security/optional-params/<string:id>.<string:format>")
 def api_security_optional_params(id: str, format: str = "") -> str:  # noqa: A002
     return "ok"
 

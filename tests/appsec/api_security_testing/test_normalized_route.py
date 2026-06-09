@@ -138,7 +138,7 @@ class Test_NormalizedRouteMultiParamsInSegment:
     """RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
 
     When a route template places two dynamic parameters inside the same
-    path segment (e.g. `/<id>-<format>`), the tracer must collapse them into a
+    path segment (e.g. `/<id>.<format>`), the tracer must collapse them into a
     single atomic element using the `+` combining marker, in declaration order:
     `{id+format}`.  The resulting normalized route is deterministic and
     identical across all weblogs because the parameter names `id` and `format`
@@ -146,7 +146,7 @@ class Test_NormalizedRouteMultiParamsInSegment:
     """
 
     def setup_multi_params_in_segment(self):
-        self.r = weblog.get("/api_security/multi-params-in-segment/123-json")
+        self.r = weblog.get("/api_security/multi-params-in-segment/123.json")
 
     def test_multi_params_in_segment(self):
         """Rule 5: two intra-segment params are joined with `+` into `{id+format}`."""
@@ -182,7 +182,7 @@ class Test_NormalizedRouteOptionalParams:
         )
 
     def setup_with_optional(self):
-        self.r_with = weblog.get("/api_security/optional-params/123-json")
+        self.r_with = weblog.get("/api_security/optional-params/123.json")
 
     def test_with_optional(self):
         """Optional param present in same segment: combined as `{id+format}`."""
@@ -194,7 +194,7 @@ class Test_NormalizedRouteOptionalParams:
 
     def setup_optional_routes_are_distinct(self):
         self.r_without = weblog.get("/api_security/optional-params/123")
-        self.r_with = weblog.get("/api_security/optional-params/123-json")
+        self.r_with = weblog.get("/api_security/optional-params/123.json")
 
     def test_optional_routes_are_distinct(self):
         """The two requests yield distinct normalized routes (rule 6)."""

@@ -204,13 +204,13 @@ async def api_security_sampling(i):
     return "OK"
 
 
-@app.get("/api_security/multi-params-in-segment/{id}-{format}", response_class=PlainTextResponse)
+@app.get("/api_security/multi-params-in-segment/{id}.{format}", response_class=PlainTextResponse)
 async def api_security_multi_params_in_segment(id: str, format: str) -> str:
     return "ok"
 
 
 @app.get("/api_security/optional-params/{id}", response_class=PlainTextResponse)
-@app.get("/api_security/optional-params/{id}-{format}", response_class=PlainTextResponse)
+@app.get("/api_security/optional-params/{id}.{format}", response_class=PlainTextResponse)
 async def api_security_optional_params(id: str, format: str = "") -> str:
     return "ok"
 

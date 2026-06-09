@@ -1205,9 +1205,10 @@ urlpatterns = [
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
     path("api_security_sampling/<int:i>", api_security_sampling),
     re_path(
-        r"^api_security/multi-params-in-segment/(?P<id>[^/-]+)-(?P<format>[^/]+)$", api_security_multi_params_in_segment
+        r"^api_security/multi-params-in-segment/(?P<id>[^/.]+)\.(?P<format>[^/]+)$",
+        api_security_multi_params_in_segment,
     ),
-    re_path(r"^api_security/optional-params/(?P<id>[^/-]+)-(?P<format>[^/]+)$", api_security_optional_params),
+    re_path(r"^api_security/optional-params/(?P<id>[^/.]+)\.(?P<format>[^/]+)$", api_security_optional_params),
     path("api_security/optional-params/<str:id>", api_security_optional_params),
     path("sample_rate_route/<int:i>", sample_rate),
     path("healthcheck", healthcheck),
