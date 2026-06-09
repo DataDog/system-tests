@@ -38,9 +38,7 @@ def _require_normalized(meta: dict) -> str:
         f"{HTTP_ROUTE_TAG} not set on entry span; normalized_route contract is conditioned on it"
     )
     normalized = meta.get(NORMALIZED_ROUTE_TAG)
-    assert normalized is not None, (
-        f"{NORMALIZED_ROUTE_TAG} must be set when {HTTP_ROUTE_TAG}={meta[HTTP_ROUTE_TAG]!r} and API Security is enabled"
-    )
+    assert normalized is not None, f"{NORMALIZED_ROUTE_TAG} must be set when {HTTP_ROUTE_TAG}={meta[HTTP_ROUTE_TAG]!r}"
     assert isinstance(normalized, str), f"{NORMALIZED_ROUTE_TAG} must be a string, got {type(normalized).__name__}"
     # Every emitted value must conform to the RFC grammar regardless of the
     # underlying route shape; a malformed value is a tracer bug.
