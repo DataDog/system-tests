@@ -16,6 +16,23 @@ variables:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   after_script:
+    - |
+      (
+        set +e
+        cd "$CI_PROJECT_DIR/system-tests" 2>/dev/null || cd system-tests 2>/dev/null || true
+        mkdir -p logs
+        {
+          echo "===== docker version ====="; docker version
+          echo "===== docker info ====="; docker info
+          echo "===== docker network ls ====="; docker network ls
+          echo "===== docker network inspect system-tests-ipv4 ====="; docker network inspect system-tests-ipv4
+          echo "===== docker ps -a ====="; docker ps -a
+          echo "===== docker inspect system-tests-postgres ====="; docker inspect system-tests-postgres
+          echo "===== docker inspect system-tests-weblog ====="; docker inspect system-tests-weblog
+          echo "===== weblog /etc/resolv.conf and DNS lookups ====="
+          docker exec system-tests-weblog sh -c 'cat /etc/resolv.conf; echo ---; getent hosts postgres; getent hosts agent; getent hosts proxy; getent hosts weblog'
+        } > logs/network-diagnostics.txt 2>&1
+      ) || true
     - echo -e "section_start:$(date +%s):test_optim[collapsed=true]\r\e[0KPush to tests optimization"
     - dd-sts debug
     - >
@@ -104,14 +121,6 @@ run_{{library}}_{{scenario}}_{{variant}}:
     {% else %}
     - ./run.sh {{scenario}}
     {% endif %}
-    - docker version || true
-    - docker info || true
-    - docker network ls || true
-    - docker network inspect system-tests-ipv4 || true
-    - docker ps -a || true
-    - docker inspect system-tests-postgres || true
-    - docker inspect system-tests-weblog || true
-    - docker exec system-tests-weblog sh -c 'cat /etc/resolv.conf; echo ---; getent hosts postgres; getent hosts agent; getent hosts proxy; getent hosts weblog' || true
     - section_end "scenario_run"
   artifacts:
     when: always
