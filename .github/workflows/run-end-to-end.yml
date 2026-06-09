@@ -183,6 +183,9 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
       run: ./run.sh TRACE_STATS_COMPUTATION
+    - name: Run TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE
     - name: Run IAST_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
