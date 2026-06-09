@@ -101,6 +101,7 @@ class Test_DdtraceSchemas:
                 in (
                     scenarios.appsec_blocking,
                     scenarios.trace_stats_computation,
+                    scenarios.trace_stats_computation_client_drop_p0s_false,
                     scenarios.tracing_config_nondefault_3,
                 ),
                 ticket="APMSP-2158",
