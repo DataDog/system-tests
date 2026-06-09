@@ -96,13 +96,13 @@ class Test_DdtraceSchemas:
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.integrations[].auto_enabled",
                 condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="???",
+                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.integrations[].compatible",
                 condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="???",
+                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
@@ -193,13 +193,13 @@ class Test_DdtraceSchemas:
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.integrations[].auto_enabled",
                 condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="???",
+                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.integrations[].compatible",
                 condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="???",
+                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/api/v2/debugger",
