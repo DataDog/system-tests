@@ -168,3 +168,8 @@ if [[ $IS_APACHE -eq 1 ]]; then
       sed -i '/\"\/dbm\/\"/a\        RewriteRule "^\/stub_dbm" "\/stub_dbm.php" [QSA,L]' "$APACHE_PHP_CONF"
   fi
 fi
+
+# Install stripe SDK if not already present (base images may predate this dependency)
+if command -v composer &>/dev/null && [ -f /var/www/html/composer.json ] && ! [ -d /var/www/html/vendor/stripe ]; then
+  cd /var/www/html && composer require stripe/stripe-php "^10.0" --prefer-dist --no-interaction
+fi
