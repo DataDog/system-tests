@@ -104,6 +104,14 @@ run_{{library}}_{{scenario}}_{{variant}}:
     {% else %}
     - ./run.sh {{scenario}}
     {% endif %}
+    - docker version || true
+    - docker info || true
+    - docker network ls || true
+    - docker network inspect system-tests-ipv4 || true
+    - docker ps -a || true
+    - docker inspect system-tests-postgres || true
+    - docker inspect system-tests-weblog || true
+    - docker exec system-tests-weblog sh -c 'cat /etc/resolv.conf; echo ---; getent hosts postgres; getent hosts agent; getent hosts proxy; getent hosts weblog' || true
     - section_end "scenario_run"
   artifacts:
     when: always
