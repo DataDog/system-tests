@@ -108,7 +108,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
   artifacts:
     when: always
     paths:
-      - system-tests/logs*/reportJunit.xml
+      - system-tests/logs*
 
 {% endfor %}
 {% if parametric.enable %}
@@ -131,7 +131,7 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
   artifacts:
     when: always
     paths:
-      - system-tests/logs*/reportJunit.xml
+      - system-tests/logs*
 
 {% endfor %}
 {% endif %}
