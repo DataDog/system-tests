@@ -2,6 +2,7 @@ go 1.24.0
 
 use (
 	./app
+	./app/echo.v5-orchestrion
 	./app/net-http-orchestrion
 	./parametric
 )
