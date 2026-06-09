@@ -106,30 +106,36 @@ EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
     },
 }
 
-# Valid value domains for attributes. For closed enums (jvm.memory.type, jvm.thread.*,
-# nodejs.eventloop.state, v8js.gc.type) these are exhaustive. For open-ended attributes
-# (pool names, GC names, V8 heap space names, libuv resource types) these are supersets
-# covering all known implementations — the assertion is that observed values fall within
-# the known universe.
+# Valid value domains for attributes. Closed enums (jvm.memory.type, jvm.thread.*,
+# nodejs.eventloop.state, v8js.gc.type) are exhaustive. Bounded-but-evolving attributes
+# (JVM pool/GC names, V8 heap space names) use best-effort supersets — the assertion is that
+# observed values fall within the known universe; extend the set when a new platform value
+# appears. Attributes whose value space is open-ended and version-dependent (Node's
+# v8js.resource.type) are validated for key presence only, not value.
 EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
     "nodejs": {
         # Closed enum: performance.eventLoopUtilization() exposes idle and active only.
         "nodejs.eventloop.state": frozenset({"active", "idle"}),
-        # Closed enum: dd-trace-js maps perf_hooks GC kinds to these four OTel values.
+        # Closed in dd-trace-js: GC_ATTR_BY_KIND maps perf_hooks GC kinds to these four OTel values.
         # Kind 2 (V8 MinorMarkSweep on Node 20+) is mapped to "minor" upstream.
         "v8js.gc.type": frozenset({"minor", "major", "incremental", "weakcb"}),
-        # V8 heap space names: OTel well-known set plus additional spaces V8 exposes in
-        # Node 18+ (read_only, *_large_object) and Node 20+ multi-isolate/sandbox spaces.
+        # V8 heap space names (best-effort superset). dd-trace-js passes space.space_name from
+        # v8.getHeapSpaceStatistics() through unchanged, so the set tracks what V8 emits across
+        # supported Node versions. Per the OTel spec custom values are also allowed, so add new
+        # entries here when V8 introduces a new space rather than treating it as a hard regression.
         "v8js.heap.space.name": frozenset(
             {
+                # OTel well-known + Node 18 baseline.
                 "new_space",
                 "old_space",
                 "code_space",
-                "large_object_space",
+                "code_range_space",
                 "map_space",
-                "read_only_space",
+                "large_object_space",
                 "new_large_object_space",
                 "code_large_object_space",
+                "read_only_space",
+                # Multi-isolate / sandbox spaces (Node 20+).
                 "shared_space",
                 "shared_large_object_space",
                 "trusted_space",
@@ -138,28 +144,13 @@ EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
                 "shared_trusted_large_object_space",
             }
         ),
-        # libuv handle types reported by process.getActiveResourcesInfo(); superset across Node 18+.
-        "v8js.resource.type": frozenset(
-            {
-                "Immediate",
-                "Timeout",
-                "TCPServerWrap",
-                "TCPWrap",
-                "TTYWrap",
-                "PipeWrap",
-                "UDPWrap",
-                "TLSWrap",
-                "FSReqCallback",
-                "MessagePort",
-                "DNSChannel",
-                "FSEvent",
-                "SignalWrap",
-                "StatWatcher",
-                "HTTPClientRequest",
-                "HTTPParser",
-                "Microtask",
-            }
-        ),
+        # v8js.resource.type is intentionally NOT value-validated (key presence is checked above).
+        # Unlike eventloop.state and v8js.gc.type (closed enums), these strings come from each
+        # handle/request class's C++ MemoryInfoName() override in Node core, surfaced verbatim by
+        # process.getActiveResourcesInfo(). They do not follow the async_wrap provider enum (e.g.
+        # PROVIDER_TCPWRAP surfaces as "TCPSocketWrap", not "TCPWrap"), there is no single
+        # authoritative list, and Node's docs state the set "can change in any Node.js release".
+        # A curated allow-list would be both incorrect and unmaintainable.
     },
     "java": {
         "jvm.memory.type": frozenset({"heap", "non_heap"}),
