@@ -1207,8 +1207,8 @@ urlpatterns = [
     re_path(
         r"^api_security/multi-params-in-segment/(?P<id>[^/-]+)-(?P<format>[^/]+)$", api_security_multi_params_in_segment
     ),
-    path("api_security/optional-params/<str:id>", api_security_optional_params),
     re_path(r"^api_security/optional-params/(?P<id>[^/-]+)-(?P<format>[^/]+)$", api_security_optional_params),
+    path("api_security/optional-params/<str:id>", api_security_optional_params),
     path("sample_rate_route/<int:i>", sample_rate),
     path("healthcheck", healthcheck),
     path("waf", waf),

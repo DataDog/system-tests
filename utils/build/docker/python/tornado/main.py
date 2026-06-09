@@ -1025,7 +1025,7 @@ def make_app() -> Application:
                 ApiSecurityMultiParamsInSegmentHandler,
             ),
             (r"/api_security/optional-params/(?P<id>[^/-]+)-(?P<format>[^/]+)", ApiSecurityOptionalParamsHandler),
-            (r"/api_security/optional-params/([^/-]+)", ApiSecurityOptionalParamsHandler),
+            (r"/api_security/optional-params/(?P<id>[^/-]+)", ApiSecurityOptionalParamsHandler),
             (r"/status", StatusHandler),
             (r"/stats-unique", StatsUniqueHandler),
             (r"/healthcheck", HealthcheckHandler),
