@@ -30,6 +30,7 @@ VARIANT_COMPONENT_MAP = {
     "fastapi": "fastapi",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "echo.v5": "labstack/echo.v5",
+    "echo.v5-orchestrion": "labstack/echo.v5",
     "express4": "express",
     "express4-typescript": "express",
     "express5": "express",
