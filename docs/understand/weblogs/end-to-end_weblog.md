@@ -139,6 +139,33 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /api_security/multi-params-in-segment/{id}-{format}
+
+This endpoint is used to test RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+
+The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `-`. The tracer must combine them into a single atomic element `{id+format}` in `_dd.appsec.normalized_route`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/optional-params/{id} and /api_security/optional-params/{id}-{format}
+
+These two routes together test RFC-1103 optional-element resolution (rule 5 + rule 6).
+
+- `/api_security/optional-params/{id}` — mandatory parameter only; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}`.
+- `/api_security/optional-params/{id}-{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id+format}`.
+
+Frameworks with native optional-parameter support (e.g. Express `:id-:format?`, Rails `/:id(.:format)`) may declare these as a single route with an optional second sub-parameter. Frameworks without that support must declare them as two separate routes with the same handler.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
 ### GET /endpoint_fallback
 
 This endpoint tests RFC-1076: API Security sampling fallback behavior when

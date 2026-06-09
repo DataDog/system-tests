@@ -178,6 +178,16 @@ class ApiSecuritySamplingStatusHandler(BaseHandler):
             self.write("Hello!\n")
 
 
+class ApiSecurityMultiParamsInSegmentHandler(BaseHandler):
+    def get(self, id: str, format: str) -> None:  # noqa: A002, ARG002
+        self.write("ok")
+
+
+class ApiSecurityOptionalParamsHandler(BaseHandler):
+    def get(self, id: str, format: str = "") -> None:  # noqa: A002, ARG002
+        self.write("ok")
+
+
 class StatusHandler(BaseHandler):
     def get(self) -> None:
         code = int(self.get_argument("code", "200"))
@@ -1010,6 +1020,12 @@ def make_app() -> Application:
             (r"/sample_rate_route/(\d+)", SampleRateRouteHandler),
             (r"/api_security_sampling/(\d+)", ApiSecuritySamplingHandler),
             (r"/api_security/sampling/(\d+)", ApiSecuritySamplingStatusHandler),
+            (
+                r"/api_security/multi-params-in-segment/(?P<id>[^/-]+)-(?P<format>[^/]+)",
+                ApiSecurityMultiParamsInSegmentHandler,
+            ),
+            (r"/api_security/optional-params/(?P<id>[^/-]+)-(?P<format>[^/]+)", ApiSecurityOptionalParamsHandler),
+            (r"/api_security/optional-params/([^/-]+)", ApiSecurityOptionalParamsHandler),
             (r"/status", StatusHandler),
             (r"/stats-unique", StatsUniqueHandler),
             (r"/healthcheck", HealthcheckHandler),

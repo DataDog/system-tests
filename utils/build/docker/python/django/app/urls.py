@@ -14,7 +14,7 @@ import requests
 import stripe
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from django.urls import path
+from django.urls import path, re_path
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -106,6 +106,14 @@ def api_security_sampling_status(request, *args, **kwargs):
 
 def api_security_sampling(request, i):
     return HttpResponse("OK")
+
+
+def api_security_multi_params_in_segment(request, id: str, format: str) -> HttpResponse:
+    return HttpResponse("ok")
+
+
+def api_security_optional_params(request, id: str, format: str = "") -> HttpResponse:
+    return HttpResponse("ok")
 
 
 def sample_rate(request, i):
@@ -1196,6 +1204,11 @@ urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
     path("api_security_sampling/<int:i>", api_security_sampling),
+    re_path(
+        r"^api_security/multi-params-in-segment/(?P<id>[^/-]+)-(?P<format>[^/]+)$", api_security_multi_params_in_segment
+    ),
+    path("api_security/optional-params/<str:id>", api_security_optional_params),
+    re_path(r"^api_security/optional-params/(?P<id>[^/-]+)-(?P<format>[^/]+)$", api_security_optional_params),
     path("sample_rate_route/<int:i>", sample_rate),
     path("healthcheck", healthcheck),
     path("waf", waf),
