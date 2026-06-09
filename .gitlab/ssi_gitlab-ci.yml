@@ -62,6 +62,16 @@ ssi_tests:
         else
             echo "No reports/logs*/reportJunit.xml found; skipping Test Optimization upload"
         fi
+
+        # Render all report logs as collapsible sections + run summary + banner.
+        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+            SCRIPTS_DIR="./utils/scripts"
+        else
+            SCRIPTS_DIR="./system-tests/utils/scripts"
+        fi
+        export SCENARIO_SUFIX
+        export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/docker_ssi.md"
+        bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
     retry:
       max: 2
       when:
@@ -128,10 +138,10 @@ ssi_tests:
         # all relative paths into the system-tests repo need that prefix.
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
-            COLLAPSIBLE_LOGS_SCRIPT="./utils/scripts/gitlab_collapsible_logs.sh"
+            SCRIPTS_DIR="./utils/scripts"
         else
             LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
-            COLLAPSIBLE_LOGS_SCRIPT="./system-tests/utils/scripts/gitlab_collapsible_logs.sh"
+            SCRIPTS_DIR="./system-tests/utils/scripts"
         fi
         # Upload to S3 (the URL is printed once at the end of the after_script).
         AWS_CONSOLE_URL=""
@@ -165,42 +175,10 @@ ssi_tests:
           done
         fi
 
-        # Dump every log file as a collapsible section (full content).
-        if [ -f "${COLLAPSIBLE_LOGS_SCRIPT}" ]; then
-          while IFS= read -r -d '' file; do
-            section_id=$(printf '%s' "$file" | tr -c '[:alnum:]' '_')
-            bash "${COLLAPSIBLE_LOGS_SCRIPT}" "$file" "logs_${SCENARIO_SUFIX}_${section_id}" "Logs for ${SCENARIO_SUFIX} - ${file}"
-          done < <(find reports -type f \! -name report.json \! -name tests.log -print0)
-        else
-          echo "Skipping collapsible log dump: ${COLLAPSIBLE_LOGS_SCRIPT} not found"
-        fi
-
-        # Re-print the captured run.sh summary at the END
-        if [ -f "${CI_PROJECT_DIR}/run_output.log" ]; then
-          printf '\n%s\n  Test run summary (captured from script: step)\n%s\n\n' \
-            "================================================================================" \
-            "================================================================================"
-          tail -c 200000 "${CI_PROJECT_DIR}/run_output.log"
-        fi
-
-        # Final info banner with everything the user needs to navigate the log.
-        printf '\n%s\n  Logs for %s\n%s\n' \
-          "================================================================================" \
-          "${SCENARIO_SUFIX}" \
-          "--------------------------------------------------------------------------------"
-        printf '  - Each log file above is wrapped in its own collapsible section.\n'
-        printf '    Click the triangle on the section header to expand/collapse it.\n'
-        printf '  - If some sections appear uncollapsed in this view, click\n'
-        printf '    "View full log" To view all collapsed sections (all logs)\n'
-        printf '  - You can always download the logs attached to the job\n'
-        if [ -n "${AWS_CONSOLE_URL}" ]; then
-          printf '  - Full raw logs (including files >50MB stripped from the artifact)\n'
-          printf '    are uploaded to S3:\n      %s\n' "${AWS_CONSOLE_URL}"
-        fi
-        printf '  - How to interpret these logs:\n      %s\n' \
-          "https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
-        printf '%s\n\n' \
-          "================================================================================"
+        # Render all report logs as collapsible sections + run summary + banner.
+        export SCENARIO_SUFIX AWS_CONSOLE_URL
+        export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+        bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
 
     retry:
       max: 2
@@ -230,13 +208,17 @@ ssi_tests:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
   script:
-    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner # rebuild runner in case there were changes
-    - source venv/bin/activate
-    - python --version
-    - pip freeze
-    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
-    - export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
     - |
+      # Wrap the build steps (runner image, venv, ECR login, weblog image) in a
+      # collapsible GitLab section to keep the job log tidy.
+      BUILD_SECTION_TS=$(date +%s)
+      printf '\e[0Ksection_start:%s:build_k8s[collapsed=true]\r\e[0KBuild runner image and weblog image\n' "${BUILD_SECTION_TS}"
+      SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner # rebuild runner in case there were changes
+      source venv/bin/activate
+      python --version
+      pip freeze
+      aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+      export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
       if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
         TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
         ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
@@ -245,7 +227,12 @@ ssi_tests:
       else
         TAG_NAME="latest"
       fi
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG:-None} --k8s-cluster-img ${K8S_CLUSTER_IMG:-None} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT}
+      printf '\e[0Ksection_end:%s:build_k8s\r\e[0K\n' "${BUILD_SECTION_TS}"
+    - |
+      # Run the tests and capture stdout+stderr so the after_script can
+      # re-print the run summary (pipefail keeps run.sh's real exit code).
+      set -o pipefail
+      ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG:-None} --k8s-cluster-img ${K8S_CLUSTER_IMG:-None} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT} 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
 
   after_script: |
     kind delete clusters --all || true
@@ -269,6 +256,16 @@ ssi_tests:
         done
       done
       fi
+
+    # Render all report logs as collapsible sections + run summary + banner.
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        SCRIPTS_DIR="./utils/scripts"
+    else
+        SCRIPTS_DIR="./system-tests/utils/scripts"
+    fi
+    export SCENARIO_SUFIX=$(echo "${K8S_SCENARIO:-logs}" | tr "[:upper:]" "[:lower:]")
+    export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-and-tests-results"
+    bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
   retry:
     max: 2
     when:
