@@ -23,7 +23,7 @@ agent_is_enabled() {
 }
 
 # ---------------------------------------------------------------------------
-# Diagnostics (collected on failure to help debugging in CI)
+# Diagnostics (collected on every run, and on failure, to help debugging in CI)
 # ---------------------------------------------------------------------------
 _dd_agent_diagnostics_dumped=0
 
@@ -144,7 +144,7 @@ print_services_output() {
 # Main
 # ---------------------------------------------------------------------------
 main() {
-    # Dump agent diagnostics on any failure (deduplicated if already printed).
+    # Always dump agent diagnostics on failure too (trap is deduplicated against the success dump).
     trap 'status=$?; if [ "$status" -ne 0 ]; then dump_dd_agent_diagnostics; fi; exit "$status"' EXIT
 
     echo "..:: ${SCRIPT_MARKER} ::.."
@@ -156,6 +156,9 @@ main() {
     configure_scenario_env
     start_test_app
     print_services_output
+
+    # Capture diagnostics on success as well (no-op when the agent isn't part of the scenario).
+    dump_dd_agent_diagnostics
 }
 
 main "$@"

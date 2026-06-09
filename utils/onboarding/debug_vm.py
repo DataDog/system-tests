@@ -6,8 +6,8 @@ from utils._logger import logger
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 # Preserve the dd-agent diagnostics into /var/log/datadog_weblog (runs from VM user home).
-# create_and_run_app_container.sh dumps diagnostics to $HOME/dd-agent-diagnostics.log when it fails;
-# here we only copy that failure-time snapshot so it gets downloaded with the rest of the VM logs.
+# create_and_run_app_container.sh writes diagnostics to $HOME/dd-agent-diagnostics.log on every run
+# (and on failure); here we only copy that snapshot so it gets downloaded with the rest of the VM logs.
 _COLLECT_DD_AGENT_DIAGNOSTICS_CMD = r"""bash -lc '
 sudo mkdir -p /var/log/datadog_weblog && sudo chmod 777 /var/log/datadog_weblog;
 cd ~;
