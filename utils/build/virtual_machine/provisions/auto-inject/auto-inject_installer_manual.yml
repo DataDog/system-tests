@@ -9,9 +9,24 @@
       local_path: binaries/
 
   remote-command: |
-    # Pin to 7.78.4 agent release. APMSP-3059
-    export DD_AGENT_MAJOR_VERSION=7
-    export DD_AGENT_MINOR_VERSION=78.4
+    #  APMSP-3059
+    #export DD_INSTALLER_AGENT_VERSION="pipeline-114830198"
+    #export DD_INSTALLER_INSTALLER_VERSION="pipeline-114830198"
+
+    #export TESTING_APT_URL="apttesting.datad0g.com"
+    #export TESTING_APT_REPO_VERSION="pipeline-114830198-a7-x86_64 7"
+    #export TESTING_YUM_URL="yumtesting.datad0g.com"
+    #export TESTING_YUM_VERSION_PATH="testing/pipeline-114830198-a7/7"
+    #export TESTING_KEYS_URL="apttesting.datad0g.com/test-keys"
+
+    export DD_INSTALLER_AGENT_VERSION="pipeline-114830198"
+    export DD_INSTALLER_INSTALLER_VERSION="pipeline-114830198"
+    export TESTING_APT_URL="apttesting.datad0g.com/datadog-agent/pipeline-114830198-a7"
+    export TESTING_APT_REPO_VERSION="stable-x86_64 7"
+    export TESTING_YUM_URL="yumtesting.datad0g.com"
+    export TESTING_YUM_VERSION_PATH="testing/pipeline-114830198-a7/7"
+    export TESTING_KEYS_URL="apttesting.datad0g.com/test-keys"
+
     # Check if Docker is installed and ensure it's running
     if command -v docker >/dev/null 2>&1; then
         echo "Docker is installed, ensuring service is enabled and running..."
@@ -47,6 +62,7 @@
 
     if [ "${DD_env}" == "dev" ]; then
       # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
+      echo "RMM TEST DD_env: ${DD_env}"
       export DD_SITE="datad0g.com"
       export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
       #The latest_snapshot of python tracer version is 2.x we want to use 4.x. Get from repo.
@@ -80,11 +96,13 @@
     fi
 
     if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
+      echo "RMM TEST DD_INSTALLER_INJECTOR_VERSION: ${DD_INSTALLER_INJECTOR_VERSION}"
       export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
       export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
     fi
 
     if [ -n "${DD_INSTALLER_AGENT_VERSION}" ]; then
+      echo "RMM TEST DD_INSTALLER_AGENT_VERSION: ${DD_INSTALLER_AGENT_VERSION}"
       export DD_INSTALLER_REGISTRY_URL_AGENT_PACKAGE='installtesting.datad0g.com'
       export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT="${DD_INSTALLER_AGENT_VERSION}"
     fi

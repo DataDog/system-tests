@@ -2,9 +2,12 @@ services:
   datadog:
     container_name: dd-agent
     # Pin to 7.78.4 agent release. APMSP-3059
-    image: gcr.io/datadoghq/agent:7.78.4
+    #image: 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/agent-dev:275edf32-py3-jmx
+    image: 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/datadog/agent-dev:623e4f63-py3-jmx
     environment:
       - DD_API_KEY=${DD_API_KEY}
+      # EC2 Docker: explicit hostname required (Agent >=7.40, APMSP-3059)
+      #- DD_HOSTNAME=system-tests-ssi-agent
       - DD_SITE=datadoghq.com
       - DD_APM_ENABLED=true
       - DD_LOG_LEVEL=TRACE
