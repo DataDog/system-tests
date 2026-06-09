@@ -27,6 +27,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y
 
 RUN clean-apt install \
     jq \
+    zstd \
     ca-certificates \
     curl \
     git \
