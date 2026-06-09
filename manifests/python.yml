@@ -148,7 +148,10 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         "*": missing_feature
+        *django: v4.11.0-rc1
         fastapi: v4.11.0-rc1
+        *flask: v4.11.0-rc1
+        tornado: v4.12.0-rc1
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -1739,7 +1742,7 @@ manifest:
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v4.8.0
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: missing_feature (128-bit trace ID not propagated to all spans in a trace)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: v4.11.0
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -2287,7 +2290,7 @@ manifest:
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
-  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: bug (APPSEC-62204)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v4.12.0-rc1
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
