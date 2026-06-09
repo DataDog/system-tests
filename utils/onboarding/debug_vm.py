@@ -1,101 +1,130 @@
 from pathlib import Path
 import stat
+from paramiko.client import SSHClient
 from paramiko.sftp_client import SFTPClient
 from utils._logger import logger
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 
+# Preserve the dd-agent diagnostics into /var/log/datadog_weblog (runs from VM user home).
+# create_and_run_app_container.sh dumps diagnostics to $HOME/dd-agent-diagnostics.log when it fails;
+# here we only copy that failure-time snapshot so it gets downloaded with the rest of the VM logs.
+_COLLECT_DD_AGENT_DIAGNOSTICS_CMD = r"""bash -lc '
+sudo mkdir -p /var/log/datadog_weblog && sudo chmod 777 /var/log/datadog_weblog;
+cd ~;
+if [ -f "$HOME/dd-agent-diagnostics.log" ]; then
+  sudo cp "$HOME/dd-agent-diagnostics.log" /var/log/datadog_weblog/dd-agent-diagnostics.log 2>/dev/null || true;
+fi'"""
 
-def download_vm_logs(vm: _VirtualMachine, remote_folder_paths: list[str], local_base_logs_folder: str):
-    """Using SSH/SFTP connects to VM and downloads one or more folders from the remote machine
+# Remote commands that collect host/docker/agent logs into /var/log/datadog_weblog before download.
+# Mirrors utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml.
+_LOG_COLLECTION_COMMANDS = [
+    "sudo mkdir -p /var/log/datadog_weblog || true",
+    "sudo chmod 777 /var/log/datadog_weblog || true",
+    _COLLECT_DD_AGENT_DIAGNOSTICS_CMD,
+    "bash -lc 'cd ~ && sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true'",
+    "bash -lc 'cd ~ && sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true'",
+    "sudo journalctl -xeu docker > /var/log/datadog_weblog/journalctl_docker.log 2>&1 || true",
+    "sudo cp /etc/datadog-agent/application_monitoring.yaml /var/log/datadog_weblog/application_monitoring.yaml 2>&1 || true",
+    "sudo cat /var/log/cloud-init.log > /var/log/datadog_weblog/cloud-init.log 2>&1 || true",
+    "sudo cat /var/log/syslog > /var/log/datadog_weblog/syslog.log 2>&1 || true",
+    "sudo dmesg > /var/log/datadog_weblog/dmesg.log 2>&1 || true",
+    "sudo systemctl list-dependencies docker.service > /var/log/datadog_weblog/docker_list_dependencies.log 2>&1 || true",
+    "sudo systemctl list-timers --all > /var/log/datadog_weblog/system.timers.log 2>&1 || true",
+    "sudo crontab -l > /var/log/datadog_weblog/crontab.log 2>&1 || true",
+    "sudo cat /var/log/apt/history.log > /var/log/datadog_weblog/apt.log 2>&1 || true",
+    "sudo cat /var/log/yum.log > /var/log/datadog_weblog/yum.log 2>&1 || true",
+]
 
-    Args:
-        vm: Virtual machine object
-        remote_folder_paths: Single path (str) or list of paths (list[str]) to download
-        local_base_logs_folder: Base folder where logs will be stored locally
 
+def download_vm_logs(vm: _VirtualMachine, remote_folder_paths: list[str], local_base_logs_folder: str) -> bool:
+    """Connect over SSH/SFTP and download folders from the remote machine.
+
+    Works even when provisioning failed (uses get_ssh_connection_for_log_download).
+
+    Returns True if at least one folder was downloaded successfully.
     """
-    # Handle both single path and list of paths for backward compatibility
     if isinstance(remote_folder_paths, str):
         remote_folder_paths = [remote_folder_paths]
 
+    if not vm.ssh_config.hostname:
+        logger.warning(
+            "Skipping VM log download for %s: no IP/hostname (VM may not have been created)",
+            vm.name,
+        )
+        return False
+
+    downloaded_any = False
     try:
-        logger.info(f"Downloading folders from machine {vm.get_ip()}")
-        logger.info(f"Remote folders: {remote_folder_paths}")
+        logger.info(
+            "Downloading folders from machine %s (%s) provision_error=%s",
+            vm.name,
+            vm.ssh_config.hostname,
+            vm.provision_install_error is not None,
+        )
+        logger.info("Remote folders: %s", remote_folder_paths)
 
-        # Use the VM's get_ssh_connection method instead of creating our own
-        c = vm.get_ssh_connection()
-        logger.info(f"Connected [{vm.get_ip()}]")
+        connection = vm.get_ssh_connection_for_log_download()
+        logger.info("Connected [%s]", vm.ssh_config.hostname)
 
-        # Execute remote commands to collect logs prior to download
-        commands_to_run = [
-            "sudo mkdir -p /var/log/datadog_weblog || true",
-            # Docker and systemd related logs (mirrors utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml)
-            "sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true",
-            "sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true",
-            "sudo journalctl -xeu docker > /var/log/datadog_weblog/journalctl_docker.log 2>&1 || true",
-            # Copy Datadog Agent configuration files
-            "sudo cp /etc/datadog-agent/application_monitoring.yaml /var/log/datadog_weblog/application_monitoring.yaml 2>&1 || true",
-            # Additional logs requested
-            "sudo cat /var/log/cloud-init.log > /var/log/datadog_weblog/cloud-init.log 2>&1 || true",
-            "sudo cat /var/log/syslog > /var/log/datadog_weblog/syslog.log 2>&1 || true",
-            "sudo dmesg > /var/log/datadog_weblog/dmesg.log 2>&1 || true",
-            "sudo systemctl list-dependencies docker.service > /var/log/datadog_weblog/docker_list_dependencies.log 2>&1 || true",
-            "sudo systemctl list-timers --all > /var/log/datadog_weblog/system.timers.log 2>&1 || true",
-            "sudo crontab -l > /var/log/datadog_weblog/crontab.log 2>&1 || true",
-            "sudo cat /var/log/apt/history.log  > /var/log/datadog_weblog/apt.log 2>&1 || true",
-            "sudo cat /var/log/yum.log  > /var/log/datadog_weblog/yum.log 2>&1 || true",
-        ]
+        _run_log_collection_commands(connection, vm)
 
-        for cmd in commands_to_run:
-            try:
-                logger.info(f"Executing remote command: {cmd}")
-                _stdin, stdout, _stderr = c.exec_command(cmd)
-                exit_status = stdout.channel.recv_exit_status()
-                logger.info(f"Remote command exit status: {exit_status}")
-            except Exception as exec_err:
-                logger.warning(f"Failed executing command on {vm.get_ip()}: {cmd}")
-                logger.exception(exec_err)
-
-        # Create SFTP client
-        sftp = c.open_sftp()
-
-        # Download each folder
+        sftp = connection.open_sftp()
         for remote_folder_path in remote_folder_paths:
             local_folder_path = f"{local_base_logs_folder}/{remote_folder_path}"
-            logger.info(f"Downloading: {remote_folder_path} -> {local_folder_path}")
+            logger.info("Downloading: %s -> %s", remote_folder_path, local_folder_path)
 
-            # Create local directory if it doesn't exist
-            local_path = Path(local_folder_path)
-            local_path.mkdir(parents=True, exist_ok=True)
-
-            # Download the folder recursively
-            _download_folder_recursive(sftp, remote_folder_path, local_folder_path)
+            Path(local_folder_path).mkdir(parents=True, exist_ok=True)
+            if _download_folder_recursive(sftp, remote_folder_path, local_folder_path):
+                downloaded_any = True
 
         sftp.close()
-        c.close()
-        logger.info(f"Successfully downloaded all folders from {vm.get_ip()}")
+        connection.close()
+
+        if downloaded_any:
+            logger.info(
+                "Successfully downloaded VM logs from %s into %s", vm.ssh_config.hostname, local_base_logs_folder
+            )
+        else:
+            logger.warning("No files downloaded from %s", vm.ssh_config.hostname)
 
     except Exception:
-        logger.error("Cannot download folders from remote machine")
+        logger.exception("Cannot download folders from remote machine %s", vm.name)
+
+    return downloaded_any
 
 
-def _download_folder_recursive(sftp: SFTPClient, remote_dir: str, local_dir: str):
-    """Recursively download a folder using SFTP"""
+def _run_log_collection_commands(connection: SSHClient, vm: _VirtualMachine) -> None:
+    """Execute the remote log-collection commands, tolerating individual failures."""
+    for cmd in _LOG_COLLECTION_COMMANDS:
+        try:
+            logger.info("Executing remote command: %s", cmd)
+            _stdin, stdout, _stderr = connection.exec_command(cmd)
+            exit_status = stdout.channel.recv_exit_status()
+            logger.info("Remote command exit status: %s", exit_status)
+        except Exception as exec_err:
+            logger.warning("Failed executing command on %s: %s", vm.ssh_config.hostname, cmd)
+            logger.exception(exec_err)
+
+
+def _download_folder_recursive(sftp: SFTPClient, remote_dir: str, local_dir: str) -> bool:
+    """Recursively download a folder using SFTP. Returns True if at least one file was downloaded."""
+    downloaded_any = False
     try:
-        # List contents of remote directory
         for item in sftp.listdir_attr(remote_dir):
             remote_path = f"{remote_dir}/{item.filename}"
             local_path = Path(local_dir) / item.filename
 
             if stat.S_ISDIR(item.st_mode):
-                # Create local directory and recursively download
                 local_path.mkdir(exist_ok=True)
-                logger.info(f"Created directory: {local_path}")
-                _download_folder_recursive(sftp, remote_path, str(local_path))
+                logger.info("Created directory: %s", local_path)
+                if _download_folder_recursive(sftp, remote_path, str(local_path)):
+                    downloaded_any = True
             else:
-                # Download file
-                logger.info(f"Downloading file: {remote_path} -> {local_path}")
+                logger.info("Downloading file: %s -> %s", remote_path, local_path)
                 sftp.get(remote_path, str(local_path))
+                downloaded_any = True
 
     except Exception:
-        logger.error(f"Error downloading from {remote_dir}")
+        logger.exception("Error downloading from %s", remote_dir)
+
+    return downloaded_any
