@@ -21,6 +21,8 @@ stages:
 variables:
     TEST: 1
     SKIP_RESOLVE_CI_IMAGE: "true"
+    # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
+    E2E_SUPPORTED_LANGUAGES: "python"
 
 # compute_pipeline:
 #   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
