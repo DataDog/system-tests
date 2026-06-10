@@ -169,7 +169,13 @@ if [[ $IS_APACHE -eq 1 ]]; then
   fi
 fi
 
-# Install stripe SDK if not already present (base images may predate this dependency)
-if command -v composer &>/dev/null && [ -f /var/www/html/composer.json ] && ! [ -d /var/www/html/vendor/stripe ]; then
-  cd /var/www/html && composer require stripe/stripe-php "^10.0" --prefer-dist --no-interaction
+# Install stripe SDK if not already present (base images may predate this dependency).
+# Skip when open-telemetry is present: those PHP >=8.1 base images have extra packages
+# installed via `composer require` that are not in the committed composer files, and
+# running `composer require` again would incorrectly remove them.
+if command -v composer &>/dev/null \
+    && [ -f /var/www/html/composer.json ] \
+    && ! [ -d /var/www/html/vendor/stripe ] \
+    && ! [ -d /var/www/html/vendor/open-telemetry ]; then
+  cd /var/www/html && composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
 fi
