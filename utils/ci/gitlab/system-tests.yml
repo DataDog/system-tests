@@ -1,3 +1,16 @@
+{% macro docker_auth() %}
+    - section_start "docker_auth" "Docker hub auth"
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - |
+      for i in 1 2 3; do
+        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
+        if [ "$i" -eq 3 ]; then echo "docker login failed after 3 attempts"; exit 1; fi
+        echo "docker login failed (attempt $i), retrying in $((i*5))s..."
+        sleep $((i*5))
+      done
+    - section_end "docker_auth"
+{% endmacro %}
 {% if not skip_header %}
 workflow:
   name: "System-tests end to end"
@@ -60,17 +73,7 @@ build_{{library}}_{{variant}}:
       artifacts: true
   {% endif %}
   script:
-    - section_start "docker_auth" "Docker hub auth"
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-    - |
-      for i in 1 2 3; do
-        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
-        if [ "$i" -eq 3 ]; then echo "docker login failed after 3 attempts"; exit 1; fi
-        echo "docker login failed (attempt $i), retrying in $((i*5))s..."
-        sleep $((i*5))
-      done
-    - section_end "docker_auth"
+    {{ docker_auth() }}
     - section_start "build" "Building weblog"
     - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
     - mv binaries ..
@@ -96,17 +99,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
       artifacts: true
   {% endif %}
   script:
-    - section_start "docker_auth" "Docker hub auth"
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-    - |
-      for i in 1 2 3; do
-        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
-        if [ "$i" -eq 3 ]; then echo "docker login failed after 3 attempts"; exit 1; fi
-        echo "docker login failed (attempt $i), retrying in $((i*5))s..."
-        sleep $((i*5))
-      done
-    - section_end "docker_auth"
+    {{ docker_auth() }}
     - section_start "weblog_setup" "Setting up the weblog"
     {% if build_required %}
     - mv ../binaries/* binaries/
