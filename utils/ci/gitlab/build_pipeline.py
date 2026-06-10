@@ -11,7 +11,6 @@ parser.add_argument("--params", required=True, help="Path to JSON output from co
 parser.add_argument("--ci-image", required=True, help="Full CI image reference for generated jobs")
 parser.add_argument("--ref", default="", help="system-tests ref to clone when called from another repository")
 parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
-parser.add_argument("--test-optimization-datadog-site", default="datadoghq.com", help="Datadog site for Test Optimization")
 parser.add_argument("--skip-header", action="store_true", help="Skip the workflow/include/variables header (for concatenation)")
 
 args = parser.parse_args()
@@ -30,7 +29,6 @@ scenario_pairs = [
     for scenario in job.get("scenarios", [])
 ]
 binaries_artifact = params["miscs"]["binaries_artifact"]
-ci_environment = params["miscs"]["ci_environment"]
 parametric = params["parametric"]
 env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), autoescape=select_autoescape())
 
@@ -45,11 +43,9 @@ print(template.render(
     library=args.library,
     weblog_variants=weblog_variants,
     binaries_artifact=binaries_artifact,
-    ci_environment=ci_environment,
     parametric=parametric,
     ci_image=args.ci_image,
     ref=args.ref,
     push_to_test_optimization=args.push_to_test_optimization == "true",
-    test_optimization_datadog_site=args.test_optimization_datadog_site,
     skip_header=args.skip_header,
 ), end="")
