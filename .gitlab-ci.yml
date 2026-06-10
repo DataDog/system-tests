@@ -2,19 +2,19 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
   - local: /utils/ci/gitlab/main.yml
     inputs:
-      stage: "build"
+      stage: "e2e"
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
 stages:
   - configure
+  - e2e
   - nodejs
   - java
   - dotnet
   - python
   - php
   - ruby
-  - build
   - pipeline-status
   - system-tests-utils
 
@@ -320,7 +320,7 @@ generate_system_tests_lib_injection_images:
 
 system-tests-param:
   image: $CI_IMAGE
-  stage: build
+  stage: e2e
   tags:
     - arch:amd64
   needs:
@@ -378,7 +378,7 @@ build_ci_image:
   interruptible: true
   tags:
     - docker-in-docker:amd64
-  stage: build
+  stage: e2e
   script:
     - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
     - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env

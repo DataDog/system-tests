@@ -21,6 +21,9 @@ include:
       stage: {{stage}}
       ref: {{ref}}
 
+stages:
+  - {{stage}}
+
 variables:
   CI_IMAGE: {{ci_image}}
 
