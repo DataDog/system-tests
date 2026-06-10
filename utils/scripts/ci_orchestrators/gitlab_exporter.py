@@ -326,6 +326,9 @@ def print_docker_ssi_gitlab_pipeline(
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
                     (
+                        # Capture stdout+stderr so the after_script can re-print the
+                        # run summary (pipefail keeps run.sh's real exit code).
+                        "set -o pipefail\n"
                         'timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
                         '--ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" '
                         '--ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" '
@@ -333,6 +336,7 @@ def print_docker_ssi_gitlab_pipeline(
                         + custom_extra_params
                         + " --report-run-url ${CI_JOB_URL} --report-environment "
                         + ci_environment
+                        + ' 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"'
                     ),
                 ]
                 if os.getenv("CI_PROJECT_NAME") != "system-tests":
