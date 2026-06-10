@@ -366,9 +366,14 @@ def print_outputs(strings_out: list[str], inputs: Inputs) -> None:
         print_ci_outputs(strings_out, sys.stdout)
 
 
+def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
+    return {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
+
+
 def process(inputs: Inputs) -> list[str]:
     outputs: dict[str, Any] = {}
     if inputs.is_gitlab:
+        outputs |= extra_gitlab_output(inputs)
         logging.disable()
 
     rebuild_lambda_proxy = False
@@ -402,7 +407,9 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
-        outputs["libraries"] = " ".join(sorted(lib for lib in library_processor.selected if lib not in ("rust",)))
+        libraries = " ".join(sorted(lib for lib in library_processor.selected if lib not in ("rust",)))
+        if libraries:
+            outputs["libraries"] = libraries
         outputs |= scenario_processor.get_outputs()
     else:
         outputs |= (
