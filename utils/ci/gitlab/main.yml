@@ -34,9 +34,6 @@ spec:
       description: "Push test results to Datadog Test Optimization"
       type: boolean
       default: false
-    test_optimization_datadog_site:
-      description: "Datadog site to use for Test Optimization"
-      default: "datadoghq.com"
     auto_cancel_on_new_commit:
       description: "Auto-cancel strategy when a new commit is pushed (interruptible, conservative, disabled)"
       default: "interruptible"
@@ -134,11 +131,11 @@ build_test_pipeline:
       for library in $libraries; do
         chunk=$(( idx / third ))
         [ $chunk -gt 2 ] && chunk=2
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
         if [ ! -f generated-pipeline-chunk-${chunk}.yml ]; then
-          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" > generated-pipeline-chunk-${chunk}.yml
+          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" > generated-pipeline-chunk-${chunk}.yml
         else
-          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --test-optimization-datadog-site "$[[ inputs.test_optimization_datadog_site ]]" --skip-header >> generated-pipeline-chunk-${chunk}.yml
+          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --skip-header >> generated-pipeline-chunk-${chunk}.yml
         fi
         idx=$((idx + 1))
       done
