@@ -104,6 +104,20 @@ app.get('/api_security_sampling/:i', (req, res) => {
   res.send('OK')
 })
 
+// RFC-1103: two mandatory params in the same segment (rule 5 intra-segment combining)
+app.get('/api_security/multi-params-in-segment/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+// RFC-1103: optional intra-segment param (rules 5 + 6); more-specific route first
+app.get('/api_security/optional-params/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+app.get('/api_security/optional-params/:id', (req, res) => {
+  res.send('ok')
+})
+
 app.get('/params/:value', (req, res) => {
   res.send('OK')
 })
