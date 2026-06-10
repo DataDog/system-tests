@@ -11,7 +11,9 @@ parser.add_argument("--params", required=True, help="Path to JSON output from co
 parser.add_argument("--ci-image", required=True, help="Full CI image reference for generated jobs")
 parser.add_argument("--ref", default="", help="system-tests ref to clone when called from another repository")
 parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
-parser.add_argument("--skip-header", action="store_true", help="Skip the workflow/include/variables header (for concatenation)")
+parser.add_argument(
+    "--skip-header", action="store_true", help="Skip the workflow/include/variables header (for concatenation)"
+)
 
 args = parser.parse_args()
 
@@ -36,16 +38,19 @@ env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), auto
 template = env.get_template("system-tests.yml")
 
 # Render the pipeline with per-weblog scenario pairs
-print(template.render(
-    # we're now using precomputed scenario pairs instead of flat scenarios list
-    scenario_pairs=scenario_pairs,
-    stage=args.stage,
-    library=args.library,
-    weblog_variants=weblog_variants,
-    binaries_artifact=binaries_artifact,
-    parametric=parametric,
-    ci_image=args.ci_image,
-    ref=args.ref,
-    push_to_test_optimization=args.push_to_test_optimization == "true",
-    skip_header=args.skip_header,
-), end="")
+print(  # noqa: T201
+    template.render(
+        # we're now using precomputed scenario pairs instead of flat scenarios list
+        scenario_pairs=scenario_pairs,
+        stage=args.stage,
+        library=args.library,
+        weblog_variants=weblog_variants,
+        binaries_artifact=binaries_artifact,
+        parametric=parametric,
+        ci_image=args.ci_image,
+        ref=args.ref,
+        push_to_test_optimization=args.push_to_test_optimization == "true",
+        skip_header=args.skip_header,
+    ),
+    end="",
+)
