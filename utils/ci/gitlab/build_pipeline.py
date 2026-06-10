@@ -13,14 +13,16 @@ parser.add_argument("--params-dir", required=True, help="Directory containing pa
 parser.add_argument("--ci-image", required=True, help="Full CI image reference for generated jobs")
 parser.add_argument("--ref", default="", help="system-tests ref to clone when called from another repository")
 parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
-parser.add_argument("--output-dir", required=True, help="Directory where generated-pipeline-chunk-<i>.yml files are written")
+parser.add_argument(
+    "--output-dir", required=True, help="Directory where generated-pipeline-chunk-<i>.yml files are written"
+)
 parser.add_argument("--chunks", type=int, default=3, help="Number of pipeline chunks (default: 3)")
 
 args = parser.parse_args()
 
 libraries = args.libraries.split()
 if not libraries:
-    print("No libraries specified, nothing to generate.", file=sys.stderr)
+    print("No libraries specified, nothing to generate.", file=sys.stderr)  # noqa: T201
     sys.exit(0)
 
 params_dir = Path(args.params_dir)
@@ -31,7 +33,7 @@ env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), auto
 template = env.get_template("system-tests.yml")
 
 
-def render_library(library: str, params: dict, skip_header: bool) -> str:
+def render_library(library: str, params: dict, *, skip_header: bool) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
     weblog_variants = [w["name"] for w in parallel_weblogs]
@@ -92,7 +94,7 @@ for chunk_idx, chunk_libs in chunk_libraries.items():
     for lib_idx, library in enumerate(chunk_libs):
         params_file = params_dir / f"params_{library}.json"
         if not params_file.exists():
-            print(f"ERROR: params file not found for library '{library}': {params_file}", file=sys.stderr)
+            print(f"ERROR: params file not found for library '{library}': {params_file}", file=sys.stderr)  # noqa: T201
             sys.exit(1)
         with open(params_file) as f:
             params = json.load(f)
