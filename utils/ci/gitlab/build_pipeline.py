@@ -61,11 +61,31 @@ chunk_libraries: dict[int, list[str]] = {i: [] for i in range(args.chunks)}
 for idx, library in enumerate(libraries):
     chunk_libraries[idx % args.chunks].append(library)
 
-# Render and write non-empty chunks; track which chunks have content
-nonempty_chunks = []
 
+def noop_stub(stage: str) -> str:
+    """Return a minimal valid GitLab pipeline YAML for an empty chunk."""
+    return f"""workflow:
+  name: "System-tests end to end (empty chunk)"
+stages:
+  - {stage}
+noop:
+  stage: {stage}
+  image: registry.ddbuild.io/images/mirror/alpine:latest
+  tags:
+    - arch:amd64
+  script:
+    - echo "no libraries assigned to this chunk"
+"""
+
+
+# Render and write all chunks; empty chunks get a noop stub so trigger jobs
+# always have a valid pipeline file — dotenv vars are not available in rules:
+# at pipeline-creation time (gitlab-org/gitlab#235812).
 for chunk_idx, chunk_libs in chunk_libraries.items():
+    chunk_file = output_dir / f"generated-pipeline-chunk-{chunk_idx}.yml"
+
     if not chunk_libs:
+        chunk_file.write_text(noop_stub(args.stage))
         continue
 
     parts = []
@@ -78,11 +98,4 @@ for chunk_idx, chunk_libs in chunk_libraries.items():
             params = json.load(f)
         parts.append(render_library(library, params, skip_header=(lib_idx > 0)))
 
-    chunk_file = output_dir / f"generated-pipeline-chunk-{chunk_idx}.yml"
     chunk_file.write_text("\n".join(parts))
-    nonempty_chunks.append(chunk_idx)
-
-# Write chunks.env dotenv so run_test_pipeline_<i> rules can gate on content
-chunks_env = output_dir / "chunks.env"
-lines = [f"CHUNK_{i}_NONEMPTY=true" for i in nonempty_chunks]
-chunks_env.write_text("\n".join(lines) + ("\n" if lines else ""))

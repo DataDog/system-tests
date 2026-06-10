@@ -134,12 +134,13 @@ build_test_pipeline:
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
-    reports:
-      dotenv: system-tests/chunks.env
 
 .run_test_pipeline_base:
   interruptible: true
   stage: $[[ inputs.stage ]]
+  rules:
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/'
+    - when: never
   needs:
     - job: build_test_pipeline
       optional: true
@@ -154,9 +155,6 @@ build_test_pipeline:
 
 run_test_pipeline_0:
   extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/ && $CHUNK_0_NONEMPTY == "true"'
-    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-0.yml
@@ -165,9 +163,6 @@ run_test_pipeline_0:
 
 run_test_pipeline_1:
   extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/ && $CHUNK_1_NONEMPTY == "true"'
-    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-1.yml
@@ -176,9 +171,6 @@ run_test_pipeline_1:
 
 run_test_pipeline_2:
   extends: .run_test_pipeline_base
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/ && $CHUNK_2_NONEMPTY == "true"'
-    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-2.yml
