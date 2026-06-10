@@ -170,12 +170,16 @@ if [[ $IS_APACHE -eq 1 ]]; then
 fi
 
 # Install stripe SDK if not already present (base images may predate this dependency).
-# Skip when open-telemetry is present: those PHP >=8.1 base images have extra packages
-# installed via `composer require` that are not in the committed composer files, and
-# running `composer require` again would incorrectly remove them.
+# Use the correct composer file for the PHP version so we don't orphan open-telemetry
+# packages that were added to PHP >=8.2 base images via composer.gte8.2.json.
 if command -v composer &>/dev/null \
     && [ -f /var/www/html/composer.json ] \
-    && ! [ -d /var/www/html/vendor/stripe ] \
-    && ! [ -d /var/www/html/vendor/open-telemetry ]; then
-  cd /var/www/html && composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
+    && ! [ -d /var/www/html/vendor/stripe ]; then
+  PHP_MAJOR=$(php -r 'echo PHP_MAJOR_VERSION;')
+  PHP_MINOR=$(php -r 'echo PHP_MINOR_VERSION;')
+  STRIPE_COMPOSER_FILE=composer.json
+  if [ "$PHP_MAJOR" -gt 8 ] || { [ "$PHP_MAJOR" -eq 8 ] && [ "$PHP_MINOR" -ge 2 ]; }; then
+    STRIPE_COMPOSER_FILE=composer.gte8.2.json
+  fi
+  cd /var/www/html && COMPOSER="$STRIPE_COMPOSER_FILE" composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
 fi
