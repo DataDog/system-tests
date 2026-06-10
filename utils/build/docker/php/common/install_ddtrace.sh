@@ -169,16 +169,22 @@ if [[ $IS_APACHE -eq 1 ]]; then
   fi
 fi
 
-# Install stripe SDK if not already present (base images may predate this dependency).
-# Use --no-update to add stripe to the JSON without touching the lock file, then
-# do a partial update (stripe only) — partial updates never remove other packages
-# (e.g. open-telemetry) that live in the lock but not in our composer JSON.
-# Detect which composer file the base image used from the lock file name.
+# Install stripe SDK if not already present. Must run before ddtrace is loaded into
+# PHP (i.e. in the base image build), because ddtrace causes PHP ZTS builds to segfault
+# when composer runs after installation. This block is a fallback for non-ZTS FPM images
+# where ddtrace does not segfault composer.
+#
+# For PHP 8.1 FPM: the base image has open-telemetry in vendor but not in our composer.json.
+# Add it back before updating to prevent composer from removing it as an orphaned package.
 if command -v composer &>/dev/null \
     && [ -f /var/www/html/composer.json ] \
     && ! [ -d /var/www/html/vendor/stripe ]; then
   cd /var/www/html
   [ -f composer.gte8.2.lock ] && export COMPOSER=composer.gte8.2.json
+  ACTIVE_JSON="${COMPOSER:-composer.json}"
+  if [ -d vendor/open-telemetry ] && ! grep -q '"open-telemetry' "$ACTIVE_JSON"; then
+    composer require "open-telemetry/sdk:^1.0.0" --no-update --no-interaction
+  fi
   composer require stripe/stripe-php "^10.0" --no-update --no-interaction --ignore-platform-req=ext-mbstring \
     && composer update stripe/stripe-php --no-interaction --ignore-platform-req=ext-mbstring \
     || true
