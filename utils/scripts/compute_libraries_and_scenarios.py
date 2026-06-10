@@ -347,10 +347,6 @@ class Inputs:
                 self.scenario_map = json.load(f)
 
 
-def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
-    return {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
-
-
 def stringify_outputs(outputs: dict[str, Any]) -> list[str]:
     ret = []
     for name, value in outputs.items():
@@ -373,7 +369,6 @@ def print_outputs(strings_out: list[str], inputs: Inputs) -> None:
 def process(inputs: Inputs) -> list[str]:
     outputs: dict[str, Any] = {}
     if inputs.is_gitlab:
-        outputs |= extra_gitlab_output(inputs)
         logging.disable()
 
     rebuild_lambda_proxy = False
