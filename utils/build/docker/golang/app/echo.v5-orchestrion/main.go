@@ -25,7 +25,6 @@ import (
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
-	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
@@ -36,24 +35,8 @@ func main() {
 	// Add Datadog context log hook
 	logrus.AddHook(&dd_logrus.DDContextLogHook{})
 
-	tracer.Start()
-	defer tracer.Stop()
-
-	err := profiler.Start(
-		profiler.WithService("weblog"),
-		profiler.WithEnv("system-tests"),
-		profiler.WithVersion("1.0"),
-		profiler.WithTags(),
-		profiler.WithProfileTypes(profiler.CPUProfile, profiler.HeapProfile),
-	)
-
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	defer profiler.Stop()
-
-	// Orchestrion automatically wraps echo.New() via the echo.v5 contrib's
-	// orchestrion.yml join-point, so we don't need to call echotrace.Wrap here.
+	// Orchestrion auto-starts the tracer and profiler, and wraps echo.New()
+	// via the echo.v5 contrib's orchestrion.yml join-point.
 	r := echo.New()
 
 	r.Any("/", func(c *echo.Context) error {
