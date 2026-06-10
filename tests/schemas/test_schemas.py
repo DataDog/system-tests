@@ -145,9 +145,6 @@ class Test_DdtraceSchemas:
                 ticket="APPSEC-52845",
             ),
             SchemaBug(
-                endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
-            ),  # the main payload sent by the agent may be an array i/o an object
-            SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
@@ -158,12 +155,6 @@ class Test_DdtraceSchemas:
                 data_path="$[]",
                 condition=context.library == "dotnet" and context.scenario is scenarios.debugger_symdb,
                 ticket="DEBUG-3298",
-            ),
-            SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=context.library > "php@1.7.3",
-                ticket="XXX-1234",
             ),
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",

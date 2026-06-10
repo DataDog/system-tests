@@ -141,6 +141,12 @@ class _VirtualMachine:
         self._check_provsion_install_error()
         return self.ssh_config.get_ssh_connection()
 
+    def get_ssh_connection_for_log_download(self):
+        """SSH for log extraction after a failed provision (skips provision_install_error guard)."""
+        if not self.ssh_config.hostname:
+            raise Exception("IP not found - cannot download logs from VM")
+        return self.ssh_config.get_ssh_connection()
+
     def get_ip(self):
         self._check_provsion_install_error()
         if not self.ssh_config.hostname:
