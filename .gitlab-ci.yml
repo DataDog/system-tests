@@ -347,6 +347,26 @@ system-tests-param:
               elif key == 'scenarios_groups': print(f'SCENARIO_GROUPS={val}')
       " > param.env
     - cat param.env
+    # TEMPORARY: filter LIBRARIES via E2E_SUPPORTED_LANGUAGES (space-separated allowlist)
+    # used to control rollout, to be removed once rollout is complete.
+    - |
+      if [ -n "${E2E_SUPPORTED_LANGUAGES:-}" ]; then
+        echo "Filtering LIBRARIES with E2E_SUPPORTED_LANGUAGES='$E2E_SUPPORTED_LANGUAGES'"
+        current=$(grep '^LIBRARIES=' param.env | sed 's/^LIBRARIES=//')
+        filtered=""
+        for lib in $current; do
+          for allowed in $E2E_SUPPORTED_LANGUAGES; do
+            if [ "$lib" = "$allowed" ]; then
+              filtered="${filtered:+$filtered }$lib"
+              break
+            fi
+          done
+        done
+        grep -v '^LIBRARIES=' param.env > param.env.tmp || true
+        echo "LIBRARIES=$filtered" >> param.env.tmp
+        mv param.env.tmp param.env
+        cat param.env
+      fi
   artifacts:
     reports:
       dotenv: param.env
