@@ -40,6 +40,9 @@ spec:
     ref:
       description: "system-tests ref to use when called from another repository (branch, tag or SHA)"
       default: "main"
+    ssi_enabled:
+      description: "Whether to run SSI tests"
+      default: false
     ssi_library_version:
       description: "DD_INSTALLER_LIBRARY_VERSION to inject into generated jobs (Docker/K8s SSI)"
       default: ""
@@ -57,15 +60,16 @@ include:
     inputs:
       stage: $[[ inputs.stage ]]
       ref: $[[ inputs.ref ]]
-  # - local: /utils/ci/gitlab/ssi.yml
-  #   inputs:
-  #     stage: $[[ inputs.stage ]]
-  #     libraries: $[[ inputs.libraries ]]
-  #     scenarios: $[[ inputs.scenarios ]]
-  #     scenarios_groups: $[[ inputs.scenarios_groups ]]
-  #     ssi_library_version: $[[ inputs.ssi_library_version ]]
-  #     k8s_lib_init_img: $[[ inputs.k8s_lib_init_img ]]
-  #     ssi_injector_version: $[[ inputs.ssi_injector_version ]]
+  - local: /utils/ci/gitlab/ssi.yml
+    if: $[[ inputs.ssi_enabled ]]
+    inputs:
+      stage: $[[ inputs.stage ]]
+      libraries: $[[ inputs.libraries ]]
+      scenarios: $[[ inputs.scenarios ]]
+      scenarios_groups: $[[ inputs.scenarios_groups ]]
+      ssi_library_version: $[[ inputs.ssi_library_version ]]
+      k8s_lib_init_img: $[[ inputs.k8s_lib_init_img ]]
+      ssi_injector_version: $[[ inputs.ssi_injector_version ]]
 
 workflow:
   rules:
