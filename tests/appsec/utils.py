@@ -29,6 +29,40 @@ def find_configuration() -> Generator:
         yield payload.get("configuration")
 
 
+def find_products() -> Generator:
+    """Yield each products dict from telemetry payloads that signal AppSec enablement state.
+
+    Covers three event types:
+    - app-started / app-product-change: carry an explicit products.appsec.enabled field
+    - app-client-configuration-change: carries DD_APPSEC_ENABLED in configuration entries;
+      synthesised into a products dict so callers don't need per-event-type logic.
+      This is the event emitted by tracers when RC enables AppSec at runtime, and is
+      the payload that should update service_instance.asm_enabled in the backend.
+    """
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        request_type = content.get("request_type")
+        payload = content["payload"]
+
+        if request_type in ("app-started", "app-product-change"):
+            if payload.get("products"):
+                yield payload["products"]
+
+        elif request_type == "app-client-configuration-change":
+            config = payload.get("configuration") or []
+            appsec_entry = next(
+                (
+                    c
+                    for c in config
+                    if c.get("name") in ("DD_APPSEC_ENABLED", "appsec.enabled")
+                    and c.get("value") in ("1", 1, True)
+                ),
+                None,
+            )
+            if appsec_entry:
+                yield {"appsec": {"enabled": True}}
+
+
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
 
