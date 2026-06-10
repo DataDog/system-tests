@@ -116,15 +116,12 @@ build_test_pipeline:
     - job: system-tests-param
       optional: true
       artifacts: true
-  id_tokens:
-    DD_STS_OIDC_TOKEN:
-      aud: dd-sts
   script:
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
       scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      weblogs=$(echo "$[[ inputs.weblogs ]]" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       echo "libraries:       $libraries"
       echo "scenarios:       $scenarios"
       echo "scenario_groups: $scenario_groups"
