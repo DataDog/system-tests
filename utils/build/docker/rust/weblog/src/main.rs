@@ -40,11 +40,13 @@ use tokio::signal::unix::{signal, SignalKind};
 // keys onto the Datadog span fields the OTLP tests assert against:
 //   http.request.method        -> http.method
 //   http.response.status_code  -> http.status_code
-//   user_agent.original        -> http.useragent  (used by the harness to match the request)
+//   http.request.headers.user-agent  (the harness correlates the span to the request via this attr)
 const ATTR_HTTP_REQUEST_METHOD: &str = "http.request.method";
 const ATTR_HTTP_RESPONSE_STATUS_CODE: &str = "http.response.status_code";
 const ATTR_URL_PATH: &str = "url.path";
-const ATTR_USER_AGENT_ORIGINAL: &str = "user_agent.original";
+// `get_otel_spans` matches the injected `rid/<id>` token on the RAW OTLP payload, which it reads from
+// `http.request.headers.user-agent` (or `http.useragent`) — NOT the OTel `user_agent.original` key.
+const ATTR_USER_AGENT: &str = "http.request.headers.user-agent";
 
 fn user_agent(headers: &HeaderMap) -> String {
     headers
@@ -54,15 +56,16 @@ fn user_agent(headers: &HeaderMap) -> String {
         .to_string()
 }
 
-/// Build the common HTTP server-span attributes. Setting `user_agent.original` is what lets the
-/// system-tests harness correlate the exported span back to the originating request (it injects a
-/// `rid/<id>` token into the User-Agent header and looks it up in `http.useragent`).
+/// Build the common HTTP server-span attributes. Setting `http.request.headers.user-agent` is what
+/// lets the system-tests harness correlate the exported span back to the originating request: it
+/// injects a `rid/<id>` token into the User-Agent header, and `get_otel_spans` looks that token up in
+/// the raw OTLP `http.request.headers.user-agent` / `http.useragent` attribute.
 fn server_span_attributes(method: &str, path: &str, headers: &HeaderMap, status: i64) -> Vec<KeyValue> {
     vec![
         KeyValue::new(ATTR_HTTP_REQUEST_METHOD, method.to_string()),
         KeyValue::new(ATTR_URL_PATH, path.to_string()),
         KeyValue::new(ATTR_HTTP_RESPONSE_STATUS_CODE, status),
-        KeyValue::new(ATTR_USER_AGENT_ORIGINAL, user_agent(headers)),
+        KeyValue::new(ATTR_USER_AGENT, user_agent(headers)),
     ]
 }
 

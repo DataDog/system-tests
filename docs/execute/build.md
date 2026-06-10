@@ -33,6 +33,7 @@ Build images used for system tests.
 * `php`
 * `python`
 * `ruby`
+* `rust`
 
 `cpp` is not available for `build.sh` because only parametric tests are runnable for `dd-trace-cpp`.
 
