@@ -189,6 +189,10 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # the uninstall test today
 
     @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
+    @bug(
+        context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
+        reason="APMSP-3489",
+    )
     def test_install_uninstall(self):
         virtual_machine = context.virtual_machine
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
@@ -261,6 +265,10 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
+    @bug(
+        context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
+        reason="APMSP-3489",
+    )
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)
