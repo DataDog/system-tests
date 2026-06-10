@@ -7,8 +7,8 @@ include:
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
 stages:
-  - e2e
   - configure
+  - e2e
   - nodejs
   - java
   - dotnet
