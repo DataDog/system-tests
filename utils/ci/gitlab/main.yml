@@ -127,43 +127,19 @@ build_test_pipeline:
       echo "scenarios:       $scenarios"
       echo "scenario_groups: $scenario_groups"
       echo "weblogs:         $weblogs"
-      count=0
-      for lib in $libraries; do count=$((count + 1)); done
-      third=$(( (count + 2) / 3 ))
-      [ $third -eq 0 ] && third=1
-      idx=0
       for library in $libraries; do
-        chunk=$(( idx / third ))
-        [ $chunk -gt 2 ] && chunk=2
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
-        if [ ! -f generated-pipeline-chunk-${chunk}.yml ]; then
-          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" > generated-pipeline-chunk-${chunk}.yml
-        else
-          python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --library $library --params params_${library}.json --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --skip-header >> generated-pipeline-chunk-${chunk}.yml
-        fi
-        idx=$((idx + 1))
       done
-      # Ensure all 3 chunk files exist: trigger include requires all files regardless of library count
-      for i in 1 2; do
-        if [ ! -f generated-pipeline-chunk-${i}.yml ] && [ -f generated-pipeline-chunk-0.yml ]; then
-          first_job=$(grep -nm1 '^build_' generated-pipeline-chunk-0.yml | cut -d: -f1 || true)
-          if [ -n "$first_job" ]; then
-            head -n $((first_job - 1)) generated-pipeline-chunk-0.yml > generated-pipeline-chunk-${i}.yml
-          else
-            cp generated-pipeline-chunk-0.yml generated-pipeline-chunk-${i}.yml
-          fi
-        fi
-      done
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --libraries "$libraries" --params-dir . --output-dir . --chunks 3
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
+    reports:
+      dotenv: system-tests/chunks.env
 
 .run_test_pipeline_base:
   interruptible: true
   stage: $[[ inputs.stage ]]
-  rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/'
-    - when: never
   needs:
     - job: build_test_pipeline
       optional: true
@@ -178,6 +154,9 @@ build_test_pipeline:
 
 run_test_pipeline_0:
   extends: .run_test_pipeline_base
+  rules:
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/ && $CHUNK_0_NONEMPTY == "true"'
+    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-0.yml
@@ -186,6 +165,9 @@ run_test_pipeline_0:
 
 run_test_pipeline_1:
   extends: .run_test_pipeline_base
+  rules:
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/ && $CHUNK_1_NONEMPTY == "true"'
+    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-1.yml
@@ -194,6 +176,9 @@ run_test_pipeline_1:
 
 run_test_pipeline_2:
   extends: .run_test_pipeline_base
+  rules:
+    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/ && $CHUNK_2_NONEMPTY == "true"'
+    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-2.yml
