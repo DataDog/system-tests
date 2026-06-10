@@ -93,6 +93,10 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
         "Ubuntu_25_04_arm64",
     ]
 
+    @bug(
+        context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
+        reason="APMSP-3489",
+    )
     def test_install(self):
         self._test_install(context.virtual_machine, origin_detection=True)
 
@@ -223,6 +227,10 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @bug(
+        context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
+        reason="APMSP-3489",
+    )
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(
@@ -251,6 +259,10 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
     )
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @bug(
+        context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
+        reason="APMSP-3489",
+    )
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
         logger.info(
