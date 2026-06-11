@@ -30,7 +30,7 @@ output_dir = Path(args.output_dir)
 output_dir.mkdir(parents=True, exist_ok=True)
 
 env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), autoescape=select_autoescape())
-template = env.get_template("system-tests.yml")
+template = env.get_template("system-tests.yml.j2")
 
 
 def render_library(library: str, params: dict, *, skip_header: bool) -> str:
