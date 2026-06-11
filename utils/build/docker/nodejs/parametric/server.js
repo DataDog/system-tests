@@ -207,8 +207,45 @@ app.post('/trace/span/manual_drop', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in Node.js Tracer
-  res.json({});
+  // dd-trace-js implements CSS via SpanStatsProcessor on the SpanProcessor.
+  // There is no public flush API, so reach into internals and wait for the
+  // span-stats writer's HTTP send to complete before responding.
+  const processor = tracer?._tracer?._processor?._stats
+  if (!processor) {
+    res.json({})
+    return
+  }
+  const writer = processor.exporter?._writer
+  if (!writer || typeof writer._sendPayload !== 'function') {
+    processor.onInterval()
+    res.json({})
+    return
+  }
+  const originalSend = writer._sendPayload.bind(writer)
+  let sendInvoked = false
+  let responded = false
+  const respond = () => {
+    if (responded) return
+    responded = true
+    writer._sendPayload = originalSend
+    res.json({})
+  }
+  writer._sendPayload = (data, count, done) => {
+    sendInvoked = true
+    originalSend(data, count, () => {
+      done()
+      respond()
+    })
+  }
+  try {
+    processor.onInterval()
+  } catch (e) {
+    respond()
+    return
+  }
+  if (!sendInvoked) {
+    respond()
+  }
 });
 
 app.post('/trace/span/error', (req, res) => {
