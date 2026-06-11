@@ -49,7 +49,9 @@ jobs:
         # (~6 min) plus the image build and zstd save exceeds the default 600s/attempt,
         # and a timed-out attempt leaves a truncated .tar.zst that poisons retries
         # (build.sh loads the partial tar instead of rebuilding).
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=1 SYSTEM_TEST_BUILD_TIMEOUT=2400 ./build.sh python -i weblog -w uwsgi-poc -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+        # DD_FAST_BUILD=1 skips heavy optimization for a much faster source compile
+        # (debug build is fine here — we only need the IAST-URDIAG diagnostics).
+        run: DD_FAST_BUILD=1 SYSTEM_TEST_BUILD_ATTEMPTS=1 SYSTEM_TEST_BUILD_TIMEOUT=2400 ./build.sh python -i weblog -w uwsgi-poc -s --github-token-file "$RUNNER_TEMP/github_token.txt"
 
       - name: Remove secrets
         if: always()

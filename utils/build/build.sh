@@ -298,7 +298,9 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    run_build_command docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    # Forward DD_FAST_BUILD (and DD_COMPILE_DEBUG) into the compile container so callers
+                    # can trade optimization for a much faster dd-trace-py source build.
+                    run_build_command docker run ${DOCKER_PLATFORM_ARGS} -e DD_FAST_BUILD="${DD_FAST_BUILD:-}" -e DD_COMPILE_DEBUG="${DD_COMPILE_DEBUG:-}" -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
