@@ -232,7 +232,7 @@ jobs:
       - name: Build python weblog base images
         if: inputs.library == 'python' && inputs._build_python_base_images
         run: |
-          ./utils/build/build_python_base_images.sh
+          ./utils/build/build_python_base_images.sh --push
       - name: Build php weblog base images
         if: inputs.library == 'php' && inputs._build_php_base_images
         run: |
