@@ -169,23 +169,12 @@ if [[ $IS_APACHE -eq 1 ]]; then
   fi
 fi
 
-# Install stripe SDK if not already present. Must run before ddtrace is loaded into
-# PHP (i.e. in the base image build), because ddtrace causes PHP ZTS builds to segfault
-# when composer runs after installation. This block is a fallback for non-ZTS FPM images
-# where ddtrace does not segfault composer.
-#
-# For PHP 8.1 FPM: the base image has open-telemetry in vendor but not in our composer.json.
-# Add it back before updating to prevent composer from removing it as an orphaned package.
-if command -v composer &>/dev/null \
-    && [ -f /var/www/html/composer.json ] \
-    && ! [ -d /var/www/html/vendor/stripe ]; then
-  cd /var/www/html
-  [ -f composer.gte8.2.lock ] && export COMPOSER=composer.gte8.2.json
-  ACTIVE_JSON="${COMPOSER:-composer.json}"
-  if [ -d vendor/open-telemetry ] && ! grep -q '"open-telemetry' "$ACTIVE_JSON"; then
-    composer require "open-telemetry/sdk:^1.0.0" --no-update --no-interaction
-  fi
-  composer require stripe/stripe-php "^10.0" --no-update --no-interaction --ignore-platform-req=ext-mbstring \
-    && composer update stripe/stripe-php --no-interaction --ignore-platform-req=ext-mbstring \
-    || true
+
+cd /var/www/html
+export COMPOSER=composer.json
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+	export COMPOSER=composer.gte8.2.json
+fi
+if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
+  composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
 fi
