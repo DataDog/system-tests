@@ -33,6 +33,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
@@ -68,6 +69,7 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
+  tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)

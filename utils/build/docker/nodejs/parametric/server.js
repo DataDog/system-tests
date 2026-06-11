@@ -113,6 +113,10 @@ app.post('/trace/span/extract_headers', (req, res) => {
   res.json({ span_id: extractedSpanID });
 });
 
+app.get('/trace/agent/ensure_agent_info', (req, res) => {
+  res.json({ ready: true })
+})
+
 app.get('/trace/crash', (req, res) => {
   process.kill(process.pid, 'SIGSEGV');
   res.json({});
@@ -203,8 +207,45 @@ app.post('/trace/span/manual_drop', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in Node.js Tracer
-  res.json({});
+  // dd-trace-js implements CSS via SpanStatsProcessor on the SpanProcessor.
+  // There is no public flush API, so reach into internals and wait for the
+  // span-stats writer's HTTP send to complete before responding.
+  const processor = tracer?._tracer?._processor?._stats
+  if (!processor) {
+    res.json({})
+    return
+  }
+  const writer = processor.exporter?._writer
+  if (!writer || typeof writer._sendPayload !== 'function') {
+    processor.onInterval()
+    res.json({})
+    return
+  }
+  const originalSend = writer._sendPayload.bind(writer)
+  let sendInvoked = false
+  let responded = false
+  const respond = () => {
+    if (responded) return
+    responded = true
+    writer._sendPayload = originalSend
+    res.json({})
+  }
+  writer._sendPayload = (data, count, done) => {
+    sendInvoked = true
+    originalSend(data, count, () => {
+      done()
+      respond()
+    })
+  }
+  try {
+    processor.onInterval()
+  } catch (e) {
+    respond()
+    return
+  }
+  if (!sendInvoked) {
+    respond()
+  }
 });
 
 app.post('/trace/span/error', (req, res) => {
@@ -491,35 +532,46 @@ app.post('/ffe/start', async (req, res) => {
 })
 
 app.post('/ffe/evaluate', async (req, res) => {
-  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
   let value, reason;
   const context = { targetingKey, ...attributes }
 
-  try {
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break;
-      case 'STRING':
-        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
-        break;
-      case 'INTEGER':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'NUMERIC':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'JSON':
-        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break;
-      default:
-        value = defaultValue;
-    }
+  // Helper function to perform the actual flag evaluation
+  const doEvaluate = async () => {
+    try {
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          break;
+        case 'STRING':
+          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          break;
+        case 'INTEGER':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break;
+        case 'NUMERIC':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break;
+        case 'JSON':
+          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          break;
+        default:
+          value = defaultValue;
+      }
 
-    reason = 'DEFAULT';
-  } catch (error) {
-    value = defaultValue;
-    reason = 'ERROR';
+      reason = 'DEFAULT';
+    } catch (error) {
+      value = defaultValue;
+      reason = 'ERROR';
+    }
+  }
+
+  // If a span_id is provided, activate that span during the evaluation
+  // so that the SpanEnrichmentHook can find the root span
+  if (span_id && spans[span_id]) {
+    await tracer.scope().activate(spans[span_id], doEvaluate)
+  } else {
+    await doEvaluate()
   }
 
   res.json({

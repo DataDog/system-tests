@@ -519,8 +519,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-001"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.creation",
             "key_path": [
@@ -625,8 +631,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-002"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.success",
             "key_path": [
@@ -695,8 +707,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-003"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.failure",
             "key_path": [
@@ -783,8 +801,14 @@
       "transformers": [],
       "output": {
         "event": false,
-        "keep": false,
+        "keep": true,
         "attributes": {
+          "appsec.events.payments.track": {
+            "value": true
+          },
+          "appsec.events.payments.rule_id": {
+            "value": "api-100-004"
+          },
           "appsec.events.payments.integration": {
             "address": "server.business_logic.payment.cancellation",
             "key_path": [

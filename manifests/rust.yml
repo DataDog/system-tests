@@ -7,6 +7,8 @@ manifest:
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
@@ -46,6 +48,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
@@ -101,6 +104,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_inject_valid: missing_feature  # Created by easy win activation script
@@ -143,6 +147,7 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v0.0.1
   tests/parametric/test_headers_none.py::Test_Headers_None: v0.0.1
+  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: v0.0.1
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
   : 'irrelevant (Issue: tracecontext,Datadog was never the default configuration)'
@@ -155,10 +160,14 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: missing_feature (can't guarantee the order of strings in the tracestate since they came from the map.)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature  # Created by easy win activation script
@@ -210,6 +219,7 @@ manifest:
   : missing_feature (Not implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Finish: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: missing_feature

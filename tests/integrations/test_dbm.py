@@ -8,7 +8,7 @@ import re
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils._weblog import HttpResponse
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 def remove_traceparent(s: str) -> str:
@@ -103,7 +103,7 @@ class Test_Dbm:
         meta = span.get("meta", {})
         assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span.raw_span, indent=2)}"
         tag_value = meta.get(self.META_TAG)
-        assert tag_value == "true", f"{self.META_TAG} value is not `true`."
+        assert is_same_boolean(actual=tag_value, expected="true"), f"{self.META_TAG} value is not `true`."
 
     # Setup Methods
     setup_trace_payload_disabled = weblog_trace_payload
@@ -398,3 +398,76 @@ class Test_Dbm_Comment_Mysql(_BaseDbmComment):
     @property
     def dddbs(self):
         return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
+
+
+class _BaseDbmDynamicService:
+    """Verify DD_DBM_PROPAGATION_MODE=dynamic_service:
+    - injects ddsh='<hash>' into the SQL comment
+    - sets _dd.propagated_hash=<same_hash> on the SQL span
+    """
+
+    operation: str = "execute"
+
+    @property
+    def integration(self):
+        return None
+
+    def setup_dbm_dynamic_service(self):
+        self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
+
+    def test_dbm_dynamic_service(self):
+        assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
+
+        try:
+            data = json.loads(self.r.text)
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError(f"Response from {self.r.request.url} should have been JSON") from e
+
+        assert data.get("status") == "ok"
+        comment = data.get("dbm_comment", "")
+        assert comment, "dbm_comment is empty"
+
+        # ddsh field is present and non-empty in the SQL comment
+        match = re.search(r"ddsh='([^']*)'", comment)
+        assert match, f"ddsh field not found in SQL comment: {comment}"
+        ddsh_value = match.group(1)
+        assert ddsh_value, "ddsh value is empty"
+
+        # SQL span carries _dd.propagated_hash equal to ddsh
+        sql_spans = [
+            span
+            for _, trace in interfaces.library.get_traces(request=self.r)
+            for span in trace
+            if span.get("type") == "sql"
+        ]
+        assert sql_spans, "No SQL span found for the /stub_dbm request"
+
+        for span in sql_spans:
+            propagated_hash = span.get("meta", {}).get("_dd.propagated_hash")
+            if propagated_hash is not None:
+                assert propagated_hash == ddsh_value, f"_dd.propagated_hash '{propagated_hash}' != ddsh '{ddsh_value}'"
+                return
+
+        raise AssertionError(
+            f"_dd.propagated_hash not found in any SQL span. "
+            f"Span meta keys: {[list(s.get('meta', {}).keys()) for s in sql_spans]}"
+        )
+
+
+@features.database_monitoring_dynamic_service
+@scenarios.dbm_dynamic_service
+class Test_Dbm_DynamicService_Postgres(_BaseDbmDynamicService):
+    """DBM dynamic_service mode — PostgreSQL integration across all languages."""
+
+    _LIBRARY_CONFIG = {
+        "python": "psycopg",
+        "nodejs": "pg",
+        "java": "postgresql",
+        "ruby": "pg",
+        "php": "pdo-pgsql",
+        "dotnet": "npgsql",
+    }
+
+    @property
+    def integration(self):
+        return self._LIBRARY_CONFIG.get(context.library.name)

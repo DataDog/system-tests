@@ -1,0 +1,58 @@
+name: "Download artifact (with retry)"
+description: "Download artifact with automatic retry on failure"
+inputs:
+  name:
+    description: "Artifact name to download (empty = all artifacts)"
+    required: false
+    default: ''
+  path:
+    description: "Destination path"
+    required: false
+    default: ''
+  pattern:
+    description: "Glob pattern to match artifact names"
+    required: false
+    default: ''
+  merge-multiple:
+    description: "Merge multiple artifacts into a single directory"
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Download artifact (attempt 1)
+      id: download1
+      continue-on-error: true
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        pattern: ${{ inputs.pattern }}
+        merge-multiple: ${{ inputs.merge-multiple }}
+    - name: Wait before retry (attempt 2)
+      if: steps.download1.outcome == 'failure'
+      shell: bash
+      run: sleep 5
+    - name: Download artifact (attempt 2)
+      id: download2
+      if: steps.download1.outcome == 'failure'
+      continue-on-error: true
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        pattern: ${{ inputs.pattern }}
+        merge-multiple: ${{ inputs.merge-multiple }}
+    - name: Wait before retry (attempt 3)
+      if: steps.download2.outcome == 'failure'
+      shell: bash
+      run: sleep 10
+    - name: Download artifact (attempt 3)
+      if: steps.download2.outcome == 'failure'
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        pattern: ${{ inputs.pattern }}
+        merge-multiple: ${{ inputs.merge-multiple }}
