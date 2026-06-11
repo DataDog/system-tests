@@ -45,7 +45,11 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
 
       - name: Build uwsgi-poc weblog image
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh python -i weblog -w uwsgi-poc -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+        # Single attempt with a generous timeout: compiling dd-trace-py from source
+        # (~6 min) plus the image build and zstd save exceeds the default 600s/attempt,
+        # and a timed-out attempt leaves a truncated .tar.zst that poisons retries
+        # (build.sh loads the partial tar instead of rebuilding).
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=1 SYSTEM_TEST_BUILD_TIMEOUT=2400 ./build.sh python -i weblog -w uwsgi-poc -s --github-token-file "$RUNNER_TEMP/github_token.txt"
 
       - name: Remove secrets
         if: always()
