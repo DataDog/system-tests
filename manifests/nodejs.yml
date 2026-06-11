@@ -95,6 +95,8 @@ refs:
   - &ref_5_101_0 '>=5.101.0'
   - &ref_5_103_0 '>=5.103.0'
   - &ref_5_104_0 '>=5.104.0'
+  - &ref_5_106_0 '>=5.106.0'
+  - &ref_5_107_0 '>=5.107.0'
   - &ref_6_0_0 '>=6.0.0-pre'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62217)
@@ -109,7 +111,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        express4: missing_feature (APPSEC-62452)
+        express4: *ref_5_107_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -230,6 +232,8 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: *ref_5_104_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
@@ -1970,7 +1974,7 @@ manifest:
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Node.js extract endpoint doesn't seem to be working.)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_inject: incomplete_test_app (Node.js inject endpoint doesn't seem to be working.)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: *ref_5_99_0
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: missing_feature (128-bit trace ID not propagated to all spans in a trace)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: *ref_5_106_0
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_unsampled_trace:
     - weblog_declaration:
         nextjs: missing_feature (AppSec/IAST force-samples traces, overriding unsampled traceparent)
@@ -2068,16 +2072,14 @@ manifest:
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : "missing_feature (\"Issue: the decision maker is removed. Is that allowed behavior?\")"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (nodejs has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: "missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: "missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-js does not filter spans with _dd.partial_version metric set; span_stats.js onSpanFinished only filters by TOP_LEVEL_KEY/MEASURED)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: *ref_5_101_0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: "missing_feature (CSS v1.2.0: dd-trace-js does not drop P0 traces when DD_TRACE_SAMPLE_RATE=0; traces are still emitted with _sampling_priority_v1=-1 instead of being dropped client-side)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: "missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: "missing_feature (CSS v1.2.0: dd-trace-js does not produce stats for nested top-level (service-entry) child spans when parent and child are in different services; only the outer span yields a stats entry)"
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: *ref_5_83_0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: missing_feature
@@ -2408,7 +2410,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v5.107.0-pre
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature

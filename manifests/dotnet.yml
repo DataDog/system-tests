@@ -64,6 +64,8 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.26.3
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -880,6 +882,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:
     - declaration: missing_feature
       component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: missing_feature (CSS v1.2.0 - .NET does not exclude spans with _dd.partial_version from stats aggregation)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
     - declaration: missing_feature

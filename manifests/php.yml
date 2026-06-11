@@ -98,6 +98,8 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -607,7 +609,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py: v1.21.0-dev
   tests/ffe/test_exposures.py: v1.21.0-dev
-  tests/ffe/test_flag_eval_metrics.py: missing_feature
+  tests/ffe/test_flag_eval_metrics.py: v1.21.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
@@ -798,17 +800,12 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:
     - declaration: bug (APMAPI-1539)
       component_version: '>=1.11.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (php has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (php has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010:
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:
+    - declaration: "missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)"
+      component_version: '>=1.19.0'
     - declaration: missing_feature (php has not implemented stats computation yet)
-      component_version: <1.16.0
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (php has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (php has not implemented stats computation yet)
+      component_version: <1.19.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (php has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (php has not implemented stats computation yet)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (php has not implemented stats computation yet)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.1.0

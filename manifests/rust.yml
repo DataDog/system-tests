@@ -7,6 +7,8 @@ manifest:
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
@@ -158,10 +160,14 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: missing_feature (can't guarantee the order of strings in the tracestate since they came from the map.)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature  # Created by easy win activation script

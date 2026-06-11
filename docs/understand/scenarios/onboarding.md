@@ -820,6 +820,7 @@ Located in: **var/log/datadog_weblog/**
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
 * **system.timers.log:** System timer logs.
+* **dd-agent-diagnostics.log:** Datadog Agent container diagnostics. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
 
 ## How to read VM log markers (`[vm_name].log`)
 

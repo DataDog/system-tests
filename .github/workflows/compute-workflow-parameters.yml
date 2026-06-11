@@ -190,7 +190,7 @@ jobs:
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      uses: ./.github/actions/upload_artifact
       with:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/

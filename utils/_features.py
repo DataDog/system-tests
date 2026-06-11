@@ -94,7 +94,14 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })
-    injection_platform   = _OwnerDef("@DataDog/injection-platform")
+    injection_platform   = _OwnerDef("@DataDog/injection-platform", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                            })
     language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
                                 "dd-trace-cpp":     "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                                 "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
@@ -108,7 +115,15 @@ class _Owner(Enum):
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                             })
     ml_observability     = _OwnerDef("@DataDog/ml-observability")
-    profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
+    profiler             = _OwnerDef("@DataDog/profiling", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/profiling-dotnet",
+                                "dd-trace-go":  "@DataDog/profiling-go",
+                                "dd-trace-java":  "@DataDog/profiling-java",
+                                "dd-trace-js":  "@DataDog/profiling-js",
+                                "dd-trace-php":  "@DataDog/profiling-php",
+                                "dd-trace-py":  "@DataDog/profiling-python",
+                                "dd-trace-rb":  "@DataDog/profiling-rb",
+                            })
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
     sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
