@@ -58,6 +58,8 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+import asyncio
+import openai
 import requests
 import stripe
 import opentelemetry.baggage
@@ -2250,6 +2252,36 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/llm")
+def llm():
+    model = request.args.get("model", "")
+    operation = request.args.get("operation", "")
+    if not model or not operation:
+        return jsonify({"error": "Missing or empty query parameters: model, operation"}), 400
+    try:
+        if operation == "openai-latest-responses.create":
+            openai.OpenAI().responses.create(model=model, input="Hello")
+        elif operation == "openai-latest-chat.completions.create":
+            openai.OpenAI().chat.completions.create(model=model, messages=[{"role": "user", "content": "Hello"}])
+        elif operation == "openai-latest-completions.create":
+            openai.OpenAI().completions.create(model=model, prompt="Hello")
+        elif operation == "openai-async-responses.create":
+            asyncio.run(openai.AsyncOpenAI().responses.create(model=model, input="Hello"))
+        elif operation == "openai-async-chat.completions.create":
+            asyncio.run(
+                openai.AsyncOpenAI().chat.completions.create(
+                    model=model, messages=[{"role": "user", "content": "Hello"}]
+                )
+            )
+        elif operation == "openai-async-completions.create":
+            asyncio.run(openai.AsyncOpenAI().completions.create(model=model, prompt="Hello"))
+        else:
+            return jsonify({"error": f"unknown operation: {operation}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    return jsonify({"model": model, "operation": operation})
 
 
 @app.route("/sca/vulnerable-call")
