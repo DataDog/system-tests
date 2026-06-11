@@ -71,10 +71,6 @@ if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; the
     composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
 fi
 
-# Install Stripe SDK. Must be done here (before ddtrace is installed) because
-# ddtrace injected into PHP ZTS builds causes composer to segfault at variant build time.
-composer require "stripe/stripe-php:^10.0" --no-interaction --ignore-platform-req=ext-mbstring
-
 # Set proper permissions
 chmod -R 755 /var/www/html/vendor
 find /var/www/html/vendor -type f -exec chmod 644 {} \;
