@@ -146,13 +146,13 @@ fi
 
 echo "Running yamlfmt formatter..."
 if [ "$COMMAND" == "fix" ]; then
- yamlfmt manifests/
+ yamlfmt manifests/ utils/ci/gitlab/
 else
- yamlfmt -lint manifests/
+ yamlfmt -lint manifests/ utils/ci/gitlab/
 fi
 
 echo "Running yamllint checks..."
-if ! ./venv/bin/yamllint -s manifests/; then
+if ! ./venv/bin/yamllint -s manifests/ utils/ci/gitlab/ .gitlab-ci.yml; then
   echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi

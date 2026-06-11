@@ -1,11 +1,10 @@
+---
 spec:
   inputs:
     stage:
     ref:
       default: main
-
 ---
-
 .system_tests_base:
   image: $CI_IMAGE
   tags:

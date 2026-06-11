@@ -3,3 +3,4 @@ extends: relaxed
 rules:
     line-length: disable
     key-ordering: disable
+    indentation: disable
