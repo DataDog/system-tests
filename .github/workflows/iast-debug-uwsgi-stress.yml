@@ -7,13 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       dd_trace_py_ref:
-        description: "dd-trace-py branch / tag / SHA to test (written to python-load-from-s3)"
-        default: "main"
+        description: "dd-trace-py branch / tag / SHA to clone into binaries/dd-trace-py and compile"
+        default: "florentin.labelle/iast-unvalidated-redirect-diag"
         required: false
         type: string
 
 env:
-  DD_TRACE_PY_REF: ${{ github.event.inputs.dd_trace_py_ref || 'main' }}
+  DD_TRACE_PY_REF: ${{ github.event.inputs.dd_trace_py_ref || 'florentin.labelle/iast-unvalidated-redirect-diag' }}
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
@@ -29,8 +29,13 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
 
-      - name: Write dd-trace-py ref for S3 loader
-        run: echo "${{ env.DD_TRACE_PY_REF }}" > binaries/python-load-from-s3
+      - name: Clone dd-trace-py source into binaries (compiled by build.sh)
+        run: |
+          rm -f binaries/python-load-from-s3
+          git clone --depth 1 --branch "${{ env.DD_TRACE_PY_REF }}" \
+            --recurse-submodules --shallow-submodules \
+            https://github.com/DataDog/dd-trace-py.git binaries/dd-trace-py
+          echo "Cloned dd-trace-py at: $(git -C binaries/dd-trace-py rev-parse HEAD)"
 
       - name: Export GitHub token
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
@@ -48,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: weblog-uwsgi-poc
-          path: binaries/
+          path: binaries/python-uwsgi-poc-weblog.tar.zst
 
   # ──────────────────────────────────────────────────────────────────────────
   # Generate a matrix of 10 job indices
