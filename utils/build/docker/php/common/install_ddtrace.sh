@@ -10,7 +10,8 @@ if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; the
 	export COMPOSER=composer.gte8.2.json
 fi
 if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
-  composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
+  apt-get update -qq && apt-get install -y --no-install-recommends unzip
+  COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring
 fi
 
 cd /binaries
