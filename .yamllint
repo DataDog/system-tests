@@ -1,13 +1,5 @@
 extends: relaxed
 
-# utils/ci/gitlab/templates.yml and main.yml contain non-YAML syntax
-# (ANSI escape codes and embedded newlines in block scalars) that yamllint
-# cannot parse. system-tests.yml.j2 is a Jinja2 template, not plain YAML.
-ignore: |
-    utils/ci/gitlab/templates.yml
-    utils/ci/gitlab/main.yml
-    utils/ci/gitlab/system-tests.yml.j2
-
 rules:
     line-length: disable
     key-ordering: disable

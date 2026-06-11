@@ -177,4 +177,3 @@ run_test_pipeline_2:
       - artifact: system-tests/generated-pipeline-chunk-2.yml
         job: build_test_pipeline
     strategy: depend
-
