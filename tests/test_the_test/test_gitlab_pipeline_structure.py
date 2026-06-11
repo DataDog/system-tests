@@ -1,4 +1,5 @@
 """Structural assertions on generated GitLab pipeline chunk YAML."""
+
 import json
 from pathlib import Path
 
@@ -27,7 +28,11 @@ def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
     for i in range(3):
         chunk = yaml.safe_load((out / f"generated-pipeline-chunk-{i}.yml").read_text())
         for name, job in chunk.items():
-            if not isinstance(job, dict) or name.startswith(".") or name in ("workflow", "stages", "include", "variables"):
+            if (
+                not isinstance(job, dict)
+                or name.startswith(".")
+                or name in ("workflow", "stages", "include", "variables")
+            ):
                 continue
             has_stage = "stage" in job or "extends" in job
             assert has_stage, f"job '{name}' in chunk {i} has no stage or extends"

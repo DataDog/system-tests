@@ -145,10 +145,12 @@ if ! which yamlfmt > /dev/null; then
 fi
 
 echo "Running yamlfmt formatter..."
+# utils/ci/gitlab/ is excluded from yamlfmt: GitLab's $[[ ]] interpolation syntax
+# is not valid YAML and causes yamlfmt to fail on those files.
 if [ "$COMMAND" == "fix" ]; then
- yamlfmt manifests/ utils/ci/gitlab/
+ yamlfmt manifests/
 else
- yamlfmt -lint manifests/ utils/ci/gitlab/
+ yamlfmt -lint manifests/
 fi
 
 echo "Running yamllint checks..."

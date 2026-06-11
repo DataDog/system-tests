@@ -27,7 +27,16 @@ noop:
 """
 
 
-def render_library(library: str, params: dict, *, skip_header: bool, stage: str, ci_image: str, ref: str, push_to_test_optimization: bool) -> str:  # noqa: E501
+def render_library(
+    library: str,
+    params: dict,
+    *,
+    skip_header: bool,
+    stage: str,
+    ci_image: str,
+    ref: str,
+    push_to_test_optimization: bool,
+) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
     weblog_variants = [w["name"] for w in parallel_weblogs]
@@ -89,7 +98,17 @@ def build(
                 sys.exit(1)
             with open(params_file) as f:
                 params = json.load(f)
-            parts.append(render_library(library, params, skip_header=(lib_idx > 0), stage=stage, ci_image=ci_image, ref=ref, push_to_test_optimization=push_to_test_optimization))  # noqa: E501
+            parts.append(
+                render_library(
+                    library,
+                    params,
+                    skip_header=(lib_idx > 0),
+                    stage=stage,
+                    ci_image=ci_image,
+                    ref=ref,
+                    push_to_test_optimization=push_to_test_optimization,
+                )
+            )
 
         chunk_file.write_text("\n".join(parts))
 

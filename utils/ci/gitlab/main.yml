@@ -53,7 +53,9 @@ spec:
     ssi_injector_version:
       description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
       default: ""
+
 ---
+
 include:
   - local: /utils/ci/gitlab/templates.yml
     inputs:
@@ -69,11 +71,13 @@ include:
       ssi_library_version: $[[ inputs.ssi_library_version ]]
       k8s_lib_init_img: $[[ inputs.k8s_lib_init_img ]]
       ssi_injector_version: $[[ inputs.ssi_injector_version ]]
+
 workflow:
   rules:
     - when: always
       auto_cancel:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
+
 resolve_ci_image:
   rules:
     - if: '$SKIP_RESOLVE_CI_IMAGE == "true"'
@@ -99,6 +103,7 @@ resolve_ci_image:
   artifacts:
     reports:
       dotenv: build.env
+
 build_test_pipeline:
   extends: .system_tests_base
   tags:
@@ -130,6 +135,7 @@ build_test_pipeline:
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
+
 .run_test_pipeline_base:
   interruptible: true
   stage: $[[ inputs.stage ]]
@@ -147,6 +153,7 @@ build_test_pipeline:
     SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
     LIBRARIES: $LIBRARIES
+
 run_test_pipeline_0:
   extends: .run_test_pipeline_base
   trigger:
@@ -154,6 +161,7 @@ run_test_pipeline_0:
       - artifact: system-tests/generated-pipeline-chunk-0.yml
         job: build_test_pipeline
     strategy: depend
+
 run_test_pipeline_1:
   extends: .run_test_pipeline_base
   trigger:
@@ -161,6 +169,7 @@ run_test_pipeline_1:
       - artifact: system-tests/generated-pipeline-chunk-1.yml
         job: build_test_pipeline
     strategy: depend
+
 run_test_pipeline_2:
   extends: .run_test_pipeline_base
   trigger:
@@ -168,3 +177,4 @@ run_test_pipeline_2:
       - artifact: system-tests/generated-pipeline-chunk-2.yml
         job: build_test_pipeline
     strategy: depend
+

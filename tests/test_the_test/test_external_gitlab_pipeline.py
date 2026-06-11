@@ -1,4 +1,5 @@
 """Tests for utils/scripts/ci_orchestrators/external_gitlab_pipeline.py."""
+
 import yaml
 import pytest
 

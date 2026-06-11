@@ -21,12 +21,16 @@ spec:
     ssi_injector_version:
       description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
       default: ""
+
 ---
+
 # SSI pipeline — mirrors the end-to-end pattern:
 #   compute_pipeline  →  generated-ssi-pipeline.yml  →  run_ssi_pipeline
 # Covers all SSI workflows: aws_ssi, dockerssi, libinjection.
+
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags: ["arch:amd64"]
@@ -84,6 +88,7 @@ compute_pipeline:
   artifacts:
     paths:
       - "*_ssi_gitlab_pipeline.yml"
+
 # SSI child pipelines run sequentially per language to respect AWS EC2 / subnet
 # quotas. Order mirrors the legacy pipeline on main:
 # nodejs → java → dotnet → python → php → ruby.
@@ -105,6 +110,7 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /nodejs/'
     - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /nodejs/'
   when: always
+
 java_ssi_pipeline:
   stage: $[[ inputs.stage ]]
   needs:
@@ -122,6 +128,7 @@ java_ssi_pipeline:
     - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /java/'
     - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /java/'
   when: always
+
 dotnet_ssi_pipeline:
   stage: $[[ inputs.stage ]]
   needs:
@@ -141,6 +148,7 @@ dotnet_ssi_pipeline:
     - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /dotnet/'
     - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /dotnet/'
   when: always
+
 python_ssi_pipeline:
   stage: $[[ inputs.stage ]]
   needs:
@@ -162,6 +170,7 @@ python_ssi_pipeline:
     - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /python/'
     - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /python/'
   when: always
+
 php_ssi_pipeline:
   stage: $[[ inputs.stage ]]
   needs:
@@ -185,6 +194,7 @@ php_ssi_pipeline:
     - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /php/'
     - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /php/'
   when: always
+
 ruby_ssi_pipeline:
   stage: $[[ inputs.stage ]]
   needs:
@@ -210,6 +220,7 @@ ruby_ssi_pipeline:
     - if: '$SCHEDULED_JOB == "" && "$[[ inputs.libraries ]]" =~ /ruby/'
     - if: '$SCHEDULED_JOB == null && "$[[ inputs.libraries ]]" =~ /ruby/'
   when: always
+
 delete_amis:
   extends: .base_job_onboarding
   stage: $[[ inputs.stage ]]
@@ -225,6 +236,7 @@ delete_amis:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
   timeout: 3h
+
 delete_amis_by_name_or_lang:
   extends: .base_job_onboarding
   stage: $[[ inputs.stage ]]
@@ -247,6 +259,7 @@ delete_amis_by_name_or_lang:
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
   after_script: echo "Finish"
+
 delete_ec2_instances:
   extends: .base_job_onboarding
   stage: $[[ inputs.stage ]]
@@ -260,6 +273,7 @@ delete_ec2_instances:
   rules:
     - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
   after_script: echo "Finish"
+
 count_amis:
   extends: .base_job_onboarding
   stage: $[[ inputs.stage ]]
@@ -271,6 +285,7 @@ count_amis:
   rules:
     - if: '$SCHEDULED_JOB == "count_amis"'
   after_script: echo "Finish"
+
 .delayed_base_job:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   tags: ["arch:amd64"]

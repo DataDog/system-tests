@@ -1,4 +1,5 @@
 """Tests for utils/ci/gitlab/build_pipeline.py — chunking, rendering, and CLI."""
+
 import json
 import re
 from pathlib import Path
@@ -18,6 +19,7 @@ MINIMAL_PARAMS = {
     "miscs": {"binaries_artifact": "flask-binaries"},
     "parametric": {"enable": False, "parallel_jobs": []},
 }
+
 
 def write_params(tmp_path: Path, *libs: str) -> None:
     for lib in libs:
@@ -56,7 +58,22 @@ class Test_BuildPipeline:
 
     def test_missing_params_exits_nonzero(self, tmp_path: Path):
         with pytest.raises(SystemExit) as exc:
-            main(["--stage", "e2e", "--libraries", "python", "--params-dir", str(tmp_path), "--ci-image", "x", "--output-dir", str(tmp_path / "out"), "--chunks", "3"])
+            main(
+                [
+                    "--stage",
+                    "e2e",
+                    "--libraries",
+                    "python",
+                    "--params-dir",
+                    str(tmp_path),
+                    "--ci-image",
+                    "x",
+                    "--output-dir",
+                    str(tmp_path / "out"),
+                    "--chunks",
+                    "3",
+                ]
+            )
         assert exc.value.code != 0
 
     def test_concatenation_no_duplicate_top_level_keys(self, tmp_path: Path):
