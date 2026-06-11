@@ -1,0 +1,114 @@
+name: "[Throwaway] IAST debug stress — uwsgi-poc DEFAULT x100"
+
+on:
+  push:
+    branches:
+      - florentin.labelle/temp/debug-iast-test
+  workflow_dispatch:
+    inputs:
+      dd_trace_py_ref:
+        description: "dd-trace-py branch / tag / SHA to test (written to python-load-from-s3)"
+        default: "main"
+        required: false
+        type: string
+
+env:
+  DD_TRACE_PY_REF: ${{ github.event.inputs.dd_trace_py_ref || 'main' }}
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Build uwsgi-poc once against the requested dd-trace-py ref
+  # ──────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build uwsgi-poc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout system-tests
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
+      - name: Write dd-trace-py ref for S3 loader
+        run: echo "${{ env.DD_TRACE_PY_REF }}" > python-load-from-s3
+
+      - name: Export GitHub token
+        run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
+
+      - name: Build uwsgi-poc weblog image
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh python -i weblog -w uwsgi-poc -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+
+      - name: Remove secrets
+        if: always()
+        run: |
+          TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
+          [ -f "$TOKEN_FILE" ] && rm -f "$TOKEN_FILE" || true
+
+      - name: Upload weblog artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: weblog-uwsgi-poc
+          path: binaries/
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Generate a matrix of 10 job indices
+  # ──────────────────────────────────────────────────────────────────────────
+  generate-matrix:
+    name: Generate matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.make.outputs.array }}
+    steps:
+      - id: make
+        run: |
+          seq -s, 1 10 | awk '{print "[\"" $0 "\"]"}' | sed 's/,/","/g' > arr.json
+          echo "array=$(cat arr.json)" >> $GITHUB_OUTPUT
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 10 parallel jobs × 10 runs each = 100 DEFAULT executions total
+  # Each run uses --force-dd-trace-debug + --force-dd-iast-debug and
+  # deselects test_traces_coherence (broken by empty traces from debug mode).
+  # ──────────────────────────────────────────────────────────────────────────
+  test:
+    name: "DEFAULT run (batch ${{ matrix.n }}/10)"
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - generate-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        n: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout system-tests
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
+      - name: Download weblog artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: weblog-uwsgi-poc
+          path: binaries/
+
+      - name: Rebuild weblog image from cached binaries
+        run: ./build.sh python -i weblog -w uwsgi-poc
+
+      - name: Run DEFAULT scenario 10 times
+        run: |
+          set -e
+          for i in $(seq 1 10); do
+            echo "────── Run $i / 10 (batch ${{ matrix.n }}) ──────"
+            ./run.sh DEFAULT \
+              --force-dd-trace-debug \
+              --force-dd-iast-debug \
+              --deselect tests/test_data_integrity.py::Test_LibraryHeaders::test_traces_coherence
+          done
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: logs_batch_${{ matrix.n }}
+          path: logs_*
