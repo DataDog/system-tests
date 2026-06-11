@@ -39,7 +39,7 @@ target "django-poc" {
 target "flask-poc" {
   context    = "."
   dockerfile = "utils/build/docker/python/flask-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:flask-poc.base-v13"]
+  tags       = ["datadog/system-tests:flask-poc.base-v14"]
 }
 
 target "uwsgi-poc" {
