@@ -4,6 +4,15 @@ set -eux
 
 IS_APACHE=${1:-0}
 
+cd /var/www/html
+export COMPOSER=composer.json
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+	export COMPOSER=composer.gte8.2.json
+fi
+if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
+  composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
+fi
+
 cd /binaries
 
 ARCH=$(uname -m)
@@ -167,14 +176,4 @@ if [[ $IS_APACHE -eq 1 ]]; then
   if [ -f "$APACHE_PHP_CONF" ] && grep -q '"/dbm/"' "$APACHE_PHP_CONF" && ! grep -q 'stub_dbm' "$APACHE_PHP_CONF"; then
       sed -i '/\"\/dbm\/\"/a\        RewriteRule "^\/stub_dbm" "\/stub_dbm.php" [QSA,L]' "$APACHE_PHP_CONF"
   fi
-fi
-
-
-cd /var/www/html
-export COMPOSER=composer.json
-if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
-	export COMPOSER=composer.gte8.2.json
-fi
-if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
-  composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring || true
 fi
