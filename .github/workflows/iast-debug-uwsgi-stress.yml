@@ -36,6 +36,10 @@ jobs:
             --recurse-submodules --shallow-submodules \
             https://github.com/DataDog/dd-trace-py.git binaries/dd-trace-py
           echo "Cloned dd-trace-py at: $(git -C binaries/dd-trace-py rev-parse HEAD)"
+          # build.sh compiles by mounting binaries/ into the testrunner container, which
+          # runs as a non-root user. Cython writes generated .c files into the source tree
+          # and the wheel into binaries/, so both must be writable by any uid.
+          chmod -R a+rwX binaries
 
       - name: Export GitHub token
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
