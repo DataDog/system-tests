@@ -1,5 +1,6 @@
 """Structural assertions on generated GitLab pipeline chunk YAML."""
 import json
+from pathlib import Path
 
 import yaml
 
@@ -18,7 +19,7 @@ MINIMAL_PARAMS = {
 
 
 @scenarios.test_the_test
-def test_generated_chunk_jobs_have_required_keys(tmp_path):
+def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
     (tmp_path / "params_python.json").write_text(json.dumps(MINIMAL_PARAMS))
     out = tmp_path / "out"
     build(["python"], tmp_path, out, stage="e2e", ci_image="myimage", chunks=3)

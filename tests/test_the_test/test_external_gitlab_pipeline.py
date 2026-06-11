@@ -14,7 +14,7 @@ from utils.scripts.ci_orchestrators.external_gitlab_pipeline import (
 @scenarios.test_the_test
 class Test_ExternalGitlabPipeline:
     @pytest.mark.parametrize(
-        "entry,expected",
+        ("entry", "expected"),
         [
             ({"local": "/foo"}, True),
             ("bare-string", True),
@@ -22,7 +22,7 @@ class Test_ExternalGitlabPipeline:
             ({"remote": "https://example.com/x.yml"}, False),
         ],
     )
-    def test_is_local_include(self, entry, expected):
+    def test_is_local_include(self, entry: object, expected: object):
         assert _is_local_include(entry) is expected
 
     def test_strip_local_includes_removes_only_local(self):
@@ -31,7 +31,7 @@ class Test_ExternalGitlabPipeline:
         _strip_local_includes(data)
         assert data["include"] == [remote]
 
-    def test_main_strips_locals_from_real_repo_yaml(self, capsys):
+    def test_main_strips_locals_from_real_repo_yaml(self, capsys: pytest.CaptureFixture):
         main(language=None)
         out = capsys.readouterr().out
         data = yaml.safe_load(out)

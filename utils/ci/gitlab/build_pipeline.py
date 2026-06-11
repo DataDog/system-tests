@@ -102,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--ci-image", required=True, help="Full CI image reference for generated jobs")
     parser.add_argument("--ref", default="", help="system-tests ref to clone when called from another repository")
     parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
-    parser.add_argument("--output-dir", required=True, help="Directory where generated-pipeline-chunk-<i>.yml files are written")
+    parser.add_argument("--output-dir", required=True, help="Output directory for generated-pipeline-chunk-N.yml files")
     parser.add_argument("--chunks", type=int, default=3, help="Number of pipeline chunks (default: 3)")
 
     args = parser.parse_args(argv)
