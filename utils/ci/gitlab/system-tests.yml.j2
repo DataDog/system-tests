@@ -16,7 +16,9 @@ workflow:
   name: "System-tests end to end"
 
 include:
-  - local: /utils/ci/gitlab/templates.yml
+  - project: 'DataDog/system-tests'
+    ref: {{ref}}
+    file: 'utils/ci/gitlab/templates.yml'
     inputs:
       stage: {{stage}}
       ref: {{ref}}

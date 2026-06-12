@@ -57,11 +57,15 @@ spec:
 ---
 
 include:
-  - local: /utils/ci/gitlab/templates.yml
+  - project: 'DataDog/system-tests'
+    ref: $[[ inputs.ref ]]
+    file: 'utils/ci/gitlab/templates.yml'
     inputs:
       stage: $[[ inputs.stage ]]
       ref: $[[ inputs.ref ]]
-  - local: /utils/ci/gitlab/ssi.yml
+  - project: 'DataDog/system-tests'
+    ref: $[[ inputs.ref ]]
+    file: 'utils/ci/gitlab/ssi.yml'
     if: $[[ inputs.ssi_enabled ]]
     inputs:
       stage: $[[ inputs.stage ]]
