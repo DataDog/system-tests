@@ -91,10 +91,9 @@ class BaseServiceActivationProductsPayload:
     """
 
     def test_service_activation_metric(self):
-        assert any(
-            products.get("appsec", {}).get("enabled") is True
-            for products in find_products()
-        ), "No app-started/app-product-change telemetry with products.appsec.enabled=true found"
+        assert any(products.get("appsec", {}).get("enabled") is True for products in find_products()), (
+            "No app-started/app-product-change telemetry with products.appsec.enabled=true found"
+        )
 
 
 @scenarios.appsec_runtime_activation
