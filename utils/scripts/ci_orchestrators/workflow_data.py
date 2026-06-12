@@ -199,7 +199,7 @@ def get_docker_ssi_matrix(
 @dataclass
 class Weblog:
     name: str
-    require_build: bool     # needs Docker build (local or pre-built) → weblog_build_required
+    require_build: bool  # needs Docker build (local or pre-built) → weblog_build_required
     require_prebuild: bool  # needs a separate build_end_to_end job → parallel_weblogs
     artifact_name: str
 
