@@ -11,7 +11,15 @@ if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; the
 fi
 if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
   apt-get update -qq && apt-get install -y --no-install-recommends unzip
-  COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring
+  if [[ "$(printf '%s\n' "$PHP_VERSION" "8.1" | sort -V | head -n1)" = "8.1" ]]; then
+    # Also require open-telemetry/sdk so composer does not remove it from vendor/:
+    # the Dockerfile ADD overwrites composer.json with the repo version (which has
+    # stripe but not OTel), causing a bare `composer require stripe` to drop OTel
+    # from the resolved tree and wipe it from vendor/.
+    COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" "open-telemetry/sdk:^1.0.0" --no-interaction --ignore-platform-req=ext-mbstring
+  else
+    COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring
+  fi
 fi
 
 cd /binaries
