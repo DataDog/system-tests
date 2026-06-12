@@ -59,7 +59,7 @@ def render_library(
         ref=ref,
         push_to_test_optimization=push_to_test_optimization,
         skip_header=skip_header,
-        docker_auth=docker_auth,
+        docker_auth_enabled=docker_auth,
     )
 
 
