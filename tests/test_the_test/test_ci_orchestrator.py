@@ -29,3 +29,12 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
     assert not _is_supported("dotnet", "uds", "IPV6", "dev")
     assert not _is_supported("python", "uds-flask", "IPV6", "dev")
     assert _is_supported("python", "flask-poc", "IPV6", "dev")
+
+
+@scenarios.test_the_test
+def test_nodejs_weblogs_dont_require_build():
+    scenario_map = {"endtoend": ["DEFAULT"]}
+    defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "")
+    # parallel_weblogs only lists weblogs with require_build=True; empty means no per-run build needed
+    assert defs["endtoend_defs"]["parallel_weblogs"] == []
+    assert len(defs["endtoend_defs"]["parallel_jobs"]) > 0
