@@ -319,7 +319,11 @@ def _get_endtoend_weblogs(
                     Weblog(
                         name=name,
                         require_build=require_build,
-                        artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                        artifact_name=(
+                            f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
+                            if require_build
+                            else binaries_artifact
+                        ),
                     )
                 )
             else:
