@@ -6,19 +6,26 @@ jvm.*, go.*, v8js.*, etc.) instead of DD-proprietary naming (runtime.dotnet.*,
 runtime.go.*, runtime.node.*, etc.).
 """
 
+from typing import TypedDict
+
 from utils import context, features, interfaces, scenarios, weblog
 
 
-# Maps each expected metric to its attribute constraints:
-#   "all"  — attribute keys that must appear on every emitted data point.
-#   "some" — attribute keys that must appear on at least one data point.
-#
-# Use "some" when a metric emits both per-dimension points (which carry the attribute)
-# and aggregate rollup points (which don't). For example, jvm.memory.used emits one
-# point per memory pool (with jvm.memory.pool.name) as well as heap/non-heap totals
-# (without it), so pool.name goes in "some" while jvm.memory.type, which is present
-# on every point, goes in "all".
-EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
+class MetricConstraints(TypedDict, total=False):
+    """Attribute constraints for an expected metric.
+
+    all: keys required on every data point.
+    some: keys required on at least one data point.
+    present_values: attribute -> values that must each appear on at least one data point.
+    """
+
+    all: list[str]
+    some: list[str]
+    present_values: dict[str, list[str]]
+
+
+# Maps each expected metric to its attribute constraints (see MetricConstraints).
+EXPECTED_METRICS: dict[str, dict[str, MetricConstraints]] = {
     "dotnet": {
         "dotnet.assembly.count": {"all": []},
         "dotnet.exceptions": {"all": []},
@@ -57,13 +64,27 @@ EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
         "nodejs.eventloop.delay.p50": {"all": []},
         "nodejs.eventloop.delay.p90": {"all": []},
         "nodejs.eventloop.delay.p99": {"all": []},
+        "nodejs.eventloop.delay.stddev": {"all": []},
+        "nodejs.eventloop.time": {"all": ["nodejs.eventloop.state"]},
         "nodejs.eventloop.utilization": {"all": []},
-        "process.cpu.utilization": {"all": []},
-        "process.memory.usage": {"all": []},
+        # v8js.gc.duration is a histogram; the agent surfaces it as .count/.sum/.min/.max series.
+        "v8js.gc.duration.count": {"all": ["v8js.gc.type"]},
+        "v8js.gc.duration.max": {"all": ["v8js.gc.type"]},
+        "v8js.gc.duration.min": {"all": ["v8js.gc.type"]},
+        "v8js.gc.duration.sum": {"all": ["v8js.gc.type"]},
+        # v8js.memory.heap.limit emits a single aggregate point (heap_size_limit) without a space tag;
+        # all other heap instruments emit per-space points carrying v8js.heap.space.name.
         "v8js.memory.heap.limit": {"all": []},
-        "v8js.memory.heap.space.available_size": {"all": []},
-        "v8js.memory.heap.space.physical_size": {"all": []},
-        "v8js.memory.heap.used": {"all": []},
+        "v8js.memory.heap.space.available_size": {"all": ["v8js.heap.space.name"]},
+        "v8js.memory.heap.space.physical_size": {"all": ["v8js.heap.space.name"]},
+        "v8js.memory.heap.space.size": {"all": ["v8js.heap.space.name"]},
+        "v8js.memory.heap.used": {"all": ["v8js.heap.space.name"]},
+        # v8js.resource.type is open-ended, so assert a known value is present instead of using a
+        # closed allow-list: the weblog's listening HTTP server always emits TCPServerWrap.
+        "v8js.resource.active": {
+            "all": ["v8js.resource.type"],
+            "present_values": {"v8js.resource.type": ["TCPServerWrap"]},
+        },
     },
     "java": {
         "jvm.buffer.count": {"all": ["jvm.buffer.pool.name"]},
@@ -97,10 +118,39 @@ EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
     },
 }
 
-# Valid value domains for attributes. For closed enums (jvm.memory.type, jvm.thread.*) these are
-# exhaustive. For open-ended attributes (pool names, GC names) these are supersets covering all
-# known JVM/GC implementations — the assertion is that observed values fall within the known universe.
+# Valid value domains for attributes. For closed enums (jvm.memory.type, jvm.thread.*,
+# nodejs.eventloop.state, v8js.gc.type) these are exhaustive. For open-ended attributes
+# (pool names, GC names, V8 heap space names) these are supersets covering all known
+# implementations — the assertion is that observed values fall within the known universe.
 EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
+    "nodejs": {
+        # Closed enum: performance.eventLoopUtilization() exposes idle and active only.
+        "nodejs.eventloop.state": frozenset({"active", "idle"}),
+        # Closed enum: dd-trace-js maps perf_hooks GC kinds to these four OTel values.
+        # Kind 2 (V8 MinorMarkSweep on Node 20+) is mapped to "minor" upstream.
+        "v8js.gc.type": frozenset({"minor", "major", "incremental", "weakcb"}),
+        # V8 heap space names: OTel well-known set plus additional spaces V8 exposes in
+        # Node 18+ (read_only, *_large_object) and Node 20+ multi-isolate/sandbox spaces.
+        "v8js.heap.space.name": frozenset(
+            {
+                "new_space",
+                "old_space",
+                "code_space",
+                "large_object_space",
+                "map_space",
+                "read_only_space",
+                "new_large_object_space",
+                "code_large_object_space",
+                "shared_space",
+                "shared_large_object_space",
+                "trusted_space",
+                "trusted_large_object_space",
+                "shared_trusted_space",
+                "shared_trusted_large_object_space",
+            }
+        ),
+        # v8js.resource.type is open-ended (validated via present_values in EXPECTED_METRICS, not here).
+    },
     "java": {
         "jvm.memory.type": frozenset({"heap", "non_heap"}),
         "jvm.thread.daemon": frozenset({"true", "false"}),
@@ -253,6 +303,15 @@ class Test_OtlpRuntimeMetrics:
                             f"'{point_tags[key]}' for {library}. "
                             f"Expected one of: {sorted(attribute_values[key])}"
                         )
+
+            for attr_key, required_values in constraints.get("present_values", {}).items():
+                observed_values = {pt[attr_key] for pt in points if attr_key in pt}
+                for required_value in required_values:
+                    assert required_value in observed_values, (
+                        f"Metric '{metric_name}' expected at least one data point with "
+                        f"{attr_key}='{required_value}' for {library}. "
+                        f"Observed {attr_key} values: {sorted(observed_values)}"
+                    )
 
     def setup_dd_metrics_are_absent(self) -> None:
         self.req = weblog.get("/")

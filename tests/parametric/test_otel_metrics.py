@@ -1881,7 +1881,6 @@ class Test_Otel_Metrics_Telemetry:
     )
     def test_telemetry_exporter_configurations(
         self,
-        library_env: dict[str, str],
         otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -1900,9 +1899,11 @@ class Test_Otel_Metrics_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_HEADERS", "<redacted>"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
-            ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_ENDPOINT", "<redacted>"),
             ("OTEL_METRIC_EXPORT_INTERVAL", "5000"),
             ("OTEL_METRIC_EXPORT_TIMEOUT", "5000"),
         ]:
@@ -1934,7 +1935,6 @@ class Test_Otel_Metrics_Telemetry:
     )
     def test_telemetry_exporter_metrics_configurations(
         self,
-        library_env: dict[str, str],
         otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -1953,9 +1953,11 @@ class Test_Otel_Metrics_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "<redacted>"),
             ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "http/protobuf"),
-            ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "<redacted>"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(

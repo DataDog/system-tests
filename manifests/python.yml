@@ -148,7 +148,24 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         "*": missing_feature
+        *django: v4.11.0-rc1
         fastapi: v4.11.0-rc1
+        *flask: v4.11.0-rc1
+        tornado: v4.12.0-rc1
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        *django: v4.12.0-rc1
+        fastapi: v4.11.0-rc1
+        *flask: v4.11.0-rc1
+        tornado: v4.12.0-rc1
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
+    - weblog_declaration:
+        "*": missing_feature
+        *django: v4.12.0-rc1
+        fastapi: v4.11.0-rc1
+        *flask: v4.11.0-rc1
+        tornado: v4.12.0-rc1
   tests/appsec/iast:
     - weblog_declaration:
         tornado: v4.3.1  # Modified by easy win activation script
@@ -737,8 +754,12 @@ manifest:
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules: v4.2.0
-  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules: irrelevant (APPSEC-65755)
-  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement: irrelevant (APPSEC-65755)
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules:
+    - declaration: irrelevant (caused duplicate traces before 4.12.0-rc1)
+      component_version: '<4.12.0-rc1'
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_RC_disablement:
+    - declaration: irrelevant (caused duplicate traces before 4.12.0-rc1)
+      component_version: '<4.12.0-rc1'
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev
@@ -1237,6 +1258,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5743)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Python emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -2089,6 +2111,11 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Python does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: '>=4.11.0'
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:
