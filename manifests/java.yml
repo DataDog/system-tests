@@ -283,7 +283,7 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v1.63.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
