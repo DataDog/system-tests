@@ -2263,7 +2263,9 @@ async def llm():
         if operation == "openai-latest-responses.create":
             openai.OpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
         elif operation == "openai-latest-chat.completions.create":
-            openai.OpenAI(api_key="sk-fake").chat.completions.create(model=model, messages=[{"role": "user", "content": "Hello"}])
+            openai.OpenAI(api_key="sk-fake").chat.completions.create(
+                model=model, messages=[{"role": "user", "content": "Hello"}]
+            )
         elif operation == "openai-latest-completions.create":
             openai.OpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
         elif operation == "openai-async-responses.create":
