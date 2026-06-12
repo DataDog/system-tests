@@ -85,6 +85,8 @@ manifest:
         uds-echo: v2.5.0  # Modified by easy win activation script
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v2.10.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1144,6 +1146,7 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature

@@ -40,6 +40,7 @@ readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
 readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
+readonly DEFAULT_ruby_lambda=ruby-apigw-rest
 readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
@@ -142,22 +143,10 @@ run_build_command() {
 }
 
 build() {
-    CACHE_TO=
-    CACHE_FROM=
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
-        echo "Setting remote cache for read"
-        CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
-        echo "Setting remote cache for write"
-        CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
 
     echo "=================================="
     echo "build images for system tests"
     echo ""
-    echo "TEST_LIBRARY:      $TEST_LIBRARY"
-    echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
     echo "BUILD_IMAGES:      $BUILD_IMAGES"
     echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
     echo ""
@@ -242,6 +231,23 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
+            if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+                echo "Library ${TEST_LIBRARY} not found"
+                echo "Available libraries: $(echo $(list-libraries))"
+                exit 1
+            fi
+
+            WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
+
+            if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+                echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
+                echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
+                exit 1
+            fi
+
+            echo "TEST_LIBRARY:      $TEST_LIBRARY"
+            echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
+
             if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
@@ -307,6 +313,17 @@ build() {
 
                     echo "Using GitHub token from $GITHUB_TOKEN_FILE"
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
+                fi
+
+                CACHE_TO=
+                CACHE_FROM=
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+                    echo "Setting remote cache for read"
+                    CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+                fi
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+                    echo "Setting remote cache for write"
+                    CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
                 fi
 
                 run_build_command docker buildx build \
@@ -401,19 +418,5 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
-    echo "Library ${TEST_LIBRARY} not found"
-    echo "Available libraries: $(echo $(list-libraries))"
-    exit 1
-fi
-
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
-    echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
-    echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
-    exit 1
-fi
 
 "${COMMAND}"

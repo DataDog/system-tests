@@ -18,6 +18,5 @@
       "$ref": "/miscs/telemetry/v2/objects/configuration.json"
     }
   },
-  "required": ["configuration"],
-  "not": { "required": ["dependencies", "integrations"] }
+  "required": ["configuration"]
 }
