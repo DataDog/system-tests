@@ -53,6 +53,9 @@ spec:
     ssi_injector_version:
       description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
       default: ""
+    docker_auth:
+      description: "Whether to authenticate calls to docker hub"
+      default: "false"
 
 ---
 
@@ -135,7 +138,7 @@ build_test_pipeline:
       for library in $libraries; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
       done
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --libraries "$libraries" --params-dir . --output-dir . --chunks 3
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$[[ inputs.docker_auth ]]"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml

@@ -78,7 +78,9 @@ build_{{library}}_{{variant}}:
       artifacts: true
   {% endif %}
   script:
+    {% if docker_auth_enabled %}
     {{ docker_auth() }}
+    {% endif %}
     - section_start "build" "Building weblog"
     - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
     - mv binaries ..
@@ -104,7 +106,9 @@ run_{{library}}_{{scenario}}_{{variant}}:
       artifacts: true
   {% endif %}
   script:
+    {% if docker_auth_enabled %}
     {{ docker_auth() }}
+    {% endif %}
     - section_start "weblog_setup" "Setting up the weblog"
     {% if build_required %}
     - mv ../binaries/* binaries/

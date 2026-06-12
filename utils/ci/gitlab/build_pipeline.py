@@ -36,6 +36,7 @@ def render_library(
     ci_image: str,
     ref: str,
     push_to_test_optimization: bool,
+    docker_auth: bool,
 ) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
@@ -58,6 +59,7 @@ def render_library(
         ref=ref,
         push_to_test_optimization=push_to_test_optimization,
         skip_header=skip_header,
+        docker_auth=docker_auth,
     )
 
 
@@ -71,6 +73,7 @@ def build(
     ref: str = "",
     push_to_test_optimization: bool = False,
     chunks: int = 3,
+    docker_auth: bool = False,
 ) -> None:
     """Render pipeline chunk files into *output_dir*, one per chunk."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -107,6 +110,7 @@ def build(
                     ci_image=ci_image,
                     ref=ref,
                     push_to_test_optimization=push_to_test_optimization,
+                    docker_auth=docker_auth,
                 )
             )
 
@@ -123,6 +127,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
     parser.add_argument("--output-dir", required=True, help="Output directory for generated-pipeline-chunk-N.yml files")
     parser.add_argument("--chunks", type=int, default=3, help="Number of pipeline chunks (default: 3)")
+    parser.add_argument("--docker-auth", default="false", help="Wether to authenticate calls to docker hub")
 
     args = parser.parse_args(argv)
 
@@ -140,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
         ref=args.ref,
         push_to_test_optimization=args.push_to_test_optimization == "true",
         chunks=args.chunks,
+        docker_auth=args.docker_auth == "true",
     )
     return 0
 
