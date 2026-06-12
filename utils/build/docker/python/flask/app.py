@@ -58,7 +58,6 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
-import asyncio
 import openai
 import requests
 import stripe
@@ -2255,28 +2254,26 @@ def stripe_webhook():
 
 
 @app.route("/llm")
-def llm():
+async def llm():
     model = request.args.get("model", "")
     operation = request.args.get("operation", "")
     if not model or not operation:
         return jsonify({"error": "Missing or empty query parameters: model, operation"}), 400
     try:
         if operation == "openai-latest-responses.create":
-            openai.OpenAI().responses.create(model=model, input="Hello")
+            openai.OpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
         elif operation == "openai-latest-chat.completions.create":
-            openai.OpenAI().chat.completions.create(model=model, messages=[{"role": "user", "content": "Hello"}])
+            openai.OpenAI(api_key="sk-fake").chat.completions.create(model=model, messages=[{"role": "user", "content": "Hello"}])
         elif operation == "openai-latest-completions.create":
-            openai.OpenAI().completions.create(model=model, prompt="Hello")
+            openai.OpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
         elif operation == "openai-async-responses.create":
-            asyncio.run(openai.AsyncOpenAI().responses.create(model=model, input="Hello"))
+            await openai.AsyncOpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
         elif operation == "openai-async-chat.completions.create":
-            asyncio.run(
-                openai.AsyncOpenAI().chat.completions.create(
-                    model=model, messages=[{"role": "user", "content": "Hello"}]
-                )
+            await openai.AsyncOpenAI(api_key="sk-fake").chat.completions.create(
+                model=model, messages=[{"role": "user", "content": "Hello"}]
             )
         elif operation == "openai-async-completions.create":
-            asyncio.run(openai.AsyncOpenAI().completions.create(model=model, prompt="Hello"))
+            await openai.AsyncOpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
         else:
             return jsonify({"error": f"unknown operation: {operation}"}), 400
     except Exception as e:
