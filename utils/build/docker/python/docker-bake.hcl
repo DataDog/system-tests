@@ -45,7 +45,7 @@ target "flask-poc" {
 target "uwsgi-poc" {
   context    = "."
   dockerfile = "utils/build/docker/python/uwsgi-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:uwsgi-poc.base-v9"]
+  tags       = ["datadog/system-tests:uwsgi-poc.base-v10"]
 }
 
 target "tornado" {
