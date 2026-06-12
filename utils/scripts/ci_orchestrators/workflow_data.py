@@ -199,8 +199,9 @@ def get_docker_ssi_matrix(
 @dataclass
 class Weblog:
     name: str
-    require_build: bool
+    require_build: bool  # needs a separate pre-build job (build_end_to_end)
     artifact_name: str
+    needs_local_build: bool = True  # needs build in run_end_to_end; False for non-Dockerfile weblogs
 
     def serialize(self) -> dict:
         return {"name": self.name, "artifact_name": self.artifact_name}
@@ -232,7 +233,7 @@ class Job:
             "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog.name,
-            "weblog_build_required": self.weblog.require_build,
+            "weblog_build_required": self.weblog.needs_local_build,
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
@@ -329,16 +330,25 @@ def _get_endtoend_weblogs(
             else:
                 for version in integration_frameworks_weblogs[name]:
                     result.append(
-                        Weblog(name=f"{name}@{version}", require_build=False, artifact_name=binaries_artifact)
+                        Weblog(
+                            name=f"{name}@{version}",
+                            require_build=False,
+                            artifact_name=binaries_artifact,
+                            needs_local_build=False,
+                        )
                     )
 
     # weblog not related to a docker file
     for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
         if lib == library:
-            result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
+            result.append(
+                Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact, needs_local_build=False)
+            )
 
     if library == "otel_collector":
-        result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
+        result.append(
+            Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact, needs_local_build=False)
+        )
 
     return sorted(result, key=lambda w: w.name)
 
