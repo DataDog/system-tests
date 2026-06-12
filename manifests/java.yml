@@ -290,7 +290,9 @@ manifest:
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders::test_not_propagated_downstream:
     - weblog_declaration:
         "*": v1.63.0
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
