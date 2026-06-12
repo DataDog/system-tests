@@ -310,10 +310,15 @@ def _get_endtoend_weblogs(
 
         for name in names:
             if name not in integration_frameworks_weblogs:
+                metadata_path = Path(os.path.join(folder, f"{name}.weblog.json"))
+                require_build = True
+                if metadata_path.is_file():
+                    with open(metadata_path, "r") as f:
+                        require_build = json.load(f).get("require_build", True)
                 result.append(
                     Weblog(
                         name=name,
-                        require_build=True,
+                        require_build=require_build,
                         artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
                     )
                 )
