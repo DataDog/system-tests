@@ -199,9 +199,9 @@ def get_docker_ssi_matrix(
 @dataclass
 class Weblog:
     name: str
-    require_build: bool  # needs a separate pre-build job (build_end_to_end)
+    require_build: bool     # needs Docker build (local or pre-built) → weblog_build_required
+    require_prebuild: bool  # needs a separate build_end_to_end job → parallel_weblogs
     artifact_name: str
-    needs_local_build: bool = True  # needs build in run_end_to_end; False for non-Dockerfile weblogs
 
     def serialize(self) -> dict:
         return {"name": self.name, "artifact_name": self.artifact_name}
@@ -233,7 +233,7 @@ class Job:
             "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog.name,
-            "weblog_build_required": self.weblog.needs_local_build,
+            "weblog_build_required": self.weblog.require_build,
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
@@ -312,17 +312,18 @@ def _get_endtoend_weblogs(
         for name in names:
             if name not in integration_frameworks_weblogs:
                 metadata_path = Path(os.path.join(folder, f"{name}.weblog.json"))
-                require_build = True
+                require_prebuild = True
                 if metadata_path.is_file():
                     with open(metadata_path, "r") as f:
-                        require_build = json.load(f).get("require_build", True)
+                        require_prebuild = json.load(f).get("require_prebuild", True)
                 result.append(
                     Weblog(
                         name=name,
-                        require_build=require_build,
+                        require_build=True,
+                        require_prebuild=require_prebuild,
                         artifact_name=(
                             f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
-                            if require_build
+                            if require_prebuild
                             else binaries_artifact
                         ),
                     )
@@ -333,8 +334,8 @@ def _get_endtoend_weblogs(
                         Weblog(
                             name=f"{name}@{version}",
                             require_build=False,
+                            require_prebuild=False,
                             artifact_name=binaries_artifact,
-                            needs_local_build=False,
                         )
                     )
 
@@ -342,12 +343,12 @@ def _get_endtoend_weblogs(
     for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
         if lib == library:
             result.append(
-                Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact, needs_local_build=False)
+                Weblog(name=weblog, require_build=False, require_prebuild=False, artifact_name=binaries_artifact)
             )
 
     if library == "otel_collector":
         result.append(
-            Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact, needs_local_build=False)
+            Weblog(name="otel_collector", require_build=False, require_prebuild=False, artifact_name=binaries_artifact)
         )
 
     return sorted(result, key=lambda w: w.name)
@@ -412,7 +413,7 @@ def get_endtoend_definitions(
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_build],
+            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_prebuild],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
@@ -483,7 +484,7 @@ def _split_scenarios_for_parallel_execution(
 
 
 def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
-    if not weblog.require_build:
+    if not weblog.require_prebuild:
         return 0.0
 
     if library not in build_stats:
