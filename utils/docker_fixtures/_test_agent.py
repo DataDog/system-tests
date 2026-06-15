@@ -214,6 +214,12 @@ class TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
+    def otlp_requests(self) -> list[dict]:
+        """Raw requests intercepted by the OTLP HTTP port (e.g. /v1/traces, /v1/metrics)."""
+        resp = self._session.get(self._otlp_url("/test/session/requests"))
+        resp.raise_for_status()
+        return resp.json()
+
     def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Any]:  # noqa: ANN401
         resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
         if clear:

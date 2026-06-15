@@ -19,6 +19,8 @@ FR -> test-class mapping:
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
   FR12-FR14  Backend ingestion / billing -> no SDK system-test coverage
+  FR15  Datadog-Client-Computed-Stats header on native traces + _dd.stats_computed resource    Test_FR15_Client_Computed_Stats_Header
+        attribute on OTLP traces, both set iff OTLP trace metrics is enabled
 
 Key conventions:
   * Top-level marker is datadog.span.top_level.
@@ -46,6 +48,8 @@ emitted as datadog.<key> resource attributes in default mode. Boolean and status
 native or stringified values. Process tags are enabled by default in some SDKs.
 """
 
+import base64
+import json
 from typing import Any
 
 import pytest
@@ -122,6 +126,18 @@ OTEL_SEMANTICS_ENVVARS = {**DEFAULT_ENVVARS, "DD_TRACE_OTEL_SEMANTICS_ENABLED": 
 def otlp_trace_metrics_library_env(library_env: dict[str, str], test_agent: TestAgentAPI):
     """Point the OTLP metrics exporter at the test agent's OTLP HTTP receiver."""
     library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
+    return library_env
+
+
+@pytest.fixture
+def otlp_traces_and_metrics_library_env(library_env: dict[str, str], test_agent: TestAgentAPI):
+    """Point both the OTLP traces and metrics exporters at the test agent's OTLP HTTP receiver.
+
+    Used for tests that exercise the OTLP trace export path (OTEL_TRACES_EXPORTER=otlp) alongside
+    OTLP trace metrics, so both signal types are observable in the same test.
+    """
+    library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
+    library_env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/traces"
     return library_env
 
 
@@ -202,6 +218,42 @@ def _attr_is_true(value: Any) -> bool:  # noqa: ANN401
 
 def _attr_is_false(value: Any) -> bool:  # noqa: ANN401
     return value is False or (isinstance(value, str) and value.lower() in FALSY)
+
+
+def _trace_requests(test_agent: TestAgentAPI) -> list[dict]:
+    """Native Datadog trace export requests (v0.4/v0.5/v0.7), regardless of the wire version used."""
+    return [r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))]
+
+
+def _client_computed_stats_values(test_agent: TestAgentAPI) -> list[str | None]:
+    """The Datadog-Client-Computed-Stats header on each trace export request (None when the header is absent).
+
+    The Agent skips server-side stats computation only when this header is present; the tracer must set it
+    on exported traces exactly when it is computing trace metrics itself (here, via OTLP export).
+    """
+    values: list[str | None] = []
+    for request in _trace_requests(test_agent):
+        headers = {h.lower(): v for h, v in request["headers"].items()}
+        values.append(headers.get("datadog-client-computed-stats"))
+    return values
+
+
+def _otlp_trace_requests(test_agent: TestAgentAPI) -> list[dict]:
+    """OTLP trace export requests (/v1/traces) intercepted at the test agent's OTLP HTTP port."""
+    return [r for r in test_agent.otlp_requests() if r["url"].endswith("/v1/traces")]
+
+
+def _stats_computed_resource_attr_values(otlp_trace_reqs: list[dict]) -> list[Any]:
+    """The _dd.stats_computed resource attribute value from each OTLP trace ResourceSpans."""
+    values: list[Any] = []
+    for req in otlp_trace_reqs:
+        body = json.loads(base64.b64decode(req["body"]).decode("utf-8"))
+        for resource_span in body.get("resourceSpans", []):
+            attrs = resource_span.get("resource", {}).get("attributes", [])
+            for kv in attrs:
+                if kv["key"] == "_dd.stats_computed":
+                    values.append(_attr_value(kv))
+    return values
 
 
 @scenarios.parametric
@@ -1186,3 +1238,96 @@ class Test_FR09_Red_Metric_Derivation:
         )
         assert total == 2, f"Expected 2 selected spans, got {total}"
         assert error_count == 1, f"Expected exactly one error span, got {error_count}"
+
+
+@scenarios.parametric
+@features.client_side_stats_supported
+class Test_FR15_Client_Computed_Stats_Header:
+    """FR15: Anti-double-counting signals for Datadog Agents.
+
+    When OTLP trace metrics are enabled the SDK is computing trace metrics itself and must signal
+    this to any downstream Datadog Agent so the Agent skips its own concentrator for those spans.
+    Two complementary signals are required:
+
+    * Datadog-Client-Computed-Stats: yes HTTP header on native (/v0.4/v0.5) trace exports — the
+      existing contract honored by the Agent's native trace receiver.
+    * _dd.stats_computed: "true" OTLP resource attribute on OTLP (/v1/traces) trace exports — the
+      equivalent signal for the Agent's OTLP receiver, which does not see HTTP request headers set
+      by an upstream tracer or Collector. Both signals are backwards compatible: older Agents and
+      non-Datadog OTLP receivers silently ignore them.
+
+    When OTLP trace metrics are disabled neither signal must be present.
+    """
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_fr15_1_header_set_when_enabled(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """With OTLP trace metrics enabled, every exported trace carries Datadog-Client-Computed-Stats: yes."""
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        # Confirm the metrics are actually exported via OTLP, so the header reflects client-side computation.
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
+
+        stats_headers = _client_computed_stats_values(test_agent)
+        assert stats_headers, "Expected at least one trace export request"
+        assert all(value is not None and value.lower() in TRUTHY for value in stats_headers), (
+            f"Expected Datadog-Client-Computed-Stats truthy on every trace request, got: {stats_headers}"
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
+    def test_fr15_2_header_absent_when_disabled(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """With OTLP trace metrics disabled (and native stats off), Datadog-Client-Computed-Stats is absent."""
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_otlp_metrics(num=1)
+
+        stats_headers = _client_computed_stats_values(test_agent)
+        assert stats_headers, "Expected at least one trace export request"
+        assert all(value is None for value in stats_headers), (
+            f"Datadog-Client-Computed-Stats must be absent when OTLP trace metrics are disabled, got: {stats_headers}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp"}]
+    )
+    def test_fr15_3_stats_computed_resource_attr_on_otlp_traces(
+        self,
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """When OTLP trace metrics are enabled, every OTLP trace ResourceSpans carries _dd.stats_computed=true."""
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
+
+        otlp_traces = _otlp_trace_requests(test_agent)
+        assert otlp_traces, "Expected at least one OTLP trace export request at /v1/traces"
+        resource_attr_values = _stats_computed_resource_attr_values(otlp_traces)
+        assert resource_attr_values, (
+            "Expected _dd.stats_computed resource attribute in at least one OTLP trace request"
+        )
+        assert all(_attr_is_true(v) for v in resource_attr_values), (
+            f"Expected _dd.stats_computed=true on every OTLP trace ResourceSpans, got: {resource_attr_values}"
+        )
