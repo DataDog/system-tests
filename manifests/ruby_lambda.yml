@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
+---
+manifest:
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_schemas.py: missing_feature
+  tests/appsec/rasp/test_api10.py: missing_feature
+  tests/appsec/rasp/test_cmdi.py: missing_feature (not implemented in tracer)
+  tests/appsec/rasp/test_lfi.py: missing_feature (not implemented in tracer)
+  tests/appsec/rasp/test_shi.py: missing_feature (not implemented in tracer)
+  tests/appsec/rasp/test_sqli.py: missing_feature (needs instrumented DB driver, not available in Lambda handler)
+  tests/appsec/rasp/test_ssrf.py: missing_feature (RASP scenario unstable on Lambda RIE, pending clean run)
+  tests/appsec/test_alpha.py::Test_Basic: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_blocking: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_non_blocking: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: v3.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before_without_path_params: missing_feature
+  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
+  tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor: v3.29.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor::test_fingerprinting_endpoint_non_blocking: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: v3.29.0
+  ? tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_non_blocking
+  : missing_feature
+  ? tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_network_non_blocking
+  : missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v3.29.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant (only api gateway inferred spans are specified for now)
+        ruby-apigw-http: v3.29.0
+        ruby-apigw-rest: v3.29.0
+  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags::test_lambda_inferred_span: missing_feature
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (python only)
+  tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v3.29.0
+  tests/appsec/test_reports.py::Test_Info: v3.29.0
+  tests/appsec/test_reports.py::Test_RequestHeaders: v3.29.0
+  tests/appsec/test_reports.py::Test_StatusCode: v3.29.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.29.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: missing_feature
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: missing_feature
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v3.29.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: missing_feature (header collection not implemented on Lambda)
+  tests/appsec/test_traces.py::Test_AppSecObfuscator: v3.29.0
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: missing_feature (default request header tags omit `accept`)
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders: missing_feature (response header collection not implemented on Lambda)
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: missing_feature (trace correlation fails without User-Agent rid)
+  tests/appsec/test_traces.py::Test_RetainTraces: v3.29.0
+  tests/appsec/test_versions.py::Test_Events: v3.29.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking: v3.29.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v3.29.0

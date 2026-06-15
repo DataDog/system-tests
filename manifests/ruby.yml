@@ -223,8 +223,24 @@ manifest:
         "*": v2.20.0-dev
         graphql23: missing_feature (no way to separate request paths)
         rack: missing_feature (performance impact of JSON parsing)
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails61: '>=2.35.0'
+        rails42: '>=2.35.0'
+        rails52: '>=2.35.0'
+        rails80: '>=2.35.0'
+        uds-rails: '>=2.35.0'
+        uds-sinatra: '>=2.35.0'
+        sinatra22: '>=2.35.0'
+        rails72: '>=2.35.0'
+        sinatra14: '>=2.35.0'
+        sinatra41: '>=2.35.0'
+        rack: '>=2.35.0'
+        sinatra32: '>=2.35.0'
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1681,6 +1697,22 @@ manifest:
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.22.0
+        rails80: v2.22.0
+        uds-rails: v2.22.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.22.0
+        rails80: v2.22.0
+        uds-rails: v2.22.0
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
+  : bug (DEBUG-5702)
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
+  : bug (DEBUG-5707)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
@@ -1942,10 +1974,10 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
     - weblog_declaration:
         "*": irrelevant
-        sinatra14: missing_feature
-        sinatra22: missing_feature
-        sinatra32: missing_feature
-        sinatra41: missing_feature
+        sinatra14: v2.35.0  # TODO: a lower version might be supported
+        sinatra22: v2.35.0  # TODO: a lower version might be supported
+        sinatra32: v2.35.0  # TODO: a lower version might be supported
+        sinatra41: v2.35.0  # TODO: a lower version might be supported
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -2187,10 +2219,14 @@ manifest:
   :  # Modified by easy win activation script
     - declaration: "missing_feature (\"Issue: does not escape '~' characters to '=' in _dd.p.usr.id\")"
       component_version: <2.27.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (ruby has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (ruby has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: missing_feature (ruby has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (ruby has not implemented stats computation yet)
@@ -2412,6 +2448,11 @@ manifest:
         sinatra41: missing_feature
         sinatra22: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Ruby does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:

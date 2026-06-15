@@ -283,8 +283,21 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
+    - weblog_declaration:
+        "*": v1.63.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders::test_not_propagated_downstream:
+    - weblog_declaration:
+        "*": v1.63.0
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -2893,6 +2906,28 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Implemented for spring-mvc)
         spring-boot: v0.0.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
+  : bug (DEBUG-5704)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
@@ -3045,6 +3080,7 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5730)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -3103,8 +3139,18 @@ manifest:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
   ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_different_casing
-  : bug (DEBUG-5105)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5109)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-5105)
+      component_version: <1.63.0
+      weblog: [spring-boot-undertow, uds-spring-boot, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-wildfly, spring-boot-jetty]
+    - declaration: bug (DEBUG-5105)
+      excluded_weblog: [spring-boot-undertow, uds-spring-boot, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-wildfly, spring-boot-jetty]
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path:  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-5109)
+      component_version: <1.63.0
+      weblog: [spring-boot-undertow, uds-spring-boot, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-wildfly, spring-boot-jetty]
+    - declaration: bug (DEBUG-5109)
+      excluded_weblog: [spring-boot-undertow, uds-spring-boot, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-wildfly, spring-boot-jetty]
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -3123,8 +3169,33 @@ manifest:
         spring-boot-openliberty: v1.38.0
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
-  # TODO(andrei): un-skip when v1.63.0 is released
-  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
+        # TODO(andrei): un-skip when v1.63.0 is released
+        vertx3: v1.63.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.63.0  # TODO: a lower version might be supported
+        akka-http: v1.63.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.63.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.63.0  # TODO: a lower version might be supported
+        ratpack: v1.63.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.63.0  # TODO: a lower version might be supported
+        play: v1.63.0  # TODO: a lower version might be supported
+        vertx4: v1.63.0  # TODO: a lower version might be supported
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata:  # TODO: a lower version might be supported
+    - declaration: missing_feature (extended event schema not yet shipped)
+      component_version: <1.63.0
+      weblog: [vertx3, spring-boot-undertow, uds-spring-boot, jersey-grizzly2, spring-boot-openliberty, akka-http, resteasy-netty3, spring-boot-payara, spring-boot, spring-boot-wildfly, ratpack, spring-boot-jetty, play, vertx4]
+    - declaration: missing_feature (extended event schema not yet shipped)
+      excluded_weblog: [vertx3, spring-boot-undertow, uds-spring-boot, jersey-grizzly2, spring-boot-openliberty, akka-http, resteasy-netty3, spring-boot-payara, spring-boot, spring-boot-wildfly, ratpack, spring-boot-jetty, play, vertx4]
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload:
+    - weblog_declaration:
+        play: missing_feature
+        spring-boot-payara: missing_feature
+        akka-http: missing_feature
+        jersey-grizzly2: missing_feature
+        ratpack: missing_feature
+        resteasy-netty3: missing_feature
+        spring-boot-wildfly: missing_feature
+        vertx3: missing_feature
+        vertx4: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": missing_feature
@@ -3689,11 +3760,19 @@ manifest:
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: missing_feature (CSS v1.2.0 - dd-trace-java exclusion uses internal longRunningVersion field, not the _dd.partial_version metric)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'
       component_version: <1.58.2+06122213c8
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags:  # TODO: a lower version might be supported
+    - declaration: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
+      component_version: <1.63.0
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags::test_cost_tags_annotated_to_llm_span: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags::test_cost_tags_dedupes_across_annotations: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags::test_cost_tags_in_annotation_context: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags::test_cost_tags_invalid_entries_are_skipped: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags::test_cost_tags_references_existing_span_tags: missing_feature (cost_tags not yet supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_default_id: missing_feature (prompt annotation not supported in Java LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_in_annotation_context: missing_feature (prompt annotation not supported in Java LLMObs SDK)
@@ -3925,6 +4004,11 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0
