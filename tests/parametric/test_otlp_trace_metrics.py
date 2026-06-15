@@ -51,6 +51,7 @@ import pytest
 from utils import context, features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
+from utils.docker_fixtures.spec.trace import ORIGIN
 from .conftest import APMLibrary
 
 
@@ -827,7 +828,7 @@ class Test_FR07_Otel_Semantics_Mode:
         """No datadog.* prefixed attributes are emitted on the data point in OTel-semantics mode."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, resource="/users", typestr="web") as span:
-                span.set_meta("_dd.origin", "synthetics")
+                span.set_meta(ORIGIN, "synthetics")
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
@@ -1006,20 +1007,20 @@ class Test_FR08_Datadog_Attributes:
         """Origin maps to the data-point attribute datadog.origin."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
-                span.set_meta("_dd.origin", "synthetics")
+                span.set_meta(ORIGIN, "synthetics")
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         assert _data_point_attrs(_duration_data_points(metrics)[0]).get("datadog.origin") == "synthetics"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_fr08_7_no_datadog_prefix(
+    def test_fr08_7_no_short_dd_prefix(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """datadog.* attributes must not be emitted (dd.* is the only Datadog prefix allowed)."""
+        """Short dd.* attributes must not be emitted (datadog.* is the only Datadog prefix allowed)."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, resource="/users", typestr="web"):
                 pass
@@ -1027,8 +1028,8 @@ class Test_FR08_Datadog_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        datadog_keys = [key for key in attrs if key.startswith("datadog.")]
-        assert not datadog_keys, f"datadog.* attributes must not be emitted: {datadog_keys}"
+        dd_keys = [key for key in attrs if key.startswith("dd.")]
+        assert not dd_keys, f"short dd.* attributes must not be emitted; use the datadog.* prefix: {dd_keys}"
 
     @pytest.mark.parametrize(
         "library_env",
