@@ -7,6 +7,7 @@ import contextlib
 import json
 import logging
 import os
+import socket
 import ssl
 from pathlib import Path
 from typing import Any, Literal, cast
@@ -19,7 +20,7 @@ from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize
-from .config import DEFAULT_APM_RECEIVER_SOCKET
+from .config import DEFAULT_APM_RECEIVER_SOCKET, DEFAULT_DOGSTATSD_RECEIVER_SOCKET
 from .ports import ProxyPorts
 from .mocked_response import (
     MOCKED_TRACER_RESPONSES_PATH,
@@ -64,6 +65,25 @@ class _UDPForwarder(asyncio.DatagramProtocol):
         self.transport.sendto(data, (self.target_host, self.target_port))
 
 
+class _UnixDatagramForwarder(asyncio.DatagramProtocol):
+    def __init__(
+        self,
+        target_transport: asyncio.DatagramTransport,
+        target_host: str,
+        target_port: int,
+    ) -> None:
+        self.target_transport = target_transport
+        self.target_host = target_host
+        self.target_port = target_port
+
+    def error_received(self, exc: Exception) -> None:
+        logger.error(f"DogStatsD UDS forwarder error: {exc}")
+
+    def datagram_received(self, data: bytes, addr: Any) -> None:  # noqa: ARG002, ANN401
+        logger.info(f"Forward DogStatsD UDS datagram ({len(data)}B) to {self.target_host}:{self.target_port}")
+        self.target_transport.sendto(data, (self.target_host, self.target_port))
+
+
 async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     """Keep the mitmproxy ↔ upstream TLS leg alive; mitmproxy handles all actual HTTP."""
     try:
@@ -83,6 +103,45 @@ async def _start_udp_forwarder(
         local_addr=(listen_host, listen_port),
     )
     return cast("asyncio.DatagramTransport", server_transport)
+
+
+def _prepare_unix_socket_path(socket_path: str) -> Path:
+    socket_file = Path(socket_path)
+    socket_file.parent.mkdir(mode=0o777, parents=True, exist_ok=True)
+    socket_file.parent.chmod(0o777)
+
+    if socket_file.exists() or socket_file.is_symlink():
+        if socket_file.is_dir() and not socket_file.is_symlink():
+            raise RuntimeError(f"Unix socket path is a directory: {socket_file}")
+        socket_file.unlink()
+
+    return socket_file
+
+
+async def _start_unix_datagram_forwarder(
+    *,
+    socket_path: str,
+    udp_bind_host: str,
+    target_host: str,
+    target_port: int,
+) -> tuple[asyncio.DatagramTransport, asyncio.DatagramTransport]:
+    socket_file = _prepare_unix_socket_path(socket_path)
+    loop = asyncio.get_running_loop()
+    target_transport, _ = await loop.create_datagram_endpoint(
+        lambda: asyncio.DatagramProtocol(),
+        local_addr=(udp_bind_host, 0),
+    )
+    unix_transport, _ = await loop.create_datagram_endpoint(
+        lambda: _UnixDatagramForwarder(
+            cast("asyncio.DatagramTransport", target_transport),
+            target_host,
+            target_port,
+        ),
+        family=socket.AF_UNIX,
+        local_addr=str(socket_file),
+    )
+    socket_file.chmod(0o777)
+    return cast("asyncio.DatagramTransport", unix_transport), cast("asyncio.DatagramTransport", target_transport)
 
 
 async def _close_stream_writer(writer: asyncio.StreamWriter) -> None:
@@ -129,15 +188,7 @@ async def _uds_apm_receiver_handler(
 
 
 async def _start_uds_apm_receiver(*, socket_path: str, target_host: str, target_port: int) -> asyncio.Server:
-    socket_file = Path(socket_path)
-    socket_file.parent.mkdir(mode=0o777, parents=True, exist_ok=True)
-    socket_file.parent.chmod(0o777)
-
-    if socket_file.exists() or socket_file.is_symlink():
-        if socket_file.is_dir() and not socket_file.is_symlink():
-            raise RuntimeError(f"UDS APM receiver path is a directory: {socket_file}")
-        socket_file.unlink()
-
+    socket_file = _prepare_unix_socket_path(socket_path)
     server = await asyncio.start_unix_server(
         lambda reader, writer: _uds_apm_receiver_handler(
             reader,
@@ -482,14 +533,24 @@ def start_proxy() -> None:
             f"{ProxyPorts.dogstatsd_weblog} to agent:{ProxyPorts.dogstatsd_weblog}"
         )
         uds_target_host = "::1" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "127.0.0.1"
-        uds_socket_path = os.environ.get("PROXY_APM_RECEIVER_SOCKET", DEFAULT_APM_RECEIVER_SOCKET)
         uds_server = await _start_uds_apm_receiver(
-            socket_path=uds_socket_path,
+            socket_path=DEFAULT_APM_RECEIVER_SOCKET,
             target_host=uds_target_host,
             target_port=ProxyPorts.weblog,
         )
         logger.info(
-            f"UDS APM receiver listening on {uds_socket_path} and forwarding to {uds_target_host}:{ProxyPorts.weblog}"
+            "UDS APM receiver listening on "
+            f"{DEFAULT_APM_RECEIVER_SOCKET} and forwarding to {uds_target_host}:{ProxyPorts.weblog}"
+        )
+        dogstatsd_uds_transport, dogstatsd_udp_transport = await _start_unix_datagram_forwarder(
+            socket_path=DEFAULT_DOGSTATSD_RECEIVER_SOCKET,
+            udp_bind_host=listen_host,
+            target_host="agent",
+            target_port=ProxyPorts.dogstatsd_weblog,
+        )
+        logger.info(
+            "DogStatsD UDS receiver listening on "
+            f"{DEFAULT_DOGSTATSD_RECEIVER_SOCKET} and forwarding to agent:{ProxyPorts.dogstatsd_weblog}"
         )
 
         try:
@@ -497,6 +558,8 @@ def start_proxy() -> None:
         finally:
             uds_server.close()
             await uds_server.wait_closed()
+            dogstatsd_uds_transport.close()
+            dogstatsd_udp_transport.close()
             udp_transport.close()
 
     loop.run_until_complete(_run())

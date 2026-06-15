@@ -20,7 +20,7 @@ import requests
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context.ports import ContainerPorts
-from utils.proxy.config import DEFAULT_APM_RECEIVER_SOCKET
+from utils.proxy.config import DEFAULT_APM_RECEIVER_SOCKET, DEFAULT_DOGSTATSD_RECEIVER_SOCKET
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -625,7 +625,6 @@ class ProxyContainer(TestedContainer):
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
-                "PROXY_APM_RECEIVER_SOCKET": os.environ.get("PROXY_APM_RECEIVER_SOCKET"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
@@ -1015,8 +1014,16 @@ class WeblogContainer(TestedContainer):
         if self.uds_mode:
             self._mount_agent_socket_dir()
             self.environment["DD_APM_RECEIVER_SOCKET"] = DEFAULT_APM_RECEIVER_SOCKET
-            self.environment.pop("DD_AGENT_HOST", None)
-            self.environment.pop("DD_TRACE_AGENT_PORT", None)
+            self.environment["DD_DOGSTATSD_SOCKET"] = DEFAULT_DOGSTATSD_RECEIVER_SOCKET
+            for agent_transport_env in (
+                "DD_AGENT_HOST",
+                "DD_TRACE_AGENT_PORT",
+                "DD_TRACE_AGENT_URL",
+                "DD_DOGSTATSD_HOST",
+                "DD_DOGSTATSD_PORT",
+                "DD_DOGSTATSD_URL",
+            ):
+                self.environment.pop(agent_transport_env, None)
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
         # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
