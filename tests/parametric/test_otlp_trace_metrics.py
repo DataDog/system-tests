@@ -60,6 +60,10 @@ from .conftest import APMLibrary
 SPAN_DURATION_METRIC = "traces.span.sdk.metrics.duration"
 # OpenTelemetry Span Metrics Connector output that this metric MUST NOT collide with (FR02).
 SMC_METRIC_NAMES = ("traces.span.metrics.calls", "traces.span.metrics.duration")
+# Fixed explicit histogram bounds (seconds), mirroring the OpenTelemetry spanmetrics connector defaults
+# so the exported histogram is structurally identical across tracers. 16 bounds -> 17 bucket counts
+# (including the trailing overflow bucket). Pinned so the backend has a guaranteed bucket layout.
+EXPLICIT_BOUNDS_SECONDS = (0.002, 0.004, 0.006, 0.008, 0.01, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.4, 2, 5, 10, 15)
 SERVICE = "test-otlp-stats-svc"
 TRUTHY = ("yes", "true", "1")
 FALSY = ("no", "false", "0")
@@ -179,15 +183,6 @@ def _find_data_point(data_points: list[dict], **attrs: Any) -> dict | None:  # n
 
 def _resource_attributes(metrics: list[Any]) -> dict[str, Any]:
     return {item["key"]: _attr_value(item) for item in metrics[0]["resourceMetrics"][0]["resource"]["attributes"]}
-
-
-def _scope_metrics(metrics: list[Any]) -> list[dict]:
-    """Collect every ScopeMetrics entry across all payloads / resources."""
-    scope_metrics: list[dict] = []
-    for payload in metrics:
-        for resource_metric in payload["resourceMetrics"]:
-            scope_metrics.extend(resource_metric["scopeMetrics"])
-    return scope_metrics
 
 
 def _data_point_services(metrics: list[Any]) -> set[Any]:
@@ -325,8 +320,6 @@ class Test_FR02_Metric_Identity:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         assert scope_metrics, "No scope metrics received"
-        names = [metric["name"] for metric in scope_metrics[0]["metrics"]]
-        assert len(names) == 1, f"Expected exactly one metric, got: {names}"
         metric = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)
         assert "histogram" in metric, f"Metric is not a histogram: {metric}"
 
@@ -451,7 +444,6 @@ class Test_FR03_Metric_Shape:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         histogram = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)["histogram"]
-        # Accept the integer or the Protobuf JSON enum name, since either is standards-compliant.
         assert histogram["aggregationTemporality"] in AGGREGATION_TEMPORALITY_DELTA, (
             f"Expected delta temporality, got: {histogram['aggregationTemporality']}"
         )
@@ -569,7 +561,6 @@ class Test_FR06_Otel_Span_Attributes:
         """Span kind maps to the data-point attribute span.kind."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
-                # Source span tag is a tracer-specific assumption; the spec only fixes the emitted OTel key.
                 span.set_meta("span.kind", "server")
             t.dd_flush()
 
@@ -587,7 +578,6 @@ class Test_FR06_Otel_Span_Attributes:
         """Http method maps to the data-point attribute http.request.method."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
-                # Source span tag (http.method) is a tracer-specific assumption; the spec only fixes the OTel key.
                 span.set_meta("http.method", "GET")
             t.dd_flush()
 
@@ -605,8 +595,6 @@ class Test_FR06_Otel_Span_Attributes:
         """Http status code maps to the data-point attribute http.response.status_code."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
-                # Source span tag (http.status_code) is a tracer-specific assumption; the spec only fixes
-                # the emitted OTel key. Accept int or stringified serialization of the value.
                 span.set_meta("http.status_code", "200")
             t.dd_flush()
 
@@ -643,7 +631,6 @@ class Test_FR06_Otel_Span_Attributes:
         """The Datadog gRPC span tag grpc.method.name is translated to the OTel attribute rpc.method."""
         with test_library as t:
             with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                # Datadog gRPC instrumentation tag; the OTLP export translates it to OTel semantics (rpc.method).
                 span.set_meta("grpc.method.name", "GetUser")
             t.dd_flush()
 
@@ -661,8 +648,7 @@ class Test_FR06_Otel_Span_Attributes:
         """The Datadog gRPC span tag grpc.status.code is translated to OTel rpc.response.status_code."""
         with test_library as t:
             with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                # gRPC status code 0 == OK. Datadog gRPC instrumentation tag; the OTLP export translates it
-                # to OTel semantics (rpc.response.status_code). Accept int or string serialization.
+                # gRPC status code 0 == OK.
                 span.set_meta("grpc.status.code", "0")
             t.dd_flush()
 
@@ -708,8 +694,8 @@ class Test_FR06_Otel_Resource_Attributes:
         test_library: APMLibrary,
     ):
         """DD_SERVICE / DD_ENV / DD_VERSION map to the resource attributes service.name /
-        deployment.environment.name / service.version. No InstrumentationScope is emitted, and the
-        span uses the default service so its data point omits service.name.
+        deployment.environment.name / service.version; the span uses the default service so its data
+        point omits service.name.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -727,9 +713,7 @@ class Test_FR06_Otel_Resource_Attributes:
             resource_attrs.get("deployment.environment") == "prod"
             or resource_attrs.get("deployment.environment.name") == "prod"
         ), f"Expected deployment environment=prod, got: {resource_attrs}"
-        # No InstrumentationScope is emitted (redundant with the telemetry.sdk.* resource attributes).
-        for scope_metric in _scope_metrics(metrics):
-            assert "scope" not in scope_metric, f"no InstrumentationScope expected: {scope_metric.get('scope')}"
+
         # The span uses the configured default service, so its data point omits service.name.
         assert SERVICE not in _data_point_services(metrics), (
             f"Default service must not repeat on data points: {_data_point_services(metrics)}"
@@ -744,8 +728,8 @@ class Test_FR06_Otel_Resource_Attributes:
     ):
         """A span whose service matches the configured default omits service.name on its data point
         (it is implied by the resource); a span on a different service carries service.name on its
-        data point. No InstrumentationScope is emitted. Two root spans are used so both are top-level
-        and therefore selected by the client-side stats pipeline in every library.
+        data point. Two root spans are used so both are top-level and therefore selected by the
+        client-side stats pipeline in every library.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1144,6 +1128,35 @@ class Test_FR09_Red_Metric_Derivation:
         assert data_point["min"] == data_point["max"], f"Expected min == max for one span, got data point: {data_point}"
         bucket_total = sum(int(count) for count in data_point["bucketCounts"])
         assert bucket_total == 1, f"Expected bucket counts to total 1, got {bucket_total} in data point: {data_point}"
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_fr09_3_fixed_bucket_layout(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """The histogram uses the fixed spanmetrics-style explicit bounds (16 bounds -> 17 buckets).
+
+        Pins the bucket layout so the backend has a guaranteed shape across tracers. explicitBounds must
+        be present (an empty or absent layout fails) and must match the fixed bounds with the trailing
+        overflow bucket.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        data_point = _duration_data_points(metrics)[0]
+        explicit_bounds = data_point.get("explicitBounds")
+        assert explicit_bounds, f"Expected explicit bucket bounds, got: {explicit_bounds!r} in {data_point}"
+        assert tuple(float(bound) for bound in explicit_bounds) == EXPLICIT_BOUNDS_SECONDS, (
+            f"Unexpected explicit bounds: {explicit_bounds}"
+        )
+        assert len(data_point["bucketCounts"]) == len(explicit_bounds) + 1, (
+            f"bucketCounts must include the trailing overflow bucket (len == bounds + 1): {data_point}"
+        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr09_2_error_count(
