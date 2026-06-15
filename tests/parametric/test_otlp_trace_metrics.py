@@ -27,8 +27,9 @@ Key conventions:
   * Resource name is the OTel span.name attribute in both modes; dd.resource.name is not emitted.
   * The emitter is identified by the resource attributes telemetry.sdk.name ("datadog") and
     telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
-  * service.name, service.version and deployment.environment.name are reported as InstrumentationScope
-    attributes (not resource attributes), so one payload can carry multiple services.
+  * service.name, service.version and deployment.environment.name are reported as resource attributes
+    (the configured default service). All data points share a single InstrumentationScope; a span whose
+    service differs from the configured default additionally carries service.name on its data point.
   * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
     The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
   * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
@@ -186,15 +187,14 @@ def _scopes(metrics: list[Any]) -> list[dict]:
     return scopes
 
 
-def _scope_attributes_by_service(metrics: list[Any]) -> dict[str, dict[str, Any]]:
-    """Map each scope's service.name to that scope's attributes (service identity lives on the scope)."""
-    by_service: dict[str, dict[str, Any]] = {}
-    for scope in _scopes(metrics):
-        attrs = {item["key"]: _attr_value(item) for item in scope.get("attributes", [])}
-        service = attrs.get("service.name")
+def _data_point_services(metrics: list[Any]) -> set[Any]:
+    """Collect every service.name carried on a duration data point (custom/non-default services)."""
+    services: set[Any] = set()
+    for data_point in _duration_data_points(metrics):
+        service = _data_point_attrs(data_point).get("service.name")
         if service is not None:
-            by_service[service] = attrs
-    return by_service
+            services.add(service)
+    return services
 
 
 def _attr_is_true(value: Any) -> bool:  # noqa: ANN401
@@ -680,8 +680,9 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """DD_SERVICE / DD_ENV / DD_VERSION map to the scope attributes service.name /
-        deployment.environment.name / service.version, and are not duplicated on the resource.
+        """DD_SERVICE / DD_ENV / DD_VERSION map to the resource attributes service.name /
+        deployment.environment.name / service.version. The single InstrumentationScope carries no
+        service identity, and the span uses the default service so its data point omits service.name.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -689,25 +690,33 @@ class Test_FR06_Otel_Resource_Attributes:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_attrs = _scope_attributes_by_service(metrics)
-        assert SERVICE in scope_attrs, f"No scope for service {SERVICE}: {list(scope_attrs)}"
-        attrs = scope_attrs[SERVICE]
-        assert attrs.get("service.version") == "1.2.3"
+        resource_attrs = _resource_attributes(metrics)
+        assert resource_attrs.get("service.name") == SERVICE
+        assert resource_attrs.get("service.version") == "1.2.3"
         # The deployment environment semantic convention was renamed in 1.27.0.
-        assert attrs.get("deployment.environment") == "prod" or attrs.get("deployment.environment.name") == "prod"
-        # Service identity is carried by the scope, not the resource.
-        assert "service.name" not in _resource_attributes(metrics)
+        assert (
+            resource_attrs.get("deployment.environment") == "prod"
+            or resource_attrs.get("deployment.environment.name") == "prod"
+        )
+        # Service identity lives on the resource, not the scope.
+        for scope in _scopes(metrics):
+            scope_keys = {item["key"] for item in scope.get("attributes", [])}
+            assert "service.name" not in scope_keys, f"service.name must not be a scope attribute: {scope_keys}"
+        # The span uses the configured default service, so its data point omits service.name.
+        assert SERVICE not in _data_point_services(metrics)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_fr06_14_multiple_services_partitioned_by_scope(
+    def test_fr06_14_custom_service_on_data_point(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Spans from different services are partitioned into one InstrumentationScope per service,
-        so a single payload can carry multiple services. Two root spans are used so both are
-        top-level and therefore selected by the client-side stats pipeline in every library.
+        """All data points share a single InstrumentationScope. A span whose service matches the
+        configured default omits service.name on its data point (it is implied by the resource); a
+        span on a different service carries service.name on its data point. Two root spans are used
+        so both are top-level and therefore selected by the client-side stats pipeline in every
+        library.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -717,9 +726,16 @@ class Test_FR06_Otel_Resource_Attributes:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_attrs = _scope_attributes_by_service(metrics)
-        assert SERVICE in scope_attrs, f"Missing scope for {SERVICE}: {list(scope_attrs)}"
-        assert "postgres" in scope_attrs, f"Missing scope for the child service: {list(scope_attrs)}"
+        # The configured default service is reported on the resource.
+        assert _resource_attributes(metrics).get("service.name") == SERVICE
+        services_on_points = _data_point_services(metrics)
+        # The custom service is carried on its own data point; the default service is not repeated.
+        assert "postgres" in services_on_points, (
+            f"Expected postgres service.name on its data point: {services_on_points}"
+        )
+        assert SERVICE not in services_on_points, (
+            f"Default service must not repeat on data points: {services_on_points}"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
