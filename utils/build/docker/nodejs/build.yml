@@ -1,0 +1,10 @@
+build_mode:
+  express4: local
+  express4-typescript: local
+  express5: local
+  fastify: local
+  nextjs: local
+  uds-express4: local
+  openai-js: none
+  anthropic-js: none
+  google_genai-js: none
