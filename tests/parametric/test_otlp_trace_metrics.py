@@ -5,7 +5,7 @@ exercised per test, generating 1-3 spans and asserting on the captured telemetry
 sent to /v1/metrics, plus native Datadog v0.4/v0.5/v0.6 traces and stats where relevant).
 
 FR -> test-class mapping:
-  FR01  Enable/disable with OTEL_CLIENT_STATS_COMPUTATION_ENABLED        Test_FR01_Enablement_Configuration
+  FR01  Enable/disable with OTEL_TRACES_SPAN_METRICS_ENABLED        Test_FR01_Enablement_Configuration
   FR02  Exactly one histogram named traces.span.sdk.metrics.duration;    Test_FR02_Metric_Identity
         no trace.<name>.* / SMC names via OTLP                           Test_FR02_Mutual_Exclusion (XOR with native stats)
   FR03  Delta-temporality histogram, unit "s", OTLP format               Test_FR03_Metric_Shape
@@ -14,17 +14,17 @@ FR -> test-class mapping:
   FR06  OTel semantic-convention attributes wherever applicable          Test_FR06_Otel_Span_Attributes,
                                                                          Test_FR06_Otel_Resource_Attributes
   FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
-  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> dd.* allowed   Test_FR08_Datadog_Attributes
+  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes
   FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
   FR12-FR14  Backend ingestion / billing -> no SDK system-test coverage
 
 Key conventions:
-  * Top-level marker is dd.span.top_level.
-  * Error is conveyed via the OTel status.code attribute; it works in OTel-semantics mode where dd.* and
+  * Top-level marker is datadog.span.top_level.
+  * Error is conveyed via the OTel status.code attribute; it works in OTel-semantics mode where datadog.* and
     other bespoke attributes are disallowed.
-  * Resource name is the OTel span.name attribute in both modes; dd.resource.name is not emitted.
+  * Resource name is the OTel span.name attribute in both modes; datadog.resource.name is not emitted.
   * The emitter is identified by the resource attributes telemetry.sdk.name ("datadog") and
     telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
   * service.name, service.version and deployment.environment.name are reported as resource attributes
@@ -40,7 +40,7 @@ Datadog span tags are translated to OTel semantic-convention attributes on the e
 grpc.method.name -> rpc.method, grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
 http.status_code -> http.response.status_code, and span.kind -> span.kind. host.name is set from DD_HOSTNAME
 when DD_TRACE_REPORT_HOSTNAME is enabled. Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) are
-emitted as dd.<key> resource attributes in default mode. Boolean and status-code attributes are accepted as
+emitted as datadog.<key> resource attributes in default mode. Boolean and status-code attributes are accepted as
 native or stringified values.
 """
 
@@ -82,7 +82,7 @@ _SDK_LANGUAGE_BY_LIBRARY = {
     "rust": "rust",
     "cpp": "cpp",
 }
-# Known process-tag keys; any one emitted as a dd.<key> resource attribute satisfies FR08. Which tags
+# Known process-tag keys; any one emitted as a datadog.<key> resource attribute satisfies FR08. Which tags
 # are populated varies per library/runtime, so the test only requires that at least one is present.
 _PROCESS_TAG_KEYS = (
     "entrypoint.name",
@@ -104,10 +104,10 @@ _BASE_ENVVARS = {
 }
 
 # OTLP trace metrics explicitly enabled. DD_TRACE_OTEL_SEMANTICS_ENABLED is unset, so this is the
-# default Datadog mode where dd.* attributes are emitted alongside OTel attributes (FR08).
-DEFAULT_ENVVARS = {**_BASE_ENVVARS, "OTEL_CLIENT_STATS_COMPUTATION_ENABLED": "true"}
+# default Datadog mode where datadog.* attributes are emitted alongside OTel attributes (FR08).
+DEFAULT_ENVVARS = {**_BASE_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "true"}
 
-# OTel-semantics mode: only OpenTelemetry attributes are emitted, no dd.* attributes (FR07).
+# OTel-semantics mode: only OpenTelemetry attributes are emitted, no datadog.* attributes (FR07).
 OTEL_SEMANTICS_ENVVARS = {**DEFAULT_ENVVARS, "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"}
 
 
@@ -209,7 +209,7 @@ def _attr_is_false(value: Any) -> bool:  # noqa: ANN401
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR01_Enablement_Configuration:
-    """FR01: OTLP trace metrics export is gated by OTEL_CLIENT_STATS_COMPUTATION_ENABLED."""
+    """FR01: OTLP trace metrics export is gated by OTEL_TRACES_SPAN_METRICS_ENABLED."""
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr01_1_enabled_explicit(
@@ -218,7 +218,7 @@ class Test_FR01_Enablement_Configuration:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """OTEL_CLIENT_STATS_COMPUTATION_ENABLED=true exports the histogram."""
+        """OTEL_TRACES_SPAN_METRICS_ENABLED=true exports the histogram."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
@@ -227,14 +227,14 @@ class Test_FR01_Enablement_Configuration:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         assert _duration_data_points(metrics), "No span duration data points exported"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_CLIENT_STATS_COMPUTATION_ENABLED": "false"}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
     def test_fr01_2_disabled_explicit(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """OTEL_CLIENT_STATS_COMPUTATION_ENABLED=false exports no OTLP trace metric."""
+        """OTEL_TRACES_SPAN_METRICS_ENABLED=false exports no OTLP trace metric."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
@@ -383,7 +383,7 @@ class Test_FR02_Mutual_Exclusion:
         [
             {
                 **_BASE_ENVVARS,
-                "OTEL_CLIENT_STATS_COMPUTATION_ENABLED": "false",
+                "OTEL_TRACES_SPAN_METRICS_ENABLED": "false",
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             }
         ],
@@ -473,7 +473,7 @@ class Test_FR04_Span_Selection:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        child_point = _find_data_point(_duration_data_points(metrics), **{"dd.operation.name": "child.op"})
+        child_point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "child.op"})
         assert child_point is not None, "Measured child span should produce a data point"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -494,8 +494,8 @@ class Test_FR04_Span_Selection:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         data_points = _duration_data_points(metrics)
-        assert _find_data_point(data_points, **{"dd.operation.name": "child.op"}) is None
-        assert _find_data_point(data_points, **{"dd.operation.name": "web.request"}) is not None
+        assert _find_data_point(data_points, **{"datadog.operation.name": "child.op"}) is None
+        assert _find_data_point(data_points, **{"datadog.operation.name": "web.request"}) is not None
 
 
 @scenarios.parametric
@@ -824,7 +824,7 @@ class Test_FR07_Otel_Semantics_Mode:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """No dd.* prefixed attributes are emitted on the data point in OTel-semantics mode."""
+        """No datadog.* prefixed attributes are emitted on the data point in OTel-semantics mode."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, resource="/users", typestr="web") as span:
                 span.set_meta("_dd.origin", "synthetics")
@@ -832,8 +832,8 @@ class Test_FR07_Otel_Semantics_Mode:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        dd_keys = [key for key in attrs if key.startswith("dd.")]
-        assert not dd_keys, f"dd.* attributes must not be emitted in OTel-semantics mode: {dd_keys}"
+        datadog_keys = [key for key in attrs if key.startswith(("datadog.", "_datadog."))]
+        assert not datadog_keys, f"datadog.* attributes must not be emitted in OTel-semantics mode: {datadog_keys}"
 
     @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
     def test_fr07_2_no_datadog_resource_or_type(
@@ -842,7 +842,7 @@ class Test_FR07_Otel_Semantics_Mode:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Resource is carried by span.name (not dd.resource.name) and dd.span.type is absent."""
+        """Resource is carried by span.name (not datadog.resource.name) and datadog.span.type is absent."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, resource="/users", typestr="web"):
                 pass
@@ -851,9 +851,9 @@ class Test_FR07_Otel_Semantics_Mode:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.name") == "/users"
-        assert "dd.resource.name" not in attrs
-        assert "dd.span.type" not in attrs
-        assert "dd.operation.name" not in attrs
+        assert "datadog.resource.name" not in attrs
+        assert "datadog.span.type" not in attrs
+        assert "datadog.operation.name" not in attrs
 
     @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
     def test_fr07_3_otel_attributes_present(
@@ -884,21 +884,23 @@ class Test_FR07_Otel_Semantics_Mode:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """No dd.* resource attributes are emitted in OTel-semantics mode (process tags must not leak)."""
+        """No datadog.* resource attributes are emitted in OTel-semantics mode (process tags must not leak)."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        dd_keys = [key for key in _resource_attributes(metrics) if key.startswith("dd.")]
-        assert not dd_keys, f"dd.* resource attributes must not be emitted in OTel-semantics mode: {dd_keys}"
+        datadog_keys = [key for key in _resource_attributes(metrics) if key.startswith(("datadog.", "_datadog."))]
+        assert not datadog_keys, (
+            f"datadog.* resource attributes must not be emitted in OTel-semantics mode: {datadog_keys}"
+        )
 
 
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR08_Datadog_Attributes:
-    """FR08: In default mode (DD_TRACE_OTEL_SEMANTICS_ENABLED=false) dd.* attributes are added."""
+    """FR08: In default mode (DD_TRACE_OTEL_SEMANTICS_ENABLED=false) datadog.* attributes are added."""
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_1_operation_name(
@@ -907,14 +909,14 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Operation name maps to the data-point attribute dd.operation.name."""
+        """Operation name maps to the data-point attribute datadog.operation.name."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        assert _data_point_attrs(_duration_data_points(metrics)[0]).get("dd.operation.name") == "web.request"
+        assert _data_point_attrs(_duration_data_points(metrics)[0]).get("datadog.operation.name") == "web.request"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_2_span_type(
@@ -923,14 +925,14 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Span type maps to the data-point attribute dd.span.type."""
+        """Span type maps to the data-point attribute datadog.span.type."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        assert _data_point_attrs(_duration_data_points(metrics)[0]).get("dd.span.type") == "web"
+        assert _data_point_attrs(_duration_data_points(metrics)[0]).get("datadog.span.type") == "web"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_3_top_level_root(
@@ -939,14 +941,14 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A single root span carries dd.span.top_level=true."""
+        """A single root span carries datadog.span.top_level=true."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        assert _attr_is_true(_data_point_attrs(_duration_data_points(metrics)[0]).get("dd.span.top_level"))
+        assert _attr_is_true(_data_point_attrs(_duration_data_points(metrics)[0]).get("datadog.span.top_level"))
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_4_top_level_child_same_service(
@@ -955,10 +957,10 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A child span with the same service as its parent carries dd.span.top_level=false.
+        """A child span with the same service as its parent carries datadog.span.top_level=false.
 
         The child is marked measured so it is emitted (a non-top-level, non-measured span is filtered
-        out per FR04); the assertion verifies it carries dd.span.top_level=false.
+        out per FR04); the assertion verifies it carries datadog.span.top_level=false.
         """
         with test_library as t:
             with (
@@ -969,9 +971,9 @@ class Test_FR08_Datadog_Attributes:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        child_point = _find_data_point(_duration_data_points(metrics), **{"dd.operation.name": "child.op"})
+        child_point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "child.op"})
         assert child_point is not None, "No data point for the child span"
-        assert _attr_is_false(_data_point_attrs(child_point).get("dd.span.top_level"))
+        assert _attr_is_false(_data_point_attrs(child_point).get("datadog.span.top_level"))
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_5_top_level_child_different_service(
@@ -980,7 +982,7 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A child span with a different service is a service-entry span: dd.span.top_level=true."""
+        """A child span with a different service is a service-entry span: datadog.span.top_level=true."""
         with test_library as t:
             with (
                 t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as parent,
@@ -990,9 +992,9 @@ class Test_FR08_Datadog_Attributes:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        child = _find_data_point(_duration_data_points(metrics), **{"dd.operation.name": "postgres.query"})
+        child = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "postgres.query"})
         assert child is not None, "No data point for the child span"
-        assert _attr_is_true(_data_point_attrs(child).get("dd.span.top_level"))
+        assert _attr_is_true(_data_point_attrs(child).get("datadog.span.top_level"))
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_6_origin(
@@ -1001,14 +1003,14 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Origin maps to the data-point attribute dd.origin."""
+        """Origin maps to the data-point attribute datadog.origin."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
                 span.set_meta("_dd.origin", "synthetics")
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        assert _data_point_attrs(_duration_data_points(metrics)[0]).get("dd.origin") == "synthetics"
+        assert _data_point_attrs(_duration_data_points(metrics)[0]).get("datadog.origin") == "synthetics"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_7_no_datadog_prefix(
@@ -1038,11 +1040,11 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Process tags are emitted as individual dd.<key> resource attributes in default mode.
+        """Process tags are emitted as individual datadog.<key> resource attributes in default mode.
 
-        The comma-separated key:value process-tag string is split and each key is prefixed with dd. and
+        The comma-separated key:value process-tag string is split and each key is prefixed with datadog. and
         emitted as a resource attribute. Which process tags are populated varies per library/runtime, so
-        the assertion only requires that at least one known process tag is present as a dd.<key> attribute.
+        the assertion only requires that at least one known process tag is present as a datadog.<key> attribute.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1051,8 +1053,8 @@ class Test_FR08_Datadog_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         resource_attrs = _resource_attributes(metrics)
-        assert any(f"dd.{tag}" in resource_attrs for tag in _PROCESS_TAG_KEYS), (
-            f"Expected at least one dd.<process-tag> resource attribute, got: {list(resource_attrs)}"
+        assert any(f"datadog.{tag}" in resource_attrs for tag in _PROCESS_TAG_KEYS), (
+            f"Expected at least one datadog.<process-tag> resource attribute, got: {list(resource_attrs)}"
         )
 
 
