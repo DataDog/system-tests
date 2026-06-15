@@ -1203,6 +1203,15 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask: v2.11.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL::test_invalid_condition_dsl_probe_rejected: bug (DEBUG-5709)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask: v2.11.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
@@ -2111,6 +2120,11 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Python does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: '>=4.11.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: '>=4.11.0'
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:

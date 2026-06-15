@@ -825,6 +825,12 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: v2.2.3
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (index expression not yet supported in Go system-probe)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL: v2.2.3
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error: v2.2.3
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
+  : bug (DEBUG-5700)
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_probe_installs
+  : bug (DEBUG-5710)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
@@ -1295,6 +1301,11 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Go does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)
