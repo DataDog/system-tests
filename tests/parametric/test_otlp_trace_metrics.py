@@ -1,36 +1,49 @@
 """System tests for the RFC "OTLP Trace Metrics Export" (SEMCON-1093).
 
-Each test class maps to a functional requirement (FR). One behaviour is exercised per test: a few
-spans are generated and the captured telemetry is asserted (OTLP metrics on /v1/metrics, plus native
-Datadog v0.4/v0.5/v0.6 traces and stats where relevant).
+Each test class maps to a functional requirement (FR) from the RFC. A single behaviour is
+exercised per test, generating 1-3 spans and asserting on the captured telemetry (OTLP metrics
+sent to /v1/metrics, plus native Datadog v0.4/v0.5/v0.6 traces and stats where relevant).
 
 FR -> test-class mapping:
-  FR01  Enable/disable with OTEL_TRACES_SPAN_METRICS_ENABLED   Test_FR01_Enablement_Configuration
-  FR02  Single histogram traces.span.sdk.metrics.duration;     Test_FR02_Metric_Identity
-        exported via OTLP XOR native v0.6 stats                Test_FR02_Mutual_Exclusion
-  FR03  Delta-temporality histogram, unit "s"                  Test_FR03_Metric_Shape
-  FR04  Reuse existing client-side stats span selection        Test_FR04_Span_Selection
-  FR05  Computed before head-based sampling                    Test_FR05_Sampling_Independence
-  FR06  OTel semantic-convention span/resource attributes      Test_FR06_Otel_Span_Attributes,
-                                                                Test_FR06_Otel_Resource_Attributes
-  FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> OTel only       Test_FR07_Otel_Semantics_Mode
-  FR08  Default mode -> datadog.* attributes allowed           Test_FR08_Datadog_Attributes
-  FR09  Derive request/error count and duration                Test_FR09_Red_Metric_Derivation
-  FR10  Transport over OTLP HTTP/JSON (pinned in _BASE_ENVVARS, exercised by every test)
-  FR11-FR14  SDKs without client-side stats / backend ingestion / billing -> no SDK coverage here
+  FR01  Enable/disable with OTEL_TRACES_SPAN_METRICS_ENABLED        Test_FR01_Enablement_Configuration
+  FR02  Exactly one histogram named traces.span.sdk.metrics.duration;    Test_FR02_Metric_Identity
+        no trace.<name>.* / SMC names via OTLP                           Test_FR02_Mutual_Exclusion (XOR with native stats)
+  FR03  Delta-temporality histogram, unit "s", OTLP format               Test_FR03_Metric_Shape
+  FR04  Reuse existing client-side stats span-selection                  Test_FR04_Span_Selection
+  FR05  Computed before head-based sampling                              Test_FR05_Sampling_Independence
+  FR06  OTel semantic-convention attributes wherever applicable          Test_FR06_Otel_Span_Attributes,
+                                                                         Test_FR06_Otel_Resource_Attributes
+  FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
+  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes
+  FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
+  FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
+  FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
+  FR12-FR14  Backend ingestion / billing -> no SDK system-test coverage
 
 Key conventions:
-  * Top-level marker is datadog.span.top_level; resource name is the OTel span.name in both modes.
-  * Error is conveyed via the OTel status.code attribute (works in OTel-semantics mode).
-  * The emitter is identified by resource attributes telemetry.sdk.name ("datadog") and
-    telemetry.sdk.language (the library's OTel token, e.g. "go" for golang). No InstrumentationScope
-    is emitted. service.name/version and deployment.environment.name are resource attributes; a span
-    whose service differs from the configured default additionally carries service.name on its point.
-  * Flush cadence is fixed at 10s (not OTEL_METRIC_EXPORT_INTERVAL); the internal
-    _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (ms) shortens it for tests.
-  * host.name is reported only when DD_TRACE_REPORT_HOSTNAME is enabled; its source is
-    library-specific (libdatadog honors DD_HOSTNAME, dd-trace-js uses os.hostname()), so tests assert
-    presence, not value. Boolean and status-code attributes are accepted as native or stringified.
+  * Top-level marker is datadog.span.top_level.
+  * Error is conveyed via the OTel status.code attribute; it works in OTel-semantics mode where datadog.* and
+    other bespoke attributes are disallowed.
+  * Resource name is the OTel span.name attribute in both modes; datadog.resource.name is not emitted.
+  * The emitter is identified by the resource attributes telemetry.sdk.name ("datadog") and
+    telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
+  * service.name, service.version and deployment.environment.name are reported as resource attributes
+    (the configured default service). No InstrumentationScope is emitted (it would be redundant with
+    the telemetry.sdk.* resource attributes); a span whose service differs from the configured default
+    additionally carries service.name on its data point.
+  * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
+    The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
+  * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
+    while dd-trace-js supports both HTTP/JSON and HTTP/protobuf. Tests pin HTTP/JSON via _BASE_ENVVARS.
+
+Datadog span tags are translated to OTel semantic-convention attributes on the exported metric:
+grpc.method.name -> rpc.method, grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
+http.status_code -> http.response.status_code, and span.kind -> span.kind. host.name is reported when
+DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
+while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
+Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) are
+emitted as datadog.<key> resource attributes in default mode. Boolean and status-code attributes are accepted as
+native or stringified values. Process tags are enabled by default in some SDKs.
 """
 
 from typing import Any
@@ -72,8 +85,8 @@ _SDK_LANGUAGE_BY_LIBRARY = {
     "rust": "rust",
     "cpp": "cpp",
 }
-# Known process-tag keys; any one emitted as a datadog.<key> resource attribute satisfies FR08. Which
-# tags are populated varies per library/runtime, so the test only requires that at least one exists.
+# Known process-tag keys; any one emitted as a datadog.<key> resource attribute satisfies FR08. Which tags
+# are populated varies per library/runtime, so the test only requires that at least one is present.
 _PROCESS_TAG_KEYS = (
     "entrypoint.name",
     "entrypoint.workdir",
@@ -694,8 +707,9 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """DD_SERVICE / DD_ENV / DD_VERSION map to service.name / deployment.environment.name /
-        service.version; no InstrumentationScope is emitted and the default-service span omits service.name.
+        """DD_SERVICE / DD_ENV / DD_VERSION map to the resource attributes service.name /
+        deployment.environment.name / service.version. No InstrumentationScope is emitted, and the
+        span uses the default service so its data point omits service.name.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -728,8 +742,10 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A default-service span omits service.name on its data point (implied by the resource); a span on
-        a different service carries service.name on its point. Two roots so both are top-level and selected.
+        """A span whose service matches the configured default omits service.name on its data point
+        (it is implied by the resource); a span on a different service carries service.name on its
+        data point. No InstrumentationScope is emitted. Two root spans are used so both are top-level
+        and therefore selected by the client-side stats pipeline in every library.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -762,10 +778,12 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """host.name is reported as a resource attribute when DD_TRACE_REPORT_HOSTNAME is enabled.
+        """host.name is reported as a resource attribute when hostname reporting is enabled.
 
-        The source is library-specific (libdatadog honors DD_HOSTNAME, dd-trace-js uses os.hostname()),
-        so the assertion only checks presence, not value.
+        The spec only requires host.name "where available and allowed"; DD_TRACE_REPORT_HOSTNAME gates
+        whether it is emitted. The hostname source is library-specific: libdatadog-based tracers honor
+        DD_HOSTNAME, while dd-trace-js does not yet support DD_HOSTNAME and falls back to os.hostname().
+        The assertion therefore only checks that host.name is present, not its value.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -785,8 +803,10 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """host.name is omitted when hostname reporting is not enabled (a configured DD_HOSTNAME must
-        not leak onto the metric resource unless reporting is explicitly enabled).
+        """host.name is omitted when hostname reporting is not enabled.
+
+        Encodes the tracer policy that a configured DD_HOSTNAME is not leaked onto the metric resource
+        unless reporting is explicitly enabled; the spec itself only says host.name appears where allowed.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -991,7 +1011,8 @@ class Test_FR08_Datadog_Attributes:
     ):
         """A child span with the same service as its parent carries datadog.span.top_level=false.
 
-        The child is marked measured so it is emitted (a non-top-level, non-measured span is filtered per FR04).
+        The child is marked measured so it is emitted (a non-top-level, non-measured span is filtered
+        out per FR04); the assertion verifies it carries datadog.span.top_level=false.
         """
         with test_library as t:
             with (
@@ -1080,8 +1101,9 @@ class Test_FR08_Datadog_Attributes:
     ):
         """Process tags are emitted as individual datadog.<key> resource attributes in default mode.
 
-        Which process tags are populated varies per library/runtime, so the assertion only requires that
-        at least one known process tag is present as a datadog.<key> attribute.
+        The comma-separated key:value process-tag string is split and each key is prefixed with datadog. and
+        emitted as a resource attribute. Which process tags are populated varies per library/runtime, so
+        the assertion only requires that at least one known process tag is present as a datadog.<key> attribute.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1133,7 +1155,8 @@ class Test_FR09_Red_Metric_Derivation:
         """Error count is derivable: with one error and one ok span, errors = 1 of 2 total.
 
         The error span carries an ERROR status.code while the ok span does not, so the backend can derive
-        error count from the subset of data points whose status.code indicates an error.
+        error count from the subset of data points whose status.code indicates an error (OK / UNSET merge
+        into a single non-error state).
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as err:
