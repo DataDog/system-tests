@@ -372,6 +372,20 @@ class TestAgentAPI:
             )
         return agent_requests
 
+    def wait_for_num_v06_stats(self, num: int, *, wait_loops: int = 200) -> list[AgentRequestV06Stats]:
+        """Wait for at least `num` /v0.6/stats requests to be received by the test agent.
+
+        Native client-side stats are flushed on the concentrator's bucket boundary rather than
+        synchronously on flush, so callers asserting their presence must poll.
+        """
+        requests: list[AgentRequestV06Stats] = []
+        for _ in range(wait_loops):
+            requests = self.get_v06_stats_requests()
+            if len(requests) >= num:
+                return requests
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
+
     def clear(self) -> None:
         self._session.get(self._url("/test/session/clear"))
         self._session.get(self._otlp_url("/test/session/clear"))

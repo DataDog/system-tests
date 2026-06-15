@@ -27,8 +27,12 @@ Key conventions:
   * Resource name is the OTel span.name attribute in both modes; dd.resource.name is not emitted.
   * The emitter is identified by the resource attributes telemetry.sdk.name ("datadog") and
     telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
-  * OTLP metric flush/export cadence is driven by OTel config (OTEL_METRIC_EXPORT_INTERVAL); the export
-    is not gated on a Datadog-specific stats-writer interval.
+  * service.name, service.version and deployment.environment.name are reported as InstrumentationScope
+    attributes (not resource attributes), so one payload can carry multiple services.
+  * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
+    The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
+  * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
+    while dd-trace-js supports both HTTP/JSON and HTTP/protobuf. Tests pin HTTP/JSON via _BASE_ENVVARS.
 
 Datadog span tags are translated to OTel semantic-convention attributes on the exported metric:
 grpc.method.name -> rpc.method, grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
@@ -87,13 +91,13 @@ _PROCESS_TAG_KEYS = (
     "svc.auto",
 )
 
-# Common env shared by every test. The OTLP metric flush/export cadence is driven by OTel
-# configuration (OTEL_METRIC_EXPORT_INTERVAL), not a Datadog-specific stats-writer interval; a short
-# export interval keeps client-computed metrics exported within the test window. On-demand flushes
-# still occur via t.dd_flush(). The initial implementation only supports OTLP HTTP/JSON export (FR10).
+# Common env shared by every test. The OTLP trace-metrics flush cadence is fixed at 10s and is not
+# driven by OTEL_METRIC_EXPORT_INTERVAL; the internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL
+# (milliseconds) shortens it so metrics export within the test window. On-demand flushes still occur
+# via t.dd_flush(). Tests pin HTTP/JSON export (FR10), the transport common to all libraries.
 _BASE_ENVVARS = {
     "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json",
-    "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+    "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
     "DD_SERVICE": SERVICE,
 }
 
@@ -170,6 +174,27 @@ def _find_data_point(data_points: list[dict], **attrs: Any) -> dict | None:  # n
 
 def _resource_attributes(metrics: list[Any]) -> dict[str, Any]:
     return {item["key"]: _attr_value(item) for item in metrics[0]["resourceMetrics"][0]["resource"]["attributes"]}
+
+
+def _scopes(metrics: list[Any]) -> list[dict]:
+    """Collect every InstrumentationScope across all payloads / resources."""
+    scopes: list[dict] = []
+    for payload in metrics:
+        for resource_metric in payload["resourceMetrics"]:
+            for scope_metric in resource_metric["scopeMetrics"]:
+                scopes.append(scope_metric.get("scope", {}))
+    return scopes
+
+
+def _scope_attributes_by_service(metrics: list[Any]) -> dict[str, dict[str, Any]]:
+    """Map each scope's service.name to that scope's attributes (service identity lives on the scope)."""
+    by_service: dict[str, dict[str, Any]] = {}
+    for scope in _scopes(metrics):
+        attrs = {item["key"]: _attr_value(item) for item in scope.get("attributes", [])}
+        service = attrs.get("service.name")
+        if service is not None:
+            by_service[service] = attrs
+    return by_service
 
 
 def _attr_is_true(value: Any) -> bool:  # noqa: ANN401
@@ -375,7 +400,7 @@ class Test_FR02_Mutual_Exclusion:
                 pass
             t.dd_flush()
 
-        assert test_agent.get_v06_stats_requests(), "Native v0.6 stats should be sent when OTLP is disabled"
+        assert test_agent.wait_for_num_v06_stats(num=1), "Native v0.6 stats should be sent when OTLP is disabled"
         with pytest.raises(ValueError):
             test_agent.wait_for_num_otlp_metrics(num=1)
 
@@ -655,18 +680,46 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """DD_SERVICE / DD_ENV / DD_VERSION map to service.name / deployment.environment / service.version."""
+        """DD_SERVICE / DD_ENV / DD_VERSION map to the scope attributes service.name /
+        deployment.environment.name / service.version, and are not duplicated on the resource.
+        """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        attrs = _resource_attributes(metrics)
-        assert attrs.get("service.name") == SERVICE
+        scope_attrs = _scope_attributes_by_service(metrics)
+        assert SERVICE in scope_attrs, f"No scope for service {SERVICE}: {list(scope_attrs)}"
+        attrs = scope_attrs[SERVICE]
         assert attrs.get("service.version") == "1.2.3"
         # The deployment environment semantic convention was renamed in 1.27.0.
         assert attrs.get("deployment.environment") == "prod" or attrs.get("deployment.environment.name") == "prod"
+        # Service identity is carried by the scope, not the resource.
+        assert "service.name" not in _resource_attributes(metrics)
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_fr06_14_multiple_services_partitioned_by_scope(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Spans from different services are partitioned into one InstrumentationScope per service,
+        so a single payload can carry multiple services. Two root spans are used so both are
+        top-level and therefore selected by the client-side stats pipeline in every library.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            with t.dd_start_span(name="db.query", service="postgres", typestr="db"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_attrs = _scope_attributes_by_service(metrics)
+        assert SERVICE in scope_attrs, f"Missing scope for {SERVICE}: {list(scope_attrs)}"
+        assert "postgres" in scope_attrs, f"Missing scope for the child service: {list(scope_attrs)}"
 
     @pytest.mark.parametrize(
         "library_env",
