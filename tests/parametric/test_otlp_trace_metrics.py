@@ -28,8 +28,9 @@ Key conventions:
   * The emitter is identified by the resource attributes telemetry.sdk.name ("datadog") and
     telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
   * service.name, service.version and deployment.environment.name are reported as resource attributes
-    (the configured default service). All data points share a single InstrumentationScope; a span whose
-    service differs from the configured default additionally carries service.name on its data point.
+    (the configured default service). No InstrumentationScope is emitted (it would be redundant with
+    the telemetry.sdk.* resource attributes); a span whose service differs from the configured default
+    additionally carries service.name on its data point.
   * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
     The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
   * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
@@ -177,14 +178,13 @@ def _resource_attributes(metrics: list[Any]) -> dict[str, Any]:
     return {item["key"]: _attr_value(item) for item in metrics[0]["resourceMetrics"][0]["resource"]["attributes"]}
 
 
-def _scopes(metrics: list[Any]) -> list[dict]:
-    """Collect every InstrumentationScope across all payloads / resources."""
-    scopes: list[dict] = []
+def _scope_metrics(metrics: list[Any]) -> list[dict]:
+    """Collect every ScopeMetrics entry across all payloads / resources."""
+    scope_metrics: list[dict] = []
     for payload in metrics:
         for resource_metric in payload["resourceMetrics"]:
-            for scope_metric in resource_metric["scopeMetrics"]:
-                scopes.append(scope_metric.get("scope", {}))
-    return scopes
+            scope_metrics.extend(resource_metric["scopeMetrics"])
+    return scope_metrics
 
 
 def _data_point_services(metrics: list[Any]) -> set[Any]:
@@ -681,8 +681,8 @@ class Test_FR06_Otel_Resource_Attributes:
         test_library: APMLibrary,
     ):
         """DD_SERVICE / DD_ENV / DD_VERSION map to the resource attributes service.name /
-        deployment.environment.name / service.version. The single InstrumentationScope carries no
-        service identity, and the span uses the default service so its data point omits service.name.
+        deployment.environment.name / service.version. No InstrumentationScope is emitted, and the
+        span uses the default service so its data point omits service.name.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -698,10 +698,9 @@ class Test_FR06_Otel_Resource_Attributes:
             resource_attrs.get("deployment.environment") == "prod"
             or resource_attrs.get("deployment.environment.name") == "prod"
         )
-        # Service identity lives on the resource, not the scope.
-        for scope in _scopes(metrics):
-            scope_keys = {item["key"] for item in scope.get("attributes", [])}
-            assert "service.name" not in scope_keys, f"service.name must not be a scope attribute: {scope_keys}"
+        # No InstrumentationScope is emitted (redundant with the telemetry.sdk.* resource attributes).
+        for scope_metric in _scope_metrics(metrics):
+            assert "scope" not in scope_metric, f"no InstrumentationScope expected: {scope_metric.get('scope')}"
         # The span uses the configured default service, so its data point omits service.name.
         assert SERVICE not in _data_point_services(metrics)
 
@@ -712,11 +711,10 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """All data points share a single InstrumentationScope. A span whose service matches the
-        configured default omits service.name on its data point (it is implied by the resource); a
-        span on a different service carries service.name on its data point. Two root spans are used
-        so both are top-level and therefore selected by the client-side stats pipeline in every
-        library.
+        """A span whose service matches the configured default omits service.name on its data point
+        (it is implied by the resource); a span on a different service carries service.name on its
+        data point. No InstrumentationScope is emitted. Two root spans are used so both are top-level
+        and therefore selected by the client-side stats pipeline in every library.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
