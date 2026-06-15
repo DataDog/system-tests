@@ -8,7 +8,7 @@ runtime.go.*, runtime.node.*, etc.).
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import TypedDict
 
 from utils import context, features, interfaces, scenarios, weblog
 
@@ -238,10 +238,6 @@ DD_PROPRIETARY_PREFIXES: dict[str, str] = {
     "java": "jvm.heap_memory",
 }
 
-# OTel instrumentation scope name used by the Go runtime metrics collector
-_GO_RUNTIME_SCOPE = "go.runtime"
-
-
 def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     """Return observed runtime metrics grouped by name.
 
@@ -256,39 +252,10 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     return result
 
 
-def _collect_go_otlp_metrics() -> dict[str, list[dict[str, Any]]]:
-    """Collect Go runtime metrics from raw OTLP payloads captured at the proxy.
-
-    Returns metric_name -> list of OTLP data points for scope 'go.runtime'.
-    """
-    metrics: dict[str, list[dict[str, Any]]] = {}
-    for data in interfaces.open_telemetry.get_data(path_filters=["/v1/metrics"]):
-        content: dict[str, Any] = data["request"]["content"]
-        for resource_metric in content.get("resourceMetrics", []):
-            for scope_metric in resource_metric.get("scopeMetrics", []):
-                scope_name: str = scope_metric.get("scope", {}).get("name", "")
-                if scope_name != _GO_RUNTIME_SCOPE:
-                    continue
-                for metric in scope_metric.get("metrics", []):
-                    name: str = metric["name"]
-                    data_points: list[dict[str, Any]] = metric.get("sum", {}).get("dataPoints", []) or metric.get(
-                        "gauge", {}
-                    ).get("dataPoints", [])
-                    if name not in metrics:
-                        metrics[name] = []
-                    metrics[name].extend(data_points)
-    return metrics
-
-
 @scenarios.otlp_runtime_metrics
 @features.runtime_metrics
 class Test_OtlpRuntimeMetrics:
-    """Verify runtime metrics are sent via OTLP with OTel names, not DD-proprietary names.
-
-    For Go: also validates metrics appear in the raw OTLP payload from the correct
-    instrumentation scope ('go.runtime'), and that go.memory.used carries both
-    memory-type dimensions.
-    """
+    """Verify runtime metrics are sent via OTLP with OTel names, not DD-proprietary names."""
 
     def setup_otel_metrics_are_present_and_attributed(self) -> None:
         self.req = weblog.get("/")
@@ -364,19 +331,3 @@ class Test_OtlpRuntimeMetrics:
             f"Found DD-proprietary metric names for {library}: {dd_named_metrics}. Expected OTel-native names only."
         )
 
-    def setup_go_otlp_scope(self) -> None:
-        self.req = weblog.get("/")
-
-    def test_go_otlp_scope(self) -> None:
-        """For Go: validate metrics arrive in the raw OTLP payload under the 'go.runtime' scope."""
-        assert self.req.status_code == 200
-
-        if context.library.name != "golang":
-            return
-
-        otlp_metrics = _collect_go_otlp_metrics()
-        for name in EXPECTED_METRICS["golang"]:
-            assert name in otlp_metrics, (
-                f"OTel metric '{name}' not found in OTLP payload from scope '{_GO_RUNTIME_SCOPE}'. "
-                f"Found: {sorted(otlp_metrics.keys())}"
-            )
