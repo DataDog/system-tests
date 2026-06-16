@@ -4222,6 +4222,19 @@ manifest:
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
         play: v1.60.1  # TODO: a lower version might be supported
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel:
+    - weblog_declaration:
+        "*": incomplete_test_app (weblog endpoint not implemented)
+        spring-boot: v1.48.0
+        vertx3: v1.58.2+06122213c8  # Modified by easy win activation script
+        spring-boot-wildfly: v1.58.2+06122213c8  # Modified by easy win activation script
+        vertx4: v1.58.2+06122213c8  # Modified by easy win activation script
+        spring-boot-jetty: v1.58.2+06122213c8  # Modified by easy win activation script
+        spring-boot-undertow: v1.58.2+06122213c8  # Modified by easy win activation script
+        spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
+        uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
+        spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
+        play: v1.60.1
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)

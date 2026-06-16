@@ -188,7 +188,7 @@ class SystemTestController < ApplicationController
     # The extract operation succeeds with a custom OpenTelemetry propagator, but not with the default one.
     # To see this, uncomment the next line, and use that propagator to do the context extraction
     # propagator = OpenTelemetry::Context::Propagation::CompositeTextMapPropagator.compose_propagators([OpenTelemetry::Trace::Propagation::TraceContext.text_map_propagator, OpenTelemetry::Baggage::Propagation.text_map_propagator])
-    context = OpenTelemetry.propagation.extract(request.headers)
+    context = OpenTelemetry.propagation.extract(request.headers.to_h)
 
     span_context = OpenTelemetry::Trace.current_span(context).context
 
@@ -206,6 +206,31 @@ class SystemTestController < ApplicationController
     result["baggage"] = baggage_str
 
     render json: JSON.generate(result), content_type: 'application/json'
+  end
+
+  def otel_drop_in_extract_and_make_distant_call
+    url = params[:url]
+    context = OpenTelemetry.propagation.extract(request.headers.to_h)
+    tracer = OpenTelemetry.tracer_provider.tracer("system-tests")
+    span = tracer.start_span("otel_extract_distant_call", with_parent: context, kind: :server)
+    result = {}
+    OpenTelemetry::Trace.with_span(span) do
+      uri = URI(url)
+      req = nil
+      res = nil
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        req = Net::HTTP::Get.new(uri)
+        res = http.request(req)
+      end
+      result = {
+        url: url,
+        status_code: res.code.to_i,
+        request_headers: req.each_header.to_h,
+        response_headers: res.each_header.to_h
+      }
+    end
+    span.finish
+    render json: result
   end
 
   def otel_drop_in_default_propagator_inject
