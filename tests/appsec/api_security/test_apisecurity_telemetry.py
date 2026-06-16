@@ -20,7 +20,7 @@ def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
     return [m for m in metrics if m["metric"].startswith("api_security")]
 
 
-FRAMEWORKS = {
+FRAMEWORKS: dict[str, dict[str, str | list[str]]] = {
     "python": {
         "flask-poc": "flask",
         "uwsgi-poc": "flask",
@@ -43,8 +43,8 @@ FRAMEWORKS = {
         "express4": ["express", "http"],
         "express5": ["express", "http"],
         "fastify": ["fastify", "http"],
-        "nextjs": "http"
-    }
+        "nextjs": "http",
+    },
 }
 
 
@@ -93,7 +93,9 @@ class Test_API_Security_Telemetry_Metric:
             metric_data["metric"] in ["api_security.request.schema", "api_security.request.no_schema"]
             for metric_data in datas
         ), "Only api_security.request.schema metrics should be present, no missing routes should be generated"
-        expected_frameworks = FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, context.weblog_variant)
+        expected_frameworks = FRAMEWORKS.get(context.library.name, {}).get(
+            context.weblog_variant, context.weblog_variant
+        )
         if isinstance(expected_frameworks, str):
             expected_frameworks = [expected_frameworks]
         # check all metrics have correct tags
@@ -101,6 +103,6 @@ class Test_API_Security_Telemetry_Metric:
             metric_data = m
             assert metric_data["namespace"] == "appsec"
             assert metric_data["type"] == "count"
-            assert any(
-                metric_data["tags"] == [f"framework:{fw}"] for fw in expected_frameworks
-            ), f"unexpected framework tag for {context.library.name} {context.weblog_variant}: got {metric_data['tags']}, expected one of {[f'framework:{fw}' for fw in expected_frameworks]}"
+            assert any(metric_data["tags"] == [f"framework:{fw}"] for fw in expected_frameworks), (
+                f"unexpected framework tag for {context.library.name} {context.weblog_variant}: got {metric_data['tags']}, expected one of {[f'framework:{fw}' for fw in expected_frameworks]}"
+            )
