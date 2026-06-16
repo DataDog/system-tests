@@ -7,7 +7,7 @@
 
 This is an opt-in, *mutually exclusive* behavior: when enabled, HTTP server and client
 spans emit the OpenTelemetry attribute names *instead* of the Datadog ones (the Datadog
-names are replaced, not added alongside). Span name and type are unaffected.
+names are replaced, not added alongside). Span type is unaffected.
 
 Spec: https://opentelemetry.io/docs/specs/semconv/http/http-spans/
 """
@@ -17,6 +17,18 @@ from utils.dd_types import DataDogLibrarySpan
 
 
 _HTTP_METHODS = ("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH")
+
+
+def _numeric_tag(span: DataDogLibrarySpan, key: str):
+    """Return a numeric OTel attribute regardless of where the tracer stored it.
+
+    dd-trace-js routes numeric tags (``server.port``, ``network.peer.port``) into ``metrics``
+    as numbers, while dd-trace-java/dotnet keep them in ``meta`` as strings. Look in both.
+    """
+    if key in span["meta"]:
+        return span["meta"][key]
+    metrics = span["metrics"]
+    return metrics.get(key) if metrics else None
 
 
 @features.semantic_core_validations
@@ -110,8 +122,9 @@ class Test_HttpServerOtelSemantics:
             meta = span["meta"]
             assert "server.address" in meta, "server span expects a server.address tag"
             assert meta["server.address"], "server.address must not be empty"
-            if "server.port" in meta:
-                _ = int(meta["server.port"])  # must be an int when present
+            port = _numeric_tag(span, "server.port")
+            if port is not None:
+                _ = int(port)  # parseable as int when present (meta string or metrics number)
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator)
@@ -198,8 +211,9 @@ class Test_HttpServerOtelSemantics:
                 assert meta["client.address"], "client.address must not be empty when present"
             if "network.peer.address" in meta:
                 assert meta["network.peer.address"], "network.peer.address must not be empty when present"
-            if "network.peer.port" in meta:
-                _ = int(meta["network.peer.port"])  # must be an int when present
+            peer_port = _numeric_tag(span, "network.peer.port")
+            if peer_port is not None:
+                _ = int(peer_port)  # parseable as int when present (meta string or metrics number)
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator)
@@ -227,6 +241,39 @@ class Test_HttpServerOtelSemantics:
             # must be the template, not the concrete path the client requested
             assert route != "/sample_rate_route/1", (
                 f"http.route must be the low-cardinality template, not the raw path: '{route}'"
+            )
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_resource_name(self):
+        self.r = weblog.get("/sample_rate_route/1")
+
+    def test_resource_name(self):
+        """The span resource is the low-cardinality ``{method} {http.route}``, never the raw URL path.
+
+        OTel's span-name rule maps onto the Datadog resource. dd-trace-java rewrites the resource to
+        this form; dd-trace-dotnet and dd-trace-js leave the already-compliant DD resource unchanged.
+        The expected value is derived from the same span's http.route so per-tracer template syntax
+        (``{i}`` vs ``{i:int}`` vs ``:i``) cancels out. The no-route and unknown-method (``_OTHER``)
+        cases diverge between tracers and are intentionally not exercised here.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):  # entry/root span only
+                return None
+            # the java spring.handler child is also type=="web" but is not the entry span; the
+            # parent_id gate above excludes it so we read the servlet.request resource.
+            if span.get("type") != "web":
+                return None
+
+            route = span["meta"].get("http.route")
+            assert route, "entry web span expects an http.route tag on a routed endpoint"
+            assert route != "/sample_rate_route/1", f"http.route must be the template, not the raw path: '{route}'"
+
+            resource = span["resource"]  # top-level field, not meta and not span["name"]
+            assert resource == f"GET {route}", (
+                f"resource '{resource}' must be the low-cardinality 'GET {{route}}' (got route '{route}')"
             )
             return True
 
@@ -318,8 +365,9 @@ class Test_HttpClientOtelSemantics:
             meta = span["meta"]
             assert "server.address" in meta, "client span expects a server.address tag"
             assert meta["server.address"], "server.address must not be empty"
-            if "server.port" in meta:
-                _ = int(meta["server.port"])
+            port = _numeric_tag(span, "server.port")
+            if port is not None:
+                _ = int(port)  # parseable as int when present (meta string or metrics number)
             for legacy in ("out.host", "out.port"):
                 assert legacy not in meta, f"legacy {legacy} tag must be absent in OTel mode"
             return True
@@ -355,8 +403,9 @@ class Test_HttpClientOtelSemantics:
             meta = span["meta"]
             if "network.peer.address" in meta:
                 assert meta["network.peer.address"], "network.peer.address must not be empty when present"
-            if "network.peer.port" in meta:
-                _ = int(meta["network.peer.port"])  # must be an int when present
+            peer_port = _numeric_tag(span, "network.peer.port")
+            if peer_port is not None:
+                _ = int(peer_port)  # parseable as int when present (meta string or metrics number)
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator, full_trace=True)
