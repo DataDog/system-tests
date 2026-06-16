@@ -449,7 +449,9 @@ class Test_HttpClientOtelSemantics:
         interfaces.library.validate_one_span(self.r, validator=validator, full_trace=True)
 
     def setup_error_type(self):
-        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=500"})
+        # /make_distant_call drops the target URL's query string, so use a path that errors on its
+        # own (an unmatched route -> 404) rather than /status?code=500.
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/no_such_route_xyz"})
 
     def test_error_type(self):
         """On a 4xx/5xx response, the client span carries ``error.type`` set to the status code string."""
@@ -458,9 +460,13 @@ class Test_HttpClientOtelSemantics:
             if not self._client_span(span):
                 return None
             meta = span["meta"]
-            if meta.get("http.response.status_code") != "500":  # the client span that hit the erroring endpoint
+            status = meta.get("http.response.status_code")
+            if status is None or int(status) < 400:  # only the erroring outbound call (skip dns/tcp/2xx)
                 return None
-            assert meta.get("error.type") == "500", "client span on a 5xx expects error.type set to the status code"
+            assert meta.get("error.type") == status, (
+                f"client error.type must equal the status code on an error response, "
+                f"got error.type={meta.get('error.type')!r} for status {status!r}"
+            )
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator, full_trace=True)
