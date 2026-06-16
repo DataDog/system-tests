@@ -2,6 +2,7 @@
 
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 from typing import cast
 
@@ -126,6 +127,11 @@ def sum_evaluation_count(events: list[tuple[JSON, JSON]]) -> int:
         if isinstance(count, int):
             total += count
     return total
+
+
+def assert_total_evaluation_count(events: list[tuple[JSON, JSON]], expected: int, flag_key: str) -> None:
+    total_count = sum_evaluation_count(events)
+    assert total_count == expected, f"Expected count == {expected} for {flag_key}, got {total_count}"
 
 
 def assert_no_reason_field(value: object, path: str = "$") -> None:
@@ -258,8 +264,8 @@ class Test_FFE_EVP_Flagevaluation_Count:
         for _, event in events:
             assert_event_contract(event, self.flag_key)
 
-        total_count = sum_evaluation_count(events)
-        assert total_count >= self.eval_count, f"Expected count >= {self.eval_count}, got {total_count}"
+        assert_no_duplicate_visible_events(events)
+        assert_total_evaluation_count(events, self.eval_count, self.flag_key)
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -371,10 +377,86 @@ class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
             for _, event in events:
                 assert_event_contract(event, flag_key)
 
-            total_count = sum_evaluation_count(events)
-            assert total_count >= self.evals_per_flag, (
-                f"Expected count >= {self.evals_per_flag} for {flag_key}, got {total_count}"
+            assert_total_evaluation_count(events, self.evals_per_flag, flag_key)
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
+    """Test a bounded request burst through the async EVP aggregation path."""
+
+    def setup_ffe_evp_flagevaluation_burst_aggregation(self) -> None:
+        config_id = "ffe-evp-burst-aggregation"
+        self.flag_key = "evp-burst-aggregation-flag"
+        self.eval_count = 512
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+
+        with ThreadPoolExecutor(max_workers=32) as executor:
+            self.responses = list(
+                executor.map(
+                    lambda _: evaluate_flag(
+                        self.flag_key,
+                        targeting_key="evp-burst-user",
+                        attributes={"bucket": "burst", "cohort": "stress"},
+                    ),
+                    range(self.eval_count),
+                )
             )
+
+        wait_for_evp_flush()
+
+    def test_ffe_evp_flagevaluation_burst_aggregation(self) -> None:
+        for index, response in enumerate(self.responses):
+            assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
+
+        events = find_evp_flagevaluation_events(self.flag_key)
+        assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
+
+        for _, event in events:
+            assert_event_contract(event, self.flag_key)
+
+        assert_no_duplicate_visible_events(events)
+        assert_total_evaluation_count(events, self.eval_count, self.flag_key)
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
+    """Test many full-tier aggregation buckets stay distinct and counted."""
+
+    def setup_ffe_evp_flagevaluation_high_cardinality_aggregation(self) -> None:
+        config_id = "ffe-evp-high-cardinality-aggregation"
+        self.flag_key = "evp-high-cardinality-aggregation-flag"
+        self.eval_count = 128
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+
+        self.responses = [
+            evaluate_flag(
+                self.flag_key,
+                targeting_key=f"evp-cardinality-user-{index}",
+                attributes={
+                    "bucket": index,
+                    "cohort": f"cohort-{index % 8}",
+                    "typed": index % 2 == 0,
+                },
+            )
+            for index in range(self.eval_count)
+        ]
+
+        wait_for_evp_flush()
+
+    def test_ffe_evp_flagevaluation_high_cardinality_aggregation(self) -> None:
+        for index, response in enumerate(self.responses):
+            assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
+
+        events = find_evp_flagevaluation_events(self.flag_key)
+        assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
+
+        for _, event in events:
+            assert_event_contract(event, self.flag_key)
+
+        assert_no_duplicate_visible_events(events)
+        assert_total_evaluation_count(events, self.eval_count, self.flag_key)
 
 
 @scenarios.feature_flagging_and_experimentation
