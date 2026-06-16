@@ -43,9 +43,9 @@ grpc.method.name -> rpc.method, grpc.status.code -> rpc.response.status_code, ht
 http.status_code -> http.response.status_code, and span.kind -> span.kind. host.name is reported when
 DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
-Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) are
-emitted as datadog.<key> resource attributes in default mode. Boolean and status-code attributes are accepted as
-native or stringified values. Process tags are enabled by default in some SDKs.
+Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) are emitted as datadog.<key> resource
+attributes in default mode (enabled by default in some SDKs). Status-code and boolean metric attributes
+must be typed OTLP values (intValue / boolValue); _dd.stats_computed is a string-valued Datadog convention.
 """
 
 import base64
@@ -56,6 +56,7 @@ import pytest
 
 from utils import context, features, scenarios
 from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures._test_agent import AgentRequest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import ORIGIN
 from .conftest import APMLibrary
@@ -70,10 +71,6 @@ SMC_METRIC_NAMES = ("traces.span.metrics.calls", "traces.span.metrics.duration")
 EXPLICIT_BOUNDS_SECONDS = (0.002, 0.004, 0.006, 0.008, 0.01, 0.05, 0.1, 0.2, 0.4, 0.8, 1, 1.4, 2, 5, 10, 15)
 SERVICE = "test-otlp-stats-svc"
 TRUTHY = ("yes", "true", "1")
-FALSY = ("no", "false", "0")
-# HTTP / RPC status codes may be serialized as an int or a string attribute value.
-HTTP_OK_VALUES: tuple[Any, ...] = (200, "200")
-RPC_OK_VALUES: tuple[Any, ...] = (0, "0")
 # OTLP AggregationTemporality enum: DELTA == 1. Protobuf's canonical JSON mapping serializes enums
 # as their string name (see https://protobuf.dev/programming-guides/json/), but parsers must also
 # accept the integer, so a standards-compliant OTLP/JSON exporter may emit either representation.
@@ -211,16 +208,7 @@ def _data_point_services(metrics: list[Any]) -> set[Any]:
     return services
 
 
-def _attr_is_true(value: Any) -> bool:  # noqa: ANN401
-    """A boolean OTLP attribute may be a native bool or a stringified "true"."""
-    return value is True or (isinstance(value, str) and value.lower() in TRUTHY)
-
-
-def _attr_is_false(value: Any) -> bool:  # noqa: ANN401
-    return value is False or (isinstance(value, str) and value.lower() in FALSY)
-
-
-def _trace_requests(test_agent: TestAgentAPI) -> list[dict]:
+def _trace_requests(test_agent: TestAgentAPI) -> list[AgentRequest]:
     """Native Datadog trace export requests (v0.4/v0.5/v0.7), regardless of the wire version used."""
     return [r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))]
 
@@ -652,8 +640,8 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("http.response.status_code") in HTTP_OK_VALUES, (
-            f"Expected http.response.status_code in {HTTP_OK_VALUES}, got attrs: {attrs}"
+        assert attrs.get("http.response.status_code") == 200, (
+            f"Expected http.response.status_code == 200 (typed int), got attrs: {attrs}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -706,8 +694,8 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("rpc.response.status_code") in RPC_OK_VALUES, (
-            f"Expected rpc.response.status_code in {RPC_OK_VALUES}, got attrs: {attrs}"
+        assert attrs.get("rpc.response.status_code") == 0, (
+            f"Expected rpc.response.status_code == 0 (typed int), got attrs: {attrs}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -1034,7 +1022,7 @@ class Test_FR08_Datadog_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert _attr_is_true(attrs.get("datadog.span.top_level")), (
+        assert attrs.get("datadog.span.top_level") is True, (
             f"Expected datadog.span.top_level truthy on root, got attrs: {attrs}"
         )
 
@@ -1062,7 +1050,7 @@ class Test_FR08_Datadog_Attributes:
         child_point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "child.op"})
         assert child_point is not None, "No data point for the child span"
         attrs = _data_point_attrs(child_point)
-        assert _attr_is_false(attrs.get("datadog.span.top_level")), (
+        assert attrs.get("datadog.span.top_level") is False, (
             f"Expected datadog.span.top_level false on same-service child, got attrs: {attrs}"
         )
 
@@ -1086,7 +1074,7 @@ class Test_FR08_Datadog_Attributes:
         child = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "postgres.query"})
         assert child is not None, "No data point for the child span"
         attrs = _data_point_attrs(child)
-        assert _attr_is_true(attrs.get("datadog.span.top_level")), (
+        assert attrs.get("datadog.span.top_level") is True, (
             f"Expected datadog.span.top_level true on service-entry child, got attrs: {attrs}"
         )
 
@@ -1304,9 +1292,7 @@ class Test_FR15_Client_Computed_Stats_Header:
             f"Datadog-Client-Computed-Stats must be absent when OTLP trace metrics are disabled, got: {stats_headers}"
         )
 
-    @pytest.mark.parametrize(
-        "library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp"}]
-    )
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp"}])
     def test_fr15_3_stats_computed_resource_attr_on_otlp_traces(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
@@ -1325,9 +1311,8 @@ class Test_FR15_Client_Computed_Stats_Header:
         otlp_traces = _otlp_trace_requests(test_agent)
         assert otlp_traces, "Expected at least one OTLP trace export request at /v1/traces"
         resource_attr_values = _stats_computed_resource_attr_values(otlp_traces)
-        assert resource_attr_values, (
-            "Expected _dd.stats_computed resource attribute in at least one OTLP trace request"
-        )
-        assert all(_attr_is_true(v) for v in resource_attr_values), (
+        assert resource_attr_values, "Expected _dd.stats_computed resource attribute in at least one OTLP trace request"
+        # _dd.stats_computed is a string-valued Datadog convention (libdatadog/dd-trace-js emit "true").
+        assert all(isinstance(v, str) and v.lower() in TRUTHY for v in resource_attr_values), (
             f"Expected _dd.stats_computed=true on every OTLP trace ResourceSpans, got: {resource_attr_values}"
         )
