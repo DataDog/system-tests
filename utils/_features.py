@@ -2706,6 +2706,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_evp_flagevaluation(test_object):
+        """Feature Flags EVP Flagevaluation
+
+        https://feature-parity.us1.prod.dog/#/?feature=548
+        """
+        return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_event_enrichment(test_object):
         """Feature Flags Event Enrichment (APM span tags)
 
