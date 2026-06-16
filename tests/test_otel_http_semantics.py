@@ -198,6 +198,36 @@ class Test_HttpServerOtelSemantics:
                 assert meta["client.address"], "client.address must not be empty when present"
             if "network.peer.address" in meta:
                 assert meta["network.peer.address"], "network.peer.address must not be empty when present"
+            if "network.peer.port" in meta:
+                _ = int(meta["network.peer.port"])  # must be an int when present
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_http_route(self):
+        self.r = weblog.get("/sample_rate_route/1")
+
+    def test_http_route(self):
+        """``http.route`` is the low-cardinality route template, not the concrete URL path.
+
+        ``http.route`` is unchanged by the OTel feature (same name in both conventions); the spec
+        requires it be a low-cardinality target and that instrumentation never use the URI path.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            meta = span["meta"]
+            assert "http.route" in meta, "server span expects an http.route tag on a routed endpoint"
+            route = meta["http.route"]
+            assert "sample_rate_route" in route, f"unexpected http.route '{route}'"
+            # must be the template, not the concrete path the client requested
+            assert route != "/sample_rate_route/1", (
+                f"http.route must be the low-cardinality template, not the raw path: '{route}'"
+            )
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator)
@@ -292,6 +322,41 @@ class Test_HttpClientOtelSemantics:
                 _ = int(meta["server.port"])
             for legacy in ("out.host", "out.port"):
                 assert legacy not in meta, f"legacy {legacy} tag must be absent in OTel mode"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator, full_trace=True)
+
+    def setup_error_type(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=500"})
+
+    def test_error_type(self):
+        """On a 4xx/5xx response, the client span carries ``error.type`` set to the status code string."""
+
+        def validator(span: DataDogLibrarySpan):
+            if not self._client_span(span):
+                return None
+            meta = span["meta"]
+            if meta.get("http.response.status_code") != "500":  # the client span that hit the erroring endpoint
+                return None
+            assert meta.get("error.type") == "500", "client span on a 5xx expects error.type set to the status code"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator, full_trace=True)
+
+    def setup_network_peer_attributes(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/"})
+
+    def test_network_peer_attributes(self):
+        """``network.peer.address`` / ``network.peer.port`` are Recommended; validated only when present."""
+
+        def validator(span: DataDogLibrarySpan):
+            if not self._client_span(span):
+                return None
+            meta = span["meta"]
+            if "network.peer.address" in meta:
+                assert meta["network.peer.address"], "network.peer.address must not be empty when present"
+            if "network.peer.port" in meta:
+                _ = int(meta["network.peer.port"])  # must be an int when present
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator, full_trace=True)
