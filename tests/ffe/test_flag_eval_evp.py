@@ -231,6 +231,7 @@ def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Basic:
     """Test that flag evaluation produces an EVP flagevaluation payload."""
 
@@ -257,6 +258,7 @@ class Test_FFE_EVP_Flagevaluation_Basic:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Count:
     """Test that repeated evaluations are counted in EVP flagevaluation payloads."""
 
@@ -287,6 +289,7 @@ class Test_FFE_EVP_Flagevaluation_Count:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     """Test that EVP evaluation context is bounded before it reaches payloads."""
 
@@ -332,6 +335,7 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Runtime_Default:
     """Test that runtime defaults are surfaced without OpenFeature reason."""
 
@@ -358,6 +362,7 @@ class Test_FFE_EVP_Flagevaluation_Runtime_Default:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
     """Test CI-safe load aggregation without treating system-tests as a perf test."""
 
@@ -398,6 +403,7 @@ class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
     """Test a bounded request burst through the async EVP aggregation path."""
 
@@ -436,6 +442,7 @@ class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
     """Test many full-tier aggregation buckets stay distinct and counted."""
 
@@ -475,6 +482,7 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Degradation:
     """Test degraded EVP shape when an SDK exposes a test cap override."""
 
