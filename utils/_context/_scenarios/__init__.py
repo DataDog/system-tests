@@ -231,6 +231,14 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
+    otel_semantics = EndToEndScenario(
+        "OTEL_SEMANTICS",
+        weblog_env={"DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"},
+        doc="Test that HTTP server/client spans emit OpenTelemetry semantic-convention "
+        "attribute names when DD_TRACE_OTEL_SEMANTICS_ENABLED=true",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
