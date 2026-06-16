@@ -62,7 +62,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v2.46.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.26.3
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v3.45.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
@@ -600,6 +600,12 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (Not yet implemented)
       excluded_weblog: [uds, poc]
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL::test_invalid_condition_dsl_probe_rejected: missing_feature (Dotnet compiles probe conditions lazily on first evaluation, so there is no install-time validation step to reject the probe.)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error: v2.53.0
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
+  : bug (DEBUG-5699)
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
+  : bug (DEBUG-5703)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": v2.50.0
@@ -1072,6 +1078,11 @@ manifest:
     - weblog_declaration:
         uds: '>=3.43.0'
         poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Peer_Tags:
     - weblog_declaration:
         uds: '>=3.43.0'
