@@ -4303,7 +4303,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        vertx3: v1.58.2+06122213c8  # Modified by easy win activation script
+        vertx3: incomplete_test_app (OTel endpoint not implemented in vertx3 weblog)
         spring-boot-wildfly: v1.58.2+06122213c8  # Modified by easy win activation script
         vertx4: incomplete_test_app (OTel endpoint not implemented in vertx4 weblog)
         spring-boot-jetty: v1.58.2+06122213c8  # Modified by easy win activation script
