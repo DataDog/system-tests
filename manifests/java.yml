@@ -4333,6 +4333,7 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_other_method_span_name: bug (dd-trace-java#11652 keeps the raw method in the resource for an unknown method instead of the spec-mandated "HTTP")
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_dd_metrics_are_absent: bug (APMAPI-1952)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_otel_metrics_are_present_and_attributed:
     - weblog_declaration:

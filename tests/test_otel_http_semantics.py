@@ -279,6 +279,78 @@ class Test_HttpServerOtelSemantics:
 
         interfaces.library.validate_one_span(self.r, validator=validator)
 
+    def setup_no_route_resource(self):
+        self.r = weblog.get("/no_such_route_xyz")
+
+    def test_no_route_resource(self):
+        """With no matched route the resource is the bare ``{method}`` — never the URL path.
+
+        Spec: the span name is ``{method}`` when no low-cardinality target is available, and
+        instrumentation MUST NOT use the URI path as the target.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            method = span["meta"]["http.request.method"]
+            resource = span["resource"]
+            assert resource == method, f"no-route resource must be the bare method '{method}', not '{resource}'"
+            assert "no_such_route_xyz" not in resource, "resource must not contain the URI path"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_request_method_normalization(self):
+        self.r = weblog.request("BOGUS", "/")
+
+    def test_request_method_normalization(self):
+        """An unknown HTTP method normalizes to ``_OTHER``, with the raw value in
+        ``http.request.method_original``.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            meta = span["meta"]
+            assert meta.get("http.request.method") == "_OTHER", (
+                f"unknown method must normalize to _OTHER, got '{meta.get('http.request.method')}'"
+            )
+            assert meta.get("http.request.method_original") == "BOGUS", (
+                "http.request.method_original must hold the raw method"
+            )
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_other_method_span_name(self):
+        self.r = weblog.request("BOGUS", "/no_such_route_xyz")
+
+    def test_other_method_span_name(self):
+        """For an unknown method with no matched route, the resource's method component MUST be ``HTTP``.
+
+        Spec: ``{method}`` is ``HTTP`` when ``http.request.method`` is ``_OTHER``. No tracer
+        implements this for the Datadog resource yet (java keeps the raw method; dotnet/js keep the
+        raw method, dotnet also retains the path), so it is currently gated for every implementation.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            resource = span["resource"]
+            assert resource == "HTTP", f"_OTHER span resource must be \"HTTP\" (no route matched), got '{resource}'"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
 
 @features.semantic_core_validations
 @scenarios.otel_semantics
@@ -365,9 +437,11 @@ class Test_HttpClientOtelSemantics:
             meta = span["meta"]
             assert "server.address" in meta, "client span expects a server.address tag"
             assert meta["server.address"], "server.address must not be empty"
+            # server.port is Required for client spans per the spec; the distant-call URL uses a
+            # non-default port so every compliant tracer must emit it.
             port = _numeric_tag(span, "server.port")
-            if port is not None:
-                _ = int(port)  # parseable as int when present (meta string or metrics number)
+            assert port is not None, "client span expects a server.port tag (Required for client spans)"
+            _ = int(port)
             for legacy in ("out.host", "out.port"):
                 assert legacy not in meta, f"legacy {legacy} tag must be absent in OTel mode"
             return True
