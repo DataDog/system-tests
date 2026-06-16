@@ -37,6 +37,13 @@ from typing import Any
 
 from .protobuf_schemas import MetricsV3Payload
 
+# The low nibble pair of a series' ``type`` selects which per-point value column to read from.
+_VALUE_TYPE_MASK = 0x30
+_VALUE_TYPE_ZERO = 0x00  # value is implicitly 0, nothing stored in any vals* column
+_VALUE_TYPE_SINT64 = 0x10
+_VALUE_TYPE_FLOAT32 = 0x20
+_VALUE_TYPE_FLOAT64 = 0x30
+
 
 def _read_uvarint(buf: bytes, pos: int) -> tuple[int, int]:
     """Read a base-128 varint from ``buf`` starting at ``pos``. Returns (value, new_pos)."""
@@ -121,8 +128,9 @@ def decode_metrics_v3(content: bytes) -> dict:
     """Decode a fully-decompressed v3 series payload into a v2-like dict.
 
     The returned dict has a ``series`` list whose entries expose at least ``metric`` and
-    ``tags`` (and ``type``/``interval`` when present), matching what the v2 ``MetricPayload``
-    deserialization produced and what ``interfaces.agent.get_metrics`` consumes.
+    ``tags`` (and ``type``/``interval``/``points`` when present), matching what the v2
+    ``MetricPayload`` deserialization produced and what ``interfaces.agent.get_metrics``
+    consumes. ``points`` mirrors the v2 shape: a list of {"value": <float>, "timestamp": <str>}.
     """
     # The message is built dynamically from the descriptor, so its fields are not statically
     # typed; treat it as Any to access the generated column attributes.
@@ -150,6 +158,18 @@ def _decode_metric_data(metric_data: Any) -> list[dict]:  # noqa: ANN401 (dynami
     intervals = list(metric_data.intervals)
     num_points = list(metric_data.numPoints)
 
+    # Per-point columns. ``timestamps`` is a single delta-encoded stream shared by every series
+    # and consumed in order; each point's value comes from the vals* column selected by the
+    # series' value type. A cursor per column tracks how much each series has consumed.
+    timestamps = _accumulate_deltas(metric_data.timestamps)
+    value_columns = {
+        _VALUE_TYPE_SINT64: list(metric_data.valsSint64),
+        _VALUE_TYPE_FLOAT32: list(metric_data.valsFloat32),
+        _VALUE_TYPE_FLOAT64: list(metric_data.valsFloat64),
+    }
+    timestamp_cursor = 0
+    value_cursors = {_VALUE_TYPE_SINT64: 0, _VALUE_TYPE_FLOAT32: 0, _VALUE_TYPE_FLOAT64: 0}
+
     # The Type column has exactly one entry per series, so it defines the series count.
     series_count = len(types) or len(name_refs)
 
@@ -170,8 +190,29 @@ def _decode_metric_data(metric_data: Any) -> list[dict]:  # noqa: ANN401 (dynami
             entry["type"] = types[i]
         if i < len(intervals):
             entry["interval"] = intervals[i]
+
+        point_count = num_points[i] if i < len(num_points) else 0
         if i < len(num_points):
-            entry["numPoints"] = num_points[i]
+            entry["numPoints"] = point_count
+
+        if point_count:
+            point_timestamps = timestamps[timestamp_cursor : timestamp_cursor + point_count]
+            timestamp_cursor += point_count
+
+            value_type = (types[i] if i < len(types) else 0) & _VALUE_TYPE_MASK
+            if value_type == _VALUE_TYPE_ZERO:
+                values: list[float] = [0.0] * point_count
+            else:
+                cursor = value_cursors[value_type]
+                values = [float(v) for v in value_columns[value_type][cursor : cursor + point_count]]
+                value_cursors[value_type] = cursor + point_count
+
+            # Match the v2 ``MetricPayload`` shape: a list of {"value": <float>, "timestamp": <str>}.
+            points = [
+                {"value": value, "timestamp": str(ts)} for ts, value in zip(point_timestamps, values, strict=False)
+            ]
+            if points:
+                entry["points"] = points
 
         series.append(entry)
 
