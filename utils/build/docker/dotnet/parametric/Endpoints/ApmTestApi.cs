@@ -1,4 +1,7 @@
 using Datadog.Trace;
+using Datadog.FeatureFlags.OpenFeature;
+using OpenFeature;
+using OpenFeature.Model;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -30,6 +33,12 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/manual_drop", SpanManualDrop);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+
+        // FFE APM span-enrichment L2 lane (Phase 1). The other 4 parametric apps already host
+        // /ffe/*; .NET is the only one that needs the surface net-new. See _test_client_parametric.py
+        // (ffe_start / ffe_evaluate) for the frozen HTTP contract.
+        app.MapPost("/ffe/start", FfeStart);
+        app.MapPost("/ffe/evaluate", FfeEvaluate);
     }
 
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
@@ -68,6 +77,9 @@ public abstract class ApmTestApi
     private static readonly Dictionary<ulong, ISpan> Spans = new();
     private static readonly Dictionary<ulong, ISpanContext> SpanContexts = new();
     private static ILogger? _logger;
+
+    // FFE OpenFeature client, created by /ffe/start.
+    private static FeatureClient? _ffeClient;
 
     // global config reflection
     private static MethodInfo? _getConfigurationString;
@@ -381,6 +393,195 @@ public abstract class ApmTestApi
         }
 
         return span;
+    }
+
+    // Non-throwing span lookup for /ffe/evaluate. The test client sends span_id as a STRING (see
+    // _test_client_parametric.py:814-815). An unknown/missing/unparsable id returns null so the
+    // caller can skip activation and evaluate normally rather than 500 (T-01-DOS; matches the
+    // skip-don't-throw rule the other 4 SDKs use).
+    private static ISpan? TryFindSpan(JsonElement json, string key = "span_id")
+    {
+        if (!json.TryGetProperty(key, out var prop) || prop.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        // span_id arrives as a JSON string; tolerate a numeric form too.
+        ulong spanId;
+        switch (prop.ValueKind)
+        {
+            case JsonValueKind.String when ulong.TryParse(prop.GetString(), out var parsed):
+                spanId = parsed;
+                break;
+            case JsonValueKind.Number when prop.TryGetUInt64(out var num):
+                spanId = num;
+                break;
+            default:
+                _logger?.LogInformation("FFE evaluate: span_id is not a parseable id; skipping activation.");
+                return null;
+        }
+
+        if (!Spans.TryGetValue(spanId, out var span))
+        {
+            _logger?.LogInformation("FFE evaluate: span {spanId} not found; skipping activation.", spanId);
+            return null;
+        }
+
+        return span;
+    }
+
+    // POST /ffe/start — initialize the Datadog OpenFeature provider and client. The test only
+    // checks that the response is a 2xx (HTTPStatus(...).is_success); return { success = true }.
+    private static async Task<string> FfeStart()
+    {
+        await Api.Instance.SetProviderAsync(new DatadogProvider());
+        _ffeClient = Api.Instance.GetClient();
+
+        _logger?.LogInformation("FFE provider initialized.");
+        return Result(new { success = true });
+    }
+
+    // POST /ffe/evaluate — evaluate a flag through the OpenFeature client, re-activating the
+    // caller-supplied root span for the duration of the eval so the ffe_* tags (Phase 2) land on
+    // the test's span.
+    //
+    // Cross-request re-activation (the .NET-specific hard part / WQ-001 stop-guard): the span was
+    // created by a prior /trace/span/start request whose StartActive scope was disposed when that
+    // request returned, so the span is in Spans but is no longer the active scope. There is no
+    // PUBLIC Tracer.ActivateSpan(span) on the Datadog.Trace manual API (Tracer.ActivateSpan is
+    // internal); the public re-activation primitive is StartActive(name, settings) with
+    // settings.Parent = storedSpan.Context, which makes the stored span's trace the active trace
+    // for the eval. FinishOnClose=false so disposing the transient scope does not close anything.
+    private static async Task<string> FfeEvaluate(HttpRequest request)
+    {
+        if (_ffeClient is null)
+        {
+            _logger?.LogError("FFE evaluate called before /ffe/start; provider not initialized.");
+            throw new InvalidOperationException("FFE provider not initialized");
+        }
+
+        var requestJson = await ParseJsonAsync(request.Body);
+
+        var flag = requestJson.GetProperty("flag").GetString() ?? string.Empty;
+        var variationType = requestJson.GetProperty("variationType").GetString() ?? string.Empty;
+        var defaultValueElement = requestJson.GetProperty("defaultValue");
+
+        var contextBuilder = EvaluationContext.Builder();
+        if (requestJson.TryGetProperty("targetingKey", out var targetingKey) && targetingKey.ValueKind == JsonValueKind.String)
+        {
+            contextBuilder.SetTargetingKey(targetingKey.GetString()!);
+        }
+
+        if (requestJson.TryGetProperty("attributes", out var attributes) && attributes.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var attribute in attributes.EnumerateObject())
+            {
+                contextBuilder.Set(attribute.Name, JsonElementToValue(attribute.Value));
+            }
+        }
+
+        var context = contextBuilder.Build();
+
+        // Re-activate the registered span (if any) around the eval. Unknown/missing id => null => skip.
+        var targetSpan = TryFindSpan(requestJson);
+
+        object? value;
+        var reason = "DEFAULT";
+
+        try
+        {
+            if (targetSpan is not null)
+            {
+                var reactivation = new SpanCreationSettings
+                {
+                    Parent = targetSpan.Context,
+                    FinishOnClose = false,
+                };
+
+                using var scope = Tracer.Instance.StartActive("ffe.evaluate", reactivation);
+                value = await EvaluateFlag(variationType, flag, defaultValueElement, context);
+            }
+            else
+            {
+                value = await EvaluateFlag(variationType, flag, defaultValueElement, context);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "FFE evaluate failed for flag {flag}.", flag);
+            value = JsonElementToClr(defaultValueElement);
+            reason = "ERROR";
+        }
+
+        return Result(new { value, reason });
+    }
+
+    private static async Task<object?> EvaluateFlag(string variationType, string flag, JsonElement defaultValueElement, EvaluationContext context)
+    {
+        switch (variationType)
+        {
+            case "BOOLEAN":
+                var boolDefault = defaultValueElement.ValueKind is JsonValueKind.True or JsonValueKind.False && defaultValueElement.GetBoolean();
+                return await _ffeClient!.GetBooleanValueAsync(flag, boolDefault, context);
+            case "STRING":
+                return await _ffeClient!.GetStringValueAsync(flag, defaultValueElement.GetString() ?? string.Empty, context);
+            case "INTEGER":
+                return await _ffeClient!.GetIntegerValueAsync(flag, defaultValueElement.TryGetInt32(out var i) ? i : 0, context);
+            case "NUMERIC":
+                return await _ffeClient!.GetDoubleValueAsync(flag, defaultValueElement.TryGetDouble(out var d) ? d : 0d, context);
+            case "JSON":
+                var resolved = await _ffeClient!.GetObjectValueAsync(flag, JsonElementToValue(defaultValueElement), context);
+                return resolved?.AsObject;
+            default:
+                return JsonElementToClr(defaultValueElement);
+        }
+    }
+
+    // Map a JSON element into an OpenFeature Value (for evaluation context attributes + JSON defaults).
+    private static Value JsonElementToValue(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                return new Value(element.GetBoolean());
+            case JsonValueKind.Number:
+                return new Value(element.GetDouble());
+            case JsonValueKind.String:
+                return new Value(element.GetString() ?? string.Empty);
+            case JsonValueKind.Object:
+                var structureBuilder = Structure.Builder();
+                foreach (var property in element.EnumerateObject())
+                {
+                    structureBuilder.Set(property.Name, JsonElementToValue(property.Value));
+                }
+
+                return new Value(structureBuilder.Build());
+            case JsonValueKind.Array:
+                var list = new List<Value>();
+                foreach (var item in element.EnumerateArray())
+                {
+                    list.Add(JsonElementToValue(item));
+                }
+
+                return new Value(list);
+            default:
+                return new Value();
+        }
+    }
+
+    // Plain-CLR projection of a JSON default for the ERROR/echo path (kept JSON-serializable for Result()).
+    private static object? JsonElementToClr(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Number => element.TryGetInt64(out var l) ? l : element.GetDouble(),
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Null or JsonValueKind.Undefined => null,
+            _ => element.GetRawText(),
+        };
     }
 
     private static ISpanContext? FindParentSpanContext(JsonElement json, string key = "parent_id")
