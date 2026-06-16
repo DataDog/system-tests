@@ -8,6 +8,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 |------|-------------|
 | `test_dynamic_evaluation.py` | Dynamic flag evaluation via Remote Config |
 | `test_exposures.py` | Flag exposure tracking and reporting |
+| `test_flagevaluation_events.py` | Server-side EVP flagevaluation event aggregation |
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 
 ## Running FFE Tests
@@ -120,6 +121,16 @@ The system tests cover:
 - `Test_FFE_Eval_Targeting_Key_Optional` — Targeting key is optional
 - `Test_FFE_Eval_Nested_Attributes_Ignored` — Nested attributes silently ignored (OF.3)
 - `Test_FFE_Eval_Lowercase_Consistency` — All tag values are lowercase
+
+### EVP Flagevaluation Events
+- `Test_FFE_FlagEvaluation_Visible_Schema` — Required fields and no-rule optional field shape
+- `Test_FFE_FlagEvaluation_Aggregation_Count` — Aggregated `evaluation_count` preserves repeated evaluations
+- `Test_FFE_FlagEvaluation_Bounded_Context` — Emitted context is omitted or bounded before buffering
+- `Test_FFE_FlagEvaluation_Runtime_Default` — Runtime defaults are marked with `runtime_default_used`
+- `Test_FFE_FlagEvaluation_Concurrent_Identical_Evaluations` — Concurrent identical evaluations preserve counts
+- `Test_FFE_FlagEvaluation_High_Cardinality` — High-cardinality subjects preserve aggregate counts
+- `Test_FFE_FlagEvaluation_Targeting_Rule_Metadata` — `targeting_rule` is asserted only when rule metadata exists
+- `Test_FFE_FlagEvaluation_Degraded_Shape` — Documents why degradation cannot be forced externally
 
 ---
 

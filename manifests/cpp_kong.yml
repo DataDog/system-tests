@@ -9,6 +9,7 @@ manifest:
   tests/debugger/: irrelevant
   tests/ffe/: missing_feature
   tests/ffe/test_flag_eval_metrics.py: missing_feature
+  tests/ffe/test_flagevaluation_events.py: irrelevant (FFE EVP events require SDK OpenFeature support)
   tests/integrations/: missing_feature (Endpoints not implemented)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/: irrelevant (Parametric scenario is not applied on Kong)

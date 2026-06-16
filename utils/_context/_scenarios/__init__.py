@@ -700,6 +700,7 @@ class _Scenarios:
             # fast, weblog boots, and provider recovers when we set RC
             # configuration later.
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
+            "DD_FLAGGING_EVALUATION_COUNTS_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             "DD_METRICS_OTEL_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",

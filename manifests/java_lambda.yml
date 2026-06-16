@@ -61,6 +61,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
+  tests/ffe/test_flagevaluation_events.py: irrelevant (FFE EVP events require long-running SDK OpenFeature support)
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_v1_payloads.py: missing_feature

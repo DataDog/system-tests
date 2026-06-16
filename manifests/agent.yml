@@ -70,6 +70,7 @@ manifest:
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
         uds-echo: bug (DEBUG-5421)
+  tests/ffe/test_flagevaluation_events.py: irrelevant (FFE EVP events are SDK behavior)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_exception_event:
     - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)
