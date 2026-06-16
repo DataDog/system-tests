@@ -7,6 +7,24 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
+    - component_version: "<7.77.1"
+      weblog_declaration:
+        chi: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        echo: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        gin: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        net-http: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        net-http-orchestrion: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        uds-echo: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
+    - component_version: "<7.77.1"
+      weblog_declaration:
+        chi: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        echo: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        gin: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        net-http: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        net-http-orchestrion: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
+        uds-echo: irrelevant (Go DI requires datadog-agent >= 7.77.1 for the `when` clause)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot:
     - component_version: ">=7.79.0-devel"
       weblog_declaration:

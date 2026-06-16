@@ -57,6 +57,12 @@ class Test_DdtraceSchemas:
                 ticket="APMRP-360",
             ),
             SchemaBug(
+                endpoint="/debugger/v2/input",
+                data_path="$[].debugger.snapshot.stack",
+                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                ticket="DEBUG-5715",
+            ),
+            SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.probe.location.method",
                 condition=context.library == "dotnet",
@@ -101,6 +107,10 @@ class Test_DdtraceSchemas:
                 in (
                     scenarios.appsec_blocking,
                     scenarios.trace_stats_computation,
+                    scenarios.trace_stats_computation_obfuscation_disabled,
+                    scenarios.trace_stats_computation_future_obfuscation_version,
+                    scenarios.trace_stats_computation_missing_obfuscation_version,
+                    scenarios.trace_stats_computation_obfuscation_version_zero,
                     scenarios.tracing_config_nondefault_3,
                 ),
                 ticket="APMSP-2158",
@@ -144,9 +154,6 @@ class Test_DdtraceSchemas:
                 ticket="APPSEC-52845",
             ),
             SchemaBug(
-                endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
-            ),  # the main payload sent by the agent may be an array i/o an object
-            SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
@@ -159,10 +166,10 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-3298",
             ),
             SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=context.library > "php@1.7.3",
-                ticket="XXX-1234",
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                ticket="DEBUG-5715",
             ),
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
