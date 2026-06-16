@@ -1,7 +1,4 @@
-FROM datadog/system-tests:express4.base-v1
-
-COPY utils/build/docker/nodejs/express /usr/app
-COPY utils/build/docker/nodejs/express4/package.json ./
+FROM datadog/system-tests:express4.base-v2
 
 EXPOSE 7777
 
@@ -20,7 +17,7 @@ RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker build -f utils/build/docker/nodejs/express4.Dockerfile -t test .
