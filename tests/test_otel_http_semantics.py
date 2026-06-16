@@ -22,7 +22,15 @@ _HTTP_METHODS = ("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PA
 @features.semantic_core_validations
 @scenarios.otel_semantics
 class Test_HttpServerOtelSemantics:
-    """HTTP server spans emit OpenTelemetry semantic-convention attribute names."""
+    """HTTP server spans emit OpenTelemetry semantic-convention attribute names.
+
+    The spec assigns each attribute a requirement level. ``http.request.method`` /
+    ``url.path`` / ``url.scheme`` are Required (asserted present). ``server.address`` and
+    ``user_agent.original`` are Recommended and ``http.response.status_code`` is
+    Conditionally Required; they are asserted present here because a real system-tests
+    request always carries a Host + User-Agent header and always receives a response (and
+    request->span correlation itself relies on the user agent being captured).
+    """
 
     def setup_request_method(self):
         self.r = weblog.get("/")
@@ -123,6 +131,73 @@ class Test_HttpServerOtelSemantics:
             meta = span["meta"]
             assert "user_agent.original" in meta, "server span expects a user_agent.original tag"
             assert "http.useragent" not in meta, "legacy http.useragent tag must be absent in OTel mode"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_url_query(self):
+        self.r = weblog.get("/", params={"ddtest": "1"})
+
+    def test_url_query(self):
+        """``http.query.string`` becomes ``url.query`` (present only when a query string is sent)."""
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            meta = span["meta"]
+            assert "url.query" in meta, "server span expects a url.query tag when a query string is sent"
+            assert meta["url.query"], "url.query must not be empty"
+            assert "http.query.string" not in meta, "legacy http.query.string tag must be absent in OTel mode"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_error_type(self):
+        self.r = weblog.get("/status?code=500")
+
+    def test_error_type(self):
+        """On a 5xx response the server span carries ``error.type`` set to the status code string.
+
+        Per the spec, 4xx is not a server error, so error.type is only expected for 5xx.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            meta = span["meta"]
+            assert meta.get("http.response.status_code") == "500", "expected http.response.status_code=500"
+            assert meta.get("error.type") == "500", "5xx server span expects error.type set to the status code string"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_client_ip_attributes(self):
+        self.r = weblog.get("/")
+
+    def test_client_ip_attributes(self):
+        """``http.client_ip`` -> ``client.address`` and ``network.client.ip`` -> ``network.peer.address``.
+
+        Both are Recommended-level (and depend on client-IP resolution), so they are validated
+        only when present rather than required.
+        """
+
+        def validator(span: DataDogLibrarySpan):
+            if span.get("parent_id") not in (0, None):
+                return None
+            if span.get("type") != "web":
+                return None
+
+            meta = span["meta"]
+            if "client.address" in meta:
+                assert meta["client.address"], "client.address must not be empty when present"
+            if "network.peer.address" in meta:
+                assert meta["network.peer.address"], "network.peer.address must not be empty when present"
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator)
