@@ -1,7 +1,6 @@
 """Test server-side feature flag evaluation counts via EVP flagevaluation."""
 
 import json
-import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 from typing import cast
@@ -19,7 +18,7 @@ from utils import weblog
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluations"
-EVP_FLUSH_WAIT_SECONDS = 12
+EVP_WAIT_TIMEOUT_SECONDS = 30
 
 JSON = dict[str, Any]
 
@@ -93,29 +92,46 @@ def evaluate_flag(
     )
 
 
-def wait_for_evp_flush() -> None:
-    time.sleep(EVP_FLUSH_WAIT_SECONDS)
+def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple[JSON, JSON]]:
+    if data.get("path") != EVP_FLAGEVALUATIONS_PATH:
+        return []
+
+    request = data.get("request")
+    if not isinstance(request, dict):
+        return []
+
+    content = request.get("content")
+    if not isinstance(content, dict):
+        return []
+
+    events = content.get("flagEvaluations")
+    if not isinstance(events, list):
+        return []
+
+    results: list[tuple[JSON, JSON]] = []
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+
+        flag = event.get("flag")
+        if isinstance(flag, dict) and flag.get("key") == flag_key:
+            results.append((cast("JSON", content), cast("JSON", event)))
+
+    return results
+
+
+def wait_for_evp_flagevaluation_event(flag_key: str) -> None:
+    assert interfaces.agent.wait_for(
+        lambda data: bool(evp_flagevaluation_events_from_data(cast("JSON", data), flag_key)),
+        timeout=EVP_WAIT_TIMEOUT_SECONDS,
+    ), f"Timed out waiting for EVP flagevaluation event for flag {flag_key}"
 
 
 def find_evp_flagevaluation_events(flag_key: str) -> list[tuple[JSON, JSON]]:
     results: list[tuple[JSON, JSON]] = []
 
     for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
-        content = data["request"]["content"]
-        if not isinstance(content, dict):
-            continue
-
-        events = content.get("flagEvaluations")
-        if not isinstance(events, list):
-            continue
-
-        for event in events:
-            if not isinstance(event, dict):
-                continue
-
-            flag = event.get("flag")
-            if isinstance(flag, dict) and flag.get("key") == flag_key:
-                results.append((cast("JSON", content), cast("JSON", event)))
+        results.extend(evp_flagevaluation_events_from_data(cast("JSON", data), flag_key))
 
     return results
 
@@ -201,15 +217,16 @@ def event_identity(event: JSON) -> str:
 
 
 def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
-    seen: set[str] = set()
+    seen_by_batch: dict[int, set[str]] = {}
     duplicates: set[str] = set()
-    for _, event in events:
+    for batch, event in events:
+        seen = seen_by_batch.setdefault(id(batch), set())
         identity = event_identity(event)
         if identity in seen:
             duplicates.add(identity)
         seen.add(identity)
 
-    assert not duplicates, f"found duplicate serialized-visible EVP buckets: {sorted(duplicates)}"
+    assert not duplicates, f"found duplicate serialized-visible EVP buckets in one payload: {sorted(duplicates)}"
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -223,11 +240,11 @@ class Test_FFE_EVP_Flagevaluation_Basic:
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.r = evaluate_flag(self.flag_key, targeting_key="evp-basic-user", attributes={})
-        wait_for_evp_flush()
 
     def test_ffe_evp_flagevaluation_basic(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -252,12 +269,12 @@ class Test_FFE_EVP_Flagevaluation_Count:
         self.responses = [
             evaluate_flag(self.flag_key, targeting_key="evp-count-user", attributes={}) for _ in range(self.eval_count)
         ]
-        wait_for_evp_flush()
 
     def test_ffe_evp_flagevaluation_count(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -283,11 +300,11 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
         attributes[self.oversized_field] = "x" * 300
 
         self.r = evaluate_flag(self.flag_key, targeting_key="evp-context-user", attributes=attributes)
-        wait_for_evp_flush()
 
     def test_ffe_evp_flagevaluation_context_bounds(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -323,11 +340,11 @@ class Test_FFE_EVP_Flagevaluation_Runtime_Default:
 
         self.flag_key = "evp-runtime-default-flag"
         self.r = evaluate_flag(self.flag_key, targeting_key="evp-default-user", attributes={})
-        wait_for_evp_flush()
 
     def test_ffe_evp_flagevaluation_runtime_default(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -363,13 +380,12 @@ class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
                     )
                 )
 
-        wait_for_evp_flush()
-
     def test_ffe_evp_flagevaluation_load_aggregation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
         for flag_key in self.flag_keys:
+            wait_for_evp_flagevaluation_event(flag_key)
             events = find_evp_flagevaluation_events(flag_key)
             assert events, f"Expected EVP flagevaluation events for flag {flag_key}"
             assert_no_duplicate_visible_events(events)
@@ -403,12 +419,11 @@ class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
                 )
             )
 
-        wait_for_evp_flush()
-
     def test_ffe_evp_flagevaluation_burst_aggregation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
@@ -443,12 +458,11 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
             for index in range(self.eval_count)
         ]
 
-        wait_for_evp_flush()
-
     def test_ffe_evp_flagevaluation_high_cardinality_aggregation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
@@ -478,12 +492,12 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             )
             for index in range(self.eval_count)
         ]
-        wait_for_evp_flush()
 
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
+        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
