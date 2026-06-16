@@ -2424,6 +2424,8 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_other_method_span_name: missing_feature (dd-trace-js#8933 does not normalize unknown methods; resource uses the raw method, not "HTTP")
   tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_request_method_normalization: missing_feature (dd-trace-js#8933 does not normalize unknown methods to _OTHER or emit http.request.method_original)
+  tests/test_otel_http_semantics_otlp.py::Test_HttpClientOtelSemanticsOTLP::test_status_code_is_int: missing_feature (dd-trace-js#8933 emits http.response.status_code as a string; per semconv it must be an int)
+  tests/test_otel_http_semantics_otlp.py::Test_HttpServerOtelSemanticsOTLP::test_status_code_is_int: missing_feature (dd-trace-js#8933 emits http.response.status_code as a string; per semconv it must be an int)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v5.107.0-pre
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
