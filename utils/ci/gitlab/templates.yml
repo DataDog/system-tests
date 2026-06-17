@@ -17,6 +17,10 @@ spec:
     # resolve the weblog as docker:7777 instead of localhost:7777, breaking span
     # snapshot assertions. Force it back to localhost.
     SYSTEM_TESTS_WEBLOG_HOST: "localhost"
+    # Pull scenario images (and weblog FROM bases) from the system-tests mirror
+    # instead of docker.io/ghcr.io/etc. Runtime pulls fall back to the original
+    # registry if an image isn't mirrored yet (see utils/_context/_image_mirror.py).
+    USE_IMAGE_MIRROR: "1"
   stage: $[[ inputs.stage ]]
   interruptible: true
   before_script:

@@ -303,6 +303,16 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
+                # When the image mirror is enabled, rewrite the weblog base images
+                # (FROM ...) to pull from registry.ddbuild.io/system-tests/mirror.
+                if [[ "${USE_IMAGE_MIRROR:-}" =~ ^(1|true|yes)$ ]]; then
+                    MIRRORED_DOCKERFILE=$(mktemp /tmp/system-tests-weblog-XXXXXX.Dockerfile)
+                    python utils/scripts/mirror_rewrite_dockerfile.py "${DOCKERFILE}" > "${MIRRORED_DOCKERFILE}"
+                    echo "Using mirrored Dockerfile (${DOCKERFILE} -> mirror):"
+                    grep '^FROM' "${MIRRORED_DOCKERFILE}" || true
+                    DOCKERFILE="${MIRRORED_DOCKERFILE}"
+                fi
+
                 GITHUB_TOKEN_SECRET_ARG=""
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
