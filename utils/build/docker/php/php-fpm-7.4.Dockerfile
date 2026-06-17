@@ -5,6 +5,7 @@ ARG PHP_VERSION=7.4
 
 ADD utils/build/docker/php/weblogs/plain/ /var/www/html/
 ADD utils/build/docker/php/common/rewrite-rules.conf /var/www/html/rewrite-rules.conf
+ADD utils/build/docker/php/common/ffe.php /var/www/html/ffe.php
 ADD utils/build/docker/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 ADD utils/build/docker/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 ADD utils/build/docker/php/php-fpm/entrypoint.sh /entrypoint.sh
