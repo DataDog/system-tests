@@ -172,7 +172,8 @@ class _Scenarios:
             "End to end testing with client-side stats enabled and agent /info trace filters configured "
             "to require exact and regex root-span tag matches."
         ),
-    ),
+    )
+
     trace_stats_computation_future_obfuscation_version = EndToEndScenario(
         name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
         # Same as trace_stats_computation but with the agent advertising an obfuscation_version
