@@ -36,20 +36,21 @@ def evaluate_flag(
     flag_key: str,
     *,
     targeting_key: str = "user-1",
+    targeting_keys: list[str] | None = None,
     attributes: JSON | None = None,
     variation_type: str = "STRING",
     default_value: object = "default",
 ) -> HttpResponse:
-    return weblog.post(
-        "/ffe",
-        json={
-            "flag": flag_key,
-            "variationType": variation_type,
-            "defaultValue": default_value,
-            "targetingKey": targeting_key,
-            "attributes": attributes or {},
-        },
-    )
+    payload = {
+        "flag": flag_key,
+        "variationType": variation_type,
+        "defaultValue": default_value,
+        "targetingKey": targeting_key,
+        "attributes": attributes or {},
+    }
+    if targeting_keys is not None:
+        payload["targetingKeys"] = targeting_keys
+    return weblog.post("/ffe", json=payload)
 
 
 def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple[JSON, JSON]]:
@@ -459,15 +460,22 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        with ThreadPoolExecutor(max_workers=64) as executor:
+        batch_size = 400
+        batches = [
+            [f"evp-degradation-user-{index}" for index in range(start, min(start + batch_size, self.eval_count))]
+            for start in range(0, self.eval_count, batch_size)
+        ]
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
             self.responses = list(
                 executor.map(
-                    lambda index: evaluate_flag(
+                    lambda targeting_keys: evaluate_flag(
                         self.flag_key,
-                        targeting_key=f"evp-degradation-user-{index}",
+                        targeting_key=targeting_keys[0],
+                        targeting_keys=targeting_keys,
                         attributes={},
                     ),
-                    range(self.eval_count),
+                    batches,
                 )
             )
 
