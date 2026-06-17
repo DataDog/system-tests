@@ -37,7 +37,9 @@ class Test_PostgresOtelSemantics(BaseDbIntegrationsTestClass):
     setup_db_namespace = _setup_queries
     setup_db_operation_name = _setup_queries
     setup_db_query_text = _setup_queries
+    setup_db_collection_name = _setup_queries
     setup_server_address = _setup_queries
+    setup_server_port = _setup_queries
 
     def _tracer_span_metas(self, excluded_operations: tuple[str, ...] = ("select_error",)):
         for db_operation, request in self.get_requests(excluded_operations=excluded_operations):
@@ -70,8 +72,21 @@ class Test_PostgresOtelSemantics(BaseDbIntegrationsTestClass):
             assert db_operation in meta.get("db.query.text", "").lower(), f"failing for {db_operation}"
             assert "db.statement" not in meta, "legacy db.statement must be absent in OTel mode"
 
+    def test_db_collection_name(self):
+        """``db.sql.table`` becomes ``db.collection.name`` (the primary table)."""
+        for db_operation, meta in self._tracer_span_metas(excluded_operations=("select_error", "procedure")):
+            assert meta.get("db.collection.name"), f"db.collection.name expected, failing for {db_operation}"
+            assert "db.sql.table" not in meta, "legacy db.sql.table must be absent in OTel mode"
+
     def test_server_address(self):
         """``out.host`` becomes ``server.address``."""
         for db_operation, meta in self._tracer_span_metas():
             assert meta.get("server.address"), f"server.address expected, failing for {db_operation}"
             assert "out.host" not in meta, "legacy out.host must be absent in OTel mode"
+
+    def test_server_port(self):
+        """``out.port`` becomes ``server.port`` (validated as an int when present)."""
+        for db_operation, meta in self._tracer_span_metas():
+            assert "out.port" not in meta, f"legacy out.port must be absent in OTel mode (failing for {db_operation})"
+            if "server.port" in meta:
+                _ = int(meta["server.port"])  # must be int-parseable when present
