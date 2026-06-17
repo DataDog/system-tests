@@ -3,7 +3,19 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+from typing import Literal
+import yaml
 from utils._context._scenarios import go_proxies
+
+# How a weblog's image is produced for end-to-end runs:
+#   "none"     → no Docker build; reuse the shared binaries_artifact as-is
+#                (integration frameworks, go_proxies, otel_collector)
+#   "local"    → built in-line by the run_end_to_end job (weblog_build_required)
+#   "prebuild" → built ahead of time by a dedicated build_end_to_end job that
+#                uploads a per-weblog artifact, then still built locally by the run
+# "prebuild" implies a local build too, so weblog_build_required is true for both
+# "local" and "prebuild".
+BuildMode = Literal["none", "local", "prebuild"]
 
 
 def _load_json(file_path: str) -> dict:
@@ -199,9 +211,18 @@ def get_docker_ssi_matrix(
 @dataclass
 class Weblog:
     name: str
-    require_build: bool  # needs Docker build (local or pre-built) → weblog_build_required
-    require_prebuild: bool  # needs a separate build_end_to_end job → parallel_weblogs
+    build_mode: BuildMode
     artifact_name: str
+
+    @property
+    def require_build(self) -> bool:
+        """The run_end_to_end job builds the weblog locally (weblog_build_required)."""
+        return self.build_mode != "none"
+
+    @property
+    def require_prebuild(self) -> bool:
+        """A dedicated build_end_to_end job pre-builds the weblog (parallel_weblogs)."""
+        return self.build_mode == "prebuild"
 
     def serialize(self) -> dict:
         return {"name": self.name, "artifact_name": self.artifact_name}
@@ -279,6 +300,35 @@ class Job:
         return result
 
 
+def _load_build_modes(folder: str) -> dict[str, BuildMode]:
+    """Load per-weblog build_mode declarations from {folder}/build.yml.
+
+    build.yml is the single source of build requirement for a library's weblogs:
+
+        build_mode:
+          openai-py: none
+          express4: local
+
+    The file is optional and need only list weblogs that deviate; any weblog not
+    listed defaults to "prebuild" (the historical behavior for Dockerfile weblogs).
+    """
+    build_file = Path(folder) / "build.yml"
+    if not build_file.is_file():
+        return {}
+
+    with open(build_file) as file:
+        data = yaml.safe_load(file) or {}
+
+    build_modes: dict[str, BuildMode] = {}
+    for name, build_mode in (data.get("build_mode") or {}).items():
+        if build_mode not in ("none", "local", "prebuild"):
+            raise ValueError(
+                f"Invalid build_mode {build_mode!r} for {name} in {build_file} (expected none, local or prebuild)"
+            )
+        build_modes[name] = build_mode
+    return build_modes
+
+
 def _get_endtoend_weblogs(
     library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
 ) -> list[Weblog]:
@@ -299,6 +349,7 @@ def _get_endtoend_weblogs(
 
     folder = f"utils/build/docker/{library}"
     if Path(folder).exists():  # some lib does not have any weblog
+        build_modes = _load_build_modes(folder)
         names = [
             f.replace(".Dockerfile", "")
             for f in os.listdir(folder)
@@ -310,46 +361,31 @@ def _get_endtoend_weblogs(
             names = [weblog for weblog in names if weblog in weblogs_filter]
 
         for name in names:
-            if name not in integration_frameworks_weblogs:
-                metadata_path = Path(os.path.join(folder, f"{name}.weblog.json"))
-                require_prebuild = True
-                if metadata_path.is_file():
-                    with open(metadata_path, "r") as f:
-                        require_prebuild = json.load(f).get("require_prebuild", True)
-                result.append(
-                    Weblog(
-                        name=name,
-                        require_build=True,
-                        require_prebuild=require_prebuild,
-                        artifact_name=(
-                            f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
-                            if require_prebuild
-                            else binaries_artifact
-                        ),
-                    )
-                )
-            else:
-                for version in integration_frameworks_weblogs[name]:
-                    result.append(
-                        Weblog(
-                            name=f"{name}@{version}",
-                            require_build=False,
-                            require_prebuild=False,
-                            artifact_name=binaries_artifact,
-                        )
-                    )
+            build_mode: BuildMode = build_modes.get(name, "prebuild")
+            artifact_name = (
+                f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
+                if build_mode == "prebuild"
+                else binaries_artifact
+            )
+            # integration-framework weblogs fan out into one weblog per version;
+            # all other weblogs map to a single weblog.
+            variant_names = (
+                [f"{name}@{version}" for version in integration_frameworks_weblogs[name]]
+                if name in integration_frameworks_weblogs
+                else [name]
+            )
+            result.extend(
+                Weblog(name=variant_name, build_mode=build_mode, artifact_name=artifact_name)
+                for variant_name in variant_names
+            )
 
     # weblog not related to a docker file
     for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
         if lib == library:
-            result.append(
-                Weblog(name=weblog, require_build=False, require_prebuild=False, artifact_name=binaries_artifact)
-            )
+            result.append(Weblog(name=weblog, build_mode="none", artifact_name=binaries_artifact))
 
     if library == "otel_collector":
-        result.append(
-            Weblog(name="otel_collector", require_build=False, require_prebuild=False, artifact_name=binaries_artifact)
-        )
+        result.append(Weblog(name="otel_collector", build_mode="none", artifact_name=binaries_artifact))
 
     return sorted(result, key=lambda w: w.name)
 

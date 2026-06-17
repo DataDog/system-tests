@@ -1,6 +1,10 @@
 from utils import scenarios
 
-from utils.scripts.ci_orchestrators.workflow_data import _is_supported, get_endtoend_definitions
+from utils.scripts.ci_orchestrators.workflow_data import (
+    _get_endtoend_weblogs,
+    _is_supported,
+    get_endtoend_definitions,
+)
 
 
 @scenarios.test_the_test
@@ -32,9 +36,30 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
-def test_nodejs_weblogs_dont_require_build():
+def test_nodejs_weblogs_dont_require_prebuild():
     scenario_map = {"endtoend": ["DEFAULT"]}
     defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "")
-    # parallel_weblogs only lists weblogs with require_build=True; empty means no per-run build needed
+    # Node.js weblogs use build_mode="local": no dedicated build_end_to_end job
+    # (parallel_weblogs lists only "prebuild" weblogs, so it is empty), but the
+    # run_end_to_end jobs still build the weblog in-line (weblog_build_required=True).
+    parallel_jobs = defs["endtoend_defs"]["parallel_jobs"]
     assert defs["endtoend_defs"]["parallel_weblogs"] == []
-    assert len(defs["endtoend_defs"]["parallel_jobs"]) > 0
+    assert len(parallel_jobs) > 0
+    assert all(job["weblog_build_required"] for job in parallel_jobs)
+
+
+@scenarios.test_the_test
+def test_weblog_build_mode_is_resolved_from_metadata():
+    # build_mode is the single source of build requirement for every weblog, declared
+    # in each library's build.yml:
+    #   - weblog not listed in build.yml → "prebuild" (dedicated build job + local build)
+    #   - listed with a build_mode       → as declared
+    build_modes = {w.name: w.build_mode for w in _get_endtoend_weblogs("python", [], "123", "dev", "shared")}
+
+    # Dockerfile weblog absent from build.yml defaults to prebuild
+    assert build_modes["flask-poc"] == "prebuild"
+    # Node.js weblogs opt into local-only builds via build.yml
+    nodejs_modes = {w.name: w.build_mode for w in _get_endtoend_weblogs("nodejs", [], "123", "dev", "shared")}
+    assert nodejs_modes["express4"] == "local"
+    # integration-framework weblogs fan out per version and need no build
+    assert build_modes["openai-py@2.0.0"] == "none"
