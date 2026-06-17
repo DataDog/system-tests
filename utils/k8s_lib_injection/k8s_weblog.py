@@ -1,5 +1,6 @@
 from kubernetes import client, watch
 from utils._logger import logger
+from utils.k8s_lib_injection.k8s_command_utils import K8sLibInjectionError
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
 from retry import retry
@@ -55,8 +56,9 @@ class K8sWeblog:
         """
 
         logger.info(
-            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
-            % (self.app_image, self.library, self.library_init_image)
+            "[Deploy weblog] Creating weblog pod configuration. "
+            f"weblog_variant_image: [{self.app_image}], library: [{self.library}], "
+            f"library_init_image: [{self.library_init_image}]"
         )
         library_lib = "js" if self.library == "nodejs" else self.library
         pod_metadata = client.V1ObjectMeta(
@@ -226,10 +228,10 @@ class K8sWeblog:
             pod_status = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_status(
                 name="my-app", namespace=namespace
             )
-            logger.error("[Deploy weblog] weblog not created. Last status: %s" % pod_status)
+            logger.error(f"[Deploy weblog] weblog not created. Last status: {pod_status}")
             pod_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(name="my-app", namespace=namespace)
             logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
-            raise Exception("[Deploy weblog] Weblog not created")
+            raise K8sLibInjectionError("[Deploy weblog] Weblog not created")
 
     @retry(delay=1, tries=5)
     def list_namespaced_pod(self, namespace: str, **kwargs: object) -> client.V1PodList:
@@ -245,7 +247,7 @@ class K8sWeblog:
             k8s_logger(self.output_folder, "myapp.describe").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, "myapp.describe").info(
-                "Exception when calling CoreV1Api->read_namespaced_pod: %s\n" % e
+                f"Exception when calling CoreV1Api->read_namespaced_pod: {e}\n"
             )
 
         # check weblog logs for pod
@@ -256,7 +258,7 @@ class K8sWeblog:
             k8s_logger(self.output_folder, "myapp.logs").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, "myapp.logs").info(
-                "Exception when calling CoreV1Api->read_namespaced_pod_log: %s\n" % e
+                f"Exception when calling CoreV1Api->read_namespaced_pod_log: {e}\n"
             )
 
         app_name = f"{self.library}-app"
@@ -276,4 +278,4 @@ class K8sWeblog:
                 )
                 k8s_logger(self.output_folder, "deployment.logs").info(api_response)
         except Exception as e:
-            k8s_logger(self.output_folder, "deployment.logs").info("Exception when calling deployment data: %s\n" % e)
+            k8s_logger(self.output_folder, "deployment.logs").info(f"Exception when calling deployment data: {e}\n")

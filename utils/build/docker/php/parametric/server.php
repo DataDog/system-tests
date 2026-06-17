@@ -61,6 +61,91 @@ function arg($req, $arg) {
     return ($buffer[$req] ??= json_decode($req->getBody()->buffer(), true))[$arg] ?? null;
 }
 
+function ffeNormalizeDefaultValue($defaultValue, $variationType) {
+    switch (strtoupper((string)$variationType)) {
+        case 'BOOLEAN':
+            return is_bool($defaultValue) ? $defaultValue : (bool)$defaultValue;
+        case 'STRING':
+            return is_string($defaultValue) ? $defaultValue : (string)$defaultValue;
+        case 'INTEGER':
+            return is_int($defaultValue) ? $defaultValue : (int)$defaultValue;
+        case 'NUMERIC':
+        case 'FLOAT':
+        case 'DOUBLE':
+            return is_int($defaultValue) || is_float($defaultValue) ? $defaultValue : (float)$defaultValue;
+        case 'JSON':
+        case 'OBJECT':
+            return is_array($defaultValue) ? $defaultValue : [];
+        default:
+            return $defaultValue;
+    }
+}
+
+function ffeEvaluate($client, $flagKey, $variationType, $defaultValue, $targetingKey, array $attributes) {
+    $context = [
+        'targetingKey' => $targetingKey,
+        'attributes' => $attributes,
+    ];
+
+    switch (strtoupper((string)$variationType)) {
+        case 'BOOLEAN':
+            return $client->getBooleanDetails($flagKey, $defaultValue, $context);
+        case 'STRING':
+            return $client->getStringDetails($flagKey, $defaultValue, $context);
+        case 'INTEGER':
+            return $client->getIntegerDetails($flagKey, $defaultValue, $context);
+        case 'NUMERIC':
+        case 'FLOAT':
+        case 'DOUBLE':
+            return $client->getFloatDetails($flagKey, $defaultValue, $context);
+        case 'JSON':
+        case 'OBJECT':
+            return $client->getObjectDetails($flagKey, $defaultValue, $context);
+        default:
+            throw new InvalidArgumentException('Unsupported variationType: ' . (string)$variationType);
+    }
+}
+
+function ffeDetailsPayload($details) {
+    $value = $details->getValue();
+    if (method_exists($details, 'getValueType') && $details->getValueType() === 'object') {
+        $value = ffeJsonResponseValue($value);
+    }
+
+    $payload = [
+        'value' => $value,
+        'reason' => $details->getReason(),
+        'variant' => $details->getVariant(),
+        'errorCode' => $details->getErrorCode(),
+        'errorMessage' => $details->getErrorMessage(),
+        'flagMetadata' => $details->getFlagMetadata(),
+        'exposureData' => $details->getExposureData(),
+        'providerState' => $details->getProviderState(),
+    ];
+
+    if (method_exists($details, 'getValueType')) {
+        $payload['valueType'] = $details->getValueType();
+    }
+
+    return $payload;
+}
+
+function ffeJsonResponseValue($value) {
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    if ($value === []) {
+        return new stdClass();
+    }
+
+    foreach ($value as $key => $nestedValue) {
+        $value[$key] = ffeJsonResponseValue($nestedValue);
+    }
+
+    return $value;
+}
+
 // Source: https://magp.ie/2015/09/30/convert-large-integer-to-hexadecimal-without-php-math-extension/
 function convertBase16ToBase10($numString)
 {
@@ -123,6 +208,8 @@ $activeSpan = null;
 $spansDistributedTracingHeaders = [];
 /** @var Logger[] $loggerDict */
 $loggerDict = [];
+/** @var ?\DDTrace\FeatureFlags\Client $ffeClient */
+$ffeClient = null;
 
 // Construct the OTel LoggerProvider directly when DD_LOGS_OTEL_ENABLED=true.
 // Mirrors how a user would wire up OTLP logs export themselves. dd-trace-php's
@@ -151,6 +238,73 @@ if (\dd_trace_env_config('DD_LOGS_OTEL_ENABLED')) {
 }
 
 $router = new Router($server, $logger, $errorHandler);
+$router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
+    if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
+        return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false,
+            'message' => 'DDTrace\\FeatureFlags\\Client is not available',
+        ]));
+    }
+
+    $configuration = arg($req, 'configuration');
+    if ($configuration !== null) {
+        if (!function_exists('\\DDTrace\\Testing\\ffe_load_config')) {
+            return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false,
+                'message' => 'DDTrace\\Testing\\ffe_load_config is not available',
+            ]));
+        }
+
+        $configurationJson = json_encode($configuration);
+        if (!is_string($configurationJson) || !\DDTrace\Testing\ffe_load_config($configurationJson)) {
+            return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false,
+                'message' => 'Failed to load FFE test configuration',
+            ]));
+        }
+    }
+
+    $ffeClient = new \DDTrace\FeatureFlags\Client();
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
+    if ($ffeClient === null) {
+        $ffeClient = new \DDTrace\FeatureFlags\Client();
+    }
+
+    $variationType = arg($req, 'variationType');
+    $defaultValue = ffeNormalizeDefaultValue(arg($req, 'defaultValue'), $variationType);
+    $targetingKey = arg($req, 'targetingKey');
+    if ($targetingKey !== null) {
+        $targetingKey = (string)$targetingKey;
+    }
+    $attributes = arg($req, 'attributes') ?? [];
+    if (!is_array($attributes)) {
+        $attributes = [];
+    }
+
+    try {
+        $details = ffeEvaluate(
+            $ffeClient,
+            arg($req, 'flag'),
+            $variationType,
+            $defaultValue,
+            $targetingKey,
+            $attributes
+        );
+
+        return jsonResponse(ffeDetailsPayload($details));
+    } catch (Throwable $e) {
+        return jsonResponse([
+            'value' => $defaultValue,
+            'reason' => 'ERROR',
+            'variant' => null,
+            'errorCode' => 'GENERAL',
+            'errorMessage' => $e->getMessage(),
+        ]);
+    }
+}));
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
     if ($parent = arg($req, 'parent_id')) {
         if (isset($spans[$parent])) {
@@ -299,6 +453,10 @@ $router->addRoute('POST', '/trace/span/flush', new ClosureRequestHandler(functio
 $router->addRoute('POST', '/trace/stats/flush', new ClosureRequestHandler(function () use (&$spans) {
     # NOP: php doesn't expose an API to flush trace stats
     return jsonResponse([]);
+}));
+$router->addRoute('GET', '/trace/agent/ensure_agent_info', new ClosureRequestHandler(function () {
+    $ready = dd_trace_internal_fn('await_agent_info');
+    return jsonResponse(['ready' => $ready]);
 }));
 $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(function () use (&$spans, &$activeSpan) {
     $span = $activeSpan;
