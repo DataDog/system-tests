@@ -171,14 +171,22 @@ $defaultValue = dd_ffe_normalize_default_value($payload['defaultValue'], $variat
 $targetingKey = isset($payload['targetingKey']) && $payload['targetingKey'] !== null
     ? (string) $payload['targetingKey']
     : null;
+$targetingKeys = isset($payload['targetingKeys']) && is_array($payload['targetingKeys']) && count($payload['targetingKeys']) > 0
+    ? array_values(array_map('strval', $payload['targetingKeys']))
+    : array($targetingKey);
 $attributes = isset($payload['attributes']) && is_array($payload['attributes'])
     ? dd_ffe_scalar_attributes($payload['attributes'])
     : array();
 
 try {
-    $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey, $attributes);
+    $details = null;
+    foreach ($targetingKeys as $key) {
+        $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $key, $attributes);
+    }
     if ($details !== null) {
-        dd_ffe_json_response(200, dd_ffe_details_payload($details));
+        $response = dd_ffe_details_payload($details);
+        $response['count'] = count($targetingKeys);
+        dd_ffe_json_response(200, $response);
         return;
     }
 } catch (Throwable $exception) {
