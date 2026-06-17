@@ -460,24 +460,15 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        batch_size = 400
-        batches = [
-            [f"evp-degradation-user-{index}" for index in range(start, min(start + batch_size, self.eval_count))]
-            for start in range(0, self.eval_count, batch_size)
-        ]
-
-        with ThreadPoolExecutor(max_workers=8) as executor:
-            self.responses = list(
-                executor.map(
-                    lambda targeting_keys: evaluate_flag(
-                        self.flag_key,
-                        targeting_key=targeting_keys[0],
-                        targeting_keys=targeting_keys,
-                        attributes={},
-                    ),
-                    batches,
-                )
+        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
+        self.responses = [
+            evaluate_flag(
+                self.flag_key,
+                targeting_key=targeting_keys[0],
+                targeting_keys=targeting_keys,
+                attributes={},
             )
+        ]
 
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
