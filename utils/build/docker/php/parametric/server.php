@@ -262,13 +262,21 @@ $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Requ
                 'message' => 'Failed to load FFE test configuration',
             ]));
         }
+    } elseif (function_exists('dd_trace_internal_fn')) {
+        // No inline configuration: the test pushed a UFC config via Remote Config and the agent has
+        // already ACKnowledged it. In this long-running CLI server the SIGVTALRM-driven remote-config
+        // refresh is starved (the amphp event loop spends most of its time blocked in IO, not burning
+        // CPU time), so the worker would otherwise never apply the pushed UFC and evaluation would
+        // return default values. await_ffe_config actively pumps remote configs until the FFE config
+        // is applied (mirrors await_agent_info), so the subsequent /ffe/evaluate sees the loaded UFC.
+        dd_trace_internal_fn('await_ffe_config');
     }
 
     $ffeClient = new \DDTrace\FeatureFlags\Client();
 
     return jsonResponse(['success' => true]);
 }));
-$router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
+$router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (Request $req) use (&$ffeClient, &$spans) {
     if ($ffeClient === null) {
         $ffeClient = new \DDTrace\FeatureFlags\Client();
     }
@@ -283,8 +291,18 @@ $router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (R
     if (!is_array($attributes)) {
         $attributes = [];
     }
+    // The test client sends span_id as a STRING (see _test_client_parametric.py:814-815). $spans is
+    // keyed by $span->id and PHP coerces int-like string keys, so an isset() lookup matches directly.
+    $spanId = arg($req, 'span_id');
 
     try {
+        // Re-activate the caller-supplied root span around the eval, mirroring /trace/span/start's
+        // switch_stack re-activation, so the ffe_* tags (Phase 2) land on the test's span. An
+        // unknown/missing span_id skips the switch_stack and evaluates normally -- never throw (T-01-DOS).
+        if ($spanId !== null && isset($spans[$spanId])) {
+            \DDTrace\switch_stack($spans[$spanId]);
+        }
+
         $details = ffeEvaluate(
             $ffeClient,
             arg($req, 'flag'),
@@ -436,6 +454,7 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
     }
 
     $span = $spans[$span_id];
+    $isRoot = ($span->parent ?? null) === null;
     \DDTrace\switch_stack($span);
     $spansDistributedTracingHeaders[$span_id] = \DDTrace\generate_distributed_tracing_headers();
     \DDTrace\close_span();
@@ -443,6 +462,16 @@ $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(functi
     unset($spans[$span_id]);
 
     $activeSpan = $span->parent ?? end($spans) ?? null;
+
+    // Closing a ROOT span finishes the trace. In this long-running CLI server the
+    // tracer only enqueues the finished trace to the async send-queue; the sidecar
+    // drains it on its own flush interval, which races wait_for_num_traces and can
+    // leave the agent with 0 traces. Synchronously flush on root close so the trace
+    // (carrying the ffe_* enrichment tags written on root finish) deterministically
+    // reaches the agent before the test reads it. Mirrors /trace/span/flush.
+    if ($isRoot && function_exists('dd_trace_synchronous_flush')) {
+        dd_trace_synchronous_flush(1000);
+    }
 
     return jsonResponse([]);
 }));
