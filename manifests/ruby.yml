@@ -2042,6 +2042,7 @@ manifest:
         rails72: v2.33.0  # TODO: a lower version might be supported
         rails52: v2.33.0  # TODO: a lower version might be supported
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_otel_db_semantics.py::Test_PostgresOtelSemantics: missing_feature (DB OTel semantics not implemented; DD_TRACE_OTEL_SEMANTICS_ENABLED covers HTTP only)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource:
     - weblog_declaration:

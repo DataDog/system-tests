@@ -91,6 +91,24 @@ class DbmDynamicServiceScenario(EndToEndScenario):
         )
 
 
+class OtelSemanticsDbScenario(EndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "OTEL_SEMANTICS_DB",
+            weblog_env={
+                "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+                "DD_TRACE_OTEL_ENABLED": "1",
+                "DD_DBM_PROPAGATION_MODE": "full",
+            },
+            other_weblog_containers=(PostgresContainer,),
+            doc=(
+                "Like OTEL_SEMANTICS but for database (postgres) spans: validates that SQL spans emit "
+                "OpenTelemetry database semantic-convention attributes when DD_TRACE_OTEL_SEMANTICS_ENABLED=true"
+            ),
+            scenario_groups=[scenario_groups.open_telemetry, scenario_groups.integrations],
+        )
+
+
 class AWSIntegrationsScenario(EndToEndScenario):
     unique_id: str = ""
 

@@ -3645,6 +3645,7 @@ manifest:
         "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
+  tests/integrations/test_otel_db_semantics.py::Test_PostgresOtelSemantics: missing_feature (DB OTel semantics not implemented; DD_TRACE_OTEL_SEMANTICS_ENABLED covers HTTP only)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
         "*": missing_feature
