@@ -58,6 +58,7 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+import openai
 import requests
 import stripe
 import opentelemetry.baggage
@@ -330,6 +331,17 @@ def sample_rate(i):
 @app.route("/api_security_sampling/<i>")
 def api_security_sampling(i):
     return "OK"
+
+
+@app.route("/api_security/multi-params-in-segment/<string:id>.<string:format>")
+def api_security_multi_params_in_segment(id: str, format: str) -> str:  # noqa: A002
+    return "ok"
+
+
+@app.route("/api_security/optional-params/<string:id>")
+@app.route("/api_security/optional-params/<string:id>.<string:format>")
+def api_security_optional_params(id: str, format: str = "") -> str:  # noqa: A002
+    return "ok"
 
 
 @app.route(
@@ -2239,6 +2251,36 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/llm")
+async def llm():
+    model = request.args.get("model", "")
+    operation = request.args.get("operation", "")
+    if not model or not operation:
+        return jsonify({"error": "Missing or empty query parameters: model, operation"}), 400
+    try:
+        if operation == "openai-latest-responses.create":
+            openai.OpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
+        elif operation == "openai-latest-chat.completions.create":
+            openai.OpenAI(api_key="sk-fake").chat.completions.create(
+                model=model, messages=[{"role": "user", "content": "Hello"}]
+            )
+        elif operation == "openai-latest-completions.create":
+            openai.OpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
+        elif operation == "openai-async-responses.create":
+            await openai.AsyncOpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
+        elif operation == "openai-async-chat.completions.create":
+            await openai.AsyncOpenAI(api_key="sk-fake").chat.completions.create(
+                model=model, messages=[{"role": "user", "content": "Hello"}]
+            )
+        elif operation == "openai-async-completions.create":
+            await openai.AsyncOpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
+        else:
+            return jsonify({"error": f"unknown operation: {operation}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    return jsonify({"model": model, "operation": operation})
 
 
 @app.route("/sca/vulnerable-call")

@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [java_lambda, nodejs_lambda, python_lambda]
+  - &lambda_libraries [java_lambda, nodejs_lambda, python_lambda, ruby_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
@@ -505,6 +505,13 @@ patterns:
         libraries: python_lambda
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
+
+    manifests/ruby_lambda.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: ruby_lambda
+    utils/build/docker/ruby_lambda/*:
+        scenario_groups: appsec_lambda
+        libraries: ruby_lambda
 
     manifests/rust.yml:
         scenario_groups: null  # already handled by the manifest comparison

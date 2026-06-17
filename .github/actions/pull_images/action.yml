@@ -76,8 +76,7 @@ runs:
     - name: Pull
       shell: bash
       run: |
-        max_attempts=3
-        retry_wait_seconds=10
+        max_attempts=5
         timeout_seconds=900
         attempt=1
         while true; do
@@ -92,6 +91,8 @@ runs:
             exit 1
           fi
 
+          # Exponential backoff: 30s, 60s, 120s, 240s
+          retry_wait_seconds=$(( 30 * (1 << (attempt - 1)) ))
           echo "docker compose pull failed (attempt ${attempt}/${max_attempts}), retrying in ${retry_wait_seconds}s..."
           sleep "${retry_wait_seconds}"
           attempt=$((attempt + 1))

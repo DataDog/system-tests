@@ -113,6 +113,10 @@ app.post('/trace/span/extract_headers', (req, res) => {
   res.json({ span_id: extractedSpanID });
 });
 
+app.get('/trace/agent/ensure_agent_info', (req, res) => {
+  res.json({ ready: true })
+})
+
 app.get('/trace/crash', (req, res) => {
   process.kill(process.pid, 'SIGSEGV');
   res.json({});
@@ -122,11 +126,16 @@ app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent = spans[request.parent_id] || ddContext[request.parent_id];
 
-  const tags = {service: request.service, resource: request.resource};
+  // dd-trace's startSpan only special-cases `service` from the tags; `resource` and `type` are not
+  // mapped (that mapping only happens in tracer.trace()). Set the canonical tag keys directly so the
+  // span carries the requested resource and type. Only set them when provided so the resource keeps
+  // defaulting to the operation name.
+  const tags = {service: request.service};
+  if (request.resource) tags['resource.name'] = request.resource;
+  if (request.type) tags['span.type'] = request.type;
   for (const [key, value] of request.span_tags) tags[key] = value
 
   const span = tracer.startSpan(request.name, {
-    type: request.type,
     childOf: parent,
     tags
   });
@@ -203,8 +212,45 @@ app.post('/trace/span/manual_drop', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in Node.js Tracer
-  res.json({});
+  // dd-trace-js implements CSS via SpanStatsProcessor on the SpanProcessor.
+  // There is no public flush API, so reach into internals and wait for the
+  // span-stats writer's HTTP send to complete before responding.
+  const processor = tracer?._tracer?._processor?._stats
+  if (!processor) {
+    res.json({})
+    return
+  }
+  const writer = processor.exporter?._writer
+  if (!writer || typeof writer._sendPayload !== 'function') {
+    processor.onInterval()
+    res.json({})
+    return
+  }
+  const originalSend = writer._sendPayload.bind(writer)
+  let sendInvoked = false
+  let responded = false
+  const respond = () => {
+    if (responded) return
+    responded = true
+    writer._sendPayload = originalSend
+    res.json({})
+  }
+  writer._sendPayload = (data, count, done) => {
+    sendInvoked = true
+    originalSend(data, count, () => {
+      done()
+      respond()
+    })
+  }
+  try {
+    processor.onInterval()
+  } catch (e) {
+    respond()
+    return
+  }
+  if (!sendInvoked) {
+    respond()
+  }
 });
 
 app.post('/trace/span/error', (req, res) => {

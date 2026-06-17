@@ -290,6 +290,21 @@ class DockerSSIScenario(Scenario):
     def configuration(self):
         return self._configuration
 
+    def get_junit_properties(self) -> dict[str, str]:
+        result = super().get_junit_properties()
+
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
+        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+        result["dd_tags[systest.suite.context.agent]"] = self.components["agent"]
+        result["dd_tags[systest.suite.context.datadog-apm-inject.version]"] = self.dd_apm_inject_version
+        result["dd_tags[systest.suite.context.datadog-installer.version]"] = self.components["datadog-installer"]
+        result["dd_tags[systest.suite.context.installed_language_runtime]"] = self.installed_language_runtime or ""
+        result["dd_tags[systest.suite.context.os]"] = self.configuration["os"]
+        result["dd_tags[systest.suite.context.arch]"] = self.configuration["arch"]
+
+        return result
+
 
 class DockerSSIImageBuilder:
     """Manages the docker image building for the SSI scenario"""

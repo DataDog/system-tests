@@ -132,7 +132,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
       if : ${{ inputs.binaries_artifact != '' }}
-      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      uses: ./.github/actions/download_artifact
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
@@ -183,6 +183,18 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
       run: ./run.sh TRACE_STATS_COMPUTATION
+    - name: Run TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED
+    - name: Run TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION
+    - name: Run TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION
+    - name: Run TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO
     - name: Run IAST_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
@@ -532,7 +544,7 @@ jobs:
         fi
     - name: Upload artifact
       if: steps.compress_logs.outcome == 'success' && !cancelled()
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      uses: ./.github/actions/upload_artifact
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
         name: ${{ inputs.logs_artifact_name }}
@@ -555,9 +567,8 @@ jobs:
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Push results to Test Optimization
-      if: inputs.push_to_test_optimization && !cancelled()
+      if: steps.build.outcome == 'success' && inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
       uses: ./.github/actions/push_to_test_optim
       with:
-        datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
         datadog_site: ${{ inputs.test_optimization_datadog_site }}
         ci_environment: ${{ inputs.ci_environment }}

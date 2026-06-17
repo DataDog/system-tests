@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_nodejs_base_images:
+        description: "Shall we build Node.js base images for tests on Node.js tracer"
+        default: false
+        required: false
+        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -115,7 +120,7 @@ on:
         required: false
         type: number
       push_to_test_optimization:
-        description: "Push test result to DataDog Test Optimization, require TEST_OPTIMIZATION_API_KEY secret"
+        description: "Push test result to DataDog Test Optimization"
         default: false
         required: false
         type: boolean
@@ -134,10 +139,6 @@ on:
       DOCKERHUB_USERNAME:
         required: false
       DOCKERHUB_TOKEN:
-        required: false
-      TEST_OPTIMIZATION_API_KEY:
-        required: false
-      CIRCLECI_TOKEN:
         required: false
       DD_API_KEY:
         required: false
@@ -219,7 +220,7 @@ jobs:
           ref: ${{ steps.compute_ref.outputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: ./.github/actions/download_artifact
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
@@ -236,6 +237,10 @@ jobs:
         if: inputs.library == 'php' && inputs._build_php_base_images
         run: |
           ./utils/build/build_php_base_images.sh
+      - name: Build nodejs weblog base images
+        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
+        run: |
+          ./utils/build/build_nodejs_base_images.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
@@ -250,7 +255,7 @@ jobs:
             echo "Token file not found — nothing to clean up"
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: ./.github/actions/upload_artifact
         with:
           name: ${{ matrix.weblog.artifact_name }}
           path: binaries/

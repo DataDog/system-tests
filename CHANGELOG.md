@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-05 (159 PR merged)
+
+* 2026-05-20 [SSI: Pin agent version to 7.78.4](https://github.com/DataDog/system-tests/pull/6984) by @robertomonteromiguel
+* 2026-05-26 [SSI: Print the content fo the log folder to collapsible section](https://github.com/DataDog/system-tests/pull/6975) by @robertomonteromiguel
+* 2026-05-12 [Improve performances by reducing RC poll interval on all E2E scenarios on python and node.js](https://github.com/DataDog/system-tests/pull/6879) by @rochdev
+* 2026-05-07 [Add PHP apache base images](https://github.com/DataDog/system-tests/pull/6874) by @cbeauchesne
+
+
 ### 2026-04 (119 PR merged)
 
 * 2026-04-23 [feat(features): resolve test owner to per-repo sub-team in CI](https://github.com/DataDog/system-tests/pull/6796) by @cbeauchesne

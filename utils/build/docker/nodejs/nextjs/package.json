@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next experimental-compile",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -16,6 +16,7 @@
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@vercel/nft": "^1.10.2",
     "eslint": "latest",
     "eslint-config-next": "^14.0.4",
     "eslint-config-standard": "^17.1.0",
