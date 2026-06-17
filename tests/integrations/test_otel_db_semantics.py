@@ -85,8 +85,17 @@ class Test_PostgresOtelSemantics(BaseDbIntegrationsTestClass):
             assert "out.host" not in meta, "legacy out.host must be absent in OTel mode"
 
     def test_server_port(self):
-        """``out.port`` becomes ``server.port`` (validated as an int when present)."""
-        for db_operation, meta in self._tracer_span_metas():
-            assert "out.port" not in meta, f"legacy out.port must be absent in OTel mode (failing for {db_operation})"
-            if "server.port" in meta:
-                _ = int(meta["server.port"])  # must be int-parseable when present
+        """``out.port`` / ``network.destination.port`` become ``server.port``.
+
+        The postgres port is non-default, so per the spec server.port is expected. Numeric values
+        may live in ``metrics`` rather than ``meta`` depending on the tracer, so check both.
+        """
+        for db_operation, request in self.get_requests(excluded_operations=("select_error",)):
+            span = self.get_span_from_tracer(request)
+            meta, metrics = span.meta, span.metrics
+            port = meta.get("server.port", metrics.get("server.port"))
+            assert port is not None, f"server.port expected (non-default port), failing for {db_operation}"
+            _ = int(port)
+            for legacy in ("out.port", "network.destination.port"):
+                assert legacy not in meta, f"legacy {legacy} must be absent in meta in OTel mode ({db_operation})"
+                assert legacy not in metrics, f"legacy {legacy} must be absent in metrics in OTel mode ({db_operation})"
