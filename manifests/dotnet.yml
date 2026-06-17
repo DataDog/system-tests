@@ -237,6 +237,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
