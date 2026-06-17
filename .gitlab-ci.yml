@@ -401,13 +401,15 @@ build_ci_image:
 # ──────────────────────────────────────────────
 # Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
 #
-# Two-step flow:
+# Three jobs:
 #   * mirror_images_check (every push) regenerates the image list from the
 #     scenarios and fails if the committed mirror_images.yaml is out of date.
 #     Regenerate + commit it whenever scenarios or weblog Dockerfiles change
 #     (see utils/scripts/update_mirror_images.py).
-#   * mirror_images_mirror (main only) resolves digests and pushes every listed
-#     image to MIRROR_DEST_REGISTRY.
+#   * mirror_images_mirror (main only) pushes every image in the committed
+#     mirror_images.lock.yaml to MIRROR_DEST_REGISTRY.
+#   * mirror_images_verify (main only) confirms every locked image is actually
+#     present in MIRROR_DEST_REGISTRY (read-only dry-run).
 # ──────────────────────────────────────────────
 
 mirror_images_check:
@@ -435,23 +437,54 @@ mirror_images_check:
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
 
-mirror_images_mirror:
+# Shared setup for jobs that talk to the destination registry: crane handles
+# multi-arch manifest lists cleanly (mirror_images.py auto-detects it on PATH,
+# falling back to skopeo/docker/podman), plus uv to run the pinned script. Both
+# jobs operate off the committed mirror_images.lock.yaml so they agree on the
+# exact digests that should be in the mirror.
+.mirror_images_registry_job:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   stage: system-tests-utils
   tags:
     - docker-in-docker:amd64
-  needs:
-    - job: mirror_images_check
-      artifacts: false
   before_script:
-    # crane handles multi-arch manifest lists cleanly; mirror_images.py auto-detects
-    # it on PATH (falling back to skopeo/docker/podman otherwise).
     - CRANE_VERSION=v0.20.2
     - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane || true
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.local/bin:$PATH"
+
+mirror_images_mirror:
+  extends: .mirror_images_registry_job
+  needs:
+    - job: mirror_images_check
+      artifacts: false
   script:
-    - uv run --no-config --script "$MIRROR_IMAGES_URL" lock
     - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+# Verify every image recorded in mirror_images.lock.yaml is actually present in
+# the destination registry. `mirror --dry-run` only reads the destination (no
+# source pulls), but it exits 0 even when images are missing, so we inspect its
+# output for "needs copy". A non-zero exit (e.g. registry auth/network failure)
+# also fails the job.
+mirror_images_verify:
+  extends: .mirror_images_registry_job
+  needs:
+    - job: mirror_images_mirror
+      artifacts: false
+  script:
+    - set -o pipefail
+    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror --dry-run | tee mirror_dryrun.log
+    - |
+      if grep -q "needs copy" mirror_dryrun.log; then
+        echo "❌ Images recorded in mirror_images.lock.yaml are missing from $MIRROR_DEST_REGISTRY:"
+        grep "needs copy" mirror_dryrun.log
+        echo "Run the mirror_images_mirror job (push to main) to populate them."
+        exit 1
+      fi
+      echo "✅ All mirrored images are present in $MIRROR_DEST_REGISTRY."
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+    - when: manual
+      allow_failure: true
