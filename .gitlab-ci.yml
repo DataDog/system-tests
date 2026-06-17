@@ -24,6 +24,10 @@ variables:
     SKIP_RESOLVE_CI_IMAGE: "true"
     # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
     E2E_SUPPORTED_LANGUAGES: "python"
+    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
+    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/fb4f39a542e4dd42b646c300b539c7a9f4201531/mirror_images.py"
+    # Destination registry for mirrored CI images.
+    MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
@@ -393,3 +397,63 @@ build_ci_image:
   artifacts:
     reports:
       dotenv: build.env
+
+# ──────────────────────────────────────────────
+# Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
+#
+# Two-step flow:
+#   * mirror_images_check (every push) regenerates the image list from the
+#     scenarios and fails if the committed mirror_images.yaml is out of date.
+#     Regenerate + commit it whenever scenarios or weblog Dockerfiles change
+#     (see utils/scripts/mirror_images_list.py).
+#   * mirror_images_mirror (main only) resolves digests and pushes every listed
+#     image to MIRROR_DEST_REGISTRY.
+# ──────────────────────────────────────────────
+
+mirror_images_check:
+  image: $CI_IMAGE
+  stage: system-tests-utils
+  tags:
+    - arch:amd64
+  needs:
+    - job: build_ci_image
+      artifacts: true
+  script:
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+    - export PYTHONPATH=$(pwd)
+    - python -m pip install --quiet uv
+    - python utils/scripts/mirror_images_list.py > ci_images.txt
+    - cat ci_images.txt
+    - uv run --no-config --script "$MIRROR_IMAGES_URL" add $(cat ci_images.txt)
+    - rm -f ci_images.txt
+    - |
+      if ! git diff --exit-code -- mirror_images.yaml; then
+        echo "❌ mirror_images.yaml is out of date. Regenerate and commit it:"
+        echo "   python utils/scripts/mirror_images_list.py | xargs uv run --no-config --script \"\$MIRROR_IMAGES_URL\" add"
+        exit 1
+      fi
+      echo "✅ mirror_images.yaml is up to date."
+  rules:
+    - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
+
+mirror_images_mirror:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  stage: system-tests-utils
+  tags:
+    - docker-in-docker:amd64
+  needs:
+    - job: mirror_images_check
+      artifacts: false
+  before_script:
+    # crane handles multi-arch manifest lists cleanly; mirror_images.py auto-detects
+    # it on PATH (falling back to skopeo/docker/podman otherwise).
+    - CRANE_VERSION=v0.20.2
+    - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane || true
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+  script:
+    - uv run --no-config --script "$MIRROR_IMAGES_URL" lock
+    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"

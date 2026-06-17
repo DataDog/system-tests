@@ -1,0 +1,11 @@
+# Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
+#
+# This file is generated: it lists every image required by the CI scenarios.
+# Regenerate after changing scenarios or weblog Dockerfiles with:
+#
+#   python utils/scripts/mirror_images_list.py | xargs \
+#     uv run --no-config --script \
+#     https://binaries.ddbuild.io/dd-repo-tools/default/ca/fb4f39a542e4dd42b646c300b539c7a9f4201531/mirror_images.py \
+#     add
+#
+# The `mirror_images_check` CI job fails if this file is out of date.
