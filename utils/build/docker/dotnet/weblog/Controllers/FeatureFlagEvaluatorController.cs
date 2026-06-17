@@ -47,18 +47,25 @@ namespace weblog
         {
             object value;
             string reason = "DEFAULT";
-            var context = CreateContext(request);
+            var targetingKeys = request.TargetingKeys != null && request.TargetingKeys.Count > 0
+                ? request.TargetingKeys
+                : new List<string> { request.TargetingKey };
 
             try
             {
-                value = request.VariationType?.ToUpper() switch
+                value = request.DefaultValue;
+                foreach (var targetingKey in targetingKeys)
                 {
-                    "BOOLEAN" => await _client.GetBooleanValueAsync(request.Flag, GetDefaultValueAsBool(request.DefaultValue), context),
-                    "STRING" => await _client.GetStringValueAsync(request.Flag, GetDefaultValueAsString(request.DefaultValue), context),
-                    "INTEGER" => await _client.GetIntegerValueAsync(request.Flag, GetDefaultValueAsInt(request.DefaultValue), context),
-                    "NUMERIC" => await _client.GetDoubleValueAsync(request.Flag, GetDefaultValueAsDouble(request.DefaultValue), context),
-                    _ => request.DefaultValue
-                };
+                    var context = CreateContext(request, targetingKey);
+                    value = request.VariationType?.ToUpper() switch
+                    {
+                        "BOOLEAN" => await _client.GetBooleanValueAsync(request.Flag, GetDefaultValueAsBool(request.DefaultValue), context),
+                        "STRING" => await _client.GetStringValueAsync(request.Flag, GetDefaultValueAsString(request.DefaultValue), context),
+                        "INTEGER" => await _client.GetIntegerValueAsync(request.Flag, GetDefaultValueAsInt(request.DefaultValue), context),
+                        "NUMERIC" => await _client.GetDoubleValueAsync(request.Flag, GetDefaultValueAsDouble(request.DefaultValue), context),
+                        _ => request.DefaultValue
+                    };
+                }
             }
             catch (Exception)
             {
@@ -66,7 +73,7 @@ namespace weblog
                 reason = "ERROR";
             }
 
-            return Ok(new { reason, value });
+            return Ok(new { reason, value, count = targetingKeys.Count });
         }
 
         private static bool GetDefaultValueAsBool(object defaultValue)
@@ -123,10 +130,10 @@ namespace weblog
             return Convert.ToDouble(defaultValue);
         }
 
-        private static EvaluationContext CreateContext(EvaluateRequest request)
+        private static EvaluationContext CreateContext(EvaluateRequest request, string targetingKey)
         {
             var builder = EvaluationContext.Builder();
-            builder.SetTargetingKey(request.TargetingKey);
+            builder.SetTargetingKey(targetingKey);
 
             if (request.Attributes != null)
             {
@@ -160,6 +167,9 @@ namespace weblog
 
             [JsonPropertyName("targetingKey")]
             public string TargetingKey { get; set; }
+
+            [JsonPropertyName("targetingKeys")]
+            public List<string> TargetingKeys { get; set; }
 
             [JsonPropertyName("attributes")]
             public Dictionary<string, object> Attributes { get; set; }
