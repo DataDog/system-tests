@@ -1079,6 +1079,7 @@ manifest:
     - weblog_declaration:
         uds: '>=3.43.0'
         poc: '>=3.43.0'
+  tests/stats/test_trace_filters.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: bug (APMAPI-1849)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v3.6.0

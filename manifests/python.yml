@@ -2043,6 +2043,7 @@ manifest:
         python3.12: '>=4.3.1'
         uds-flask: '>=4.3.1'
         uwsgi-poc: '>=4.3.1'
+  tests/stats/test_trace_filters.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
