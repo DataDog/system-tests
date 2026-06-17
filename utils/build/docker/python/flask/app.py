@@ -2117,23 +2117,27 @@ def ffe():
     variation_type = body.get("variationType")
     default_value = body.get("defaultValue")
     targeting_key = body.get("targetingKey")
+    targeting_keys = body.get("targetingKeys")
     attributes = body.get("attributes", {})
 
-    # Build context
-    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
-    # Evaluate based on variation type
-    if variation_type == "BOOLEAN":
-        value = openfeature_client.get_boolean_value(flag, default_value, context)
-    elif variation_type == "STRING":
-        value = openfeature_client.get_string_value(flag, default_value, context)
-    elif variation_type in ["INTEGER", "NUMERIC"]:
-        value = openfeature_client.get_integer_value(flag, default_value, context)
-    elif variation_type == "JSON":
-        value = openfeature_client.get_object_value(flag, default_value, context)
-    else:
-        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+    if not isinstance(targeting_keys, list) or not targeting_keys:
+        targeting_keys = [targeting_key]
 
-    return jsonify({"value": value}), 200
+    value = None
+    for key in targeting_keys:
+        context = EvaluationContext(targeting_key=key, attributes=attributes)
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return jsonify({"value": value, "count": len(targeting_keys)}), 200
 
 
 @app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
