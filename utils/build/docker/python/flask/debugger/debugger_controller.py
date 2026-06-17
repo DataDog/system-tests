@@ -39,7 +39,7 @@ def span_probe():
 # dummy line
 @debugger_blueprint.route("/span-decoration/<string:arg>/<int:intArg>", methods=["GET"])
 def span_decoration_probe(arg, intArg):
-    # global intLocal # fails on evaluation
+    global intLocal
     intLocal = intArg * len(arg)
     return f"Span Decoration Probe {intLocal}"
 

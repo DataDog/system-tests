@@ -7,7 +7,7 @@ from http import HTTPStatus
 import json
 import os
 import re
-from typing import Self
+from typing import Self, Literal
 
 import requests
 
@@ -371,6 +371,34 @@ class SetTraceFilters(_InternalMockedTracerResponse):
         return {
             "type": self.__class__.__name__,
             "trace_filters": self.trace_filters,
+        }
+
+
+class SetObfuscationVersion(_InternalMockedTracerResponse):
+    """Override the obfuscation_version field in the agent's /info response.
+
+    This controls which obfuscation version the agent advertises. When set to a version
+    higher than what the SDK supports, the SDK should skip client-side obfuscation and
+    omit the Datadog-Obfuscation-Version header from stats payloads.
+    """
+
+    def __init__(self, *, obfuscation_version: int | Literal["MISSING"]):
+        super().__init__(path="/info")
+        self.obfuscation_version = obfuscation_version
+
+    def execute(self, flow: HTTPFlow) -> None:
+        if flow.response.status_code == HTTPStatus.OK:
+            c = json.loads(flow.response.content)
+            if self.obfuscation_version == "MISSING":
+                del c["obfuscation_version"]
+            else:
+                c["obfuscation_version"] = self.obfuscation_version
+            flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "obfuscation_version": self.obfuscation_version,
         }
 
 

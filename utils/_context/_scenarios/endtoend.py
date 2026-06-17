@@ -1,3 +1,4 @@
+from typing import Literal
 import os
 import pytest
 
@@ -48,6 +49,7 @@ class DockerScenario(Scenario):
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
         trace_filters: TraceFiltersConfig | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -60,6 +62,7 @@ class DockerScenario(Scenario):
         self.span_events = span_events
         self.client_drop_p0s = client_drop_p0s
         self.trace_filters = trace_filters
+        self.obfuscation_version = obfuscation_version
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -78,6 +81,7 @@ class DockerScenario(Scenario):
                 span_events=span_events,
                 client_drop_p0s=client_drop_p0s,
                 trace_filters=trace_filters,
+                obfuscation_version=obfuscation_version,
                 enable_ipv6=enable_ipv6,
                 mocked_backend=mocked_backend,
             )
@@ -206,6 +210,7 @@ class EndToEndScenario(DockerScenario):
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
         trace_filters: TraceFiltersConfig | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
@@ -232,6 +237,7 @@ class EndToEndScenario(DockerScenario):
             span_events=span_events,
             client_drop_p0s=client_drop_p0s,
             trace_filters=trace_filters,
+            obfuscation_version=obfuscation_version,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent

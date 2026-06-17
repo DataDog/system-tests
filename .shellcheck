@@ -6,7 +6,7 @@ TODO=(
   utils/scripts/docker_base_image.sh
   utils/build/docker/postgres-init-db.sh
   utils/build/docker/nodejs/app.sh
-  utils/build/docker/nodejs/install_ddtrace.sh
+
   utils/build/docker/set-uds-transport.sh
   utils/build/docker/python/flask/app.sh
   utils/build/docker/python/install_ddtrace.sh

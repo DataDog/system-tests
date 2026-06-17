@@ -81,7 +81,6 @@ jobs:
       excluded_scenarios: OTEL_COLLECTOR_E2E  # rely on real backend
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
-      display_summary: true
       desired_execution_time: ${{ needs.compute_libraries_and_scenarios.outputs.desired_execution_time }}
       artifact_retention_days: 3
       _build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
@@ -89,6 +88,7 @@ jobs:
       _build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       _build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       _build_php_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-php-base-images') }}
+      _build_nodejs_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-nodejs-base-images') }}
       _enable_replay_scenarios: true
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch_map: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch-map }}
