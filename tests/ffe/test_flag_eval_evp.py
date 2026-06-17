@@ -6,7 +6,7 @@ from typing import cast
 
 import pytest
 
-from tests.ffe._fixtures import JSON, make_ufc_fixture
+from tests.ffe.utils.fixtures import JSON, make_ufc_fixture
 from utils import HttpResponse
 from utils import features
 from utils import interfaces

@@ -2,7 +2,7 @@
 
 import json
 
-from tests.ffe._fixtures import make_exposure_ufc_fixture as make_ufc_fixture
+from tests.ffe.utils.fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
     weblog,
     interfaces,

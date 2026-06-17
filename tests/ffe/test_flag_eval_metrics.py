@@ -1,6 +1,6 @@
 """Test feature flag evaluation metrics via OTel Metrics API."""
 
-from tests.ffe._fixtures import make_ufc_fixture
+from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import (
     weblog,
     interfaces,
