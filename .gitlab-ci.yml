@@ -405,7 +405,7 @@ build_ci_image:
 #   * mirror_images_check (every push) regenerates the image list from the
 #     scenarios and fails if the committed mirror_images.yaml is out of date.
 #     Regenerate + commit it whenever scenarios or weblog Dockerfiles change
-#     (see utils/scripts/mirror_images_list.py).
+#     (see utils/scripts/update_mirror_images.py).
 #   * mirror_images_mirror (main only) resolves digests and pushes every listed
 #     image to MIRROR_DEST_REGISTRY.
 # ──────────────────────────────────────────────
@@ -421,16 +421,14 @@ mirror_images_check:
   script:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
-    - export PYTHONPATH=$(pwd)
     - python -m pip install --quiet uv
-    - python utils/scripts/mirror_images_list.py > ci_images.txt
-    - cat ci_images.txt
-    - uv run --no-config --script "$MIRROR_IMAGES_URL" add $(cat ci_images.txt)
-    - rm -f ci_images.txt
+    # --skip-lock: the drift check only validates the image list; the lock file
+    # is regenerated/committed by developers (and refreshed by mirror_images_mirror).
+    - python utils/scripts/update_mirror_images.py --skip-lock
     - |
       if ! git diff --exit-code -- mirror_images.yaml; then
         echo "❌ mirror_images.yaml is out of date. Regenerate and commit it:"
-        echo "   python utils/scripts/mirror_images_list.py | xargs uv run --no-config --script \"\$MIRROR_IMAGES_URL\" add"
+        echo "   python utils/scripts/update_mirror_images.py"
         exit 1
       fi
       echo "✅ mirror_images.yaml is up to date."
