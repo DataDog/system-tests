@@ -19,6 +19,9 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluations"
 EVP_WAIT_TIMEOUT_SECONDS = 30
+EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
+EVP_FULL_TIER_PER_FLAG_CAP = 10_000
+EVP_DEGRADATION_OVERFLOW_EVALS = 50
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
@@ -100,6 +103,13 @@ def sum_evaluation_count(events: list[tuple[JSON, JSON]]) -> int:
         if isinstance(count, int):
             total += count
     return total
+
+
+def wait_for_evp_flagevaluation_count(flag_key: str, expected: int) -> None:
+    assert interfaces.agent.wait_for(
+        lambda _: sum_evaluation_count(find_evp_flagevaluation_events(flag_key)) >= expected,
+        timeout=EVP_LOAD_WAIT_TIMEOUT_SECONDS,
+    ), f"Timed out waiting for EVP flagevaluation count >= {expected} for flag {flag_key}"
 
 
 def assert_total_evaluation_count(events: list[tuple[JSON, JSON]], expected: int, flag_key: str) -> None:
@@ -441,37 +451,38 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
 @features.feature_flags_evp_flagevaluation
 @pytest.mark.skip_if_xfail
 class Test_FFE_EVP_Flagevaluation_Degradation:
-    """Test degraded EVP shape when an SDK exposes a test cap override."""
+    """Test degraded EVP shape after the production per-flag full-tier cap is exceeded."""
 
     def setup_ffe_evp_flagevaluation_degradation(self) -> None:
         config_id = "ffe-evp-degradation"
         self.flag_key = "evp-degradation-flag"
-        self.eval_count = 150
+        self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        self.responses = [
-            evaluate_flag(
-                self.flag_key,
-                targeting_key=f"evp-degradation-user-{index}",
-                attributes={"distinct": index},
+        with ThreadPoolExecutor(max_workers=64) as executor:
+            self.responses = list(
+                executor.map(
+                    lambda index: evaluate_flag(
+                        self.flag_key,
+                        targeting_key=f"evp-degradation-user-{index}",
+                        attributes={},
+                    ),
+                    range(self.eval_count),
+                )
             )
-            for index in range(self.eval_count)
-        ]
 
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
+        wait_for_evp_flagevaluation_count(self.flag_key, self.eval_count)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
         degraded_events = [event for _, event in events if "context" not in event and "targeting_key" not in event]
-        if not degraded_events:
-            pytest.skip(
-                "No SDK/test cap override is available; production EVP flagevaluation caps are too high for "
-                "a CI-safe degradation system test"
-            )
+        assert degraded_events, f"Expected degraded EVP flagevaluation buckets for flag {self.flag_key}"
+        assert_no_duplicate_visible_events(events)
+        assert_total_evaluation_count(events, self.eval_count, self.flag_key)
 
         for event in degraded_events:
             assert_event_contract(event, self.flag_key)
