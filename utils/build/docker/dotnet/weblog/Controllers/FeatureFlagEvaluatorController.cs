@@ -169,7 +169,7 @@ namespace weblog
             public string TargetingKey { get; set; }
 
             [JsonPropertyName("targetingKeys")]
-            public List<string> TargetingKeys { get; set; }
+            public List<string>? TargetingKeys { get; set; }
 
             [JsonPropertyName("attributes")]
             public Dictionary<string, object> Attributes { get; set; }
