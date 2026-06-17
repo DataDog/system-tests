@@ -451,7 +451,10 @@ public abstract class ApmTestApi
     // PUBLIC Tracer.ActivateSpan(span) on the Datadog.Trace manual API (Tracer.ActivateSpan is
     // internal); the public re-activation primitive is StartActive(name, settings) with
     // settings.Parent = storedSpan.Context, which makes the stored span's trace the active trace
-    // for the eval. FinishOnClose=false so disposing the transient scope does not close anything.
+    // for the eval. The transient "ffe.evaluate" span uses FinishOnClose=true so disposing the
+    // scope finishes ONLY that child (never the stored root, which is closed later by
+    // /trace/span/finish). Leaving it open would keep the trace's pending-span count > 0, so the
+    // tracer would never flush the trace and the test agent would receive zero traces.
     private static async Task<string> FfeEvaluate(HttpRequest request)
     {
         if (_ffeClient is null)
@@ -495,7 +498,11 @@ public abstract class ApmTestApi
                 var reactivation = new SpanCreationSettings
                 {
                     Parent = targetSpan.Context,
-                    FinishOnClose = false,
+
+                    // Finish this transient child on dispose so the trace's pending-span count returns
+                    // to the (still-open) root only; an unfinished child would block the trace from
+                    // ever flushing, so the test agent would receive zero traces.
+                    FinishOnClose = true,
                 };
 
                 using var scope = Tracer.Instance.StartActive("ffe.evaluate", reactivation);
