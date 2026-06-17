@@ -2,11 +2,11 @@
 
 import json
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
 from typing import cast
 
 import pytest
 
+from tests.ffe._fixtures import JSON, make_ufc_fixture
 from utils import HttpResponse
 from utils import features
 from utils import interfaces
@@ -19,49 +19,6 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluations"
 EVP_WAIT_TIMEOUT_SECONDS = 30
-
-JSON = dict[str, Any]
-
-
-def make_ufc_fixture(
-    flag_key: str,
-    variant_key: str = "on",
-    variation_type: str = "STRING",
-    *,
-    enabled: bool = True,
-) -> JSON:
-    values: dict[str, dict[str, str | bool | float | int]] = {
-        "STRING": {"on": "on-value", "off": "off-value"},
-        "BOOLEAN": {"on": True, "off": False},
-        "NUMERIC": {"on": 1.5, "off": 0.0},
-        "INTEGER": {"on": 42, "off": 0},
-    }
-    var_values = values[variation_type]
-
-    return {
-        "createdAt": "2024-04-17T19:40:53.716Z",
-        "format": "SERVER",
-        "environment": {"name": "Test"},
-        "flags": {
-            flag_key: {
-                "key": flag_key,
-                "enabled": enabled,
-                "variationType": variation_type,
-                "variations": {
-                    "on": {"key": "on", "value": var_values["on"]},
-                    "off": {"key": "off", "value": var_values["off"]},
-                },
-                "allocations": [
-                    {
-                        "key": "default-allocation",
-                        "rules": [],
-                        "splits": [{"variationKey": variant_key, "shards": []}],
-                        "doLog": True,
-                    }
-                ],
-            }
-        },
-    }
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
@@ -511,7 +468,10 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
 
         degraded_events = [event for _, event in events if "context" not in event and "targeting_key" not in event]
         if not degraded_events:
-            pytest.skip("No SDK/test cap override is available to force degraded EVP flagevaluation buckets")
+            pytest.skip(
+                "No SDK/test cap override is available; production EVP flagevaluation caps are too high for "
+                "a CI-safe degradation system test"
+            )
 
         for event in degraded_events:
             assert_event_contract(event, self.flag_key)

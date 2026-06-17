@@ -1,5 +1,6 @@
 """Test feature flag evaluation metrics via OTel Metrics API."""
 
+from tests.ffe._fixtures import make_ufc_fixture
 from utils import (
     weblog,
     interfaces,
@@ -11,42 +12,6 @@ from utils import (
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-
-
-def make_ufc_fixture(flag_key: str, variant_key: str = "on", variation_type: str = "STRING", *, enabled: bool = True):
-    """Create a UFC fixture with the given flag configuration."""
-    values: dict[str, dict[str, str | bool | float | int]] = {
-        "STRING": {"on": "on-value", "off": "off-value"},
-        "BOOLEAN": {"on": True, "off": False},
-        "NUMERIC": {"on": 1.5, "off": 0.0},  # Decimal value for type_mismatch testing (NUMERIC→INTEGER)
-        "INTEGER": {"on": 42, "off": 0},
-    }
-    var_values = values[variation_type]
-
-    return {
-        "createdAt": "2024-04-17T19:40:53.716Z",
-        "format": "SERVER",
-        "environment": {"name": "Test"},
-        "flags": {
-            flag_key: {
-                "key": flag_key,
-                "enabled": enabled,
-                "variationType": variation_type,
-                "variations": {
-                    "on": {"key": "on", "value": var_values["on"]},
-                    "off": {"key": "off", "value": var_values["off"]},
-                },
-                "allocations": [
-                    {
-                        "key": "default-allocation",
-                        "rules": [],
-                        "splits": [{"variationKey": variant_key, "shards": []}],
-                        "doLog": True,
-                    }
-                ],
-            }
-        },
-    }
 
 
 def find_eval_metrics(flag_key: str | None = None):

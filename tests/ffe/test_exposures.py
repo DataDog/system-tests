@@ -2,6 +2,7 @@
 
 import json
 
+from tests.ffe._fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
     weblog,
     interfaces,
@@ -444,37 +445,6 @@ def count_exposure_events(flag_key: str, subject_id: str | None = None) -> int:
                 if subject_id is None or event_subject_id == subject_id:
                     count += 1
     return count
-
-
-def make_ufc_fixture(flag_key: str, variant_key: str = "variant-a", allocation_key: str = "default-allocation"):
-    """Create a UFC fixture with the given flag key and variant.
-
-    Each test should use a unique flag_key to avoid counting exposures from other tests.
-    """
-    return {
-        "createdAt": "2024-04-17T19:40:53.716Z",
-        "format": "SERVER",
-        "environment": {"name": "Test"},
-        "flags": {
-            flag_key: {
-                "key": flag_key,
-                "enabled": True,
-                "variationType": "STRING",
-                "variations": {
-                    "variant-a": {"key": "variant-a", "value": "value-a"},
-                    "variant-b": {"key": "variant-b", "value": "value-b"},
-                },
-                "allocations": [
-                    {
-                        "key": allocation_key,
-                        "rules": [],
-                        "splits": [{"variationKey": variant_key, "shards": []}],
-                        "doLog": True,
-                    }
-                ],
-            }
-        },
-    }
 
 
 @scenarios.feature_flagging_and_experimentation
