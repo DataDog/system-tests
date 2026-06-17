@@ -4,6 +4,10 @@ set -eux
 
 IS_APACHE=${1:-0}
 
+if [ -z "$PHP_VERSION" ]; then
+  PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+fi
+
 cd /var/www/html
 export COMPOSER=composer.json
 if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
