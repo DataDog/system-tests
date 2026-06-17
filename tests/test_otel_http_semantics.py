@@ -79,8 +79,11 @@ class Test_HttpServerOtelSemantics:
                 return None
 
             meta = span["meta"]
-            assert "http.response.status_code" in meta, "server span expects an http.response.status_code tag"
-            _ = int(meta["http.response.status_code"])  # must be an int
+            # http.response.status_code is an int per the spec; the tracer emits it as a numeric
+            # metric (so OTLP types it as intValue), so read it from meta OR metrics.
+            status = _numeric_tag(span, "http.response.status_code")
+            assert status is not None, "server span expects an http.response.status_code tag"
+            _ = int(status)
             assert "http.status_code" not in meta, "legacy http.status_code tag must be absent in OTel mode"
             return True
 
@@ -184,7 +187,9 @@ class Test_HttpServerOtelSemantics:
                 return None
 
             meta = span["meta"]
-            assert meta.get("http.response.status_code") == "500", "expected http.response.status_code=500"
+            status = _numeric_tag(span, "http.response.status_code")
+            assert status is not None, "5xx server span expects an http.response.status_code tag"
+            assert int(status) == 500, "expected http.response.status_code=500"
             assert meta.get("error.type") == "500", "5xx server span expects error.type set to the status code string"
             return True
 
@@ -397,8 +402,10 @@ class Test_HttpClientOtelSemantics:
                 return None
 
             meta = span["meta"]
-            assert "http.response.status_code" in meta, "client span expects an http.response.status_code tag"
-            _ = int(meta["http.response.status_code"])
+            # status_code is a numeric metric (int-typed per the spec), so read meta OR metrics.
+            status = _numeric_tag(span, "http.response.status_code")
+            assert status is not None, "client span expects an http.response.status_code tag"
+            _ = int(status)
             assert "http.status_code" not in meta, "legacy http.status_code tag must be absent in OTel mode"
             return True
 
@@ -460,10 +467,11 @@ class Test_HttpClientOtelSemantics:
             if not self._client_span(span):
                 return None
             meta = span["meta"]
-            status = meta.get("http.response.status_code")
+            status = _numeric_tag(span, "http.response.status_code")  # numeric metric
             if status is None or int(status) < 400:  # only the erroring outbound call (skip dns/tcp/2xx)
                 return None
-            assert meta.get("error.type") == status, (
+            # error.type is the status code as a string; the status_code metric is the int.
+            assert meta.get("error.type") == str(int(status)), (
                 f"client error.type must equal the status code on an error response, "
                 f"got error.type={meta.get('error.type')!r} for status {status!r}"
             )
