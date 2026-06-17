@@ -6,7 +6,6 @@ include:
       excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
-      docker_auth: true
 stages:
   - configure
   - e2e
@@ -266,8 +265,6 @@ check_merge_labels:
     - dd-octo-sts version
     - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
     - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
     - export GITHUB_TOKEN=$(cat token.txt)
     - ./utils/scripts/get_pr_merged_labels.sh
@@ -419,7 +416,9 @@ build_ci_image:
 
 mirror_images:
   image: $CI_IMAGE
-  stage: system-tests-utils
+  # Runs in e2e (not the last stage) so the build/run jobs can depend on it and
+  # only start once the mirror is populated.
+  stage: e2e
   tags:
     - arch:amd64
   needs:
@@ -429,6 +428,11 @@ mirror_images:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
     - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane
+    # This is the only job that pulls from Docker Hub (the mirror sources), so it
+    # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | crane auth login index.docker.io --username "$DOCKER_LOGIN" --password-stdin
   script:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
