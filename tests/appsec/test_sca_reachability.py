@@ -28,10 +28,10 @@ _LANG_CONFIG: dict[str, dict[str, Any]] = {
         "symbol": "sca_requests_vulnerable_call",
     },
     "java": {
-        "cve_id": "GHSA-mjmj-j48q-9wg2",
-        "vulnerable_dep": "org.yaml:snakeyaml",
+        "cve_id": "GHSA-hf5p-q87m-crj7",
+        "vulnerable_dep": "com.github.junrar:junrar",
         "path": "com.datadoghq.system_tests.springboot.ScaReachability",
-        "symbol": "scaVulnerableCall",
+        "symbol": "junrarHit",
     },
 }
 

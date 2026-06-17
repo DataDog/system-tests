@@ -2451,27 +2451,27 @@ manifest:
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call:
     - weblog_declaration:
         "*": irrelevant (endpoint only implemented in spring-boot weblog)
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time:
     - weblog_declaration:
         "*": irrelevant (endpoint only implemented in spring-boot weblog)
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication:
     - weblog_declaration:
         "*": irrelevant (endpoint only implemented in spring-boot weblog)
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata:
     - weblog_declaration:
         "*": irrelevant (endpoint only implemented in spring-boot weblog)
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins:
     - weblog_declaration:
         "*": irrelevant (endpoint only implemented in spring-boot weblog)
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
@@ -3586,7 +3586,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
