@@ -1176,13 +1176,13 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_HttpClientOtelSemantics::test_error_type: missing_feature (dd-trace-dotnet#8791 does not map HTTP error status to error.type)
-  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_error_type: missing_feature (dd-trace-dotnet#8791 does not map HTTP error status to error.type)
-  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_no_route_resource: missing_feature (dd-trace-dotnet#8791 keeps the URL path in the no-route resource instead of the spec-mandated bare "{method}")
-  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_other_method_span_name: missing_feature (dd-trace-dotnet#8791 does not normalize unknown methods; resource uses the raw method and path, not "HTTP")
-  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_request_method_normalization: missing_feature (dd-trace-dotnet#8791 does not normalize unknown methods to _OTHER or emit http.request.method_original)
-  tests/test_otel_http_semantics_otlp.py::Test_HttpClientOtelSemanticsOTLP: missing_feature (OTLP export of OTel HTTP semantics not verified; only nodejs is e2e-verified)
-  tests/test_otel_http_semantics_otlp.py::Test_HttpServerOtelSemanticsOTLP: missing_feature (OTLP export of OTel HTTP semantics not verified; only nodejs is e2e-verified)
+  tests/test_otel_http_semantics.py::Test_HttpClientOtelSemantics::test_error_type: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_error_type: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_no_route_resource: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_other_method_span_name: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_request_method_normalization: v3.47.0
+  tests/test_otel_http_semantics_otlp.py::Test_HttpClientOtelSemanticsOTLP: v3.47.0
+  tests/test_otel_http_semantics_otlp.py::Test_HttpServerOtelSemanticsOTLP: v3.47.0
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v3.44.0
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
