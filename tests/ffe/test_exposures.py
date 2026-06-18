@@ -16,6 +16,8 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
+# Exact-count tests must not pass before duplicate/extra exposure payloads arrive.
+EXPOSURE_EXACT_COUNT_QUIET_SECONDS = 3
 
 
 def exposure_events_from_data(
@@ -59,6 +61,15 @@ def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[d
     return events
 
 
+def matching_exposure_payload_ids(flag_key: str, subject_id: str | None = None) -> set[object]:
+    """Return ids for currently captured payloads containing matching exposure events."""
+    payload_ids = set()
+    for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        if exposure_events_from_data(data, {flag_key}, subject_id):
+            payload_ids.add(data.get("log_filename", id(data)))
+    return payload_ids
+
+
 def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
     """Wait until the agent receives an exposure event for one of the given flags."""
     assert interfaces.agent.wait_for(
@@ -68,11 +79,35 @@ def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) 
 
 
 def wait_for_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> None:
-    """Wait until the agent receives at least the expected exposure count."""
-    assert interfaces.agent.wait_for(
-        lambda _: count_exposure_events(flag_key, subject_id) >= expected,
-        timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
-    ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
+    """Wait until the matching exposure count is exact and no late matching payloads arrive."""
+    count = count_exposure_events(flag_key, subject_id)
+    assert count <= expected, f"Expected {expected} exposure events for flag {flag_key}, already found {count}"
+
+    if count < expected:
+        assert interfaces.agent.wait_for(
+            lambda _: count_exposure_events(flag_key, subject_id) >= expected,
+            timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+        ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
+
+    count = count_exposure_events(flag_key, subject_id)
+    assert count == expected, f"Expected exactly {expected} exposure events for flag {flag_key}, found {count}"
+
+    if interfaces.agent.replay:
+        return
+
+    seen_payload_ids = matching_exposure_payload_ids(flag_key, subject_id)
+
+    def new_matching_exposure_payload(data: dict) -> bool:
+        payload_id = data.get("log_filename", id(data))
+        return payload_id not in seen_payload_ids and bool(exposure_events_from_data(data, {flag_key}, subject_id))
+
+    assert (
+        interfaces.agent.wait_for(
+            new_matching_exposure_payload,
+            timeout=EXPOSURE_EXACT_COUNT_QUIET_SECONDS,
+        )
+        is False
+    ), f"Unexpected late exposure payload for flag {flag_key} and subject {subject_id!r}"
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -844,6 +879,7 @@ class Test_FFE_Exposure_Missing_Flag:
             )
 
         # Count exposure events - should be 0 because flag doesn't exist
+        wait_for_exposure_count(self.flag_key, 0, self.targeting_key)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 0, (
@@ -919,6 +955,7 @@ class Test_FFE_Exposure_DoLog_False:
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
         # Count exposure events - should be 0 because doLog=false
+        wait_for_exposure_count(self.flag_key, 0, self.targeting_key)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 0, (
