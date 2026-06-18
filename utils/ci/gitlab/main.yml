@@ -159,9 +159,6 @@ build_test_pipeline:
     - job: system-tests-param
       optional: true
       artifacts: true
-    # When the image mirror is in use (system-tests' own pipeline), wait for it to
-    # populate the mirror before building/running. Optional so repos that include
-    # this template without a mirror_images job are unaffected.
     - job: mirror_images
       optional: true
       artifacts: false
@@ -169,8 +166,6 @@ build_test_pipeline:
     SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
     LIBRARIES: $LIBRARIES
-    # Passed to the child pipeline so generated jobs can reference artifacts from
-    # the parent pipeline (e.g. `needs: { pipeline: $PARENT_PIPELINE_ID, job: ... }`).
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
 
 run_test_pipeline_0:
