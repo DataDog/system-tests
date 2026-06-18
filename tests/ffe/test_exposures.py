@@ -18,7 +18,9 @@ EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
 
 
-def exposure_events_from_data(data: dict, flag_keys: set[str] | None = None, subject_id: str | None = None) -> list[dict]:
+def exposure_events_from_data(
+    data: dict, flag_keys: set[str] | None = None, subject_id: str | None = None
+) -> list[dict]:
     """Return exposure events from one agent payload matching the optional flag/subject filters."""
     if data.get("path") != EXPOSURES_PATH:
         return []
