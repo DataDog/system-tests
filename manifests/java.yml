@@ -1,7 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APPSEC-62215)
+      component_version: <1.62.0
+      weblog: [uds-spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot]
+    - declaration: missing_feature (APPSEC-62215)
+      excluded_weblog: [uds-spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot]
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -1529,7 +1534,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
-        spring-boot-payara: missing_feature (APPSEC-54966)
+        spring-boot-payara: v1.62.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
         vertx3: missing_feature (APPSEC-55781)
@@ -1937,14 +1942,19 @@ manifest:
         spring-boot: v1.62.0-SNAPSHOT
         spring-boot-payara: v1.63.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        resteasy-netty3: v1.62.0  # TODO: a lower version might be supported
+        uds-spring-boot: v1.62.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.62.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.62.0  # TODO: a lower version might be supported
+        ratpack: v1.62.0  # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.15.0
         akka-http: v1.22.0
-        jersey-grizzly2: missing_feature
+        jersey-grizzly2: v1.62.0  # TODO: a lower version might be supported
         play: v1.22.0
-        ratpack: missing_feature
-        resteasy-netty3: missing_feature
+        ratpack: v1.62.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.62.0  # TODO: a lower version might be supported
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: bug (APPSEC-54985)
         spring-boot-payara: bug (APPSEC-54985)
