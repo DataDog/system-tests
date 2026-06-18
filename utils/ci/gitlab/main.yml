@@ -169,6 +169,9 @@ build_test_pipeline:
     SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
     LIBRARIES: $LIBRARIES
+    # Passed to the child pipeline so generated jobs can reference artifacts from
+    # the parent pipeline (e.g. `needs: { pipeline: $PARENT_PIPELINE_ID, job: ... }`).
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
 
 run_test_pipeline_0:
   extends: .run_test_pipeline_base

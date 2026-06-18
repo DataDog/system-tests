@@ -83,6 +83,9 @@ build_{{library}}_{{variant}}:
   needs:
     - job: {{binaries_artifact}}
       artifacts: true
+      {% if binaries_artifact_path %}
+      pipeline: $PARENT_PIPELINE_ID
+      {% endif %}
   {% endif %}
   script:
     {% if docker_auth_enabled %}
@@ -114,6 +117,9 @@ run_{{library}}_{{scenario}}_{{variant}}:
   {% elif binaries_artifact %}
     - job: {{binaries_artifact}}
       artifacts: true
+      {% if binaries_artifact_path %}
+      pipeline: $PARENT_PIPELINE_ID
+      {% endif %}
   {% endif %}
   script:
     {% if docker_auth_enabled %}
@@ -154,6 +160,9 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
   needs:
     - job: {{binaries_artifact}}
       artifacts: true
+      {% if binaries_artifact_path %}
+      pipeline: $PARENT_PIPELINE_ID
+      {% endif %}
   {% endif %}
   script:
     - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
