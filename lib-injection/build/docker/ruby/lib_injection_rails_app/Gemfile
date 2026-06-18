@@ -17,6 +17,11 @@ gem 'mutex_m', '~> 0.2.0'
 gem 'base64', '~> 0.1.0'
 gem 'bigdecimal', '~> 1.2', '>= 1.2.7'
 
+# i18n >= 1.15.0 uses the Fiber[] API (Ruby 3.2+) and breaks on Ruby 3.1.
+# Keep it on the 1.14 series so the deployment-mode build (bundle lock --update)
+# cannot resolve an i18n version incompatible with the Ruby 3.1 runtime.
+gem 'i18n', '~> 1.14.0'
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
