@@ -207,6 +207,25 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_error_sampler = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
+        # Same as trace_stats_computation but with the trace sample rate set to 0, so that all traces
+        # are P0 and would normally be dropped by the tracer. Error traces must still be sent to the
+        # agent, because the agent error sampler keeps a portion of them.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "DD_TRACE_SAMPLE_RATE": "0",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. "
+            "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
