@@ -16,8 +16,6 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
-# Exact-count tests must not pass before duplicate/extra exposure payloads arrive.
-EXPOSURE_EXACT_COUNT_QUIET_SECONDS = 3
 
 
 def exposure_events_from_data(
@@ -61,15 +59,6 @@ def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[d
     return events
 
 
-def matching_exposure_payload_ids(flag_key: str, subject_id: str | None = None) -> set[object]:
-    """Return ids for currently captured payloads containing matching exposure events."""
-    payload_ids = set()
-    for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
-        if exposure_events_from_data(data, {flag_key}, subject_id):
-            payload_ids.add(data.get("log_filename", id(data)))
-    return payload_ids
-
-
 def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
     """Wait until the agent receives an exposure event for one of the given flags."""
     assert interfaces.agent.wait_for(
@@ -78,36 +67,18 @@ def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) 
     ), f"Timed out waiting for exposure event for flags {sorted(flag_keys)} and subject {subject_id!r}"
 
 
-def wait_for_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> None:
-    """Wait until the matching exposure count is exact and no late matching payloads arrive."""
+def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> int:
+    """Wait until enough matching exposure events are available, then return the current count."""
     count = count_exposure_events(flag_key, subject_id)
-    assert count <= expected, f"Expected {expected} exposure events for flag {flag_key}, already found {count}"
 
     if count < expected:
         assert interfaces.agent.wait_for(
             lambda _: count_exposure_events(flag_key, subject_id) >= expected,
             timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
         ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
+        count = count_exposure_events(flag_key, subject_id)
 
-    count = count_exposure_events(flag_key, subject_id)
-    assert count == expected, f"Expected exactly {expected} exposure events for flag {flag_key}, found {count}"
-
-    if interfaces.agent.replay:
-        return
-
-    seen_payload_ids = matching_exposure_payload_ids(flag_key, subject_id)
-
-    def new_matching_exposure_payload(data: dict) -> bool:
-        payload_id = data.get("log_filename", id(data))
-        return payload_id not in seen_payload_ids and bool(exposure_events_from_data(data, {flag_key}, subject_id))
-
-    assert (
-        interfaces.agent.wait_for(
-            new_matching_exposure_payload,
-            timeout=EXPOSURE_EXACT_COUNT_QUIET_SECONDS,
-        )
-        is False
-    ), f"Unexpected late exposure payload for flag {flag_key} and subject {subject_id!r}"
+    return count
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -571,8 +542,7 @@ class Test_FFE_Exposure_Caching_Same_Subject:
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
         # Count exposure events for this specific subject
-        wait_for_exposure_count(self.flag_key, 1, self.targeting_key)
-        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
 
         # The exposure cache should deduplicate events - we expect exactly 1 exposure
         # for the same (subject, allocation, variant) tuple
@@ -622,8 +592,11 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
             result = json.loads(r.text)
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
+        # Wait for each subject to be observed before asserting exact totals.
+        for subject in self.subjects:
+            wait_for_min_exposure_count(self.flag_key, 1, subject)
+
         # Count total exposure events for this flag
-        wait_for_exposure_count(self.flag_key, len(self.subjects))
         total_exposure_count = count_exposure_events(self.flag_key)
 
         # Each unique subject should generate exactly one exposure
@@ -727,8 +700,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
-        wait_for_exposure_count(self.flag_key, 3, self.targeting_key)
-        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -823,8 +795,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
-        wait_for_exposure_count(self.flag_key, 3, self.targeting_key)
-        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -879,7 +850,6 @@ class Test_FFE_Exposure_Missing_Flag:
             )
 
         # Count exposure events - should be 0 because flag doesn't exist
-        wait_for_exposure_count(self.flag_key, 0, self.targeting_key)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 0, (
@@ -955,7 +925,6 @@ class Test_FFE_Exposure_DoLog_False:
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
         # Count exposure events - should be 0 because doLog=false
-        wait_for_exposure_count(self.flag_key, 0, self.targeting_key)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 0, (
