@@ -81,7 +81,7 @@ build_{{library}}_{{variant}}:
   extends: .system_tests_base
   {% if binaries_artifact %}
   needs:
-    - job: {{binaries_artifact}}
+    - job: "{{binaries_artifact}}"
       artifacts: true
       pipeline: $PARENT_PIPELINE_ID
   {% endif %}
@@ -113,7 +113,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     - job: build_{{library}}_{{variant}}
       artifacts: true
   {% elif binaries_artifact %}
-    - job: {{binaries_artifact}}
+    - job: "{{binaries_artifact}}"
       artifacts: true
       pipeline: $PARENT_PIPELINE_ID
   {% endif %}
@@ -154,7 +154,7 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
 {% endif %}
   {% if binaries_artifact %}
   needs:
-    - job: {{binaries_artifact}}
+    - job: "{{binaries_artifact}}"
       artifacts: true
       pipeline: $PARENT_PIPELINE_ID
   {% endif %}
