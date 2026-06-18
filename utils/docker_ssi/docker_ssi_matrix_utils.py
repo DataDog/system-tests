@@ -1,3 +1,5 @@
+from typing import Protocol
+
 from utils.docker_ssi.docker_ssi_definitions import (
     JavaRuntimeInstallableVersions,
     JSRuntimeInstallableVersions,
@@ -8,9 +10,14 @@ from utils.docker_ssi.docker_ssi_definitions import (
 )
 
 
+class _InstallableVersions(Protocol):
+    @staticmethod
+    def get_version_id(version: str) -> str: ...
+
+
 def resolve_runtime_version(library: str, runtime: str) -> str:
     """For installable runtimes, get the version identifier. ie JAVA_11"""
-    installable_versions = {
+    installable_versions: dict[str, type[_InstallableVersions]] = {
         "java": JavaRuntimeInstallableVersions,
         "php": PHPRuntimeInstallableVersions,
         "python": PythonRuntimeInstallableVersions,
