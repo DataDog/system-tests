@@ -16,11 +16,18 @@ class Test_Lambda_Inferred_Span_Tags:
         self.r = weblog.get("/waf/?message=<script>alert()</script>")
 
     def test_lambda_inferred_span(self) -> None:
+        # The AppSec report is carried by the service-entry span. Depending on
+        # the tracer / lambda layer version this is either the downstream
+        # aws.lambda span, or the inferred API Gateway span when it shares the
+        # function's service (serverless service representation) and therefore
+        # becomes the top-level service-entry span. Capture the AppSec data from
+        # whichever span reports it.
+        service_entry_appsec_data = None
         for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
-            if span.get("name") == "aws.lambda":
-                lambda_span_appsec_data = appsec_data
+            if span.get("name") == "aws.lambda" or span.get("name") in INFERRED_SPAN_NAMES:
+                service_entry_appsec_data = appsec_data
 
-        assert lambda_span_appsec_data, "Expected non empty appsec data on aws.lambda span"
+        assert service_entry_appsec_data, "Expected non empty appsec data on the service-entry span"
 
         def validate_inferred_span(span: DataDogLibrarySpan) -> bool:
             if span.get("name") not in INFERRED_SPAN_NAMES:
@@ -41,7 +48,7 @@ class Test_Lambda_Inferred_Span_Tags:
             inferred_payload = (
                 json.loads(inferred_span_payload) if isinstance(inferred_span_payload, str) else inferred_span_payload
             )
-            assert inferred_payload == lambda_span_appsec_data, "AppSec Data must match the service-entry span"
+            assert inferred_payload == service_entry_appsec_data, "AppSec Data must match the service-entry span"
 
             return True
 
