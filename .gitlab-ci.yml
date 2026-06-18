@@ -20,7 +20,6 @@ stages:
 
 variables:
     TEST: 1
-    SKIP_RESOLVE_CI_IMAGE: "true"
     # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
     E2E_SUPPORTED_LANGUAGES: "python"
     # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
@@ -327,7 +326,7 @@ system-tests-param:
     - arch:amd64
   needs:
     - job: build_ci_image
-      artifacts: true
+      artifacts: false
   script:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
@@ -383,17 +382,21 @@ build_ci_image:
   stage: e2e
   script:
     - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
-    - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
+    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
+    - |
+      if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
+        echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
+        echo "   Update CI_IMAGE in utils/ci/gitlab/main.yml:"
+        echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
+        exit 1
+      fi
     - >
-      if docker manifest inspect registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG > /dev/null 2>&1; then
+      if docker manifest inspect $EXPECTED_IMAGE > /dev/null 2>&1; then
         echo "Image already exists, skipping build";
       else
-        docker build -f utils/ci/gitlab/docker/system-tests.Dockerfile -t registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG . &&
-        docker push registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG;
+        docker build -f utils/ci/gitlab/docker/system-tests.Dockerfile -t $EXPECTED_IMAGE . &&
+        docker push $EXPECTED_IMAGE;
       fi
-  artifacts:
-    reports:
-      dotenv: build.env
 
 # ──────────────────────────────────────────────
 # Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
@@ -423,7 +426,7 @@ mirror_images:
     - arch:amd64
   needs:
     - job: build_ci_image
-      artifacts: true
+      artifacts: false
   before_script:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2

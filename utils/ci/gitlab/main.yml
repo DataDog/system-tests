@@ -91,43 +91,20 @@ workflow:
       auto_cancel:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
-resolve_ci_image:
-  rules:
-    - if: '$SKIP_RESOLVE_CI_IMAGE == "true"'
-      when: never
-    - when: always
-  image: registry.ddbuild.io/system-tests/git
-  tags:
-    - arch:amd64
-  stage: $[[ inputs.stage ]]
-  interruptible: true
-  variables:
-    GIT_STRATEGY: none
-  needs:
-    - job: build_ci_image
-      optional: true
-      artifacts: false
-  script:
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
-    - git -C system-tests checkout $[[ inputs.ref ]]
-    - IMAGE_TAG=$(cat system-tests/utils/ci/gitlab/docker/system-tests.Dockerfile system-tests/requirements.txt | sha256sum | cut -c1-12)
-    - echo "CI_IMAGE=registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG" >> build.env
-    - cat build.env
-  artifacts:
-    reports:
-      dotenv: build.env
+variables:
+  # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
+  # Update this when either file changes:
+  #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:6bf5fa49e86c"
 
 build_test_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
   needs:
-    - job: resolve_ci_image
-      optional: true
-      artifacts: true
     - job: build_ci_image
       optional: true
-      artifacts: true
+      artifacts: false
     - job: system-tests-param
       optional: true
       artifacts: true
