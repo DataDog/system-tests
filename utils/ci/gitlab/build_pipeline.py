@@ -37,6 +37,7 @@ def render_library(
     ref: str,
     push_to_test_optimization: bool,
     docker_auth: bool,
+    binaries_artifact_path: str,
 ) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
@@ -54,6 +55,7 @@ def render_library(
         library=library,
         weblog_variants=weblog_variants,
         binaries_artifact=binaries_artifact,
+        binaries_artifact_path=binaries_artifact_path,
         parametric=parametric,
         ci_image=ci_image,
         ref=ref,
@@ -74,6 +76,7 @@ def build(
     push_to_test_optimization: bool = False,
     chunks: int = 3,
     docker_auth: bool = False,
+    binaries_artifact_path: str = "",
 ) -> None:
     """Render pipeline chunk files into *output_dir*, one per chunk."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -111,6 +114,7 @@ def build(
                     ref=ref,
                     push_to_test_optimization=push_to_test_optimization,
                     docker_auth=docker_auth,
+                    binaries_artifact_path=binaries_artifact_path,
                 )
             )
 
@@ -128,6 +132,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output-dir", required=True, help="Output directory for generated-pipeline-chunk-N.yml files")
     parser.add_argument("--chunks", type=int, default=3, help="Number of pipeline chunks (default: 3)")
     parser.add_argument("--docker-auth", default="false", help="Wether to authenticate calls to docker hub")
+    parser.add_argument(
+        "--binaries-artifact-path",
+        default="",
+        help="Path (relative to CI_PROJECT_DIR) of the binaries_artifact contents, copied into binaries/",
+    )
 
     args = parser.parse_args(argv)
 
@@ -146,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
         push_to_test_optimization=args.push_to_test_optimization == "true",
         chunks=args.chunks,
         docker_auth=args.docker_auth == "true",
+        binaries_artifact_path=args.binaries_artifact_path,
     )
     return 0
 

@@ -11,6 +11,13 @@
       done
     - section_end "docker_auth"
 {% endmacro %}
+{% macro copy_binaries(path) %}
+    - section_start "copy_binaries" "Copying pre-built binaries into binaries/"
+    - mkdir -p binaries
+    - cp -r "$CI_PROJECT_DIR/{{path}}/." binaries/
+    - ls -la binaries/
+    - section_end "copy_binaries"
+{% endmacro %}
 {% if not skip_header %}
 workflow:
   name: "System-tests end to end"
@@ -81,6 +88,9 @@ build_{{library}}_{{variant}}:
     {% if docker_auth_enabled %}
     {{ docker_auth() }}
     {% endif %}
+    {% if binaries_artifact and binaries_artifact_path %}
+    {{ copy_binaries(binaries_artifact_path) }}
+    {% endif %}
     - section_start "build" "Building weblog"
     - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
     - mv binaries ..
@@ -113,6 +123,8 @@ run_{{library}}_{{scenario}}_{{variant}}:
     {% if build_required %}
     - mv ../binaries/* binaries/
     - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
+    {% elif binaries_artifact and binaries_artifact_path %}
+    {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - section_end "weblog_setup"
     - section_start "scenario_run" "Running scenario"
@@ -145,6 +157,9 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
   {% endif %}
   script:
     - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
+    {% if binaries_artifact and binaries_artifact_path %}
+    {{ copy_binaries(binaries_artifact_path) }}
+    {% endif %}
     - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
     - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
   artifacts:
