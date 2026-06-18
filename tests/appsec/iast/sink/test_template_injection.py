@@ -29,4 +29,5 @@ class TestTemplateInjection_ExtendedLocation:
         self.r = weblog.post("/iast/template_injection/test_insecure", data={"template": "Hello"})
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
