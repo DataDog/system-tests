@@ -31,14 +31,35 @@ def get_rid_from_span_data(span_type: str, meta: dict, metrics: dict) -> str | N
     return get_rid_from_user_agent(user_agent)
 
 
-# Protocol v1.0 may deserialize meta booleans as True/False; older formats use "true"/"false".
-def _normalize_for_compare(*, value: bool | str | None) -> str | None:
-    if value is True:
-        return "true"
-    if value is False:
-        return "false"
-    return value
+def is_same_boolean(
+    *, actual: bool | int | str | None, expected: bool | int | str | None, is_otel_boolean: bool = False
+) -> bool:
+    """Compare two boolean-ish values that may arrive in different shapes.
 
+    Booleans reach the agent in several forms depending on the trace protocol and the source tag:
+      - older formats stringify them as "true"/"false";
+      - protocol v1.0 may deserialize as native True/False;
+      - OTel booleans may deserialize as 1/0.
 
-def is_same_boolean(*, actual: bool | str | None, expected: bool | str | None) -> bool:
-    return _normalize_for_compare(value=actual) == _normalize_for_compare(value=expected)
+    The 1/0 form is only accepted when `is_otel_boolean=True`.
+    """
+
+    def _normalize(*, value: bool | int | str | None) -> bool | int | str | None:
+        if value is True or value == "true":
+            return True
+        if value is False or value == "false":
+            return False
+        if is_otel_boolean:
+            if value == 1:
+                return True
+            if value == 0:
+                return False
+        return value  # not a recognizable native boolean, will be compared by value as last resort
+
+    actual_value = _normalize(value=actual)
+    expected_value = _normalize(value=expected)
+
+    if isinstance(actual_value, bool) or isinstance(expected_value, bool):
+        return actual_value is expected_value
+
+    return actual_value == expected_value

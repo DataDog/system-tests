@@ -1,8 +1,7 @@
-import json
 import pytest
 
 from utils import scenarios, features, rfc
-from utils.docker_fixtures.spec.trace import find_span, find_trace
+from utils.docker_fixtures.spec.trace import find_span, find_trace, retrieve_span_events
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -121,7 +120,8 @@ class Test_Span_Events:
         assert len(trace) == 1
         span = find_span(trace, s.span_id)
 
-        span_events = json.loads(span.get("meta", {}).get("events"))
+        span_events = retrieve_span_events(span)
+        assert span_events is not None
 
         assert len(span_events) == 2
 
