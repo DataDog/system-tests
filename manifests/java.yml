@@ -4010,6 +4010,11 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler:
+    - weblog_declaration:
+        "*": v1.54.0
+        vertx3: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
+        vertx4: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0
