@@ -130,7 +130,7 @@ build_test_pipeline:
       artifacts: true
     - job: $[[ inputs.binaries_artifact ]]
       optional: true
-      artifacts: true
+      artifacts: false
   script:
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
