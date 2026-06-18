@@ -1,13 +1,13 @@
 
-FROM datadog/system-tests:php-fpm-7.0.base-v1
+FROM datadog/system-tests:php-fpm-7.0.base-v2
 
 ARG PHP_VERSION=7.0
 
 ADD utils/build/docker/php/common/ /var/www/html/
 ADD utils/build/docker/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 ADD utils/build/docker/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
-ADD utils/build/docker/php/php-fpm/entrypoint.sh /entrypoint.sh
-RUN sed -i s/PHP_VERSION/$PHP_VERSION/ /entrypoint.sh
+ADD utils/build/docker/php/php-fpm/app.sh /app.sh
+RUN sed -i s/PHP_VERSION/$PHP_VERSION/ /app.sh
 RUN sed -i s/PHP_VERSION/$PHP_VERSION/ /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 RUN sed -i s/PHP_MAJOR_VERSION/$PHP_MAJOR_VERSION/ /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 
@@ -27,6 +27,4 @@ EXPOSE 7777/tcp
 
 WORKDIR /binaries
 ENTRYPOINT []
-RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
-RUN chmod +x app.sh
-CMD [ "./app.sh" ]
+CMD [ "/app.sh" ]

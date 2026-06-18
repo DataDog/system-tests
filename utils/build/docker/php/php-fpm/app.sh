@@ -1,4 +1,7 @@
-#!/bin/bash -e
+#!/usr/bin/dumb-init /bin/bash
+# shellcheck shell=bash
+
+set -e
 
 if [[ $# -gt 0 ]]; then
   "$@"
