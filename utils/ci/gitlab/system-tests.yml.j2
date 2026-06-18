@@ -79,17 +79,19 @@ setup:
 {% for variant in weblog_variants %}
 build_{{library}}_{{variant}}:
   extends: .system_tests_base
-  {% if binaries_artifact %}
+  {% if binaries_artifacts_list %}
   needs:
-    - job: "{{binaries_artifact}}"
+    {% for artifact_job in binaries_artifacts_list %}
+    - job: "{{artifact_job}}"
       artifacts: true
       pipeline: $UPSTREAM_PIPELINE_ID
+    {% endfor %}
   {% endif %}
   script:
     {% if docker_auth_enabled %}
     {{ docker_auth() }}
     {% endif %}
-    {% if binaries_artifact and binaries_artifact_path %}
+    {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - section_start "build" "Building weblog"
@@ -112,10 +114,12 @@ run_{{library}}_{{scenario}}_{{variant}}:
   {% if build_required %}
     - job: build_{{library}}_{{variant}}
       artifacts: true
-  {% elif binaries_artifact %}
-    - job: "{{binaries_artifact}}"
+  {% elif binaries_artifacts_list %}
+    {% for artifact_job in binaries_artifacts_list %}
+    - job: "{{artifact_job}}"
       artifacts: true
       pipeline: $UPSTREAM_PIPELINE_ID
+    {% endfor %}
   {% endif %}
   script:
     {% if docker_auth_enabled %}
@@ -125,7 +129,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     {% if build_required %}
     - mv ../binaries/* binaries/
     - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
-    {% elif binaries_artifact and binaries_artifact_path %}
+    {% elif binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - section_end "weblog_setup"
@@ -152,15 +156,17 @@ run_{{library}}_PARAMETRIC_{{job_index}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
-  {% if binaries_artifact %}
+  {% if binaries_artifacts_list %}
   needs:
-    - job: "{{binaries_artifact}}"
+    {% for artifact_job in binaries_artifacts_list %}
+    - job: "{{artifact_job}}"
       artifacts: true
       pipeline: $UPSTREAM_PIPELINE_ID
+    {% endfor %}
   {% endif %}
   script:
     - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
-    {% if binaries_artifact and binaries_artifact_path %}
+    {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}

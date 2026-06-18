@@ -38,6 +38,7 @@ def render_library(
     push_to_test_optimization: bool,
     docker_auth: bool,
     binaries_artifact_path: str,
+    binaries_artifacts: str,
 ) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
@@ -49,12 +50,21 @@ def render_library(
     ]
     binaries_artifact = params["miscs"]["binaries_artifact"]
     parametric = params["parametric"]
+    # Build the full list of artifact jobs for cross-pipeline downloads.
+    # If binaries_artifacts is provided, use it; otherwise fall back to the single job.
+    if binaries_artifacts:
+        binaries_artifacts_list = [j.strip() for j in binaries_artifacts.split(";") if j.strip()]
+    elif binaries_artifact:
+        binaries_artifacts_list = [binaries_artifact]
+    else:
+        binaries_artifacts_list = []
     return _template.render(
         scenario_pairs=scenario_pairs,
         stage=stage,
         library=library,
         weblog_variants=weblog_variants,
         binaries_artifact=binaries_artifact,
+        binaries_artifacts_list=binaries_artifacts_list,
         binaries_artifact_path=binaries_artifact_path,
         parametric=parametric,
         ci_image=ci_image,
@@ -77,6 +87,7 @@ def build(
     chunks: int = 3,
     docker_auth: bool = False,
     binaries_artifact_path: str = "",
+    binaries_artifacts: str = "",
 ) -> None:
     """Render pipeline chunk files into *output_dir*, one per chunk."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -115,6 +126,7 @@ def build(
                     push_to_test_optimization=push_to_test_optimization,
                     docker_auth=docker_auth,
                     binaries_artifact_path=binaries_artifact_path,
+                    binaries_artifacts=binaries_artifacts,
                 )
             )
 
@@ -137,6 +149,12 @@ def main(argv: list[str] | None = None) -> int:
         default="",
         help="Path (relative to CI_PROJECT_DIR) of the binaries_artifact contents, copied into binaries/",
     )
+    parser.add_argument(
+        "--binaries-artifacts",
+        default="",
+        help="Comma-separated list of upstream jobs to download artifacts from in the child pipeline "
+        "(falls back to the single binaries_artifact from params if empty)",
+    )
 
     args = parser.parse_args(argv)
 
@@ -156,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         chunks=args.chunks,
         docker_auth=args.docker_auth == "true",
         binaries_artifact_path=args.binaries_artifact_path,
+        binaries_artifacts=args.binaries_artifacts,
     )
     return 0
 

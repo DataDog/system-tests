@@ -18,7 +18,10 @@ spec:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
       default: ""
     binaries_artifact:
-      description: "Name of the upstream job whose artifacts contain the pre-built binaries to test"
+      description: "Name of the single upstream job to wait for before triggering the child pipeline (used as the timing gate)"
+      default: ""
+    binaries_artifacts:
+      description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
       default: ""
     binaries_artifact_path:
       description: "Path (relative to CI_PROJECT_DIR) of the binaries_artifact contents, copied into binaries/ before building/running"
@@ -141,7 +144,7 @@ build_test_pipeline:
       for library in $libraries; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$[[ inputs.binaries_artifact ]]" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
       done
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$[[ inputs.docker_auth ]]" --binaries-artifact-path "$[[ inputs.binaries_artifact_path ]]"
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$[[ inputs.docker_auth ]]" --binaries-artifact-path "$[[ inputs.binaries_artifact_path ]]" --binaries-artifacts "$[[ inputs.binaries_artifacts ]]"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
