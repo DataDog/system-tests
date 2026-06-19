@@ -15,8 +15,6 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
-    "envoy": "go",
-    "haproxy": "go",
 }
 
 """
