@@ -255,7 +255,6 @@ class EndToEndScenario(DockerScenario):
             volumes=weblog_volumes,
             other_containers=other_weblog_containers,
         )
-        self._containers += self.weblog_infra.get_containers()
 
         # buddies are a set of weblog app that are not directly the test target
         # but are used only to test feature that invlove another app with a datadog tracer
@@ -292,11 +291,18 @@ class EndToEndScenario(DockerScenario):
         self._library_interface_timeout = library_interface_timeout
         self.include_opentelemetry = include_opentelemetry
 
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        return [
+            image_name for container in self._containers for image_name in container.get_image_list(library, weblog)
+        ] + self.weblog_infra.get_image_list(library, weblog)
+
     def configure(self, config: pytest.Config):
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         self.weblog_infra.configure(config)
+        self._containers += list(self.weblog_infra.get_containers())
+
         self._set_containers_dependancies()
 
         super().configure(config)
@@ -349,11 +355,8 @@ class EndToEndScenario(DockerScenario):
         if self._use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
 
-        for container in self.weblog_infra.get_containers():
-            container.depends_on.append(self.agent_container)
-
-            if self._use_proxy_for_weblog:
-                container.depends_on.append(self.proxy_container)
+        proxy_container = self.proxy_container if self._use_proxy_for_weblog else None
+        self.weblog_infra.set_weblog_dependencies(self.agent_container, proxy_container)
 
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
@@ -491,7 +494,7 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def library(self):
-        return self.weblog_container.library
+        return self.weblog_infra.library
 
     @property
     def agent_version(self):
@@ -506,16 +509,12 @@ class EndToEndScenario(DockerScenario):
         return self.weblog_container.tracer_sampling_rate
 
     @property
-    def appsec_rules_file(self):
-        return self.weblog_container.appsec_rules_file
+    def uds_socket(self) -> str | None:
+        return self.weblog_infra.uds_socket
 
     @property
-    def uds_socket(self):
-        return self.weblog_container.uds_socket
-
-    @property
-    def uds_mode(self):
-        return self.weblog_container.uds_mode
+    def uds_mode(self) -> bool:
+        return self.weblog_infra.uds_mode
 
     @property
     def telemetry_heartbeat_interval(self):
@@ -528,6 +527,6 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_infra.appsec_rules_file or ""
 
         return result
