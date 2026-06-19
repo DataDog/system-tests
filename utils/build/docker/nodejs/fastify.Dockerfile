@@ -1,6 +1,4 @@
-FROM datadog/system-tests:fastify.base-v1
-
-COPY utils/build/docker/nodejs/fastify /usr/app
+FROM datadog/system-tests:fastify.base-v2
 
 EXPOSE 7777
 
@@ -19,5 +17,5 @@ RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent

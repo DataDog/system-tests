@@ -267,6 +267,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
@@ -361,6 +362,11 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Peer_Tags: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats: missing_feature  # Created by easy win activation script
