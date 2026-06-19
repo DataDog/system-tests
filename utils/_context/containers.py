@@ -1,3 +1,4 @@
+from abc import ABC
 import os
 import platform
 import re
@@ -852,7 +853,6 @@ class BuddyContainer(TestedContainer):
 
 
 class WeblogContainer(TestedContainer):
-    appsec_rules_file: str | None
     stdout_interface: LibraryStdoutInterface
 
     def __init__(
@@ -1025,13 +1025,6 @@ class WeblogContainer(TestedContainer):
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
 
-        if "DD_APPSEC_RULES" in self.environment:
-            self.appsec_rules_file = self.environment["DD_APPSEC_RULES"]
-        elif self.image.env is not None and "DD_APPSEC_RULES" in self.environment:
-            self.appsec_rules_file = self.image.env["DD_APPSEC_RULES"]
-        else:
-            self.appsec_rules_file = None
-
         # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
         # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
         # we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
@@ -1125,9 +1118,6 @@ class WeblogContainer(TestedContainer):
             if exit_code == 0 and output:
                 logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
 
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
-
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
 
@@ -1145,12 +1135,12 @@ class WeblogContainer(TestedContainer):
         return self._library
 
     @property
-    def uds_socket(self):
+    def uds_socket(self) -> str | None:
         assert self.image.env is not None, "No env set"
         return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
-    def uds_mode(self):
+    def uds_mode(self) -> bool:
         return self.uds_socket is not None
 
     @property
@@ -1639,13 +1629,26 @@ class EnvoyContainer(TestedContainer):
         )
 
 
-class ExternalProcessingContainer(TestedContainer):
+class GoProcessorContainer(TestedContainer, ABC):
     library: ComponentVersion
 
+    def post_start(self):
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("golang", lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Processor image: {self.image.name}")
+
+
+class ExternalProcessingContainer(GoProcessorContainer):
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
@@ -1679,16 +1682,6 @@ class ExternalProcessingContainer(TestedContainer):
             },
         )
 
-    def post_start(self):
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
-
-        assert lib["language"] == "golang"
-        self.library = ComponentVersion("envoy", lib["version"])
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")
-
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
@@ -1717,13 +1710,13 @@ class HAProxyContainer(TestedContainer):
         )
 
 
-class StreamProcessingOffloadContainer(TestedContainer):
+class StreamProcessingOffloadContainer(GoProcessorContainer):
     library: ComponentVersion
 
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
@@ -1754,14 +1747,3 @@ class StreamProcessingOffloadContainer(TestedContainer):
                 "retries": 10,
             },
         )
-
-    def post_start(self):
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
-
-        assert lib["language"] == "golang"
-        self.library = ComponentVersion("haproxy", lib["version"])
-
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")
