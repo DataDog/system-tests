@@ -9,11 +9,13 @@ Covers the `extract-auth` post-processor (appsec-event-rules#289) which produces
   - `_dd.appsec.s.req.cookies` from `server.request.cookies`
 
 Test cases mirror Emile Spir's checklist on APPSEC-68400:
-  * request has cookie, no JWT          -> cookie schema generated, jwt schema absent
   * request has JWT, no cookie          -> jwt schema generated
   * request has both JWT and cookie     -> both schemas generated
   * sensitive value in JWT/cookie       -> value never reported in the schema
   * JWT with a complex nested structure -> schema generated for nested fields
+
+The "cookie, no JWT" case is omitted on purpose: request cookie schema extraction is produced by the
+baseline extract-content processor (covered by Test_Schema_Request_Cookies), not by this PR.
 """
 
 import base64
@@ -79,27 +81,11 @@ COMPLEX_JWT = make_jwt(
 )
 
 
-@rfc(RFC_LINK)
-@scenarios.appsec_api_security
-@features.api_security_schemas
-class Test_Schema_Request_Cookie_No_Jwt:
-    """request has cookie, no JWT -> cookie schema generated, jwt schema absent"""
-
-    def setup_request_method(self):
-        self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"session": "any_value", "cache": "any_other_value"}
-        )
-
-    def test_request_method(self):
-        assert self.request.status_code == 200
-        cookies = get_schema(self.request, "req.cookies")
-        assert isinstance(cookies, list)
-        assert cookies[0] == {"cache": [STR], "session": [STR]}, cookies
-        assert get_schema(self.request, "req.jwt") is None
-        # the extract-auth processor must write request cookies to req.cookies, never res.cookies.
-        # Without this guard the test passes even with the appsec-event-rules#289 typo, because the
-        # baseline extract-content processor also populates req.cookies (see Test_Schema_Request_Cookies).
-        assert get_schema(self.request, "res.cookies") is None, "request cookies leaked into res.cookies (rules typo)"
+# NB: a "cookie, no JWT" case is intentionally not tested here: request cookie schema extraction
+# (_dd.appsec.s.req.cookies) is produced by the baseline extract-content processor and is already
+# covered by Test_Schema_Request_Cookies. It does not exercise the new extract-auth processor, so such
+# a test would pass even without the new rules. The res.cookies typo guard lives in
+# Test_Schema_Request_Jwt_And_Cookie instead, which is genuinely gated on the new feature.
 
 
 @rfc(RFC_LINK)
