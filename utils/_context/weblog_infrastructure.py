@@ -21,7 +21,7 @@ from utils._context.containers import (
     GoProcessorContainer,
 )
 
-GoProxyWeblogs = Literal["envoy", "haproxy-spoa"]
+GoProxyWeblogs = Literal["envoy", "haproxy"]
 
 
 class WeblogInfra(ABC):
