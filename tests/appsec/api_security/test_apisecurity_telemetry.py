@@ -33,6 +33,8 @@ FRAMEWORKS = {
     "golang": {
         "chi": "github.com/go-chi/chi/v5",
         "echo": "github.com/labstack/echo/v4",
+        "echo.v5": "github.com/labstack/echo/v5",
+        "echo.v5-orchestrion": "github.com/labstack/echo/v5",
         "gin": "github.com/gin-gonic/gin",
         "net-http": "net/http",
         "net-http-orchestrion": "net/http",
