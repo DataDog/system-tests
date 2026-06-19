@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, get_args
 
 import pytest
 
@@ -21,13 +21,7 @@ from utils._context.containers import (
     GoProcessorContainer,
 )
 
-ProxyComponent = Literal["envoy", "haproxy"]
-
-# Maps weblog variant names that require a runtime proxy in front of the weblog to the proxy component they use.
-_GO_PROXY_VARIANTS: dict[str, ProxyComponent] = {
-    "envoy": "envoy",
-    "haproxy-spoa": "haproxy",
-}
+GoProxyWeblogs = Literal["envoy", "haproxy-spoa"]
 
 
 class WeblogInfra(ABC):
@@ -47,6 +41,8 @@ class EndToEndWeblogInfra(WeblogInfra):
     This class is meant to work with EndToEndScenario
     """
 
+    _is_proxy_weblog: bool
+    _go_proxy_weblog: GoProxyWeblogs | None = None
     _processor_container: GoProcessorContainer
     """the Datadog library under test, running as an Envoy external processor
     or an HAProxy SPOA agent. It intercepts HTTP traffic from the proxy runtime to apply
@@ -100,18 +96,13 @@ class EndToEndWeblogInfra(WeblogInfra):
             "INCLUDE_SQLSERVER": "true" if MsSqlServerContainer in other_containers else "false",
         }
 
-        # Go-proxies containers — set when configure() detects a proxy-weblog variant.
-        self._proxy_component: ProxyComponent | None = None
-
         self.appsec_rules_file: str | None = None
         if "DD_APPSEC_RULES" in self._environment:
             self.appsec_rules_file: str = self._environment["DD_APPSEC_RULES"]
 
     def configure(self, config: pytest.Config):
-        weblog_variant = config.option.weblog
-
-        if weblog_variant in _GO_PROXY_VARIANTS:
-            self._activate_proxy_weblog(_GO_PROXY_VARIANTS[weblog_variant])
+        if config.option.weblog in get_args(GoProxyWeblogs):
+            self._activate_proxy_weblog(config.option.weblog)
 
         self.library_container.depends_on.extend(self._other_containers)
 
@@ -122,13 +113,13 @@ class EndToEndWeblogInfra(WeblogInfra):
             self.library_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.library_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
-    def _activate_proxy_weblog(self, proxy_component: ProxyComponent) -> None:
-        self._proxy_component = proxy_component
+    def _activate_proxy_weblog(self, weblog: GoProxyWeblogs) -> None:
+        self._go_proxy_weblog = weblog
 
-        if proxy_component == "envoy":
+        if self._go_proxy_weblog == "envoy":
             self._processor_container = ExternalProcessingContainer()
             self._proxy_runtime_container = EnvoyContainer()
-        elif proxy_component == "haproxy":
+        elif self._go_proxy_weblog == "haproxy":
             self._processor_container = StreamProcessingOffloadContainer()
             self._proxy_runtime_container = HAProxyContainer()
 
@@ -152,7 +143,14 @@ class EndToEndWeblogInfra(WeblogInfra):
 
     @property
     def _is_proxy_weblog(self) -> bool:
-        return self._proxy_component is not None
+        return self._go_proxy_weblog is not None
+
+    @property
+    def weblog_variant(self) -> str:
+        if self._go_proxy_weblog is not None:
+            return self._go_proxy_weblog
+
+        return self.http_container.weblog_variant
 
     @property
     def library(self):

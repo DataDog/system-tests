@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
-from utils._context._scenarios import go_proxies
 
 
 def _load_json(file_path: str) -> dict:
@@ -324,9 +323,9 @@ def _get_endtoend_weblogs(
                     )
 
     # weblog not related to a docker file
-    for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
-        if lib == library:
-            result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
+    if library == "golang":
+        result.append(Weblog(name="envoy", require_build=False, artifact_name=binaries_artifact))
+        result.append(Weblog(name="haproxy", require_build=False, artifact_name=binaries_artifact))
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
@@ -577,11 +576,8 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
             return False
 
     # Go proxies
-    if scenario.startswith("GO_PROXIES"):
-        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog) != library:
-            return False
-    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog):
-        if not scenario.startswith("GO_PROXIES"):
+    if weblog in ("envoy", "haproxy"):
+        if scenario not in ("DEFAULT", "APPSEC_BLOCKING"):
             return False
 
     # otel collector

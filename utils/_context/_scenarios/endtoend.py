@@ -501,8 +501,8 @@ class EndToEndScenario(DockerScenario):
         return self.agent_container.agent_version
 
     @property
-    def weblog_variant(self):
-        return self.weblog_container.weblog_variant
+    def weblog_variant(self) -> str:
+        return self.weblog_infra.weblog_variant
 
     @property
     def tracer_sampling_rate(self):
