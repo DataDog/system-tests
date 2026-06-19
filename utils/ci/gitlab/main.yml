@@ -47,18 +47,6 @@ spec:
     ref:
       description: "system-tests ref to use when called from another repository (branch, tag or SHA)"
       default: "main"
-    ssi_enabled:
-      description: "Whether to run SSI tests"
-      default: false
-    ssi_library_version:
-      description: "DD_INSTALLER_LIBRARY_VERSION to inject into generated jobs (Docker/K8s SSI)"
-      default: ""
-    k8s_lib_init_img:
-      description: "K8S_LIB_INIT_IMG to inject into generated libinjection jobs"
-      default: ""
-    ssi_injector_version:
-      description: "DD_INSTALLER_INJECTOR_VERSION to inject into generated dockerssi jobs"
-      default: ""
     docker_auth:
       description: "Whether to authenticate calls to docker hub"
       default: "false"
@@ -101,20 +89,35 @@ build_test_pipeline:
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
       scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      weblogs=$(echo "$[[ inputs.weblogs ]]" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      echo "libraries:       $libraries"
-      echo "scenarios:       $scenarios"
-      echo "scenario_groups: $scenario_groups"
-      echo "weblogs:         $weblogs"
+      weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      excluded_scenarios=$(echo "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" | tr ',' '\n' | sed '/^$/d' | sort -u | tr '\n' ',' | sed 's/,$//')
+      force_execute=$(echo "$[[ inputs.force_execute ]],$FORCE_EXECUTE" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      parametric_job_count="${SYSTEM_TESTS_PARAMETRIC_JOB_COUNT:-$[[ inputs.parametric_job_count ]]}"
+      push_to_test_optimization="${SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION:-$[[ inputs.push_to_test_optimization ]]}"
+      docker_auth="${SYSTEM_TESTS_DOCKER_AUTH:-$[[ inputs.docker_auth ]]}"
+      skip_empty_scenario="${SYSTEM_TESTS_SKIP_EMPTY_SCENARIO:-$[[ inputs.skip_empty_scenarios ]]}"
+      echo "libraries:              $libraries"
+      echo "scenarios:              $scenarios"
+      echo "scenario_groups:        $scenario_groups"
+      echo "weblogs:                $weblogs"
+      echo "excluded_scenarios:     $excluded_scenarios"
+      echo "force_execute:          $force_execute"
+      echo "parametric_job_count:   $parametric_job_count"
+      echo "push_to_test_opt:       $push_to_test_optimization"
+      echo "skip_empty_scenario:    $skip_empty_scenario"
+      printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
       binaries_artifact="$[[ inputs.binaries_artifact ]]"
       [ "$binaries_artifact" = "__no_binaries_artifact__" ] && binaries_artifact=""
       for library in $libraries; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$[[ inputs.excluded_scenarios ]]" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifact" --parametric-job-count $[[ inputs.parametric_job_count ]] --output params_${library}.json
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifact" --parametric-job-count $parametric_job_count --output params_${library}.json
       done
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$[[ inputs.docker_auth ]]" --binaries-artifact-path "$[[ inputs.binaries_artifact_path ]]" --binaries-artifacts "$[[ inputs.binaries_artifacts ]]"
+      binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$[[ inputs.binaries_artifacts ]]"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
+    reports:
+      dotenv: system-tests/build_params.env
 
 .run_test_pipeline_base:
   interruptible: true
@@ -136,8 +139,8 @@ build_test_pipeline:
       optional: true
       artifacts: false
   variables:
-    SYSTEM_TESTS_FORCE_EXECUTE: "$[[ inputs.force_execute ]]"
-    SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$[[ inputs.skip_empty_scenarios ]]"
+    SYSTEM_TESTS_FORCE_EXECUTE: "$SYSTEM_TESTS_FORCE_EXECUTE"
+    SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$SYSTEM_TESTS_SKIP_EMPTY_SCENARIO"
     LIBRARIES: $LIBRARIES
     UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
 

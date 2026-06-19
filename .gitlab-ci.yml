@@ -3,7 +3,6 @@ include:
   - local: /utils/ci/gitlab/main.yml
     inputs:
       stage: "e2e"
-      excluded_scenarios: "DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
 stages:
@@ -26,6 +25,9 @@ variables:
     MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/fb4f39a542e4dd42b646c300b539c7a9f4201531/mirror_images.py"
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
+    # Timing-gate job from an upstream pipeline that provides pre-built binaries.
+    # Set to a real job name via a trigger variable to activate cross-pipeline artifact download.
+    BINARIES_ARTIFACT: "something"
 
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
@@ -370,6 +372,8 @@ system-tests-param:
         mv param.env.tmp param.env
         cat param.env
       fi
+    - echo 'EXCLUDED_SCENARIOS=DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E' >> param.env
+    - echo 'SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true' >> param.env
   artifacts:
     reports:
       dotenv: param.env
