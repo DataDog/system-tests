@@ -1641,7 +1641,7 @@ class GoProcessorContainer(TestedContainer, ABC):
         self.library = ComponentVersion("golang", lib["version"])
 
         logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")
+        logger.stdout(f"Processor image: {self.image.name}")
 
 
 class ExternalProcessingContainer(GoProcessorContainer):

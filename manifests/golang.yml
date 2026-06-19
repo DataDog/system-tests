@@ -87,17 +87,21 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0-dev
         envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
     - weblog_declaration:
         envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
     - weblog_declaration:
         envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
@@ -347,6 +351,7 @@ manifest:
   tests/appsec/test_alpha.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.34.0
@@ -432,9 +437,10 @@ manifest:
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled::test_client_computed_stats_header_is_not_present:
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0
@@ -462,9 +468,11 @@ manifest:
   tests/appsec/test_blocking_addresses.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers:
     - weblog_declaration:
         envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v1.51.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.2.0
@@ -481,6 +489,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
     - weblog_declaration:
         "*": v1.51.0
@@ -489,6 +498,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
     - weblog_declaration:
         "*": v1.51.0
@@ -497,6 +507,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
     - weblog_declaration:
         "*": v1.51.0
@@ -505,12 +516,15 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /param is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /param is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking_before:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /param is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /param is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_non_blocking:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /param is not implemented in the weblog (from the test_blocking test))
+        haproxy: missing_feature (The endpoint /param is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
     - weblog_declaration:
         "*": v1.51.0
@@ -519,6 +533,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
     - weblog_declaration:
         "*": v1.51.0
@@ -527,6 +542,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri::test_blocking_before:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:  # Modified by easy win activation script
     - weblog_declaration:
@@ -547,12 +563,14 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
     - weblog_declaration:
         envoy: irrelevant (not supported on proxies)
+        haproxy: irrelevant (not supported on proxies)
         "*": v1.51.0
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.3.0-dev
         net-http-orchestrion: v2.5.0  # Modified by easy win activation script
         envoy: missing_feature (can't test with set tag)
+        haproxy: missing_feature (can't test with set tag)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking:  # Created by easy win activation script
     - weblog_declaration:
         net-http-orchestrion: missing_feature (path params are not supported)
@@ -562,6 +580,7 @@ manifest:
   tests/appsec/test_client_ip.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.44.1
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.0.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v2.1.0-dev
@@ -571,10 +590,12 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_CustomEvent::test_custom_event_event:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: v2.1.0-dev
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent: v1.47.0
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent::test_user_login_failure_event:
     - declaration: irrelevant (implementation deprecated)
@@ -583,14 +604,17 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
         envoy: missing_feature
-  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent: v1.47.0
-  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent::test_user_login_success_event:
+        haproxy: missing_feature
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
     - weblog_declaration:
+        "*": v1.47.0
+        haproxy: missing_feature
         envoy: missing_feature
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
@@ -659,17 +683,20 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session::test_session:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v1.69.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v1.69.0
   tests/appsec/test_identify.py::Test_Basic: v1.37.0
   tests/appsec/test_identify.py::Test_Basic::test_identify_tags_with_attack:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": v1.47.0
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0
@@ -687,6 +714,7 @@ manifest:
   tests/appsec/test_reports.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule:
     - weblog_declaration:
         "*": v1.62.0
@@ -696,9 +724,8 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
-  tests/appsec/test_reports.py::Test_Info::test_service:
-    - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_reports.py::Test_RequestHeaders:
     - weblog_declaration:
         "*": v1.34.0
@@ -709,13 +736,13 @@ manifest:
         "*": v1.34.0
         echo: v1.36.0
         gin: v1.37.0
-  tests/appsec/test_reports.py::Test_StatusCode::test_basic:
-    - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
     - weblog_declaration:
         "*": v1.50.0-rc.1
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.69.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.69.0
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
@@ -727,10 +754,12 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric::test_service_activation_metric:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: v2.4.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric::test_service_activation_metric:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: v2.4.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
@@ -742,6 +771,7 @@ manifest:
   tests/appsec/test_traces.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
     - weblog_declaration:
         "*": v1.36.0
@@ -749,6 +779,7 @@ manifest:
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection:
     - weblog_declaration:
         envoy: irrelevant (test)
+        haproxy: irrelevant (test)
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.38.0
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
     - weblog_declaration:
@@ -761,6 +792,7 @@ manifest:
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection:
     - weblog_declaration:
         envoy: missing_feature (The endpoint /headers is not implemented in the weblog)
+        haproxy: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.63.0
   tests/appsec/test_traces.py::Test_RetainTraces:
     - weblog_declaration:
@@ -772,6 +804,7 @@ manifest:
         "*": v1.36.0
         gin: v1.37.0
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_array:
     - weblog_declaration:
@@ -783,13 +816,16 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded::test_body_value:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml::test_xml_attr_value:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyXml::test_xml_content:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Cookies:
     - weblog_declaration:
         "*": v1.34.0
@@ -821,8 +857,9 @@ manifest:
         net-http: irrelevant (net-http doesn't handle path params)
         net-http-orchestrion: irrelevant (net-http doesn't handle path params)
   tests/appsec/waf/test_addresses.py::Test_PathParams::test_security_scanner:
-    - weblog_declaration: 
+    - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus:
     - weblog_declaration:
         "*": v1.36.0
@@ -830,6 +867,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus::test_basic:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_addresses.py::Test_UrlQuery:
     - weblog_declaration:
         "*": v1.35.0
@@ -845,6 +883,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_gRPC::test_basic:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:
     - declaration: bug (APPSEC-61196)
@@ -875,6 +914,7 @@ manifest:
   tests/appsec/waf/test_miscs.py::Test_404::test_404:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
     - weblog_declaration:
         "*": v1.34.0
@@ -905,6 +945,7 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_DiscoveryScan::test_security_scan:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/waf/test_rules.py::Test_HttpProtocol:
     - weblog_declaration:
         "*": v1.36.1
@@ -959,6 +1000,7 @@ manifest:
   tests/appsec/waf/test_truncation.py::Test_Truncation::test_truncation:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.0.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.0.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.0.0
@@ -1467,21 +1509,26 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty::test_query_string_redaction_unset:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: v1.69.0
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_400:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_500:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: v1.67.0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_400:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_500:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.69.0
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
@@ -1546,6 +1593,7 @@ manifest:
     - weblog_declaration:
         "*": v1.67.0
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService::test_specified_service_name:
     - weblog_declaration:
         gin: irrelevant (A custom service name is specified on the gin integration, causing a conflict)
@@ -1553,6 +1601,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default::test_default_service_name:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_data_integrity.py::Test_LibraryHeaders: v1.60.0.dev0
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: irrelevant (implemented but not testable)
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:
@@ -1562,6 +1611,9 @@ manifest:
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts:
+    - weblog_declaration:
+        haproxy: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:  # Modified by easy win activation script
     - declaration: bug (APMAPI-901)
@@ -1589,18 +1641,21 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <=1.41.0
     - weblog_declaration:
-        envoy: missing_feature
+        haproxy: missing_feature
   tests/test_identify.py::Test_Basic::test_identify_tags_with_attack:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_identify.py::Test_Propagate: v1.48.0-rc.1
   tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_identify.py::Test_Propagate_Legacy: v1.41.0
   tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link in v1.71.0)
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
@@ -1610,6 +1665,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_basic:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.70.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: v1.70.0
@@ -1644,13 +1700,16 @@ manifest:
   tests/test_scrubbing.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/test_scrubbing.py::Test_UrlField::test_main:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_scrubbing.py::Test_UrlQuery: v1.40.0
   tests/test_semantic_conventions.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/test_semantic_conventions.py::Test_Meta: v1.45.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag:
     - weblog_declaration:
@@ -1661,6 +1720,7 @@ manifest:
   tests/test_semantic_conventions.py::Test_MetaDatadogTags::test_meta_dd_tags:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:
         "*": irrelevant
@@ -1676,6 +1736,7 @@ manifest:
   tests/test_standard_tags.py:
     - weblog_declaration:
         envoy: v1.72.0
+        haproxy: v2.4.0
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v1.46.0
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_vendor:
     - declaration: bug (APMRP-360)
@@ -1690,17 +1751,21 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsRoute::test_route:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v1.39.0
   tests/test_standard_tags.py::Test_StandardTagsStatusCode::test_status_code:
     - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUrl: v1.40.0
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - weblog_declaration:
         envoy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string:
     - weblog_declaration:
+        haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         envoy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.39.0
