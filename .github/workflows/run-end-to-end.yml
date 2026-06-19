@@ -112,6 +112,7 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
+      SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
     steps:
     - name: Compute ref
       id: compute_ref
