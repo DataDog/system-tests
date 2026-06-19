@@ -676,7 +676,34 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        php-fpm-7.0: '>=1.21.0'
+        php-fpm-7.3: '>=1.21.0'
+        apache-mod-7.1-zts: '>=1.21.0'
+        apache-mod-7.3: '>=1.21.0'
+        apache-mod-8.1: '>=1.21.0'
+        php-fpm-7.1: '>=1.21.0'
+        apache-mod-7.1: '>=1.21.0'
+        apache-mod-8.2: '>=1.21.0'
+        apache-mod-8.1-zts: '>=1.21.0'
+        apache-mod-7.3-zts: '>=1.21.0'
+        apache-mod-8.0: '>=1.21.0'
+        php-fpm-7.4: '>=1.21.0'
+        php-fpm-8.1: '>=1.21.0'
+        apache-mod-8.0-zts: '>=1.21.0'
+        apache-mod-7.4-zts: '>=1.21.0'
+        apache-mod-7.0: '>=1.21.0'
+        php-fpm-8.0: '>=1.21.0'
+        apache-mod-7.4: '>=1.21.0'
+        php-fpm-7.2: '>=1.21.0'
+        apache-mod-7.0-zts: '>=1.21.0'
+        php-fpm-8.2: '>=1.21.0'
+        apache-mod-7.2: '>=1.21.0'
+        apache-mod-7.2-zts: '>=1.21.0'
+        php-fpm-8.5: '>=1.21.0'
+        apache-mod-8.2-zts: '>=1.21.0'
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
