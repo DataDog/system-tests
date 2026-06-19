@@ -17,9 +17,6 @@ spec:
     weblogs:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
       default: ""
-    binaries_artifact:
-      description: "Name of the single upstream job to wait for before triggering the child pipeline (used as the timing gate)"
-      default: "__no_binaries_artifact__"
     binaries_artifacts:
       description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
       default: ""
@@ -106,13 +103,12 @@ build_test_pipeline:
       echo "push_to_test_opt:       $push_to_test_optimization"
       echo "skip_empty_scenario:    $skip_empty_scenario"
       printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
-      binaries_artifact="$[[ inputs.binaries_artifact ]]"
-      [ "$binaries_artifact" = "__no_binaries_artifact__" ] && binaries_artifact=""
-      for library in $libraries; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifact" --parametric-job-count $parametric_job_count --output params_${library}.json
-      done
+      binaries_artifacts="${BINARIES_ARTIFACTS:-$[[ inputs.binaries_artifacts ]]}"
       binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$[[ inputs.binaries_artifacts ]]"
+      for library in $libraries; do
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --output params_${library}.json
+      done
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
@@ -133,9 +129,6 @@ build_test_pipeline:
       optional: true
       artifacts: true
     - job: mirror_images
-      optional: true
-      artifacts: false
-    - job: $[[ inputs.binaries_artifact ]]
       optional: true
       artifacts: false
   variables:
