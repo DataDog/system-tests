@@ -1162,6 +1162,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v3.10.0
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
   tests/test_library_conf.py::Test_HeaderTags: v2.27.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v2.1.0

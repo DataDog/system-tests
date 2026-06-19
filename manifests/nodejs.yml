@@ -2411,6 +2411,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default: *ref_5_46_0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: *ref_5_47_0
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
   tests/test_library_conf.py::Test_HeaderTags: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: *ref_4_11_0

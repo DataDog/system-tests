@@ -4301,6 +4301,19 @@ manifest:
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
         play: v1.60.1  # TODO: a lower version might be supported
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel:
+    - weblog_declaration:
+        spring-boot: v1.48.0
+        spring-boot-jetty: v1.58.2+06122213c8
+        spring-boot-openliberty: v1.58.2+06122213c8
+        spring-boot-payara: v1.58.2+06122213c8
+        spring-boot-undertow: v1.58.2+06122213c8
+        spring-boot-wildfly: v1.58.2+06122213c8
+        uds-spring-boot: v1.58.2+06122213c8
+        play: incomplete_test_app (OTel endpoint not implemented in play weblog)
+        vertx3: incomplete_test_app (OTel endpoint not implemented in vertx3 weblog)
+        vertx4: incomplete_test_app (OTel endpoint not implemented in vertx4 weblog)
+        "*": incomplete_test_app (weblog endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
