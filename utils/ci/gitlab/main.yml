@@ -19,7 +19,7 @@ spec:
       default: ""
     binaries_artifact:
       description: "Name of the single upstream job to wait for before triggering the child pipeline (used as the timing gate)"
-      default: ""
+      default: "__no_binaries_artifact__"
     binaries_artifacts:
       description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
       default: ""
