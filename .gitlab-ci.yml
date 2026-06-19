@@ -25,9 +25,6 @@ variables:
     MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/fb4f39a542e4dd42b646c300b539c7a9f4201531/mirror_images.py"
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
-    # Timing-gate job from an upstream pipeline that provides pre-built binaries.
-    # Set to a real job name via a trigger variable to activate cross-pipeline artifact download.
-    BINARIES_ARTIFACT: "something"
 
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
