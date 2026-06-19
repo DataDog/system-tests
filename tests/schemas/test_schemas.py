@@ -126,7 +126,7 @@ class Test_DdtraceSchemas:
                 data_path="$.client.client_tracer",
                 condition=context.weblog_variant in ("haproxy", "envoy")
                 and context.scenario in (scenarios.appsec_blocking, scenarios.default)
-                and context.library < "golang@2.5.0" ,
+                and context.library < "golang@2.5.0",
                 ticket="APMSP-2590",
             ),
         ]
