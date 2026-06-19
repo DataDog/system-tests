@@ -7,6 +7,7 @@ manifest:
       weblog: [rails61, uds-rails, rails80, rails72, rails52]
     - declaration: missing_feature (APPSEC-62218)
       excluded_weblog: [rails61, uds-rails, rails80, rails72, rails52]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
