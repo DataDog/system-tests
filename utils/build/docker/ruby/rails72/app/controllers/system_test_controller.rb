@@ -210,7 +210,8 @@ class SystemTestController < ApplicationController
 
   def otel_drop_in_extract_and_make_distant_call
     url = params[:url]
-    context = OpenTelemetry.propagation.extract(request.headers)
+    # Propagation#extract requires a Hash; requests' type ActionDispatch::Http::Headers lacks empty?
+    context = OpenTelemetry.propagation.extract(request.headers.to_h)
     tracer = OpenTelemetry.tracer_provider.tracer("system-tests")
     span = tracer.start_span("otel_extract_distant_call", with_parent: context, kind: :server)
     result = {}
