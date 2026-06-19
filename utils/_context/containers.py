@@ -1643,8 +1643,8 @@ class GoProcessorContainer(TestedContainer, ABC):
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
 
-class ExternalProcessingContainer(GoProcessorContainer):
 
+class ExternalProcessingContainer(GoProcessorContainer):
     def __init__(
         self,
         env: dict[str, str | None] | None = None,
@@ -1715,8 +1715,8 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
 
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
@@ -1747,4 +1747,3 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
                 "retries": 10,
             },
         )
-

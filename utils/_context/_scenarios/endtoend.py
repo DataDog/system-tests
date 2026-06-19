@@ -325,7 +325,7 @@ class EndToEndScenario(DockerScenario):
             # Node.js starts the poll interval only after receiving the previous response, so faster
             # polling is safe. Some other languages use a fixed interval regardless of response
             # timing, or have bugs that cause race conditions when the interval is too short.
-            self.weblog_container.environment.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
+            self.weblog_infra.library_container.environment.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
 
         if self._library_interface_timeout is None:
             if library == "java":
@@ -373,7 +373,7 @@ class EndToEndScenario(DockerScenario):
         else:
             logger.stdout(f"Weblog system: {message.strip()}")
 
-        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
+        if self.weblog_infra.library_container.environment.get("DD_TRACE_DEBUG") == "true":
             logger.stdout("\t/!\\ Debug logs are activated in weblog")
 
         logger.stdout("")

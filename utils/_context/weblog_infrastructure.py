@@ -47,6 +47,21 @@ class EndToEndWeblogInfra(WeblogInfra):
     This class is meant to work with EndToEndScenario
     """
 
+    _processor_container: GoProcessorContainer
+    """the Datadog library under test, running as an Envoy external processor
+    or an HAProxy SPOA agent. It intercepts HTTP traffic from the proxy runtime to apply
+    AppSec rules and emit traces. This is the "weblog" from the library's point of view."""
+
+    _proxy_runtime_container: EnvoyContainer | HAProxyContainer
+    """the reverse proxy (Envoy or HAProxy) that sits in front of the
+    dummy HTTP server and forwards requests through the processor. It is the actual HTTP
+    entry point for test requests, exposing the weblog port to the test suite."""
+
+    _dummy_server_container: DummyServerContainer
+    """a minimal HTTP server that the proxy runtime proxies to.
+    It has no Datadog instrumentation and simply returns responses.
+    """
+
     def __init__(
         self,
         *,
@@ -88,25 +103,9 @@ class EndToEndWeblogInfra(WeblogInfra):
         # Go-proxies containers — set when configure() detects a proxy-weblog variant.
         self._proxy_component: ProxyComponent | None = None
 
-        self._processor_container: GoProcessorContainer | None = None
-        """the Datadog library under test, running as an Envoy external processor
-        or an HAProxy SPOA agent. It intercepts HTTP traffic from the proxy runtime to apply
-        AppSec rules and emit traces. This is the "weblog" from the library's point of view."""
-
-        self._proxy_runtime_container: EnvoyContainer | HAProxyContainer | None = None
-        """the reverse proxy (Envoy or HAProxy) that sits in front of the
-        dummy HTTP server and forwards requests through the processor. It is the actual HTTP
-        entry point for test requests, exposing the weblog port to the test suite."""
-
-        self._dummy_server_container: DummyServerContainer | None = None
-        """a minimal HTTP server that the proxy runtime proxies to.
-        It has no Datadog instrumentation and simply returns responses.
-        """
-
-        self.appsec_rules_file:str | None = None
+        self.appsec_rules_file: str | None = None
         if "DD_APPSEC_RULES" in self._environment:
-            self.appsec_rules_file:str = self._environment["DD_APPSEC_RULES"]
-
+            self.appsec_rules_file: str = self._environment["DD_APPSEC_RULES"]
 
     def configure(self, config: pytest.Config):
         weblog_variant = config.option.weblog
@@ -139,7 +138,6 @@ class EndToEndWeblogInfra(WeblogInfra):
         self._dummy_server_container = DummyServerContainer()
 
         self._proxy_runtime_container.depends_on = [self._processor_container, self._dummy_server_container]
-
 
     def set_weblog_dependencies(
         self, agent_container: TestedContainer, proxy_container: TestedContainer | None
@@ -182,7 +180,12 @@ class EndToEndWeblogInfra(WeblogInfra):
 
     def get_containers(self) -> tuple[TestedContainer, ...]:
         if self._is_proxy_weblog:
-            return (self._processor_container, self._proxy_runtime_container, self._dummy_server_container, *self._other_containers)
+            return (
+                self._processor_container,
+                self._proxy_runtime_container,
+                self._dummy_server_container,
+                *self._other_containers,
+            )
         return (self.http_container, *self._other_containers)
 
     def stop(self) -> None:
@@ -214,4 +217,3 @@ class EndToEndWeblogInfra(WeblogInfra):
     @property
     def uds_mode(self) -> bool:
         return self.uds_socket is not None
-
