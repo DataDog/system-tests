@@ -9,6 +9,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_dynamic_evaluation.py` | Dynamic flag evaluation via Remote Config |
 | `test_exposures.py` | Flag exposure tracking and reporting |
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
+| `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 
 ## Running FFE Tests
 

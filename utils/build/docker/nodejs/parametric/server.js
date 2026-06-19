@@ -126,11 +126,16 @@ app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent = spans[request.parent_id] || ddContext[request.parent_id];
 
-  const tags = {service: request.service, resource: request.resource};
+  // dd-trace's startSpan only special-cases `service` from the tags; `resource` and `type` are not
+  // mapped (that mapping only happens in tracer.trace()). Set the canonical tag keys directly so the
+  // span carries the requested resource and type. Only set them when provided so the resource keeps
+  // defaulting to the operation name.
+  const tags = {service: request.service};
+  if (request.resource) tags['resource.name'] = request.resource;
+  if (request.type) tags['span.type'] = request.type;
   for (const [key, value] of request.span_tags) tags[key] = value
 
   const span = tracer.startSpan(request.name, {
-    type: request.type,
     childOf: parent,
     tags
   });
