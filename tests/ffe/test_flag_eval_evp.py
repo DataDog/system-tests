@@ -471,9 +471,7 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             for offset in range(0, len(targeting_keys), EVP_DEGRADATION_REQUEST_BATCH_SIZE)
         ]
 
-        self.sync_response = evaluate_flag(
-            self.sync_flag_key, targeting_key="evp-degradation-sync-user", attributes={}
-        )
+        self.sync_response = evaluate_flag(self.sync_flag_key, targeting_key="evp-degradation-sync-user", attributes={})
         assert self.sync_response.status_code == 200, f"Window sync request failed: {self.sync_response.text}"
         wait_for_evp_flagevaluation_event(self.sync_flag_key)
 
