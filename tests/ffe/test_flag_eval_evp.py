@@ -22,6 +22,7 @@ EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
+EVP_DEGRADATION_REQUEST_BATCH_SIZE = 1_000
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
@@ -460,17 +461,18 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        # Keep the one-request fanout below Express/body-parser's default limit;
-        # the SDK cap is driven by unique targeting keys, not key length.
         targeting_keys = [str(index) for index in range(self.eval_count)]
-        self.responses = [
-            evaluate_flag(
-                self.flag_key,
-                targeting_key=targeting_keys[0],
-                targeting_keys=targeting_keys,
-                attributes={},
+        self.responses = []
+        for offset in range(0, len(targeting_keys), EVP_DEGRADATION_REQUEST_BATCH_SIZE):
+            batch = targeting_keys[offset : offset + EVP_DEGRADATION_REQUEST_BATCH_SIZE]
+            self.responses.append(
+                evaluate_flag(
+                    self.flag_key,
+                    targeting_key=batch[0],
+                    targeting_keys=batch,
+                    attributes={},
+                )
             )
-        ]
 
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
