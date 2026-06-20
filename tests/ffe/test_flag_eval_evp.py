@@ -460,7 +460,9 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
+        # Keep the one-request fanout below Express/body-parser's default limit;
+        # the SDK cap is driven by unique targeting keys, not key length.
+        targeting_keys = [str(index) for index in range(self.eval_count)]
         self.responses = [
             evaluate_flag(
                 self.flag_key,
