@@ -105,7 +105,14 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: '>=0.3.4-dev+c6880b8'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Experiments_Per_Subject: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Subjects: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Subjects: missing_feature
   tests/parametric/test_headers_b3.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_inject_valid: missing_feature  # Created by easy win activation script
