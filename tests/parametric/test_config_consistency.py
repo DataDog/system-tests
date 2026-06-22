@@ -142,11 +142,11 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_trace_agent_unix_url_nonexistent(self, test_library: APMLibrary):
+    def test_dd_trace_agent_unix_url_nonexistent(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(test_agent, t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert "unix" in url.scheme
         assert url.path == "/var/run/datadog/apm.socket"
 
@@ -161,11 +161,11 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_trace_agent_http_url_nonexistent(self, test_library: APMLibrary):
+    def test_dd_trace_agent_http_url_nonexistent(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(test_agent, t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert url.scheme == "http"
         assert url.hostname == "random-host"
         assert url.port == 9999
@@ -180,11 +180,11 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_trace_agent_http_url_ipv6(self, test_library: APMLibrary):
+    def test_dd_trace_agent_http_url_ipv6(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(test_agent, t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert url.scheme == "http"
         assert url.hostname == "::1"
         assert url.port == 5000
@@ -199,11 +199,11 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
+    def test_dd_agent_host_ipv6(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(test_agent, t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert url.scheme == "http"
         assert url.hostname == "::1"
         assert url.port == 5000
@@ -217,8 +217,11 @@ class Test_Config_RateLimit:
     # which would be unreliable for testing and require significant effort for each tracer's weblog application.
     # The feature is mainly tested in the second test case, where the rate limit is set to 1 to ensure it works as expected.
     @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": "1"}])
-    def test_default_trace_rate_limit(self, test_library: APMLibrary):
+    def test_default_trace_rate_limit(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_trace_rate_limit": "100"})
+                return
             resp = t.config()
         assert resp["dd_trace_rate_limit"] == "100"
 
@@ -359,27 +362,41 @@ class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
     )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
-    def test_dogstatsd_default(self, test_library: APMLibrary):
+    def test_dogstatsd_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(
+                    test_agent, {"dd_dogstatsd_host": "localhost", "dd_dogstatsd_port": "8125"}
+                )
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "localhost"
         assert resp["dd_dogstatsd_port"] == "8125"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "192.168.10.1"}])
-    def test_dogstatsd_custom_ip_address(self, test_library: APMLibrary):
+    def test_dogstatsd_custom_ip_address(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_dogstatsd_host": "192.168.10.1"})
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "192.168.10.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "127.0.0.1"}])
-    def test_dogstatsd_custom_hostname(self, test_library: APMLibrary):
+    def test_dogstatsd_custom_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_dogstatsd_host": "127.0.0.1"})
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "127.0.0.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_PORT": "8150"}])
-    def test_dogstatsd_custom_port(self, test_library: APMLibrary):
+    def test_dogstatsd_custom_port(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_dogstatsd_port": "8150"})
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_port"] == "8150"
 
@@ -406,19 +423,33 @@ SDK_DEFAULT_STABLE_CONFIG = {
 }
 
 
-def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
-    """Assert expected dd_* config values against the nodejs telemetry configuration.
+def nodejs_telemetry_value(test_agent: TestAgentAPI, dd_key: str):
+    """Return the effective nodejs telemetry value for a dd_* config key.
 
     dd-trace-js builds /trace/config from internal property paths that a series of config
     PRs is renaming to canonical names; the telemetry keeps reporting the stable canonical
     names (the dd_* key upper-cased), so asserting there stays decoupled from those
-    refactors. The effective value per name is the highest-seq_id entry.
+    refactors. The effective value is the highest-seq_id entry (already sorted first).
     """
     configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    entries = configuration_by_name.get(dd_key.upper())
+    assert entries, f"No telemetry configuration '{dd_key.upper()}'"
+    return entries[0].get("value")
+
+
+def _trace_agent_url(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:
+    """Resolve dd_trace_agent_url from telemetry (nodejs) or /trace/config (other languages)."""
+    if test_library.lang == "nodejs":
+        return nodejs_telemetry_value(test_agent, "dd_trace_agent_url")
+    return test_library.config()["dd_trace_agent_url"]
+
+
+def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
+    """Assert expected dd_* config values against the nodejs telemetry configuration."""
+    configuration_by_name = test_agent.wait_for_telemetry_configurations()
     for dd_key, expected_value in expected.items():
-        telemetry_name = dd_key.upper()
-        entries = configuration_by_name.get(telemetry_name)
-        assert entries, f"No telemetry configuration '{telemetry_name}'"
+        entries = configuration_by_name.get(dd_key.upper())
+        assert entries, f"No telemetry configuration '{dd_key.upper()}'"
         actual = entries[0].get("value")
         if dd_key == "dd_tags":
             actual_tags = "" if actual is None else str(actual)
@@ -427,7 +458,7 @@ def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> 
                 assert tag in actual_tags, f"Expected tag '{tag}' not found in telemetry tags: {actual_tags}"
         else:
             assert str(actual).lower() == str(expected_value).lower(), (
-                f"Expected {telemetry_name}={expected_value}, got {actual}"
+                f"Expected {dd_key.upper()}={expected_value}, got {actual}"
             )
 
 
