@@ -319,14 +319,12 @@ generate_system_tests_lib_injection_images:
 # ──────────────────────────────────────────────
 
 system-tests-param:
-  image: $CI_IMAGE
+  extends: .system_tests_param_base
   stage: e2e
-  tags:
-    - arch:amd64
   needs:
     - job: build_ci_image
       artifacts: false
-  script:
+  before_script:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - export PYTHONPATH=$(pwd)
@@ -337,26 +335,25 @@ system-tests-param:
     - python3 utils/scripts/compute_libraries_and_scenarios.py --output raw_params.txt
     - |
       python3 -c "
-      import json
+      import json, shlex
       with open('raw_params.txt') as f:
           for line in f:
               line = line.strip()
               if '=' not in line: continue
               key, val = line.split('=', 1)
               val = json.loads(val)
-              if key == 'libraries': print(f'LIBRARIES={val}')
-              elif key == 'scenarios': print(f'SCENARIOS={val}')
-              elif key == 'scenarios_groups': print(f'SCENARIO_GROUPS={val}')
-      " > param.env
-    - cat param.env
+              if key == 'libraries': print('export LIBRARIES=' + shlex.quote(str(val)))
+              elif key == 'scenarios': print('export SCENARIOS=' + shlex.quote(str(val)))
+              elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
+      " > set_vars.sh
+      source set_vars.sh
     # TEMPORARY: filter LIBRARIES via E2E_SUPPORTED_LANGUAGES (space-separated allowlist)
     # used to control rollout, to be removed once rollout is complete.
     - |
       if [ -n "${E2E_SUPPORTED_LANGUAGES:-}" ]; then
         echo "Filtering LIBRARIES with E2E_SUPPORTED_LANGUAGES='$E2E_SUPPORTED_LANGUAGES'"
-        current=$(grep '^LIBRARIES=' param.env | sed 's/^LIBRARIES=//')
         filtered=""
-        for lib in $current; do
+        for lib in $LIBRARIES; do
           for allowed in $E2E_SUPPORTED_LANGUAGES; do
             if [ "$lib" = "$allowed" ]; then
               filtered="${filtered:+$filtered }$lib"
@@ -364,16 +361,10 @@ system-tests-param:
             fi
           done
         done
-        grep -v '^LIBRARIES=' param.env > param.env.tmp || true
-        echo "LIBRARIES=$filtered" >> param.env.tmp
-        mv param.env.tmp param.env
-        cat param.env
+        export LIBRARIES="$filtered"
       fi
-    - echo 'EXCLUDED_SCENARIOS=DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E' >> param.env
-    - echo 'SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true' >> param.env
-  artifacts:
-    reports:
-      dotenv: param.env
+    - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E'
+    - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy

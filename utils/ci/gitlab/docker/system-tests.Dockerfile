@@ -53,5 +53,6 @@ COPY --from=registry.ddbuild.io/dd-sts:v0.1.4@sha256:1f4bc8861cca86b0c977ae70843
     /usr/local/bin/dd-sts /usr/local/bin/dd-sts
 
 COPY --from=builder /system-tests/venv /system-tests/venv
+COPY --from=builder /system-tests/utils/ci/gitlab/validate_param_env.py /system-tests/utils/ci/gitlab/validate_param_env.py
 
 WORKDIR /
