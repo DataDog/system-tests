@@ -231,10 +231,18 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 value["value"] = "<scrubbed>"
                 return value
             elif key == "staticFields" and isinstance(value, dict):
+                def is_empty_result_static_field(field_name: str, field_value: object) -> bool:
+                    return (
+                        field_name == "Empty"
+                        and isinstance(field_value, dict)
+                        and field_value.get("type") == "EmptyResult"
+                        and set(field_value) == {"type"}
+                    )
+
                 scrubbed_static_fields = {
                     field_name: __scrub(field_value)
                     for field_name, field_value in value.items()
-                    if field_name != "Empty"
+                    if not is_empty_result_static_field(field_name, field_value)
                 }
                 return scrubbed_static_fields or None
             elif key == "function":
@@ -248,8 +256,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 scrubbed = []
                 assert isinstance(value, list)
                 for entry in value:
+                    function = entry.get("function")
+                    if function is None:
+                        continue
+
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
-                    if entry["function"].startswith(("Microsoft", "System", "Unknown")):
+                    if function.startswith(("Microsoft", "System", "Unknown")):
                         continue
 
                     scrubbed.append(__scrub(entry))
