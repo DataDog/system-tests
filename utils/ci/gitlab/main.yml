@@ -44,6 +44,9 @@ spec:
     ref:
       description: "system-tests ref to use when called from another repository (branch, tag or SHA)"
       default: "main"
+    condition:
+      description: "GitLab CI rule expression controlling whether system-tests jobs run (e.g. '$NIGHTLY_BUILD == \"true\"'). Defaults to always-run."
+      default: "null == null"
     docker_auth:
       description: "Whether to authenticate calls to docker hub"
       default: "false"
@@ -84,6 +87,9 @@ build_test_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
+  rules:
+    - if: $[[ inputs.condition ]]
+    - when: never
   needs:
     - job: build_ci_image
       optional: true
@@ -94,6 +100,14 @@ build_test_pipeline:
   script:
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
+      if [ -z "$libraries" ]; then
+        echo "No libraries configured, producing noop pipeline chunks"
+        for i in 0 1 2; do
+          printf 'noop:\n  image: registry.ddbuild.io/images/mirror/alpine:latest\n  tags:\n    - arch:amd64\n  script:\n    - echo "no system tests configured"\n' > generated-pipeline-chunk-${i}.yml
+        done
+        touch build_params.env
+        exit 0
+      fi
       scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
@@ -129,7 +143,7 @@ build_test_pipeline:
   interruptible: true
   stage: $[[ inputs.stage ]]
   rules:
-    - if: '"$[[ inputs.libraries ]],$LIBRARIES" =~ /\w/'
+    - if: $[[ inputs.condition ]]
     - when: never
   needs:
     - job: build_test_pipeline
