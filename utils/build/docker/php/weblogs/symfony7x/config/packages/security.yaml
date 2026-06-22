@@ -1,0 +1,19 @@
+security:
+    password_hashers:
+        App\Security\User:
+            algorithm: bcrypt
+
+    providers:
+        app_user_provider:
+            id: App\Security\UserProvider
+
+    firewalls:
+        main:
+            pattern: ^/
+            lazy: true
+            provider: app_user_provider
+            stateless: false
+            custom_authenticators:
+                - App\Security\AppAuthenticator
+
+    access_control: []
