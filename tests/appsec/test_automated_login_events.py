@@ -1155,10 +1155,10 @@ libs_without_user_exist = ["nodejs", "java"]
 libs_without_user_id_on_failure = ["nodejs", "java"]
 
 # Weblog variants that omit appsec.events.users.login.failure.usr.exists (library-wide skips use libs_without_user_exist).
-weblogs_without_user_exist = ["laravel11x"]
+weblogs_without_user_exist = ["laravel11x", "symfony7x"]
 
 # Weblog variants that omit usr.id on login failure (library-wide: libs_without_user_id_on_failure).
-weblogs_without_user_id_on_failure = ["laravel11x"]
+weblogs_without_user_id_on_failure = ["laravel11x", "symfony7x"]
 
 
 def login_failure_includes_usr_exists_meta() -> bool:
