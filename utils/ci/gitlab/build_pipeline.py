@@ -143,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
     parser.add_argument("--output-dir", required=True, help="Output directory for generated-pipeline-chunk-N.yml files")
     parser.add_argument("--chunks", type=int, default=3, help="Number of pipeline chunks (default: 3)")
-    parser.add_argument("--docker-auth", default="false", help="Wether to authenticate calls to docker hub")
+    parser.add_argument("--docker-auth", default="false", help="Whether to authenticate calls to docker hub")
     parser.add_argument(
         "--binaries-artifact-path",
         default="",
@@ -152,8 +152,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--binaries-artifacts",
         default="",
-        help="Comma-separated list of upstream jobs to download artifacts from in the child pipeline "
-        "(falls back to the single binaries_artifact from params if empty)",
+        help="Semicolon-separated list of upstream jobs to download artifacts from in the child pipeline "
+        "(';' not ',' because job names may contain commas, e.g. parallel matrix names; "
+        "falls back to the single binaries_artifact from params if empty)",
     )
 
     args = parser.parse_args(argv)

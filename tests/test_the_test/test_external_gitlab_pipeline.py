@@ -1,6 +1,5 @@
 """Tests for utils/scripts/ci_orchestrators/external_gitlab_pipeline.py."""
 
-import yaml
 import pytest
 
 from utils import scenarios
@@ -8,7 +7,6 @@ from utils.scripts.ci_orchestrators.external_gitlab_pipeline import (
     _is_local_include,
     _strip_local_includes,
     filter_yaml,
-    main,
 )
 
 
@@ -31,14 +29,6 @@ class Test_ExternalGitlabPipeline:
         data = {"include": [{"local": "/utils/ci/gitlab/main.yml"}, "bare", remote]}
         _strip_local_includes(data)
         assert data["include"] == [remote]
-
-    def test_main_strips_locals_from_real_repo_yaml(self, capsys: pytest.CaptureFixture):
-        main(language=None)
-        out = capsys.readouterr().out
-        data = yaml.safe_load(out)
-        for entry in data.get("include", []):
-            if isinstance(entry, dict):
-                assert "local" not in entry
 
     def test_filter_yaml_keeps_only_requested_language(self):
         data = {

@@ -527,7 +527,7 @@ class ImageInfo:
         self.env: dict[str, str] | None = None
         self.labels: dict[str, str] = {}
         # When the image mirror is enabled (USE_IMAGE_MIRROR), pull from the
-        # mirror; keep the original ref to fall back to if it isn't mirrored.
+        # mirror; keep the original ref for diagnostics if the mirror pull fails.
         self.original_name = image_name
         self.name = mirror_image(image_name)
         self.local_image_only = local_image_only
@@ -561,13 +561,17 @@ class ImageInfo:
             try:
                 self._image = self._pull_with_retries()
             except (docker.errors.APIError, requests.exceptions.ConnectionError):
-                # If the mirrored ref can't be pulled (e.g. not mirrored yet),
-                # fall back to the original registry.
-                if self.name == self.original_name:
-                    raise
-                logger.stdout(f"Could not pull mirrored image {self.name}, falling back to {self.original_name}")
-                self.name = self.original_name
-                self._image = self._pull_with_retries()
+                if self.name != self.original_name:
+                    # The mirror rewrote this ref but the mirror copy could not be
+                    # pulled. Don't silently fall back to the original registry:
+                    # that would mask an incomplete mirror and could pull a
+                    # different digest than the one that was mirrored.
+                    logger.stdout(
+                        f"Could not pull mirrored image {self.name} (mirror of {self.original_name}). "
+                        "The mirror may be incomplete — regenerate it with "
+                        "utils/scripts/update_mirror_images.py and check the mirror_images CI job."
+                    )
+                raise
 
         self._init_from_attrs(self._image.attrs)
 

@@ -347,6 +347,10 @@ class Inputs:
                 self.scenario_map = json.load(f)
 
 
+def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
+    return {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
+
+
 def stringify_outputs(outputs: dict[str, Any]) -> list[str]:
     ret = []
     for name, value in outputs.items():
@@ -364,10 +368,6 @@ def print_outputs(strings_out: list[str], inputs: Inputs) -> None:
             print_ci_outputs(strings_out, f)
     else:
         print_ci_outputs(strings_out, sys.stdout)
-
-
-def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
-    return {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
 
 
 def process(inputs: Inputs) -> list[str]:
@@ -407,7 +407,7 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
-        libraries = " ".join(sorted(lib for lib in library_processor.selected if lib not in ("rust",)))
+        libraries = " ".join(sorted(library_processor.selected))
         if libraries:
             outputs["libraries"] = libraries
         outputs |= scenario_processor.get_outputs()

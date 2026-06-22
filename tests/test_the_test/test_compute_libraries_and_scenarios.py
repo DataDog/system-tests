@@ -512,7 +512,7 @@ class Test_GitLabMode:
         inputs = build_inputs()
         assert inputs.ref == ""
 
-    def test_libraries_output_sorted_no_rust(self, monkeypatch: pytest.MonkeyPatch):
+    def test_libraries_output_sorted(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
         monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
@@ -523,5 +523,4 @@ class Test_GitLabMode:
         assert libs_line is not None, "GitLab mode must emit 'libraries=' output"
         libs = json.loads(libs_line.split("=", 1)[1])
         parts = libs.split()
-        assert "rust" not in parts
         assert parts == sorted(parts)

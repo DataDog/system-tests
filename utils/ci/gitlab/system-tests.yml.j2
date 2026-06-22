@@ -117,7 +117,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
     {% endif %}
     - section_end "weblog_setup"
     - section_start "scenario_run" "Running scenario"
-    {% if scenario in ("INTEGRATION_FRAMEWORKS") %}
+    {% if scenario == "INTEGRATION_FRAMEWORKS" %}
     - ./run.sh {{scenario}} -L {{library}} --weblog {{variant}}
     {% elif scenario in ("GO_PROXIES_DEFAULT", "GO_PROXIES_APPSEC_BLOCKING") %}
     - ./run.sh {{scenario}} --weblog {{variant}}
