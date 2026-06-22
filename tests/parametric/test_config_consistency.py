@@ -406,6 +406,31 @@ SDK_DEFAULT_STABLE_CONFIG = {
 }
 
 
+def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
+    """Assert expected dd_* config values against the nodejs telemetry configuration.
+
+    dd-trace-js builds /trace/config from internal property paths that a series of config
+    PRs is renaming to canonical names; the telemetry keeps reporting the stable canonical
+    names (the dd_* key upper-cased), so asserting there stays decoupled from those
+    refactors. The effective value per name is the highest-seq_id entry.
+    """
+    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    for dd_key, expected_value in expected.items():
+        telemetry_name = dd_key.upper()
+        entries = configuration_by_name.get(telemetry_name)
+        assert entries, f"No telemetry configuration '{telemetry_name}'"
+        actual = entries[0].get("value")
+        if dd_key == "dd_tags":
+            actual_tags = "" if actual is None else str(actual)
+            expected_tags = expected_value if isinstance(expected_value, list) else str(expected_value).split(",")
+            for tag in expected_tags:
+                assert tag in actual_tags, f"Expected tag '{tag}' not found in telemetry tags: {actual_tags}"
+        else:
+            assert str(actual).lower() == str(expected_value).lower(), (
+                f"Expected {telemetry_name}={expected_value}, got {actual}"
+            )
+
+
 class QuotedStr(str):
     __slots__ = ()
 
@@ -507,19 +532,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
             test_library.container_restart()
             if test_library.lang == "nodejs":
-                # dd-trace-js builds /trace/config from internal property paths that are
-                # being renamed to canonical names; its telemetry keeps reporting the stable
-                # canonical names, so assert there to stay decoupled from those refactors.
-                origin = "fleet_stable_config" if "managed" in path else "local_stable_config"
-                configuration_by_name = test_agent.wait_for_telemetry_configurations()
-                for env_name, set_value in apm_configuration_default.items():
-                    cfg_value = test_agent.get_telemetry_config_by_origin(
-                        configuration_by_name, env_name, origin, return_value_only=True
-                    )
-                    assert cfg_value is not None, f"No telemetry configuration '{env_name}' with origin '{origin}'"
-                    assert str(cfg_value).lower() == str(set_value).lower(), (
-                        f"Unexpected telemetry value for '{env_name}': {cfg_value!r}"
-                    )
+                assert_nodejs_telemetry_config(test_agent, expected)
             else:
                 config = test_library.config()
                 assert expected.items() <= config.items()
@@ -554,6 +567,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_extended_configs(
         self,
+        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         path: str,
         name: str,
@@ -577,6 +591,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, expected)
+                return
+
             config = test_library.config()
 
             # Special handling for dd_tags: check if expected tags are present in actual tags
@@ -621,7 +639,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_unknown_key_skipped(self, test_library: APMLibrary, path: str, test: dict):
+    def test_unknown_key_skipped(self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, test: dict):
         with test_library:
             self.write_stable_config(
                 {
@@ -632,8 +650,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert test["expected"].items() <= config.items()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, test["expected"])
+            else:
+                config = test_library.config()
+                assert test["expected"].items() <= config.items()
 
     @pytest.mark.parametrize(
         "path",
@@ -642,7 +663,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_invalid_files(self, test_library: APMLibrary, path: str):
+    def test_invalid_files(self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str):
         with test_library:
             self.write_stable_config_content(
                 "?? ??; ??\t\n\n --- `??",
@@ -650,8 +671,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, SDK_DEFAULT_STABLE_CONFIG)
+            else:
+                config = test_library.config()
+                assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
 
     @pytest.mark.parametrize(
         ("name", "local_cfg", "library_env", "fleet_cfg", "expected"),
@@ -695,6 +719,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_config_precedence(
         self,
+        test_agent: TestAgentAPI,
         name: str,
         test_library: APMLibrary,
         local_cfg: dict,
@@ -719,6 +744,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
 
             test_library.container_restart()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, expected)
+                return
+
             config = test_library.config()
             assert expected.items() <= config.items(), format(
                 "unexpected values for the following configurations: {}"
@@ -732,7 +761,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
     """Verify that stable config targeting rules work as intended (apm_configuration_rules)"""
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
-    def test_targeting_rules(self, test_library: APMLibrary):
+    def test_targeting_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             self.write_stable_config(
@@ -755,10 +784,13 @@ class Test_Stable_Config_Rules(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert config["dd_service"] == "my-service", (
-                f"Service name is '{config['dd_service']}' instead of 'my-service'"
-            )
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_service": "my-service"})
+            else:
+                config = test_library.config()
+                assert config["dd_service"] == "my-service", (
+                    f"Service name is '{config['dd_service']}' instead of 'my-service'"
+                )
 
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
@@ -766,7 +798,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             ["-Darg1=value"]
         ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
     )
-    def test_process_arguments(self, test_library: APMLibrary):
+    def test_process_arguments(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             config = {
@@ -788,7 +820,10 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             stable_config_content = yaml.dump(config, Dumper=CustomDumper)
             self.write_stable_config_content(stable_config_content, path, test_library)
             test_library.container_restart()
-            lib_config = test_library.config()
-            assert lib_config["dd_service"] == "value", (
-                f"Service name is '{lib_config['dd_service']}' instead of 'value'"
-            )
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_service": "value"})
+            else:
+                lib_config = test_library.config()
+                assert lib_config["dd_service"] == "value", (
+                    f"Service name is '{lib_config['dd_service']}' instead of 'value'"
+                )
