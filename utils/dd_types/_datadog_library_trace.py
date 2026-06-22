@@ -193,11 +193,24 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
         "version": "version",
     }
 
+    # span_kind is stored as an integer in v1; map it to the lowercase string expected by tests.
+    _SPAN_KIND_INT_TO_STR: dict[int, str] = {
+        0: "unspecified",
+        1: "internal",
+        2: "server",
+        3: "client",
+        4: "producer",
+        5: "consumer",
+    }
+
     def _meta_dict(self) -> dict[str, Any]:
         result = dict(self.raw_span.get("attributes", {}))
         for v1_key, meta_key in self._V1_TOP_LEVEL_TO_META.items():
             if v1_key in self.raw_span:
-                result[meta_key] = self.raw_span[v1_key]
+                value = self.raw_span[v1_key]
+                if v1_key == "span_kind" and isinstance(value, int):
+                    value = self._SPAN_KIND_INT_TO_STR.get(value, str(value))
+                result[meta_key] = value
         return result
 
     def __contains__(self, key: str) -> bool:
