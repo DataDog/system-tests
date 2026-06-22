@@ -489,6 +489,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_default_config(
         self,
+        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         path: str,
         name: str,
@@ -505,8 +506,23 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert expected.items() <= config.items()
+            if test_library.lang == "nodejs":
+                # dd-trace-js builds /trace/config from internal property paths that are
+                # being renamed to canonical names; its telemetry keeps reporting the stable
+                # canonical names, so assert there to stay decoupled from those refactors.
+                origin = "fleet_stable_config" if "managed" in path else "local_stable_config"
+                configuration_by_name = test_agent.wait_for_telemetry_configurations()
+                for env_name, set_value in apm_configuration_default.items():
+                    cfg_value = test_agent.get_telemetry_config_by_origin(
+                        configuration_by_name, env_name, origin, return_value_only=True
+                    )
+                    assert cfg_value is not None, f"No telemetry configuration '{env_name}' with origin '{origin}'"
+                    assert str(cfg_value).lower() == str(set_value).lower(), (
+                        f"Unexpected telemetry value for '{env_name}': {cfg_value!r}"
+                    )
+            else:
+                config = test_library.config()
+                assert expected.items() <= config.items()
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
