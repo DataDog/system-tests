@@ -63,7 +63,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ setup ############
     def _setup(self, request_path: str, exception_message: str):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first
@@ -230,6 +230,13 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
                 return value
+            elif key == "staticFields" and isinstance(value, dict):
+                scrubbed_static_fields = {
+                    field_name: __scrub(field_value)
+                    for field_name, field_value in value.items()
+                    if field_name != "Empty"
+                }
+                return scrubbed_static_fields or None
             elif key == "function":
                 assert isinstance(value, str)
                 if "lambda_" in value:
@@ -318,6 +325,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self._write_approval(snapshots, test_name, "snapshots_expected")
 
             expected_snapshots = self._read_approval(test_name, "snapshots_expected")
+            if self.get_tracer()["language"] == "dotnet" and not _SKIP_SCRUB:
+                expected_snapshots = [__scrub_dict(snapshot) for snapshot in expected_snapshots]  # type: ignore[assignment]
             if self.get_tracer()["language"] == "php":
                 expected_snapshots = __normalize_php_fields(expected_snapshots)  # type: ignore[assignment]
             assert expected_snapshots == snapshots
@@ -604,7 +613,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ Rock Paper Scissors ############
     def setup_exception_replay_rockpaperscissors(self):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first
