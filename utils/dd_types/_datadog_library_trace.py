@@ -188,7 +188,9 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
     # Map them back into meta so existing assertions using span["meta"]["x"] still work.
     _V1_TOP_LEVEL_TO_META: dict[str, str] = {
         "component": "component",
+        "env": "env",
         "span_kind": "span.kind",
+        "version": "version",
     }
 
     def _meta_dict(self) -> dict[str, Any]:
