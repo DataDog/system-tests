@@ -7,6 +7,7 @@ manifest:
       weblog: [rails61, uds-rails, rails80, rails72, rails52]
     - declaration: missing_feature (APPSEC-62218)
       excluded_weblog: [rails61, uds-rails, rails80, rails72, rails52]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -2394,7 +2395,7 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v1.13.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.13.0
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
@@ -2699,9 +2700,13 @@ manifest:
         sinatra14: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
         rails80: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
         uds-sinatra: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
-  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.36.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.36.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel:
+    - weblog_declaration:
+        "*": incomplete_test_app (OTel endpoint not implemented; only rails72 has opentelemetry gem)
+        rails72: v2.36.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.36.0-dev
   tests/test_library_conf.py::Test_HeaderTags: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.13.0
