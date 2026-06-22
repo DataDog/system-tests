@@ -13,7 +13,7 @@ from utils import (
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary, StableConfigWriter
+from .conftest import APMLibrary, StableConfigWriter, assert_nodejs_telemetry_config, nodejs_telemetry_value
 
 parametrize = pytest.mark.parametrize
 
@@ -423,43 +423,11 @@ SDK_DEFAULT_STABLE_CONFIG = {
 }
 
 
-def nodejs_telemetry_value(test_agent: TestAgentAPI, dd_key: str):
-    """Return the effective nodejs telemetry value for a dd_* config key.
-
-    dd-trace-js builds /trace/config from internal property paths that a series of config
-    PRs is renaming to canonical names; the telemetry keeps reporting the stable canonical
-    names (the dd_* key upper-cased), so asserting there stays decoupled from those
-    refactors. The effective value is the highest-seq_id entry (already sorted first).
-    """
-    configuration_by_name = test_agent.wait_for_telemetry_configurations()
-    entries = configuration_by_name.get(dd_key.upper())
-    assert entries, f"No telemetry configuration '{dd_key.upper()}'"
-    return entries[0].get("value")
-
-
 def _trace_agent_url(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:
     """Resolve dd_trace_agent_url from telemetry (nodejs) or /trace/config (other languages)."""
     if test_library.lang == "nodejs":
-        return nodejs_telemetry_value(test_agent, "dd_trace_agent_url")
+        return str(nodejs_telemetry_value(test_agent, "dd_trace_agent_url"))
     return test_library.config()["dd_trace_agent_url"]
-
-
-def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
-    """Assert expected dd_* config values against the nodejs telemetry configuration."""
-    configuration_by_name = test_agent.wait_for_telemetry_configurations()
-    for dd_key, expected_value in expected.items():
-        entries = configuration_by_name.get(dd_key.upper())
-        assert entries, f"No telemetry configuration '{dd_key.upper()}'"
-        actual = entries[0].get("value")
-        if dd_key == "dd_tags":
-            actual_tags = "" if actual is None else str(actual)
-            expected_tags = expected_value if isinstance(expected_value, list) else str(expected_value).split(",")
-            for tag in expected_tags:
-                assert tag in actual_tags, f"Expected tag '{tag}' not found in telemetry tags: {actual_tags}"
-        else:
-            assert str(actual).lower() == str(expected_value).lower(), (
-                f"Expected {dd_key.upper()}={expected_value}, got {actual}"
-            )
 
 
 class QuotedStr(str):
