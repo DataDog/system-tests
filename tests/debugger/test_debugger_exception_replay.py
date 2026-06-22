@@ -231,6 +231,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 value["value"] = "<scrubbed>"
                 return value
             elif key == "staticFields" and isinstance(value, dict):
+
                 def is_empty_result_static_field(field_name: str, field_value: object) -> bool:
                     return (
                         field_name == "Empty"
