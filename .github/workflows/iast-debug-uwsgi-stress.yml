@@ -8,12 +8,12 @@ on:
     inputs:
       dd_trace_py_ref:
         description: "dd-trace-py branch / tag / SHA to clone into binaries/dd-trace-py and compile"
-        default: "florentin.labelle/iast-unvalidated-redirect-diag"
+        default: "florentin.labelle/APPSEC-62470/prevent-tainting-in-appsec"
         required: false
         type: string
 
 env:
-  DD_TRACE_PY_REF: ${{ github.event.inputs.dd_trace_py_ref || 'florentin.labelle/iast-unvalidated-redirect-diag' }}
+  DD_TRACE_PY_REF: ${{ github.event.inputs.dd_trace_py_ref || 'florentin.labelle/APPSEC-62470/prevent-tainting-in-appsec' }}
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
