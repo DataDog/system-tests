@@ -53,7 +53,7 @@ try {
         foreach (explode("\r\n", $raw) as $line) {
             if (strpos($line, ':') !== false) {
                 [$k, $v] = explode(':', $line, 2);
-                $request_headers[trim($k)] = trim($v);
+                $request_headers[strtolower(trim($k))] = trim($v);
             }
         }
     }
