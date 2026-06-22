@@ -367,6 +367,8 @@ def _uncompress_spans_values(spans: list, strings: list[str]) -> list:
             if k in _span_key_strings and isinstance(value, int):
                 value = strings[v]
             uncompressed_span[k] = value
+            if k == "component" and value:
+                uncompressed_span.setdefault("attributes", {})[k] = value
         uncompressed_spans.append(uncompressed_span)
     return uncompressed_spans
 
