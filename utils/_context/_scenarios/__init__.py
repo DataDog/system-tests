@@ -12,6 +12,7 @@ from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
     IntegrationsScenario,
+    OtelSemanticsDbScenario,
     AWSIntegrationsScenario,
 )
 from .open_telemetry import OpenTelemetryScenario
@@ -254,6 +255,8 @@ class _Scenarios:
         "Datadog agent protocol cannot represent",
         scenario_groups=[scenario_groups.open_telemetry],
     )
+
+    otel_semantics_db = OtelSemanticsDbScenario()
 
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(

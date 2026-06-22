@@ -697,6 +697,7 @@ manifest:
   tests/integrations/test_mongo.py::Test_Mongo:
     - declaration: missing_feature (mongodb PHP extension not available in apache-mod containers)
       excluded_weblog: [php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
+  tests/integrations/test_otel_db_semantics.py::Test_PostgresOtelSemantics: missing_feature (DB OTel semantics not implemented; DD_TRACE_OTEL_SEMANTICS_ENABLED covers HTTP only)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - declaration: missing_feature (OTel SDK requires PHP >= 8.1)
       excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
