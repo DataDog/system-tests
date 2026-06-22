@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -1162,6 +1163,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v3.10.0
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
   tests/test_library_conf.py::Test_HeaderTags: v2.27.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v2.1.0

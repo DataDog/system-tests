@@ -13,6 +13,7 @@ manifest:
       weblog: [flask-poc, uds-flask, uwsgi-poc]
     - declaration: missing_feature (APPSEC-62216)
       excluded_weblog: [flask-poc, uds-flask, uwsgi-poc]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -2247,6 +2248,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.20.0
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
   tests/test_library_conf.py::Test_HeaderTags: v0.53
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown

@@ -358,6 +358,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         "_dd.tags.process",  # varies by PHP SAPI (apache vs fpm)
                         "_dd.p.dm",  # trace sampling decision, varies by tracer version
                         "_dd.p.ksr",  # keep sample rate, not present in all versions
+                        "http.response.headers.content-length",  # not emitted by all tracer versions
                     }:
                         keys_to_remove.append(meta_key)
                     elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
