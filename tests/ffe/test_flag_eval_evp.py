@@ -17,11 +17,11 @@ from utils import weblog
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluations"
+EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
-EVP_DEGRADATION_OVERFLOW_EVALS = 50
+EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
