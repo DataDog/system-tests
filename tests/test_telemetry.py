@@ -596,8 +596,10 @@ class Test_Telemetry:
 
         Stable Service Instance Identifier RFC: each app instance has one root runtime_id.
         DD-Session-ID (instance id) must equal runtime_id. When only DD-Session-ID is sent
-        (no DD-Root-Session-ID), the process is treated as the root. This test confirms
-        at least two different runtimes are captured (parent and child from spawn_child).
+        (no DD-Root-Session-ID), the process is treated as the root. All processes spawned
+        from a single app instance must share one root session ID. This handles both the
+        multi-runtime case (per-process tracers, e.g. parent and child from spawn_child)
+        and the single-runtime case (workers sharing one tracer, e.g. nginx).
         """
         # Use lifecycle events only; metrics and log events from lib-datadog can contain
         # runtime/session_ids that do not map to tracer-generated telemetry.
