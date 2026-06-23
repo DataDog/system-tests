@@ -2,7 +2,7 @@ import pytest
 from utils import context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
-from .conftest import APMLibrary, assert_nodejs_telemetry_config, nodejs_telemetry_value
+from .conftest import APMLibrary, assert_nodejs_telemetry_config, nodejs_startup_config, nodejs_telemetry_value
 
 
 @scenarios.parametric
@@ -265,13 +265,16 @@ class Test_Otel_Env_Vars:
             resp = t.config()
         assert resp["dd_trace_enabled"] == "false"
 
-    @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "debug", "DD_TRACE_OTEL_ENABLED": "true"}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"OTEL_LOG_LEVEL": "debug", "DD_TRACE_OTEL_ENABLED": "true", "DD_TRACE_STARTUP_LOGS": "true"}],
+    )
     def test_otel_log_level_to_debug_mapping(self, test_library: APMLibrary):
         with test_library as t:
             if t.lang == "nodejs":
-                # OTEL_LOG_LEVEL=debug activates debug logging; the tracer's startup config
-                # line reports the resulting debug state in the container output.
-                assert '"debug":true' in t.get_logs()
+                # OTEL_LOG_LEVEL=debug activates debug logging without a DD_TRACE_DEBUG telemetry
+                # entry; the tracer's published startup-config line reports the resulting state.
+                assert nodejs_startup_config(t)["debug"] is True
                 return
             resp = t.config()
         assert resp["dd_trace_debug"] == "true"

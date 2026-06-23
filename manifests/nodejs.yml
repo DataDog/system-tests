@@ -2022,7 +2022,6 @@ manifest:
     - declaration: missing_feature (Implemented in 5.38.0)
       component_version: <5.38.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: *ref_5_29_0
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: *ref_5_25_0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: *ref_5_41_0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: *ref_5_25_0

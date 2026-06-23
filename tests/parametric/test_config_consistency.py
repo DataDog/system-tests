@@ -13,7 +13,7 @@ from utils import (
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary, StableConfigWriter, assert_nodejs_telemetry_config, nodejs_telemetry_value
+from .conftest import APMLibrary, StableConfigWriter, assert_nodejs_telemetry_config, nodejs_startup_config
 
 parametrize = pytest.mark.parametrize
 
@@ -136,15 +136,16 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
                 "DD_AGENT_HOST": "localhost",
                 "DD_TRACE_AGENT_PORT": "8126",
             }
         ],
     )
-    def test_dd_trace_agent_unix_url_nonexistent(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_trace_agent_unix_url_nonexistent(self, test_library: APMLibrary):
         with test_library as t:
-            agent_url = _trace_agent_url(test_agent, t)
+            agent_url = _trace_agent_url(t)
 
         url = urlparse(agent_url)
         assert "unix" in url.scheme
@@ -155,15 +156,16 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "http://random-host:9999/",
                 "DD_AGENT_HOST": "localhost",
                 "DD_TRACE_AGENT_PORT": "8126",
             }
         ],
     )
-    def test_dd_trace_agent_http_url_nonexistent(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_trace_agent_http_url_nonexistent(self, test_library: APMLibrary):
         with test_library as t:
-            agent_url = _trace_agent_url(test_agent, t)
+            agent_url = _trace_agent_url(t)
 
         url = urlparse(agent_url)
         assert url.scheme == "http"
@@ -174,15 +176,16 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "http://[::1]:5000",
                 "DD_AGENT_HOST": "localhost",
                 "DD_TRACE_AGENT_PORT": "8126",
             }
         ],
     )
-    def test_dd_trace_agent_http_url_ipv6(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_trace_agent_http_url_ipv6(self, test_library: APMLibrary):
         with test_library as t:
-            agent_url = _trace_agent_url(test_agent, t)
+            agent_url = _trace_agent_url(t)
 
         url = urlparse(agent_url)
         assert url.scheme == "http"
@@ -193,15 +196,16 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "",  # Empty string passed to make sure conftest.py does not set trace agent url
                 "DD_AGENT_HOST": "[::1]",
                 "DD_TRACE_AGENT_PORT": "5000",
             }
         ],
     )
-    def test_dd_agent_host_ipv6(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
         with test_library as t:
-            agent_url = _trace_agent_url(test_agent, t)
+            agent_url = _trace_agent_url(t)
 
         url = urlparse(agent_url)
         assert url.scheme == "http"
@@ -423,10 +427,14 @@ SDK_DEFAULT_STABLE_CONFIG = {
 }
 
 
-def _trace_agent_url(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:
-    """Resolve dd_trace_agent_url from telemetry (nodejs) or /trace/config (other languages)."""
+def _trace_agent_url(test_library: APMLibrary) -> str:
+    """Resolve dd_trace_agent_url from the tracer's startup log (nodejs) or /trace/config (others).
+
+    These tests point the tracer at an unreachable agent, so telemetry never arrives; the
+    published startup-config line is the non-internal source for the resolved URL.
+    """
     if test_library.lang == "nodejs":
-        return str(nodejs_telemetry_value(test_agent, "dd_trace_agent_url"))
+        return str(nodejs_startup_config(test_library)["agent_url"])
     return test_library.config()["dd_trace_agent_url"] or ""
 
 
