@@ -250,7 +250,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 assert isinstance(value, str)
                 if "lambda_" in value:
                     value = re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", value)
-                if re.search(r"<[^>]+>", value):
+                if re.search(r"<[^>]+>", value) and not value.endswith("<scrubbed>"):
                     value = re.sub(r"(.*>)(.*)", r"\1<scrubbed>", value)
                 return value
             elif key in ["stacktrace", "stack"]:
