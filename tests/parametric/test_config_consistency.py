@@ -427,7 +427,7 @@ def _trace_agent_url(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:
     """Resolve dd_trace_agent_url from telemetry (nodejs) or /trace/config (other languages)."""
     if test_library.lang == "nodejs":
         return str(nodejs_telemetry_value(test_agent, "dd_trace_agent_url"))
-    return test_library.config()["dd_trace_agent_url"]
+    return test_library.config()["dd_trace_agent_url"] or ""
 
 
 class QuotedStr(str):

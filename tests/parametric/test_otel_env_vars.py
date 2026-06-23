@@ -63,12 +63,12 @@ class Test_Otel_Env_Vars:
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.5
         assert resp["dd_trace_enabled"] == "true"
-        tags = resp["dd_tags"]
-        assert isinstance(tags, (str, list))
-        assert "foo:bar" in tags
-        assert "baz:qux" in tags
-        assert "foo:otel_bar" not in tags
-        assert "baz:otel_qux" not in tags
+        resp_tags: str | list | None = resp["dd_tags"]
+        assert isinstance(resp_tags, (str, list))
+        assert "foo:bar" in resp_tags
+        assert "baz:qux" in resp_tags
+        assert "foo:otel_bar" not in resp_tags
+        assert "baz:otel_qux" not in resp_tags
         assert resp["dd_trace_debug"] == "false"
 
         if context.library != "java":
