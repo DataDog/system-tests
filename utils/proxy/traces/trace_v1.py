@@ -437,7 +437,7 @@ def deserialize_v1_trace(content: bytes) -> dict:
     data: dict = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
     if not isinstance(data, dict):
-        raise ValueError(
+        raise TypeError(
             f"v1.0 trace payload must be a msgpack map, got {type(data).__name__}. "
             "The tracer may be sending a v0.4-style array payload to the v1.0 endpoint."
         )
