@@ -330,7 +330,13 @@ def _load_build_modes(folder: str) -> dict[str, BuildMode]:
 
 
 def _get_endtoend_weblogs(
-    library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
+    library: str,
+    weblogs_filter: list[str],
+    unique_id: str,
+    ci_environment: str,
+    binaries_artifact: str,
+    *,
+    force_prebuild: bool = False,
 ) -> list[Weblog]:
     result: list[Weblog] = []
 
@@ -362,6 +368,8 @@ def _get_endtoend_weblogs(
 
         for name in names:
             build_mode: BuildMode = build_modes.get(name, "prebuild")
+            if force_prebuild and build_mode == "local":
+                build_mode = "prebuild"
             artifact_name = (
                 f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
                 if build_mode == "prebuild"
@@ -399,6 +407,8 @@ def get_endtoend_definitions(
     maximum_parallel_jobs: int,
     unique_id: str,
     binaries_artifact: str,
+    *,
+    force_prebuild: bool = False,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -408,7 +418,12 @@ def get_endtoend_definitions(
 
     # get the list of end-to-end weblogs for the given library
     weblogs: list[Weblog] = _get_endtoend_weblogs(
-        library, weblogs_filter, ci_environment=ci_environment, unique_id=unique_id, binaries_artifact=binaries_artifact
+        library,
+        weblogs_filter,
+        ci_environment=ci_environment,
+        unique_id=unique_id,
+        binaries_artifact=binaries_artifact,
+        force_prebuild=force_prebuild,
     )
 
     # check that jobs can be splitted
