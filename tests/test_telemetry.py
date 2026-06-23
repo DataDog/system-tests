@@ -585,11 +585,11 @@ class Test_Telemetry:
 
     def setup_session_id_headers_across_forks(self):
         """Trigger spawn_child endpoint to create a fork tree for session ID header validation."""
-        weblog.get("/spawn_child", params={"sleep": 2, "crash": False, "fork": True})
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "true"})
 
     def setup_session_id_headers_across_spawned(self):
         """Trigger spawn_child endpoint with exec (fork=false) for session ID header validation."""
-        weblog.get("/spawn_child", params={"sleep": 2, "crash": False, "fork": False})
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "false"})
 
     def _validate_session_id_headers_across_processes(self) -> None:
         """Validate DD-Session-ID, DD-Root-Session-ID, DD-Parent-Session-ID in telemetry.
@@ -600,6 +600,12 @@ class Test_Telemetry:
         single root session ID, whether they run per-process tracers (e.g. parent/child
         from spawn_child) or share one tracer (e.g. nginx workers).
         """
+        # Fail loudly if the endpoint is missing/broken instead of passing on unrelated
+        # startup/shutdown events: the child process must have been spawned successfully.
+        assert self.spawn_child_response.status_code == 200, (
+            f"/spawn_child did not succeed: status {self.spawn_child_response.status_code}"
+        )
+
         # Use lifecycle events only; metrics and log events from lib-datadog can contain
         # runtime/session_ids that do not map to tracer-generated telemetry.
         telemetry_data = list(interfaces.library.get_lifecycle_events())

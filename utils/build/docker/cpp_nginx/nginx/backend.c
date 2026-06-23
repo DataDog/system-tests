@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <signal.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -326,8 +327,8 @@ static enum MHD_Result answer_to_connection(void *cls, struct MHD_Connection *co
         }
 
         int sleep_secs = atoi(sleep_str);
-        bool do_crash = strcmp(crash_str, "true") == 0;
-        bool use_fork = strcmp(fork_str, "true") == 0;
+        bool do_crash = strcasecmp(crash_str, "true") == 0;
+        bool use_fork = strcasecmp(fork_str, "true") == 0;
 
         if (use_fork) {
             pid_t pid = fork();
