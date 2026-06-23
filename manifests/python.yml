@@ -13,6 +13,7 @@ manifest:
       weblog: [flask-poc, uds-flask, uwsgi-poc]
     - declaration: missing_feature (APPSEC-62216)
       excluded_weblog: [flask-poc, uds-flask, uwsgi-poc]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -585,6 +586,9 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v4.5.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -2247,6 +2251,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.20.0
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
   tests/test_library_conf.py::Test_HeaderTags: v0.53
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown

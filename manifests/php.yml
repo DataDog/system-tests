@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -226,6 +227,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
@@ -357,7 +361,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_user_failure_basic: missing_feature (Basic auth not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v1.8.0
-  tests/appsec/test_automated_payment_events.py: missing_feature
+  tests/appsec/test_automated_payment_events.py: v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
@@ -676,7 +680,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: v1.21.0
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
@@ -1043,6 +1047,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_single_tracecontext: v1.17.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_HeaderTags: v0.68.2
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.74.0
