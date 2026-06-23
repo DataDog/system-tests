@@ -18,18 +18,13 @@ foreach ($_SERVER as $key => $value) {
     }
 }
 
-// Extract upstream context via OTel propagator. DDTrace bridges this call into
-// consume_distributed_tracing_headers, so DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT
-// applies (restart: fresh trace + span link; ignore: drop all context).
+// In PHP, DDTrace auto-instrumentation processes incoming headers via request_init_hook
+// before userland code runs, so the auto-generated web.request span is already the
+// restarted root (with span links) when DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT=restart.
+// We activate the OTel-extracted context to ensure incoming baggage (e.g. key1=value1)
+// is present in the active OTel context so DDTrace propagates it in the curl call.
 $context = OpenTelemetry\API\Globals::propagator()->extract($carrier);
-
-$tracer = OpenTelemetry\API\Globals::tracerProvider()->getTracer('dd-trace');
-$span = $tracer
-    ->spanBuilder('otel_extract_distant_call')
-    ->setSpanKind(OpenTelemetry\API\Trace\SpanKind::KIND_SERVER)
-    ->setParent($context)
-    ->startSpan();
-$scope = $span->activate();
+$scope = $context->activate();
 
 try {
     $ch = curl_init($url);
@@ -67,6 +62,5 @@ try {
         'response_headers' => $response_headers,
     ]);
 } finally {
-    $span->end();
     $scope->detach();
 }
