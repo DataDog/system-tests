@@ -11,7 +11,7 @@ import time
 import types
 import xml.etree.ElementTree as ET
 from collections.abc import Generator, Sequence
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 import pytest
 from _pytest.junitxml import xml_key
@@ -273,7 +273,13 @@ def _collect_item_metadata(item: pytest.Item):
     if declaration is not None:
         logger.debug(f"{item.nodeid} => {declaration} => skipped")
 
-    metadata = {
+    class Metadata(TypedDict):
+        details: str | None
+        testDeclaration: str | None
+        features: list[str]
+        owners: list[str]
+
+    metadata: Metadata = {
         "details": declaration if details is None else f"{declaration} ({details})",
         "testDeclaration": declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
