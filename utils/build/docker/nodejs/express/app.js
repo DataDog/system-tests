@@ -664,12 +664,20 @@ app.get('/add_event', (req, res) => {
   res.status(200).json({ message: 'Event added' })
 })
 
-app.all('/external_request', (req, res) => {
+const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
+  'invalid_content_type',
+  'content_length_missing',
+  'content_length_too_big'
+])
+
+function forwardExternalRequest (req, res, downstreamPath) {
   const status = req.query.status || '200'
   const urlExtra = req.query.url_extra || ''
 
   const headers = {}
+  const queryParamsExcludedFromHeaders = new Set(['status', 'url_extra'])
   for (const [key, value] of Object.entries(req.query)) {
+    if (queryParamsExcludedFromHeaders.has(key)) continue
     headers[key] = String(value)
   }
 
@@ -679,10 +687,12 @@ app.all('/external_request', (req, res) => {
     headers['Content-Type'] = req.headers['content-type'] || 'application/json'
   }
 
+  const path = downstreamPath || `/mirror/${status}${urlExtra}`
+
   const options = {
     hostname: 'internal_server',
     port: 8089,
-    path: `/mirror/${status}${urlExtra}`,
+    path,
     method: req.method,
     headers
   }
@@ -703,12 +713,25 @@ app.all('/external_request', (req, res) => {
     })
   })
 
-  // Write body if present
   if (body) {
     request.write(body)
   }
 
   request.end()
+}
+
+app.all('/external_request', (req, res) => {
+  forwardExternalRequest(req, res)
+})
+
+app.all('/external_request/body_limit/:failureReason', (req, res) => {
+  const { failureReason } = req.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    res.status(404).json({ error: 'unknown failure reason' })
+    return
+  }
+
+  forwardExternalRequest(req, res, `/downstream_response/${failureReason}`)
 })
 
 app.get('/external_request/redirect', (req, res) => {
