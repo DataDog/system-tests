@@ -2491,8 +2491,8 @@ manifest:
         flask-poc: '>=4.8.0'
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
-        flask-poc: missing_feature (not implemented yet)
         "*": missing_feature (spawn_child endpoint not implemented)
+        flask-poc: missing_feature (exec child is not traced; only fork is supported)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
