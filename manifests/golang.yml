@@ -214,6 +214,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.7.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
@@ -1156,7 +1159,7 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
     - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
-      component_version: <2.9.0
+      component_version: '<=2.10.0-dev'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
