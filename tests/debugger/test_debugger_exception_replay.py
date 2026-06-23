@@ -259,6 +259,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 for entry in value:
                     function = entry.get("function")
                     if function is None:
+                        if entry != {"<runtime>": "<scrubbed>"}:
+                            scrubbed.append(__scrub(entry))
                         continue
 
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
