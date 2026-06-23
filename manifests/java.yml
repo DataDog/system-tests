@@ -1205,6 +1205,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.60.1  # TODO: a lower version might be supported
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1927,10 +1930,10 @@ manifest:
         "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
-        spring-boot-jetty: missing_feature (no instrumentation for Jetty)
+        spring-boot-jetty: v1.64.0-SNAPSHOT
         spring-boot-payara: v1.63.0-SNAPSHOT
-        vertx3: missing_feature (no instrumentation for Vert.x async multipart)
-        vertx4: missing_feature (no instrumentation for Vert.x async multipart)
+        vertx3: v1.64.0-SNAPSHOT
+        vertx4: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
