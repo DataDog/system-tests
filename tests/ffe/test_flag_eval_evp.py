@@ -17,7 +17,7 @@ from utils import weblog
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-EVP_FLAGEVALUATION_PATH = "/api/v2/flagevaluation"
+EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
@@ -55,7 +55,7 @@ def evaluate_flag(
 
 
 def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple[JSON, JSON]]:
-    if data.get("path") != EVP_FLAGEVALUATION_PATH:
+    if data.get("path") != EVP_FLAGEVALUATIONS_PATH:
         return []
 
     request = data.get("request")
@@ -92,7 +92,7 @@ def wait_for_evp_flagevaluation_event(flag_key: str) -> None:
 def find_evp_flagevaluation_events(flag_key: str) -> list[tuple[JSON, JSON]]:
     results: list[tuple[JSON, JSON]] = []
 
-    for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATION_PATH):
+    for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
         results.extend(evp_flagevaluation_events_from_data(cast("JSON", data), flag_key))
 
     return results
