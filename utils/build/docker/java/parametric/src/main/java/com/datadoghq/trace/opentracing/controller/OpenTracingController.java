@@ -21,6 +21,7 @@ import io.opentracing.propagation.TextMap;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 import jakarta.annotation.PreDestroy;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,16 +38,28 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/trace/span")
 public class OpenTracingController implements Closeable {
-  private final Tracer tracer;
   /** Created spans, indexed by their identifiers .*/
-  private final Map<Long, Span> spans;
+  private static final Map<Long, Span> spans = new ConcurrentHashMap<>();
+
+  private final Tracer tracer;
+
   /** The extracted span contexts, indexed by span identifier. */
   private final Map<Long, SpanContext> extractedSpanContexts;
+  /**
+   * Raw inbound {@code baggage} header value, indexed by trace identifier.
+   *
+   * <p>Captured on extract because the dd-trace-ot bridge drops the W3C baggage
+   * entry when converting the internal Context to {@link io.opentracing.SpanContext},
+   * so it never reaches inject through the OT API. Keyed by trace_id (not span_id)
+   * because baggage is trace-scoped and child spans built via {@code asChildOf}
+   * share the inbound trace_id.
+   */
+  private final Map<Long, String> extractedBaggageHeaders;
 
   public OpenTracingController() {
     this.tracer = GlobalTracer.get();
-    this.spans = new HashMap<>();
     this.extractedSpanContexts = new HashMap<>();
+    this.extractedBaggageHeaders = new ConcurrentHashMap<>();
   }
 
   @PostMapping("start")
@@ -79,7 +92,7 @@ public class OpenTracingController implements Closeable {
       // Store span
       long spanId = DDSpanId.from(span.context().toSpanId());
       long traceId = DDTraceId.from(span.context().toTraceId()).toLong();
-      this.spans.put(spanId, span);
+      spans.put(spanId, span);
       // Complete request
       return new StartSpanResult(spanId, traceId);
     } catch (Throwable t) {
@@ -173,6 +186,16 @@ public class OpenTracingController implements Closeable {
       // Get context from span and inject it to carrier
       TextMapAdapter carrier = TextMapAdapter.empty();
       this.tracer.inject(span.context(), TEXT_MAP, carrier);
+      // Re-attach the inbound baggage header captured on extract — the OT bridge
+      // strips it when building the OT SpanContext, so tracer.inject would not
+      // emit it on its own.
+      String traceIdStr = span.context().toTraceId();
+      if (traceIdStr != null && !traceIdStr.isEmpty()) {
+        String baggage = this.extractedBaggageHeaders.get(DDTraceId.from(traceIdStr).toLong());
+        if (baggage != null) {
+          carrier.put("baggage", baggage);
+        }
+      }
       return new SpanInjectHeadersResult(carrier.toHeaders());
     }
     return new SpanInjectHeadersResult(emptyList());
@@ -187,6 +210,22 @@ public class OpenTracingController implements Closeable {
     }
     long spanId = DDSpanId.from(context.toSpanId());
     this.extractedSpanContexts.put(spanId, context);
+
+    // OT extract drops the W3C baggage entry; capture the raw header so we
+    // can re-emit it on the matching inject_headers call.
+    String baggage = args.headers().stream()
+        .filter(h -> "baggage".equalsIgnoreCase(h.key()))
+        .map(KeyValue::value)
+        .findFirst()
+        .orElse(null);
+    if (!context.toTraceId().isEmpty()) {
+      long traceKey = DDTraceId.from(context.toTraceId()).toLong();
+      if (baggage != null) {
+        this.extractedBaggageHeaders.put(traceKey, baggage);
+      } else {
+        this.extractedBaggageHeaders.remove(traceKey);
+      }
+    }
     return new SpanExtractHeadersResult(spanId);
   }
 
@@ -198,8 +237,9 @@ public class OpenTracingController implements Closeable {
       if (datadog.trace.api.GlobalTracer.get() instanceof InternalTracer internalTracer) {
           internalTracer.flush();
       }
-      this.spans.clear();
+      spans.clear();
       this.extractedSpanContexts.clear();
+      this.extractedBaggageHeaders.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);
     }
@@ -260,8 +300,8 @@ public class OpenTracingController implements Closeable {
     }
   }
 
-  private Span getSpan(long spanId) {
-    Span span = this.spans.get(spanId);
+  public static Span getSpan(long spanId) {
+    Span span = spans.get(spanId);
     if (span == null) {
       LOGGER.warn("OT span {} does not exist.", spanId);
     }

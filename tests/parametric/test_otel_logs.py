@@ -153,7 +153,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "service"
         assert attrs.get("service.version") == "2.0"
-        assert attrs.get("deployment.environment") == "otelenv"
+        assert attrs.get("deployment.environment") == "otelenv" or attrs.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -180,7 +180,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "ddservice"
         assert attrs.get("service.version") == "ddver"
-        assert attrs.get("deployment.environment") == "ddenv"
+        assert attrs.get("deployment.environment") == "ddenv" or attrs.get("deployment.environment.name") == "ddenv"
 
 
 @features.otel_logs_enabled
@@ -553,8 +553,11 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
+        assert (
+            resource_attrs.get("deployment.environment") == "testenv"
+            or resource_attrs.get("deployment.environment.name") == "testenv"
+        )
 
         # Verify no duplication in log record attributes
         log_attrs = find_attributes(log_record)
@@ -594,8 +597,11 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
+        assert (
+            resource_attrs.get("deployment.environment") == "testenv"
+            or resource_attrs.get("deployment.environment.name") == "testenv"
+        )
 
 
 @features.otel_logs_enabled
@@ -665,7 +671,6 @@ class Test_FR11_Telemetry:
     )
     def test_telemetry_exporter_configurations(
         self,
-        library_env: dict[str, str],
         otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -682,9 +687,11 @@ class Test_FR11_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_HEADERS", "<redacted>"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
-            ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_ENDPOINT",  "<redacted>"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
@@ -717,7 +724,6 @@ class Test_FR11_Telemetry:
     )
     def test_telemetry_exporter_logs_configurations(
         self,
-        library_env: dict[str, str],
         otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -741,9 +747,11 @@ class Test_FR11_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "api-key=key,other-config-value=value"),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "<redacted>"),
             ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "http/protobuf"),
-            ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "<redacted>"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
@@ -761,6 +769,7 @@ class Test_FR11_Telemetry:
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_METRICS_AGGREGATION_INTERVAL": "0.1",
                 "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
                 "DD_TRACE_DEBUG": None,
             },

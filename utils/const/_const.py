@@ -37,6 +37,7 @@ class ComponentGroups(ConstGroups):
             "java_lambda": [self.buildable, self.easy_win, self.lambda_lib, self.parametric],
             "java_otel": [self.buildable, self.lib_injection, self.otel],
             "nodejs": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
+            "nodejs_lambda": [self.buildable, self.easy_win, self.lambda_lib],
             "nodejs_otel": [self.buildable, self.lib_injection, self.otel],
             "otel_collector": [],
             "php": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
@@ -44,6 +45,7 @@ class ComponentGroups(ConstGroups):
             "python_lambda": [self.buildable, self.easy_win, self.lambda_lib],
             "python_otel": [self.buildable, self.lib_injection, self.otel],
             "ruby": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
+            "ruby_lambda": [self.buildable, self.easy_win, self.lambda_lib],
             "rust": [self.buildable, self.easy_win, self.lib_injection, self.parametric],
         }
 

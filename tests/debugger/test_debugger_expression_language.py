@@ -689,7 +689,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         language, method = self.get_tracer()["language"], "CollectionOperations"
         if self.get_tracer()["language"] == "dotnet":
             get_hash_value = Dsl("getmember", [Dsl("ref", "@it"), "Value"])
-        elif self.get_tracer()["language"] in ["nodejs", "ruby"]:
+        elif self.get_tracer()["language"] in ["nodejs", "ruby", "python", "php"]:
             get_hash_value = Dsl("ref", "@value")
         else:
             get_hash_value = Dsl("getmember", [Dsl("ref", "@it"), "value"])

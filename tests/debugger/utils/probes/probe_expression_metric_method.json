@@ -1,0 +1,21 @@
+[
+  {
+    "language": "",
+    "type": "",
+    "id": "",
+    "version": 0,
+    "kind": "COUNT",
+    "metricName": "system_tests.debugger.metric_method",
+    "value": {
+      "dsl": "id",
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "MetricProbe",
+      "sourceFile": null
+    }
+  }
+]

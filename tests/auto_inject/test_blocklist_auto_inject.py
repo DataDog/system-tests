@@ -1,4 +1,5 @@
 import uuid
+import paramiko
 from scp import SCPClient
 
 from utils import scenarios, context, features, irrelevant, logger
@@ -8,7 +9,7 @@ from utils.onboarding.injection_log_parser import command_injection_skipped
 class _AutoInjectWorkloadSelectionBaseTest:
     """Base class to test workload selection policies on auto instrumentation."""
 
-    def _execute_remote_command(self, ssh_client, command):
+    def _execute_remote_command(self, ssh_client: paramiko.SSHClient, command: str):
         """Execute remote command and get remote log file from the vm. You can use this method using env variables or using injection config file"""
 
         unique_log_name = f"host_injection_{uuid.uuid4()}.log"

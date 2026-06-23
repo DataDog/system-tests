@@ -71,7 +71,7 @@ class Test_LLM_Endpoint:
     def test_openai_async_completions_create(self):
         assert_llm_span(self.request, self.MODEL)
 
-    def setup_root_no_llm(self):
+    def setup_root_has_no_llm_tags(self):
         # Baseline request to root endpoint should not produce LLM tags
         self.root_request = weblog.get("/")
 

@@ -76,10 +76,6 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
-    secrets:
-      TEST_OPTIMIZATION_API_KEY:
-        description: "API key for pushing test results to DataDog Test Optimization"
-        required: false
 
 env:
   REGISTRY: ghcr.io
@@ -115,7 +111,7 @@ jobs:
         uses: ./.github/actions/install_runner
       - name: Get binaries artifact
         if : ${{ inputs.binaries_artifact != '' }}
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: ./.github/actions/download_artifact
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
@@ -141,7 +137,7 @@ jobs:
           fi
       - name: Compress logs
         id: compress_logs
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           if compgen -G "logs*/" > /dev/null; then
             # the script that pushes logs to FPD does not handles folder name collisions.
@@ -152,17 +148,16 @@ jobs:
             echo "No logs*/ found; skipping tar."
           fi
       - name: Upload artifact
-        if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: steps.compress_logs.outcome == 'success' && !cancelled()
+        uses: ./.github/actions/upload_artifact
         with:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}_${{ inputs.unique_id }}
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - name: Push results to Test Optimization
-        if: always() && inputs.push_to_test_optimization
+        if: inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: ./.github/actions/push_to_test_optim
         with:
-          datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
           datadog_site: ${{ inputs.test_optimization_datadog_site }}
           ci_environment: ${{ inputs.ci_environment }}

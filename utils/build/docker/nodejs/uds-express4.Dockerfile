@@ -1,22 +1,4 @@
-FROM node:18-alpine
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-COPY utils/build/docker/nodejs/express /usr/app
-
-WORKDIR /usr/app
-
-ENV NODE_ENV=production
-
-RUN npm install || sleep 60 && npm install
-RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0" \
-  || sleep 60 \
-  && npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
+FROM datadog/system-tests:express4.base-v2
 
 EXPOSE 7777
 
@@ -38,5 +20,5 @@ COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent

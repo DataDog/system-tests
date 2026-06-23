@@ -60,6 +60,7 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+import openai
 import requests
 import stripe
 import opentelemetry.baggage
@@ -369,6 +370,17 @@ def sample_rate(i):
 @app.route("/api_security_sampling/<i>")
 def api_security_sampling(i):
     return "OK"
+
+
+@app.route("/api_security/multi-params-in-segment/<string:id>.<string:format>")
+def api_security_multi_params_in_segment(id: str, format: str) -> str:  # noqa: A002
+    return "ok"
+
+
+@app.route("/api_security/optional-params/<string:id>")
+@app.route("/api_security/optional-params/<string:id>.<string:format>")
+def api_security_optional_params(id: str, format: str = "") -> str:  # noqa: A002
+    return "ok"
 
 
 @app.route(
@@ -2144,23 +2156,27 @@ def ffe():
     variation_type = body.get("variationType")
     default_value = body.get("defaultValue")
     targeting_key = body.get("targetingKey")
+    targeting_keys = body.get("targetingKeys")
     attributes = body.get("attributes", {})
 
-    # Build context
-    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
-    # Evaluate based on variation type
-    if variation_type == "BOOLEAN":
-        value = openfeature_client.get_boolean_value(flag, default_value, context)
-    elif variation_type == "STRING":
-        value = openfeature_client.get_string_value(flag, default_value, context)
-    elif variation_type in ["INTEGER", "NUMERIC"]:
-        value = openfeature_client.get_integer_value(flag, default_value, context)
-    elif variation_type == "JSON":
-        value = openfeature_client.get_object_value(flag, default_value, context)
-    else:
-        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+    if not isinstance(targeting_keys, list) or not targeting_keys:
+        targeting_keys = [targeting_key]
 
-    return jsonify({"value": value}), 200
+    value = None
+    for key in targeting_keys:
+        context = EvaluationContext(targeting_key=key, attributes=attributes)
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return jsonify({"value": value, "count": len(targeting_keys)}), 200
 
 
 @app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
@@ -2222,28 +2238,33 @@ def ai_guard_evaluate():
 
     try:
         from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+        from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
         messages = flask_request.get_json()
+
+        user_id = flask_request.headers.get("X-User-Id")
+        session_id = flask_request.headers.get("X-Session-Id")
+        if user_id and session_id:
+            track_user_id(user_id, session_id=session_id)
 
         client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
         evaluation = client.evaluate(messages, Options(block=should_block))
         return jsonify(evaluation), 200
 
+    except AIGuardAbortError as e:
+        error_response = {
+            "action": getattr(e, "action", ""),
+            "reason": getattr(e, "reason", ""),
+            "tags": getattr(e, "tags", []),
+            "sds": getattr(e, "sds", []),
+        }
+        tag_probs = getattr(e, "tag_probs", None)
+        if tag_probs is not None:
+            error_response["tag_probs"] = tag_probs
+        return jsonify(error_response), 403
     except Exception as e:
-        if isinstance(e, AIGuardAbortError):
-            error_response = {
-                "action": getattr(e, "action", ""),
-                "reason": getattr(e, "reason", ""),
-                "tags": getattr(e, "tags", []),
-                "sds": getattr(e, "sds", []),
-            }
-            tag_probs = getattr(e, "tag_probs", None)
-            if tag_probs is not None:
-                error_response["tag_probs"] = tag_probs
-            return jsonify(error_response), 403
-        else:
-            return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
+        return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
 
 
 @app.route("/stripe/create_checkout_session", methods=["POST"])
@@ -2273,3 +2294,55 @@ def stripe_webhook():
         return jsonify(event.data.object)
     except Exception as e:
         return jsonify({"error": str(e)}), 403
+
+
+@app.route("/llm")
+async def llm():
+    model = request.args.get("model", "")
+    operation = request.args.get("operation", "")
+    if not model or not operation:
+        return jsonify({"error": "Missing or empty query parameters: model, operation"}), 400
+    try:
+        if operation == "openai-latest-responses.create":
+            openai.OpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
+        elif operation == "openai-latest-chat.completions.create":
+            openai.OpenAI(api_key="sk-fake").chat.completions.create(
+                model=model, messages=[{"role": "user", "content": "Hello"}]
+            )
+        elif operation == "openai-latest-completions.create":
+            openai.OpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
+        elif operation == "openai-async-responses.create":
+            await openai.AsyncOpenAI(api_key="sk-fake").responses.create(model=model, input="Hello")
+        elif operation == "openai-async-chat.completions.create":
+            await openai.AsyncOpenAI(api_key="sk-fake").chat.completions.create(
+                model=model, messages=[{"role": "user", "content": "Hello"}]
+            )
+        elif operation == "openai-async-completions.create":
+            await openai.AsyncOpenAI(api_key="sk-fake").completions.create(model=model, prompt="Hello")
+        else:
+            return jsonify({"error": f"unknown operation: {operation}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    return jsonify({"model": model, "operation": operation})
+
+
+@app.route("/sca/vulnerable-call")
+def sca_requests_vulnerable_call():
+    """Trigger a call to requests.sessions.Session.send (CVE-2024-35195 target)."""
+    session = requests.Session()
+    try:
+        session.get("http://localhost:1")
+    except Exception:
+        pass
+    return "OK"
+
+
+@app.route("/sca/vulnerable-call-alt")
+def sca_requests_vulnerable_call_alt():
+    """Alternate call site for same CVE-2024-35195 target (first-hit-wins test)."""
+    session = requests.Session()
+    try:
+        session.post("http://localhost:1", data="x")
+    except Exception:
+        pass
+    return "OK"

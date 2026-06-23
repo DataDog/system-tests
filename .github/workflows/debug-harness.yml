@@ -78,7 +78,7 @@ jobs:
             echo "Token file not found — nothing to clean up"
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: ./.github/actions/upload_artifact
         with:
           name: weblog
           path: binaries/
@@ -98,7 +98,7 @@ jobs:
       uses: ./.github/actions/install_runner
 
     - name: Get binaries artifact
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      uses: ./.github/actions/download_artifact
       with:
         name: weblog
         path: binaries/
@@ -115,8 +115,8 @@ jobs:
         done
 
     - name: Upload artifact
-      if: always() && steps.build.outcome == 'success'
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      if: steps.build.outcome == 'success' && !cancelled()
+      uses: ./.github/actions/upload_artifact
       with:
         name: logs_${{ matrix.n }}
         path: logs_*

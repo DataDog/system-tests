@@ -1,6 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
@@ -37,7 +43,14 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: missing_feature
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
+    - weblog_declaration:
+        "*": missing_feature
+        echo: v2.7.0-dev  # Automatic with orchestrion, semi-manual without
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.0.0
@@ -71,6 +84,10 @@ manifest:
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v2.10.0-dev
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -197,6 +214,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.7.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
@@ -295,6 +315,27 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v2.0.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v1.65.1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.0.0
+  tests/appsec/smoke_tests/test_apm_standalone.py: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_lfi_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
+    - weblog_declaration:
+        "*": irrelevant (LFi detection requires orchestrion)
+        net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.34.0
@@ -410,6 +451,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v2.3.0-dev
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
@@ -591,6 +633,11 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.50.0-rc.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.69.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.69.0
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v2.4.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: v2.4.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: v2.4.0
@@ -647,6 +694,7 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         "*": v1.36.0
@@ -781,6 +829,12 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: v2.2.3
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (index expression not yet supported in Go system-probe)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL: v2.2.3
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error: v2.2.3
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
+  : bug (DEBUG-5700)
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_probe_installs
+  : bug (DEBUG-5710)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
@@ -788,6 +842,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature (feature not implemented)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
@@ -807,6 +862,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.2.3
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot: missing_feature (no span-decoration endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.2.3
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_metric_method_expression: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_method_snapshot: missing_feature (Not yet implemented)
@@ -824,12 +880,17 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_decoration_method_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.2.3
+  # TODO(andrei): un-skip when datadog-agent v7.79.0 is released (Go's symdb upload comes from the agent, not from dd-trace-go)
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors: bug (FFL-2182)
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
-  tests/ffe/test_flag_eval_metrics.py: v2.9.0-dev
+  tests/ffe/test_flag_eval_evp.py: v2.10.0-dev
+  tests/ffe/test_flag_eval_metrics.py: v2.8.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex: irrelevant (Go validates regex at config load time)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
@@ -897,14 +958,23 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql: irrelevant
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres:
+    - weblog_declaration:
+        "*": irrelevant
+        chi: v2.7.0
+        echo: v2.7.0
+        gin: v2.7.0
+        net-http: v2.7.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: irrelevant
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -993,7 +1063,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         net-http: v1.70.1
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -1026,6 +1096,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.59.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
+  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <2.5.0
@@ -1055,6 +1126,7 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_key_with_asterisk: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was updated in v1.62.0 (w3c phase 2))
       component_version: <1.62.0
@@ -1085,6 +1157,9 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
+    - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
+      component_version: '<=2.10.0-dev'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
@@ -1147,6 +1222,8 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : "irrelevant (\"Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
@@ -1203,7 +1280,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_existence: flaky (APMAPI-932)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
-  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: v2.9.0-dev
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.48.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: '>=2.7.0-dev.1'
@@ -1230,6 +1307,11 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Go does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)
@@ -1298,7 +1380,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_client:
     - declaration: missing_feature (Obfuscation only occurs on server side)
       component_version: <2.1.0-dev
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v1.18.0
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default:
+    - declaration: missing_feature
+      component_version: <1.18.0
+    # DD_RUNTIME_METRICS_V2_ENABLED defaults to true since dd-trace-go v2.2.0, see https://docs.datadoghq.com/integrations/go-runtime-metrics-v2/
+    # This makes this test obsolete, since that makes runtime metrics available by default.
+    - declaration: irrelevant
+      component_version: '>=2.2.0'
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v1.18.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v1.18.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
@@ -1336,22 +1424,18 @@ manifest:
         gqlgen: v1.73.0
         graph-gophers: v1.73.0
         graphql-go: v1.73.0
-  tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - weblog_declaration:
-        "*": missing_feature
-        gqlgen: missing_feature
-        graph-gophers: missing_feature
-        graphql-go: missing_feature
+  tests/test_graphql.py::Test_GraphQLOperationErrorTracking: missing_feature
   tests/test_identify.py::Test_Basic: v1.37.0
   tests/test_identify.py::Test_Basic::test_identify_tags:
     - declaration: bug (APMRP-360)
       component_version: <=1.41.0
   tests/test_identify.py::Test_Propagate: v1.48.0-rc.1
   tests/test_identify.py::Test_Propagate_Legacy: v1.41.0
-  tests/test_library_conf.py::Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link in v1.71.0)
-  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.10.0-dev
   tests/test_library_conf.py::Test_HeaderTags: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.70.0
@@ -1368,6 +1452,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py:
@@ -1408,6 +1493,7 @@ manifest:
     - declaration: missing_feature (missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6)
       component_version: <1.69.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.39.0
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v0.1  # unknown initial version
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute: v1.39.0
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v1.39.0
@@ -1416,6 +1502,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.39.0
   tests/test_telemetry.py::Test_DependencyEnable: v1.73.0-dev
+  tests/test_telemetry.py::Test_ExtendedHeartbeat: '>=2.8.0'
   tests/test_telemetry.py::Test_Log_Generation: v1.73.0-dev
   tests/test_telemetry.py::Test_MessageBatch: v1.73.0-dev
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: v1.73.0-dev
@@ -1520,7 +1607,6 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
-  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature

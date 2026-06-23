@@ -333,15 +333,12 @@ app.get('/stub_dbm', async (req, res) => {
   const operation = req.query.operation
 
   if (integration === 'pg') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const dbmComment = await pgsql.doOperation(operation)
     res.send({ status: 'ok', dbm_comment: dbmComment })
   } else if (integration === 'mysql2') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const result = await mysql.doOperation(operation)
     res.send({ status: 'ok', dbm_comment: result })
   } else if (integration === 'mssql') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     res.send(await mssql.doOperation(operation))
   }
 })
@@ -704,12 +701,20 @@ app.get('/add_event', (req, res) => {
   res.status(200).json({ message: 'Event added' })
 })
 
-app.all('/external_request', (req, res) => {
+const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
+  'invalid_content_type',
+  'content_length_missing',
+  'content_length_too_big'
+])
+
+function forwardExternalRequest (req, res, downstreamPath) {
   const status = req.query.status || '200'
   const urlExtra = req.query.url_extra || ''
 
   const headers = {}
+  const queryParamsExcludedFromHeaders = new Set(['status', 'url_extra'])
   for (const [key, value] of Object.entries(req.query)) {
+    if (queryParamsExcludedFromHeaders.has(key)) continue
     headers[key] = String(value)
   }
 
@@ -719,10 +724,12 @@ app.all('/external_request', (req, res) => {
     headers['Content-Type'] = req.headers['content-type'] || 'application/json'
   }
 
+  const path = downstreamPath || `/mirror/${status}${urlExtra}`
+
   const options = {
     hostname: 'internal_server',
     port: 8089,
-    path: `/mirror/${status}${urlExtra}`,
+    path,
     method: req.method,
     headers
   }
@@ -743,12 +750,25 @@ app.all('/external_request', (req, res) => {
     })
   })
 
-  // Write body if present
   if (body) {
     request.write(body)
   }
 
   request.end()
+}
+
+app.all('/external_request', (req, res) => {
+  forwardExternalRequest(req, res)
+})
+
+app.all('/external_request/body_limit/:failureReason', (req, res) => {
+  const { failureReason } = req.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    res.status(404).json({ error: 'unknown failure reason' })
+    return
+  }
+
+  forwardExternalRequest(req, res, `/downstream_response/${failureReason}`)
 })
 
 app.get('/external_request/redirect', (req, res) => {
@@ -792,14 +812,21 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
+  // eslint-disable-next-line camelcase
+  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
+  const userId = req.headers['x-user-id']
+  const sessionId = req.headers['x-session-id']
+  if (userId && sessionId) {
+    tracer.setUser({ id: userId, session_id: sessionId })
+  }
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
-    res.status(200).json(evaluation)
+    res.status(200).json(renameAttrs(evaluation))
   } catch (e) {
     if (e.name === 'AIGuardAbortError') {
-      res.status(403).json(e)
+      res.status(403).json(renameAttrs(e))
     } else {
       res.status(500).json(e)
     }
@@ -818,34 +845,38 @@ if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
 // Single FFE endpoint that evaluates feature flags
 app.post('/ffe', async (req, res) => {
   try {
-    const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
 
     if (!openFeatureClient) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
     let value
-    const context = { targetingKey, ...attributes }
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
 
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break
-      case 'STRING':
-        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
-        break
-      case 'INTEGER':
-      case 'NUMERIC':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break
-      case 'JSON':
-        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break
-      default:
-        return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+      }
     }
 
-    res.status(200).json({ value })
+    res.status(200).json({ value, count: keys.length })
   } catch (error) {
     console.error('[FFE] Error:', error)
     res.status(500).json({ error: error.message })

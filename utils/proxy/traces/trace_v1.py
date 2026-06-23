@@ -196,6 +196,9 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
             attrs_dict[k_str] = v["intValue"]
         elif "bytesValue" in v:
             raw_b = v["bytesValue"]
+            if isinstance(raw_b, str):
+                # MessageToDict encodes bytes as base64 strings
+                raw_b = base64.b64decode(raw_b)
             attrs_dict[k_str] = decode_v1_bytes_value_attribute(raw_b) if isinstance(raw_b, bytes) else raw_b
         elif "arrayValue" in v:
             attrs_dict[k_str] = v["arrayValue"]
@@ -203,10 +206,26 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
             attrs_dict[k_str] = v["keyValueList"]
         else:
             raise ValueError(f"Unknown attribute value: {v}")
+    _postprocess_attribute_values(attrs_dict)
     return attrs_dict
 
 
 _json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json", "_dd.span_links"])
+
+
+def _postprocess_attribute_values(attrs_dict: dict[str, Any]) -> None:
+    # Protocol v1 may carry structured AppSec/IAST payloads as serialized strings.
+    for key in list(attrs_dict):
+        if key.startswith("_dd.appsec.s."):
+            attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
+        elif key in ("appsec", "_dd.stack"):
+            val = attrs_dict[key]
+            if isinstance(val, bytes):
+                attrs_dict[key] = unpack_trace_bytes_msgpack(val)
+        elif key in _json_meta_values:
+            val = attrs_dict[key]
+            if isinstance(val, (str, bytes, bytearray)):
+                attrs_dict[key] = json.loads(val)
 
 
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
@@ -228,20 +247,41 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             v = _uncompress_array(v, strings)
         elif v_type == V1AnyValueKeys.bytes_value and isinstance(v, bytes):
             v = decode_v1_bytes_value_attribute(v)
+        elif v_type == V1AnyValueKeys.key_value_list:
+            v = _uncompress_key_value_list(v, strings)
 
         attrs_dict[k] = v
 
-    for key in list(attrs_dict):
-        if key.startswith("_dd.appsec.s."):
-            attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
-        elif key in ("appsec", "_dd.stack"):
-            val = attrs_dict[key]
-            if isinstance(val, bytes):
-                attrs_dict[key] = unpack_trace_bytes_msgpack(val)
-        elif key in _json_meta_values:
-            attrs_dict[key] = json.loads(attrs_dict[key])
-
+    _postprocess_attribute_values(attrs_dict)
     return attrs_dict
+
+
+def _uncompress_key_value_list(kvl: dict[Any, Any], strings: list[str]) -> dict[str, Any]:
+    """Uncompress a key_value_list AnyValue, resolving string refs and nested values recursively."""
+    result: dict[str, Any] = {}
+    for raw_key, type_value_pair in kvl.items():
+        key = strings[raw_key] if isinstance(raw_key, int) else raw_key
+        try:
+            v_type_int, v = type_value_pair
+        except (TypeError, ValueError):
+            result[key] = type_value_pair
+            continue
+        try:
+            v_type = V1AnyValueKeys(v_type_int)
+        except ValueError:
+            result[key] = v
+            continue
+        if v_type == V1AnyValueKeys.string:
+            if isinstance(v, int):
+                v = strings[v]
+        elif v_type == V1AnyValueKeys.array:
+            v = _uncompress_array(v, strings)
+        elif v_type == V1AnyValueKeys.bytes_value and isinstance(v, bytes):
+            v = decode_v1_bytes_value_attribute(v)
+        elif v_type == V1AnyValueKeys.key_value_list:
+            v = _uncompress_key_value_list(v, strings)
+        result[key] = v
+    return result
 
 
 def _uncompress_array(array: list, strings: list[str]) -> list:

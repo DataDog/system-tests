@@ -65,6 +65,7 @@ Rails.application.routes.draw do
   get '/otel_drop_in_default_propagator_inject' => 'system_test#otel_drop_in_default_propagator_inject'
   get '/otel_drop_in_baggage_api_otel' => 'system_test#otel_drop_in_baggage_api_otel'
   get '/otel_drop_in_baggage_api_datadog' => 'system_test#otel_drop_in_baggage_api_datadog'
+  get '/otel_drop_in_extract_and_make_distant_call' => 'system_test#otel_drop_in_extract_and_make_distant_call'
 
   get '/debugger/init' => 'debugger#init'
   get '/debugger/pii' => 'debugger#pii'
@@ -96,4 +97,6 @@ Rails.application.routes.draw do
   post '/ffe/evaluate' => 'open_feature#evaluate'
 
   post '/ai_guard/evaluate' => 'ai_guard#evaluate'
+
+  get '/inferred-proxy/span-creation' => 'system_test#inferred_proxy_span_creation'
 end

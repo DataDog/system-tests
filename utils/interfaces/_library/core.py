@@ -157,7 +157,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert request is not None, "A request object is mandatory"
         spans = [s for _, s in self.get_root_spans(request=request)]
         assert spans, "No root spans found"
-        assert len(spans) == 1, "More then one root span found"
+        assert len(spans) == 1, "More than one root span found"
         return spans[0]
 
     def get_appsec_events(self, request: HttpResponse | None = None, *, full_trace: bool = False):

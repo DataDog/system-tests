@@ -1,36 +1,150 @@
-from enum import StrEnum
+from dataclasses import dataclass, field
+from enum import Enum
+import functools
+import os
 import pytest
 
 NOT_REPORTED_ID = -1
 
 
-class _Owner(StrEnum):
-    # the value of each member must be a valid github team
+@functools.cache
+def _get_ci_repo_name() -> str | None:
+    """Returns the repository name when running in CI (GHA, GitLab, Azure), or None."""
+    # GitHub Actions: GITHUB_REPOSITORY is "owner/repo"
+    if repo := os.environ.get("GITHUB_REPOSITORY"):
+        return repo.split("/")[-1]
+    # GitLab CI
+    if repo := os.environ.get("CI_PROJECT_NAME"):
+        return repo
+    # Azure Pipelines
+    if repo := os.environ.get("BUILD_REPOSITORY_NAME"):
+        return repo.split("/")[-1]
+    return None
 
-    agent_apm = "@DataDog/agent-apm"
-    apm_serverless = "@DataDog/apm-serverless"
-    asm = "@DataDog/asm-libraries"  # application security monitoring
-    auto_instrumentation = "@DataDog/unified-instrumentation-setup"
-    data_pipeline = "@DataDog/libdatadog-apm"  # or agent-apm? TODO @ekump
-    debugger = "@DataDog/debugger"
-    djm = "@DataDog/data-jobs-monitoring"
-    dsm = "@DataDog/data-streams-monitoring"
-    idm = "@DataDog/apm-idm"
-    injection_platform = "@DataDog/injection-platform"
-    language_platform = "@DataDog/apm-lang-platform"
-    ml_observability = "@DataDog/ml-observability"
-    profiler = "@DataDog/profiling"  # it does not exists
-    remote_config = "@DataDog/remote-config"
-    rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    sdk_capabilities = "@DataDog/apm-sdk-capabilities"
-    ffe = "@DataDog/feature-flagging-and-experimentation-sdk"  # Feature Flagging & Experimentation
+
+@dataclass
+class _OwnerDef:
+    """A GitHub team, with optional per-repo sub-team overrides.
+
+    When tests run in CI, if the repo name matches a key in repo_overrides,
+    that sub-team is used instead of the default.
+    """
+
+    default: str
+    repo_overrides: dict[str, str] = field(default_factory=dict)
+
+    def resolve(self) -> str:
+        repo_name = _get_ci_repo_name()
+        if repo_name:
+            return self.repo_overrides.get(repo_name, self.default)
+        return self.default
+
+
+class _Owner(Enum):
+    # fmt: off
+    agent_apm            = _OwnerDef("@DataDog/agent-apm", repo_overrides={
+                                # Even if these teams do not own these features, any failure occurring in a dd-trace
+                                # repository cannot be monitored by the Agent team. As a result, we attribute such
+                                # failures to the CI owner. This does not mean that the CI owner is responsible for
+                                # fixing the issue, but rather that they are responsible for triaging it and alerting
+                                # the appropriate team (e.g., the Agent team).
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-go":      "@DataDog/lang-platform-go",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",
+                            })
+    apm_serverless       = _OwnerDef("@DataDog/apm-serverless")
+    asm                  = _OwnerDef("@DataDog/asm-libraries", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/asm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/asm-dotnet",
+                                "dd-trace-go":      "@DataDog/asm-go",
+                                "dd-trace-java":    "@DataDog/asm-java",
+                                "dd-trace-js":      "@DataDog/asm-js",
+                                "dd-trace-php":     "@DataDog/asm-php",
+                                "dd-trace-py":      "@DataDog/asm-python",
+                                "dd-trace-rb":      "@DataDog/asm-ruby",
+                                "httpd-datadog":    "@DataDog/asm-cpp",
+                                "nginx-datadog":    "@DataDog/asm-cpp",
+                            })
+    debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
+                                "dd-trace-go":      "@DataDog/debugger-go",
+                                "dd-trace-java":    "@DataDog/debugger-java",
+                                "dd-trace-js":      "@DataDog/debugger-nodejs",
+                                "dd-trace-py":      "@DataDog/debugger-python",
+    })
+    djm                  = _OwnerDef("@DataDog/data-jobs-monitoring")
+    dsm                  = _OwnerDef("@DataDog/data-streams-monitoring")
+    ffe                  = _OwnerDef("@DataDog/feature-flagging-and-experimentation-sdk")
+    idm                  = _OwnerDef("@DataDog/apm-idm", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-idm-dotnet",
+                                "dd-trace-go":      "@DataDog/apm-idm-go",
+                                "dd-trace-java":    "@DataDog/apm-idm-java",
+                                "dd-trace-js":      "@DataDog/apm-idm-js",
+                                "dd-trace-php":     "@DataDog/apm-idm-php",
+                                "dd-trace-py":      "@DataDog/apm-idm-python",
+                                "dd-trace-rb":      "@DataDog/apm-idm-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",
+                            })
+    injection_platform   = _OwnerDef("@DataDog/injection-platform", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                            })
+    language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-go":      "@DataDog/lang-platform-go",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "httpd-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
+                                "nginx-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
+                            })
+    ml_observability     = _OwnerDef("@DataDog/ml-observability")
+    profiler             = _OwnerDef("@DataDog/profiling", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/profiling-dotnet",
+                                "dd-trace-go":  "@DataDog/profiling-go",
+                                "dd-trace-java":  "@DataDog/profiling-java",
+                                "dd-trace-js":  "@DataDog/profiling-js",
+                                "dd-trace-php":  "@DataDog/profiling-php",
+                                "dd-trace-py":  "@DataDog/profiling-python",
+                                "dd-trace-rb":  "@DataDog/profiling-rb",
+                            })
+    remote_config        = _OwnerDef("@DataDog/remote-config")
+    rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
+                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
+                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
+                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
+                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
+                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
+                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
+                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
+                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
+                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
+                            })
+    # fmt: on
 
 
 def _mark_test_object(test_object, feature_id: int, owner: _Owner):
     """Mark the test object with a feature ID"""
     pytest.mark.features(feature_id=feature_id)(test_object)
-    pytest.mark.owners(owner=owner.value)(test_object)
-
+    pytest.mark.owners(owner=owner.value.resolve())(test_object)
     return test_object
 
 
@@ -100,7 +214,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
 
-        return _mark_test_object(test_object, feature_id=6, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=6, owner=_Owner.language_platform)
 
     @staticmethod
     def unix_domain_sockets_automatic_detection(test_object):
@@ -108,7 +222,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=7
         """
-        return _mark_test_object(test_object, feature_id=7, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=7, owner=_Owner.language_platform)
 
     @staticmethod
     def twl_customer_controls_ingestion_dd_trace_sampling_rules(test_object):
@@ -168,7 +282,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=14
         """
-        return _mark_test_object(test_object, feature_id=14, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=14, owner=_Owner.language_platform)
 
     # @staticmethod
     # def support_ddmeasured(test_object):
@@ -244,7 +358,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=23
         """
-        return _mark_test_object(test_object, feature_id=23, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=23, owner=_Owner.language_platform)
 
     @staticmethod
     def partial_flush_on_by_default(test_object):
@@ -252,7 +366,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=24
         """
-        return _mark_test_object(test_object, feature_id=24, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=24, owner=_Owner.language_platform)
 
     @staticmethod
     def automatic_trace_id_injection_into_logs(test_object):
@@ -404,7 +518,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=45
         """
-        return _mark_test_object(test_object, feature_id=45, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=45, owner=_Owner.language_platform)
 
     # @staticmethod
     # def setting_to_rename_service_by_tag_split_by_tag(test_object):
@@ -472,7 +586,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=53
         """
-        return _mark_test_object(test_object, feature_id=53, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=53, owner=_Owner.language_platform)
 
     @staticmethod
     def aws_sdk_integration_tags(test_object):
@@ -520,7 +634,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=60
         """
-        return _mark_test_object(test_object, feature_id=60, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=60, owner=_Owner.language_platform)
 
     @staticmethod
     def creation_and_propagation_of_ddpdm(test_object):
@@ -536,7 +650,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=62
         """
-        return _mark_test_object(test_object, feature_id=62, owner=_Owner.data_pipeline)
+        return _mark_test_object(test_object, feature_id=62, owner=_Owner.language_platform)
 
     # @staticmethod
     # def client_side_stats_on_by_default(test_object):
@@ -754,7 +868,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=89
         """
-        return _mark_test_object(test_object, feature_id=89, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=89, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_auto_instrumentation(test_object):
@@ -762,7 +876,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=90
         """
-        return _mark_test_object(test_object, feature_id=90, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=90, owner=_Owner.injection_platform)
 
     # @staticmethod
     # def collect_http_post_data_and_headers(test_object):
@@ -1680,7 +1794,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=274
         """
-        return _mark_test_object(test_object, feature_id=274, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=274, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_auto_installation_script(test_object):
@@ -1688,7 +1802,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=275
         """
-        return _mark_test_object(test_object, feature_id=275, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=275, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_block_list(test_object):
@@ -1696,7 +1810,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
-        return _mark_test_object(test_object, feature_id=276, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=276, owner=_Owner.injection_platform)
 
     @staticmethod
     def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1760,7 +1874,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
-        return _mark_test_object(test_object, feature_id=288, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=288, owner=_Owner.injection_platform)
 
     @staticmethod
     def f_otel_interoperability(test_object):
@@ -1784,7 +1898,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=292
         """
-        return _mark_test_object(test_object, feature_id=292, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=292, owner=_Owner.injection_platform)
 
     @staticmethod
     def rasp_local_file_inclusion(test_object):
@@ -1821,6 +1935,15 @@ class _Features:
         )  # tracing/context-propagation, apm/dbm, idm-sugar
 
     @staticmethod
+    def database_monitoring_dynamic_service(test_object):
+        """DBM: dynamic_service propagation mode — injects ddsh into SQL comments and _dd.propagated_hash onto spans
+
+        https://feature-parity.us1.prod.dog/#/?feature=558
+        https://docs.google.com/document/d/1v-NuhF_0LNCY3zkSQlL6nPxrvlKfvm9LDkeZlEOyO3w/edit?tab=t.0
+        """
+        return _mark_test_object(test_object, feature_id=558, owner=_Owner.idm)
+
+    @staticmethod
     def rasp_stack_trace(test_object):
         """Appsec RASP: Stack Trace
 
@@ -1850,7 +1973,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
-        return _mark_test_object(test_object, feature_id=302, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=302, owner=_Owner.injection_platform)
 
     @staticmethod
     def appsec_standalone_experimental(test_object):
@@ -1914,7 +2037,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
-        return _mark_test_object(test_object, feature_id=306, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=306, owner=_Owner.injection_platform)
 
     @staticmethod
     def origin_detection(test_object):
@@ -1932,7 +2055,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=307
         """
-        return _mark_test_object(test_object, feature_id=307, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=307, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_guardrail(test_object):
@@ -1940,7 +2063,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=308
         """
-        return _mark_test_object(test_object, feature_id=308, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=308, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_guardrail(test_object):
@@ -1948,7 +2071,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=309
         """
-        return _mark_test_object(test_object, feature_id=309, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=309, owner=_Owner.injection_platform)
 
     @staticmethod
     def datastreams_monitoring_support_for_manual_checkpoints(test_object):
@@ -2044,7 +2167,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=322
         """
-        return _mark_test_object(test_object, feature_id=322, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=322, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_crashtracking(test_object):
@@ -2052,7 +2175,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=340
         """
-        return _mark_test_object(test_object, feature_id=340, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=340, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_service_naming(test_object):
@@ -2060,7 +2183,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=326
         """
-        return _mark_test_object(test_object, feature_id=326, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=326, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_service_tracking(test_object):
@@ -2173,6 +2296,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=353
         """
         return _mark_test_object(test_object, feature_id=353, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def org_propagation_guard(test_object):
+        """Org Propagation Guard: Org Propagation Marker (OPM) gates trace context continuation across orgs
+
+        https://feature-parity.us1.prod.dog/#/?feature=555
+        """
+        return _mark_test_object(test_object, feature_id=555, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def iast_sink_email_html_injection(test_object):
@@ -2468,7 +2599,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=478
         """
-        return _mark_test_object(test_object, feature_id=478, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=478, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_auto_installation_script_appsec(test_object):
@@ -2476,7 +2607,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=479
         """
-        return _mark_test_object(test_object, feature_id=479, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=479, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_auto_installation_script_appsec(test_object):
@@ -2484,7 +2615,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=480
         """
-        return _mark_test_object(test_object, feature_id=480, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=480, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_injection_metadata(test_object):
@@ -2573,6 +2704,22 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=548
         """
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_evp_flagevaluation(test_object):
+        """Feature Flags EVP Flagevaluation
+
+        https://feature-parity.us1.prod.dog/#/?feature=540
+        """
+        return _mark_test_object(test_object, feature_id=540, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_event_enrichment(test_object):
+        """Feature Flags Event Enrichment (APM span tags)
+
+        https://feature-parity.us1.prod.dog/#/?feature=551
+        """
+        return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
@@ -2727,6 +2874,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
 
     @staticmethod
+    def ai_guard_standalone(test_object):
+        """AI Guard standalone mode
+
+        https://feature-parity.us1.prod.dog/#/?feature=559
+        """
+        return _mark_test_object(test_object, feature_id=559, owner=_Owner.asm)
+
+    @staticmethod
     def apm_google_genai_generate_content(test_object):
         """APM supports Google GenAI generate content interactions
 
@@ -2799,13 +2954,61 @@ class _Features:
         return _mark_test_object(test_object, feature_id=545, owner=_Owner.language_platform)
 
     @staticmethod
+    def appsec_apm_standalone(test_object):
+        """Ensure that AppSec works correctly with the infra product disabled
+
+        https://feature-parity.us1.prod.dog/#/?feature=546
+        """
+        return _mark_test_object(test_object, feature_id=546, owner=_Owner.asm)
+
+    @staticmethod
     def base_service(test_object):
         """_dd.base_service meta tag is set on spans whose service name differs from the global service.
         Preserves the originating service context when integrations override the service name.
 
-        https://feature-parity.us1.prod.dog/#/?feature=546
+        https://feature-parity.us1.prod.dog/#/?feature=549
         """
-        return _mark_test_object(test_object, feature_id=546, owner=_Owner.idm)
+        return _mark_test_object(test_object, feature_id=549, owner=_Owner.idm)
+
+    @staticmethod
+    def runtime_sca_reachability(test_object):
+        """SCA Runtime Reachability: report CVE metadata and caller information
+        for vulnerable dependencies when DD_APPSEC_SCA_ENABLED=true.
+
+        https://feature-parity.us1.prod.dog/#/?feature=553
+        """
+        return _mark_test_object(test_object, feature_id=553, owner=_Owner.asm)
+
+    @staticmethod
+    def llm_observability_cost_tags(test_object):
+        """LLM Observability supports cost_tags annotation for propagating user-selected
+        span tags to LLM cost and token metrics.
+
+        https://feature-parity.us1.prod.dog/#/?feature=554
+        """
+        return _mark_test_object(test_object, feature_id=554, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def api_security_testing_headers_collection(test_object):
+        """API Security Testing - Headers collection: tracers unconditionally tag the
+        x-datadog-endpoint-scan and x-datadog-security-test request headers on service
+        entry spans as http.request.headers.<name>, regardless of DD_TRACE_HEADER_TAGS
+        or AppSec being enabled. These markers are not propagated downstream.
+
+        https://feature-parity.us1.prod.dog/#/?feature=556
+        """
+        return _mark_test_object(test_object, feature_id=556, owner=_Owner.asm)
+
+    @staticmethod
+    def api_security_normalized_route(test_object):
+        """API Security Testing - Normalized Route: tracers emit a per-request
+        `_dd.appsec.normalized_route` span tag on every request span that already
+        carries `http.route` when API Security is enabled. The tag follows the
+        RFC-1103 normalized-route grammar.
+
+        https://feature-parity.us1.prod.dog/#/?feature=557
+        """
+        return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
 
 
 features = _Features()

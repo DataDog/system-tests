@@ -2,13 +2,9 @@ from collections.abc import Generator, Iterable
 import contextlib
 from dataclasses import asdict
 from http import HTTPStatus
-import time
 from types import TracebackType
 from typing import TypedDict, cast
-import urllib.parse
 
-from _pytest.outcomes import Failed
-import requests
 from requests.exceptions import RequestException
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
@@ -26,7 +22,7 @@ from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
 
-from ._core import TestClientFactory
+from ._core import TestClientFactory, TestClientApi
 
 
 class ParametricTestClientFactory(TestClientFactory):
@@ -92,6 +88,10 @@ class ParametricTestClientFactory(TestClientFactory):
                 volumes=self.container_volumes,
                 log_file=log_file,
                 network=test_agent.network,
+                # Give ddtrace/OTLP/gRPC background threads time to drain on SIGTERM before
+                # the next test on this xdist worker reuses the same host port. SIGKILLing
+                # mid-shutdown was the most likely cause of rare container-exit flakes.
+                stop_timeout=5,
             ) as container,
         ):
             test_server_timeout = 60
@@ -108,12 +108,6 @@ class ParametricTestClientFactory(TestClientFactory):
         request.node.add_report_section(
             "teardown", f"{self.library.capitalize()} Library Output", f"Log file:\n./{log_file.name}"
         )
-
-
-def _fail(message: str):
-    """Used to mak a test as failed"""
-    logger.error(message)
-    raise Failed(message, pytrace=False) from None
 
 
 class StartSpanResponse(TypedDict):
@@ -248,7 +242,7 @@ class _TestOtelSpan:
         self._client.otel_set_baggage(self.span_id, key, value)
 
 
-class ParametricTestClientApi:
+class ParametricTestClientApi(TestClientApi):
     """API to interact with the tracer+framework server running in a docker container for
     PARAMETRIC scenarios.
     """
@@ -256,13 +250,7 @@ class ParametricTestClientApi:
     def __init__(self, library: str, url: str, timeout: int, container: Container):
         self.library = library
         self.lang = library  # TODO remove
-        self._base_url = url
-        self._session = requests.Session()
-        self.container = container
-        self.timeout = timeout
-
-        # wait for server to start
-        self._wait(timeout)
+        super().__init__(url, timeout, container)
 
     def __enter__(self) -> "ParametricTestClientApi":
         return self
@@ -282,50 +270,11 @@ class ParametricTestClientApi:
 
         return None
 
-    def _wait(self, timeout: float):
-        delay = 0.01
-        for _ in range(int(timeout / delay)):
-            try:
-                if self._is_alive():
-                    break
-            except Exception:
-                if self.container.status != "running":
-                    self._print_logs()
-                    message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
-                    _fail(message)
-            time.sleep(delay)
-        else:
-            self._print_logs()
-            message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
-            _fail(message)
-
-    def container_restart(self):
-        self.container.restart()
-        self._wait(self.timeout)
-
-    def _is_alive(self) -> bool:
-        self.container.reload()
-        return (
-            self.container.status == "running"
-            and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
-            == HTTPStatus.NOT_FOUND
-        )
-
     def is_alive(self) -> bool:
         try:
             return self._is_alive()
         except Exception:
             return False
-
-    def _print_logs(self):
-        try:
-            logs = self.container.logs().decode("utf-8")
-            logger.debug(f"Logs from container {self.container.name}:\n\n{logs}")
-        except Exception:
-            logger.error(f"Failed to get logs from container {self.container.name}")
-
-    def _url(self, path: str) -> str:
-        return urllib.parse.urljoin(self._base_url, path)
 
     def crash(self) -> None:
         try:
@@ -543,6 +492,29 @@ class ParametricTestClientApi:
 
         return HTTPStatus(r.status_code).is_success
 
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Contract: docs/parametric/remote-config-apply-contract.md. Returns None on
+        tracers that haven't implemented the endpoint yet (404), as distinct from
+        [] which means the endpoint ran and applied nothing. On any other non-2xx
+        response (e.g. a 504 when the server-side drain timed out), logs a WARNING
+        and returns None instead of raising: a non-2xx response can occur even when
+        the tracer applied RC correctly, so the test should assert on actual tracer
+        state rather than be killed prematurely.
+        """
+        resp = self._session.post(
+            self._url("/trace/remote-config/apply"),
+            json={},
+            timeout=timeout,
+        )
+        if resp.status_code == HTTPStatus.NOT_FOUND:
+            return None
+        if not resp.ok:
+            logger.warning("flush_remote_config got %s: %s", resp.status_code, resp.text)
+            return None
+        return resp.json().get("applied_configs", [])
+
     def write_log(
         self,
         logger_name: str,
@@ -750,6 +722,12 @@ class ParametricTestClientApi:
         data = resp.json()
         return data["value"]
 
+    def ensure_agent_info(self) -> bool:
+        r = self._session.get(self._url("/trace/agent/ensure_agent_info"))
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+        return r.json().get("ready", True)
+
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
@@ -788,14 +766,18 @@ class ParametricTestClientApi:
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
-    def ffe_start(self) -> bool:
+    def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
 
         """
-        resp = self._session.post(self._url("/ffe/start"), json={})
+        payload = {}
+        if configuration is not None:
+            payload["configuration"] = configuration
+
+        resp = self._session.post(self._url("/ffe/start"), json=payload)
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
@@ -806,6 +788,7 @@ class ParametricTestClientApi:
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -815,21 +798,23 @@ class ParametricTestClientApi:
             default_value: The default value to return if evaluation fails
             targeting_key: The targeting key (usually user ID) for evaluation context
             attributes: Optional additional attributes for evaluation context
+            span_id: Optional span ID to activate during evaluation (for span enrichment)
 
         Returns:
             dict: Evaluation result containing 'value' and 'reason'
 
         """
-        resp = self._session.post(
-            self._url("/ffe/evaluate"),
-            json={
-                "flag": flag,
-                "variationType": variation_type,
-                "defaultValue": default_value,
-                "targetingKey": targeting_key,
-                "attributes": attributes or {},
-            },
-        )
+        payload = {
+            "flag": flag,
+            "variationType": variation_type,
+            "defaultValue": default_value,
+            "targetingKey": targeting_key,
+            "attributes": attributes or {},
+        }
+        if span_id is not None:
+            payload["span_id"] = str(span_id)
+
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
 
     def otel_get_meter(
@@ -1100,8 +1085,19 @@ class APMLibrary:
         ) as span:
             yield span
 
+    def ensure_agent_info(self) -> bool:
+        return self._client.ensure_agent_info()
+
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
+
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Returns None on tracers that haven't implemented the endpoint yet.
+        Tests rarely call this directly; set_and_wait_rc() invokes it after the ACK.
+        """
+        return self._client.flush_remote_config(timeout=timeout)
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
@@ -1214,9 +1210,9 @@ class APMLibrary:
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
 
-    def ffe_start(self) -> bool:
+    def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
-        return self._client.ffe_start()
+        return self._client.ffe_start(configuration)
 
     def ffe_evaluate(
         self,
@@ -1226,6 +1222,7 @@ class APMLibrary:
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1234,6 +1231,7 @@ class APMLibrary:
             default_value=default_value,
             targeting_key=targeting_key,
             attributes=attributes,
+            span_id=span_id,
         )
 
     def llmobs_trace(

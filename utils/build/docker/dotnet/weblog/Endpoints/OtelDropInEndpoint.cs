@@ -13,6 +13,8 @@ namespace weblog
 {
     public class OtelDropInEndpoint : ISystemTestEndpoint
     {
+        private static readonly ActivitySource _activitySource = new("system-tests");
+
         private class BaggageApiEndpointParameters
         {
             public string? Url { get; private init; }
@@ -147,6 +149,33 @@ namespace weblog
                 var endpointResponse = new BaggageApiEndpointResponse()
                 {
                     Url = parameters.Url,
+                    StatusCode = (int)response.StatusCode,
+                    RequestHeaders = response.RequestMessage?.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
+                    ResponseHeaders = response.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
+                };
+
+                await context.Response.WriteAsJsonAsync(endpointResponse);
+            });
+
+            routeBuilder.MapGet("/otel_drop_in_extract_and_make_distant_call", async context =>
+            {
+                string? url = context.Request.Query["url"];
+                if (url == null)
+                {
+                    throw new System.Exception("Specify the url to call in the query string");
+                }
+
+                var parentContext = OpenTelemetryInstrumentation.Propagator.Extract(default, context.Request.Headers, (carrier, key) =>
+                {
+                    return carrier.TryGetValue(key, out var value) && value.Count >= 1 ? new[] { value[0] } : null;
+                });
+
+                using var activity = _activitySource.StartActivity("otel_extract_distant_call", ActivityKind.Server, parentContext.ActivityContext);
+
+                var response = await HttpClientWrapper.LocalGetRequest(url);
+                var endpointResponse = new BaggageApiEndpointResponse()
+                {
+                    Url = url,
                     StatusCode = (int)response.StatusCode,
                     RequestHeaders = response.RequestMessage?.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
                     ResponseHeaders = response.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),

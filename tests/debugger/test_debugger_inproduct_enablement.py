@@ -8,6 +8,9 @@ import json
 import time
 
 TIMEOUT = 5
+DEFAULT_ENVVARS = {
+    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+}
 
 
 @features.debugger_inproduct_enablement
@@ -209,3 +212,19 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         assert self.co_explicit_enabled, "Expected spans with code origin after explicit enable"
         assert self.co_empty_config, "Expected spans to continue emitting with empty config"
         assert self.co_explicit_disabled, "Expected spans to stop emitting after explicit disable"
+
+
+@features.debugger_code_origins
+@scenarios.debugger_inproduct_enablement
+@slow
+class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
+    def setup_code_origin_enabled_by_default(self):
+        self.initialize_weblog_remote_config()
+        self.send_weblog_request("/")
+        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(TIMEOUT)
+
+    def test_code_origin_enabled_by_default(self):
+        self.assert_setup_ok()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.code_origin_enabled_by_default, "Expected code origin enabled by default"

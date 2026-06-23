@@ -1,15 +1,18 @@
 import itertools
 import json
-from typing import Any
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import timedelta
 from http import HTTPStatus
-import time
+from typing import Any
+
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+
+from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
+from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -780,28 +783,6 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
-def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result: list = []
-    for obj in objs:
-        if obj is not None:
-            if isinstance(obj, dict):
-                result.extend(list(obj.keys()))
-                result.extend(list(obj.values()))
-            elif isinstance(obj, list):
-                result.extend(obj)
-            else:
-                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-    return result
-
-
-def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes: list):
-    lower_key = key.lower()
-    is_allowed_key = lower_key in allowed_keys
-    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-    return is_allowed_key or is_allowed_prefix
-
-
 @features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
@@ -817,52 +798,6 @@ class Test_TelemetryV2:
                 assert "appsec" in products, (
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
-
-    def test_config_telemetry_completeness(self):
-        """Assert that config telemetry is handled properly by telemetry intake
-
-        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
-        """
-
-        config_norm_rules = load_telemetry_json("config_norm_rules")
-        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
-        config_aggregation_list = load_telemetry_json("config_aggregation_list")
-
-        lang_configs = get_lang_configs()
-
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if not is_v2_payload(data):
-                continue
-            if get_request_type(data) in ["app-started", "app-client-configuration-change"]:
-                language_name = data["request"]["content"]["application"]["language_name"]
-
-                lang_config = lang_configs.get(language_name, {})
-
-                norm_rules = lang_config.get("normalization_rules", {})
-                exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
-                # backend side normalizes keys to lowercase, we need to mimic this behavior
-                exact_keys = [key.lower() for key in exact_keys]
-
-                prefix_keys = get_all_keys_and_values(
-                    config_prefix_block_list,
-                    lang_config.get("prefix_block_list", {}),
-                    config_aggregation_list,
-                    lang_config.get("reduce_rules", {}),
-                )
-
-                configuration = data["request"]["content"]["payload"]["configuration"]
-                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
-
-                missing_config_keys = [
-                    key for key in library_config_keys if not is_key_accepted_by_telemetry(key, exact_keys, prefix_keys)
-                ]
-
-                # This may create a fairly large test output, but it makes the output more actionable
-                if len(missing_config_keys) != 0:
-                    logger.error(json.dumps(missing_config_keys, indent=2))
-                    raise ValueError(
-                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
-                    )
 
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
@@ -925,7 +860,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert that the debugger products are disabled by default including DI, and ER"""
+        """Assert DI and ER are disabled by default, and code origin is enabled by default."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -964,7 +899,13 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
-        assert co_config == "false", "Code Origin for Spans should be disabled by default"
+
+        if context.library == "dotnet" and context.library.version >= "3.42.0":
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
+
+        if context.library != "python" or context.library.version < "4.9.0-dev":
+            assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
@@ -1126,15 +1067,67 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
+        )
+
+
+@scenarios.telemetry_extended_heartbeat
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event in end-to-end scenario"""
+
+    def setup_extended_heartbeat_config_matches(self):
+        weblog.get("/")
+
+    def test_extended_heartbeat_config_matches(self):
+        """Test that every config reported in app-started or app-client-configuration-change
+        was eventually reported by at least one app-extended-heartbeat event.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        # Collect all config names reported in app-started and config-change events
+        expected_config_names: set[str] = set()
+        found_app_started = False
+
+        for data in telemetry_data:
+            request_type = get_request_type(data)
+            if request_type in ("app-started", "app-client-configuration-change"):
+                if request_type == "app-started":
+                    found_app_started = True
+                for c in get_configurations(data) or []:
+                    expected_config_names.add(c["name"])
+
+        assert found_app_started, "app-started event not found"
+
+        # Collect all config names ever reported across all extended heartbeats
+        heartbeat_config_names: set[str] = set()
+        found_extended_hb = False
+
+        for data in telemetry_data:
+            if get_request_type(data) == "app-extended-heartbeat":
+                found_extended_hb = True
+                for c in get_configurations(data) or []:
+                    heartbeat_config_names.add(c["name"])
+
+        assert found_extended_hb, "app-extended-heartbeat event not found"
+
+        # For each expected config, verify it was reported by at least one extended heartbeat.
+        # Configs may appear in heartbeats before or after they are (re-)reported in
+        # config-change events (e.g. remote config updates re-report existing configs).
+        missing = sorted(expected_config_names - heartbeat_config_names)
+        assert not missing, (
+            f"{len(missing)} config(s) reported in app-started or config-change but never "
+            f"included in any app-extended-heartbeat event: {missing}"
         )

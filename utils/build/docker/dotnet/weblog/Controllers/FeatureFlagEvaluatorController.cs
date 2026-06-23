@@ -7,6 +7,7 @@ using OpenFeature;
 using OpenFeature.Model;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -46,41 +47,108 @@ namespace weblog
         {
             object value;
             string reason = "DEFAULT";
-            var context = CreateContext(request);
+            var targetingKeys = request.TargetingKeys != null && request.TargetingKeys.Count > 0
+                ? request.TargetingKeys
+                : new List<string> { request.TargetingKey };
 
             try
             {
-                value = request.VariationType?.ToUpper() switch
+                value = request.DefaultValue;
+                foreach (var targetingKey in targetingKeys)
                 {
-                    "BOOLEAN" => await _client.GetBooleanValueAsync(request.Flag, Convert.ToBoolean(request.DefaultValue), context),
-                    "STRING" => await _client.GetStringValueAsync(request.Flag, request.DefaultValue?.ToString(), context),
-                    "INTEGER" => await _client.GetIntegerValueAsync(request.Flag, Convert.ToInt32(request.DefaultValue), context),
-                    "NUMERIC" => await _client.GetDoubleValueAsync(request.Flag, Convert.ToDouble(request.DefaultValue), context),
-                    // "JSON" => (await _client.GetObjectValueAsync(request.Flag, Value.FromObject(request.DefaultValue), context)).AsStructure(),
-                    _ => request.DefaultValue
-                };
+                    var context = CreateContext(request, targetingKey);
+                    value = request.VariationType?.ToUpper() switch
+                    {
+                        "BOOLEAN" => await _client.GetBooleanValueAsync(request.Flag, GetDefaultValueAsBool(request.DefaultValue), context),
+                        "STRING" => await _client.GetStringValueAsync(request.Flag, GetDefaultValueAsString(request.DefaultValue), context),
+                        "INTEGER" => await _client.GetIntegerValueAsync(request.Flag, GetDefaultValueAsInt(request.DefaultValue), context),
+                        "NUMERIC" => await _client.GetDoubleValueAsync(request.Flag, GetDefaultValueAsDouble(request.DefaultValue), context),
+                        _ => request.DefaultValue
+                    };
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // _logger.LogError(ex, "Error on resolution");
                 value = request.DefaultValue;
                 reason = "ERROR";
             }
 
-            return Ok(new { reason, value });
+            return Ok(new { reason, value, count = targetingKeys.Count });
         }
 
-        private static EvaluationContext CreateContext(EvaluateRequest request)
+        private static bool GetDefaultValueAsBool(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.String => bool.Parse(jsonElement.GetString()),
+                    _ => false
+                };
+            }
+            return Convert.ToBoolean(defaultValue);
+        }
+
+        private static string GetDefaultValueAsString(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind == JsonValueKind.String
+                    ? jsonElement.GetString()
+                    : jsonElement.ToString();
+            }
+            return defaultValue?.ToString();
+        }
+
+        private static int GetDefaultValueAsInt(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.Number => jsonElement.GetInt32(),
+                    JsonValueKind.String => int.Parse(jsonElement.GetString()),
+                    _ => 0
+                };
+            }
+            return Convert.ToInt32(defaultValue);
+        }
+
+        private static double GetDefaultValueAsDouble(object defaultValue)
+        {
+            if (defaultValue is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.Number => jsonElement.GetDouble(),
+                    JsonValueKind.String => double.Parse(jsonElement.GetString()),
+                    _ => 0.0
+                };
+            }
+            return Convert.ToDouble(defaultValue);
+        }
+
+        private static EvaluationContext CreateContext(EvaluateRequest request, string targetingKey)
         {
             var builder = EvaluationContext.Builder();
-            builder.SetTargetingKey(request.TargetingKey);
+            builder.SetTargetingKey(targetingKey);
 
             if (request.Attributes != null)
             {
                 foreach (var attr in request.Attributes)
                 {
-                    builder.Set(attr.Key, attr.Value as string);
-                    // builder.Set(attr.Key, Value.FromObject(attr.Value));
+                    // System.Text.Json deserializes to JsonElement, not string
+                    var value = attr.Value switch
+                    {
+                        JsonElement jsonElement => jsonElement.ValueKind == JsonValueKind.String
+                            ? jsonElement.GetString()
+                            : jsonElement.ToString(),
+                        string s => s,
+                        _ => attr.Value?.ToString()
+                    };
+                    builder.Set(attr.Key, value);
                 }
             }
             return builder.Build();
@@ -99,6 +167,9 @@ namespace weblog
 
             [JsonPropertyName("targetingKey")]
             public string TargetingKey { get; set; }
+
+            [JsonPropertyName("targetingKeys")]
+            public List<string>? TargetingKeys { get; set; }
 
             [JsonPropertyName("attributes")]
             public Dictionary<string, object> Attributes { get; set; }

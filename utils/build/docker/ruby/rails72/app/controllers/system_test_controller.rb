@@ -1,6 +1,6 @@
-require 'json'
-require 'kafka'
-require 'opentelemetry'
+require "json"
+require "kafka"
+require "opentelemetry"
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -43,19 +43,19 @@ class SystemTestController < ApplicationController
   end
 
   def waf
-    render plain: 'Hello, world!'
+    render plain: "Hello, world!"
   end
 
   def handle_path_params
-    render plain: 'Hello, world!'
+    render plain: "Hello, world!"
   end
 
   def generate_spans
     begin
-      repeats = Integer(request.params['repeats'] || 0)
-      garbage = Integer(request.params['garbage'] || 0)
+      repeats = Integer(request.params["repeats"] || 0)
+      garbage = Integer(request.params["garbage"] || 0)
     rescue ArgumentError
-      render plain: 'bad request', status: 400
+      render plain: "bad request", status: 400
     else
       repeats.times do |i|
         Datadog::Tracing.trace('repeat-#{i}') do |span|
@@ -70,23 +70,23 @@ class SystemTestController < ApplicationController
   end
 
   def test_headers
-    response.set_header('Content-Type', 'text/plain')
-    response.set_header('Content-Length', '15')
-    response.set_header('Content-Language', 'en-US')
+    response.set_header("Content-Type", "text/plain")
+    response.set_header("Content-Length", "15")
+    response.set_header("Content-Language", "en-US")
 
-    render plain: 'Hello, headers!'
+    render plain: "Hello, headers!"
   end
 
   def identify
     trace = Datadog::Tracing.active_trace
-    trace.set_tag('usr.id', 'usr.id')
-    trace.set_tag('usr.name', 'usr.name')
-    trace.set_tag('usr.email', 'usr.email')
-    trace.set_tag('usr.session_id', 'usr.session_id')
-    trace.set_tag('usr.role', 'usr.role')
-    trace.set_tag('usr.scope', 'usr.scope')
+    trace.set_tag("usr.id", "usr.id")
+    trace.set_tag("usr.name", "usr.name")
+    trace.set_tag("usr.email", "usr.email")
+    trace.set_tag("usr.session_id", "usr.session_id")
+    trace.set_tag("usr.role", "usr.role")
+    trace.set_tag("usr.scope", "usr.scope")
 
-    render plain: 'Hello, world!'
+    render plain: "Hello, world!"
   end
 
   def status
@@ -110,10 +110,10 @@ class SystemTestController < ApplicationController
     end
 
     result = {
-      "url": url,
-      "status_code": response.code.to_i,
-      "request_headers": request.each_header.to_h,
-      "response_headers": response.each_header.to_h,
+      url: url,
+      status_code: response.code.to_i,
+      request_headers: request.each_header.to_h,
+      response_headers: response.each_header.to_h
     }
 
     render json: result
@@ -122,27 +122,27 @@ class SystemTestController < ApplicationController
   def log_library
     message = params[:msg]
     Rails.logger.info(message)
-    render plain: 'OK'
+    render plain: "OK"
   end
 
   def tag_value
     event_value = params[:tag_value]
     status_code = params[:status_code]
 
-    headers = request.query_string.split('&').map {|e | e.split('=')} || []
+    headers = request.query_string.split("&").map { |e| e.split("=") } || []
     headers.each do |key, value|
       response.headers[key] = value
     end
 
-    if request.method == "POST" && event_value.include?('payload_in_response_body')
-      render json: { payload: request.POST }
+    if request.method == "POST" && event_value.include?("payload_in_response_body")
+      render json: {payload: request.POST}
       return
     end
 
     trace = Datadog::Tracing.active_trace
     trace.set_tag("appsec.events.system_tests_appsec_event.value", event_value)
 
-    render plain: 'Value tagged', status: status_code
+    render plain: "Value tagged", status: status_code
   end
 
   def users
@@ -150,20 +150,20 @@ class SystemTestController < ApplicationController
 
     Datadog::Kit::Identity.set_user(id: user_id)
 
-    render plain: 'Hello, user!'
+    render plain: "Hello, user!"
   end
 
   def kafka_produce
     kafka = Kafka.new(
       seed_brokers: ["kafka:9092"],
-      client_id: "system-tests-client-producer",
+      client_id: "system-tests-client-producer"
     )
     producer = kafka.producer
     topic = request.params["topic"] || "DistributedTracing"
     begin
       producer.produce(
         "Hello, world!",
-        topic:   topic,
+        topic: topic
       )
       producer.deliver_messages
       producer.shutdown
@@ -177,12 +177,12 @@ class SystemTestController < ApplicationController
     kafka = Kafka.new(
       seed_brokers: ["kafka:9092"],
       client_id: "system-tests-client-consumer",
-      socket_timeout: 20,
+      socket_timeout: 20
     )
     topic = request.params["topic"] || "DistributedTracing"
     begin
       kafka.each_message(topic: topic) do |message|
-        if not message.nil?
+        if !message.nil?
           puts "Received message: #{message.value}"
           break
         end
@@ -194,7 +194,7 @@ class SystemTestController < ApplicationController
   end
 
   def request_downstream
-    uri = URI('http://localhost:7777/returnheaders')
+    uri = URI("http://localhost:7777/returnheaders")
     ext_request = nil
     ext_response = nil
 
@@ -204,31 +204,31 @@ class SystemTestController < ApplicationController
       ext_response = http.request(ext_request)
     end
 
-    render json: ext_response.body, content_type: 'application/json'
+    render json: ext_response.body, content_type: "application/json"
   end
 
   def return_headers
     request_headers = request.headers.each.to_h.select do |k, _v|
-      k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
+      k.start_with?("HTTP_") || k == "CONTENT_TYPE" || k == "CONTENT_LENGTH"
     end
     request_headers = request_headers.transform_keys do |k|
-      k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+      k.sub(/^HTTP_/, "").split("_").map(&:capitalize).join("-")
     end
-    render json: JSON.generate(request_headers), content_type: 'application/json'
+    render json: JSON.generate(request_headers), content_type: "application/json"
   end
 
   def otel_drop_in_default_propagator_extract
     # The extract operation succeeds with a custom OpenTelemetry propagator, but not with the default one.
     # To see this, uncomment the next line, and use that propagator to do the context extraction
     # propagator = OpenTelemetry::Context::Propagation::CompositeTextMapPropagator.compose_propagators([OpenTelemetry::Trace::Propagation::TraceContext.text_map_propagator, OpenTelemetry::Baggage::Propagation.text_map_propagator])
-    context = OpenTelemetry.propagation.extract(request.headers)
+    context = OpenTelemetry.propagation.extract(request.headers.to_h)
 
     span_context = OpenTelemetry::Trace.current_span(context).context
 
-    baggage = OpenTelemetry::Baggage.raw_entries()
+    baggage = OpenTelemetry::Baggage.raw_entries
     baggage_str = ""
     baggage.each_pair do |key, value|
-      baggage_str << value << ','
+      baggage_str << value << ","
     end
     baggage_str.chop!
 
@@ -238,18 +238,44 @@ class SystemTestController < ApplicationController
     result["tracestate"] = span_context.tracestate.to_s
     result["baggage"] = baggage_str
 
-    render json: JSON.generate(result), content_type: 'application/json'
+    render json: JSON.generate(result), content_type: "application/json"
+  end
+
+  def otel_drop_in_extract_and_make_distant_call
+    url = params[:url]
+    # Propagation#extract requires a Hash; requests' type ActionDispatch::Http::Headers lacks empty?
+    context = OpenTelemetry.propagation.extract(request.headers.to_h)
+    tracer = OpenTelemetry.tracer_provider.tracer("system-tests")
+    span = tracer.start_span("otel_extract_distant_call", with_parent: context, kind: :server)
+    result = {}
+    OpenTelemetry::Trace.with_span(span) do
+      uri = URI(url)
+      req = nil
+      res = nil
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        req = Net::HTTP::Get.new(uri)
+        res = http.request(req)
+      end
+      result = {
+        url: url,
+        status_code: res.code.to_i,
+        request_headers: req.each_header.to_h,
+        response_headers: res.each_header.to_h
+      }
+    end
+    span.finish
+    render json: result
   end
 
   def otel_drop_in_default_propagator_inject
     headers = {}
     OpenTelemetry.propagation.inject(headers)
-    render json: JSON.generate(headers), content_type: 'application/json'
+    render json: JSON.generate(headers), content_type: "application/json"
   end
 
   def otel_drop_in_baggage_api_otel
-    baggage_to_remove = request.params[:baggage_remove].split(',') || []
-    baggage_to_set = request.params[:baggage_set].split(',').map { |item| item.split('=') } || []
+    baggage_to_remove = request.params[:baggage_remove].split(",") || []
+    baggage_to_set = request.params[:baggage_set].split(",").map { |item| item.split("=") } || []
 
     baggage_to_remove.each do |key|
       OpenTelemetry::Baggage.remove_value(key)
@@ -270,18 +296,18 @@ class SystemTestController < ApplicationController
     end
 
     result = {
-      "url": url,
-      "status_code": response.code.to_i,
-      "request_headers": request.each_header.to_h,
-      "response_headers": response.each_header.to_h,
+      url: url,
+      status_code: response.code.to_i,
+      request_headers: request.each_header.to_h,
+      response_headers: response.each_header.to_h
     }
 
     render json: result
   end
 
   def otel_drop_in_baggage_api_datadog
-    baggage_to_remove = request.params[:baggage_remove].split(',') || []
-    baggage_to_set = request.params[:baggage_set].split(',').map { |item| item.split('=') } || []
+    baggage_to_remove = request.params[:baggage_remove].split(",") || []
+    baggage_to_set = request.params[:baggage_set].split(",").map { |item| item.split("=") } || []
 
     baggage_to_remove.each do |key|
       Datadog::Tracing.baggage.delete(key)
@@ -302,16 +328,21 @@ class SystemTestController < ApplicationController
     end
 
     result = {
-      "url": url,
-      "status_code": response.code.to_i,
-      "request_headers": request.each_header.to_h,
-      "response_headers": response.each_header.to_h,
+      url: url,
+      status_code: response.code.to_i,
+      request_headers: request.each_header.to_h,
+      response_headers: response.each_header.to_h
     }
 
     render json: result
   end
 
   def handle_path_params
-    render plain: 'OK'
+    render plain: "OK"
+  end
+
+  def inferred_proxy_span_creation
+    status_code = (params[:status_code] || 200).to_i
+    render plain: "ok", status: status_code
   end
 end

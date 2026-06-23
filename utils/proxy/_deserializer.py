@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import base64
 import gzip
 import io
 import json
@@ -360,6 +361,10 @@ def _deserialize_meta(span: dict):
             meta[key] = deserialize_dd_appsec_s_meta(meta[key])
         elif key in _json_meta_values:
             meta[key] = json.loads(meta[key])
+
+    for key, val in span.get("metaStruct", {}).items():
+        if isinstance(val, str):
+            span["metaStruct"][key] = unpack_trace_bytes_msgpack(base64.b64decode(val))
 
 
 def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401

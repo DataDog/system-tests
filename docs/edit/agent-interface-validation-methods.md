@@ -89,10 +89,11 @@ def test_agent_trace_forwarding(self):
 def test_appsec_agent_forwarding(self):
     r = weblog.get("/", headers={"X-Attack": "' OR 1=1--"})
 
-    def appsec_validator(data, payload, chunk, span, appsec_data):
-        return "triggers" in appsec_data
+    appsec_spans = list(interfaces.agent.get_appsec_data(r))
+    assert len(appsec_spans) > 0
 
-    interfaces.agent.validate_appsec(r, appsec_validator)
+    for data, span, appsec_data in appsec_spans:
+        assert "triggers" in appsec_data
 ```
 
 ### Metrics Validation

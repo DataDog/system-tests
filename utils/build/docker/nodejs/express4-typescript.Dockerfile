@@ -1,16 +1,4 @@
-FROM node:18-alpine
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-COPY utils/build/docker/nodejs/express4-typescript /usr/app
-
-WORKDIR /usr/app
-
+FROM datadog/system-tests:express4-typescript.base-v2
 
 EXPOSE 7777
 
@@ -22,17 +10,15 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
+COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
+RUN bun run build
+
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node dist/app.js' >> app.sh
 CMD ./app.sh
-
-COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-
-RUN npm install || sleep 60 && npm install
-RUN /binaries/install_ddtrace.sh
-RUN npm run build
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
-# docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .
+# docker build -f utils/build/docker/nodejs/express4-typescript.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

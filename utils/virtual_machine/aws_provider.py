@@ -22,10 +22,13 @@ from utils._logger import logger
 from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 
+from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 import pytest
+
+_VM_LOG_REMOTE_PATHS = ["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"]  # noqa: S108
 
 
 class AWSPulumiProvider(VmProvider):
@@ -133,10 +136,27 @@ class AWSPulumiProvider(VmProvider):
                 pytest.exit(f"Known infraestructure exception:: {known_message}", returncode=3)
         # If the exception is not known, we will store it in the vm object and error event to dd
         self.vm.provision_install_error = exception
+        self._download_vm_logs_after_provision_failure()
         self.datadog_event_sender.sendEventToDatadog(
             f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
+        )
+
+    def _download_vm_logs_after_provision_failure(self) -> None:
+        """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
+        if not self.vm.ssh_config.hostname:
+            logger.warning("Cannot download VM logs: VM has no IP yet")
+            return
+        log_folder = context.scenario.host_log_folder
+        logger.stdout(
+            f"Downloading VM logs after provision failure into {log_folder} "
+            "(including var/log/datadog_weblog/dd-agent-diagnostics.log if present)"
+        )
+        download_vm_logs(
+            vm=self.vm,
+            remote_folder_paths=_VM_LOG_REMOTE_PATHS,
+            local_base_logs_folder=log_folder,
         )
 
     def _start_vm(self, vm: _VirtualMachine):
@@ -422,18 +442,27 @@ class AWSCommander(Commander):
                 lambda outputlog: vm_logger(context.scenario.host_log_folder, logger_name).info(outputlog)
             )
         else:
-            # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
-            # same remote machine in the same log file
-            # If there is a failure (exit != 0) this trace will not be stored in the log file (why?)
+            # No logger name specified: group all logs of the same remote machine by host/ip name.
             header = "\n *****************************************************************"
             header2 = "\n -----------------------------------------------------------------"
+
+            def _log_remote_command_output(args: list[object]) -> None:
+                vm_name = str(args[0])
+                step_id = str(args[1])
+                command = str(args[2])
+                stdout = str(args[3] or "")
+                stderr = str(args[4] or "")
+                failed = "Process exited with status" in stderr or "error:" in stderr.lower()
+                status = "❌ FAILED" if failed else "✅ SUCCESS"
+                vm_logger(context.scenario.host_log_folder, vm_name).info(
+                    f"{header} \n   🚀 Provision step: {step_id} 🚀 \n      Status: {status} \n {header} \n"
+                    f" {command} \n\n {header2} \n 📤 Provision step output ({step_id}) 📤  \n {header2} \n"
+                    f" {stdout} \n\n {header2} \n 🚨 error output ({step_id}) 🚨 \n {header2} \n {stderr}"
+                )
+
             Output.all(
                 vm.name, installation_id, remote_command, cmd_exec_install.stdout, cmd_exec_install.stderr
-            ).apply(
-                lambda args: vm_logger(context.scenario.host_log_folder, args[0]).info(
-                    f"{header} \n   🚀 Provision step: {args[1]} 🚀 \n      Status: ✅ SUCCESS \n {header} \n {args[2]} \n\n {header2} \n 📤 Provision step output ({args[1]}) 📤  \n {header2} \n {args[3]} \n\n {header2} \n 🚨 error output ({args[1]}) 🚨 \n {header2} \n {args[4]}"
-                )
-            )
+            ).apply(_log_remote_command_output)
         if output_callback:
             Output.all(vm, cmd_exec_install.stdout).apply(output_callback)
 

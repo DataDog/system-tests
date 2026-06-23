@@ -16,6 +16,7 @@ COPY utils/build/docker/python/iast.py /app/iast.py
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
+ENV DD_CODE_ORIGIN_FOR_SPANS_ENABLED=0
 
 # docker startup
 CMD ./app.sh
