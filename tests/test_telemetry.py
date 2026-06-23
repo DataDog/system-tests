@@ -594,12 +594,11 @@ class Test_Telemetry:
     def _validate_session_id_headers_across_processes(self) -> None:
         """Validate DD-Session-ID, DD-Root-Session-ID, DD-Parent-Session-ID in telemetry.
 
-        Stable Service Instance Identifier RFC: each app instance has one root runtime_id.
-        DD-Session-ID (instance id) must equal runtime_id. When only DD-Session-ID is sent
-        (no DD-Root-Session-ID), the process is treated as the root. All processes spawned
-        from a single app instance must share one root session ID. This handles both the
-        multi-runtime case (per-process tracers, e.g. parent and child from spawn_child)
-        and the single-runtime case (workers sharing one tracer, e.g. nginx).
+        Stable Service Instance Identifier RFC: each app instance has one root runtime_id,
+        and DD-Session-ID (instance id) must equal runtime_id. When DD-Root-Session-ID is
+        absent, the process is its own root. All processes from one app instance share a
+        single root session ID, whether they run per-process tracers (e.g. parent/child
+        from spawn_child) or share one tracer (e.g. nginx workers).
         """
         # Use lifecycle events only; metrics and log events from lib-datadog can contain
         # runtime/session_ids that do not map to tracer-generated telemetry.

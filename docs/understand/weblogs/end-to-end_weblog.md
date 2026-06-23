@@ -955,21 +955,19 @@ This endpoint is OPTIONAL and not related to any test, but to the testing proces
 
 ### GET /spawn_child
 
-This endpoint is used for telemetry session ID header tests (Stable Service Instance Identifier RFC). When called, it forks or execs a child process, passes in the required arguments, waits for the child, and returns a response. It is used to validate `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers in instrumentation telemetry across child processes (forked or exec'd).
+Used by the telemetry session ID header tests ([Stable Service Instance Identifier RFC](https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit)). Forks or execs a child process, waits for it, and returns a response. Validates the `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers across child processes.
 
-This endpoint is OPTIONAL: only one weblog variant per language needs to implement it for the telemetry session ID header tests to run. Variants that do not implement it are skipped via the manifests.
-
-RFC: https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit?tab=t.0#heading=h.ojliy5oytqgg
+OPTIONAL: only one weblog variant per language needs it; others are skipped via the manifests.
 
 Required query parameters:
 
-- `sleep`: number of seconds the child process should sleep before exiting
-- `crash`: boolean (required) — `true` to kill the child with SIGSEGV after sleep, `false` to let it exit gracefully
-- `fork`: boolean (required) — `true` to use fork (parent-child), `false` to use exec. Runtimes that do not support fork (e.g. Java, C#) return 400 if `fork=true` is passed.
+- `sleep`: seconds the child sleeps before exiting
+- `crash`: `true` to kill the child with SIGSEGV after sleeping, else `false`
+- `fork`: `true` to fork, `false` to exec. Runtimes without fork support (e.g. Java, .NET) return 400 for `fork=true`
 
-Returns 200 status code on success. Response body may contain a message such as `Child process {pid} exited`. Returns 400 if `sleep`, `crash`, or `fork` is missing or invalid, or if `fork=true` is passed on a runtime that does not support forking.
+Returns 200 on success, or 400 if any parameter is missing or invalid.
 
-Note: `/fork_and_crash` exists only in lib-injection weblogs, not in end-to-end weblogs.
+Note: `/fork_and_crash` exists only in lib-injection weblogs.
 
 ### \[GET,POST\] /rasp/lfi
 
