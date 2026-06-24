@@ -326,7 +326,17 @@ static enum MHD_Result answer_to_connection(void *cls, struct MHD_Connection *co
             return ret;
         }
 
-        int sleep_secs = atoi(sleep_str);
+        char *sleep_end = NULL;
+        long sleep_val = strtol(sleep_str, &sleep_end, 10);
+        if (sleep_end == sleep_str || *sleep_end != '\0' || sleep_val < 0) {
+            const char *msg = "sleep must be a non-negative integer";
+            struct MHD_Response *response = MHD_create_response_from_buffer(
+                strlen(msg), (void *)msg, MHD_RESPMEM_PERSISTENT);
+            int ret = MHD_queue_response(connection, 400, response);
+            MHD_destroy_response(response);
+            return ret;
+        }
+        int sleep_secs = (int)sleep_val;
         bool do_crash = strcasecmp(crash_str, "true") == 0;
         bool use_fork = strcasecmp(fork_str, "true") == 0;
 
