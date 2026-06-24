@@ -468,15 +468,25 @@ class Test_Telemetry:
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
+        nodejs_configuration: dict[str, object] = {"DD_APPSEC_ENABLED": True}
+        java_configuration: dict[str, object] = {"DD_TELEMETRY_HEARTBEAT_INTERVAL": 2}
+        ruby_configuration: dict[str, object] = {}
+
+        # UDS weblogs intentionally remove TCP agent host/port settings from the container environment.
+        if not context.uds_mode:
+            nodejs_configuration.update({"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port})
+            java_configuration["DD_TRACE_AGENT_PORT"] = trace_agent_port
+            ruby_configuration["DD_AGENT_TRANSPORT"] = "TCP"
+
         test_configuration: dict[str, dict[str, object]] = {
             "dotnet": {},
-            "nodejs": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port, "DD_APPSEC_ENABLED": True},
+            "nodejs": nodejs_configuration,
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
-            "java": {"DD_TRACE_AGENT_PORT": trace_agent_port, "DD_TELEMETRY_HEARTBEAT_INTERVAL": 2},
-            "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
+            "java": java_configuration,
+            "ruby": ruby_configuration,
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]

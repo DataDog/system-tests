@@ -1,9 +1,5 @@
 #!/bin/bash
 
-if [ ${UDS_WEBLOG:-} = "1" ]; then
-    ./set-uds-transport.sh
-fi
-
 java \
     -Xmx362m \
     -XX:ErrorFile=/var/log/system-tests/hs_err_%p_%t_%u.log \

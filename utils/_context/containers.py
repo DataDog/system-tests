@@ -20,6 +20,7 @@ import requests
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context.ports import ContainerPorts
+from utils.proxy.config import DEFAULT_APM_RECEIVER_SOCKET, DEFAULT_DOGSTATSD_RECEIVER_SOCKET
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -49,6 +50,8 @@ _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
+_AGENT_SOCKET_HOST_DIR = "interfaces/test_agent_socket"
+_APM_SOCKET_CONTAINER_DIR = "/var/run/datadog"
 
 
 def create_network() -> Network:
@@ -182,6 +185,14 @@ class TestedContainer:
     @property
     def log_folder_path(self):
         return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
+
+    def _mount_agent_socket_dir(self) -> None:
+        socket_dir = Path(self.host_project_dir) / self.host_log_folder / _AGENT_SOCKET_HOST_DIR
+        socket_dir.mkdir(mode=0o777, exist_ok=True, parents=True)
+        self.volumes[f"./{self.host_log_folder}/{_AGENT_SOCKET_HOST_DIR}"] = {
+            "bind": _APM_SOCKET_CONTAINER_DIR,
+            "mode": "rw",
+        }
 
     def get_existing_container(self) -> Container:
         for container in get_docker_client().containers.list(all=True, filters={"name": self.container_name}):
@@ -682,6 +693,7 @@ class ProxyContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
+        self._mount_agent_socket_dir()
 
         # Write tracer mocked responses JSON
         tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
@@ -999,6 +1011,20 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
+        if self.uds_mode:
+            self._mount_agent_socket_dir()
+            self.environment["DD_APM_RECEIVER_SOCKET"] = DEFAULT_APM_RECEIVER_SOCKET
+            self.environment["DD_DOGSTATSD_SOCKET"] = DEFAULT_DOGSTATSD_RECEIVER_SOCKET
+            for agent_transport_env in (
+                "DD_AGENT_HOST",
+                "DD_TRACE_AGENT_PORT",
+                "DD_TRACE_AGENT_URL",
+                "DD_DOGSTATSD_HOST",
+                "DD_DOGSTATSD_PORT",
+                "DD_DOGSTATSD_URL",
+            ):
+                self.environment.pop(agent_transport_env, None)
+
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
         # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
         if self.weblog_variant == "uwsgi-poc":
@@ -1146,12 +1172,11 @@ class WeblogContainer(TestedContainer):
 
     @property
     def uds_socket(self):
-        assert self.image.env is not None, "No env set"
-        return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
+        return self.environment.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
     def uds_mode(self):
-        return self.uds_socket is not None
+        return self.weblog_variant.startswith("uds")
 
     @property
     def telemetry_heartbeat_interval(self):
@@ -1479,10 +1504,7 @@ class APMTestAgentContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
-        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
-            "bind": "/var/run/datadog/",
-            "mode": "rw",
-        }
+        self._mount_agent_socket_dir()
 
 
 class VCRCassettesContainer(TestedContainer):
@@ -1587,10 +1609,7 @@ class DockerSSIContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
         super().configure(host_log_folder=host_log_folder, replay=replay)
-        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
-            "bind": "/var/run/datadog/",
-            "mode": "rw",
-        }
+        self._mount_agent_socket_dir()
 
     def get_env(self, env_var: str):
         """Get env variables from the container"""
