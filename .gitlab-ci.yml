@@ -21,8 +21,6 @@ variables:
     TEST: 1
     # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
     E2E_SUPPORTED_LANGUAGES: "python"
-    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
-    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/fb4f39a542e4dd42b646c300b539c7a9f4201531/mirror_images.py"
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
@@ -441,6 +439,6 @@ mirror_images:
         exit 1
       fi
     # Push any locked image missing from the mirror (already-present images are skipped).
-    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror
+    - uv run --no-config --script utils/scripts/mirror_images.py mirror
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'

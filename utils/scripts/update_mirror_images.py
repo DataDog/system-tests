@@ -32,15 +32,15 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
 
-# Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
-MIRROR_IMAGES_URL = os.environ.get(
-    "MIRROR_IMAGES_URL",
-    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/fb4f39a542e4dd42b646c300b539c7a9f4201531/mirror_images.py",
-)
+# Local copy of mirror_images.py (from dd-repo-tools). Replace with the
+# published URL once the buildkitd subcommand is released upstream.
+MIRROR_IMAGES_SCRIPT = REPO_ROOT / "utils" / "scripts" / "mirror_images.py"
+
 # Destination registry for the mirrored images (override with $MIRROR_DEST_REGISTRY).
 DEFAULT_DEST_REGISTRY = "registry.ddbuild.io/system-tests/mirror"
 
 MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
+BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
 # Header written when mirror_images.yaml does not exist yet. The mirror_images.py
 # `add` command preserves existing comments, so this is only used on first run.
@@ -102,13 +102,13 @@ def collect_images(excluded: set[str]) -> list[str]:
 
 
 def _run_mirror_images(*args: str) -> None:
-    """Invoke the pinned dd-repo-tools mirror_images.py via uv."""
+    """Invoke the local mirror_images.py via uv."""
     if shutil.which("uv") is None:
         sys.exit("error: 'uv' is required to run mirror_images.py — install it from https://docs.astral.sh/uv/")
     env = dict(os.environ)
     env.setdefault("MIRROR_DEST_REGISTRY", DEFAULT_DEST_REGISTRY)
     cmd = [
-        "uv", "run", "--no-config", "--script", MIRROR_IMAGES_URL,
+        "uv", "run", "--no-config", "--script", str(MIRROR_IMAGES_SCRIPT),
         "--mirror-yaml", str(MIRROR_YAML), *args,
     ]
     print(f"+ {' '.join(cmd)}", flush=True)
@@ -128,6 +128,7 @@ def main(excluded: set[str], *, skip_lock: bool) -> None:
     _run_mirror_images("add", *images)
     if not skip_lock:
         _run_mirror_images("lock")
+        _run_mirror_images("buildkitd", "--output", str(BUILDKITD_TOML))
 
 
 if __name__ == "__main__":

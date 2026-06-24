@@ -9,9 +9,17 @@ It is off by default: with the flag unset (local runs, or any environment where
 the mirror is not reachable) every reference is returned unchanged.
 
 The source -> target mapping is read from mirror_images.lock.yaml, which holds
-the exact target for each mirrored image. Anything not listed there (locally
-built `system_tests/*` images, unmirrored refs, multi-stage build stage names)
-is left untouched.
+the exact target for each mirrored image.  Mirror paths are laid out so that
+BuildKit's per-registry mirror protocol works without Dockerfile rewriting:
+
+  docker.io official images  -> mirror/library/<image>   (e.g. library/node:22-alpine)
+  docker.io namespaced       -> mirror/<org>/<image>
+  ghcr.io                    -> mirror/ghcr.io/<path>
+  mcr.microsoft.com          -> mirror/mcr.microsoft.com/<path>
+  public.ecr.aws             -> mirror/public.ecr.aws/<path>
+
+Anything not listed in the lock file (locally built `system_tests/*` images,
+unmirrored refs) is left untouched.
 """
 
 import functools

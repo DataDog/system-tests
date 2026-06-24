@@ -303,14 +303,17 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
-                # When the image mirror is enabled, rewrite the weblog base images
-                # (FROM ...) to pull from registry.ddbuild.io/system-tests/mirror.
+                # When the image mirror is enabled, create (or reuse) a buildx
+                # builder whose buildkitd daemon is configured to redirect all
+                # FROM pulls through registry.ddbuild.io/system-tests/mirror.
+                MIRROR_BUILDER_ARG=""
                 if [[ "${USE_IMAGE_MIRROR:-}" =~ ^(1|true|yes)$ ]]; then
-                    MIRRORED_DOCKERFILE=$(mktemp /tmp/system-tests-weblog-XXXXXX.Dockerfile)
-                    python utils/scripts/mirror_rewrite_dockerfile.py "${DOCKERFILE}" > "${MIRRORED_DOCKERFILE}"
-                    echo "Using mirrored Dockerfile (${DOCKERFILE} -> mirror):"
-                    grep '^FROM' "${MIRRORED_DOCKERFILE}" || true
-                    DOCKERFILE="${MIRRORED_DOCKERFILE}"
+                    if ! docker buildx inspect system-tests-mirror &>/dev/null 2>&1; then
+                        docker buildx create \
+                            --name system-tests-mirror \
+                            --config "${SCRIPT_DIR}/docker/buildkitd.toml"
+                    fi
+                    MIRROR_BUILDER_ARG="--builder system-tests-mirror"
                 fi
 
                 GITHUB_TOKEN_SECRET_ARG=""
@@ -348,6 +351,7 @@ build() {
                     -t system_tests/weblog \
                     $CACHE_TO \
                     $CACHE_FROM \
+                    $MIRROR_BUILDER_ARG \
                     $EXTRA_DOCKER_ARGS \
                     .
 
@@ -360,6 +364,7 @@ build() {
                         ${DOCKER_PLATFORM_ARGS} \
                         -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                         -t system_tests/weblog \
+                        $MIRROR_BUILDER_ARG \
                         $EXTRA_DOCKER_ARGS \
                         .
                 fi
