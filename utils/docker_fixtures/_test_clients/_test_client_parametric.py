@@ -282,6 +282,9 @@ class ParametricTestClientApi(TestClientApi):
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
 
+    def get_logs(self) -> str:
+        return self.container.logs().decode("utf-8")
+
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:
             code, (stdout, _) = self.container.exec_run(command, demux=True)
@@ -1033,6 +1036,9 @@ class APMLibrary:
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run_raw(command)
+
+    def get_logs(self) -> str:
+        return self._client.get_logs()
 
     @contextlib.contextmanager
     def dd_start_span(
