@@ -42,9 +42,7 @@ def validate_comma_lower(name: str, value: str) -> list[str]:
     errors = []
     for item in (i.strip() for i in value.split(",")):
         if item and not re.match(r"^[a-z][a-z0-9_]*$", item):
-            errors.append(
-                _error(name, item, "expected comma-separated lowercase identifiers (e.g. 'all,appsec')")
-            )
+            errors.append(_error(name, item, "expected comma-separated lowercase identifiers (e.g. 'all,appsec')"))
     return errors
 
 
@@ -117,7 +115,7 @@ def main() -> None:
 
     if errors:
         for e in errors:
-            print(e, file=sys.stderr)
+            print(e, file=sys.stderr)  # noqa: T201
         sys.exit(1)
 
     with open(PARAM_ENV, "w") as f:
@@ -127,7 +125,7 @@ def main() -> None:
                 f.write(f"{name}={value}\n")
 
     with open(PARAM_ENV) as f:
-        print(f.read(), end="")
+        print(f.read(), end="")  # noqa: T201
 
 
 if __name__ == "__main__":
