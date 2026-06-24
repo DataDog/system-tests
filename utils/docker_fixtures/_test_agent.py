@@ -306,8 +306,8 @@ class TestAgentAPI:
                 "expires": expires_date,
                 "spec_version": "1.0.0",
                 "targets": targets_tmp,
+                "version": 0,
             },
-            "version": 0,
         }
         targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
         remote_config_payload = {
@@ -625,7 +625,7 @@ class TestAgentAPI:
         raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_telemetry_configurations(
-        self, *, service: str | None = None, clear: bool = False
+        self, *, service: str | None = None, clear: bool = False, wait_loops: int = 100
     ) -> dict[str, list[dict]]:
         """Waits for and returns configurations captured in telemetry events.
 
@@ -637,12 +637,16 @@ class TestAgentAPI:
         """
         events = []
         configurations: dict[str, list[dict]] = {}
-        # Allow time for telemetry events to be captured
-        time.sleep(1)
-        # Attempt to retrieve telemetry events, suppressing request-related exceptions
-        with contextlib.suppress(requests.exceptions.RequestException):
-            events = self.telemetry(clear=False)
-        if not events:
+        # Poll until telemetry is captured instead of sleeping a fixed delay: returns as soon as
+        # app-started arrives (usually within a heartbeat) and retries the empty-read window that
+        # a single fixed-delay read can land in.
+        for _ in range(wait_loops):
+            with contextlib.suppress(requests.exceptions.RequestException):
+                events = self.telemetry(clear=False)
+            if events:
+                break
+            time.sleep(0.05)
+        else:
             raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
         # Sort events by tracer_time to ensure configurations are processed in order
