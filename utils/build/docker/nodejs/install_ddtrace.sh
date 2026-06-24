@@ -27,8 +27,9 @@ else
         install_custom_target "$target"
 
     elif [ -e /binaries/dd-trace-js ]; then
-        # bun pm pack runs prepack/prepare lifecycle hooks needed to build dd-trace-js
-        target=$(cd /binaries/dd-trace-js && run_without_node_env bun pm pack --destination /usr/app --quiet)
+        # bun pm pack runs prepack/prepare lifecycle hooks needed to build dd-trace-js. Those hooks
+        # (e.g. the vendor postinstall) also write to stdout, so keep only the produced .tgz path.
+        target=$(cd /binaries/dd-trace-js && run_without_node_env bun pm pack --destination /usr/app --quiet | grep -E '\.tgz$' | tail -n 1)
         echo "install from local folder /binaries/dd-trace-js"
         install_custom_target "$target"
 

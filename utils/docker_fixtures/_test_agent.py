@@ -214,6 +214,12 @@ class TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
+    def otlp_requests(self) -> list[dict]:
+        """Raw requests intercepted by the OTLP HTTP port (e.g. /v1/traces, /v1/metrics)."""
+        resp = self._session.get(self._otlp_url("/test/session/requests"))
+        resp.raise_for_status()
+        return resp.json()
+
     def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Any]:  # noqa: ANN401
         resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
         if clear:
@@ -300,8 +306,8 @@ class TestAgentAPI:
                 "expires": expires_date,
                 "spec_version": "1.0.0",
                 "targets": targets_tmp,
+                "version": 0,
             },
-            "version": 0,
         }
         targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
         remote_config_payload = {
@@ -371,6 +377,20 @@ class TestAgentAPI:
                 )
             )
         return agent_requests
+
+    def wait_for_num_v06_stats(self, num: int, *, wait_loops: int = 200) -> list[AgentRequestV06Stats]:
+        """Wait for at least `num` /v0.6/stats requests to be received by the test agent.
+
+        Native client-side stats are flushed on the concentrator's bucket boundary rather than
+        synchronously on flush, so callers asserting their presence must poll.
+        """
+        requests: list[AgentRequestV06Stats] = []
+        for _ in range(wait_loops):
+            requests = self.get_v06_stats_requests()
+            if len(requests) >= num:
+                return requests
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
 
     def clear(self) -> None:
         self._session.get(self._url("/test/session/clear"))
@@ -573,7 +593,7 @@ class TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
-    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 30) -> list[Any]:
+    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 80) -> list[Any]:
         """Wait for `num` metrics to be received from the test agent."""
         metrics = []
         for _ in range(wait_loops):

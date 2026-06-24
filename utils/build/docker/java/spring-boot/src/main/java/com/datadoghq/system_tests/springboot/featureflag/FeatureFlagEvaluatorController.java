@@ -64,32 +64,38 @@ public class FeatureFlagEvaluatorController {
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
         Object value;
         String reason;
-        final EvaluationContext context = context(request);
+        final List<String> targetingKeys = request.getTargetingKeys() == null || request.getTargetingKeys().isEmpty()
+                ? List.of(request.getTargetingKey())
+                : request.getTargetingKeys();
         try {
-            switch (request.getVariationType()) {
-                case "BOOLEAN":
-                    value = client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
-                    break;
-                case "STRING":
-                    value = client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
-                    break;
-                case "INTEGER":
-                    value = client.getIntegerValue(request.getFlag(), (Integer) request.getDefaultValue(), context);
-                    break;
-                case "NUMERIC":
-                    final Number number = (Number) request.getDefaultValue();
-                    if (number instanceof Double) {
-                        value = client.getDoubleValue(request.getFlag(), number.doubleValue(), context);
-                    } else {
-                        value = client.getIntegerValue(request.getFlag(), number.intValue(), context);
-                    }
-                    break;
-                case "JSON":
-                    final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                    value = context.convertValue(objectValue);
-                    break;
-                default:
-                    value = request.getDefaultValue();
+            value = request.getDefaultValue();
+            for (final String targetingKey : targetingKeys) {
+                final EvaluationContext context = context(request, targetingKey);
+                switch (request.getVariationType()) {
+                    case "BOOLEAN":
+                        value = client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+                        break;
+                    case "STRING":
+                        value = client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+                        break;
+                    case "INTEGER":
+                        value = client.getIntegerValue(request.getFlag(), (Integer) request.getDefaultValue(), context);
+                        break;
+                    case "NUMERIC":
+                        final Number number = (Number) request.getDefaultValue();
+                        if (number instanceof Double) {
+                            value = client.getDoubleValue(request.getFlag(), number.doubleValue(), context);
+                        } else {
+                            value = client.getIntegerValue(request.getFlag(), number.intValue(), context);
+                        }
+                        break;
+                    case "JSON":
+                        final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
+                        value = context.convertValue(objectValue);
+                        break;
+                    default:
+                        value = request.getDefaultValue();
+                }
             }
 
             reason = "DEFAULT";
@@ -101,12 +107,13 @@ public class FeatureFlagEvaluatorController {
         final Map<String, Object> result = new HashMap<>();
         result.put("reason", reason);
         result.put("value", value);
+        result.put("count", targetingKeys.size());
         return ResponseEntity.ok(result);
     }
 
-    private static EvaluationContext context(final EvaluateRequest request) {
+    private static EvaluationContext context(final EvaluateRequest request, final String targetingKey) {
         final MutableContext context = new MutableContext();
-        context.setTargetingKey(request.getTargetingKey());
+        context.setTargetingKey(targetingKey);
         request.attributes.forEach((key, value) -> {
             if (value instanceof Boolean) {
                 context.add(key, (Boolean) value);
@@ -132,6 +139,7 @@ public class FeatureFlagEvaluatorController {
         private String variationType;
         private Object defaultValue;
         private String targetingKey;
+        private List<String> targetingKeys;
         private Map<String, Object> attributes;
 
         public Map<String, Object> getAttributes() {
@@ -164,6 +172,14 @@ public class FeatureFlagEvaluatorController {
 
         public void setTargetingKey(String targetingKey) {
             this.targetingKey = targetingKey;
+        }
+
+        public List<String> getTargetingKeys() {
+            return targetingKeys;
+        }
+
+        public void setTargetingKeys(List<String> targetingKeys) {
+            this.targetingKeys = targetingKeys;
         }
 
         public String getVariationType() {
