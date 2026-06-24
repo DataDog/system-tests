@@ -1716,7 +1716,12 @@ manifest:
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
   : bug (DEBUG-5702)
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
-  : bug (DEBUG-5707)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-5707)
+      component_version: <2.35.0
+      weblog: [uds-rails, rails80, rails72]
+    - declaration: bug (DEBUG-5707)
+      excluded_weblog: [uds-rails, rails80, rails72]
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
