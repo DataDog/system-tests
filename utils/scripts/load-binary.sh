@@ -161,7 +161,18 @@ elif [ "$TARGET" = "ruby" ]; then
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     mkdir -p temp
-    if [ $VERSION = 'dev' ]; then
+
+    if [ -n "${LIBRARY_TARGET_BRANCH:-}" ]; then
+        NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
+        if [ -n "${GITHUB_TOKEN:-}" ]; then
+            echo "Log to GHCR with token"
+            echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"
+        fi
+        ../utils/scripts/docker_base_image.sh \
+            "ghcr.io/datadog/dd-trace-php/dd-library-php:${NORMALIZED_BRANCH}" \
+            ./temp
+
+    elif [ "${VERSION:-}" = 'dev' ]; then
         URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/latest/datadog-setup.php"
         echo "Downloading datadog-setup.php from: $URL"
         curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "$URL"
@@ -178,11 +189,15 @@ elif [ "$TARGET" = "php" ]; then
         echo "Downloading dd-library-php from: $URL"
         curl --fail --location --silent --show-error --output "./temp/dd-library-php-${VERSION_HASH}-$(arch)-linux-gnu.tar.gz" "$URL"
         echo "dd-library-php $(arch) downloaded"
-    elif [ $VERSION = 'prod' ]; then
+
+    elif [ "${VERSION:-}" = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
+
     else
-        echo "Don't know how to load version $VERSION for $TARGET"
+        echo "Don't know how to load version ${VERSION:-} for $TARGET"
+        exit 1
     fi
+
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 
 elif [ "$TARGET" = "golang" ]; then
