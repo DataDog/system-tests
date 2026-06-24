@@ -426,3 +426,19 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.account.id") == "12345"
         assert meta.get("baggage.foo") is None
         assert meta.get("baggage.test") is None
+
+    def test_baggage_span_tags_no_trace_context(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Baggage span tags must be applied to a local root span even when no upstream trace context is present.
+        A request that carries only a baggage header (no x-datadog-* or traceparent headers) still creates a
+        local root span, and that span must receive the configured baggage tags."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [("baggage", "user.id=doggo,session.id=mysession,foo=bar")]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") == "doggo"
+        assert meta.get("baggage.session.id") == "mysession"
+        assert meta.get("baggage.foo") is None
