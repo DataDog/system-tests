@@ -174,6 +174,82 @@ class _Scenarios:
         ),
     )
 
+    trace_stats_computation_trace_filter_reject_edge_cases = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES",
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+        },
+        trace_filters={
+            "filter_tags": {
+                "reject": [
+                    " appsec.events.system_tests_appsec_event.value : tf-trim ",
+                    ":tf-no-key",
+                ],
+            },
+            "filter_tags_regex": {
+                "reject": [
+                    " appsec.events.system_tests_appsec_event.value : tf-regex-trim.* ",
+                    "appsec.events.system_tests_appsec_event.value:[invalid",
+                ],
+            },
+        },
+        doc=(
+            "End to end testing for trace filter edge cases on reject: whitespace trimming in filter "
+            "specs, empty key skipped, bad regex silently dropped."
+        ),
+    )
+
+    trace_stats_computation_trace_filter_key_only_reject = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_TRACE_FILTER_KEY_ONLY_REJECT",
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+        },
+        trace_filters={
+            "filter_tags": {
+                "reject": ["appsec.events.system_tests_appsec_event.value"],
+            },
+        },
+        doc=(
+            "End to end testing for key-only reject filter: a filter with no value part matches any "
+            "span that has the tag key, regardless of value."
+        ),
+    )
+
+    trace_stats_computation_trace_filter_require_edge_cases = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE_EDGE_CASES",
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+        },
+        trace_filters={
+            "filter_tags": {
+                "require": [
+                    # Whitespace around colon: trimmed to "key:tf-req-trim"
+                    " appsec.events.system_tests_appsec_event.value : tf-req-trim ",
+                ],
+            },
+            "filter_tags_regex": {
+                "require": [
+                    # Whitespace around colon: trimmed to regex "tf-req.*" — satisfied by "tf-req-trim"
+                    " appsec.events.system_tests_appsec_event.value : tf-req.* ",
+                ],
+            },
+        },
+        doc=(
+            "End to end testing for trace filter edge cases on require: whitespace trimming in "
+            "filter specs for both literal and regex require filters. The two active filters are "
+            "designed to be simultaneously satisfiable (value 'tf-req-trim' matches both)."
+        ),
+    )
+
     trace_stats_computation_future_obfuscation_version = EndToEndScenario(
         name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
         # Same as trace_stats_computation but with the agent advertising an obfuscation_version
@@ -193,7 +269,7 @@ class _Scenarios:
             "header when the agent advertises an obfuscation version higher than what the SDK supports."
         ),
         scenario_groups=[scenario_groups.appsec],
-    ),
+    )
 
     trace_stats_computation_missing_obfuscation_version = EndToEndScenario(
         name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",

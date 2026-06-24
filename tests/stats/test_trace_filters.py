@@ -145,3 +145,106 @@ class Test_Trace_Filters_Require:
     def test_filter_tags_regex_require(self) -> None:
         # Because 418 (http.status_code) does not match the pattern 20[78]
         _assert_status_absent(418)
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_trace_filter_reject_edge_cases
+class Test_Trace_Filters_Reject_Edge_Cases:
+    """
+    Filter config (see scenario):
+      filter_tags.reject:       [" key : tf-trim ", ":tf-no-key"]
+      filter_tags_regex.reject: [" key : tf-regex-trim.* ", "key:[invalid"]
+    """
+
+    def setup_literal_whitespace_trim_drops(self) -> None:
+        weblog.get("/tag_value/tf-trim/221")
+        weblog.get("/tag_value/tf-edge-keep/208")
+        _wait_for_stats_with_http_status(208)
+
+    def test_literal_whitespace_trim_drops(self) -> None:
+        # Filter " key : tf-trim " has spaces around colon; after trimming it equals "key:tf-trim"
+        # and must still reject the trace.
+        _assert_status_absent(221)
+
+    def setup_empty_key_skipped_keeps(self) -> None:
+        weblog.get("/tag_value/tf-no-key/222")
+        weblog.get("/tag_value/tf-edge-keep/208")
+        _wait_for_stats_with_http_status(208)
+
+    def test_empty_key_skipped_keeps(self) -> None:
+        # Filter ":tf-no-key" has an empty key; it is silently skipped so the trace is kept.
+        _assert_status_present(222)
+
+    def setup_regex_whitespace_trim_drops(self) -> None:
+        weblog.get("/tag_value/tf-regex-trim-x/223")
+        weblog.get("/tag_value/tf-edge-keep/208")
+        _wait_for_stats_with_http_status(208)
+
+    def test_regex_whitespace_trim_drops(self) -> None:
+        # Regex filter " key : tf-regex-trim.* " has spaces; after trimming the regex still matches.
+        _assert_status_absent(223)
+
+    def setup_bad_regex_skipped_keeps(self) -> None:
+        weblog.get("/tag_value/tf-bad-regex/224")
+        weblog.get("/tag_value/tf-edge-keep/208")
+        _wait_for_stats_with_http_status(208)
+
+    def test_bad_regex_skipped_keeps(self) -> None:
+        # Filter "key:[invalid" is an invalid regex; it is silently dropped so the trace is kept.
+        _assert_status_present(224)
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_trace_filter_key_only_reject
+class Test_Trace_Filters_Key_Only_Reject:
+    """
+    Filter config (see scenario):
+      filter_tags.reject: ["appsec.events.system_tests_appsec_event.value"]  (key only, no value)
+
+    /stats-unique is used as control because /tag_value/* would also be rejected by the key-only filter.
+    """
+
+    def setup_key_only_reject_drops_any_value(self) -> None:
+        weblog.get("/tag_value/anything/229")
+        weblog.get("/stats-unique?code=228")
+        _wait_for_stats_with_http_status(228)
+
+    def test_key_only_reject_drops_any_value(self) -> None:
+        # A key-only filter (no value part) must reject any span that has the tag, whatever the value.
+        _assert_status_absent(229)
+
+    def test_no_tag_not_dropped(self) -> None:
+        # Traces without the tag are not affected by the key-only reject filter.
+        _assert_status_present(228)
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_trace_filter_require_edge_cases
+class Test_Trace_Filters_Require_Edge_Cases:
+    """
+    Filter config (see scenario):
+      filter_tags.require:       [" key : tf-req-trim "]   (trimmed: exact value "tf-req-trim")
+      filter_tags_regex.require: [" key : tf-req.* "]      (trimmed: regex matches "tf-req.*")
+
+    Both filters are simultaneously satisfiable: value "tf-req-trim" matches the literal exactly
+    and also matches the regex tf-req.*. Tests verify whitespace trimming works for both literal
+    and regex require filters.
+    """
+
+    def setup_whitespace_trim_require_keeps(self) -> None:
+        weblog.get("/tag_value/tf-req-trim/231")
+        _wait_for_stats_with_http_status(231)
+
+    def test_whitespace_trim_require_keeps(self) -> None:
+        # Value "tf-req-trim" satisfies both trimmed filters (" key : tf-req-trim " and
+        # " key : tf-req.* "), so the trace must be kept.
+        _assert_status_present(231)
+
+    def setup_whitespace_trim_require_drops(self) -> None:
+        weblog.get("/tag_value/tf-wrong/232")
+        weblog.get("/tag_value/tf-req-trim/231")
+        _wait_for_stats_with_http_status(231)
+
+    def test_whitespace_trim_require_drops(self) -> None:
+        # Value "tf-wrong" satisfies neither trimmed filter, so the trace must be dropped.
+        _assert_status_absent(232)
