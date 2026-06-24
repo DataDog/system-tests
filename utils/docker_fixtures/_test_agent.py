@@ -306,8 +306,8 @@ class TestAgentAPI:
                 "expires": expires_date,
                 "spec_version": "1.0.0",
                 "targets": targets_tmp,
+                "version": 0,
             },
-            "version": 0,
         }
         targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
         remote_config_payload = {
