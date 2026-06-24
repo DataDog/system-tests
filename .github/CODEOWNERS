@@ -33,7 +33,6 @@
 /tests/debugger/ @DataDog/debugger @DataDog/system-tests-core
 /tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
 /tests/serverless @DataDog/serverless @DataDog/system-tests-core
-/tests/external_processing/ @DataDog/asm-libraries @DataDog/system-tests-core
 /tests/stream_processing_offload/ @DataDog/asm-libraries @DataDog/system-tests-core
 /tests/integration_frameworks/llm/ @DataDog/ml-observability
 
