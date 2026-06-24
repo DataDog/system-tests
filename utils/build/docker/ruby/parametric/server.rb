@@ -816,7 +816,7 @@ class LogFlushReturn
 end
 
 class OpenFeatureArgs
-  attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes
+  attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes, :span_id
 
   def initialize(params)
     @flag = params['flag']
@@ -824,6 +824,9 @@ class OpenFeatureArgs
     @default_value = params['defaultValue']
     @targeting_key = params['targetingKey']
     @attributes = params['attributes']
+    # The test client sends span_id as a STRING (see _test_client_parametric.py:814-815). DD_SPANS is
+    # keyed by the integer span id (handle_trace_span_start: DD_SPANS[span.id]); cast for the lookup.
+    @span_id = params['span_id'].nil? ? nil : Integer(params['span_id'], exception: false)
   end
 end
 
@@ -872,7 +875,7 @@ def handle_ffe_evaluation(req, res)
       flag_key: args.flag, default_value: args.default_value, evaluation_context: context
     }
 
-    value =
+    evaluate = lambda do
       case args.variation_type
       when 'BOOLEAN'then client.fetch_boolean_value(**options)
       when 'STRING' then client.fetch_string_value(**options)
@@ -880,6 +883,27 @@ def handle_ffe_evaluation(req, res)
       when 'NUMERIC' then client.fetch_float_value(**options)
       when 'JSON' then client.fetch_object_value(**options)
       else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+      end
+    end
+
+    # Re-activate the caller-supplied span's LIVE trace around the eval so the span-enrichment
+    # hook (Phase 2) accumulates onto the test's real root span. This is the in-process
+    # equivalent of the Node reference's `tracer.scope().activate(span, fn)`
+    # (utils/build/docker/nodejs/parametric/server.js): the hook keys its accumulator and its
+    # `span_before_finish` subscription by the ACTIVE TraceOperation, so every /ffe/evaluate call
+    # must run on the SAME live trace as the root span. Using `continue_from:` instead would fork a
+    # fresh TraceOperation per call -- each eval would land on a throwaway root and the test's root
+    # span would aggregate nothing. An unknown/missing span_id falls through to a plain eval --
+    # never throw (T-01-DOS).
+    trace_op =
+      if !args.span_id.nil? && (span = DD_SPANS[args.span_id])
+        DD_TRACES[span.trace_id]
+      end
+    value =
+      if trace_op
+        Datadog::Tracing.send(:tracer).send(:call_context).activate!(trace_op) { evaluate.call }
+      else
+        evaluate.call
       end
 
     res.write({value: value, reason: 'DEFAULT'}.to_json)
