@@ -441,6 +441,12 @@ mirror_images:
         echo "   python utils/scripts/update_mirror_images.py"
         exit 1
       fi
+    - |
+      if ! git diff --exit-code -- utils/build/docker/buildkitd.toml; then
+        echo "❌ utils/build/docker/buildkitd.toml is out of date. Regenerate and commit it:"
+        echo "   python utils/scripts/update_mirror_images.py"
+        exit 1
+      fi
     # Push any locked image missing from the mirror (already-present images are skipped).
     - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror
   rules:

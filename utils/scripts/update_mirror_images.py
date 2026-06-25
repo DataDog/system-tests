@@ -42,6 +42,7 @@ MIRROR_IMAGES_URL = os.environ.get(
 DEFAULT_DEST_REGISTRY = "registry.ddbuild.io/system-tests/mirror"
 
 MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
+BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
 # Header written when mirror_images.yaml does not exist yet. The mirror_images.py
 # `add` command preserves existing comments, so this is only used on first run.
@@ -135,6 +136,7 @@ def main(excluded: set[str], *, skip_lock: bool) -> None:
     _run_mirror_images("add", *images)
     if not skip_lock:
         _run_mirror_images("lock")
+        _run_mirror_images("buildkitd", "--output", str(BUILDKITD_TOML))
 
 
 if __name__ == "__main__":
