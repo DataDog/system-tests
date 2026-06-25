@@ -623,6 +623,41 @@ class Test_Client_Drop_P0s:
 
 
 @features.client_side_stats_supported
+@scenarios.trace_stats_computation_error_sampler
+class Test_Error_Sampler:
+    """Test that traces containing errors are always sent, even when sampling would drop them.
+
+    The agent keeps a portion of error traces (error sampler), so the tracer must send all traces
+    containing an error regardless of the configured sample rate. This scenario sets
+    DD_TRACE_SAMPLE_RATE=0 with Client-Side Stats enabled.
+    """
+
+    def setup_error_traces_always_sent(self):
+        # Droppable P0 traffic: with sample rate 0 these are dropped from traces but still counted in stats.
+        for _ in range(5):
+            weblog.get("/")
+        # Error traffic: must still be sent to the agent for the error sampler to keep it.
+        self.error_requests = [weblog.get("/status?code=500") for _ in range(3)]
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_error_traces_always_sent(self):
+        """Test that error traces are sent and stats are computed when sample rate is 0."""
+        # Client-side stats are computed despite sampling being disabled.
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Client-side stats should be computed even when the sample rate is 0"
+
+        # Error traces are still sent to the agent even though sampling would drop them.
+        error_span_found = False
+        for request in self.error_requests:
+            for _, _, span in interfaces.library.get_spans(request=request):
+                if span.get("error") == 1:
+                    error_span_found = True
+                    break
+
+        assert error_span_found, "Traces containing an error must be sent to the agent even when the sample rate is 0"
+
+
+@features.client_side_stats_supported
 @scenarios.trace_stats_computation
 class Test_Time_Bucketing:
     """Test time bucketing validation for Client-Side Stats"""

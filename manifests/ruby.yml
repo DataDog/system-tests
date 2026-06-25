@@ -2481,6 +2481,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler: missing_feature (no client-side stats computed when sampling drops all traces)
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
