@@ -622,6 +622,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
+    - declaration: missing_feature (Static field guard is not released yet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
