@@ -22,6 +22,8 @@ EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
+EVP_DEGRADATION_REQUEST_BATCH_SIZE = 1_000
+EVP_DEGRADATION_REQUEST_WORKERS = 12
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
@@ -456,21 +458,38 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
 
     def setup_ffe_evp_flagevaluation_degradation(self) -> None:
         config_id = "ffe-evp-degradation"
+        self.sync_flag_key = "evp-degradation-window-sync-flag"
         self.flag_key = "evp-degradation-flag"
         self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_multi_flag_fixture([self.sync_flag_key, self.flag_key])
+        ).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
-        self.responses = [
-            evaluate_flag(
-                self.flag_key,
-                targeting_key=targeting_keys[0],
-                targeting_keys=targeting_keys,
-                attributes={},
-            )
+        targeting_keys = [str(index) for index in range(self.eval_count)]
+        self.batches = [
+            targeting_keys[offset : offset + EVP_DEGRADATION_REQUEST_BATCH_SIZE]
+            for offset in range(0, len(targeting_keys), EVP_DEGRADATION_REQUEST_BATCH_SIZE)
         ]
 
+        self.sync_response = evaluate_flag(self.sync_flag_key, targeting_key="evp-degradation-sync-user", attributes={})
+        assert self.sync_response.status_code == 200, f"Window sync request failed: {self.sync_response.text}"
+        wait_for_evp_flagevaluation_event(self.sync_flag_key)
+
+        with ThreadPoolExecutor(max_workers=EVP_DEGRADATION_REQUEST_WORKERS) as executor:
+            self.responses = list(
+                executor.map(
+                    lambda batch: evaluate_flag(
+                        self.flag_key,
+                        targeting_key=batch[0],
+                        targeting_keys=batch,
+                        attributes={},
+                    ),
+                    self.batches,
+                )
+            )
+
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
+        assert self.sync_response.status_code == 200, f"Window sync request failed: {self.sync_response.text}"
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
