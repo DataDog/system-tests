@@ -331,7 +331,16 @@ class AppController extends AbstractController
         }
         $msg = $request->query->get('msg', '');
         if ($msg !== '') {
-            $entry = json_encode(['message' => $msg]) . "\n";
+            $record = ['message' => $msg];
+            $rootSpan = \DDTrace\root_span();
+            if ($rootSpan !== null) {
+                $record['dd.trace_id'] = \DDTrace\trace_id();
+                $record['dd.span_id']  = (string) $rootSpan->id;
+                $record['dd.service']  = (string) (getenv('DD_SERVICE') ?: '');
+                $record['dd.version']  = (string) (getenv('DD_VERSION') ?: '');
+                $record['dd.env']      = (string) (getenv('DD_ENV') ?: '');
+            }
+            $entry = json_encode($record) . "\n";
             @file_put_contents($dir . '/helper.log', $entry, FILE_APPEND);
         }
 
@@ -374,6 +383,52 @@ class AppController extends AbstractController
         }
 
         return new Response('OK', 200, ['Content-Type' => 'text/plain']);
+    }
+
+    #[Route('/stub_dbm', name: 'stub_dbm', methods: ['GET'])]
+    public function stubDbm(Request $request): JsonResponse
+    {
+        $integration = $request->query->get('integration', '');
+        $stmt        = null;
+
+        if ($integration === 'pdo-pgsql') {
+            $con  = new \PDO('pgsql:dbname=system_tests_dbname;host=postgres;port=5433', 'system_tests_user', 'system_tests');
+            $stmt = $con->query('SELECT version()');
+        } elseif ($integration === 'pdo-mysql') {
+            $con  = new \PDO('mysql:dbname=mysql_dbname;host=mysqldb', 'mysqldb', 'mysqldb');
+            $stmt = $con->query('SELECT version()');
+        }
+
+        $captured = $stmt instanceof \PDOStatement ? $stmt->queryString : null;
+
+        return new JsonResponse([
+            'status'      => 'ok',
+            'dbm_comment' => $captured,
+        ]);
+    }
+
+    #[Route('/rasp/sqli', name: 'rasp_sqli', methods: ['GET', 'POST'])]
+    public function raspSqli(Request $request): Response
+    {
+        $userId      = null;
+        $contentType = $request->headers->get('Content-Type', '');
+        if ($contentType === 'application/json') {
+            $decoded = json_decode($request->getContent(), true);
+            $userId  = $decoded['user_id'] ?? '';
+        } elseif ($contentType === 'application/xml') {
+            $decoded = simplexml_load_string(stripslashes($request->getContent()));
+            $userId  = (string) ($decoded[0] ?? '');
+        } else {
+            $userId = urldecode($request->get('user_id', ''));
+        }
+
+        // Use SQLite (always available) for RASP SQL injection detection
+        $dbPath = getenv('SYMFONY_DB_PATH') ?: '/tmp/symfony.db';
+        $pdo    = new \PDO("sqlite:$dbPath");
+        // Intentionally unsafe query so ddtrace RASP can detect the injection
+        @$pdo->query("SELECT * FROM users WHERE id = '" . $userId . "'");
+
+        return new Response('Hello, SQLi!', 200, ['Content-Type' => 'text/plain']);
     }
 
     #[Route('/rasp/lfi', name: 'rasp_lfi', methods: ['GET', 'POST'])]
@@ -544,8 +599,11 @@ END;
 
         switch ($case) {
             case 'with_route':
-                $rootSpan->meta['http.route']  = '/users/{id}/profile';
-                $rootSpan->meta['http.method'] = 'GET';
+                // Use shutdown function so ddtrace Symfony integration cannot override
+                register_shutdown_function(static function () use ($rootSpan) {
+                    $rootSpan->meta['http.route']  = '/users/{id}/profile';
+                    $rootSpan->meta['http.method'] = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'    => 'ok',
@@ -554,9 +612,12 @@ END;
                 ]);
 
             case 'with_endpoint':
-                unset($rootSpan->meta['http.route']);
-                $rootSpan->meta['http.endpoint'] = '/api/products/{param:int}';
-                $rootSpan->meta['http.method']   = 'GET';
+                // Use shutdown function so ddtrace Symfony integration cannot override
+                register_shutdown_function(static function () use ($rootSpan) {
+                    unset($rootSpan->meta['http.route']);
+                    $rootSpan->meta['http.endpoint'] = '/api/products/{param:int}';
+                    $rootSpan->meta['http.method']   = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'    => 'ok',
@@ -565,9 +626,12 @@ END;
                 ]);
 
             case '404':
-                unset($rootSpan->meta['http.route']);
-                $rootSpan->meta['http.endpoint'] = '/api/notfound/{param:int}';
-                $rootSpan->meta['http.method']   = 'GET';
+                // Use shutdown function so ddtrace Symfony integration cannot override
+                register_shutdown_function(static function () use ($rootSpan) {
+                    unset($rootSpan->meta['http.route']);
+                    $rootSpan->meta['http.endpoint'] = '/api/notfound/{param:int}';
+                    $rootSpan->meta['http.method']   = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'    => 'error',
@@ -576,9 +640,12 @@ END;
                 ], 404);
 
             case 'computed':
-                unset($rootSpan->meta['http.route']);
-                $rootSpan->meta['http.url']    = 'http://localhost:8080/endpoint_fallback_computed/users/123/orders/456';
-                $rootSpan->meta['http.method'] = 'GET';
+                // Use shutdown function so ddtrace Symfony integration cannot override
+                register_shutdown_function(static function () use ($rootSpan) {
+                    unset($rootSpan->meta['http.route']);
+                    $rootSpan->meta['http.url']    = 'http://localhost:8080/endpoint_fallback_computed/users/123/orders/456';
+                    $rootSpan->meta['http.method'] = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'           => 'ok',
