@@ -248,7 +248,7 @@ elif [ "$TARGET" = "cpp_nginx" ]; then
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    AGENT_TARGET_BRANCH="${AGENT_TARGET_BRANCH:-nightly-main-f09302dc-py3}" # temporary because the agent makes tests fail, to be restored to master-py3
+    AGENT_TARGET_BRANCH="${AGENT_TARGET_BRANCH:-master-py3}"
     echo "datadog/agent-dev:$AGENT_TARGET_BRANCH" > agent-image
     echo "Using $(cat agent-image) image"
 
