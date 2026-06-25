@@ -2,7 +2,10 @@
 
 namespace App\Controller;
 
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,14 +18,8 @@ class AppController extends AbstractController
     #[Route('/', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
-        $user = $this->getUser();
-        if ($user instanceof \App\Security\User) {
-            if (function_exists('\datadog\appsec\internal\track_authenticated_user_event_automated')) {
-                \datadog\appsec\internal\track_authenticated_user_event_automated('custom', $user->getId());
-            } elseif (function_exists('\datadog\appsec\track_authenticated_user_event_automated')) {
-                \datadog\appsec\track_authenticated_user_event_automated($user->getId());
-            }
-        }
+        $this->getUser();
+
         return new Response("Hello world!\n", 200, [
             'Content-Type'   => 'text/plain; charset=utf-8',
             'Content-Length' => '13',
@@ -70,35 +67,21 @@ class AppController extends AbstractController
             return new JsonResponse(['error' => 'url parameter required'], 400);
         }
 
-        $requestHeaders  = [];
+        $client   = HttpClient::create();
+        $response = $client->request('GET', $url);
+
+        $statusCode      = $response->getStatusCode();
         $responseHeaders = [];
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
-            $len   = strlen($header);
-            $parts = explode(':', $header, 2);
-            if (count($parts) === 2) {
-                $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
-            }
-
-            return $len;
-        });
-        $statusCode     = 0;
-        curl_exec($ch);
-        $statusCode         = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $rawRequestHeaders  = curl_getinfo($ch, CURLINFO_HEADER_OUT);
-        if ($rawRequestHeaders) {
-            foreach (explode("\r\n", $rawRequestHeaders) as $line) {
-                if (strpos($line, ':') !== false) {
-                    [$key, $value]               = explode(':', $line, 2);
-                    $requestHeaders[strtolower(trim($key))] = trim($value);
-                }
+        foreach ($response->getHeaders(false) as $name => $values) {
+            $responseHeaders[$name] = implode(', ', $values);
+        }
+        $requestHeaders = [];
+        foreach (($response->getInfo('request_header') ?? '') ? explode("\r\n", $response->getInfo('request_header')) : [] as $line) {
+            if (str_contains($line, ':')) {
+                [$key, $value]                          = explode(':', $line, 2);
+                $requestHeaders[strtolower(trim($key))] = trim($value);
             }
         }
-        curl_close($ch);
 
         return new JsonResponse([
             'url'              => $url,
@@ -331,17 +314,9 @@ class AppController extends AbstractController
         }
         $msg = $request->query->get('msg', '');
         if ($msg !== '') {
-            $record = ['message' => $msg];
-            $rootSpan = \DDTrace\root_span();
-            if ($rootSpan !== null) {
-                $record['dd.trace_id'] = \DDTrace\logs_correlation_trace_id();
-                $record['dd.span_id']  = (string) $rootSpan->id;
-                $record['dd.service']  = (string) (getenv('DD_SERVICE') ?: '');
-                $record['dd.version']  = (string) (getenv('DD_VERSION') ?: '');
-                $record['dd.env']      = (string) (getenv('DD_ENV') ?: '');
-            }
-            $entry = json_encode($record) . "\n";
-            @file_put_contents($dir . '/helper.log', $entry, FILE_APPEND);
+            $logger = new Logger('system_tests');
+            $logger->pushHandler(new StreamHandler($dir . '/helper.log', Logger::DEBUG));
+            $logger->info('', ['message' => $msg]);
         }
 
         return new Response('', 200);
@@ -599,11 +574,8 @@ END;
 
         switch ($case) {
             case 'with_route':
-                // Use shutdown function so ddtrace Symfony integration cannot override
-                register_shutdown_function(static function () use ($rootSpan) {
-                    $rootSpan->meta['http.route']  = '/users/{id}/profile';
-                    $rootSpan->meta['http.method'] = 'GET';
-                });
+                $rootSpan->meta['http.route']  = '/users/{id}/profile';
+                $rootSpan->meta['http.method'] = 'GET';
 
                 return new JsonResponse([
                     'status'    => 'ok',
@@ -612,12 +584,9 @@ END;
                 ]);
 
             case 'with_endpoint':
-                // Use shutdown function so ddtrace Symfony integration cannot override
-                register_shutdown_function(static function () use ($rootSpan) {
-                    unset($rootSpan->meta['http.route']);
-                    $rootSpan->meta['http.endpoint'] = '/api/products/{param:int}';
-                    $rootSpan->meta['http.method']   = 'GET';
-                });
+                unset($rootSpan->meta['http.route']);
+                $rootSpan->meta['http.endpoint'] = '/api/products/{param:int}';
+                $rootSpan->meta['http.method']   = 'GET';
 
                 return new JsonResponse([
                     'status'    => 'ok',
@@ -626,12 +595,9 @@ END;
                 ]);
 
             case '404':
-                // Use shutdown function so ddtrace Symfony integration cannot override
-                register_shutdown_function(static function () use ($rootSpan) {
-                    unset($rootSpan->meta['http.route']);
-                    $rootSpan->meta['http.endpoint'] = '/api/notfound/{param:int}';
-                    $rootSpan->meta['http.method']   = 'GET';
-                });
+                unset($rootSpan->meta['http.route']);
+                $rootSpan->meta['http.endpoint'] = '/api/notfound/{param:int}';
+                $rootSpan->meta['http.method']   = 'GET';
 
                 return new JsonResponse([
                     'status'    => 'error',
@@ -640,12 +606,9 @@ END;
                 ], 404);
 
             case 'computed':
-                // Use shutdown function so ddtrace Symfony integration cannot override
-                register_shutdown_function(static function () use ($rootSpan) {
-                    unset($rootSpan->meta['http.route']);
-                    $rootSpan->meta['http.url']    = 'http://localhost:8080/endpoint_fallback_computed/users/123/orders/456';
-                    $rootSpan->meta['http.method'] = 'GET';
-                });
+                unset($rootSpan->meta['http.route']);
+                $rootSpan->meta['http.url']    = 'http://localhost:8080/endpoint_fallback_computed/users/123/orders/456';
+                $rootSpan->meta['http.method'] = 'GET';
 
                 return new JsonResponse([
                     'status'           => 'ok',
@@ -710,34 +673,21 @@ END;
 
         $scope = null;
         try {
-            $scope           = $builder->build()->activate();
+            $scope          = $builder->build()->activate();
+            $client         = HttpClient::create();
+            $response       = $client->request('GET', $url);
+            $statusCode     = $response->getStatusCode();
             $responseHeaders = [];
-            $ch              = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-            curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
-                $len   = strlen($header);
-                $parts = explode(':', $header, 2);
-                if (count($parts) === 2) {
-                    $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
-                }
-
-                return $len;
-            });
-            curl_exec($ch);
-            $statusCode        = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $requestHeaders    = [];
-            $rawRequestHeaders = curl_getinfo($ch, CURLINFO_HEADER_OUT);
-            if ($rawRequestHeaders) {
-                foreach (explode("\r\n", $rawRequestHeaders) as $line) {
-                    if (strpos($line, ':') !== false) {
-                        [$key, $value]               = explode(':', $line, 2);
-                        $requestHeaders[trim($key)] = trim($value);
-                    }
+            foreach ($response->getHeaders(false) as $name => $values) {
+                $responseHeaders[$name] = implode(', ', $values);
+            }
+            $requestHeaders = [];
+            foreach (($response->getInfo('request_header') ?? '') ? explode("\r\n", $response->getInfo('request_header')) : [] as $line) {
+                if (str_contains($line, ':')) {
+                    [$key, $value]                         = explode(':', $line, 2);
+                    $requestHeaders[strtolower(trim($key))] = trim($value);
                 }
             }
-            curl_close($ch);
         } finally {
             if ($scope !== null) {
                 $scope->detach();
@@ -780,33 +730,20 @@ END;
             }
         }
 
+        $client          = HttpClient::create();
+        $response        = $client->request('GET', $url);
+        $statusCode      = $response->getStatusCode();
         $responseHeaders = [];
-        $ch              = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) use (&$responseHeaders) {
-            $len   = strlen($header);
-            $parts = explode(':', $header, 2);
-            if (count($parts) === 2) {
-                $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
-            }
-
-            return $len;
-        });
-        curl_exec($ch);
-        $statusCode        = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $requestHeaders    = [];
-        $rawRequestHeaders = curl_getinfo($ch, CURLINFO_HEADER_OUT);
-        if ($rawRequestHeaders) {
-            foreach (explode("\r\n", $rawRequestHeaders) as $line) {
-                if (strpos($line, ':') !== false) {
-                    [$key, $value]               = explode(':', $line, 2);
-                    $requestHeaders[trim($key)] = trim($value);
-                }
+        foreach ($response->getHeaders(false) as $name => $values) {
+            $responseHeaders[$name] = implode(', ', $values);
+        }
+        $requestHeaders = [];
+        foreach (($response->getInfo('request_header') ?? '') ? explode("\r\n", $response->getInfo('request_header')) : [] as $line) {
+            if (str_contains($line, ':')) {
+                [$key, $value]                         = explode(':', $line, 2);
+                $requestHeaders[strtolower(trim($key))] = trim($value);
             }
         }
-        curl_close($ch);
 
         return new JsonResponse([
             'url'              => $url,
@@ -830,10 +767,9 @@ END;
     #[Route('/requestdownstream', name: 'requestdownstream', methods: ['GET'])]
     public function requestDownstream(): Response
     {
-        $ch = curl_init('http://127.0.0.1:7777/returnheaders');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $body = curl_exec($ch);
-        curl_close($ch);
+        $client   = HttpClient::create();
+        $response = $client->request('GET', 'http://127.0.0.1:7777/returnheaders');
+        $body     = $response->getContent(false);
 
         return new Response($body, 200, ['Content-Type' => 'application/json']);
     }
