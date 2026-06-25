@@ -2,37 +2,36 @@
 <?php
 
 use App\Entity\User;
-use App\Kernel;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 
-require dirname(__DIR__).'/vendor/autoload.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-$_SERVER['APP_ENV'] ??= 'prod';
-$_SERVER['APP_DEBUG'] ??= false;
+$dbPath = getenv('SYMFONY_DB_PATH') ?: '/tmp/symfony.db';
 
-$kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
-$kernel->boot();
+$config = ORMSetup::createAttributeMetadataConfiguration(
+    paths: [dirname(__DIR__) . '/src/Entity'],
+    isDevMode: false,
+);
 
-/** @var \Doctrine\ORM\EntityManagerInterface $em */
-$em       = $kernel->getContainer()->get('doctrine.orm.entity_manager');
-$metadata = $em->getMetadataFactory()->getAllMetadata();
+$connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'path' => $dbPath]);
+$em         = new EntityManager($connection, $config);
 
-$schemaTool = new SchemaTool($em);
-$schemaTool->updateSchema($metadata, true);
+(new SchemaTool($em))->createSchema($em->getMetadataFactory()->getAllMetadata());
 
-$repo  = $em->getRepository(User::class);
 $seeds = [
     ['id' => 'social-security-id',                    'username' => 'test',     'password' => '1234'],
     ['id' => '591dc126-8431-4d0f-9509-b23318d3dce4', 'username' => 'testuuid', 'password' => '1234'],
 ];
 
 foreach ($seeds as $seed) {
-    if ($repo->find($seed['id']) === null) {
+    if ($em->find(User::class, $seed['id']) === null) {
         $em->persist(new User($seed['id'], $seed['username'], password_hash($seed['password'], PASSWORD_BCRYPT), $seed['username']));
     }
 }
 
 $em->flush();
-$kernel->shutdown();
 
-echo "Database initialized at " . ($_SERVER['SYMFONY_DB_PATH'] ?? '/tmp/symfony.db') . "\n";
+echo "Database initialized at $dbPath\n";
