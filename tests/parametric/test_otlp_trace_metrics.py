@@ -50,6 +50,7 @@ must be typed OTLP values (intValue / boolValue); _dd.stats_computed is a string
 
 import base64
 import json
+import time
 from typing import Any
 
 import pytest
@@ -356,15 +357,16 @@ class Test_FR01_Enablement_Configuration:
             t.dd_flush()
 
         # Other OTLP metrics (e.g. runtime metrics enabled by DD_METRICS_OTEL_ENABLED) may still be
-        # exported to the same endpoint, so assert specifically that the span-duration trace metric is
-        # absent rather than that no OTLP metric at all is exported.
-        try:
-            metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        except ValueError:
-            metrics = []
-        assert not _duration_data_points(metrics), (
-            f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
-        )
+        # exported to the same endpoint, so checking for the absence of a single metric payload is not
+        # enough: the span-duration metric could arrive after an unrelated metric. Poll across the full
+        # flush window and fail if the span-duration trace metric ever appears.
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            metrics = test_agent.metrics()
+            assert not _duration_data_points(metrics), (
+                f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
+            )
+            time.sleep(0.2)
 
 
 @scenarios.parametric
