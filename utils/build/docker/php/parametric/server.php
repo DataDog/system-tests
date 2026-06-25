@@ -318,6 +318,11 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
         } else {
             $span = \DDTrace\start_trace_span();
         }
+    } elseif (array_key_exists('', $spansDistributedTracingHeaders)) {
+        // baggage-only: no upstream trace context, but consume headers so baggage tags are applied
+        $span = \DDTrace\start_trace_span();
+        \DDTrace\consume_distributed_tracing_headers($spansDistributedTracingHeaders['']);
+        unset($spansDistributedTracingHeaders['']);
     } else {
         $span = \DDTrace\start_trace_span();
     }

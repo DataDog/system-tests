@@ -1054,7 +1054,13 @@ class MyApp
     args = StartSpanArgs.new(JSON.parse(req.body.read))
     # If the parent span is the active span, we don't need to create a digest,
     # let the tracer handle span parenting. This avoids creating a new trace chunk.
-    digest = unless Datadog::Tracing.active_span&.id == args.parent_id
+    # Special case: if parent_id is nil and a baggage-only digest exists, use it
+    # so that baggage tags are applied to the new root span.
+    digest = if args.parent_id.nil? && DD_DIGEST.key?(nil)
+      DD_DIGEST.delete(nil)
+    elsif Datadog::Tracing.active_span&.id == args.parent_id
+      nil
+    else
       get_digest(args.parent_id)
     end
 
