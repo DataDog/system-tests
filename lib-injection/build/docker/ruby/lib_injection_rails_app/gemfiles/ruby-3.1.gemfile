@@ -1,0 +1,4 @@
+eval_gemfile File.expand_path("common.gemfile", __dir__)
+
+# i18n 1.15.0 advertises Ruby >= 3.1 but uses Fiber.[], which needs Ruby 3.2+.
+gem "i18n", "< 1.15"
