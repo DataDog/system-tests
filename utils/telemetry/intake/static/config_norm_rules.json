@@ -21,6 +21,7 @@
     "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "api_security_endpoint_collection_message_limit",
     "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "api_security_max_concurrent_requests",
     "DD_API_SECURITY_MAX_DOWNSTREAM_REQUEST_BODY_ANALYSIS": "api_security_max_downstream_request_body_analysis",
+    "DD_API_SECURITY_MAX_DOWNSTREAM_BODY_BYTES": "api_security_max_downstream_body_bytes",
     "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "api_security_request_sample_rate",
     "DD_API_SECURITY_SAMPLE_DELAY": "api_security_sample_delay",
     "DD_APM_ENABLE_RARE_SAMPLER": "trace_rare_sampler_enabled",

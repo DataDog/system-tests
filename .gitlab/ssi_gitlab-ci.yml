@@ -67,7 +67,7 @@ ssi_tests:
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             SCRIPTS_DIR="./utils/scripts"
         else
-            SCRIPTS_DIR="./system-tests/utils/scripts"
+            SCRIPTS_DIR="/system-tests/utils/scripts"
         fi
         export SCENARIO_SUFIX
         export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/docker_ssi.md"
@@ -261,7 +261,7 @@ ssi_tests:
     if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
         SCRIPTS_DIR="./utils/scripts"
     else
-        SCRIPTS_DIR="./system-tests/utils/scripts"
+        SCRIPTS_DIR="/system-tests/utils/scripts"
     fi
     export SCENARIO_SUFIX=$(echo "${K8S_SCENARIO:-logs}" | tr "[:upper:]" "[:lower:]")
     export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-and-tests-results"
