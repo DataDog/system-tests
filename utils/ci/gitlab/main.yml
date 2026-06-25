@@ -50,6 +50,10 @@ spec:
     docker_auth:
       description: "Whether to authenticate calls to docker hub"
       default: "false"
+    split_pipeline:
+      description: "Split jobs across multiple child pipelines"
+      type: boolean
+      default: false
 
 ---
 
@@ -72,6 +76,7 @@ variables:
   # Update this when either file changes:
   #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
   CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:f4f0d91aa8dc"
+  SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
   image: $CI_IMAGE
@@ -100,14 +105,7 @@ build_test_pipeline:
   script:
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
-      if [ -z "$libraries" ]; then
-        echo "No libraries configured, producing noop pipeline chunks"
-        for i in 0 1 2; do
-          printf 'noop:\n  image: registry.ddbuild.io/images/mirror/alpine:latest\n  tags:\n    - arch:amd64\n  script:\n    - echo "no system tests configured"\n' > generated-pipeline-chunk-${i}.yml
-        done
-        touch build_params.env
-        exit 0
-      fi
+      touch build_params.env
       scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
@@ -132,7 +130,9 @@ build_test_pipeline:
       for library in $libraries; do
         python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --output params_${library}.json
       done
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks 3 --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts"
+      chunks=1
+      if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
@@ -171,6 +171,11 @@ run_test_pipeline_0:
 
 run_test_pipeline_1:
   extends: .run_test_pipeline_base
+  rules:
+    - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
+      when: never
+    - if: $[[ inputs.condition ]]
+    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-1.yml
@@ -179,6 +184,11 @@ run_test_pipeline_1:
 
 run_test_pipeline_2:
   extends: .run_test_pipeline_base
+  rules:
+    - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
+      when: never
+    - if: $[[ inputs.condition ]]
+    - when: never
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-2.yml

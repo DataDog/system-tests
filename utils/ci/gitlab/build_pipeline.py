@@ -160,9 +160,6 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     libraries = args.libraries.split()
-    if not libraries:
-        print("No libraries specified, nothing to generate.", file=sys.stderr)  # noqa: T201
-        return 0
 
     build(
         libraries=libraries,

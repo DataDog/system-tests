@@ -5,6 +5,7 @@ include:
       stage: "e2e"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
+      split_pipeline: true
 stages:
   - configure
   - e2e
