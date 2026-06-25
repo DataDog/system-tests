@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Security\AppAuthenticator;
-use App\Security\User;
 use App\Security\UserProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -44,20 +44,13 @@ class LoginController extends AbstractController
     #[Route('/signup', name: 'signup', methods: ['POST'])]
     public function signup(Request $request): Response
     {
-        $username = $request->request->get('username', '');
-        $password = $request->request->get('password', '');
+        $username       = $request->request->get('username', '');
+        $password       = $request->request->get('password', '');
+        $id             = isset(self::$newUsers[$username]) ? self::$newUsers[$username]['id'] : hash('sha256', $username);
+        $hashedPassword = $this->passwordHasher->hashPassword(new User($id, $username, '', $username), $password);
 
-        $id = isset(self::$newUsers[$username]) ? self::$newUsers[$username]['id'] : hash('sha256', $username);
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
-        $dbPath = $_ENV['SYMFONY_DB_PATH'] ?? '/tmp/symfony.db';
-        $pdo = new \PDO("sqlite:$dbPath");
-        $stmt = $pdo->prepare('INSERT OR REPLACE INTO users (id, username, password, name) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$id, $username, $hashedPassword, $username]);
-
-        $user = new User($id, $username, $hashedPassword, $username);
+        $user = $this->userProvider->createUser($id, $username, $hashedPassword, $username);
         $this->security->login($user, AppAuthenticator::class, 'main');
-        $this->trackSignup($username, $id, []);
 
         return new Response('', 200);
     }
@@ -127,46 +120,16 @@ class LoginController extends AbstractController
         try {
             $user = $this->userProvider->loadUserByIdentifier($username);
         } catch (UserNotFoundException) {
-            $this->trackLoginFailure($username, '', false, []);
             return false;
         }
 
         if (!$this->passwordHasher->isPasswordValid($user, $password)) {
-            $this->trackLoginFailure($user->getUsername(), $user->getId(), true, []);
             return false;
         }
 
         $this->security->login($user, AppAuthenticator::class, 'main');
-        $this->trackLoginSuccess($user->getUsername(), $user->getId(), []);
 
         return true;
-    }
-
-    private function trackLoginSuccess(string $login, string $userId, array $meta): void
-    {
-        if (function_exists('\datadog\appsec\internal\track_user_login_success_event_automated')) {
-            \datadog\appsec\internal\track_user_login_success_event_automated('custom', $login, $userId, $meta);
-        } elseif (function_exists('\datadog\appsec\track_user_login_success_event_automated')) {
-            \datadog\appsec\track_user_login_success_event_automated($login, $userId, $meta);
-        }
-    }
-
-    private function trackLoginFailure(string $login, string $userId, bool $exists, array $meta): void
-    {
-        if (function_exists('\datadog\appsec\internal\track_user_login_failure_event_automated')) {
-            \datadog\appsec\internal\track_user_login_failure_event_automated('custom', $login, $userId, $exists, $meta);
-        } elseif (function_exists('\datadog\appsec\track_user_login_failure_event_automated')) {
-            \datadog\appsec\track_user_login_failure_event_automated($login, $userId, $exists, $meta);
-        }
-    }
-
-    private function trackSignup(string $login, string $userId, array $meta): void
-    {
-        if (function_exists('\datadog\appsec\internal\track_user_signup_event_automated')) {
-            \datadog\appsec\internal\track_user_signup_event_automated('custom', $login, $userId, $meta);
-        } elseif (function_exists('\datadog\appsec\track_user_signup_event_automated')) {
-            \datadog\appsec\track_user_signup_event_automated($login, $userId, $meta);
-        }
     }
 
     private function callSdk(string $event, string $user, bool $exists): void

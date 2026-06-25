@@ -2,31 +2,32 @@
 
 namespace App\Security;
 
+use App\Entity\User;
+use App\Repository\UserRepository;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class UserProvider implements UserProviderInterface
 {
-    private \PDO $pdo;
+    public function __construct(private UserRepository $userRepository) {}
 
-    public function __construct()
+    public function createUser(string $id, string $username, string $hashedPassword, string $name): User
     {
-        $dbPath = $_ENV['SYMFONY_DB_PATH'] ?? '/tmp/symfony.db';
-        $this->pdo = new \PDO("sqlite:$dbPath");
+        $user = new User($id, $username, $hashedPassword, $name);
+        $this->userRepository->save($user);
+
+        return $user;
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM users WHERE username = ?');
-        $stmt->execute([$identifier]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$row) {
+        $user = $this->userRepository->findOneBy(['username' => $identifier]);
+        if ($user === null) {
             throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
         }
 
-        return User::fromDbRow($row);
+        return $user;
     }
 
     public function refreshUser(UserInterface $user): UserInterface
