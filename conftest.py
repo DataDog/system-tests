@@ -276,7 +276,7 @@ def _collect_item_metadata(item: pytest.Item):
     class Metadata(TypedDict):
         details: str | None
         testDeclaration: str | None
-        features: list[str]
+        features: list[int]
         owners: list[str]
 
     metadata: Metadata = {
