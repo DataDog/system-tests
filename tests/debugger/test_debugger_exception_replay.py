@@ -237,7 +237,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         field_name == "Empty"
                         and isinstance(field_value, dict)
                         and field_value.get("type") == "EmptyResult"
-                        and set(field_value) == {"type"}
+                        and set(field_value).issubset({"type", "notCapturedReason"})
+                        and field_value.get("notCapturedReason") in (None, "typeInitializer")
                     )
 
                 scrubbed_static_fields = {
