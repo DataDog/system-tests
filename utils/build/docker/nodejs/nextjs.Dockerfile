@@ -1,4 +1,4 @@
-FROM datadog/system-tests:nextjs.base-v2
+FROM datadog/system-tests:nextjs.base-v3
 
 EXPOSE 7777
 
