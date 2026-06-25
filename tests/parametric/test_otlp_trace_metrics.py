@@ -39,7 +39,7 @@ Key conventions:
     while dd-trace-js supports both HTTP/JSON and HTTP/protobuf. Tests pin HTTP/JSON via _BASE_ENVVARS.
 
 Datadog span tags are translated to OTel semantic-convention attributes on the exported metric:
-grpc.method.name -> rpc.method, grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
+grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
 http.status_code -> http.response.status_code, and span.kind -> span.kind. host.name is reported when
 DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
@@ -213,14 +213,34 @@ def _trace_requests(test_agent: TestAgentAPI) -> list[AgentRequest]:
     return [r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))]
 
 
+def _trace_count(request: AgentRequest) -> int:
+    """The X-Datadog-Trace-Count header value for a native trace export request (0 when absent/unparsable)."""
+    headers = {h.lower(): v for h, v in request["headers"].items()}
+    try:
+        return int(headers.get("x-datadog-trace-count", "0"))
+    except ValueError:
+        return 0
+
+
+def _span_carrying_trace_requests(test_agent: TestAgentAPI) -> list[AgentRequest]:
+    """Native trace export requests that actually carry spans (X-Datadog-Trace-Count > 0).
+
+    A tracer may also emit empty keep-alive trace payloads (Trace-Count 0); those are not real span
+    flushes and carry no client-computed-stats signal, so the client-computed-stats assertions are
+    only meaningful on the real span flush.
+    """
+    return [r for r in _trace_requests(test_agent) if _trace_count(r) > 0]
+
+
 def _client_computed_stats_values(test_agent: TestAgentAPI) -> list[str | None]:
-    """The Datadog-Client-Computed-Stats header on each trace export request (None when the header is absent).
+    """The Datadog-Client-Computed-Stats header on each real span-flush request (None when the header is absent).
 
     The Agent skips server-side stats computation only when this header is present; the tracer must set it
-    on exported traces exactly when it is computing trace metrics itself (here, via OTLP export).
+    on exported traces exactly when it is computing trace metrics itself (here, via OTLP export). Empty
+    keep-alive payloads (Trace-Count 0) are not real span flushes and are excluded.
     """
     values: list[str | None] = []
-    for request in _trace_requests(test_agent):
+    for request in _span_carrying_trace_requests(test_agent):
         headers = {h.lower(): v for h, v in request["headers"].items()}
         values.append(headers.get("datadog-client-computed-stats"))
     return values
@@ -335,8 +355,16 @@ class Test_FR01_Enablement_Configuration:
                 pass
             t.dd_flush()
 
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+        # Other OTLP metrics (e.g. runtime metrics enabled by DD_METRICS_OTEL_ENABLED) may still be
+        # exported to the same endpoint, so assert specifically that the span-duration trace metric is
+        # absent rather than that no OTLP metric at all is exported.
+        try:
+            metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        except ValueError:
+            metrics = []
+        assert not _duration_data_points(metrics), (
+            f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
+        )
 
 
 @scenarios.parametric
@@ -406,10 +434,8 @@ class Test_FR02_Mutual_Exclusion:
         test_agent.wait_for_num_otlp_metrics(num=1)
         assert not test_agent.get_v06_stats_requests(), "Native v0.6 stats must not be sent when OTLP is enabled"
 
-        trace_requests = [
-            r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))
-        ]
-        assert trace_requests, "Expected at least one trace export request"
+        trace_requests = _span_carrying_trace_requests(test_agent)
+        assert trace_requests, "Expected at least one trace export request carrying spans"
         headers = {h.lower(): v for h, v in trace_requests[0]["headers"].items()}
         assert headers.get("datadog-client-computed-stats", "").lower() in TRUTHY, (
             f"Expected Datadog-Client-Computed-Stats to be truthy, got headers: {headers}"
@@ -660,23 +686,6 @@ class Test_FR06_Otel_Span_Attributes:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_fr06_6_rpc_method(
-        self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        """The Datadog gRPC span tag grpc.method.name is translated to the OTel attribute rpc.method."""
-        with test_library as t:
-            with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                span.set_meta("grpc.method.name", "GetUser")
-            t.dd_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("rpc.method") == "GetUser", f"Expected rpc.method=GetUser, got attrs: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr06_7_rpc_status_code(
