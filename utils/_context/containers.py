@@ -1462,7 +1462,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, agent_port: int = 8126) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
             name="ddapm-test-agent",
             environment={
                 "SNAPSHOT_CI": "0",
@@ -1495,7 +1495,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.59.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),
