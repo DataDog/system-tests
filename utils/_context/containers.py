@@ -1212,6 +1212,20 @@ class LambdaWeblogContainer(WeblogContainer):
         # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
         self.ports = {}
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        if replay and self._library is None:
+            # In replay mode, containers do not start and post_start is never called.
+            # Load the library version from the healthcheck log saved during the previous run.
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self._library = ComponentVersion(lib["name"], lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version from healthcheck log in replay mode: {e}")
+
 
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self) -> None:
