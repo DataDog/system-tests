@@ -362,7 +362,7 @@ system-tests-param:
             fi
           done
         done
-        export LIBRARIES="$filtered"
+        export LIBRARIES=""
       fi
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
