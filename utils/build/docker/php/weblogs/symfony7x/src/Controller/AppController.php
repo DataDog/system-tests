@@ -334,7 +334,7 @@ class AppController extends AbstractController
             $record = ['message' => $msg];
             $rootSpan = \DDTrace\root_span();
             if ($rootSpan !== null) {
-                $record['dd.trace_id'] = \DDTrace\trace_id();
+                $record['dd.trace_id'] = \DDTrace\logs_correlation_trace_id();
                 $record['dd.span_id']  = (string) $rootSpan->id;
                 $record['dd.service']  = (string) (getenv('DD_SERVICE') ?: '');
                 $record['dd.version']  = (string) (getenv('DD_VERSION') ?: '');
