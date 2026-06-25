@@ -6,13 +6,14 @@ PHP_MAJOR_VERSION=$(php -r "echo PHP_MAJOR_VERSION;")
 PHP_MINOR_VERSION=$(php -r "echo PHP_MINOR_VERSION;")
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 VARIANT=$(php-config --prefix| grep release-zts && echo release-zts || echo "")
+WEBLOG=${1:-plain}
 
 export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 
 mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
-cp -rf /tmp/php/common/* /var/www/html/
+cp -rf /tmp/php/weblogs/$WEBLOG/* /var/www/html/
 cp -rf /tmp/php/common/php.ini /etc/php/
 
 # Install required packages and PHP extensions
@@ -58,7 +59,7 @@ curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin
 cd /var/www/html
 # Use composer.json for PHP < 8.2, composer.gte8.2.json for PHP >= 8.2 (COMPOSER env = config filename)
 export COMPOSER=composer.json
-if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ] && [ -f composer.gte8.2.json ]; then
 	export COMPOSER=composer.gte8.2.json
 fi
 echo "Using composer config: $COMPOSER"
