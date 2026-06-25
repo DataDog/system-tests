@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import threading
 import time
-from typing import Any, ClassVar, TypedDict, cast
+from typing import Any, TypedDict, cast
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -128,7 +128,7 @@ class MockCDNRequestHandler(BaseHTTPRequestHandler):
     # - GET /status
     # - POST /control/fixture
     # - POST /control/reset
-    server: ClassVar[MockCDNHTTPServer]
+    server: MockCDNHTTPServer
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path

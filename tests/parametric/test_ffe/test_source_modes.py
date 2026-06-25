@@ -13,9 +13,10 @@ from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._mock_cdn import MockCDNServer, mock_cdn
+from utils.docker_fixtures._mock_cdn import MockCDNServer
 
 parametrize = pytest.mark.parametrize
+pytest_plugins = ["utils.docker_fixtures._mock_cdn"]
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 UFC_VALID_FIXTURE = FIXTURE_DIR / "ufc_valid.json"
