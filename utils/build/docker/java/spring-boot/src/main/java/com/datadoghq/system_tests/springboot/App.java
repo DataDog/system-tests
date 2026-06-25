@@ -45,6 +45,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -1355,6 +1356,61 @@ public class App {
         String jsonString = mapper.writeValueAsString(map);
 
         return jsonString;
+    }
+
+    @RequestMapping("/otel_drop_in_extract_and_make_distant_call")
+    DistantCallResponse otelDropInExtractAndMakeDistantCall(
+            @RequestHeader Map<String, String> headers,
+            @RequestParam String url) throws Exception {
+
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Context extractedContext = textMapPropagator.extract(Context.current(), headers, new TextMapGetter<Map<String, String>>() {
+            @Override
+            public Iterable<String> keys(Map<String, String> map) { return map.keySet(); }
+
+            @Override
+            public String get(Map<String, String> map, String key) { return map.get(key); }
+        });
+
+        Tracer tracer = GlobalOpenTelemetry.getTracer("system-tests");
+        io.opentelemetry.api.trace.Span span = tracer.spanBuilder("otel_extract_distant_call")
+                .setParent(extractedContext)
+                .setSpanKind(SpanKind.SERVER)
+                .startSpan();
+
+        HashMap<String, String> request_headers = new HashMap<>();
+        DistantCallResponse result = new DistantCallResponse();
+        try (Scope scope = span.makeCurrent()) {
+            OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(chain -> {
+                    Request req = chain.request();
+                    Response res = chain.proceed(req);
+                    for (String name : req.headers().names()) {
+                        request_headers.put(name, req.headers().get(name));
+                    }
+                    return res;
+                })
+                .build();
+
+            Request request = new Request.Builder().url(url).get().build();
+            Response response = client.newCall(request).execute();
+
+            int status_code = response.code();
+            HashMap<String, String> response_headers = new HashMap<>();
+            for (String name : response.headers().names()) {
+                response_headers.put(name, response.headers().get(name));
+            }
+
+            result.url = url;
+            result.status_code = status_code;
+            result.request_headers = request_headers;
+            result.response_headers = response_headers;
+        } finally {
+            span.end();
+        }
+        return result;
     }
 
     @RequestMapping("/otel_drop_in_default_propagator_inject")

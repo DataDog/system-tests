@@ -264,6 +264,7 @@ check_merge_labels:
     - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
     - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
   script:
+    - docker buildx version
     - export GITHUB_TOKEN=$(cat token.txt)
     - ./utils/scripts/get_pr_merged_labels.sh
   after_script:

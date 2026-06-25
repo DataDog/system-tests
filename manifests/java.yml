@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -283,7 +284,18 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
+    - weblog_declaration:
+        "*": v1.63.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders::test_not_propagated_downstream:
+    - weblog_declaration:
+        "*": v1.63.0
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
@@ -1193,6 +1205,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.60.1  # TODO: a lower version might be supported
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1915,10 +1930,10 @@ manifest:
         "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
-        spring-boot-jetty: missing_feature (no instrumentation for Jetty)
+        spring-boot-jetty: v1.64.0-SNAPSHOT
         spring-boot-payara: v1.63.0-SNAPSHOT
-        vertx3: missing_feature (no instrumentation for Vert.x async multipart)
-        vertx4: missing_feature (no instrumentation for Vert.x async multipart)
+        vertx3: v1.64.0-SNAPSHOT
+        vertx4: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
@@ -2895,6 +2910,28 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Implemented for spring-mvc)
         spring-boot: v0.0.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+  ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
+  : bug (DEBUG-5704)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
@@ -3047,6 +3084,7 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5730)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -3201,6 +3239,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
+  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3843,6 +3882,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
+  tests/parametric/test_otlp_trace_metrics.py: missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
@@ -3970,6 +4010,11 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0
@@ -4260,6 +4305,19 @@ manifest:
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
         play: v1.60.1  # TODO: a lower version might be supported
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel:
+    - weblog_declaration:
+        spring-boot: v1.48.0
+        spring-boot-jetty: v1.58.2+06122213c8
+        spring-boot-openliberty: v1.58.2+06122213c8
+        spring-boot-payara: v1.58.2+06122213c8
+        spring-boot-undertow: v1.58.2+06122213c8
+        spring-boot-wildfly: v1.58.2+06122213c8
+        uds-spring-boot: v1.58.2+06122213c8
+        play: incomplete_test_app (OTel endpoint not implemented in play weblog)
+        vertx3: incomplete_test_app (OTel endpoint not implemented in vertx3 weblog)
+        vertx4: incomplete_test_app (OTel endpoint not implemented in vertx4 weblog)
+        "*": incomplete_test_app (weblog endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
