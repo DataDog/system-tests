@@ -2,13 +2,12 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
   - local: /utils/ci/gitlab/main.yml
     inputs:
-      stage: "e2e"
+      stage: "configure"
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
       split_pipeline: true
 stages:
   - configure
-  - e2e
   - nodejs
   - java
   - dotnet
@@ -322,7 +321,7 @@ generate_system_tests_lib_injection_images:
 
 system-tests-param:
   extends: .system_tests_param_base
-  stage: e2e
+  stage: configure
   needs:
     - job: build_ci_image
       artifacts: false
@@ -373,7 +372,7 @@ build_ci_image:
   interruptible: true
   tags:
     - docker-in-docker:amd64
-  stage: e2e
+  stage: configure
   script:
     - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
     - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
@@ -415,7 +414,7 @@ mirror_images:
   image: $CI_IMAGE
   # Runs in e2e (not the last stage) so the build/run jobs can depend on it and
   # only start once the mirror is populated.
-  stage: e2e
+  stage: configure
   tags:
     - arch:amd64
   needs:
