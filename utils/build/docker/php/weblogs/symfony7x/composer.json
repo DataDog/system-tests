@@ -9,8 +9,10 @@
         "symfony/console": "^7.2",
         "symfony/framework-bundle": "^7.2",
         "symfony/security-bundle": "^7.2",
+        "symfony/http-client": "^7.2",
         "symfony/process": "^7.2",
         "symfony/yaml": "^7.2",
+        "monolog/monolog": "^3.0",
         "weblog/acme": "*"
     },
     "repositories": [
