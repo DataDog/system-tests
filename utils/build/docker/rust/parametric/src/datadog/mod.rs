@@ -32,11 +32,17 @@ pub fn app() -> Router<AppState> {
         .route("/span/extract_headers", post(extract_headers))
         .route("/span/flush", post(flush_spans))
         .route("/stats/flush", post(flush_stats))
+        .route("/config", get(config))
+        .route("/agent/ensure_agent_info", get(ensure_agent_info))
     // .route("/span/set_baggage", post(set_baggage))
     // .route("/span/get_baggage", get(get_baggage))
     // .route("/span/get_all_baggage", get(get_all_baggage))
     // .route("/span/remove_baggage", post(remove_baggage))
     // .route("/span/remove_all_baggage", post(remove_all_baggage))
+}
+
+async fn ensure_agent_info() -> Json<serde_json::Value> {
+    Json(serde_json::json!({ "ready": true }))
 }
 
 // Handler implementations
@@ -381,6 +387,12 @@ async fn flush_spans(State(state): State<AppState>) -> StatusCode {
 async fn flush_stats(State(_): State<AppState>) -> StatusCode {
     debug!("flush_stats: OK");
     StatusCode::OK
+}
+
+async fn config(State(state): State<AppState>) -> Json<TraceConfigResponse> {
+    Json(TraceConfigResponse {
+        config: state.dd_config.into(),
+    })
 }
 
 /*

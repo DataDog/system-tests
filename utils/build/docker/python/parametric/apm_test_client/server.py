@@ -9,6 +9,7 @@ from typing import Union
 import logging
 import os
 import enum
+import threading
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -169,6 +170,11 @@ class SpanFinishReturn(BaseModel):
 
 class TraceConfigReturn(BaseModel):
     config: dict[str, Optional[str]]
+
+
+@app.get("/trace/agent/ensure_agent_info")
+def trace_ensure_agent_info():
+    return {"ready": True}
 
 
 @app.get("/trace/config")
@@ -423,15 +429,131 @@ class TraceStatsFlushReturn(BaseModel):
 
 @app.post("/trace/stats/flush")
 def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
-    stats_proc = [
-        p
-        for p in ddtrace.tracer._span_processors
-        if hasattr(ddtrace.internal.processor, "stats")
-        if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
-    ]
-    if len(stats_proc):
-        stats_proc[0].periodic()
+    # Legacy path: older dd-trace-py versions used a Python-side SpanStatsProcessorV06.
+    if hasattr(ddtrace.internal.processor, "stats"):
+        stats_proc = [
+            p
+            for p in ddtrace.tracer._span_processors
+            if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
+        ]
+        if stats_proc:
+            stats_proc[0].periodic()
+            return TraceStatsFlushReturn()
+
+    # Modern path: dd-trace-py >= 3.x delegates CSS to libdatadog's native TraceExporter.
+    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown,
+    # so we force a shutdown+recreate to flush stats deterministically for the test.
+    writer = getattr(ddtrace.tracer._span_aggregator, "writer", None)
+    if writer is not None and hasattr(writer, "on_shutdown") and hasattr(writer, "recreate"):
+        writer.on_shutdown()
+        try:
+            ddtrace.tracer._span_aggregator.writer = writer.recreate()
+        except Exception:
+            # If recreate is unavailable or raises, the writer is left stopped — acceptable
+            # since the test client is reset after each parametric test.
+            pass
     return TraceStatsFlushReturn()
+
+
+class TraceRemoteConfigApplyArgs(BaseModel):
+    pass  # Reserved for future per-config_id semantics; see contract doc.
+
+
+class AppliedConfigEntry(BaseModel):
+    config_id: str
+    product: str
+
+
+class TraceRemoteConfigApplyReturn(BaseModel):
+    applied_configs: List[AppliedConfigEntry]
+
+
+# Serialize overlapping /trace/remote-config/apply calls (sync handlers run in a
+# threadpool). A timed-out drain keeps the lock until its worker thread exits.
+_rc_apply_lock = threading.Lock()
+
+
+@app.post("/trace/remote-config/apply")
+def trace_remote_config_apply(
+    args: TraceRemoteConfigApplyArgs,
+) -> JSONResponse:
+    """Synchronously drain pending Remote Config and return the applied set.
+
+    Contract: docs/parametric/remote-config-apply-contract.md. The drain runs in
+    a worker thread joined with a 10s deadline (504 on timeout).
+    """
+    # Imported lazily (matches /rc/start, /rc/stop) to avoid touching RC internals at module import time.
+    from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+    timeout_seconds = 10.0
+    client = remoteconfig_poller._client
+
+    # A prior drain timed out and still holds the lock.
+    if not _rc_apply_lock.acquire(blocking=False):
+        return JSONResponse(
+            status_code=504,
+            content={
+                "error": "previous remote-config apply still in progress",
+                "timeout_seconds": timeout_seconds,
+            },
+        )
+
+    lock_ownership_transferred = False
+    try:
+        drain_error: List[BaseException] = []
+
+        def _drain() -> None:
+            try:
+                client.request()
+                client._global_subscriber.periodic()
+            except BaseException as exc:  # noqa: BLE001
+                drain_error.append(exc)
+
+        worker = threading.Thread(target=_drain, name="rc-apply-drain", daemon=True)
+        worker.start()
+        worker.join(timeout=timeout_seconds)
+
+        if worker.is_alive():
+            # Drain didn't finish in time; a watcher releases the lock once the
+            # worker exits, so follow-up calls get 504 instead of overlapping it.
+            log.warning("rc-apply drain exceeded %.1fs; holding lock until worker exits", timeout_seconds)
+            lock_ownership_transferred = True
+
+            def _release_when_done(t: threading.Thread) -> None:
+                t.join()
+                _rc_apply_lock.release()
+
+            threading.Thread(
+                target=_release_when_done, args=(worker,), name="rc-apply-lock-releaser", daemon=True
+            ).start()
+            return JSONResponse(
+                status_code=504,
+                content={
+                    "error": "timeout waiting for remote config to apply",
+                    "timeout_seconds": timeout_seconds,
+                },
+            )
+
+        if drain_error:
+            # Report the failure rather than an optimistic 200 (the applied-config
+            # set alone doesn't prove the product callbacks ran).
+            log.warning("rc-apply drain raised: %r", drain_error[0])
+            return JSONResponse(
+                status_code=500,
+                content={"error": f"remote config apply failed: {drain_error[0]!r}"},
+            )
+
+        success = TraceRemoteConfigApplyReturn(
+            applied_configs=[
+                AppliedConfigEntry(config_id=metadata.id, product=metadata.product_name)
+                for metadata in client._applied_configs.values()
+            ]
+        )
+        # Pydantic v1 (fastapi==0.89.1): .dict(), not v2's .model_dump().
+        return JSONResponse(status_code=200, content=success.dict())
+    finally:
+        if not lock_ownership_transferred:
+            _rc_apply_lock.release()
 
 
 class TraceSpanErrorArgs(BaseModel):

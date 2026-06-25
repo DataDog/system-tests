@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/dbm"
 	"systemtests.weblog/_shared/grpc"
 	"systemtests.weblog/_shared/rasp"
 
@@ -196,6 +197,11 @@ func main() {
 
 		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after client.Do (the wrapped client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := client.Do(req)
 		if err != nil {
 			logrus.Fatalln("client.Do", err)
@@ -205,7 +211,7 @@ func main() {
 
 		requestHeaders := make(map[string]string, len(req.Header))
 		for key, values := range req.Header {
-			requestHeaders[key] = strings.Join(values, ",")
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
 		}
 
 		responseHeaders := make(map[string]string, len(res.Header))
@@ -760,6 +766,7 @@ func main() {
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
+	mux.HandleFunc("/stub_dbm", dbm.StubDbmHandler)
 
 	mux.HandleFunc("/ffe", common.FFeEval())
 

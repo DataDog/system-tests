@@ -7,7 +7,7 @@ from http import HTTPStatus
 import json
 import os
 import re
-from typing import Self
+from typing import Self, Literal
 
 import requests
 
@@ -160,6 +160,42 @@ class MockedTracerResponse(MockedResponse):
         """Send instruction to the proxy at /mocked_tracer_responses endpoint."""
         self._send_to_endpoint(MOCKED_TRACER_RESPONSES_PATH)
 
+    @staticmethod
+    def _gate_rc_response_by_products(response: dict, request_content: dict) -> dict:
+        """Restrict a /v0.7/config response to the products the client subscribed to.
+
+        The real Datadog agent only returns configs for products listed in the
+        request's ``client.products``. Mirror the real-world behaviour here.
+        """
+        if not isinstance(response, dict):
+            return response
+        client_configs = response.get("client_configs")
+        if not isinstance(client_configs, list):
+            return response
+        try:
+            products = request_content["client"]["products"]
+        except (KeyError, TypeError):
+            return response
+        if not isinstance(products, list):
+            return response
+        allowed = set(products)
+
+        def product_of(path: str) -> str | None:
+            # datadog/<org_id>/<PRODUCT>/<config_id>/<name> or employee/<PRODUCT>/<config_id>/<name>
+            parts = path.split("/")
+            return parts[-3]
+
+        kept = [path for path in client_configs if product_of(path) in allowed]
+        if kept == client_configs:
+            return response
+        filtered = dict(response)
+        filtered["client_configs"] = kept
+        target_files = response.get("target_files")
+        if isinstance(target_files, list):
+            kept_paths = set(kept)
+            filtered["target_files"] = [tf for tf in target_files if tf.get("path") in kept_paths]
+        return filtered
+
 
 class StaticJsonMockedTracerResponse(MockedTracerResponse):
     """Always overwrites the same static JSON content on request made on the given path."""
@@ -175,7 +211,15 @@ class StaticJsonMockedTracerResponse(MockedTracerResponse):
 
     def execute(self, flow: HTTPFlow) -> None:
         super().execute(flow)
-        flow.response.content = json.dumps(self.mocked_json).encode()
+        response = self.mocked_json
+        if self.path == "/v0.7/config" and isinstance(response, dict):
+            try:
+                request_content = json.loads(flow.request.content)
+            except (ValueError, TypeError):
+                request_content = None
+            if isinstance(request_content, dict):
+                response = self._gate_rc_response_by_products(response, request_content)
+        flow.response.content = json.dumps(response).encode()
 
     def to_json(self) -> dict:
         return {
@@ -203,7 +247,7 @@ class SequentialRemoteConfigJsonMockedTracerResponse(MockedTracerResponse):
         request_content = json.loads(flow.request.content)
         runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
         nth_api_command = self._runtime_ids_request_count[runtime_id]
-        response = self.mocked_json_sequence[nth_api_command]
+        response = self._gate_rc_response_by_products(self.mocked_json_sequence[nth_api_command], request_content)
 
         flow.response.content = json.dumps(response).encode()
         flow.response.headers["st-proxy-overwrite-rc-response"] = f"{nth_api_command}"
@@ -347,6 +391,34 @@ class SetClientDropP0s(_InternalMockedTracerResponse):
         return {
             "type": self.__class__.__name__,
             "client_drop_p0s": self.client_drop_p0s,
+        }
+
+
+class SetObfuscationVersion(_InternalMockedTracerResponse):
+    """Override the obfuscation_version field in the agent's /info response.
+
+    This controls which obfuscation version the agent advertises. When set to a version
+    higher than what the SDK supports, the SDK should skip client-side obfuscation and
+    omit the Datadog-Obfuscation-Version header from stats payloads.
+    """
+
+    def __init__(self, *, obfuscation_version: int | Literal["MISSING"]):
+        super().__init__(path="/info")
+        self.obfuscation_version = obfuscation_version
+
+    def execute(self, flow: HTTPFlow) -> None:
+        if flow.response.status_code == HTTPStatus.OK:
+            c = json.loads(flow.response.content)
+            if self.obfuscation_version == "MISSING":
+                del c["obfuscation_version"]
+            else:
+                c["obfuscation_version"] = self.obfuscation_version
+            flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "obfuscation_version": self.obfuscation_version,
         }
 
 

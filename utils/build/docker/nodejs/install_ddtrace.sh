@@ -4,6 +4,8 @@ set -eu
 
 cd /usr/app
 
+BUN_ARGS=(--network-concurrency 16 --trust --linker=hoisted)
+
 run_without_node_env () {
     (
         unset NODE_ENV
@@ -13,8 +15,7 @@ run_without_node_env () {
 
 install_custom_target () {
     local target=$1
-
-    run_without_node_env npm install "$target" || run_without_node_env npm install "$target"
+    run_without_node_env bun add "${BUN_ARGS[@]}" "$target" || (sleep 30 && run_without_node_env bun add "${BUN_ARGS[@]}" "$target")
 }
 
 if [ -e /binaries/nodejs-load-from-local ]; then
@@ -26,14 +27,15 @@ else
         install_custom_target "$target"
 
     elif [ -e /binaries/dd-trace-js ]; then
-        target=$(run_without_node_env npm pack /binaries/dd-trace-js)
+        # bun pm pack runs prepack/prepare lifecycle hooks needed to build dd-trace-js. Those hooks
+        # (e.g. the vendor postinstall) also write to stdout, so keep only the produced .tgz path.
+        target=$(cd /binaries/dd-trace-js && run_without_node_env bun pm pack --destination /usr/app --quiet | grep -E '\.tgz$' | tail -n 1)
         echo "install from local folder /binaries/dd-trace-js"
         install_custom_target "$target"
 
     else
-        target="dd-trace"
         echo "install from NPM"
-        npm install "$target" || npm install "$target"
+        install_custom_target dd-trace
     fi
 
     node -e "process.stdout.write(require('dd-trace/package.json').version)" > /system-tests-library-version
