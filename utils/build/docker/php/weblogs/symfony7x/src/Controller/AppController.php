@@ -75,13 +75,7 @@ class AppController extends AbstractController
         foreach ($response->getHeaders(false) as $name => $values) {
             $responseHeaders[$name] = implode(', ', $values);
         }
-        $requestHeaders = [];
-        foreach (($response->getInfo('request_header') ?? '') ? explode("\r\n", $response->getInfo('request_header')) : [] as $line) {
-            if (str_contains($line, ':')) {
-                [$key, $value]                          = explode(':', $line, 2);
-                $requestHeaders[strtolower(trim($key))] = trim($value);
-            }
-        }
+        $requestHeaders = $this->parseRequestHeadersFromDebug($response->getInfo('debug') ?? '');
 
         return new JsonResponse([
             'url'              => $url,
@@ -574,8 +568,10 @@ END;
 
         switch ($case) {
             case 'with_route':
-                $rootSpan->meta['http.route']  = '/users/{id}/profile';
-                $rootSpan->meta['http.method'] = 'GET';
+                register_shutdown_function(function () use ($rootSpan): void {
+                    $rootSpan->meta['http.route']  = '/users/{id}/profile';
+                    $rootSpan->meta['http.method'] = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'    => 'ok',
@@ -584,9 +580,11 @@ END;
                 ]);
 
             case 'with_endpoint':
-                unset($rootSpan->meta['http.route']);
-                $rootSpan->meta['http.endpoint'] = '/api/products/{param:int}';
-                $rootSpan->meta['http.method']   = 'GET';
+                register_shutdown_function(function () use ($rootSpan): void {
+                    unset($rootSpan->meta['http.route']);
+                    $rootSpan->meta['http.endpoint'] = '/api/products/{param:int}';
+                    $rootSpan->meta['http.method']   = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'    => 'ok',
@@ -595,9 +593,11 @@ END;
                 ]);
 
             case '404':
-                unset($rootSpan->meta['http.route']);
-                $rootSpan->meta['http.endpoint'] = '/api/notfound/{param:int}';
-                $rootSpan->meta['http.method']   = 'GET';
+                register_shutdown_function(function () use ($rootSpan): void {
+                    unset($rootSpan->meta['http.route']);
+                    $rootSpan->meta['http.endpoint'] = '/api/notfound/{param:int}';
+                    $rootSpan->meta['http.method']   = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'    => 'error',
@@ -606,9 +606,11 @@ END;
                 ], 404);
 
             case 'computed':
-                unset($rootSpan->meta['http.route']);
-                $rootSpan->meta['http.url']    = 'http://localhost:8080/endpoint_fallback_computed/users/123/orders/456';
-                $rootSpan->meta['http.method'] = 'GET';
+                register_shutdown_function(function () use ($rootSpan): void {
+                    unset($rootSpan->meta['http.route']);
+                    $rootSpan->meta['http.url']    = 'http://localhost:8080/endpoint_fallback_computed/users/123/orders/456';
+                    $rootSpan->meta['http.method'] = 'GET';
+                });
 
                 return new JsonResponse([
                     'status'           => 'ok',
@@ -681,13 +683,7 @@ END;
             foreach ($response->getHeaders(false) as $name => $values) {
                 $responseHeaders[$name] = implode(', ', $values);
             }
-            $requestHeaders = [];
-            foreach (($response->getInfo('request_header') ?? '') ? explode("\r\n", $response->getInfo('request_header')) : [] as $line) {
-                if (str_contains($line, ':')) {
-                    [$key, $value]                         = explode(':', $line, 2);
-                    $requestHeaders[strtolower(trim($key))] = trim($value);
-                }
-            }
+            $requestHeaders = $this->parseRequestHeadersFromDebug($response->getInfo('debug') ?? '');
         } finally {
             if ($scope !== null) {
                 $scope->detach();
@@ -737,13 +733,7 @@ END;
         foreach ($response->getHeaders(false) as $name => $values) {
             $responseHeaders[$name] = implode(', ', $values);
         }
-        $requestHeaders = [];
-        foreach (($response->getInfo('request_header') ?? '') ? explode("\r\n", $response->getInfo('request_header')) : [] as $line) {
-            if (str_contains($line, ':')) {
-                [$key, $value]                         = explode(':', $line, 2);
-                $requestHeaders[strtolower(trim($key))] = trim($value);
-            }
-        }
+        $requestHeaders = $this->parseRequestHeadersFromDebug($response->getInfo('debug') ?? '');
 
         return new JsonResponse([
             'url'              => $url,
@@ -751,6 +741,29 @@ END;
             'request_headers'  => $requestHeaders,
             'response_headers' => $responseHeaders,
         ]);
+    }
+
+    private function parseRequestHeadersFromDebug(string $debug): array
+    {
+        $headers    = [];
+        $inRequest  = false;
+        foreach (explode("\n", $debug) as $line) {
+            $line = rtrim($line);
+            if (str_starts_with($line, '> ')) {
+                $inRequest = true;
+                $line      = substr($line, 2);
+            } elseif ($inRequest && str_starts_with($line, '< ')) {
+                break;
+            } elseif ($inRequest && $line === '') {
+                break;
+            }
+            if ($inRequest && str_contains($line, ':')) {
+                [$key, $value]                    = explode(':', $line, 2);
+                $headers[strtolower(trim($key))] = trim($value);
+            }
+        }
+
+        return $headers;
     }
 
     #[Route('/returnheaders', name: 'returnheaders', methods: ['GET'])]

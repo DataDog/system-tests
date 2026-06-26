@@ -436,7 +436,10 @@ manifest:
         symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v1.8.0
-  tests/appsec/test_automated_payment_events.py: v1.17.0-dev
+  tests/appsec/test_automated_payment_events.py:
+    - weblog_declaration:
+        "*": missing_feature (Stripe endpoints not implemented)
+        symfony7x: v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
