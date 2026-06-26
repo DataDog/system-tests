@@ -1,0 +1,174 @@
+// # Datadog tracestate — change-sampling dm + 32-list-member limit
+
+// Ported from `tests/parametric/test_headers_tracestate_dd.py`:
+//   - test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
+//   - test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
+//   - test_headers_tracestate_dd_keeps_32_or_fewer_list_members
+//   - test_headers_tracestate_dd_evicts_32_or_greater_list_members
+// Under `...STYLE=tracecontext,Datadog` the tracer injects both W3C and Datadog
+// headers; these inspect the injected `x-datadog-*` headers and the `dd=` member
+// items of the injected `tracestate` (the dd member value split on ';').
+// Adapter-only.
+
+// File-local helpers (unique `tsc*` names; do not collide with other files).
+
+let tscStartsWith(s: String, prefix: String): Boolean {
+  let pl = strLen(prefix);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == prefix
+}
+// items of the `dd=<value>` member, split on ';'
+let tscDdItems(tracestate: String): List<String> {
+  let members = tracestate.split(",");
+  for (var i = 0; i < members.length; i++) {
+    let m = members[i];
+    if (tscStartsWith(m, "dd=")) {
+      return m.slice(m.step(String.begin, 3), m.end).split(";");
+    }
+  }
+  new ListBuilder<String>().toList()
+}
+let tscItemEq(items: Listed<String>, val: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (items[i] == val) { return true; } }
+  false
+}
+let tscAnyStarts(items: Listed<String>, prefix: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (tscStartsWith(items[i], prefix)) { return true; } }
+  false
+}
+let tscContains(haystack: String, needle: String): Boolean { haystack.split(needle).length > 1 }
+let tscPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+// "key1=value1,...,keyN=valueN"
+let tscVendors(n: Int): String {
+  var s = "";
+  for (var i = 1; i <= n; i++) {
+    if (i > 1) { s = "${s},"; }
+    s = "${s}key${i}=value${i}";
+  }
+  s
+}
+
+let TSC_TP01 = "00-12345678901234567890123456789012-1234567890123456-01";
+let TSC_TP00 = "00-12345678901234567890123456789012-1234567890123456-00";
+
+// The shared body for both change-sampling tests: the inputs differ (input dm /
+// sampling values) but both expect the same injected result — dm normalised to
+// -0 (kept) when sampled, dm dropped when not sampled — so the assertions are
+// identical. `ts1`/`ts2` are the two input tracestate strings.
+let tscCheckChangeSampling(c: Checker, t: Tracer, inTs1: String, inTs2: String): Void {
+  // 1) sampled (traceparent flags 01): dm normalised to -0 and kept
+  let out1 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP01), tscPr("tracestate", inTs1)]);
+  c.eqStr(out1.getOr("x-datadog-sampling-priority", ""), "1", "h1: sampling-priority 1");
+  let tags1 = out1.getOr("x-datadog-tags", "").split(",");
+  c.isTrue(tscItemEq(tags1, "_dd.p.dm=-0"), "h1: _dd.p.dm=-0 in x-datadog-tags");
+  c.isTrue(tscItemEq(tags1, "_dd.p.usr.id=baz64=="), "h1: _dd.p.usr.id in x-datadog-tags");
+  c.isTrue(out1.has("traceparent"), "h1: traceparent present");
+  c.isTrue(out1.has("tracestate"), "h1: tracestate present");
+  let items1 = tscDdItems(out1.getOr("tracestate", ""));
+  c.isTrue(tscItemEq(items1, "s:1") || !tscAnyStarts(items1, "s:"), "h1: s:1 or no s: item");
+  c.isTrue(tscItemEq(items1, "t.dm:-0"), "h1: t.dm:-0 in dd items");
+  c.isTrue(tscItemEq(items1, "t.usr.id:baz64~~"), "h1: t.usr.id:baz64~~ in dd items");
+
+  // 2) not sampled (traceparent flags 00): dm dropped
+  let out2 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP00), tscPr("tracestate", inTs2)]);
+  c.eqStr(out2.getOr("x-datadog-sampling-priority", ""), "0", "h2: sampling-priority 0");
+  let tags2 = out2.getOr("x-datadog-tags", "").split(",");
+  c.isTrue(!tscAnyStarts(tags2, "_dd.p.dm:"), "h2: no _dd.p.dm: in x-datadog-tags");
+  c.isTrue(tscItemEq(tags2, "_dd.p.usr.id=baz64=="), "h2: _dd.p.usr.id in x-datadog-tags");
+  c.isTrue(tscItemEq(tags2, "_dd.p.url=http://localhost"), "h2: _dd.p.url in x-datadog-tags");
+  c.isTrue(out2.has("traceparent"), "h2: traceparent present");
+  c.isTrue(out2.has("tracestate"), "h2: tracestate present");
+  let items2 = tscDdItems(out2.getOr("tracestate", ""));
+  c.isTrue(tscItemEq(items2, "s:0") || !tscAnyStarts(items2, "s:"), "h2: s:0 or no s: item");
+  c.isTrue(!tscAnyStarts(items2, "t.dm:"), "h2: no t.dm: in dd items");
+  c.isTrue(tscItemEq(items2, "t.usr.id:baz64~~"), "h2: t.usr.id:baz64~~ in dd items");
+  c.isTrue(tscItemEq(items2, "t.url:http://localhost"), "h2: t.url:http://localhost in dd items");
+}
+
+// ## change_sampling_same_dm
+// Upstream @missing_feature for nodejs ("decision maker is removed") and python
+// ("does not drop dm"); expected to be skipped on both.
+
+export let runTracestateChangeSamplingSameDm(t: Tracer): CheckResult {
+  let c = new Checker();
+  tscCheckChangeSampling(c, t,
+    "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~",
+    "foo=1,dd=s:1;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost");
+  c.result()
+}
+
+// ## change_sampling_reset_dm
+// Upstream @missing_feature for nodejs and python ("does not reset dm to
+// DEFAULT"); expected to be skipped on both. Input dm is -4; output resets to -0.
+
+export let runTracestateChangeSamplingResetDm(t: Tracer): CheckResult {
+  let c = new Checker();
+  tscCheckChangeSampling(c, t,
+    "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~",
+    "foo=1,dd=s:2;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost");
+  c.result()
+}
+
+// ## keeps_32_or_fewer_list_members
+// Upstream @bug only for php (not nodejs/python). All input members are kept
+// when the resulting tracestate has <= 32 list-members; dd is moved to the front.
+
+export let runTracestateKeeps32(t: Tracer): CheckResult {
+  let c = new Checker();
+  let vendors = tscVendors(31);
+
+  // 1) 32 members, dd at the end of the input
+  let out1 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP01), tscPr("tracestate", "${vendors},dd=s:-1")]);
+  let ts1 = out1.getOr("tracestate", "");
+  c.isTrue(tscContains(ts1, "key31=value31"), "h1: key31=value31 retained");
+  c.isTrue(tscStartsWith(ts1, "dd="), "h1: starts with dd=");
+  c.eqInt(ts1.split(",").length, 32, "h1: 32 list-members");
+
+  // 2) 32 members, dd at the beginning of the input
+  let out2 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP01), tscPr("tracestate", "dd=s:-1,${vendors}")]);
+  let ts2 = out2.getOr("tracestate", "");
+  c.isTrue(tscContains(ts2, "key31=value31"), "h2: key31=value31 retained");
+  c.isTrue(tscStartsWith(ts2, "dd="), "h2: starts with dd=");
+  c.eqInt(ts2.split(",").length, 32, "h2: 32 list-members");
+
+  // 3) 31 members, no dd in the input (dd is added -> 32)
+  let out3 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP01), tscPr("tracestate", vendors)]);
+  let ts3 = out3.getOr("tracestate", "");
+  c.isTrue(tscContains(ts3, "key31=value31"), "h3: key31=value31 retained");
+  c.isTrue(tscStartsWith(ts3, "dd="), "h3: starts with dd=");
+  c.eqInt(ts3.split(",").length, 32, "h3: 32 list-members");
+
+  // 4) no tracestate input -> only the dd member
+  let out4 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP01)]);
+  let ts4 = out4.getOr("tracestate", "");
+  c.isTrue(tscStartsWith(ts4, "dd="), "h4: starts with dd=");
+  c.eqInt(ts4.split(",").length, 1, "h4: 1 list-member");
+
+  c.result()
+}
+
+// ## evicts_32_or_greater_list_members
+// Upstream @bug for nodejs and python (and cpp/dotnet/php); expected to be
+// skipped on both. With 32 input vendor members + the added dd member, the last
+// input member (key32) is evicted to keep the limit of 32.
+
+export let runTracestateEvicts32(t: Tracer): CheckResult {
+  let c = new Checker();
+  let vendors = tscVendors(31);
+  let out1 = makeChildSpanAndGetHeaders(t, [tscPr("traceparent", TSC_TP01), tscPr("tracestate", "${vendors},key32=value32")]);
+  let ts1 = out1.getOr("tracestate", "");
+  c.eqInt(ts1.split(",").length, 32, "h1: 32 list-members");
+  c.isTrue(!tscContains(ts1, "key32=value32"), "h1: key32=value32 evicted");
+  c.isTrue(tscStartsWith(ts1, "dd="), "h1: starts with dd=");
+  c.result()
+}
+
+// REGISTRY SNIPPET (for src/cases.temper) — env is tracecontext,Datadog for all.
+// unsupported lists reflect upstream @missing_feature/@bug for nodejs/python;
+// the integrator should dual-verify and adjust.
+//   let tscDdEnv = new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext,Datadog"), new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext,Datadog")]);
+//   cs.add(new ConformanceCase("headers_tracestate_dd.change_sampling_same_dm", tscDdEnv, runTracestateChangeSamplingSameDm, false, ["nodejs", "python"]));
+//   cs.add(new ConformanceCase("headers_tracestate_dd.change_sampling_reset_dm", tscDdEnv, runTracestateChangeSamplingResetDm, false, ["nodejs", "python"]));
+//   cs.add(new ConformanceCase("headers_tracestate_dd.keeps_32", tscDdEnv, runTracestateKeeps32, false));
+//   cs.add(new ConformanceCase("headers_tracestate_dd.evicts_32", tscDdEnv, runTracestateEvicts32, false, ["nodejs", "python"]));

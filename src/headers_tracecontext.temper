@@ -1,0 +1,226 @@
+// # W3C tracecontext propagation tests
+
+// Ported from `tests/parametric/test_headers_tracecontext.py`. Each case extracts
+// an input `traceparent`, makes a child, and inspects the **injected** output
+// traceparent. Adapter-only (`fakeSupported = false`); env is
+// `...STYLE=tracecontext`.
+
+// A traceparent is `version-traceid-parentid-flags`.
+
+let tcTraceId(headers: Mapped<String, String>): String {
+  let parts = headers.getOr("traceparent", "").split("-");
+  if (parts.length >= 2) { parts[1] } else { "" }
+}
+let tcParentId(headers: Mapped<String, String>): String {
+  let parts = headers.getOr("traceparent", "").split("-");
+  if (parts.length >= 3) { parts[2] } else { "" }
+}
+
+let extractTp(t: Tracer, value: String): Mapped<String, String> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("traceparent", value));
+  makeChildSpanAndGetHeaders(t, h.toList())
+}
+
+// A malformed traceparent must be rejected and the trace id regenerated.
+
+let assertRegenerated(t: Tracer, value: String, bad: String): CheckResult {
+  let c = new Checker();
+  let out = extractTp(t, value);
+  c.isTrue(tcTraceId(out) != bad, "trace_id regenerated, not ${bad}");
+  c.result()
+}
+
+// ## valid traceparent, tracestate missing
+
+export let runTpValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = extractTp(t, "00-12345678901234567890123456789012-1234567890123456-01");
+  c.eqStr(tcTraceId(out), "12345678901234567890123456789012", "trace_id propagated");
+  c.isTrue(tcParentId(out) != "1234567890123456", "parent_id regenerated");
+  c.result()
+}
+
+// ## malformed traceparents → regenerated trace id
+
+export let runTpVersionTooShort(t: Tracer): CheckResult {
+  assertRegenerated(t, "0-12345678901234567890123456789012-1234567890123456-01", "12345678901234567890123456789012")
+}
+export let runTpTraceIdAllZero(t: Tracer): CheckResult {
+  assertRegenerated(t, "00-00000000000000000000000000000000-1234567890123456-01", "00000000000000000000000000000000")
+}
+export let runTpTraceIdTooLong(t: Tracer): CheckResult {
+  assertRegenerated(t, "00-123456789012345678901234567890123-1234567890123456-01", "123456789012345678901234567890123")
+}
+export let runTpTraceIdTooShort(t: Tracer): CheckResult {
+  assertRegenerated(t, "00-1234567890123456789012345678901-1234567890123456-01", "1234567890123456789012345678901")
+}
+export let runTpParentIdAllZero(t: Tracer): CheckResult {
+  assertRegenerated(t, "00-12345678901234567890123456789012-0000000000000000-01", "12345678901234567890123456789012")
+}
+export let runTpTraceIdIllegalChars(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = extractTp(t, "00-.2345678901234567890123456789012-1234567890123456-01");
+  c.isTrue(tcTraceId(out1) != ".2345678901234567890123456789012", "illegal leading char rejected");
+  let out2 = extractTp(t, "00-1234567890123456789012345678901.-1234567890123456-01");
+  c.isTrue(tcTraceId(out2) != "1234567890123456789012345678901.", "illegal trailing char rejected");
+  c.result()
+}
+
+// ## W3C "last parent id" (the dd `p:` tracestate member, W3C phase 2)
+
+// On extract, the `p:` member is stored on the child span as `_dd.parent_id`.
+export let runTsW3cPExtract(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"));
+  h.add(new Pair("tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"));
+  makeChildSpanAndGetHeaders(t, h.toList());
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("_dd.parent_id", ""), "0123456789abcdef", "p: extracted to _dd.parent_id");
+  c.result()
+}
+
+// On inject, the dd tracestate carries `p:<span-id as 16 hex>`.
+export let runTsW3cPInject(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("new_span", "0");
+  let inj = t.injectHeaders(s.spanId);
+  t.finishSpan(s.spanId);
+  let ts = inj.getOr("tracestate", "");
+  let after = ts.split("p:");
+  if (after.length < 2) {
+    c.isTrue(false, "tracestate has a p: member: ${ts}");
+    return c.result();
+  }
+  let tok = after[1].split(";")[0].split(",")[0];
+  c.eqStr(hexToDecimal(tok), s.spanId, "tracestate p: decodes to the span id");
+  c.result()
+}
+
+// ## W3C phase 3: datadog + tracecontext extraction, _dd.parent_id reconciliation
+// env: DD_TRACE_PROPAGATION_STYLE=datadog,tracecontext
+
+let p3Child(t: Tracer, headers: Listed<Pair<String, String>>): CapturedSpan {
+  makeChildSpanAndGetHeaders(t, headers);
+  findOnlySpan(t.capturedSpans())
+}
+
+// 1) dd + tc trace-id and span-id match -> dd parent, no _dd.parent_id needed.
+export let runP3IdenticalTraceInfo(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = p3Child(t, [
+    new Pair("traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2;p:000000003ade68b1,foo=1"),
+    new Pair("x-datadog-trace-id", "1"),
+    new Pair("x-datadog-tags", "_dd.p.tid=1111111111111111"),
+    new Pair("x-datadog-parent-id", "987654321"),
+  ]);
+  c.eqStr(s.parentId, "987654321", "parent from datadog");
+  c.isTrue(!s.meta.has("_dd.parent_id"), "no _dd.parent_id when ids match");
+  c.result()
+}
+
+// 2) trace-ids do not match -> datadog headers win, no _dd.parent_id.
+export let runP3TraceIdsDoNotMatch(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = p3Child(t, [
+    new Pair("traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2;p:000000000000000a,foo=1"),
+    new Pair("x-datadog-parent-id", "10"),
+    new Pair("x-datadog-trace-id", "2"),
+    new Pair("x-datadog-tags", "_dd.p.tid=2222222222222222"),
+  ]);
+  c.eqStr(s.parentId, "10", "parent from datadog (trace ids differ)");
+  c.isTrue(!s.meta.has("_dd.parent_id"), "no _dd.parent_id when traces differ");
+  c.result()
+}
+
+// 3) trace-id matches, parent ids differ -> tc parent, _dd.parent_id from tracestate p.
+export let runP3NonMatchingParentIds(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = p3Child(t, [
+    new Pair("traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2;p:000000000000000a,foo=1"),
+    new Pair("x-datadog-trace-id", "3"),
+    new Pair("x-datadog-tags", "_dd.p.tid=1111111111111111"),
+    new Pair("x-datadog-parent-id", "10"),
+  ]);
+  c.eqStr(s.parentId, "987654321", "parent from tracecontext");
+  c.eqStr(s.meta.getOr("_dd.parent_id", ""), "000000000000000a", "_dd.parent_id from tracestate p");
+  c.result()
+}
+
+// 4) parent ids differ, p missing -> tc parent, _dd.parent_id from datadog parent id.
+export let runP3MissingPValue(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = p3Child(t, [
+    new Pair("traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2,foo=1"),
+    new Pair("x-datadog-trace-id", "4"),
+    new Pair("x-datadog-parent-id", "10"),
+  ]);
+  c.eqStr(s.parentId, "987654321", "parent from tracecontext");
+  c.eqStr(s.meta.getOr("_dd.parent_id", ""), "000000000000000a", "_dd.parent_id from datadog parent id");
+  c.result()
+}
+
+// 5) parent ids differ, p does not match datadog -> tc is source of truth.
+export let runP3NonMatchingPValue(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = p3Child(t, [
+    new Pair("traceparent", "00-00000000000000000000000000000005-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2;p:8fffffffffffffff,foo=1"),
+    new Pair("x-datadog-parent-id", "10"),
+    new Pair("x-datadog-trace-id", "5"),
+  ]);
+  c.eqStr(s.parentId, "987654321", "parent from tracecontext");
+  c.eqStr(s.meta.getOr("_dd.parent_id", ""), "8fffffffffffffff", "_dd.parent_id from tracestate p");
+  c.result()
+}
+
+// phase 3 + EXTRACT_FIRST=true: only datadog headers used, last parent id ignored.
+export let runP3ExtractFirst(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = p3Child(t, [
+    new Pair("traceparent", "00-11111111111111110000000000000001-000000000000000f-01"),
+    new Pair("tracestate", "dd=s:2;p:0123456789abcdef,foo=1"),
+    new Pair("x-datadog-trace-id", "1"),
+    new Pair("x-datadog-parent-id", "987654320"),
+    new Pair("x-datadog-tags", "_dd.p.tid=1111111111111111"),
+  ]);
+  c.eqStr(s.parentId, "987654320", "parent from datadog (extract first)");
+  c.isTrue(!s.meta.has("_dd.parent_id"), "no _dd.parent_id when only datadog extracted");
+  c.result()
+}
+
+// high-order trace-id bits (_dd.p.tid) must not leak from one trace to the next.
+export let runTsW3cContextLeak(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, [
+    new Pair("traceparent", "00-33333333333333330000000000000003-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2;p:000000000000000a,foo=1"),
+    new Pair("x-datadog-trace-id", "3"),
+    new Pair("x-datadog-tags", "_dd.p.tid=3333333333333333"),
+    new Pair("x-datadog-parent-id", "10"),
+  ]);
+  makeChildSpanAndGetHeaders(t, [
+    new Pair("traceparent", "00-00000000000000000000000000000004-000000003ade68b1-01"),
+    new Pair("tracestate", "dd=s:2,foo=1"),
+    new Pair("x-datadog-trace-id", "4"),
+    new Pair("x-datadog-parent-id", "10"),
+  ]);
+  let spans = t.capturedSpans();
+  c.eqInt(spans.length, 2, "two spans captured");
+  // both children are named "child"; key on their (low64) trace ids
+  var setTid = "";
+  var unsetHas = false;
+  for (var i = 0; i < spans.length; i++) {
+    let m = spans[i].meta;
+    if (spans[i].traceId == "3") { setTid = m.getOr("_dd.p.tid", ""); }
+    if (spans[i].traceId == "4") { unsetHas = m.has("_dd.p.tid"); }
+  }
+  c.eqStr(setTid, "3333333333333333", "_dd.p.tid preserved for first trace");
+  c.isTrue(!unsetHas, "_dd.p.tid not leaked to second trace");
+  c.result()
+}

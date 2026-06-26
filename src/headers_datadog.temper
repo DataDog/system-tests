@@ -1,0 +1,112 @@
+// # Datadog headers propagation tests
+
+// Ported from `tests/parametric/test_headers_datadog.py`. Uses
+// `makeChildSpanAndGetHeaders` (extract → child span → inject) from the API.
+
+let dmHeaderHas(headers: Mapped<String, String>, needle: String): Boolean {
+  headers.getOr("x-datadog-tags", "").split(needle).length > 1
+}
+
+// ## D001 — extract Datadog headers
+
+export let runHeadersExtractDatadogD001(t: Tracer): CheckResult {
+  let c = new Checker();
+  let inHeaders = new ListBuilder<Pair<String, String>>();
+  inHeaders.add(new Pair("x-datadog-trace-id", "123456789"));
+  inHeaders.add(new Pair("x-datadog-parent-id", "987654321"));
+  inHeaders.add(new Pair("x-datadog-sampling-priority", "2"));
+  inHeaders.add(new Pair("x-datadog-origin", "synthetics"));
+  inHeaders.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  makeChildSpanAndGetHeaders(t, inHeaders.toList());
+
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "123456789", "trace_id extracted");
+  c.eqStr(span.parentId, "987654321", "parent_id extracted");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "synthetics", "origin");
+  c.eqStr(span.meta.getOr("_dd.p.dm", ""), "-4", "_dd.p.dm");
+  c.eqFloat(span.metrics.getOr("_sampling_priority_v1", 0.0), 2.0, "sampling priority");
+  c.result()
+}
+
+// ## D002 — invalid Datadog headers are not extracted
+
+export let runHeadersExtractDatadogInvalidD002(t: Tracer): CheckResult {
+  let c = new Checker();
+  let inHeaders = new ListBuilder<Pair<String, String>>();
+  inHeaders.add(new Pair("x-datadog-trace-id", "0"));
+  inHeaders.add(new Pair("x-datadog-parent-id", "0"));
+  inHeaders.add(new Pair("x-datadog-sampling-priority", "2"));
+  inHeaders.add(new Pair("x-datadog-origin", "synthetics"));
+  inHeaders.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  makeChildSpanAndGetHeaders(t, inHeaders.toList());
+
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.traceId != "0", "trace_id is not 0");
+  c.isTrue(spanHasNoParent(span), "no parent extracted");
+  c.isTrue(span.meta.getOr("_dd.p.dm", "") != "-4", "_dd.p.dm not extracted");
+  c.isTrue(span.metrics.getOr("_sampling_priority_v1", 1.0) != 2.0, "priority not extracted");
+  c.result()
+}
+
+// ## D003 — inject Datadog headers
+
+export let runHeadersInjectDatadogD003(t: Tracer): CheckResult {
+  let c = new Checker();
+  let headers = makeChildSpanAndGetHeaders(t, new ListBuilder<Pair<String, String>>().toList());
+
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(headers.getOr("x-datadog-trace-id", ""), span.traceId, "injected trace-id == span trace_id");
+  c.eqStr(headers.getOr("x-datadog-parent-id", ""), span.spanId, "injected parent-id == span span_id");
+  c.eqFloat(
+    span.metrics.getOr("_sampling_priority_v1", -99.0),
+    intStringToFloat(headers.getOr("x-datadog-sampling-priority", "0")),
+    "injected sampling-priority == span metric",
+  );
+  c.result()
+}
+
+// ## D004 — extract and inject (propagate)
+
+export let runHeadersPropagateDatadogD004(t: Tracer): CheckResult {
+  let c = new Checker();
+  let inHeaders = new ListBuilder<Pair<String, String>>();
+  inHeaders.add(new Pair("x-datadog-trace-id", "123456789"));
+  inHeaders.add(new Pair("x-datadog-parent-id", "987654321"));
+  inHeaders.add(new Pair("x-datadog-sampling-priority", "2"));
+  inHeaders.add(new Pair("x-datadog-origin", "synthetics"));
+  inHeaders.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  let headers = makeChildSpanAndGetHeaders(t, inHeaders.toList());
+
+  c.eqStr(headers.getOr("x-datadog-trace-id", ""), "123456789", "trace-id propagated");
+  c.isTrue(headers.getOr("x-datadog-parent-id", "") != "987654321", "parent-id is the new child");
+  c.eqStr(headers.getOr("x-datadog-sampling-priority", ""), "2", "priority propagated");
+  c.eqStr(headers.getOr("x-datadog-origin", ""), "synthetics", "origin propagated");
+  c.isTrue(dmHeaderHas(headers, "_dd.p.dm=-4"), "_dd.p.dm propagated");
+  c.result()
+}
+
+// ## D005 — invalid extract, valid inject
+
+export let runHeadersExtractInjectInvalidD005(t: Tracer): CheckResult {
+  let c = new Checker();
+  let inHeaders = new ListBuilder<Pair<String, String>>();
+  inHeaders.add(new Pair("x-datadog-trace-id", "0"));
+  inHeaders.add(new Pair("x-datadog-parent-id", "0"));
+  inHeaders.add(new Pair("x-datadog-sampling-priority", "2"));
+  inHeaders.add(new Pair("x-datadog-origin", "synthetics"));
+  inHeaders.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  let headers = makeChildSpanAndGetHeaders(t, inHeaders.toList());
+
+  c.isTrue(headers.getOr("x-datadog-trace-id", "") != "0", "trace-id not 0");
+  c.isTrue(headers.getOr("x-datadog-parent-id", "") != "0", "parent-id not 0");
+  c.isTrue(headers.getOr("x-datadog-sampling-priority", "") != "2", "priority not extracted");
+  c.isTrue(!dmHeaderHas(headers, "_dd.p.dm=-4"), "_dd.p.dm not propagated");
+  c.result()
+}
+
+let intStringToFloat(s: String): Float64 {
+  (s.toFloat64()) orelse 0.0
+}

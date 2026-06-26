@@ -1,0 +1,143 @@
+// # Config consistency tests (more)
+//
+// Additional ports from `tests/parametric/test_config_consistency.py` not
+// already covered by `config_consistency.temper`. Span-behavior + config()
+// readback only. Adapter-only (env-driven), so registered fakeSupported=false.
+
+let ccmContains(s: String, sub: String): Boolean { s.split(sub).length > 1 }
+let ccmPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+// ## Test_Config_TraceEnabled
+
+// DD_TRACE_ENABLED (true / default): a span is produced and captured.
+// NOTE: the disabled variant is intentionally not ported — the capture
+// mechanisms differ (the JS adapter only sees emitted spans, the Python adapter
+// reads created span objects), so "no traces when disabled" is not reliably
+// comparable across the two adapters.
+
+export let runTracingEnabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("allowed", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  c.isTrue(t.capturedSpans().length >= 1, "a trace/span is produced when tracing is enabled");
+  c.result()
+}
+
+// ## Test_Config_UnifiedServiceTagging — default config (no env)
+
+// With no DD_SERVICE/DD_ENV, the span's service is not the version_test marker
+// and there is no `env` meta. (The `version` meta is intentionally not asserted:
+// nodejs auto-derives version from package.json, so it differs across libraries.)
+
+export let runDefaultConfig(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("s1", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.service != "version_test", "default service is not the version_test marker");
+  c.isTrue(!span.meta.has("env"), "no env meta without DD_ENV");
+  c.result()
+}
+
+// ## Test_Config_TraceAgentURL — IPv6 via config() readback
+
+// DD_TRACE_AGENT_URL=http://[::1]:5000 -> config agent url has scheme/host/port.
+
+export let runAgentHttpUrlIpv6(t: Tracer): CheckResult {
+  let c = new Checker();
+  let url = t.config().getOr("dd_trace_agent_url", "");
+  c.isTrue(ccmContains(url, "http"), "agent url scheme http: ${url}");
+  c.isTrue(ccmContains(url, "::1"), "agent url host ::1: ${url}");
+  c.isTrue(ccmContains(url, "5000"), "agent url port 5000: ${url}");
+  c.result()
+}
+
+// DD_AGENT_HOST=[::1] + DD_TRACE_AGENT_PORT=5000 (empty DD_TRACE_AGENT_URL).
+// NOTE: upstream marks this missing_feature for python (no ipv6 hostname
+// support), so it is expected to be python-unsupported.
+
+export let runAgentHostIpv6(t: Tracer): CheckResult {
+  let c = new Checker();
+  let url = t.config().getOr("dd_trace_agent_url", "");
+  c.isTrue(ccmContains(url, "::1"), "agent url host ::1: ${url}");
+  c.isTrue(ccmContains(url, "5000"), "agent url port 5000: ${url}");
+  c.result()
+}
+
+// ## Test_Config_Tags — DD_TAGS comma/space separation -> span meta
+//
+// Each case pairs a DD_TAGS env value with the expected (key, value) tags. Only
+// the unambiguous separators are ported here; the most edge-casey scenarios
+// (multiple spaces, "env :test", leading/trailing space around colons) are left
+// out as high cross-library divergence risk.
+
+let ccmCheckTags(t: Tracer, expected: Listed<Pair<String, String>>): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("sample_span", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  for (var i = 0; i < expected.length; i++) {
+    let p = expected[i];
+    c.isTrue(span.meta.has(p.key), "tag ${p.key} present");
+    c.eqStr(span.meta.getOr(p.key, ""), p.value, "tag ${p.key} value");
+  }
+  c.result()
+}
+
+// DD_TAGS="key1:value1,key2:value2"
+export let runTagsCommaSimple(t: Tracer): CheckResult {
+  ccmCheckTags(t, [ccmPr("key1", "value1"), ccmPr("key2", "value2")])
+}
+// DD_TAGS="key1:value1 key2:value2"
+export let runTagsSpaceSimple(t: Tracer): CheckResult {
+  ccmCheckTags(t, [ccmPr("key1", "value1"), ccmPr("key2", "value2")])
+}
+// DD_TAGS="env:test,aKey:aVal,bKey:bVal,cKey:"  (trailing empty value)
+export let runTagsCommaTrailingEmpty(t: Tracer): CheckResult {
+  ccmCheckTags(t, [ccmPr("env", "test"), ccmPr("aKey", "aVal"), ccmPr("bKey", "bVal"), ccmPr("cKey", "")])
+}
+// DD_TAGS="a:b:c:d"  (colons inside the value)
+export let runTagsColonValue(t: Tracer): CheckResult {
+  ccmCheckTags(t, [ccmPr("a", "b:c:d")])
+}
+// DD_TAGS="a:b,c,d"  (keys without values)
+export let runTagsKeysNoValues(t: Tracer): CheckResult {
+  ccmCheckTags(t, [ccmPr("a", "b"), ccmPr("c", ""), ccmPr("d", "")])
+}
+
+// REGISTRY SNIPPET (paste into cases.temper; 2-space indent; all fakeSupported=false)
+//
+//   cs.add(new ConformanceCase("config_consistency.tracing_enabled_default",
+//     new Map<String, String>([]), runTracingEnabled, false));
+//   cs.add(new ConformanceCase("config_consistency.tracing_enabled_explicit",
+//     new Map<String, String>([new Pair("DD_TRACE_ENABLED", "true")]), runTracingEnabled, false));
+//   cs.add(new ConformanceCase("config_consistency.default_config",
+//     new Map<String, String>([]), runDefaultConfig, false));
+//   cs.add(new ConformanceCase("config_consistency.agent_http_url_ipv6",
+//     new Map<String, String>([new Pair("DD_TRACE_AGENT_URL", "http://[::1]:5000"), new Pair("DD_AGENT_HOST", "localhost"), new Pair("DD_TRACE_AGENT_PORT", "8126")]), runAgentHttpUrlIpv6, false));
+//   // upstream missing_feature(python) — expect to add ["python"] after dual-verify:
+//   cs.add(new ConformanceCase("config_consistency.agent_host_ipv6",
+//     new Map<String, String>([new Pair("DD_TRACE_AGENT_URL", ""), new Pair("DD_AGENT_HOST", "[::1]"), new Pair("DD_TRACE_AGENT_PORT", "5000")]), runAgentHostIpv6, false));
+//   cs.add(new ConformanceCase("config_consistency.tags_comma_simple",
+//     new Map<String, String>([new Pair("DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED", "all"), new Pair("DD_TAGS", "key1:value1,key2:value2")]), runTagsCommaSimple, false));
+//   cs.add(new ConformanceCase("config_consistency.tags_space_simple",
+//     new Map<String, String>([new Pair("DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED", "all"), new Pair("DD_TAGS", "key1:value1 key2:value2")]), runTagsSpaceSimple, false));
+//   cs.add(new ConformanceCase("config_consistency.tags_comma_trailing_empty",
+//     new Map<String, String>([new Pair("DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED", "all"), new Pair("DD_TAGS", "env:test,aKey:aVal,bKey:bVal,cKey:")]), runTagsCommaTrailingEmpty, false));
+//   cs.add(new ConformanceCase("config_consistency.tags_colon_value",
+//     new Map<String, String>([new Pair("DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED", "all"), new Pair("DD_TAGS", "a:b:c:d")]), runTagsColonValue, false));
+//   cs.add(new ConformanceCase("config_consistency.tags_keys_no_values",
+//     new Map<String, String>([new Pair("DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED", "all"), new Pair("DD_TAGS", "a:b,c,d")]), runTagsKeysNoValues, false));
+
+// DD_TRACE_ENABLED=false: the tracer must not emit any spans to the agent.
+export let runTracingDisabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("allowed", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  c.eqInt(t.capturedSpans().length, 0, "no spans emitted when tracing disabled");
+  c.result()
+}

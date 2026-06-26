@@ -1,0 +1,25 @@
+// # Telemetry tests
+// Ported from tests/parametric/test_telemetry.py. The tracer reports its
+// configuration in the app-started telemetry payload; we assert the
+// universally-named, env-driven entries (DD_SERVICE/DD_ENV/DD_VERSION) with
+// their values and env_var origin. Adapter-only (telemetry capture seam).
+
+export let runTelemetryConfigEnv(t: Tracer): CheckResult {
+  let c = new Checker();
+  let cfg = t.telemetryConfig();
+  c.eqStr(telemetryValue(cfg, "DD_SERVICE"), "service_test", "DD_SERVICE telemetry value");
+  c.eqStr(telemetryValue(cfg, "DD_ENV"), "dev", "DD_ENV telemetry value");
+  c.eqStr(telemetryValue(cfg, "DD_VERSION"), "5.2.0", "DD_VERSION telemetry value");
+  c.eqStr(telemetryOrigin(cfg, "DD_SERVICE"), "env_var", "DD_SERVICE origin");
+  c.result()
+}
+
+export let runTelemetryConfigTags(t: Tracer): CheckResult {
+  let c = new Checker();
+  let cfg = t.telemetryConfig();
+  c.eqStr(telemetryValue(cfg, "DD_TAGS"), "foo:bar,baz:qux", "DD_TAGS telemetry value");
+  c.eqStr(telemetryOrigin(cfg, "DD_TAGS"), "env_var", "DD_TAGS origin");
+  c.eqStr(telemetryValue(cfg, "DD_TRACE_HEADER_TAGS"), "header:tag", "DD_TRACE_HEADER_TAGS telemetry value");
+  c.eqStr(telemetryOrigin(cfg, "DD_TRACE_HEADER_TAGS"), "env_var", "DD_TRACE_HEADER_TAGS origin");
+  c.result()
+}

@@ -1,0 +1,169 @@
+// # 128-bit trace id tests (B3 single + b3multi)
+
+// Ported from `tests/parametric/test_128_bit_traceids.py` (B3 cases). B3 encodes
+// the full 128-bit trace id as a 32-hex-char value; the upper 64 bits become the
+// `_dd.p.tid` meta tag. Adapter-only (`fakeSupported = false`).
+
+let b3TidTag = "_dd.p.tid";
+
+let b3StartsWith(s: String, p: String): Boolean {
+  let pl = strLen(p);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == p
+}
+
+// Last 16 hex chars (the low 64 bits) of a B3 trace-id hex string.
+
+let b3Low16(s: String): String {
+  if (strLen(s) <= 16) { s } else { s.slice(s.step(s.end, -16), s.end) }
+}
+
+// `validate_dd_p_tid`: 16 hex chars, non-zero, lower 8 chars zero, upper 8 chars a
+// timestamp greater than `0x640CFD8C`.
+
+let b3ValidateDdPTid(c: Checker, tid: String): Void {
+  c.eqInt(strLen(tid), 16, "_dd.p.tid is 16 hex chars");
+  c.isTrue(tid != "0000000000000000", "_dd.p.tid is non-zero");
+  if (strLen(tid) == 16) {
+    let upper = tid.slice(String.begin, tid.step(String.begin, 8));
+    let lower = tid.slice(tid.step(String.begin, 8), tid.end);
+    c.eqStr(lower, "00000000", "_dd.p.tid lower 8 hex are zero");
+    let v: Int64 = (upper.toInt64(16)) orelse (0).toInt64();
+    c.isTrue(v > (1678459788).toInt64(), "_dd.p.tid timestamp > 0x640CFD8C");
+  }
+}
+
+// `check_64_bit_trace_id`: injected hex is 16 chars (or 32 with a zero upper half),
+// its value equals the span trace id, and there is no `_dd.p.tid`.
+
+let b3Check64(c: Checker, hdr: String, span: CapturedSpan): Void {
+  let n = strLen(hdr);
+  var lenOk = n == 16;
+  if (n == 32) {
+    let upper16 = hdr.slice(String.begin, hdr.step(String.begin, 16));
+    if (upper16 == "0000000000000000") { lenOk = true; }
+  }
+  c.isTrue(lenOk, "injected trace-id is 64-bit (16 hex, or 32 hex with zero upper)");
+  c.eqStr(hexLow64ToDecimal(hdr), span.traceId, "injected trace-id == span trace_id");
+  c.isTrue(!span.meta.has(b3TidTag), "_dd.p.tid absent for 64-bit trace id");
+}
+
+// `check_128_bit_trace_id`: injected hex is 32 chars, its low 64 bits equal the
+// span trace id, `_dd.p.tid` is valid, and the hex starts with `_dd.p.tid`.
+
+let b3Check128(c: Checker, hdr: String, span: CapturedSpan): Void {
+  c.eqInt(strLen(hdr), 32, "injected trace-id is 32 hex chars");
+  c.eqStr(hexLow64ToDecimal(hdr), span.traceId, "injected low-64 == span trace_id");
+  let tid = span.meta.getOr(b3TidTag, "");
+  b3ValidateDdPTid(c, tid);
+  c.isTrue(b3StartsWith(hdr, tid), "injected trace-id starts with _dd.p.tid");
+}
+
+// Input builders + injected-trace-id extraction for each B3 flavor.
+
+let b3Single(value: String): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("b3", value));
+  h.toList()
+}
+let b3Multi(traceId: String): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-b3-traceid", traceId));
+  h.add(new Pair("x-b3-spanid", "000000003ade68b1"));
+  h.toList()
+}
+let emptyHdrs(): Listed<Pair<String, String>> {
+  new ListBuilder<Pair<String, String>>().toList()
+}
+let b3SingleInjTid(out: Mapped<String, String>): String { out.getOr("b3", "").split("-")[0] }
+let b3MultiInjTid(out: Mapped<String, String>): String { out.getOr("x-b3-traceid", "") }
+
+// ## B3 single — 128-bit propagation
+
+export let runB3Single128Propagation(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, b3Single("640cfd8d00000000abcdefab12345678-000000003ade68b1-1"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(b3Low16(b3SingleInjTid(out)), "abcdefab12345678", "low-64 trace id preserved");
+  c.eqStr(span.meta.getOr(b3TidTag, ""), "640cfd8d00000000", "_dd.p.tid propagated");
+  b3Check128(c, b3SingleInjTid(out), span);
+  c.result()
+}
+
+// ## B3 single — 64-bit incoming + generation enabled (no tid added)
+
+export let runB3Single128PropagationAndGeneration(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, b3Single("abcdefab12345678-000000003ade68b1-1"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(b3Low16(b3SingleInjTid(out)), "abcdefab12345678", "low-64 trace id preserved");
+  b3Check64(c, b3SingleInjTid(out), span);
+  c.result()
+}
+
+// ## B3 single — local generation disabled (64-bit, no tid)
+
+export let runB3Single128GenerationDisabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, emptyHdrs());
+  t.flush();
+  b3Check64(c, b3SingleInjTid(out), findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## B3 single — local generation enabled (128-bit, valid tid)
+
+export let runB3Single128GenerationEnabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, emptyHdrs());
+  t.flush();
+  b3Check128(c, b3SingleInjTid(out), findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## b3multi — 128-bit propagation
+
+export let runB3Multi128Propagation(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, b3Multi("640cfd8d00000000abcdefab12345678"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(b3Low16(b3MultiInjTid(out)), "abcdefab12345678", "low-64 trace id preserved");
+  c.eqStr(span.meta.getOr(b3TidTag, ""), "640cfd8d00000000", "_dd.p.tid propagated");
+  b3Check128(c, b3MultiInjTid(out), span);
+  c.result()
+}
+
+// ## b3multi — 64-bit incoming + generation enabled (no tid added)
+
+export let runB3Multi128PropagationAndGeneration(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, b3Multi("abcdefab12345678"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(b3Low16(b3MultiInjTid(out)), "abcdefab12345678", "low-64 trace id preserved");
+  b3Check64(c, b3MultiInjTid(out), span);
+  c.result()
+}
+
+// ## b3multi — local generation disabled (64-bit, no tid)
+
+export let runB3Multi128GenerationDisabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, emptyHdrs());
+  t.flush();
+  b3Check64(c, b3MultiInjTid(out), findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## b3multi — local generation enabled (128-bit, valid tid)
+
+export let runB3Multi128GenerationEnabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, emptyHdrs());
+  t.flush();
+  b3Check128(c, b3MultiInjTid(out), findOnlySpan(t.capturedSpans()));
+  c.result()
+}

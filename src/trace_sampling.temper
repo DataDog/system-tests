@@ -1,0 +1,34 @@
+// # Trace sampling tests
+
+// Ported from `tests/parametric/test_trace_sampling.py`. These assert the tracer's
+// sampling *decision* under `DD_TRACE_SAMPLING_RULES`, so they run only against
+// real adapters (`fakeSupported = false`) — the FakeTracer doesn't evaluate rules.
+
+let SAMPLING_PRIORITY = "_sampling_priority_v1";
+let RULE_PSR = "_dd.rule_psr";
+
+// ## sampled by an exact-matching rule (sample_rate 1)
+
+export let runTraceSampledByRuleExactMatch(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  c.eqFloat(s.metrics.getOr(SAMPLING_PRIORITY, 0.0), 2.0, "kept (priority 2)");
+  c.eqFloat(s.metrics.getOr(RULE_PSR, -1.0), 1.0, "rule rate 1.0");
+  c.result()
+}
+
+// ## dropped by a matching rule (sample_rate 0)
+
+export let runTraceDroppedByRule(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  c.eqFloat(s.metrics.getOr(SAMPLING_PRIORITY, 0.0), -1.0, "dropped (priority -1)");
+  c.eqFloat(s.metrics.getOr(RULE_PSR, -1.0), 0.0, "rule rate 0.0");
+  c.result()
+}

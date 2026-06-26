@@ -1,0 +1,111 @@
+// # Tracer tests
+
+// Ported from `tests/parametric/test_tracer.py`.
+
+// ## test_tracer_span_top_level_attributes
+
+// A simple two-span trace exercising service / resource / type / metric / meta.
+
+// Note: upstream marks this `missing_feature` for nodejs ("overrides the manually
+// set service name"). Against the local dd-trace-js v6.0.0-pre the explicit
+// `service.name` tag is preserved, so the adapter runs it green; per-library
+// missing-feature handling is still a TODO for the framework (see PLAN risks).
+
+export let runTracerTopLevelAttributes(t: Tracer): CheckResult {
+  let c = new Checker();
+
+  let parent = t.startSpan("operation", "0", "my-webserver", "/endpoint", "web");
+  t.setMetric(parent.spanId, "number", 10.0);
+  let child = t.startSpan("operation.child", parent.spanId);
+  t.setMeta(child.spanId, "key", "val");
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+
+  t.flush();
+  let spans = t.capturedSpans();
+
+  let trace = traceSpans(spans, parent.traceId);
+  c.eqInt(trace.length, 2, "trace has 2 spans");
+
+  let root = findSpan(spans, parent.spanId);
+  c.eqStr(root.name, "operation", "root.name");
+  c.eqStr(root.service, "my-webserver", "root.service");
+  c.eqStr(root.resource, "/endpoint", "root.resource");
+  c.eqStr(root.spanType, "web", "root.type");
+  c.eqFloat(root.metrics.getOr("number", 0.0), 10.0, "root.metrics.number");
+
+  let childSpan = findSpan(spans, child.spanId);
+  c.eqStr(childSpan.name, "operation.child", "child.name");
+  c.eqStr(childSpan.meta.getOr("key", ""), "val", "child.meta.key");
+
+  c.result()
+}
+
+// ## SCI tagging — DD_GIT_* env vars surface on the first (chunk-root) span
+
+// DD_GIT_REPOSITORY_URL is injected only into the first span of a trace chunk.
+
+export let runTracerRepositoryUrl(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parent = t.startSpan("operation", "0");
+  let child = t.startSpan("operation.child", parent.spanId);
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let root = findSpan(spans, parent.spanId);
+  let childSpan = findSpan(spans, child.spanId);
+  c.eqStr(root.meta.getOr("_dd.git.repository_url", ""), "https://github.com/DataDog/dd-trace-go", "repository url on first span");
+  c.isTrue(!childSpan.meta.has("_dd.git.repository_url"), "repository url only on first span");
+  c.result()
+}
+
+export let runTracerCommitSha(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parent = t.startSpan("operation", "0");
+  let child = t.startSpan("operation.child", parent.spanId);
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let root = findSpan(spans, parent.spanId);
+  let childSpan = findSpan(spans, child.spanId);
+  c.eqStr(root.meta.getOr("_dd.git.commit.sha", ""), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "commit sha on first span");
+  c.isTrue(!childSpan.meta.has("_dd.git.commit.sha"), "commit sha only on first span");
+  c.result()
+}
+
+// DD_GIT_REPOSITORY_URL has any embedded credentials stripped. Each case pairs
+// an input url (env) with the expected stripped form.
+
+let checkStrippedRepoUrl(t: Tracer, expected: String): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("operation", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("_dd.git.repository_url", ""), expected, "stripped repository url");
+  c.result()
+}
+
+export let runRepoStripHttpsUserPass(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "https://gitlab.com/DataDog/systems-test.git")
+}
+export let runRepoStripSshUserPass(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "ssh://gitlab.com/DataDog/systems-test.git")
+}
+export let runRepoStripHttpsToken(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "https://gitlab.com/user/project.git")
+}
+export let runRepoStripSshToken(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "ssh://gitlab.com/user/project.git")
+}
+export let runRepoStripHttpsClean(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "https://gitlab.com/DataDog/systems-test.git")
+}
+export let runRepoStripNoScheme(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "gitlab.com/DataDog/systems-test.git")
+}
+export let runRepoStripScpStyle(t: Tracer): CheckResult {
+  checkStrippedRepoUrl(t, "git@github.com:user/project.git")
+}

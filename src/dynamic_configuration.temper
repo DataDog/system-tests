@@ -1,0 +1,47 @@
+// # Dynamic configuration / remote config (tests/parametric/test_dynamic_configuration.py)
+// With remote config enabled, the tracer polls /v0.7/config and advertises a
+// capabilities bitmask. We assert the expected APM_TRACING capability bits the
+// real test-agent recorded. Agent-backed; python-only (dd-trace-js's RC poller
+// is async and can't be driven from a synchronous run function).
+
+let dcHasBit(csv: String, bit: String): Boolean { csv.split(",${bit},").length > 1 }
+
+export let runRcCapabilitySampleRate(t: Tracer): CheckResult {
+  let c = new Checker();
+  t.startSpan("warmup", "0");
+  let caps = t.rcCapabilitiesCsv();
+  c.isTrue(dcHasBit(caps, "12"), "advertises APM_TRACING_SAMPLE_RATE (bit 12): ${caps}");
+  c.isTrue(dcHasBit(caps, "19"), "advertises APM_TRACING_ENABLED (bit 19)");
+  c.isTrue(dcHasBit(caps, "15"), "advertises APM_TRACING_CUSTOM_TAGS (bit 15)");
+  c.result()
+}
+
+let rcCapabilityCase(t: Tracer, bit: String, label: String): CheckResult {
+  let c = new Checker();
+  t.startSpan("warmup", "0");
+  let caps = t.rcCapabilitiesCsv();
+  c.isTrue(dcHasBit(caps, bit), "advertises ${label} (bit ${bit}): ${caps}");
+  c.result()
+}
+export let runRcCapabilityEnabled(t: Tracer): CheckResult { rcCapabilityCase(t, "19", "APM_TRACING_ENABLED") }
+export let runRcCapabilityLogsInjection(t: Tracer): CheckResult { rcCapabilityCase(t, "13", "APM_TRACING_LOGS_INJECTION") }
+export let runRcCapabilityHttpHeaderTags(t: Tracer): CheckResult { rcCapabilityCase(t, "14", "APM_TRACING_HTTP_HEADER_TAGS") }
+export let runRcCapabilityCustomTags(t: Tracer): CheckResult { rcCapabilityCase(t, "15", "APM_TRACING_CUSTOM_TAGS") }
+export let runRcCapabilitySampleRules(t: Tracer): CheckResult { rcCapabilityCase(t, "29", "APM_TRACING_SAMPLE_RULES") }
+
+// RC override of the trace sampling rate: after the tracer ACKs an APM_TRACING
+// config with tracing_sampling_rate=0.5, a new trace is sampled at that rate.
+export let runRcSamplingOverride(t: Tracer): CheckResult {
+  let c = new Checker();
+  let applied = t.rcApplySamplingRate(0.5);
+  c.isTrue(applied, "RC sampling rate acknowledged by the tracer");
+  let s = t.startSpan("test", "0");
+  t.finishSpan(s.spanId);
+  let delivered = t.deliveredSpans();
+  var rulePsr = -1.0;
+  for (var i = 0; i < delivered.length; i++) {
+    if (delivered[i].spanId == s.spanId) { rulePsr = delivered[i].metrics.getOr("_dd.rule_psr", -1.0); }
+  }
+  c.eqFloat(rulePsr, 0.5, "trace sampled at the RC-applied rate (_dd.rule_psr)");
+  c.result()
+}

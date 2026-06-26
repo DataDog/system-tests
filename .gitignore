@@ -1,0 +1,13 @@
+# Temper build output
+/temper.out/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+
+# Python adapter venv
+.venv*/
+__pycache__/
+*.pyc

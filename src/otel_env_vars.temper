@@ -1,0 +1,116 @@
+// # OTEL_* environment variable mapping tests
+
+// Ported from `tests/parametric/test_otel_env_vars.py`. OTEL_* env vars map to the
+// resolved Datadog config, read back via `config()`. Adapter-only; each verified
+// to reflect the env (differs from default).
+
+let oevContains(s: String, sub: String): Boolean { s.split(sub).length > 1 }
+let oevFloat(s: String): Float64 { (s.toFloat64()) orelse -1.0 }
+
+// ## OTEL-only vars map to DD config
+
+export let runOtelEnvVarsSet(t: Tracer): CheckResult {
+  let c = new Checker();
+  let cfg = t.config();
+  c.eqStr(cfg.getOr("dd_service", ""), "otel_service", "OTEL_SERVICE_NAME -> dd_service");
+  c.eqFloat(oevFloat(cfg.getOr("dd_trace_sample_rate", "")), 0.1, "OTEL_TRACES_SAMPLER_ARG -> sample rate 0.1");
+  c.eqStr(cfg.getOr("dd_trace_enabled", ""), "true", "dd_trace_enabled");
+  c.isTrue(oevContains(cfg.getOr("dd_tags", ""), "foo:bar1"), "OTEL_RESOURCE_ATTRIBUTES -> tag foo:bar1");
+  c.isTrue(oevContains(cfg.getOr("dd_tags", ""), "baz:qux1"), "OTEL_RESOURCE_ATTRIBUTES -> tag baz:qux1");
+  c.eqStr(cfg.getOr("dd_trace_propagation_style", ""), "b3,tracecontext", "OTEL_PROPAGATORS -> propagation style");
+  c.eqStr(cfg.getOr("dd_runtime_metrics_enabled", ""), "false", "runtime metrics off");
+  c.result()
+}
+
+// ## OTEL_RESOURCE_ATTRIBUTES service/env/version mapping
+
+export let runOtelAttributeMapping(t: Tracer): CheckResult {
+  let c = new Checker();
+  let cfg = t.config();
+  c.eqStr(cfg.getOr("dd_service", ""), "test2", "service.name -> dd_service");
+  c.eqStr(cfg.getOr("dd_env", ""), "test1", "deployment.environment -> dd_env");
+  c.eqStr(cfg.getOr("dd_version", ""), "5", "service.version -> dd_version");
+  c.isTrue(oevContains(cfg.getOr("dd_tags", ""), "foo:bar1"), "extra attr foo:bar1");
+  c.isTrue(oevContains(cfg.getOr("dd_tags", ""), "baz:qux1"), "extra attr baz:qux1");
+  c.result()
+}
+
+// ## OTEL_LOG_LEVEL -> dd_log_level
+
+export let runOtelLogLevelEnv(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqStr(t.config().getOr("dd_log_level", ""), "error", "OTEL_LOG_LEVEL -> dd_log_level error");
+  c.result()
+}
+
+// ## OTEL_TRACES_SAMPLER mappings
+
+export let runOtelTracesAlwaysOn(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqFloat(oevFloat(t.config().getOr("dd_trace_sample_rate", "")), 1.0, "always_on -> 1.0");
+  c.result()
+}
+export let runOtelTracesAlwaysOff(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqFloat(oevFloat(t.config().getOr("dd_trace_sample_rate", "")), 0.0, "always_off -> 0.0");
+  c.result()
+}
+export let runOtelTracesTraceIdRatio(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqFloat(oevFloat(t.config().getOr("dd_trace_sample_rate", "")), 0.1, "traceidratio 0.1 -> 0.1");
+  c.result()
+}
+
+// ## DD_* vars take precedence over OTEL_* (excluding log level — see below)
+
+export let runOtelDdPrecedence(t: Tracer): CheckResult {
+  let c = new Checker();
+  let cfg = t.config();
+  c.eqStr(cfg.getOr("dd_service", ""), "service", "DD_SERVICE wins over OTEL_SERVICE_NAME");
+  c.eqFloat(oevFloat(cfg.getOr("dd_trace_sample_rate", "")), 0.5, "DD_TRACE_SAMPLE_RATE wins");
+  c.eqStr(cfg.getOr("dd_trace_enabled", ""), "true", "dd_trace_enabled");
+  let tags = cfg.getOr("dd_tags", "");
+  c.isTrue(oevContains(tags, "foo:bar"), "DD_TAGS foo:bar present");
+  c.isTrue(oevContains(tags, "baz:qux"), "DD_TAGS baz:qux present");
+  c.isTrue(!oevContains(tags, "foo:otel_bar"), "OTEL_RESOURCE_ATTRIBUTES not used for tags");
+  c.eqStr(cfg.getOr("dd_trace_propagation_style", ""), "b3,tracecontext", "DD_TRACE_PROPAGATION_STYLE wins");
+  c.eqStr(cfg.getOr("dd_trace_debug", ""), "false", "DD_TRACE_DEBUG=false");
+  c.eqStr(cfg.getOr("dd_runtime_metrics_enabled", ""), "true", "DD_RUNTIME_METRICS_ENABLED wins");
+  c.result()
+}
+
+// ## DD_LOG_LEVEL should take precedence over OTEL_LOG_LEVEL (nodejs-unsupported here)
+
+// On the local dd-trace-js v6-pre checkout `OTEL_LOG_LEVEL` overrides
+// `DD_LOG_LEVEL`, so this assertion fails — marked nodejs-unsupported rather than
+// weakened.
+
+export let runOtelDdLogPrecedence(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.isTrue(t.config().getOr("dd_log_level", "") != "debug", "DD log level wins over OTEL debug");
+  c.result()
+}
+
+// ## More OTEL_TRACES_SAMPLER / exporter / otel-enabled mappings
+
+export let runOtelTracesExporterNone(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqStr(t.config().getOr("dd_trace_enabled", ""), "false", "OTEL_TRACES_EXPORTER=none -> tracing disabled");
+  c.result()
+}
+export let runOtelLogLevelDebugMapping(t: Tracer): CheckResult {
+  let c = new Checker();
+  let cfg = t.config();
+  c.eqStr(cfg.getOr("dd_trace_debug", ""), "true", "OTEL_LOG_LEVEL=debug -> dd_trace_debug true");
+  c.result()
+}
+export let runOtelEnabledTakesPrecedence(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqStr(t.config().getOr("dd_trace_otel_enabled", ""), "true", "DD_TRACE_OTEL_ENABLED wins over OTEL_SDK_DISABLED");
+  c.result()
+}
+export let runOtelSdkDisabledSet(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqStr(t.config().getOr("dd_trace_otel_enabled", ""), "false", "OTEL_SDK_DISABLED=true -> otel disabled");
+  c.result()
+}

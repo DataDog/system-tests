@@ -1,0 +1,21 @@
+// # Sampling delegation (tests/parametric/test_sampling_delegation.py)
+// When an extracted context carries no sampling decision, extraction still
+// succeeds and the tracer makes its own decision. Adapter-only.
+
+export let runSamplingDelegationNeither(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-datadog-trace-id", "1212121212121212121"));
+  h.add(new Pair("x-datadog-parent-id", "34343434"));
+  h.add(new Pair("x-datadog-origin", "rum"));
+  let pid = t.extractHeaders(h.toList());
+  let s = t.startSpan("name", pid, "service", "resource");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "1212121212121212121", "trace id extracted from headers");
+  c.eqStr(span.parentId, "34343434", "parent id extracted from headers");
+  c.eqFloat(span.metrics.getOr("_sampling_priority_v1", 0.0), 2.0, "tracer's own keep decision (rate 1.0)");
+  c.eqStr(span.meta.getOr("_dd.p.dm", ""), "-3", "decision mechanism = trace sampling rule");
+  c.result()
+}

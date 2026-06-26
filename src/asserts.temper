@@ -1,0 +1,35 @@
+// # Conformance checks
+
+// `assert` is only usable inside Temper `test` blocks, so shared conformance logic
+// can't use it. Instead, ported tests build a `Checker`, record failures, and
+// return a `CheckResult`. The in-repo Temper test asserts `result.ok`; native
+// `dd-trace-*` adapters assert the same in their native runner.
+
+export class CheckResult(public failures: List<String>) {
+  public get ok(): Boolean { failures.length == 0 }
+  public summary(): String {
+    var s = "${failures.length} failure(s):";
+    for (var i = 0; i < failures.length; i++) {
+      s = "${s}\n  - ${failures[i]}";
+    }
+    s
+  }
+}
+
+export class Checker() {
+  public fails: ListBuilder<String> = new ListBuilder<String>();
+
+  public isTrue(cond: Boolean, msg: String): Void {
+    if (!cond) { fails.add(msg); }
+  }
+  public eqInt(actual: Int, expected: Int, msg: String): Void {
+    if (actual != expected) { fails.add("${msg}: expected ${expected}, got ${actual}"); }
+  }
+  public eqStr(actual: String, expected: String, msg: String): Void {
+    if (actual != expected) { fails.add("${msg}: expected \"${expected}\", got \"${actual}\""); }
+  }
+  public eqFloat(actual: Float64, expected: Float64, msg: String): Void {
+    if (actual != expected) { fails.add("${msg}: expected ${expected}, got ${actual}"); }
+  }
+  public result(): CheckResult { new CheckResult(fails.toList()) }
+}

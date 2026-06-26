@@ -1,0 +1,157 @@
+// # Propagation-style precedence tests
+
+// Ported from `tests/parametric/test_headers_precedence.py`. Each test runs the
+// same 6 input variants through one configured style and checks which context wins
+// and which headers are injected (with cross-format id correspondence between the
+// injected W3C `traceparent` and `x-datadog-*`). Adapter-only; env sets the style.
+// Reuses `hexLow64ToDecimal`/`hexToDecimal` from the hex module.
+
+let pPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+let pStartsWith(s: String, prefix: String): Boolean {
+  let pl = strLen(prefix);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == prefix
+}
+let pTpField(out: Mapped<String, String>, i: Int): String {
+  let p = out.getOr("traceparent", "").split("-");
+  if (p.length > i) { p[i] } else { "" }
+}
+let pTsMembers(out: Mapped<String, String>): List<String> { out.getOr("tracestate", "").split(",") }
+let pTsCount(out: Mapped<String, String>): Int { pTsMembers(out).length }
+let pTsFirstIsDd(out: Mapped<String, String>): Boolean {
+  let m = pTsMembers(out);
+  m.length >= 1 && pStartsWith(m[0], "dd=")
+}
+let pTsHasFoo(out: Mapped<String, String>): Boolean {
+  let m = pTsMembers(out);
+  for (var i = 0; i < m.length; i++) { if (m[i] == "foo=1") { return true; } }
+  false
+}
+
+let GOOD = "12345678901234567890123456789012";
+let TP01 = "00-12345678901234567890123456789012-1234567890123456-01";
+let TP_BAD = "00-12345678901234567890123456789012-0000000000000000-01";
+
+let vEmpty(): Listed<Pair<String, String>> { new ListBuilder<Pair<String, String>>().toList() }
+let vTp(): Listed<Pair<String, String>> { [pPr("traceparent", TP01)] }
+let vTpTs(): Listed<Pair<String, String>> { [pPr("traceparent", TP01), pPr("tracestate", "foo=1")] }
+let vTpTsDd(): Listed<Pair<String, String>> {
+  [pPr("traceparent", TP01), pPr("tracestate", "foo=1"), pPr("x-datadog-trace-id", "123456789"), pPr("x-datadog-parent-id", "987654321"), pPr("x-datadog-sampling-priority", "-2")]
+}
+let vDd(): Listed<Pair<String, String>> {
+  [pPr("x-datadog-trace-id", "123456789"), pPr("x-datadog-parent-id", "987654321"), pPr("x-datadog-sampling-priority", "-2")]
+}
+let vBadTpDd(): Listed<Pair<String, String>> {
+  [pPr("traceparent", TP_BAD), pPr("tracestate", "foo=1"), pPr("x-datadog-trace-id", "123456789"), pPr("x-datadog-parent-id", "987654321"), pPr("x-datadog-sampling-priority", "-2")]
+}
+
+// ## reusable assertion fragments
+
+let assertNoW3c(c: Checker, out: Mapped<String, String>, label: String): Void {
+  c.isTrue(out.has("x-datadog-trace-id"), "${label}: x-datadog-trace-id present");
+  c.isTrue(out.has("x-datadog-parent-id"), "${label}: x-datadog-parent-id present");
+  c.isTrue(out.has("x-datadog-sampling-priority"), "${label}: x-datadog-sampling-priority present");
+  c.isTrue(!out.has("traceparent"), "${label}: no traceparent");
+  c.isTrue(!out.has("tracestate"), "${label}: no tracestate");
+}
+let assertNoDatadog(c: Checker, out: Mapped<String, String>, label: String): Void {
+  c.isTrue(out.has("traceparent"), "${label}: traceparent present");
+  c.isTrue(out.has("tracestate"), "${label}: tracestate present");
+  c.isTrue(!out.has("x-datadog-trace-id"), "${label}: no x-datadog-trace-id");
+  c.isTrue(!out.has("x-datadog-parent-id"), "${label}: no x-datadog-parent-id");
+  c.isTrue(!out.has("x-datadog-sampling-priority"), "${label}: no x-datadog-sampling-priority");
+}
+let assertDatadogCtx(c: Checker, out: Mapped<String, String>, label: String): Void {
+  c.eqStr(out.getOr("x-datadog-trace-id", ""), "123456789", "${label}: datadog trace-id wins");
+  c.isTrue(out.getOr("x-datadog-parent-id", "") != "987654321", "${label}: new parent id");
+  c.eqStr(out.getOr("x-datadog-sampling-priority", ""), "-2", "${label}: priority -2");
+}
+let assertW3cCtx(c: Checker, out: Mapped<String, String>, label: String): Void {
+  c.eqStr(pTpField(out, 1), GOOD, "${label}: W3C trace_id preserved");
+  c.isTrue(pTpField(out, 2) != "1234567890123456", "${label}: parent id regenerated");
+}
+// both styles injected and equal: datadog trace-id == low 64 of the W3C trace id
+let assertCrossLow16(c: Checker, out: Mapped<String, String>, label: String): Void {
+  c.eqStr(hexLow64ToDecimal(pTpField(out, 1)), out.getOr("x-datadog-trace-id", ""), "${label}: x-datadog-trace-id == W3C low 64");
+  c.eqStr(hexToDecimal(pTpField(out, 2)), out.getOr("x-datadog-parent-id", ""), "${label}: x-datadog-parent-id == W3C parent");
+}
+
+// ## Datadog-only — never inject W3C
+
+export let runPrecedenceDatadog(t: Tracer): CheckResult {
+  let c = new Checker();
+  assertNoW3c(c, makeChildSpanAndGetHeaders(t, vEmpty()), "v1");
+  assertNoW3c(c, makeChildSpanAndGetHeaders(t, vTp()), "v2");
+  assertNoW3c(c, makeChildSpanAndGetHeaders(t, vTpTs()), "v3");
+  let v4 = makeChildSpanAndGetHeaders(t, vTpTsDd()); assertNoW3c(c, v4, "v4"); assertDatadogCtx(c, v4, "v4");
+  let v5 = makeChildSpanAndGetHeaders(t, vDd()); assertNoW3c(c, v5, "v5"); assertDatadogCtx(c, v5, "v5");
+  let v6 = makeChildSpanAndGetHeaders(t, vBadTpDd()); assertNoW3c(c, v6, "v6"); assertDatadogCtx(c, v6, "v6");
+  c.result()
+}
+
+// ## tracecontext-only — never inject Datadog
+
+export let runPrecedenceTracecontext(t: Tracer): CheckResult {
+  let c = new Checker();
+  let v1 = makeChildSpanAndGetHeaders(t, vEmpty());
+  assertNoDatadog(c, v1, "v1"); c.isTrue(pTsFirstIsDd(v1), "v1: tracestate starts dd=");
+  let v2 = makeChildSpanAndGetHeaders(t, vTp());
+  assertNoDatadog(c, v2, "v2"); assertW3cCtx(c, v2, "v2"); c.isTrue(pTsFirstIsDd(v2), "v2: tracestate starts dd=");
+  let v3 = makeChildSpanAndGetHeaders(t, vTpTs());
+  assertNoDatadog(c, v3, "v3"); assertW3cCtx(c, v3, "v3");
+  c.eqInt(pTsCount(v3), 2, "v3: dd + foo members"); c.isTrue(pTsHasFoo(v3), "v3: foo retained");
+  let v4 = makeChildSpanAndGetHeaders(t, vTpTsDd());
+  assertNoDatadog(c, v4, "v4"); assertW3cCtx(c, v4, "v4"); c.isTrue(pTsHasFoo(v4), "v4: foo retained (datadog ignored)");
+  let v5 = makeChildSpanAndGetHeaders(t, vDd());
+  assertNoDatadog(c, v5, "v5"); c.isTrue(pTsFirstIsDd(v5), "v5: new ctx tracestate dd=");
+  let v6 = makeChildSpanAndGetHeaders(t, vBadTpDd());
+  assertNoDatadog(c, v6, "v6"); c.isTrue(pTsFirstIsDd(v6), "v6: new ctx tracestate dd=");
+  c.result()
+}
+
+// ## tracecontext,Datadog — W3C wins when both present
+
+export let runPrecedenceTcDd(t: Tracer): CheckResult {
+  let c = new Checker();
+  // v1: new datadog ctx, traceparent mirrors it
+  let v1 = makeChildSpanAndGetHeaders(t, vEmpty());
+  c.isTrue(v1.has("traceparent") && v1.has("x-datadog-trace-id"), "v1: both injected");
+  assertCrossLow16(c, v1, "v1"); c.isTrue(pTsFirstIsDd(v1), "v1: tracestate dd=");
+  // v2/v3: W3C used
+  let v2 = makeChildSpanAndGetHeaders(t, vTp());
+  assertW3cCtx(c, v2, "v2"); assertCrossLow16(c, v2, "v2"); c.isTrue(v2.has("x-datadog-sampling-priority"), "v2: priority injected");
+  let v3 = makeChildSpanAndGetHeaders(t, vTpTs());
+  assertW3cCtx(c, v3, "v3"); c.eqInt(pTsCount(v3), 2, "v3: dd + foo"); c.isTrue(pTsHasFoo(v3), "v3: foo retained");
+  // v4: W3C wins over Datadog
+  let v4 = makeChildSpanAndGetHeaders(t, vTpTsDd());
+  assertW3cCtx(c, v4, "v4"); c.isTrue(pTsHasFoo(v4), "v4: foo retained");
+  c.isTrue(v4.getOr("x-datadog-sampling-priority", "") != "-2", "v4: datadog priority not used");
+  // v5/v6: Datadog used (no/invalid traceparent)
+  let v5 = makeChildSpanAndGetHeaders(t, vDd());
+  assertDatadogCtx(c, v5, "v5"); c.eqStr(hexToDecimal(pTpField(v5, 1)), "123456789", "v5: W3C trace id from datadog");
+  let v6 = makeChildSpanAndGetHeaders(t, vBadTpDd());
+  assertDatadogCtx(c, v6, "v6"); c.eqStr(hexToDecimal(pTpField(v6, 1)), "123456789", "v6: invalid tp -> datadog");
+  c.result()
+}
+
+// ## Datadog,tracecontext — Datadog wins when both present
+
+export let runPrecedenceDdTc(t: Tracer): CheckResult {
+  let c = new Checker();
+  let v1 = makeChildSpanAndGetHeaders(t, vEmpty());
+  c.isTrue(v1.has("traceparent") && v1.has("x-datadog-trace-id"), "v1: both injected");
+  assertCrossLow16(c, v1, "v1"); c.isTrue(pTsFirstIsDd(v1), "v1: tracestate dd=");
+  // v2/v3: only traceparent present -> W3C used
+  let v2 = makeChildSpanAndGetHeaders(t, vTp());
+  assertW3cCtx(c, v2, "v2"); assertCrossLow16(c, v2, "v2");
+  let v3 = makeChildSpanAndGetHeaders(t, vTpTs());
+  assertW3cCtx(c, v3, "v3"); c.eqInt(pTsCount(v3), 2, "v3: dd + foo"); c.isTrue(pTsHasFoo(v3), "v3: foo retained");
+  // v4/v5/v6: Datadog first wins
+  let v4 = makeChildSpanAndGetHeaders(t, vTpTsDd());
+  assertDatadogCtx(c, v4, "v4"); c.eqStr(hexToDecimal(pTpField(v4, 1)), "123456789", "v4: datadog wins");
+  let v5 = makeChildSpanAndGetHeaders(t, vDd());
+  assertDatadogCtx(c, v5, "v5"); c.eqStr(hexToDecimal(pTpField(v5, 1)), "123456789", "v5: datadog used");
+  let v6 = makeChildSpanAndGetHeaders(t, vBadTpDd());
+  assertDatadogCtx(c, v6, "v6"); c.eqStr(hexToDecimal(pTpField(v6, 1)), "123456789", "v6: invalid tp -> datadog");
+  c.result()
+}
