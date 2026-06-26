@@ -746,7 +746,7 @@ class LambdaProxyContainer(TestedContainer):
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
-    agent_version: Version
+    agent_version: Version | None = None
 
     def __init__(
         self,
@@ -802,14 +802,20 @@ class AgentContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        version_str = self.image.labels.get("org.opencontainers.image.version")
+        if version_str:
+            self.agent_version = ComponentVersion("agent", version_str).version
+
     def post_start(self):
+        if self.agent_version is not None:
+            return
+
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
         self.agent_version = ComponentVersion("agent", data["version"]).version
-
-        logger.stdout(f"Agent: {self.agent_version}")
-        logger.stdout(f"Backend: {self.dd_site}")
 
     @property
     def dd_site(self):
@@ -1008,6 +1014,25 @@ class WeblogContainer(TestedContainer):
 
         library = self.image.labels["system-tests-library"]
 
+        version_from_label = self.image.labels.get("system-tests-library-version")
+        if version_from_label:
+            self._library = ComponentVersion(library, version_from_label)
+        elif replay:
+            # In replay mode, post_start is never called (containers do not start).
+            # Load the library version from the saved healthcheck log so that
+            # init_patterns() below can install the library-specific log-filtering
+            # rules (e.g. PHP env-var skip patterns that prevent SOME_SECRET_ENV leaks).
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self._library = ComponentVersion(lib["name"], lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version in configure (replay): {e}")
+
+        if self._library is not None:
+            self.stdout_interface.init_patterns(self._library)
+
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
@@ -1112,26 +1137,20 @@ class WeblogContainer(TestedContainer):
     def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
 
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
+        if self._library is None:
+            with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                data = json.load(f)
+                lib = data["library"]
 
-        self._library = ComponentVersion(lib["name"], lib["version"])
-
-        logger.stdout(f"Library: {self.library}")
+            self._library = ComponentVersion(lib["name"], lib["version"])
+            logger.warning(
+                "Library version from healthcheck — add system-tests-library-version label to speed up startup"
+            )
 
         if self._container is not None:
             exit_code, output = self.exec_run("cat /binaries/metadata.txt")
             if exit_code == 0 and output:
                 logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
-
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
-
-        if self.uds_mode:
-            logger.stdout(f"UDS socket: {self.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
         self.stdout_interface.init_patterns(self.library)
 
@@ -1207,6 +1226,20 @@ class LambdaWeblogContainer(WeblogContainer):
         }
         # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
         self.ports = {}
+
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        if replay and self._library is None:
+            # In replay mode, containers do not start and post_start is never called.
+            # Load the library version from the healthcheck log saved during the previous run.
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self._library = ComponentVersion(lib["name"], lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version from healthcheck log in replay mode: {e}")
 
 
 class PostgresContainer(SqlDbTestedContainer):
@@ -1679,6 +1712,17 @@ class ExternalProcessingContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        if replay:
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self.library = ComponentVersion("envoy", lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version from healthcheck log in replay mode: {e}")
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
@@ -1754,6 +1798,17 @@ class StreamProcessingOffloadContainer(TestedContainer):
                 "retries": 10,
             },
         )
+
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        if replay:
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self.library = ComponentVersion("haproxy", lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version from healthcheck log in replay mode: {e}")
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:

@@ -37,4 +37,6 @@ else
         echo "install from NPM"
         install_custom_target dd-trace
     fi
+
+    node -e "process.stdout.write(require('dd-trace/package.json').version)" > /system-tests-library-version
 fi

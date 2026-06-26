@@ -67,3 +67,6 @@ fi
 bundle config set --local without test development
 
 bundle install
+
+bundle exec ruby -e "require 'datadog'; print Datadog::VERSION::STRING" > /system-tests-library-version 2>/dev/null \
+    || bundle exec ruby -e "require 'ddtrace'; print DDTrace::VERSION" > /system-tests-library-version

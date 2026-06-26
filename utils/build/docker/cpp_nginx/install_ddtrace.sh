@@ -28,6 +28,7 @@ function epilogue {
 
   echo "DataDog/nginx-datadog version: ${module_version}"
   echo "$module_version" | tr -d v > SYSTEM_TESTS_LIBRARY_VERSION
+  echo "$module_version" | tr -d v > /system-tests-library-version
 
   rm -f /etc/nginx/nginx.conf
   if version_first_is_greater "$module_version" "v1.1.0"; then

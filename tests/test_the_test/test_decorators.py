@@ -27,7 +27,7 @@ def is_skipped(item: Any, reason: str):  # noqa: ANN401
     raise Exception(f"{item} is not skipped, or not with the good reason")
 
 
-def is_not_skipped(item):  # noqa: ANN001
+def is_not_skipped(item):
     if hasattr(item, "pytestmark"):
         for mark in item.pytestmark:
             if mark.name == ("skip", "xfail"):
