@@ -152,6 +152,11 @@ func main() {
 		}
 
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after Do (the instrumented client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			log.Fatalln("client.Do", err)
@@ -161,7 +166,7 @@ func main() {
 
 		requestHeaders := make(map[string]string, len(req.Header))
 		for key, values := range req.Header {
-			requestHeaders[key] = strings.Join(values, ",")
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
 		}
 
 		responseHeaders := make(map[string]string, len(res.Header))
@@ -610,6 +615,21 @@ func main() {
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
+
+	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
+		span, ok := tracer.SpanFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`span not found in context`))
+			return
+		}
+		span.AddEvent("span.event", tracer.WithSpanEventAttributes(map[string]any{
+			"string": "value",
+			"int":    1,
+		}))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[Event added]`))
+	})
 
 	mux.HandleFunc("/ffe", common.FFeEval())
 

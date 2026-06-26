@@ -47,18 +47,20 @@ jobs:
 | -------------------------------- | ----------------------------------------------------------------------------------------------- | ------- | -------- | ------------- |
 | `artifact_retention_days`        | How long should artifacts produced by the workflow should be retained                           | number  | false    | 14            |
 | `binaries_artifact`              | Artifact name containing the binaries to test                                                   | string  | false    | *empty*       |
-| `display_summary`                | Display a workflow summary containing owners of failed tests                                    | boolean | false    | false         |
 | `desired_execution_time`         | In seconds, system-tests will try to respect this time budget.                                  | number  | false    | *empty*       |
 | `excluded_scenarios`             | Comma-separated list of scenarios not to run                                                    | string  | false    | *empty*       |
 | `force_execute`                  | Comma-separated list of tests to run even if they are skipped by manifest or decorators         | string  | false    | *empty*       |
 | `library`                        | Library to test                                                                                 | string  | true     | —             |
 | `parametric_job_count`           | How many jobs should be used to run PARAMETRIC scenario                                         | number  | false    | 1             |
-| `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Uses `TEST_OPTIMIZATION_API_KEY` secret if set, otherwise fetches credentials automatically via dd-sts (recommended) | boolean | false    | false         |
+| `push_to_test_optimization`      | Push tests results to DataDog Test Optimization. Fetches credentials automatically via dd-sts   | boolean | false    | false         |
 | `test_optimization_datadog_site` | DataDog site to use for test optimization                                                       | string  | false    | datadoghq.com |
 | `ref`                            | system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo) | string  | false    | main          |
 | `scenarios`                      | Comma-separated list scenarios to run                                                           | string  | false    | DEFAULT       |
 | `scenarios_groups`               | Comma-separated list of scenarios groups to run                                                 | string  | false    | *empty*       |
 | `skip_empty_scenarios`           | Skip scenarios that contain only xfail or irrelevant tests                                      | boolean | false    | false         |
+
+
+Note: if `test_optimization_datadog_site` is set to `true`, then the calling repo must be referenced in [dd-sts](https://github.com/DataDog/dd-source/blob/main/domains/seceng/sit/apps/apis/dd-sts/config/policies/us1.ddbuild.io/system-tests.yaml).
 
 ## Permissions
 
@@ -75,7 +77,6 @@ For some purposes, secrets are used in the workflow:
 
 | Name                                   | Description
 | -------------------------------------- | ----------------------------------------------------------------------------------
-| CIRCLECI_TOKEN                         | Only used with `_system_tests_dev_mode`
 | DD_API_KEY                             | Some scenarios requires valid API and APP keys
 | DD_APPLICATION_KEY                     |
 | DD_API_KEY_2                           |
@@ -83,7 +84,6 @@ For some purposes, secrets are used in the workflow:
 | DD_API_KEY_3                           |
 | DD_APP_KEY_3                           |
 | DOCKERHUB_USERNAME and DOCKERHUB_TOKEN | If both are set, all docker pull are authenticated, which offer higher rate limit
-| TEST_OPTIMIZATION_API_KEY              | The DD_API_KEY to use to push tests runs to DataDog Test Optimization. **Deprecated**: prefer not setting this and letting dd-sts fetch credentials automatically
 
 
 You can sends them ,either by using `secrets: inherit` ([doc](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretsinherit)), or [use explicit secret ids](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idsecretssecret_id)

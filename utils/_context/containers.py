@@ -4,7 +4,7 @@ import re
 import stat
 import sys
 import json
-from typing import cast
+from typing import cast, Literal
 from http import HTTPStatus
 from pathlib import Path
 import time
@@ -28,6 +28,7 @@ from utils.proxy.mocked_response import (
     MockedBackendResponse,
     SetSpanEventFlags,
     SetClientDropP0s,
+    SetObfuscationVersion,
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
 )
@@ -589,6 +590,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         client_drop_p0s: bool | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
     ) -> None:
@@ -634,6 +636,9 @@ class ProxyContainer(TestedContainer):
 
         if client_drop_p0s is not None:
             self.internal_mocked_tracer_responses.append(SetClientDropP0s(client_drop_p0s=client_drop_p0s))
+
+        if obfuscation_version is not None:
+            self.internal_mocked_tracer_responses.append(SetObfuscationVersion(obfuscation_version=obfuscation_version))
 
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints
@@ -914,6 +919,7 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_DOGSTATSD_HOST"] = "proxy"
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
@@ -957,7 +963,7 @@ class WeblogContainer(TestedContainer):
         """Returns images needed to build the weblog"""
 
         # If an image is saved as a file in binaries, we don't need any image
-        filename = f"binaries/{library}-{weblog}-weblog.tar.gz"
+        filename = f"binaries/{library}-{weblog}-weblog.tar.zst"
         if Path(filename).is_file():
             return []
 
@@ -1456,7 +1462,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, agent_port: int = 8126) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
             name="ddapm-test-agent",
             environment={
                 "SNAPSHOT_CI": "0",
@@ -1489,7 +1495,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),

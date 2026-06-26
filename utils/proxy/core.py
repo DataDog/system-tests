@@ -3,12 +3,15 @@ from . import scrubber  # noqa: F401
 
 import asyncio
 from collections import defaultdict
+import io
 import json
 import logging
 import os
 import ssl
-from typing import Any, Literal
+from typing import Any, Literal, cast
 from datetime import datetime, UTC
+
+import zstandard
 
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
@@ -38,6 +41,29 @@ messages_counts: dict[str, int] = defaultdict(int)
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
 
+class _UDPForwarder(asyncio.DatagramProtocol):
+    def __init__(self, target_host: str, target_port: int) -> None:
+        self.target_host = target_host
+        self.target_port = target_port
+        self.transport: asyncio.DatagramTransport | None = None
+
+    def connection_made(self, transport: asyncio.BaseTransport) -> None:
+        self.transport = cast("asyncio.DatagramTransport", transport)
+
+    def error_received(self, exc: Exception) -> None:
+        logger.error(f"DogStatsD UDP forwarder error: {exc}")
+
+    def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
+        if self.transport is None:
+            logger.error("DogStatsD UDP forwarder: datagram received but transport is None")
+            return
+
+        logger.info(
+            f"Forward UDP datagram ({len(data)}B) from {addr[0]}:{addr[1]} to {self.target_host}:{self.target_port}"
+        )
+        self.transport.sendto(data, (self.target_host, self.target_port))
+
+
 async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
     """Keep the mitmproxy ↔ upstream TLS leg alive; mitmproxy handles all actual HTTP."""
     try:
@@ -46,6 +72,45 @@ async def _mock_upstream_handler(reader: asyncio.StreamReader, writer: asyncio.S
         pass
     finally:
         writer.close()
+
+
+async def _start_udp_forwarder(
+    *, listen_host: str, listen_port: int, target_host: str, target_port: int
+) -> asyncio.DatagramTransport:
+    loop = asyncio.get_running_loop()
+    server_transport, _ = await loop.create_datagram_endpoint(
+        lambda: _UDPForwarder(target_host, target_port),
+        local_addr=(listen_host, listen_port),
+    )
+    return cast("asyncio.DatagramTransport", server_transport)
+
+
+def get_decoded_content(message: http.Message) -> bytes | None:
+    """Return the uncompressed body of an HTTP request/response.
+
+    mitmproxy's ``message.content`` relies on ``zstandard.ZstdDecompressor.decompress()``
+    which only decodes the *first* frame of a multi-frame zstd stream. The datadog-agent
+    metrics intake (``/api/intake/metrics/v3/series``) streams its protobuf payload as
+    several concatenated zstd frames, so ``message.content`` silently returns a truncated
+    body (e.g. 3 bytes). We decode the raw body ourselves with a frame-aware reader.
+
+    For any other (or absent) content-encoding we fall back to mitmproxy's own decoding.
+    """
+    content_encoding = message.headers.get("content-encoding", "").lower()
+    if content_encoding != "zstd":
+        # mitmproxy handles gzip/deflate/br/identity correctly; keep existing behavior.
+        return message.content
+
+    raw = message.raw_content
+    if not raw:
+        return raw
+
+    try:
+        # stream_reader().read() consumes every concatenated frame, unlike decompress().
+        return zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw)).read()
+    except zstandard.ZstdError:
+        # Not valid (multi-frame) zstd; let mitmproxy try (and possibly degrade gracefully).
+        return message.content
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -281,6 +346,11 @@ class _RequestLogger:
 
         host, port = self._original_connects.get(flow.client_conn.id, (flow.request.host, flow.request.port))
 
+        # Use a frame-aware decoder (see get_decoded_content) so multi-frame zstd bodies,
+        # like the agent's /api/intake/metrics/v3/series payload, are not truncated.
+        request_content = get_decoded_content(flow.request)
+        response_content = get_decoded_content(flow.response)
+
         data = {
             "log_filename": log_filename,
             "path": path,
@@ -291,19 +361,19 @@ class _RequestLogger:
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
                 "headers": list(flow.request.headers.items()),
-                "length": len(flow.request.content) if flow.request.content else 0,
+                "length": len(request_content) if request_content else 0,
             },
             "response": {
                 "status_code": flow.response.status_code,
                 "headers": list(flow.response.headers.items()),
-                "length": len(flow.response.content) if flow.response.content else 0,
+                "length": len(response_content) if response_content else 0,
             },
         }
 
         deserialize(
             data,
             key="request",
-            content=flow.request.content,
+            content=request_content,
             interface=interface,
             export_content_files_to=export_content_files_to,
         )
@@ -314,7 +384,7 @@ class _RequestLogger:
             deserialize(
                 data,
                 key="response",
-                content=flow.response.content,
+                content=response_content,
                 interface=interface,
                 export_content_files_to=export_content_files_to,
             )
@@ -366,7 +436,21 @@ def start_proxy() -> None:
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())
     proxy.addons.add(_RequestLogger())
-    loop.run_until_complete(proxy.run())
+
+    async def _run() -> None:
+        await _start_udp_forwarder(
+            listen_host=listen_host,
+            listen_port=ProxyPorts.dogstatsd_weblog,
+            target_host="agent",
+            target_port=ProxyPorts.dogstatsd_weblog,
+        )
+        logger.info(
+            "DogStatsD UDP forwarder started on port "
+            f"{ProxyPorts.dogstatsd_weblog} to agent:{ProxyPorts.dogstatsd_weblog}"
+        )
+        await proxy.run()
+
+    loop.run_until_complete(_run())
 
 
 if __name__ == "__main__":

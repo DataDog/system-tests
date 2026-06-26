@@ -139,6 +139,33 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /api_security/multi-params-in-segment/{id}.{format}
+
+This endpoint is used to test RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+
+The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must combine them into a single atomic element `{id+format}` in `_dd.appsec.normalized_route`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/optional-params/{id} and /api_security/optional-params/{id}.{format}
+
+These two routes together test RFC-1103 optional-element resolution (rule 5 + rule 6).
+
+- `/api_security/optional-params/{id}` — mandatory parameter only; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}`.
+- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id+format}`.
+
+Frameworks with native optional-parameter support (e.g. Express `:id.:format?`, Rails `/:id(.:format)`) may declare these as a single route with an optional second sub-parameter. Frameworks without that support must declare them as two separate routes with the same handler.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
 ### GET /endpoint_fallback
 
 This endpoint tests RFC-1076: API Security sampling fallback behavior when
@@ -197,6 +224,20 @@ if the request to `internal_server` was a success (2xx code), it must return a j
 if the request to `internal_server` is a failure, it must return a json body with 2 keys:
 - `status` the status code of the `internal_server` response if available or a null value
 - `error` a string describing the error, for debug purposes
+
+### GET /external_request/body_limit/{failure_reason}
+### POST /external_request/body_limit/{failure_reason}
+### TRACE /external_request/body_limit/{failure_reason}
+### PUT /external_request/body_limit/{failure_reason}
+
+Same behavior as `/external_request`, but the downstream call targets `http://internal_server:8089/downstream_response/{failure_reason}`.
+
+Supported `{failure_reason}` values (defined in `internal_server`):
+- `invalid_content_type`
+- `content_length_missing`
+- `content_length_too_big`
+
+Unknown values must return HTTP 404 with a json error body.
 
 ### GET /external_request/redirect
 
@@ -1025,6 +1066,20 @@ This endpoint returns the headers received in order to be able to assert about d
 The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
 This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
 stats generating tests.
+
+### POST /ffe
+
+This endpoint is used by the Feature Flags & Experimentation scenario. It must
+accept a JSON body with these fields:
+
+- `flag`: the feature flag key to evaluate.
+- `variationType`: the expected variation type.
+- `defaultValue`: the value to return when evaluation cannot resolve the flag.
+- `targetingKey`: the evaluation subject key.
+- `attributes`: flat scalar targeting attributes.
+
+The response must be JSON and include at least `value` and `reason`. Error
+responses should also include `errorCode` and `errorMessage`.
 
 ### GET /healthcheck
 

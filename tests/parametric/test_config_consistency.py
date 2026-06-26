@@ -13,7 +13,7 @@ from utils import (
 )
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary, StableConfigWriter
+from .conftest import APMLibrary, StableConfigWriter, assert_nodejs_telemetry_config, nodejs_startup_config
 
 parametrize = pytest.mark.parametrize
 
@@ -136,6 +136,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
                 "DD_AGENT_HOST": "localhost",
                 "DD_TRACE_AGENT_PORT": "8126",
@@ -144,9 +145,9 @@ class Test_Config_TraceAgentURL:
     )
     def test_dd_trace_agent_unix_url_nonexistent(self, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert "unix" in url.scheme
         assert url.path == "/var/run/datadog/apm.socket"
 
@@ -155,6 +156,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "http://random-host:9999/",
                 "DD_AGENT_HOST": "localhost",
                 "DD_TRACE_AGENT_PORT": "8126",
@@ -163,9 +165,9 @@ class Test_Config_TraceAgentURL:
     )
     def test_dd_trace_agent_http_url_nonexistent(self, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert url.scheme == "http"
         assert url.hostname == "random-host"
         assert url.port == 9999
@@ -174,6 +176,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "http://[::1]:5000",
                 "DD_AGENT_HOST": "localhost",
                 "DD_TRACE_AGENT_PORT": "8126",
@@ -182,9 +185,9 @@ class Test_Config_TraceAgentURL:
     )
     def test_dd_trace_agent_http_url_ipv6(self, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert url.scheme == "http"
         assert url.hostname == "::1"
         assert url.port == 5000
@@ -193,6 +196,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_STARTUP_LOGS": "true",
                 "DD_TRACE_AGENT_URL": "",  # Empty string passed to make sure conftest.py does not set trace agent url
                 "DD_AGENT_HOST": "[::1]",
                 "DD_TRACE_AGENT_PORT": "5000",
@@ -201,9 +205,9 @@ class Test_Config_TraceAgentURL:
     )
     def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
         with test_library as t:
-            resp = t.config()
+            agent_url = _trace_agent_url(t)
 
-        url = urlparse(resp["dd_trace_agent_url"])
+        url = urlparse(agent_url)
         assert url.scheme == "http"
         assert url.hostname == "::1"
         assert url.port == 5000
@@ -217,14 +221,24 @@ class Test_Config_RateLimit:
     # which would be unreliable for testing and require significant effort for each tracer's weblog application.
     # The feature is mainly tested in the second test case, where the rate limit is set to 1 to ensure it works as expected.
     @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": "1"}])
-    def test_default_trace_rate_limit(self, test_library: APMLibrary):
+    def test_default_trace_rate_limit(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_trace_rate_limit": "100"})
+                return
             resp = t.config()
         assert resp["dd_trace_rate_limit"] == "100"
 
     @parametrize(
         "library_env",
-        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+        [
+            {
+                "DD_TRACE_RATE_LIMIT": "1",
+                "DD_TRACE_SAMPLE_RATE": "1",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
     )
     def test_setting_trace_rate_limit_strict(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
@@ -352,27 +366,41 @@ class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
     )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
-    def test_dogstatsd_default(self, test_library: APMLibrary):
+    def test_dogstatsd_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(
+                    test_agent, {"dd_dogstatsd_host": "localhost", "dd_dogstatsd_port": "8125"}
+                )
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "localhost"
         assert resp["dd_dogstatsd_port"] == "8125"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "192.168.10.1"}])
-    def test_dogstatsd_custom_ip_address(self, test_library: APMLibrary):
+    def test_dogstatsd_custom_ip_address(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_dogstatsd_host": "192.168.10.1"})
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "192.168.10.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "127.0.0.1"}])
-    def test_dogstatsd_custom_hostname(self, test_library: APMLibrary):
+    def test_dogstatsd_custom_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_dogstatsd_host": "127.0.0.1"})
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "127.0.0.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_PORT": "8150"}])
-    def test_dogstatsd_custom_port(self, test_library: APMLibrary):
+    def test_dogstatsd_custom_port(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
+            if t.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_dogstatsd_port": "8150"})
+                return
             resp = t.config()
         assert resp["dd_dogstatsd_port"] == "8150"
 
@@ -397,6 +425,17 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "php": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
+
+
+def _trace_agent_url(test_library: APMLibrary) -> str:
+    """Resolve dd_trace_agent_url from the tracer's startup log (nodejs) or /trace/config (others).
+
+    These tests point the tracer at an unreachable agent, so telemetry never arrives; the
+    published startup-config line is the non-internal source for the resolved URL.
+    """
+    if test_library.lang == "nodejs":
+        return str(nodejs_startup_config(test_library)["agent_url"])
+    return test_library.config()["dd_trace_agent_url"] or ""
 
 
 class QuotedStr(str):
@@ -482,6 +521,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_default_config(
         self,
+        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         path: str,
         name: str,
@@ -498,8 +538,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert expected.items() <= config.items()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, expected)
+            else:
+                config = test_library.config()
+                assert expected.items() <= config.items()
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
@@ -531,6 +574,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_extended_configs(
         self,
+        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         path: str,
         name: str,
@@ -554,6 +598,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, expected)
+                return
+
             config = test_library.config()
 
             # Special handling for dd_tags: check if expected tags are present in actual tags
@@ -598,7 +646,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_unknown_key_skipped(self, test_library: APMLibrary, path: str, test: dict):
+    def test_unknown_key_skipped(self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, test: dict):
         with test_library:
             self.write_stable_config(
                 {
@@ -609,8 +657,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert test["expected"].items() <= config.items()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, test["expected"])
+            else:
+                config = test_library.config()
+                assert test["expected"].items() <= config.items()
 
     @pytest.mark.parametrize(
         "path",
@@ -619,7 +670,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_invalid_files(self, test_library: APMLibrary, path: str):
+    def test_invalid_files(self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str):
         with test_library:
             self.write_stable_config_content(
                 "?? ??; ??\t\n\n --- `??",
@@ -627,8 +678,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, SDK_DEFAULT_STABLE_CONFIG)
+            else:
+                config = test_library.config()
+                assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
 
     @pytest.mark.parametrize(
         ("name", "local_cfg", "library_env", "fleet_cfg", "expected"),
@@ -672,6 +726,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_config_precedence(
         self,
+        test_agent: TestAgentAPI,
         name: str,
         test_library: APMLibrary,
         local_cfg: dict,
@@ -696,6 +751,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
 
             test_library.container_restart()
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, expected)
+                return
+
             config = test_library.config()
             assert expected.items() <= config.items(), format(
                 "unexpected values for the following configurations: {}"
@@ -709,7 +768,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
     """Verify that stable config targeting rules work as intended (apm_configuration_rules)"""
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
-    def test_targeting_rules(self, test_library: APMLibrary):
+    def test_targeting_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             self.write_stable_config(
@@ -732,10 +791,13 @@ class Test_Stable_Config_Rules(StableConfigWriter):
                 test_library,
             )
             test_library.container_restart()
-            config = test_library.config()
-            assert config["dd_service"] == "my-service", (
-                f"Service name is '{config['dd_service']}' instead of 'my-service'"
-            )
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_service": "my-service"})
+            else:
+                config = test_library.config()
+                assert config["dd_service"] == "my-service", (
+                    f"Service name is '{config['dd_service']}' instead of 'my-service'"
+                )
 
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
@@ -743,7 +805,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             ["-Darg1=value"]
         ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
     )
-    def test_process_arguments(self, test_library: APMLibrary):
+    def test_process_arguments(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             config = {
@@ -765,7 +827,10 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             stable_config_content = yaml.dump(config, Dumper=CustomDumper)
             self.write_stable_config_content(stable_config_content, path, test_library)
             test_library.container_restart()
-            lib_config = test_library.config()
-            assert lib_config["dd_service"] == "value", (
-                f"Service name is '{lib_config['dd_service']}' instead of 'value'"
-            )
+            if test_library.lang == "nodejs":
+                assert_nodejs_telemetry_config(test_agent, {"dd_service": "value"})
+            else:
+                lib_config = test_library.config()
+                assert lib_config["dd_service"] == "value", (
+                    f"Service name is '{lib_config['dd_service']}' instead of 'value'"
+                )

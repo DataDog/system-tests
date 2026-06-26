@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -47,6 +47,31 @@ ssi_tests:
             done
           done
         fi
+
+        # Push JUnit results to Datadog Test Optimization
+        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
+        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+        export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
+        if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
+            datadog-ci junit upload \
+                reports/logs*/reportJunit.xml \
+                --service system-tests \
+                --env ci \
+                --verbose \
+                --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+        else
+            echo "No reports/logs*/reportJunit.xml found; skipping Test Optimization upload"
+        fi
+
+        # Render all report logs as collapsible sections + run summary + banner.
+        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+            SCRIPTS_DIR="./utils/scripts"
+        else
+            SCRIPTS_DIR="/system-tests/utils/scripts"
+        fi
+        export SCENARIO_SUFIX
+        export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/docker_ssi.md"
+        bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
     retry:
       max: 2
       when:
@@ -81,8 +106,15 @@ ssi_tests:
               aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}/install_script_agent7.sh binaries/
               chmod +x binaries/install_script_agent7.sh
             fi
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
-        - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+        - |
+            BUILD_SECTION_TS=$(date +%s)
+            printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KBuild runner image (./build.sh -i runner)\n' "${BUILD_SECTION_TS}"
+            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+            printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
+        - |
+            # Run the tests and capture stdout+stderr to a file
+            set -o pipefail
+            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
@@ -101,31 +133,28 @@ ssi_tests:
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         # Upload logs to S3 and delete large files
+        # When this template is included from downstream repos (dd-trace-*), the
+        # system-tests checkout lives under a `system-tests/` subdirectory, so
+        # all relative paths into the system-tests repo need that prefix.
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
+            SCRIPTS_DIR="./utils/scripts"
         else
             LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
+            SCRIPTS_DIR="./system-tests/utils/scripts"
         fi
-        # Upload to S3
+        # Upload to S3 (the URL is printed once at the end of the after_script).
+        AWS_CONSOLE_URL=""
         if [ -d "$LOGS_FOLDER" ]; then
-            echo "Uploading logs to S3..."
             EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
             LAST_DIRECTORY=$(basename "$LOGS_FOLDER")
             S3_BUCKET="system-tests-aws-ssi-apm"
             S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
-
-            echo "Uploading folder to S3 bucket: ${S3_BUCKET}"
-            echo "Local folder: ${LOGS_FOLDER}"
-            echo "S3 destination: ${S3_DESTINATION}"
+            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
 
             aws s3 cp "$LOGS_FOLDER" "$S3_DESTINATION" --recursive --quiet || echo "Failed to upload logs to S3"
 
-            # Generate AWS Console URL for the uploaded folder
-            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
-            echo "S3 logs URL (AWS Console): ${AWS_CONSOLE_URL}"
-
             # Delete large files (>50MB) to avoid CI/CD archiving
-            echo "Deleting large files to avoid CI/CD archiving..."
             find "$LOGS_FOLDER" -type f -size +50M -exec sh -c 'echo "Deleting large file ($(du -h "$1" | cut -f1)): $1" && rm "$1"' _ {} \; || echo "Failed to delete some large files"
         fi
 
@@ -145,6 +174,12 @@ ssi_tests:
             done
           done
         fi
+
+        # Render all report logs as collapsible sections + run summary + banner.
+        export SCENARIO_SUFIX AWS_CONSOLE_URL
+        export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+        bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
+
     retry:
       max: 2
       when:
@@ -173,13 +208,17 @@ ssi_tests:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
   script:
-    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner # rebuild runner in case there were changes
-    - source venv/bin/activate
-    - python --version
-    - pip freeze
-    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
-    - export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
     - |
+      # Wrap the build steps (runner image, venv, ECR login, weblog image) in a
+      # collapsible GitLab section to keep the job log tidy.
+      BUILD_SECTION_TS=$(date +%s)
+      printf '\e[0Ksection_start:%s:build_k8s[collapsed=true]\r\e[0KBuild runner image and weblog image\n' "${BUILD_SECTION_TS}"
+      SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner # rebuild runner in case there were changes
+      source venv/bin/activate
+      python --version
+      pip freeze
+      aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+      export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
       if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
         TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
         ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
@@ -188,7 +227,12 @@ ssi_tests:
       else
         TAG_NAME="latest"
       fi
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG:-None} --k8s-cluster-img ${K8S_CLUSTER_IMG:-None} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT}
+      printf '\e[0Ksection_end:%s:build_k8s\r\e[0K\n' "${BUILD_SECTION_TS}"
+    - |
+      # Run the tests and capture stdout+stderr so the after_script can
+      # re-print the run summary (pipefail keeps run.sh's real exit code).
+      set -o pipefail
+      ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG:-None} --k8s-cluster-img ${K8S_CLUSTER_IMG:-None} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT} 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
 
   after_script: |
     kind delete clusters --all || true
@@ -212,6 +256,16 @@ ssi_tests:
         done
       done
       fi
+
+    # Render all report logs as collapsible sections + run summary + banner.
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        SCRIPTS_DIR="./utils/scripts"
+    else
+        SCRIPTS_DIR="/system-tests/utils/scripts"
+    fi
+    export SCENARIO_SUFIX=$(echo "${K8S_SCENARIO:-logs}" | tr "[:upper:]" "[:lower:]")
+    export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-and-tests-results"
+    bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
   retry:
     max: 2
     when:
