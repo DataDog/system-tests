@@ -325,6 +325,7 @@ system-tests-param:
   needs:
     - job: build_ci_image
       artifacts: false
+      optional: true
   before_script:
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
@@ -369,7 +370,7 @@ system-tests-param:
 
 build_ci_image:
   image: registry.ddbuild.io/images/docker:20.10.13-jammy
-  interruptible: true
+  interruptible: false
   tags:
     - docker-in-docker:amd64
   stage: configure
@@ -390,6 +391,10 @@ build_ci_image:
         docker build -f utils/ci/gitlab/docker/system-tests.Dockerfile -t $EXPECTED_IMAGE . &&
         docker push $EXPECTED_IMAGE;
       fi
+  rules:
+    - changes:
+        - utils/ci/gitlab/docker/system-tests.Dockerfile
+        - requirements.txt
 
 # ──────────────────────────────────────────────
 # Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
@@ -420,6 +425,7 @@ mirror_images:
   needs:
     - job: build_ci_image
       artifacts: false
+      optional: true
   before_script:
     # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
     - CRANE_VERSION=v0.20.2
@@ -430,6 +436,15 @@ mirror_images:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | crane auth login index.docker.io --username "$DOCKER_LOGIN" --password-stdin
   script:
+    - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
+    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
+    - |
+      if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
+        echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
+        echo "   Update CI_IMAGE in utils/ci/gitlab/main.yml:"
+        echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
+        exit 1
+      fi
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - python -m pip install --quiet uv
