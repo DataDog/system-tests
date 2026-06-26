@@ -248,20 +248,28 @@ check_merge_labels:
   stage: system-tests-utils
   before_script:
     # Get a token
-    - dd-octo-sts version
-    - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
-    - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
+    # - dd-octo-sts version
+    # - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
+    # - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
     - docker buildx version
     - export GITHUB_TOKEN=$(cat token.txt)
-    - ./utils/scripts/get_pr_merged_labels.sh
-  after_script:
+    - |
+      export REPO="datadog/system-tests"
+      docker login -u "$DOCKER_LOGIN" --password-stdin <<< "$DOCKER_LOGIN_PASS"
+      curl -fsS -u "$DOCKER_LOGIN:$DOCKER_LOGIN_PASS" \
+        "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull,push" \
+        >/dev/null
+    - echo $?
+
+    # - ./utils/scripts/get_pr_merged_labels.sh
+  # after_script:
     # Revoke the token after usage
-    - dd-octo-sts revoke -t $(cat token.txt)
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+    # - dd-octo-sts revoke -t $(cat token.txt)
+  # rules:
+  #   - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
 generate_system_tests_lambda_proxy_image:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
