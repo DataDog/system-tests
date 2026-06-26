@@ -50,6 +50,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature (APPSEC_API_SECURITY_NO_RESPONSE_BODY not supported)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.8.0
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: irrelevant (not applicable to proxies)
