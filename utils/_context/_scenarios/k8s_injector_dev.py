@@ -58,7 +58,9 @@ class K8sInjectorDevScenario(Scenario):
         )
 
         self.k8s_injector_img = K8sComponentImage(
-            config.option.k8s_injector_img if config.option.k8s_injector_img else "gcr.io/datadoghq/apm-inject:latest",
+            config.option.k8s_injector_img
+            if config.option.k8s_injector_img
+            else "registry.datadoghq.com/apm-inject:latest",
             extract_injector_version,
             self.ssi_registry_base,
         )

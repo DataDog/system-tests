@@ -357,12 +357,12 @@ migrate_images_to_private_registry() {
     esac
 
     # Migrate lib-init image
-    local lib_init_source="gcr.io/datadoghq/${lib_init_name}:latest"
+    local lib_init_source="registry.datadoghq.com/${lib_init_name}:latest"
     pull_and_push_image "$lib_init_source" "$lib_init_name" "latest"
 
     # Migrate apm-injector and cluster-agent
-    pull_and_push_image "gcr.io/datadoghq/apm-inject:latest" "apm-inject" "latest"
-    pull_and_push_image "gcr.io/datadoghq/cluster-agent:latest" "cluster-agent" "latest"
+    pull_and_push_image "registry.datadoghq.com/apm-inject:latest" "apm-inject" "latest"
+    pull_and_push_image "registry.datadoghq.com/cluster-agent:latest" "cluster-agent" "latest"
 
     echo -e "${GREEN}✅ Image migration completed${NC}"
 }
