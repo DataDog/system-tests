@@ -220,10 +220,13 @@ class Test_Feature_Flag_Source_Modes:
         assert test_library.ffe_start(), "failed to start FFE provider before malformed_warm"
         _assert_expected_value(_evaluate(test_library))
 
+        requests_before = mock_cdn.status()["requests_total"]
         mock_cdn.set_fixture("malformed_warm")
         _wait_for_status(
             mock_cdn,
-            lambda current: current["fixture"] == "malformed_warm" and current["last_status_code"] == 200,
+            lambda current: current["fixture"] == "malformed_warm"
+            and current["requests_total"] > requests_before
+            and current["last_status_code"] == 200,
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))

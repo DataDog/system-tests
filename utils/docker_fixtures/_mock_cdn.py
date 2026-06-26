@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -74,8 +74,11 @@ class MockCDNState:
             if fixture not in FIXTURE_IDS:
                 raise ValueError(f"unknown mock CDN fixture: {fixture}")
             self.fixture = fixture
+            self.last_if_none_match = None
+            self.last_source_mode = None
+            self.last_status_code = None
 
-    def record_request(self, headers: dict[str, str], path: str) -> str:
+    def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
         source_mode = headers.get("DD-Flagging-Source-Mode") or headers.get(
             "X-Datadog-Flagging-Source-Mode"
@@ -163,7 +166,7 @@ class MockCDNRequestHandler(BaseHTTPRequestHandler):
 
             status_code, body, headers = _response_for_fixture(
                 fixture=fixture,
-                has_auth=_has_auth(dict(self.headers)),
+                has_auth=_has_auth(self.headers),
                 if_none_match=self.headers.get("If-None-Match"),
             )
             self.server.state.record_response(status_code)
@@ -208,10 +211,11 @@ class MockCDNRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(payload).encode("utf-8"))
 
 
-def _has_auth(headers: dict[str, str]) -> bool:
+def _has_auth(headers: Mapping[str, str]) -> bool:
+    normalized = {key.lower(): value for key, value in headers.items()}
     return any(
-        headers.get(header) == EXPECTED_API_KEY
-        for header in ("DD-API-KEY", "X-Datadog-API-Key", "DD-Api-Key")
+        normalized.get(header) == EXPECTED_API_KEY
+        for header in ("dd-api-key", "x-datadog-api-key")
     )
 
 
