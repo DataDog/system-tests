@@ -19,6 +19,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
         net-http: v0.1  # real version not known
+        net-http-span-pool: v0.1  # real version not known
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
@@ -72,6 +73,7 @@ manifest:
         echo: v2.1.0-dev  # Fully transparent
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
+        net-http-span-pool: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:  # Modified by easy win activation script
     - weblog_declaration:
@@ -85,6 +87,7 @@ manifest:
         echo: v2.1.0-dev  # Fully transparent
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
+        net-http-span-pool: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v2.10.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
@@ -351,11 +354,13 @@ manifest:
         gin: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
         net-http: '>=2.5.0'
+        net-http-span-pool: '>=2.5.0'
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection:  # Created by easy win activation script
     - weblog_declaration:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -364,6 +369,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -373,6 +379,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -382,6 +389,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -391,6 +399,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -400,6 +409,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -408,6 +418,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -417,6 +428,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -566,11 +578,13 @@ manifest:
         gin: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
         net-http: '>=2.5.0'
+        net-http-span-pool: '>=2.5.0'
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:  # Created by easy win activation script
     - weblog_declaration:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -580,6 +594,7 @@ manifest:
         echo: missing_feature
         gin: missing_feature
         net-http: missing_feature
+        net-http-span-pool: missing_feature
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
@@ -904,11 +919,13 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         net-http: v0.1  # real version not known
+        net-http-span-pool: v0.1  # real version not known
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   ? tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_consume_trace_equality
   : missing_feature (Expected to fail, Golang does not propagate context)
   ? tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality
@@ -920,6 +937,7 @@ manifest:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation::test_produce_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_rabbitmq.py::_BaseRabbitMQ::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
@@ -929,6 +947,7 @@ manifest:
         "*": irrelevant
         net-http: missing_feature
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation::test_produce_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::_BaseSNS::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
@@ -938,6 +957,7 @@ manifest:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
     - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_produce_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
@@ -946,6 +966,7 @@ manifest:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
@@ -974,6 +995,7 @@ manifest:
         echo: v2.7.0
         gin: v2.7.0
         net-http: v2.7.0
+        net-http-span-pool: v2.7.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -985,57 +1007,68 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         net-http: v0.1  # real version unknown
+        net-http-span-pool: v0.1  # real version unknown
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
     - weblog_declaration:
         "*": irrelevant
         net-http: v0.1  # real version unknown
+        net-http-span-pool: v0.1  # real version unknown
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": irrelevant
         net-http: v0.1  # real version unknown
+        net-http-span-pool: v0.1  # real version unknown
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSNS:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSQS:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
     - weblog_declaration:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
+        net-http-span-pool: missing_feature (Endpoint not implemented)
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
@@ -1044,6 +1077,7 @@ manifest:
         gin: v1.72.1
         net-http: v1.72.1
         net-http-orchestrion: v1.72.1
+        net-http-span-pool: v1.72.1
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
@@ -1052,6 +1086,7 @@ manifest:
         gin: v1.72.1
         net-http: v1.72.1
         net-http-orchestrion: v1.72.1
+        net-http-span-pool: v1.72.1
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
@@ -1060,6 +1095,7 @@ manifest:
         gin: v1.72.1
         net-http: v1.72.1
         net-http-orchestrion: v1.72.1
+        net-http-span-pool: v1.72.1
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
@@ -1069,6 +1105,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         net-http: v1.70.1
+        net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
@@ -1466,6 +1503,7 @@ manifest:
         "*": missing_feature
         net-http: v2.4.0
         net-http-orchestrion: v2.4.0
+        net-http-span-pool: v2.4.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v2.7.0-dev
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
@@ -1483,11 +1521,13 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         net-http: v1.73.0
+        net-http-span-pool: v1.73.0
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
     - weblog_declaration:
         "*": irrelevant
         net-http: v1.73.0
+        net-http-span-pool: v1.73.0
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport::test_send_as_a_tag:
     - component_version: ">=2.7.0-dev"
       declaration: missing_feature (span got an event property set as an empty list)
