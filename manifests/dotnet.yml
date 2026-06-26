@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -237,6 +238,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
@@ -618,6 +622,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
+    - declaration: missing_feature (Static field guard is not released yet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
@@ -1162,6 +1167,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v3.10.0
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: v3.10.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
   tests/test_library_conf.py::Test_HeaderTags: v2.27.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v2.1.0

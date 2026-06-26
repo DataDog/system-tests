@@ -2874,6 +2874,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
 
     @staticmethod
+    def ai_guard_standalone(test_object):
+        """AI Guard standalone mode
+
+        https://feature-parity.us1.prod.dog/#/?feature=559
+        """
+        return _mark_test_object(test_object, feature_id=559, owner=_Owner.asm)
+
+    @staticmethod
     def apm_google_genai_generate_content(test_object):
         """APM supports Google GenAI generate content interactions
 
