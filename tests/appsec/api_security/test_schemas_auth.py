@@ -70,6 +70,22 @@ def jwt_payload(schema: object) -> dict:
     return root["payload"][0]
 
 
+def base_type(value: object) -> int:
+    """Return the scalar type code of a schema value, tolerating the single-element
+    list wrapping that some frameworks use and ignoring trailing scanner metadata.
+
+    Accepts both the bare form `[8]` / `[8, {meta}]` and the wrapped form
+    `[[[8]], {"len": 1}]` / `[[[8, {meta}]], {"len": 1}]`.
+    """
+    node = value
+    # unwrap the framework list form: [[[...]], {"len": n}] -> [...]
+    while isinstance(node, list) and node and isinstance(node[0], list):
+        node = node[0][0]
+    assert isinstance(node, list), f"unexpected schema value: {value}"
+    assert node, f"unexpected schema value: {value}"
+    return node[0]
+
+
 SIMPLE_JWT = make_jwt({"sub": "1234567890", "name": "John Doe", "iat": 1516239022})
 COMPLEX_JWT = make_jwt(
     {
@@ -130,7 +146,9 @@ class Test_Schema_Request_Jwt_And_Cookie:
         jwt = get_schema(self.request, "req.jwt")
         cookies = get_schema(self.request, "req.cookies")
         assert isinstance(cookies, list), f"_dd.appsec.s.req.cookies should be a list, got {cookies}"
-        assert cookies[0] == {"session": [STR]}, cookies
+        # tolerate frameworks that wrap cookie values as single-element lists
+        assert set(cookies[0]) == {"session"}, cookies
+        assert base_type(cookies[0]["session"]) == STR, cookies
         assert jwt_payload(jwt)["sub"] == [STR]
         # request cookies must land in req.cookies, not res.cookies (appsec-event-rules#289 typo guard)
         assert get_schema(self.request, "res.cookies") is None, "request cookies leaked into res.cookies (rules typo)"
@@ -160,8 +178,9 @@ class Test_Schema_Request_Auth_Sensitive_Value:
         # the SSN claim inside the JWT is reported as its type + PII classification, never the value:
         # scanners run on the decoded JWT content.
         assert jwt_payload(get_schema(self.request, "req.jwt"))["ssn"] == [STR, {"type": "us_ssn", "category": "pii"}]
-        # the card number cookie keeps its key and string type, but not the value
-        assert cookies[0]["mastercard"] == [STR], cookies
+        # the card number cookie keeps its key and string type (optionally annotated with payment
+        # classification metadata by the scanners), but never the value itself
+        assert base_type(cookies[0]["mastercard"]) == STR, cookies
         # and the raw sensitive values must not leak anywhere in the span meta
         blob = get_meta_blob(self.request)
         assert self.CARD not in blob, "credit card value leaked into span meta"
