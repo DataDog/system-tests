@@ -360,8 +360,10 @@ public class App {
             pb.environment().put("DD_SYSTEM_TEST_CHILD_CRASH", crash.toLowerCase());
             pb.inheritIO();
             Process p = pb.start();
-            int exitCode = p.waitFor();
-            return ResponseEntity.ok("Process " + p.pid() + " has exited with code " + exitCode);
+            // Do not block on the child's full lifetime: a JVM child (agent init + sleep)
+            // can exceed the test client timeout. Return promptly; the child emits its own
+            // telemetry independently and the test validates it asynchronously.
+            return ResponseEntity.ok("Spawned child process " + p.pid());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed: " + e.getMessage());
         }
@@ -1612,16 +1614,7 @@ public class App {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        String childSleep = System.getenv("DD_SYSTEM_TEST_CHILD_SLEEP");
-        if (childSleep != null) {
-            int sleep = Integer.parseInt(childSleep);
-            Thread.sleep(sleep * 1000L);
-            if ("true".equals(System.getenv("DD_SYSTEM_TEST_CHILD_CRASH"))) {
-                Runtime.getRuntime().halt(139);
-            }
-            return;
-        }
+    public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
 

@@ -18,7 +18,7 @@ target "express4" {
   inherits   = ["_common"]
   context    = "."
   dockerfile = "utils/build/docker/nodejs/express4.base.Dockerfile"
-  tags       = ["datadog/system-tests:express4.base-v2"]
+  tags       = ["datadog/system-tests:express4.base-v3"]
 }
 
 target "express5" {
