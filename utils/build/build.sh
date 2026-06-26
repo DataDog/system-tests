@@ -309,7 +309,7 @@ build() {
                     run_build_command docker buildx build \
                         --load \
                         ${DOCKER_PLATFORM_ARGS} \
-                        -f utils/build/docker/dotnet/version-tool.Dockerfile \
+                        -f utils/build/docker/dotnet/build-helpers/version-tool.Dockerfile \
                         -t system_tests/dotnet-version-tool \
                         .
                 fi
