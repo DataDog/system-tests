@@ -1184,6 +1184,13 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_http_semantics.py::Test_HttpClientOtelSemantics::test_error_type: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_error_type: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_no_route_resource: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_other_method_span_name: v3.47.0
+  tests/test_otel_http_semantics.py::Test_HttpServerOtelSemantics::test_request_method_normalization: v3.47.0
+  tests/test_otel_http_semantics_otlp.py::Test_HttpClientOtelSemanticsOTLP: v3.47.0
+  tests/test_otel_http_semantics_otlp.py::Test_HttpServerOtelSemanticsOTLP: v3.47.0
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v3.44.0
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
