@@ -3002,5 +3002,15 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
 
+    @staticmethod
+    def auth_schemas(test_object):
+        """API Security - authentication token schema extraction: the extract-auth
+        processor reports schemas of JSON Web Tokens (`_dd.appsec.s.req.jwt`) and
+        cookies (`_dd.appsec.s.req.cookies`) when API Security is enabled.
+
+        https://feature-parity.us1.prod.dog/#/?feature=560
+        """
+        return _mark_test_object(test_object, feature_id=560, owner=_Owner.asm)
+
 
 features = _Features()

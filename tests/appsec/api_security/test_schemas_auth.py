@@ -90,7 +90,7 @@ COMPLEX_JWT = make_jwt(
 
 @rfc(RFC_LINK)
 @scenarios.appsec_api_security
-@features.api_security_schemas
+@features.auth_schemas
 class Test_Schema_Request_Jwt_No_Cookie:
     """request has JWT, no cookie -> jwt schema generated"""
 
@@ -114,7 +114,7 @@ class Test_Schema_Request_Jwt_No_Cookie:
 
 @rfc(RFC_LINK)
 @scenarios.appsec_api_security
-@features.api_security_schemas
+@features.auth_schemas
 class Test_Schema_Request_Jwt_And_Cookie:
     """request has both JWT and cookie -> both schemas generated"""
 
@@ -138,7 +138,7 @@ class Test_Schema_Request_Jwt_And_Cookie:
 
 @rfc(RFC_LINK)
 @scenarios.appsec_api_security
-@features.api_security_schemas
+@features.auth_schemas
 class Test_Schema_Request_Auth_Sensitive_Value:
     """sensitive value in JWT/cookie -> only the structure is reported, never the value itself"""
 
@@ -170,7 +170,7 @@ class Test_Schema_Request_Auth_Sensitive_Value:
 
 @rfc(RFC_LINK)
 @scenarios.appsec_api_security
-@features.api_security_schemas
+@features.auth_schemas
 class Test_Schema_Request_Jwt_Complex:
     """JWT with a complex nested structure (maps with children, arrays) -> schema generated"""
 
