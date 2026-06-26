@@ -1017,6 +1017,21 @@ class WeblogContainer(TestedContainer):
         version_from_label = self.image.labels.get("system-tests-library-version")
         if version_from_label:
             self._library = ComponentVersion(library, version_from_label)
+        elif replay:
+            # In replay mode, post_start is never called (containers do not start).
+            # Load the library version from the saved healthcheck log so that
+            # init_patterns() below can install the library-specific log-filtering
+            # rules (e.g. PHP env-var skip patterns that prevent SOME_SECRET_ENV leaks).
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self._library = ComponentVersion(lib["name"], lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version in configure (replay): {e}")
+
+        if self._library is not None:
+            self.stdout_interface.init_patterns(self._library)
 
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
@@ -1697,6 +1712,17 @@ class ExternalProcessingContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        if replay:
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self.library = ComponentVersion("envoy", lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version from healthcheck log in replay mode: {e}")
+
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
@@ -1772,6 +1798,17 @@ class StreamProcessingOffloadContainer(TestedContainer):
                 "retries": 10,
             },
         )
+
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        if replay:
+            try:
+                with open(self.healthcheck_log_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                    lib = data["library"]
+                self.library = ComponentVersion("haproxy", lib["version"])
+            except Exception as e:
+                logger.warning(f"Could not load library version from healthcheck log in replay mode: {e}")
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
