@@ -306,8 +306,10 @@ class Inputs:
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
-            self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
-            self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
+            source = os.environ.get("CI_PIPELINE_SOURCE", "push")
+            self.event_name = "pull_request" if source == "merge_request_event" else source
+            branch = os.environ.get("CI_COMMIT_REF_NAME", "")
+            self.ref = f"refs/heads/{branch}" if branch else ""
             self.pr_title = ""
             self.is_gitlab = True
         else:
@@ -405,6 +407,9 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
+        libraries = " ".join(sorted(library_processor.selected))
+        if libraries:
+            outputs["libraries"] = libraries
         outputs |= scenario_processor.get_outputs()
     else:
         outputs |= (
