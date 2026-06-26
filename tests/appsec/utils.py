@@ -29,6 +29,18 @@ def find_configuration() -> Generator:
         yield payload.get("configuration")
 
 
+def find_products() -> Generator:
+    """Yield each products dict from app-started/app-product-change telemetry payloads."""
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        request_type = content.get("request_type")
+        payload = content["payload"]
+
+        if request_type in ("app-started", "app-product-change"):
+            if payload.get("products"):
+                yield payload["products"]
+
+
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
 
