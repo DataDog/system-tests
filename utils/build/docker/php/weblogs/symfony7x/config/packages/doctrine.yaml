@@ -1,0 +1,17 @@
+parameters:
+    default_sqlite_path: '/tmp/symfony.db'
+
+doctrine:
+    dbal:
+        driver: pdo_sqlite
+        path: '%env(default:default_sqlite_path:SYMFONY_DB_PATH)%'
+    orm:
+        auto_generate_proxy_classes: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        mappings:
+            App:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                alias: App
