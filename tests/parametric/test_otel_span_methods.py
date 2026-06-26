@@ -12,6 +12,7 @@ from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures import TestAgentAPI
+from utils.dd_types import is_same_boolean
 from utils import features, context, scenarios
 from .conftest import APMLibrary
 
@@ -191,9 +192,14 @@ class Test_Otel_Span_Methods:
         assert root_span["name"] == "producer"
         assert root_span["resource"] == "operation"
 
+        # v0.4 serializes data into `meta`;
+        # v1.0 serializes data into `metrics`;
+        # Merge both so lookups are protocol-agnostic.
+        meta_or_metrics = {**root_span["meta"], **root_span["metrics"]}
+
         assert root_span["meta"]["str_val"] == "val"
         assert root_span["meta"]["str_val_empty"] == ""
-        assert root_span["meta"]["bool_val"] == "true"
+        assert is_same_boolean(actual=meta_or_metrics.get("bool_val"), expected=True, is_otel_boolean=True)
         assert root_span["metrics"]["int_val"] == 1
         assert root_span["metrics"]["int_val_zero"] == 0
         assert root_span["metrics"]["double_val"] == 4.2
@@ -204,14 +210,14 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["array_val_int.0"] == 10
         assert root_span["metrics"]["array_val_int.1"] == 20
 
-        assert root_span["meta"]["array_val_bool.0"] == "true"
-        assert root_span["meta"]["array_val_bool.1"] == "false"
+        assert is_same_boolean(actual=meta_or_metrics.get("array_val_bool.0"), expected=True, is_otel_boolean=True)
+        assert is_same_boolean(actual=meta_or_metrics.get("array_val_bool.1"), expected=False, is_otel_boolean=True)
 
         assert root_span["metrics"]["array_val_double.0"] == 10.1
         assert root_span["metrics"]["array_val_double.1"] == 20.2
 
         assert root_span["meta"]["d_str_val"] == "bye"
-        assert root_span["meta"]["d_bool_val"] == "false"
+        assert is_same_boolean(actual=meta_or_metrics.get("d_bool_val"), expected=False, is_otel_boolean=True)
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
@@ -470,13 +476,13 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == int(root_tid, 16)
         assert link.get("attributes") is None or len(link.get("attributes")) == 0
         # Tracestate is not required, but if it is present, it must contain the linked span's tracestate
-        assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
+        assert not link.get("tracestate") or "dd=" in link.get("tracestate")
 
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
         assert link.get("trace_id") == first.get("trace_id")
         assert link.get("trace_id_high") == int(root_tid, 16)
-        assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
+        assert not link.get("tracestate") or "dd=" in link.get("tracestate")
 
     @pytest.mark.parametrize(
         ("expected_operation_name", "span_kind", "attributes"),
@@ -637,7 +643,7 @@ class Test_Otel_Span_Methods:
 
         event1 = events[0]
         assert event1.get("name") == "first_event"
-        assert "attributes" not in event1
+        assert not event1.get("attributes")
 
         event2 = events[1]
         assert event2.get("name") == "second_event"
@@ -650,9 +656,9 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("int_val") == 1
         assert event3["attributes"].get("string_val") == "2"
 
-        v04_v07_events = "span_events" in root_span
+        arrays_are_flattened = "int_array.0" in event3["attributes"]
 
-        if v04_v07_events:
+        if arrays_are_flattened:
             assert event3["attributes"].get("int_array.0") == 3
             assert event3["attributes"].get("int_array.1") == 4
             assert event3["attributes"].get("string_array.0") == "5"
