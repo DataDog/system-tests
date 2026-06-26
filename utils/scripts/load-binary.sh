@@ -52,6 +52,13 @@ assert_target_branch_is_not_set() {
   exit 1
 }
 
+ghcr_login_if_token_set() {
+  if [ -n "$GITHUB_TOKEN" ]; then
+    echo "Log to GHCR with token"
+    echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
+  fi
+}
+
 get_github_action_artifact() {
     rm -rf artifacts artifacts.zip
 
@@ -137,10 +144,7 @@ elif [ "$TARGET" = "dotnet" ]; then
     NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
 
     rm -rf *.tar.gz
-    if [ -n "$GITHUB_TOKEN" ]; then
-        echo "Log to GHCR with token"
-        echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
-    fi
+    ghcr_login_if_token_set
 
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
@@ -163,11 +167,9 @@ elif [ "$TARGET" = "php" ]; then
     mkdir -p temp
 
     if [ -n "${LIBRARY_TARGET_BRANCH:-}" ]; then
-        NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
-        if [ -n "${GITHUB_TOKEN:-}" ]; then
-            echo "Log to GHCR with token"
-            echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"
-        fi
+        # Match GitLab's CI_COMMIT_REF_SLUG: lowercase, non-alphanumeric → '-', collapse and trim
+        NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/-\+/-/g;s/^-//;s/-$//')
+        ghcr_login_if_token_set
         ../utils/scripts/docker_base_image.sh \
             "ghcr.io/datadog/dd-trace-php/dd-library-php:${NORMALIZED_BRANCH}" \
             ./temp
