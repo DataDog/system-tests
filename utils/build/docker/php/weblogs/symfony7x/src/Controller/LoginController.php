@@ -51,6 +51,7 @@ class LoginController extends AbstractController
 
         $user = $this->userProvider->createUser($id, $username, $hashedPassword, $username);
         $this->security->login($user, AppAuthenticator::class, 'main');
+        $this->trackSignup($username, $user->getId(), []);
 
         return new Response('', 200);
     }
@@ -120,14 +121,19 @@ class LoginController extends AbstractController
         try {
             $user = $this->userProvider->loadUserByIdentifier($username);
         } catch (UserNotFoundException) {
+            $this->trackLoginFailure($username, '', false, []);
+
             return false;
         }
 
         if (!$this->passwordHasher->isPasswordValid($user, $password)) {
+            $this->trackLoginFailure($username, $user->getId(), true, []);
+
             return false;
         }
 
         $this->security->login($user, AppAuthenticator::class, 'main');
+        $this->trackLoginSuccess($username, $user->getId(), []);
 
         return true;
     }
@@ -139,5 +145,20 @@ class LoginController extends AbstractController
         } else {
             \datadog\appsec\track_user_login_failure_event($user, $exists, []);
         }
+    }
+
+    private function trackLoginSuccess(string $login, string $userId, array $meta): void
+    {
+        \datadog\appsec\track_user_login_success_event_automated($login, $userId, $meta);
+    }
+
+    private function trackLoginFailure(string $login, string $userId, bool $exists, array $meta): void
+    {
+        \datadog\appsec\track_user_login_failure_event_automated($login, $userId, $exists, $meta);
+    }
+
+    private function trackSignup(string $login, string $userId, array $meta): void
+    {
+        \datadog\appsec\track_user_signup_event_automated($login, $userId, $meta);
     }
 }
