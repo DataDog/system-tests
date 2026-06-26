@@ -238,6 +238,7 @@ DD_PROPRIETARY_PREFIXES: dict[str, str] = {
     "java": "jvm.heap_memory",
 }
 
+
 def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     """Return observed runtime metrics grouped by name.
 
@@ -330,4 +331,3 @@ class Test_OtlpRuntimeMetrics:
         assert len(dd_named_metrics) == 0, (
             f"Found DD-proprietary metric names for {library}: {dd_named_metrics}. Expected OTel-native names only."
         )
-
