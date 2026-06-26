@@ -52,6 +52,11 @@ on:
         default: ''
         required: false
         type: string
+      _build_nodejs_base_images:
+        description: "Shall we build Node.js base images for tests on Node.js tracer"
+        default: false
+        required: false
+        type: boolean
 
     # Map the workflow outputs to job outputs
     outputs:
@@ -137,6 +142,7 @@ jobs:
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
+          --build-nodejs-base-images "${{ inputs._build_nodejs_base_images }}" \
           --output $GITHUB_OUTPUT
     - name: log
       run: |
@@ -150,6 +156,7 @@ jobs:
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
+          --build-nodejs-base-images "${{ inputs._build_nodejs_base_images }}" \
           --format json | jq
 
     - name: Extract library target branch
