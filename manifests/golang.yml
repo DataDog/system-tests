@@ -84,6 +84,7 @@ manifest:
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v2.10.0-dev
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
@@ -974,7 +975,13 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: irrelevant
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
+    - weblog_declaration:
+        "*": irrelevant
+        chi: v2.10.0-dev
+        echo: v2.10.0-dev
+        gin: v2.10.0-dev
+        net-http: v2.10.0-dev
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant

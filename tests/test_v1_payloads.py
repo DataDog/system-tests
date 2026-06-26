@@ -32,7 +32,7 @@ class Test_V1Payloads:
             SamplingMechanism.DEFAULT,
         )  # TODO: Why is this local rule sampler for go? For JAVA it is `DEFAULT`.
         assert trace.raw_trace["priority"] == SamplingPriority.USER_KEEP
-        span = trace.spans[0]
+        span = interfaces.library.get_root_span(self.r)
         assert span.raw_span["error"], "Error field must be boolean"
         assert span.raw_span["env"] == "system-tests"
         assert span.raw_span["component"], "Component must not be empty"

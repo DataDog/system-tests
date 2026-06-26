@@ -284,6 +284,7 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v1.63.0

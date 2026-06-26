@@ -97,6 +97,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: v1.6.2
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v1.21.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
@@ -706,7 +707,7 @@ manifest:
     - declaration: missing_feature (OTel SDK requires PHP >= 8.1)
       excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics: missing_feature
-  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: v1.22.0
   tests/integrations/test_sql.py::Test_Sql: v1.17.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.16.0
@@ -956,7 +957,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.2.0
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: v1.22.0
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: '>=1.16.0'
