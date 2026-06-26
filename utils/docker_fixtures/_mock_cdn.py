@@ -28,6 +28,7 @@ FIXTURE_IDS = {
 }
 DEFAULT_FIXTURE = "valid_control"
 UFC_ETAG = '"ufc-v1"'
+EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 0.5
 MAX_CONTROL_BODY_BYTES = 512
 REPO_ROOT = Path(__file__).parents[2]
@@ -209,8 +210,8 @@ class MockCDNRequestHandler(BaseHTTPRequestHandler):
 
 def _has_auth(headers: dict[str, str]) -> bool:
     return any(
-        bool(headers.get(header))
-        for header in ("DD-API-KEY", "X-Datadog-API-Key", "Authorization", "DD-Api-Key")
+        headers.get(header) == EXPECTED_API_KEY
+        for header in ("DD-API-KEY", "X-Datadog-API-Key", "DD-Api-Key")
     )
 
 

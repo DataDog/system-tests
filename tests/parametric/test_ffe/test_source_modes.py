@@ -110,14 +110,17 @@ def _evaluate(test_library: APMLibrary) -> dict[str, Any]:
 
 def _assert_expected_value(result: dict[str, Any]) -> None:
     assert result.get("value") == EVALUATION_CASE["expected_value"], "unexpected FFE evaluation value"
+    assert result.get("errorCode") in {None, ""}
+    assert result.get("reason") != "ERROR"
 
 
 def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
-    assert result.get("value") == EVALUATION_CASE["default_value"] or result.get("errorCode") in {
+    assert result.get("value") == EVALUATION_CASE["default_value"]
+    assert result.get("errorCode") in {
         "PROVIDER_NOT_READY",
         "GENERAL",
         "PARSE_ERROR",
-    }
+    } or result.get("reason") == "ERROR"
 
 
 @scenarios.parametric
