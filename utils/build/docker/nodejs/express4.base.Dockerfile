@@ -17,5 +17,5 @@ RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && node nft-prune.mjs app.js \
  && rm -rf /root/.bun
 
-# docker build --progress=plain -f utils/build/docker/nodejs/express4.base.Dockerfile -t datadog/system-tests:express4.base-v2 .
-# docker push datadog/system-tests:express4.base-v2
+# docker build --progress=plain -f utils/build/docker/nodejs/express4.base.Dockerfile -t datadog/system-tests:express4.base-v3 .
+# docker push datadog/system-tests:express4.base-v3
