@@ -60,7 +60,7 @@ setup:
 {% endif %}
 
 {% for variant in weblog_variants %}
-build_{{library}}_{{variant}}:
+system_tests_build_{{library}}_{{variant}}:
   extends: .system_tests_base
   {% if binaries_artifacts_list %}
   needs:
@@ -87,7 +87,7 @@ build_{{library}}_{{variant}}:
 
 {% endfor %}
 {% for variant, scenario, build_required in scenario_pairs %}
-run_{{library}}_{{scenario}}_{{variant}}:
+system_tests_run_{{library}}_{{scenario}}_{{variant}}:
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}
@@ -95,7 +95,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
 {% endif %}
   needs:
   {% if build_required %}
-    - job: build_{{library}}_{{variant}}
+    - job: system_tests_build_{{library}}_{{variant}}
       artifacts: true
   {% elif binaries_artifacts_list %}
     {% for artifact_job in binaries_artifacts_list %}
@@ -133,7 +133,7 @@ run_{{library}}_{{scenario}}_{{variant}}:
 {% endfor %}
 {% if parametric.enable %}
 {% for job_index in parametric.job_matrix %}
-run_{{library}}_PARAMETRIC_{{job_index}}:
+system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}

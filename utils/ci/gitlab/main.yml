@@ -88,7 +88,7 @@ variables:
     reports:
       dotenv: param.env
 
-build_test_pipeline:
+system_tests_build_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
@@ -99,7 +99,7 @@ build_test_pipeline:
     - job: build_ci_image
       optional: true
       artifacts: false
-    - job: system-tests-param
+    - job: system_tests_param
       optional: true
       artifacts: true
   script:
@@ -146,10 +146,10 @@ build_test_pipeline:
     - if: $[[ inputs.condition ]]
     - when: never
   needs:
-    - job: build_test_pipeline
+    - job: system_tests_build_pipeline
       optional: true
       artifacts: true
-    - job: system-tests-param
+    - job: system_tests_param
       optional: true
       artifacts: true
     - job: mirror_images
@@ -161,15 +161,15 @@ build_test_pipeline:
     LIBRARIES: $LIBRARIES
     UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
 
-run_test_pipeline_0:
+system_tests_run_pipeline_0:
   extends: .run_test_pipeline_base
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-0.yml
-        job: build_test_pipeline
+        job: system_tests_build_pipeline
     strategy: depend
 
-run_test_pipeline_1:
+system_tests_run_pipeline_1:
   extends: .run_test_pipeline_base
   rules:
     - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
@@ -179,10 +179,10 @@ run_test_pipeline_1:
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-1.yml
-        job: build_test_pipeline
+        job: system_tests_build_pipeline
     strategy: depend
 
-run_test_pipeline_2:
+system_tests_run_pipeline_2:
   extends: .run_test_pipeline_base
   rules:
     - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
@@ -192,5 +192,5 @@ run_test_pipeline_2:
   trigger:
     include:
       - artifact: system-tests/generated-pipeline-chunk-2.yml
-        job: build_test_pipeline
+        job: system_tests_build_pipeline
     strategy: depend

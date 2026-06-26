@@ -319,7 +319,7 @@ generate_system_tests_lib_injection_images:
 # End-to-end pipeline — only for the system-tests repo
 # ──────────────────────────────────────────────
 
-system-tests-param:
+system_tests_param:
   extends: .system_tests_param_base
   stage: configure
   needs:
@@ -363,7 +363,7 @@ system-tests-param:
             fi
           done
         done
-        export LIBRARIES=""
+        export LIBRARIES="$filtered"
       fi
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
