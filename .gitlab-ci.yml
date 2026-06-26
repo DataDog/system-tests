@@ -256,6 +256,7 @@ check_merge_labels:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
     - docker buildx version
+    - echo $DOCKER_LOGIN
     - export GITHUB_TOKEN=$(cat token.txt)
     - |
       # Pull a tiny image and try to push it with a test tag
