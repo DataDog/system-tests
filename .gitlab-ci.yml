@@ -239,8 +239,9 @@ count_amis:
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   image: registry.ddbuild.io/system-tests/base-image-builder
-  tags:
-    - arch:amd64
+  tags: ["docker-in-docker:amd64"]
+  # tags:
+  #   - arch:amd64
   id_tokens:
     DDOCTOSTS_ID_TOKEN:
       aud: dd-octo-sts
@@ -257,12 +258,10 @@ check_merge_labels:
     - docker buildx version
     - export GITHUB_TOKEN=$(cat token.txt)
     - |
-      export REPO="datadog/system-tests"
-      docker login -u "$DOCKER_LOGIN" --password-stdin <<< "$DOCKER_LOGIN_PASS"
-      curl -fsS -u "$DOCKER_LOGIN:$DOCKER_LOGIN_PASS" \
-        "https://auth.docker.io/token?service=registry.docker.io&scope=repository:${REPO}:pull,push" \
-        >/dev/null
-    - echo $?
+      # Pull a tiny image and try to push it with a test tag
+      docker pull hello-world
+      docker tag hello-world datadog/system-tests:auth-test-DELETE-ME
+      docker push datadog/system-tests:auth-test-DELETE-ME
 
     # - ./utils/scripts/get_pr_merged_labels.sh
   # after_script:
