@@ -53,6 +53,10 @@ post '/' do
   'Hello, world!'
 end
 
+get '/waf' do
+  'Hello, world!'
+end
+
 # NOTE: The issue of trailing slashes was fixed in 2.0
 #       https://github.com/sinatra/sinatra/blob/fa99a21461d4f1f5337b9b9d7a38a1b51c8f4e55/CHANGELOG.md?plain=1#L491
 #       otherwise we will use `set :strict_paths, false`
@@ -272,6 +276,18 @@ end
 
 get '/api_security/sampling/:status' do
   status params['status'].to_i
+  'OK'
+end
+
+get '/api_security/multi-params-in-segment/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id' do
   'OK'
 end
 
