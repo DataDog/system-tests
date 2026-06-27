@@ -3233,8 +3233,18 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_malformed_flag_returns_default:
     - component_version: 1.63.0
       declaration: bug (APMRP-360)  # the bug has been shipped in this exact release
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-2184)
+      component_version: <1.63.2
+      weblog: [spring-boot]
+    - declaration: bug (FFL-2184)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-2184)
+      component_version: <1.63.2
+      weblog: [spring-boot]
+    - declaration: bug (FFL-2184)
+      excluded_weblog: [spring-boot]
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3245,7 +3255,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.62.0
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count: bug (FFL-1972)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-1972)
+      component_version: <1.63.2
+      weblog: [spring-boot]
+    - declaration: bug (FFL-1972)
+      excluded_weblog: [spring-boot]
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
@@ -3709,7 +3724,13 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.31.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: '>=1.63.2'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Experiments_Per_Subject: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Subjects: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <1.58.2+06122213c8
