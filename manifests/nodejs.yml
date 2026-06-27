@@ -156,7 +156,28 @@ manifest:
         express4: *ref_5_98_0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.110.0'
+        express4-typescript: '>=5.110.0'
+        express4: '>=5.110.0'
+        express5: '>=5.110.0'
+        fastify: '>=5.110.0'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags:
+    - weblog_declaration:
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:
+    - weblog_declaration:
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:
     - weblog_declaration:
@@ -2100,12 +2121,18 @@ manifest:
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : "missing_feature (\"Issue: the decision maker is removed. Is that allowed behavior?\")"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: "missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: "missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)'
+      component_version: <5.110.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)'
+      component_version: <5.110.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-js does not filter spans with _dd.partial_version metric set; span_stats.js onSpanFinished only filters by TOP_LEVEL_KEY/MEASURED)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: "missing_feature (CSS v1.2.0: dd-trace-js does not drop P0 traces when DD_TRACE_SAMPLE_RATE=0; traces are still emitted with _sampling_priority_v1=-1 instead of being dropped client-side)"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: "missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)'
+      component_version: <5.110.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: "missing_feature (CSS v1.2.0: dd-trace-js does not produce stats for nested top-level (service-entry) child spans when parent and child are in different services; only the outer span yields a stats entry)"
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
@@ -2190,11 +2217,29 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: *ref_5_32_0
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_4_native_stats_no_otlp: missing_feature (nodejs has not implemented native client-side /v0.6/stats computation)
+  tests/parametric/test_otlp_trace_metrics.py: '>=5.110.0'  # TODO: a lower version might be supported
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_4_disabled_when_metrics_export_off: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_4_native_stats_no_otlp:  # TODO: a lower version might be supported
+    - declaration: missing_feature (nodejs has not implemented native client-side /v0.6/stats computation)
+      component_version: <5.110.0
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence::test_fr05_1_metrics_computed_before_sampling: missing_feature (nodejs does not drop sampled-out traces when client-side stats are computed)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (nodejs does not tag child spans with a different service than their parent as top-level)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: missing_feature
+  ? tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_3_stats_computed_resource_attr_on_otlp_traces
+  : missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.
@@ -2208,7 +2253,10 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current_span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: *ref_5_72_0
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: bug (APMLP-270)
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing:  # TODO: a lower version might be supported
+    - declaration: bug (APMLP-270)
+      component_version: <5.110.0
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_disabled: bug (APMLP-270)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v5.93.0
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # Manual keep did not override the upstream drop decision
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=5.93.0'
@@ -2239,7 +2287,9 @@ manifest:
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
   : missing_feature (Not implemented)
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: *ref_6_0_0
-  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not emitted when agent is unreachable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Diagnostic messages not emitted when agent is unreachable)
+      component_version: <5.110.0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: *ref_5_25_0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings_2: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Defaults: *ref_5_6_0
@@ -2284,7 +2334,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: *ref_5_15_0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature (Only plaintext files are sent presently)
-  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature (Only plaintext files are sent presently)
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Only plaintext files are sent presently)
+      component_version: <5.110.0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature (Only plaintext files are sent presently)
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature (Only plaintext files are sent presently)
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature (Only plaintext files are sent presently)
@@ -2297,7 +2349,111 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
-  tests/stats/test_stats.py: missing_feature
+  tests/stats/test_stats.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.110.0'
+        express4-typescript: '>=5.110.0'
+        express4: '>=5.110.0'
+        express5: '>=5.110.0'
+        fastify: '>=5.110.0'
+        nextjs: '>=5.110.0'
+  tests/stats/test_stats.py::Test_Agent_Info_Endpoint:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/stats/test_stats.py::Test_Peer_Tags:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
@@ -2446,8 +2602,22 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v5.107.0-pre
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
-  tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
-  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
+  tests/test_profiling.py::Test_Profile::test_process_tags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.110.0'
+        express4-typescript: '>=5.110.0'
+        express4: '>=5.110.0'
+        express5: '>=5.110.0'
+        fastify: '>=5.110.0'
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.110.0'
+        express4-typescript: '>=5.110.0'
+        express4: '>=5.110.0'
+        express5: '>=5.110.0'
+        fastify: '>=5.110.0'
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
@@ -2668,4 +2838,44 @@ manifest:
         express5: *ref_5_56_0
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: *ref_4_21_0
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=5.110.0'
+        express4-typescript: '>=5.110.0'
+        express4: '>=5.110.0'
+        express5: '>=5.110.0'
+        fastify: '>=5.110.0'
+        nextjs: '>=5.110.0'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanEvents:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        nextjs: missing_feature
+        express4: missing_feature
+        express4-typescript: missing_feature
+        uds-express4: missing_feature
+        express5: missing_feature
+        fastify: missing_feature
