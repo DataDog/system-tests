@@ -27,7 +27,37 @@ manifest:
         nodejs-alb: irrelevant (application-load-balancer event type does not support path params)
         nodejs-alb-multi: irrelevant (application-load-balancer event type does not support path params)
         nodejs-function-url: irrelevant (function-url event type does not support path params)
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        nodejs-alb: '>=12.140.0'
+        nodejs-apigw-rest: '>=12.140.0'
+        nodejs-function-url: '>=12.140.0'
+        nodejs-apigw-http: '>=12.140.0'
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
+    - weblog_declaration:
+        nodejs-apigw-rest: missing_feature
+        nodejs-function-url: missing_feature
+        nodejs-alb: missing_feature
+        nodejs-apigw-http: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
+    - weblog_declaration:
+        nodejs-apigw-rest: missing_feature
+        nodejs-function-url: missing_feature
+        nodejs-alb: missing_feature
+        nodejs-apigw-http: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
+    - weblog_declaration:
+        nodejs-apigw-rest: missing_feature
+        nodejs-function-url: missing_feature
+        nodejs-alb: missing_feature
+        nodejs-apigw-http: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
+    - weblog_declaration:
+        nodejs-apigw-rest: missing_feature
+        nodejs-function-url: missing_feature
+        nodejs-alb: missing_feature
+        nodejs-apigw-http: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: missing_feature
@@ -59,7 +89,7 @@ manifest:
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: missing_feature
   tests/appsec/test_traces.py::Test_RetainTraces: missing_feature
-  tests/appsec/test_versions.py::Test_Events: missing_feature
+  tests/appsec/test_versions.py::Test_Events: '>=12.140.0'  # TODO: a lower version might be supported
   tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
