@@ -3883,7 +3883,20 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py: '>=1.63.2'  # TODO: a lower version might be supported
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header: missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
@@ -4011,9 +4024,57 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-spring-boot: '>=1.63.2'
+        spring-boot-openliberty: '>=1.63.2'
+        spring-boot-undertow: '>=1.63.2'
+        ratpack: '>=1.63.2'
+        resteasy-netty3: '>=1.63.2'
+        spring-boot-wildfly: '>=1.63.2'
+        akka-http: '>=1.63.2'
+        vertx4: '>=1.63.2'
+        spring-boot-jetty: '>=1.63.2'
+        spring-boot-payara: '>=1.63.2'
+        play: '>=1.63.2'
+        spring-boot: '>=1.63.2'
+        vertx3: '>=1.63.2'
+        jersey-grizzly2: '>=1.63.2'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-spring-boot: '>=1.63.2'
+        spring-boot-openliberty: '>=1.63.2'
+        spring-boot-undertow: '>=1.63.2'
+        ratpack: '>=1.63.2'
+        resteasy-netty3: '>=1.63.2'
+        spring-boot-wildfly: '>=1.63.2'
+        akka-http: '>=1.63.2'
+        vertx4: '>=1.63.2'
+        spring-boot-jetty: '>=1.63.2'
+        spring-boot-payara: '>=1.63.2'
+        play: '>=1.63.2'
+        spring-boot: '>=1.63.2'
+        vertx3: '>=1.63.2'
+        jersey-grizzly2: '>=1.63.2'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-spring-boot: '>=1.63.2'
+        spring-boot-openliberty: '>=1.63.2'
+        spring-boot-undertow: '>=1.63.2'
+        ratpack: '>=1.63.2'
+        resteasy-netty3: '>=1.63.2'
+        spring-boot-wildfly: '>=1.63.2'
+        akka-http: '>=1.63.2'
+        vertx4: '>=1.63.2'
+        spring-boot-jetty: '>=1.63.2'
+        spring-boot-payara: '>=1.63.2'
+        play: '>=1.63.2'
+        spring-boot: '>=1.63.2'
+        vertx3: '>=1.63.2'
+        jersey-grizzly2: '>=1.63.2'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source:
