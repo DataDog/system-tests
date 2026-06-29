@@ -51,13 +51,18 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     needs:
       - nightly
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: false
       - name: Download logs artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: ./.github/actions/download_artifact
         with:
           merge-multiple: false
           pattern: logs_*
@@ -69,7 +74,7 @@ jobs:
               fi
             done
       - name: Upload test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: ./.github/actions/upload_artifact
         with:
           name: test-report
           path: |
@@ -79,7 +84,7 @@ jobs:
   test_activation:
     name: Test activation
     runs-on: ubuntu-latest
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     strategy:
       fail-fast: false
       matrix:
@@ -154,7 +159,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+      - uses: ./.github/actions/download_artifact
         with:
           name: test-report
           path: data

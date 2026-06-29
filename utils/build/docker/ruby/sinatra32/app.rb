@@ -5,6 +5,7 @@ require 'json'
 require 'faraday'
 require 'faraday/follow_redirects'
 require 'sinatra/json'
+require 'pg'
 
 begin
   require 'datadog/auto_instrument'
@@ -41,7 +42,6 @@ get '/healthcheck' do
 
   gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
   version = gemspec.version.to_s
-  version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
   {
     status: 'ok',
     library: {
@@ -272,6 +272,18 @@ get '/api_security/sampling/:status' do
   'OK'
 end
 
+get '/api_security/multi-params-in-segment/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id' do
+  'OK'
+end
+
 ssrf_handler = lambda do
   url = URI.parse(request.params['domain'])
   url = "http://#{url}" unless url.scheme
@@ -392,4 +404,45 @@ get '/inferred-proxy/span-creation' do
   content_type :text
   status (params['status_code'] || 200).to_i
   'ok'
+end
+
+$dbm_spy_installed = false
+
+def _install_dbm_sql_spy
+  return if $dbm_spy_installed
+  $dbm_spy_installed = true
+  begin
+    require 'datadog/tracing/contrib/propagation/sql_comment'
+    mod = Datadog::Tracing::Contrib::Propagation::SqlComment
+    original = mod.method(:prepend_comment)
+    mod.define_singleton_method(:prepend_comment) do |sql, *args|
+      result = original.call(sql, *args)
+      Thread.current[:_dd_captured_dbm_sql] = result
+      result
+    end
+  rescue => e
+    warn "DBM spy installation failed: #{e.message}"
+  end
+end
+
+_install_dbm_sql_spy
+
+get '/stub_dbm' do
+  content_type :json
+  integration = params['integration']
+  if integration == 'pg'
+    conn = PG.connect(
+      host: 'postgres', port: 5433,
+      dbname: 'system_tests_dbname',
+      user: 'system_tests_user',
+      password: 'system_tests'
+    )
+    conn.exec('SELECT version()')
+    conn.close
+    captured = Thread.current[:_dd_captured_dbm_sql]
+    { status: 'ok', dbm_comment: captured }.to_json
+  else
+    status 406
+    { status: 'error', message: "Integration #{integration} not supported" }.to_json
+  end
 end

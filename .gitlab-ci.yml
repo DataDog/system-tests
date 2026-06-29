@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/9cf7d7609ff62e4723c9cbc061ca2a25345ce5d6055b9acad9a13dbf736261f0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
 stages:
   - configure
   - nodejs
@@ -254,6 +254,7 @@ check_merge_labels:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
+    - docker buildx version
     - export GITHUB_TOKEN=$(cat token.txt)
     - ./utils/scripts/get_pr_merged_labels.sh
   after_script:

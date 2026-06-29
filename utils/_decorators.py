@@ -103,6 +103,7 @@ def _expected_to_fail(
             "python_lambda",
             "java_lambda",
             "nodejs_lambda",
+            "ruby_lambda",
             "rust",
         ):
             raise ValueError(f"Unknown library: {library}")

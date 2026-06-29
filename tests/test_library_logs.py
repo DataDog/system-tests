@@ -92,7 +92,7 @@ class Test_NoExceptions:
             # APPSEC-56111:
             allowed_patterns.append(re.escape("Failed to determine dependency for uri {}"))
         if context.weblog_variant in ("vertx3", "vertx4"):
-            # AIDM-583:
+            # AIDM-583: fixed in dd-trace-java#11268, remove this once that fix is in a released version
             allowed_patterns.append(
                 re.escape(
                     "Failed to handle exception in instrumentation for io.netty.handler.codec.http.multipart.HttpPostMultipartRequestDecoder"

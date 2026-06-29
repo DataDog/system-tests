@@ -135,8 +135,13 @@ def test_minimal_number_of_scenarios():
         )
 
         # 2. LEVEL 1 + LEVEL 3: equivalent configs AND one can be included in the other (REPORT ONLY)
+        # Only check subset when agent envs are identical — different agent_env means scenarios can't be merged
         # python trickery to get if a dict is a sub set of another
-        if small_scenario.weblog_container.environment.items() <= large_scenario.weblog_container.environment.items():
+        if (
+            agent_envs_match
+            and small_scenario.weblog_container.environment.items()
+            <= large_scenario.weblog_container.environment.items()
+        ):
             logger.error(f"Small scenario: {small_scenario.name}")
             logger.error(f"Large scenario: {large_scenario.name}")
 
