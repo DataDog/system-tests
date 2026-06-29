@@ -63,6 +63,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v2.46.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.26.3
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v3.45.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
@@ -622,6 +623,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
+    - declaration: missing_feature (Static field guard is not released yet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
