@@ -231,6 +231,30 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
+    otel_semantics = EndToEndScenario(
+        "OTEL_SEMANTICS",
+        weblog_env={"DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"},
+        doc="Test that HTTP server/client spans emit OpenTelemetry semantic-convention "
+        "attribute names when DD_TRACE_OTEL_SEMANTICS_ENABLED=true",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp = EndToEndScenario(
+        "OTEL_SEMANTICS_OTLP",
+        weblog_env={
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        include_opentelemetry=True,
+        doc="Like OTEL_SEMANTICS but exports via OTLP, so HTTP attributes can be validated as typed "
+        "OpenTelemetry values (e.g. http.response.status_code / server.port as int) which the "
+        "Datadog agent protocol cannot represent",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
