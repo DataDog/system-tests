@@ -20,7 +20,7 @@ class _FakeCreator:
         self.created_envs: list[dict] = []
         self.stopped = 0
 
-    def __call__(self, agent_env: dict[str, str]):
+    def __call__(self, request, agent_env: dict[str, str]):
         from utils.docker_fixtures._test_agent_pool import AgentLease
 
         self.created_envs.append(dict(agent_env))

@@ -35,7 +35,6 @@ class DockerFixturesScenario(Scenario):
 
         self._test_agent_factory = TestAgentFactory(agent_image)
         self._agent_pool: "WorkerAgentPool | None" = None
-        self._pool_seed_request: "pytest.FixtureRequest | None" = None
 
     def _clean(self):
         if self.is_main_worker:
@@ -85,17 +84,13 @@ class DockerFixturesScenario(Scenario):
         # allocation and is out of scope for this POC.
         if self._agent_pool is None:
 
-            def _creator(agent_env: dict[str, str]) -> AgentLease:
-                assert self._pool_seed_request is not None, (
-                    "WorkerAgentPool creator invoked before the test_agent fixture set "
-                    "_pool_seed_request; the fixture must set it before the first acquire()."
-                )
+            def _creator(request, agent_env: dict[str, str]) -> AgentLease:
                 key = agent_env_key(agent_env)
                 network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
                 network = get_docker_client().networks.create(name=network_name, driver="bridge")
                 container_name = f"ddapm-test-agent-worker-{worker_id}-{abs(hash(key))}"
                 api, stop_agent = self._test_agent_factory.start_agent(
-                    request=self._pool_seed_request,
+                    request=request,
                     worker_id=worker_id,
                     container_name=container_name,
                     docker_network=network.name,

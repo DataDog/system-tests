@@ -98,11 +98,9 @@ def test_agent(
     # the fresh-per-test path. Pooled agents are reset with clear() between tests.
     poolable = request.node.get_closest_marker("snapshot") is None and not agent_env
     if poolable:
-        scenarios.parametric._pool_seed_request = request
         api = test_agent_pool.acquire(request=request, agent_env=agent_env)
         api.clear()  # ensure a clean slate even on the very first acquire
         yield api
-        return
 
     with scenarios.parametric.get_test_agent_api(
         request=request,

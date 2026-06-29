@@ -29,7 +29,7 @@ class WorkerAgentPool:
     `api.rebind_request()` (re-point per-test logging at the current test).
     """
 
-    def __init__(self, creator: Callable[[dict[str, str]], AgentLease]) -> None:
+    def __init__(self, creator: Callable[[Any, dict[str, str]], AgentLease]) -> None:
         self._creator = creator
         self._leases: dict[tuple, AgentLease] = {}
 
@@ -37,7 +37,7 @@ class WorkerAgentPool:
         key = agent_env_key(agent_env)
         lease = self._leases.get(key)
         if lease is None:
-            lease = self._creator(agent_env)
+            lease = self._creator(request, agent_env)
             self._leases[key] = lease
         else:
             lease.api.clear()
