@@ -12,7 +12,7 @@
 
 - **Cross-tracer blast radius:** this code is shared by all 9 tracers' parametric suites. Behavior for non-pooled paths must be byte-for-byte unchanged. Verbatim rule: do not alter `get_test_agent_api`'s existing fresh-path semantics — only add a parallel pooled path.
 - **No state leakage:** a reused agent MUST start each test with no data from a prior test. The reset is `TestAgentAPI.clear()` (`utils/docker_fixtures/_test_agent.py:375-377`), called before the test runs.
-- **POC scope (explicit):** pool only when the test has **no `snapshot` mark**. Snapshot-marked tests use the existing fresh path. Pool entries are keyed by the full `agent_env` dict, so tests with differing `agent_env` get separate pooled agents.
+- **POC scope (explicit):** pool only when the test has **no `snapshot` mark** AND `agent_env == {}` (the default, ~94% of parametric tests). Snapshot-marked tests and tests with a non-default `agent_env` use the existing fresh-per-test path. This guarantees **at most one pooled agent per xdist worker**, which is why `start_agent`'s worker-keyed host ports (`get_host_port(worker_id, …)`) cannot collide. (Pooling multiple distinct `agent_env`s per worker would require per-(worker,env) port allocation — out of scope for this POC; left to the production-hardening team.) The pool is still keyed by `agent_env` so the fallback is structural, not hard-coded to `{}`.
 - **xdist semantics:** a pytest `scope="session"` fixture runs once **per worker** under `pytest-xdist`. That is the mechanism for "one agent per worker."
 - **Default config preserved:** `agent_env` defaults to `{}` (`tests/parametric/conftest.py:38`); the vast majority of parametric tests use it, so a single pooled agent per worker covers them.
 - Frequent commits: one per task minimum.
@@ -367,6 +367,52 @@ from collections.abc import Generator, Callable
 
 (The file already imports `Generator` on line 2 — replace that single import line with the line above.)
 
+- [ ] **Step 4b: Refactor `get_test_agent_api` to delegate to `start_agent` (DRY — do not duplicate the run/readiness body)**
+
+Replace the body of `TestAgentFactory.get_test_agent_api` (`utils/docker_fixtures/_test_agent.py:72-166`) so it calls `start_agent` for container lifecycle and keeps ONLY the snapshot-mark + teardown-report handling around the yield. The env-building, port allocation, `docker_run`, and readiness loop now live solely in `start_agent`:
+
+```python
+    @contextlib.contextmanager
+    def get_test_agent_api(
+        self,
+        request: pytest.FixtureRequest,
+        worker_id: str,
+        container_name: str,
+        docker_network: str,
+        agent_env: dict[str, str],
+        container_otlp_http_port: int,
+        container_otlp_grpc_port: int,
+    ) -> Generator["TestAgentAPI", None, None]:
+        client, stop = self.start_agent(
+            request=request,
+            worker_id=worker_id,
+            container_name=container_name,
+            docker_network=docker_network,
+            agent_env=agent_env,
+            container_otlp_http_port=container_otlp_http_port,
+            container_otlp_grpc_port=container_otlp_grpc_port,
+        )
+        try:
+            # If the snapshot mark is on the test case then do a snapshot test
+            marks = list(request.node.iter_markers(name="snapshot"))
+            assert len(marks) <= 1, "Multiple snapshot marks detected"
+            if marks:
+                snap = marks[0]
+                assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+                if "token" not in snap.kwargs:
+                    snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+                with client.snapshot_context(**snap.kwargs):
+                    yield client
+            else:
+                yield client
+        finally:
+            log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+            request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
+            stop()
+```
+
+This makes `get_test_agent_api` a thin wrapper: there is now exactly one copy of the create-and-wait logic (`start_agent`). A reviewer will (correctly) flag it as a defect if the run/readiness block appears in both methods.
+
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `DOCKER_SMOKE=1 python -m pytest tests/test_the_test/test_start_stop_agent.py -v`
@@ -510,10 +556,12 @@ def test_agent(
     test_agent_otlp_grpc_port: int,
     test_agent_pool,
 ) -> Generator[TestAgentAPI, None, None]:
-    # POC: pool everything except snapshot-marked tests (which need per-test
-    # snapshot_context lifecycle). Pooled agents are reset with clear() between tests.
-    is_snapshot = request.node.get_closest_marker("snapshot") is not None
-    if not is_snapshot:
+    # POC: pool only default-agent_env, non-snapshot tests. Snapshot-marked tests need
+    # per-test snapshot_context lifecycle; non-default agent_env would require a second
+    # pooled agent per worker (worker-keyed host ports would collide). Both fall back to
+    # the fresh-per-test path. Pooled agents are reset with clear() between tests.
+    poolable = request.node.get_closest_marker("snapshot") is None and not agent_env
+    if poolable:
         scenarios.parametric._pool_seed_request = request
         api = test_agent_pool.acquire(request=request, agent_env=agent_env)
         api.clear()  # ensure a clean slate even on the very first acquire
@@ -588,7 +636,22 @@ for i in 1 2 3; do TEST_LIBRARY=php ./run.sh PARAMETRIC tests/parametric/test_ot
 ```
 Expected: three clean runs, no "ITERATION n FAILED" line.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Capture the churn-reduction metric**
+
+The point of the POC is fewer container/network operations. Compute it directly from the run log captured in Step 2 (`/tmp/reuse_run.log`).
+
+Run:
+```bash
+AGENTS=$(grep -c "REUSE-POC agent container created" /tmp/reuse_run.log)
+# Count test cases that ran (passed + failed + xfailed + xpassed) from the pytest summary:
+TESTS=$(grep -oE "[0-9]+ (passed|xpassed|xfailed)" /tmp/reuse_run.log | awk '{s+=$1} END{print s}')
+echo "tests run:            ${TESTS}"
+echo "pooled agents created: ${AGENTS}   (fresh baseline would create one agent + one network per test = ${TESTS})"
+python3 -c "t=${TESTS}; a=${AGENTS}; print(f'agent+network create/destroy cycles: {2*t} (before) -> {2*a} (after) = {100*(1-(a/t)):.0f}% fewer')"
+```
+Expected (default-env otel file): `AGENTS` ≈ 1 (one pooled agent for the worker), `TESTS` ≈ 57 → the agent+network churn drops by ~98% for this file. Record the printed numbers in the report; they are the headline POC result. (The library client is still fresh per test — unchanged — so total per-test container ops drop from 3 to 1 for default-env tests.)
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add utils/docker_fixtures/_test_agent.py
