@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
+from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, AgentLease, agent_env_key
 from docker.errors import DockerException
 from utils._context.docker import get_docker_client
 from utils._logger import logger
@@ -32,6 +33,8 @@ class DockerFixturesScenario(Scenario):
         )
 
         self._test_agent_factory = TestAgentFactory(agent_image)
+        self._agent_pool: "WorkerAgentPool | None" = None
+        self._pool_seed_request = None
 
     def _clean(self):
         if self.is_main_worker:
@@ -72,6 +75,38 @@ class DockerFixturesScenario(Scenario):
                 # If it happens, failing here makes stdout tough to understand.
                 # Let's ignore this, later calls will clean the mess
                 logger.info(f"Failed to remove network, ignoring the error: {e}")
+
+    def get_agent_pool(self, worker_id: str) -> WorkerAgentPool:
+        if self._agent_pool is None:
+
+            def _creator(agent_env: dict[str, str]) -> AgentLease:
+                key = agent_env_key(agent_env)
+                network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
+                network = get_docker_client().networks.create(name=network_name, driver="bridge")
+                container_name = f"ddapm-test-agent-worker-{worker_id}-{abs(hash(key))}"
+                api, stop_agent = self._test_agent_factory.start_agent(
+                    request=self._pool_seed_request,
+                    worker_id=worker_id,
+                    container_name=container_name,
+                    docker_network=network.name,
+                    agent_env=agent_env,
+                    container_otlp_http_port=4318,
+                    container_otlp_grpc_port=4317,
+                )
+
+                def _stop() -> None:
+                    try:
+                        stop_agent()
+                    finally:
+                        try:
+                            network.remove()
+                        except Exception as e:  # noqa: BLE001
+                            logger.info(f"Failed to remove worker network, ignoring: {e}")
+
+                return AgentLease(api=api, stop=_stop)
+
+            self._agent_pool = WorkerAgentPool(_creator)
+        return self._agent_pool
 
     @contextlib.contextmanager
     def get_test_agent_api(
