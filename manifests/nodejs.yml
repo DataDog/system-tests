@@ -2657,6 +2657,14 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
     - weblog_declaration:
         nextjs: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        express4: '>=5.92.0'  # dd-trace-js#7821
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        express4: '>=5.92.0'  # dd-trace-js#7821
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
     - weblog_declaration:
