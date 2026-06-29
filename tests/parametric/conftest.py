@@ -74,6 +74,14 @@ def test_agent_otlp_grpc_port() -> int:
     return 4317
 
 
+@pytest.fixture(scope="session")
+def test_agent_pool(worker_id: str):
+    # scope="session" under pytest-xdist == once per worker.
+    pool = scenarios.parametric.get_agent_pool(worker_id)
+    yield pool
+    pool.shutdown()
+
+
 @pytest.fixture
 def test_agent(
     worker_id: str,
@@ -82,7 +90,20 @@ def test_agent(
     agent_env: dict[str, str],
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
+    test_agent_pool,
 ) -> Generator[TestAgentAPI, None, None]:
+    # POC: pool only default-agent_env, non-snapshot tests. Snapshot-marked tests need
+    # per-test snapshot_context lifecycle; non-default agent_env would require a second
+    # pooled agent per worker (worker-keyed host ports would collide). Both fall back to
+    # the fresh-per-test path. Pooled agents are reset with clear() between tests.
+    poolable = request.node.get_closest_marker("snapshot") is None and not agent_env
+    if poolable:
+        scenarios.parametric._pool_seed_request = request
+        api = test_agent_pool.acquire(request=request, agent_env=agent_env)
+        api.clear()  # ensure a clean slate even on the very first acquire
+        yield api
+        return
+
     with scenarios.parametric.get_test_agent_api(
         request=request,
         worker_id=worker_id,
