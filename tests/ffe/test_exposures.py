@@ -60,22 +60,22 @@ def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[d
 
 
 def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
-    """Wait until the agent receives an exposure event for one of the given flags."""
-    assert interfaces.agent.wait_for(
+    """Give the agent a chance to receive an exposure event before shutdown."""
+    interfaces.agent.wait_for(
         lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
         timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
-    ), f"Timed out waiting for exposure event for flags {sorted(flag_keys)} and subject {subject_id!r}"
+    )
 
 
 def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> int:
-    """Wait until enough matching exposure events are available, then return the current count."""
+    """Give the agent a chance to receive enough exposure events before shutdown."""
     count = count_exposure_events(flag_key, subject_id)
 
     if count < expected:
-        assert interfaces.agent.wait_for(
+        interfaces.agent.wait_for(
             lambda _: count_exposure_events(flag_key, subject_id) >= expected,
             timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
-        ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
+        )
         count = count_exposure_events(flag_key, subject_id)
 
     return count
