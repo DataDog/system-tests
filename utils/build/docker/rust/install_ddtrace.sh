@@ -28,10 +28,7 @@ align_opentelemetry() {
         exit 1
     fi
 
-    # pin to the matching minor: ~MAJOR.MINOR (>=MAJOR.MINOR.0, <MAJOR.(MINOR+1).0).
-    # The opentelemetry ecosystem releases these crates in lockstep per minor, but
-    # patch versions can differ (e.g. opentelemetry 0.32.0 vs opentelemetry_sdk
-    # 0.32.1), so we pin the minor and let cargo pick each crate's patch.
+    # pin to the matching minor and let cargo pick each crate's patch version
     otel_minor="${otel_version%.*}"
     echo "aligning opentelemetry deps to ~${otel_minor} (datadog-opentelemetry uses ${otel_version})"
 
