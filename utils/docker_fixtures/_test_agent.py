@@ -102,6 +102,7 @@ class TestAgentFactory:
         log_path = _agent_log_path(self.host_log_folder, request)
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
         log_file = open(log_path, "w+", encoding="utf-8")  # noqa: SIM115
+        logger.stdout(f"REUSE-POC agent container created: {container_name}")
 
         cm = docker_run(
             image=self.image,
