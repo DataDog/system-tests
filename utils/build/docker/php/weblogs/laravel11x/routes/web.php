@@ -694,3 +694,41 @@ Route::get('/load_dependency', function () {
     $acme = new \Acme\Acme();
     return response('ok', 200, ['Content-Type' => 'text/plain']);
 });
+
+Route::post('/stripe/create_checkout_session', function (Request $request) {
+    \Stripe\Stripe::setApiKey('sk_FAKE');
+    \Stripe\Stripe::$apiBase = 'http://internal_server:8089';
+
+    try {
+        $result = \Stripe\Checkout\Session::create($request->json()->all());
+        return response(json_encode($result), 200, ['Content-Type' => 'application/json']);
+    } catch (\Throwable $e) {
+        return response(json_encode(['error' => $e->getMessage()]), 500, ['Content-Type' => 'application/json']);
+    }
+});
+
+Route::post('/stripe/create_payment_intent', function (Request $request) {
+    \Stripe\Stripe::setApiKey('sk_FAKE');
+    \Stripe\Stripe::$apiBase = 'http://internal_server:8089';
+
+    try {
+        $result = \Stripe\PaymentIntent::create($request->json()->all());
+        return response(json_encode($result), 200, ['Content-Type' => 'application/json']);
+    } catch (\Throwable $e) {
+        return response(json_encode(['error' => $e->getMessage()]), 500, ['Content-Type' => 'application/json']);
+    }
+});
+
+Route::post('/stripe/webhook', function (Request $request) {
+    \Stripe\Stripe::setApiKey('sk_FAKE');
+
+    $payload   = $request->getContent();
+    $sigHeader = $request->header('Stripe-Signature', '');
+
+    try {
+        $event = \Stripe\Webhook::constructEvent($payload, $sigHeader, 'whsec_FAKE');
+        return response(json_encode($event->data->object), 200, ['Content-Type' => 'application/json']);
+    } catch (\Throwable $e) {
+        return response(json_encode(['error' => $e->getMessage()]), 403, ['Content-Type' => 'application/json']);
+    }
+});

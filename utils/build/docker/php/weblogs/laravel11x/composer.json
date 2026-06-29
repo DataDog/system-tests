@@ -5,6 +5,7 @@
         "php": "^8.2",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
+        "stripe/stripe-php": "^10.0",
         "weblog/acme": "*"
     },
     "repositories": [
