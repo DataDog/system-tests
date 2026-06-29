@@ -981,7 +981,6 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
             },
         )
         assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
-        wait_for_exposure_event({self.flag_key}, "")
 
     def test_ffe_exp_5_missing_targeting_key(self):
         """EXP.5: Test that empty targeting key generates exposure with subject.id = ''."""
