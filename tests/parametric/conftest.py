@@ -101,6 +101,7 @@ def test_agent(
         api = test_agent_pool.acquire(request=request, agent_env=agent_env)
         api.clear()  # ensure a clean slate even on the very first acquire
         yield api
+        return  # REQUIRED: do not fall through into the fresh-path agent below
 
     with scenarios.parametric.get_test_agent_api(
         request=request,
