@@ -98,6 +98,10 @@ images:
     digest: sha256:0b1ce417ef02e50c4e215deb21504ef476bca1e597034c56c91e0341744991cb
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-v2
     tag: express4-typescript.base-v2
+  datadog/system-tests:express4-typescript.base-v3:
+    digest: sha256:05248d319e51a912d301109bf638b69542068058c78d55ba8be2f00e6ca35dcc
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-v3
+    tag: express4-typescript.base-v3
   datadog/system-tests:express4.base-v1:
     digest: sha256:a4cf4545f6cf3e47dfdda1b9f33a98bd74ebdd7eb527ee53d6e513f93348290b
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-v1
@@ -106,6 +110,10 @@ images:
     digest: sha256:8c64a9c7ff8b394d4be359ce0b08113f1cc246fbb1d8213f1ce9e0ceb3cf45c3
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-v2
     tag: express4.base-v2
+  datadog/system-tests:express4.base-v3:
+    digest: sha256:327c4dbbd2db7175a26c891c6a6ba42f552e28c29034ef2955d295d33fa18d60
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-v3
+    tag: express4.base-v3
   datadog/system-tests:express5.base-v1:
     digest: sha256:826625f5efc737fdee8d52e68fae6f5d3c8c70f18ed22e232a1762b5e74fa09f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-v1
@@ -114,6 +122,10 @@ images:
     digest: sha256:25f04a53e2ceac5f9bb2363e6b28303b7a5c24823cb115c80c91e16706a18ba0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-v2
     tag: express5.base-v2
+  datadog/system-tests:express5.base-v3:
+    digest: sha256:1865a9e81eb992b68954bdee672b54c81f8240185b41fec61270c06fe69cd697
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-v3
+    tag: express5.base-v3
   datadog/system-tests:fastapi.base-v9:
     digest: sha256:c9cede8431eb9dd23e785c5740acf0f0a28c44cf0684e712b6ec0b87ed9e8e0f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-v9
@@ -126,6 +138,10 @@ images:
     digest: sha256:37820a425c93afba518339e9de411c246d785b6fde80d7c683c0ba347ee51813
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-v2
     tag: fastify.base-v2
+  datadog/system-tests:fastify.base-v3:
+    digest: sha256:4d92d2c94b08a345a58153225b1851379983f4d0a14eb17f7009bfccacab7787
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-v3
+    tag: fastify.base-v3
   datadog/system-tests:flask-poc.base-v1:
     digest: sha256:c2985235013e3c83d498f55f4d8b39fc2121a1acc09c2b740ee07e6bdae6852e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-v1
@@ -158,6 +174,10 @@ images:
     digest: sha256:507c7a63f3ec29a5ff7e6a65f23f4e29ccdc94806affc81a94d2a59ff9385e16
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-v2
     tag: nextjs.base-v2
+  datadog/system-tests:nextjs.base-v3:
+    digest: sha256:8bfb862ea45888470718a5009ac2d853d04377ce60924d229c5a2d19339d122e
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-v3
+    tag: nextjs.base-v3
   datadog/system-tests:nodejs_buddy-v1:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1
