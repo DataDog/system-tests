@@ -5,9 +5,10 @@ from pathlib import Path
 
 import pytest
 
+from docker.errors import DockerException
+
 from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, AgentLease, agent_env_key
-from docker.errors import DockerException
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from .core import Scenario, ScenarioGroup, scenario_groups as groups
@@ -34,7 +35,7 @@ class DockerFixturesScenario(Scenario):
 
         self._test_agent_factory = TestAgentFactory(agent_image)
         self._agent_pool: "WorkerAgentPool | None" = None
-        self._pool_seed_request = None
+        self._pool_seed_request: "pytest.FixtureRequest | None" = None
 
     def _clean(self):
         if self.is_main_worker:
@@ -77,9 +78,18 @@ class DockerFixturesScenario(Scenario):
                 logger.info(f"Failed to remove network, ignoring the error: {e}")
 
     def get_agent_pool(self, worker_id: str) -> WorkerAgentPool:
+        # POC: only the default agent_env ({}) is pooled, so there is at most one
+        # pooled agent per xdist worker.  That is why start_agent's worker-keyed
+        # host ports are safe — no two pooled agents on the same worker can collide.
+        # Supporting multiple envs per worker would require per-(worker, env) port
+        # allocation and is out of scope for this POC.
         if self._agent_pool is None:
 
             def _creator(agent_env: dict[str, str]) -> AgentLease:
+                assert self._pool_seed_request is not None, (
+                    "WorkerAgentPool creator invoked before the test_agent fixture set "
+                    "_pool_seed_request; the fixture must set it before the first acquire()."
+                )
                 key = agent_env_key(agent_env)
                 network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
                 network = get_docker_client().networks.create(name=network_name, driver="bridge")
