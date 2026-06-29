@@ -35,6 +35,11 @@ def _request_token(request: pytest.FixtureRequest) -> str:
     return token
 
 
+def _agent_log_path(host_log_folder: str, request: "pytest.FixtureRequest") -> str:
+    cls_name = request.cls.__name__ if request.cls else "NoClass"
+    return f"{host_log_folder}/outputs/{cls_name}/{request.node.name}/agent_log.log"
+
+
 class AgentRequest(TypedDict):
     method: str
     url: str
@@ -94,8 +99,7 @@ class TestAgentFactory:
         otlp_http_host_port = get_host_port(worker_id, 4701)
         otlp_grpc_host_port = get_host_port(worker_id, 4802)
 
-        cls_name = request.cls.__name__ if request.cls else "NoClass"
-        log_path = f"{self.host_log_folder}/outputs/{cls_name}/{request.node.name}/agent_log.log"
+        log_path = _agent_log_path(self.host_log_folder, request)
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
         log_file = open(log_path, "w+", encoding="utf-8")  # noqa: SIM115
 
@@ -108,7 +112,7 @@ class TestAgentFactory:
                 "./tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
             },
             ports={
-                f"8126/tcp": host_port,
+                "8126/tcp": host_port,
                 f"{container_otlp_http_port}/tcp": otlp_http_host_port,
                 f"{container_otlp_grpc_port}/tcp": otlp_grpc_host_port,
             },
@@ -143,7 +147,10 @@ class TestAgentFactory:
                 logger.info("Test agent is ready")
                 break
         else:
-            log_file.close()
+            try:
+                cm.__exit__(None, None, None)
+            finally:
+                log_file.close()
             pytest.fail(f"Could not connect to test agent, check the log file {log_path}.", pytrace=False)
 
         def _stop() -> None:
@@ -188,8 +195,7 @@ class TestAgentFactory:
             else:
                 yield client
         finally:
-            cls_name = request.cls.__name__ if request.cls else "NoClass"
-            log_path = f"{self.host_log_folder}/outputs/{cls_name}/{request.node.name}/agent_log.log"
+            log_path = _agent_log_path(self.host_log_folder, request)
             request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
             stop()
 
