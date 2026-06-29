@@ -1,12 +1,8 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from utils._logger import logger
-
-if TYPE_CHECKING:
-    import pytest
-    from ._test_agent import TestAgentAPI
 
 
 def agent_env_key(agent_env: dict[str, str]) -> tuple:
@@ -35,11 +31,13 @@ class WorkerAgentPool:
     `api.rebind_request()` (re-point per-test logging at the current test).
     """
 
-    def __init__(self, creator: Callable[["pytest.FixtureRequest", dict[str, str]], AgentLease]) -> None:
+    def __init__(self, creator: Callable[[Any, dict[str, str]], AgentLease]) -> None:
         self._creator = creator
         self._leases: dict[tuple, AgentLease] = {}
 
-    def acquire(self, request: "pytest.FixtureRequest", agent_env: dict[str, str]) -> "TestAgentAPI":
+    # request/return are duck-typed (a real FixtureRequest + TestAgentAPI in prod, fakes in
+    # tests); Any keeps this module Docker-free.
+    def acquire(self, request: Any, agent_env: dict[str, str]) -> Any:  # noqa: ANN401
         key = agent_env_key(agent_env)
         lease = self._leases.get(key)
         if lease is None:
