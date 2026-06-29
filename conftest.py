@@ -290,7 +290,12 @@ def _collect_item_metadata(item: pytest.Item):
     item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
     if metadata["features"] != [NOT_REPORTED_FEATURE_ID]:
-        item.user_properties.append(("dd_tags[systest.case.feature_ids]", str(metadata["features"])))
+        item.user_properties.append(
+            (
+                "dd_tags[systest.case.feature_ids]",
+                str(filter(lambda x: x != NOT_REPORTED_FEATURE_ID, metadata["features"])),
+            )
+        )
 
     if declaration:
         item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
