@@ -31,11 +31,17 @@ tower                   = { version = "0.5.2", features = [ "timeout" ] }
 tower-http              = { version = "0.6.6", features = [ "trace" ] }
 tracing                 = { version = "0.1", default-features = false }
 tracing-subscriber      = { version = "0.3", default-features = false, features = [ "env-filter", "fmt", "json" ] }
-opentelemetry           = { version = "0.32.0", features = ["logs"] }
-opentelemetry_sdk       = { version = "0.32.1", features = ["logs"] }
-opentelemetry-http      = { version = "0.32.0" }
-opentelemetry-stdout    = { version = "0.32.0", features = ["trace", "logs"] }
-opentelemetry-semantic-conventions = { version = "0.32.0" }
+
+# NOTE: the opentelemetry versions are managed by install_ddtrace.sh during the
+# docker build. They MUST match whatever datadog-opentelemetry resolves to (which
+# differs between the prod/crates.io and dev/main scenarios), so the script removes
+# these deps, resolves datadog-opentelemetry, then re-pins them to the matching minor.
+# The "*" requirement here is only used for local development.
+opentelemetry           = { version = "*", features = ["logs"] }
+opentelemetry_sdk       = { version = "*", features = ["logs"] }
+opentelemetry-http      = { version = "*" }
+opentelemetry-stdout    = { version = "*", features = ["trace", "logs"] }
+opentelemetry-semantic-conventions = { version = "*" }
 
 
 datadog-opentelemetry  = { path = "../../../../../binaries/dd-trace-rs/datadog-opentelemetry", features = ["metrics-grpc", "metrics-http", "logs-grpc", "logs-http"] }

@@ -6,6 +6,42 @@ cd /usr/app
 
 REPO_URL=https://github.com/DataDog/dd-trace-rs
 
+OTEL_DEPS=(
+    opentelemetry
+    opentelemetry_sdk
+    opentelemetry-http
+    opentelemetry-stdout
+    opentelemetry-semantic-conventions
+)
+
+align_opentelemetry() {
+    for dep in "${OTEL_DEPS[@]}"; do
+        cargo remove "$dep" || true
+    done
+
+    # resolve and read the opentelemetry version datadog-opentelemetry pulls in.
+    otel_version=$(cargo metadata --format-version 1 \
+        | jq -r '[.packages[] | select(.name == "opentelemetry") | .version] | first')
+
+    if [[ -z "$otel_version" || "$otel_version" == "null" ]]; then
+        echo "could not determine opentelemetry version from datadog-opentelemetry" >&2
+        exit 1
+    fi
+
+    # pin to the matching minor: ~MAJOR.MINOR (>=MAJOR.MINOR.0, <MAJOR.(MINOR+1).0).
+    # The opentelemetry ecosystem releases these crates in lockstep per minor, but
+    # patch versions can differ (e.g. opentelemetry 0.32.0 vs opentelemetry_sdk
+    # 0.32.1), so we pin the minor and let cargo pick each crate's patch.
+    otel_minor="${otel_version%.*}"
+    echo "aligning opentelemetry deps to ~${otel_minor} (datadog-opentelemetry uses ${otel_version})"
+
+    cargo add "opentelemetry@~${otel_minor}" --features logs
+    cargo add "opentelemetry_sdk@~${otel_minor}" --features logs
+    cargo add "opentelemetry-http@~${otel_minor}"
+    cargo add "opentelemetry-stdout@~${otel_minor}" --features trace,logs
+    cargo add "opentelemetry-semantic-conventions@~${otel_minor}"
+}
+
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
 
@@ -49,3 +85,5 @@ else
     cargo add datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc
 fi
 
+# align the opentelemetry deps with whatever datadog-opentelemetry resolved to
+align_opentelemetry
