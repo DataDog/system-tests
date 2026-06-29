@@ -448,8 +448,12 @@ class TestAgentAPI:
         raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
 
     def clear(self) -> None:
+        # The trace-session clear is safety-critical for pooled-agent reuse (a silent
+        # failure leaves the next test on dirty state), so surface a bad status here.
         self._session.get(self._url("/test/session/clear")).raise_for_status()
-        self._session.get(self._otlp_url("/test/session/clear")).raise_for_status()
+        # The OTLP test-agent's clear is best-effort and can return non-2xx (e.g. 400);
+        # don't fail the reset on it (matches the original fire-and-forget behavior).
+        self._session.get(self._otlp_url("/test/session/clear"))
 
     def info(self):
         resp = self._session.get(self._url("/info"))
