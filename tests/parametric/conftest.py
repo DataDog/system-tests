@@ -11,6 +11,7 @@ import yaml
 
 from utils import scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
 
 
 # Max timeout in seconds to keep a container running
@@ -75,7 +76,7 @@ def test_agent_otlp_grpc_port() -> int:
 
 
 @pytest.fixture(scope="session")
-def test_agent_pool(worker_id: str):
+def test_agent_pool(worker_id: str) -> Generator[WorkerAgentPool, None, None]:
     # scope="session" under pytest-xdist == once per worker.
     pool = scenarios.parametric.get_agent_pool(worker_id)
     yield pool
@@ -99,7 +100,6 @@ def test_agent(
     poolable = request.node.get_closest_marker("snapshot") is None and not agent_env
     if poolable:
         api = test_agent_pool.acquire(request=request, agent_env=agent_env)
-        api.clear()  # ensure a clean slate even on the very first acquire
         yield api
         return  # REQUIRED: do not fall through into the fresh-path agent below
 

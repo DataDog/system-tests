@@ -84,27 +84,35 @@ class DockerFixturesScenario(Scenario):
         # allocation and is out of scope for this POC.
         if self._agent_pool is None:
 
-            def _creator(request, agent_env: dict[str, str]) -> AgentLease:
+            def _creator(request: pytest.FixtureRequest, agent_env: dict[str, str]) -> AgentLease:
                 key = agent_env_key(agent_env)
                 network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
                 network = get_docker_client().networks.create(name=network_name, driver="bridge")
                 container_name = f"ddapm-test-agent-worker-{worker_id}-{abs(hash(key))}"
                 # Pooled agents use a separate host-port band (4900/5000/5100 + worker offset)
                 # so a worker's persistent pooled agent never collides with a fresh-path agent
-                # (4600/4701/4802) on that worker. These bands are clear of the client/framework
-                # 4500 and agent 4600/4701/4802 bands even with worker offsets.
-                api, stop_agent = self._test_agent_factory.start_agent(
-                    request=request,
-                    worker_id=worker_id,
-                    container_name=container_name,
-                    docker_network=network.name,
-                    agent_env=agent_env,
-                    container_otlp_http_port=4318,
-                    container_otlp_grpc_port=4317,
-                    agent_port_base=4900,
-                    otlp_http_port_base=5000,
-                    otlp_grpc_port_base=5100,
-                )
+                # (4600/4701/4802) on that worker. The bands are non-overlapping for up to ~97
+                # concurrent xdist workers (well above any real run): fresh OTLP-gRPC base 4802
+                # + 98 == pooled base 4900 + 0.
+                try:
+                    api, stop_agent = self._test_agent_factory.start_agent(
+                        request=request,
+                        worker_id=worker_id,
+                        container_name=container_name,
+                        docker_network=network.name,
+                        agent_env=agent_env,
+                        container_otlp_http_port=4318,
+                        container_otlp_grpc_port=4317,
+                        agent_port_base=4900,
+                        otlp_http_port_base=5000,
+                        otlp_grpc_port_base=5100,
+                    )
+                except BaseException:
+                    try:
+                        network.remove()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    raise
 
                 def _stop() -> None:
                     try:

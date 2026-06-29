@@ -2,6 +2,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from utils._logger import logger
+
 
 def agent_env_key(agent_env: dict[str, str]) -> tuple:
     """Stable, hashable, order-independent key for an agent_env dict."""
@@ -40,11 +42,14 @@ class WorkerAgentPool:
             lease = self._creator(request, agent_env)
             self._leases[key] = lease
         else:
-            lease.api.clear()
             lease.api.rebind_request(request)
+        lease.api.clear()  # always return a clean agent (covers first acquire too)
         return lease.api
 
     def shutdown(self) -> None:
         for lease in self._leases.values():
-            lease.stop()
+            try:
+                lease.stop()
+            except Exception as e:  # noqa: BLE001
+                logger.info(f"Error stopping pooled agent lease, ignoring: {e}")
         self._leases.clear()

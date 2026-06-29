@@ -123,7 +123,11 @@ class TestAgentFactory:
             log_file=log_file,
             network=docker_network,
         )
-        cm.__enter__()
+        try:
+            cm.__enter__()
+        except BaseException:
+            log_file.close()
+            raise
 
         client = TestAgentAPI(
             container_name,
@@ -444,8 +448,8 @@ class TestAgentAPI:
         raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
 
     def clear(self) -> None:
-        self._session.get(self._url("/test/session/clear"))
-        self._session.get(self._otlp_url("/test/session/clear"))
+        self._session.get(self._url("/test/session/clear")).raise_for_status()
+        self._session.get(self._otlp_url("/test/session/clear")).raise_for_status()
 
     def info(self):
         resp = self._session.get(self._url("/info"))

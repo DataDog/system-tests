@@ -45,8 +45,8 @@ def test_same_env_reuses_and_clears():
 
     assert api1 is api2  # reused, not recreated
     assert len(creator.created_envs) == 1  # created exactly once
-    assert api1.clear_calls == 1  # cleared on the reuse, not the first acquire
-    assert api1.rebind_calls == ["req2"]  # rebound to the second test's request
+    assert api1.clear_calls == 2  # cleared on both acquires (first + reuse)
+    assert api1.rebind_calls == ["req2"]  # rebound only on reuse, not on first acquire
 
 
 def test_distinct_env_creates_separate_agents():
