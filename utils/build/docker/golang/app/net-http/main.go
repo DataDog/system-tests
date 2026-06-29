@@ -774,6 +774,10 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 	mux.HandleFunc("/debugger/expression", d.expression)
+	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(r.PathValue("count"))
+		d.budgets(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",
