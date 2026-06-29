@@ -327,9 +327,15 @@ class Test_Telemetry:
 
         delays_by_runtime = {}
 
-        for runtime_id, heartbeats in heartbeats_by_runtime.items():
-            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
+        # Short-lived processes (e.g. children spawned by the session-id tests) can emit
+        # only a couple of heartbeats before exiting, which is not enough samples to measure
+        # interval drift. Only long-lived runtimes are measured here.
+        measurable_runtimes = {rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2}
+        assert measurable_runtimes, (
+            f"No runtime emitted enough heartbeats to check delays (runtimes seen: {dict((r, len(h)) for r, h in heartbeats_by_runtime.items())})"
+        )
 
+        for runtime_id, heartbeats in measurable_runtimes.items():
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
@@ -425,8 +431,15 @@ class Test_Telemetry:
         seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
         seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
+        # The same dependency reported once per process is valid: children spawned by the
+        # session-id tests are separate processes (distinct runtime_id) that legitimately
+        # re-load and re-report the same dependency. Duplicate detection is therefore scoped
+        # to a single runtime_id rather than the whole app.
+        loaded_per_runtime: dict[str, set[str]] = defaultdict(set)
+
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
+            runtime_id = content.get("runtime_id")
             if content.get("request_type") == "app-started":
                 if "dependencies" in content["payload"]:
                     for dependency in content["payload"]["dependencies"]:
@@ -439,14 +452,15 @@ class Test_Telemetry:
             elif content.get("request_type") == "app-dependencies-loaded":
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"]  # +dependency["version"]
-                    if seen_loaded_dependencies.get(dependency_id) is True:
-                        raise Exception(
-                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
-                        )
+                    if dependency_id in seen_loaded_dependencies:
+                        if dependency_id in loaded_per_runtime[runtime_id]:
+                            raise Exception(
+                                "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                            )
+                        loaded_per_runtime[runtime_id].add(dependency_id)
+                        seen_loaded_dependencies[dependency_id] = True
                     if dependency_id in seen_defined_dependencies:
                         seen_defined_dependencies[dependency_id] = True
-                    if dependency_id in seen_loaded_dependencies:
-                        seen_loaded_dependencies[dependency_id] = True
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
