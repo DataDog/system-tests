@@ -1078,8 +1078,20 @@ accept a JSON body with these fields:
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
 
+PHP weblogs may also accept these test-only fields:
+
+- `expectedConfigIds`: remote configuration IDs expected by this evaluation.
+- `expectedConfigVersion`: remote configuration version to wait for before
+  evaluating the flag.
+- `configWaitTimeoutMs`: timeout in milliseconds. The endpoint caps the value at
+  30000.
+- `waitForFlag`: whether to retry `FLAG_NOT_FOUND` results until the requested
+  flag is visible in the PHP sidecar-backed evaluator.
+
 The response must be JSON and include at least `value` and `reason`. Error
-responses should also include `errorCode` and `errorMessage`.
+responses should also include `errorCode` and `errorMessage`. PHP responses
+include `configWait` when `expectedConfigVersion` is provided, and
+`flagWaitAttempts` and `exposuresFlushed` when `waitForFlag` is true.
 
 ### GET /healthcheck
 
