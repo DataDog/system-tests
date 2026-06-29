@@ -13,4 +13,5 @@ ENV HOSTNAME=0.0.0.0
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf './node_modules/.bin/next start' >> app.sh
 ENV NODE_OPTIONS="--import dd-trace/initialize.mjs"
+ENV DD_INJECT_FORCE=true
 CMD ./app.sh
