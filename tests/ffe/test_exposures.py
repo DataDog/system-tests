@@ -132,11 +132,12 @@ class Test_FFE_Exposure_Events:
                 "attributes": attributes,
             },
         )
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+        wait_for_exposure_event({self.flag}, self.targeting_key)
 
     def test_ffe_exposure_event_generation(self):
         """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
-        wait_for_exposure_event({self.flag}, self.targeting_key)
 
         # Search for our specific flag in all exposure events
         matching_event = None
@@ -277,12 +278,14 @@ class Test_FFE_Exposure_Events:
                 "attributes": {},
             },
         )
+        assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
+        assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+        wait_for_exposure_event({self.flag_1, self.flag_2}, self.targeting_key)
 
     def test_ffe_multiple_remote_config_files(self):
         """Test that FFE correctly handles multiple remote config files with different flags."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
-        wait_for_exposure_event({self.flag_1, self.flag_2}, self.targeting_key)
 
         # Collect all exposure events for our specific flags
         flags_found = set()
@@ -443,12 +446,14 @@ class Test_FFE_Exposure_Events_Errors:
                 "attributes": {},
             },
         )
+        assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
+        assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+        wait_for_exposure_event({self.flag}, self.targeting_key)
 
     def test_ffe_malformed_remote_config_rejection(self):
         """Test that FFE rejects malformed remote config and preserves the old valid configuration."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
-        wait_for_exposure_event({self.flag}, self.targeting_key)
 
         # Verify that exposure events are still generated for both requests
         # and the flag configuration remained valid despite the malformed update
@@ -532,6 +537,9 @@ class Test_FFE_Exposure_Caching_Same_Subject:
                 },
             )
             self.responses.append(r)
+        for i, r in enumerate(self.responses):
+            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+        wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
 
     def test_ffe_exposure_caching_same_subject(self):
         """Test that multiple evaluations for the same subject generate at most one exposure event."""
@@ -542,7 +550,7 @@ class Test_FFE_Exposure_Caching_Same_Subject:
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
         # Count exposure events for this specific subject
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         # The exposure cache should deduplicate events - we expect exactly 1 exposure
         # for the same (subject, allocation, variant) tuple
@@ -583,6 +591,12 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
                 },
             )
             self.responses.append(r)
+        for i, r in enumerate(self.responses):
+            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+
+        # Wait for each subject while the weblog and agent are still running.
+        for subject in self.subjects:
+            wait_for_min_exposure_count(self.flag_key, 1, subject)
 
     def test_ffe_exposure_caching_different_subjects(self):
         """Test that each unique subject generates exactly one exposure event."""
@@ -591,10 +605,6 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
             assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
             result = json.loads(r.text)
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
-
-        # Wait for each subject to be observed before asserting exact totals.
-        for subject in self.subjects:
-            wait_for_min_exposure_count(self.flag_key, 1, subject)
 
         # Count total exposure events for this flag
         total_exposure_count = count_exposure_events(self.flag_key)
@@ -678,6 +688,10 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
                 "attributes": {},
             },
         )
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
+        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
     def test_ffe_exposure_caching_allocation_cycle(self):
         """Test that allocation-a → allocation-b → allocation-a generates 3 exposures."""
@@ -700,7 +714,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -773,6 +787,10 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
                 "attributes": {},
             },
         )
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
+        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
     def test_ffe_exposure_caching_variant_cycle(self):
         """Test that variant-a → variant-b → variant-a generates 3 exposures."""
@@ -795,7 +813,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -962,6 +980,8 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
                 "attributes": {},
             },
         )
+        assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+        wait_for_exposure_event({self.flag_key}, "")
 
     def test_ffe_exp_5_missing_targeting_key(self):
         """EXP.5: Test that empty targeting key generates exposure with subject.id = ''."""
@@ -969,7 +989,6 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
 
         result = json.loads(self.response.text)
         assert result["value"] == "value-a", f"Expected 'value-a', got '{result['value']}'"
-        wait_for_exposure_event({self.flag_key}, "")
 
         # Search for exposure event with empty subject.id
         matching_event = None
