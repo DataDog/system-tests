@@ -235,19 +235,14 @@ class TestAgentAPI:
         self._session = requests.Session()
         self._pytest_request = pytest_request
         cls_name = pytest_request.cls.__name__ if pytest_request.cls else "NoClass"
-        self.log_path = (
-            f"{host_log_folder}/outputs/{cls_name}/{pytest_request.node.name}/agent_api.log"
-        )
+        self.log_path = f"{host_log_folder}/outputs/{cls_name}/{pytest_request.node.name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def rebind_request(self, pytest_request: "pytest.FixtureRequest") -> None:
         """Re-point per-test API logging at the current test (used on reuse)."""
         self._pytest_request = pytest_request
         cls_name = pytest_request.cls.__name__ if pytest_request.cls else "NoClass"
-        self.log_path = (
-            f"{self._host_log_folder}/outputs/{cls_name}"
-            f"/{pytest_request.node.name}/agent_api.log"
-        )
+        self.log_path = f"{self._host_log_folder}/outputs/{cls_name}/{pytest_request.node.name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
