@@ -90,6 +90,8 @@ Rails.application.routes.draw do
   get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
   get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
   get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
+  get '/api_security/multi-params-in-segment/:id.:format' => 'api_security#multi_params_in_segment'
+  get '/api_security/optional-params/:id(.:format)' => 'api_security#optional_params'
 
   post '/ffe' => 'open_feature#evaluate'
   post '/ffe/start' => 'open_feature#start'
