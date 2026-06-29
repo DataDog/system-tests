@@ -3,6 +3,9 @@
 manifest:
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: irrelevant (not applicable to proxies)
   tests/appsec/test_alpha.py: v1.72.0
   tests/appsec/test_blocking_addresses.py: v1.72.0
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
@@ -32,6 +35,7 @@ manifest:
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_versions.py::Test_Events: v1.72.0
+  tests/ffe/test_flag_eval_evp.py: irrelevant (proxy weblog does not implement server-side FFE EVP)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.72.0
   tests/test_scrubbing.py: v1.72.0

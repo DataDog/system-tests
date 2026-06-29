@@ -24,6 +24,7 @@ class AppsecRaspScenario(EndToEndScenario):
             # added to test Test_ExtendedRequestBodyCollection
             "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
             "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_DOWNSTREAM_BODY_BYTES": "128",
             "OPENAI_BASE_URL": "http://internal_server:8089",
         }
         merged_env = default_env | weblog_env

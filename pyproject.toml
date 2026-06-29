@@ -224,44 +224,12 @@ ignore = [
 "utils/_context/_scenarios/auto_injection.py" = [
     "PLC0415",  # import-outside-top-level TODO
 ]
-"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
-    "E501",     # line-too-long: TODO
-    "T201",     # print: TODO
-    "RET504",   # unnecessary-assign: TODO
-    "RET505",   # superfluous-else-return: TODO
-    "SIM108",   # if-else-block-instead-of-if-exp: TODO
-    "SIM210",   # if-expr-with-true-false: TODO
-    "PLR2004",  # magic-value-comparison: TODO
-]
 "utils/_features.py" = [
     "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 
-"utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
-    "ANN003",   # missing-type-kwargs: TODO
-    "ANN201",   # missing-return-type-undocumented-public-function: TODO
-    "B006",     # mutable-argument-default: TODO
-    "B007",     # unused-loop-control-variable: TODO
-    "B904",     # raise-without-from-inside-except: TODO
-    "DTZ005",   # call-datetime-now-without-tzinfo: TODO
-    "E401",     # multiple-imports-on-one-line: TODO
-    "E501",     # line-too-long: TODO
-    "E712",     # true-false-comparison: TODO
-    "F541",     # f-string-missing-placeholders: TODO
-    "FBT002",   # boolean-default-value-positional-argument: TODO
-    "RET505",   # superfluous-else-return: TODO
-    "RET508",   # superfluous-else-break: TODO
-    "RUF059",   # unused-unpacked-variable: TODO
-    "SIM108",   # if-else-block-instead-of-if-exp: TODO
-    "SIM115",   # open-file-with-context-handler: TODO
-    "SLF001",   # private-member-access: TODO
-    "TRY002",   # raise-vanilla-class: TODO
-    "TRY201",   # verbose-raise: TODO
-    "TRY301",   # raise-within-try: TODO
-    "UP031",    # printf-string-formatting: TODO
-]
 "utils/onboarding/*" = [
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
