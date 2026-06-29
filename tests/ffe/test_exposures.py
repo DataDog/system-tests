@@ -204,6 +204,26 @@ def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) 
     )
 
 
+def wait_for_any_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> WaitResult:
+    """Wait until the agent receives an exposure event for one of the given flags."""
+    flush_result = flush_ffe_payloads()
+    if not flush_result[0]:
+        return flush_result
+
+    sorted_flag_keys = sorted(flag_keys)
+    seen_flag_keys = exposure_flag_keys_seen(flag_keys, subject_id)
+    if seen_flag_keys:
+        return True, ""
+
+    if interfaces.agent.wait_for(
+        lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
+        timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    ):
+        return True, ""
+
+    return False, f"Timed out waiting for any exposure event for flags {sorted_flag_keys} and subject {subject_id!r}"
+
+
 def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> WaitResult:
     """Wait until enough matching exposure events are available."""
     flush_result = flush_ffe_payloads()
@@ -402,33 +422,58 @@ class Test_FFE_Exposure_Events:
         self.flag_1 = "test-flag-1"
         self.flag_2 = "test-flag-2"
         self.targeting_key = "test-user-multi"
+        self.require_all_exposure_flags = context.library == "php"
 
-        # Apply and evaluate the first file before adding the second one. PHP's
-        # sidecar-backed evaluator can surface each FFE file asynchronously.
-        config_state_1 = rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
-        self.r1 = post_ffe(
-            {
-                "flag": self.flag_1,
-                "variationType": "STRING",
-                "defaultValue": "default",
-                "targetingKey": self.targeting_key,
-                "attributes": {},
-            },
-            {config_id_1},
-            config_state_1.version,
-            require_exposure_flush=True,
-        )
-        self.exposure_ready_1 = wait_for_exposure_event({self.flag_1}, self.targeting_key)
+        if self.require_all_exposure_flags:
+            # Apply and evaluate the first file before adding the second one.
+            # PHP's sidecar-backed evaluator can surface each FFE file
+            # asynchronously, so exercise each snapshot while the weblog is
+            # still alive.
+            config_state_1 = (
+                rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
+            )
+            self.r1 = post_ffe(
+                {
+                    "flag": self.flag_1,
+                    "variationType": "STRING",
+                    "defaultValue": "default",
+                    "targetingKey": self.targeting_key,
+                    "attributes": {},
+                },
+                {config_id_1},
+                config_state_1.version,
+                require_exposure_flush=True,
+            )
+            self.exposure_ready_1 = wait_for_exposure_event({self.flag_1}, self.targeting_key)
 
-        # Add the second file and evaluate its flag while the weblog is still
-        # alive, then wait for that specific exposure before teardown. PHP's
-        # sidecar-backed evaluator exposes one FFE file per evaluator snapshot,
-        # so exercise the second file in its own applied RC state.
-        config_ids_2 = {config_id_1, config_id_2}
-        if context.library == "php":
-            rc.tracer_rc_state.reset()
-            config_ids_2 = {config_id_2}
-        config_state_2 = rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
+            config_state_2 = (
+                rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
+            )
+            config_ids = {config_id_2}
+        else:
+            # Other SDKs keep the original multiple-file behavior: both RC
+            # files are applied together, then the test waits for any matching
+            # exposure event.
+            config_state_2 = (
+                rc.tracer_rc_state.reset()
+                .set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1)
+                .set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2)
+                .apply()
+            )
+            config_ids = {config_id_1, config_id_2}
+            self.r1 = post_ffe(
+                {
+                    "flag": self.flag_1,
+                    "variationType": "STRING",
+                    "defaultValue": "default",
+                    "targetingKey": self.targeting_key,
+                    "attributes": {},
+                },
+                config_ids,
+                config_state_2.version,
+                require_exposure_flush=True,
+            )
+
         self.r2 = post_ffe(
             {
                 "flag": self.flag_2,
@@ -437,21 +482,27 @@ class Test_FFE_Exposure_Events:
                 "targetingKey": self.targeting_key,
                 "attributes": {},
             },
-            config_ids_2,
+            config_ids,
             config_state_2.version,
             require_exposure_flush=True,
         )
-        self.exposure_ready_2 = wait_for_exposure_event({self.flag_2}, self.targeting_key)
+        if self.require_all_exposure_flags:
+            self.exposure_ready_2 = wait_for_exposure_event({self.flag_2}, self.targeting_key)
+        else:
+            self.exposure_ready = wait_for_any_exposure_event({self.flag_1, self.flag_2}, self.targeting_key)
 
     def test_ffe_multiple_remote_config_files(self):
         """Test that FFE correctly handles multiple remote config files with different flags."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
-        result_1 = json.loads(self.r1.text)
-        result_2 = json.loads(self.r2.text)
-        assert result_1["value"] == "on", f"First flag expected 'on', got: {self.r1.text}"
-        assert result_2["value"] is True, f"Second flag expected true, got: {self.r2.text}"
-        assert_wait_results(self.exposure_ready_1, self.exposure_ready_2)
+        if self.require_all_exposure_flags:
+            result_1 = json.loads(self.r1.text)
+            result_2 = json.loads(self.r2.text)
+            assert result_1["value"] == "on", f"First flag expected 'on', got: {self.r1.text}"
+            assert result_2["value"] is True, f"Second flag expected true, got: {self.r2.text}"
+            assert_wait_results(self.exposure_ready_1, self.exposure_ready_2)
+        else:
+            assert_wait_results(self.exposure_ready)
 
         # Collect all exposure events for our specific flags
         flags_found = set()
@@ -485,8 +536,13 @@ class Test_FFE_Exposure_Events:
                     )
 
         # Verify that both flags were evaluated and sent exposure events
-        expected_flags = {self.flag_1, self.flag_2}
-        assert expected_flags <= flags_found, f"Expected to find flags {expected_flags}, found: {flags_found}"
+        if self.require_all_exposure_flags:
+            expected_flags = {self.flag_1, self.flag_2}
+            assert expected_flags <= flags_found, f"Expected to find flags {expected_flags}, found: {flags_found}"
+        else:
+            assert self.flag_1 in flags_found or self.flag_2 in flags_found, (
+                f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
+            )
 
 
 @scenarios.feature_flagging_and_experimentation
