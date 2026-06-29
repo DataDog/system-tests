@@ -89,6 +89,10 @@ class DockerFixturesScenario(Scenario):
                 network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
                 network = get_docker_client().networks.create(name=network_name, driver="bridge")
                 container_name = f"ddapm-test-agent-worker-{worker_id}-{abs(hash(key))}"
+                # Pooled agents use a separate host-port band (4900/5000/5100 + worker offset)
+                # so a worker's persistent pooled agent never collides with a fresh-path agent
+                # (4600/4701/4802) on that worker. These bands are clear of the client/framework
+                # 4500 and agent 4600/4701/4802 bands even with worker offsets.
                 api, stop_agent = self._test_agent_factory.start_agent(
                     request=request,
                     worker_id=worker_id,
@@ -97,6 +101,9 @@ class DockerFixturesScenario(Scenario):
                     agent_env=agent_env,
                     container_otlp_http_port=4318,
                     container_otlp_grpc_port=4317,
+                    agent_port_base=4900,
+                    otlp_http_port_base=5000,
+                    otlp_grpc_port_base=5100,
                 )
 
                 def _stop() -> None:

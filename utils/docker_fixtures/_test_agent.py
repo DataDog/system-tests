@@ -84,6 +84,9 @@ class TestAgentFactory:
         agent_env: dict[str, str],
         container_otlp_http_port: int,
         container_otlp_grpc_port: int,
+        agent_port_base: int = 4600,
+        otlp_http_port_base: int = 4701,
+        otlp_grpc_port_base: int = 4802,
     ) -> "tuple[TestAgentAPI, Callable[[], None]]":
         env = {
             "ENABLED_CHECKS": "trace_count_header",
@@ -95,9 +98,9 @@ class TestAgentFactory:
             env["SNAPSHOT_CI"] = "0"
         env |= agent_env
 
-        host_port = get_host_port(worker_id, 4600)
-        otlp_http_host_port = get_host_port(worker_id, 4701)
-        otlp_grpc_host_port = get_host_port(worker_id, 4802)
+        host_port = get_host_port(worker_id, agent_port_base)
+        otlp_http_host_port = get_host_port(worker_id, otlp_http_port_base)
+        otlp_grpc_host_port = get_host_port(worker_id, otlp_grpc_port_base)
 
         log_path = _agent_log_path(self.host_log_folder, request)
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
