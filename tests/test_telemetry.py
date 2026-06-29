@@ -331,8 +331,9 @@ class Test_Telemetry:
         # only a couple of heartbeats before exiting, which is not enough samples to measure
         # interval drift. Only long-lived runtimes are measured here.
         measurable_runtimes = {rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2}
+        heartbeat_counts = {rid: len(hbs) for rid, hbs in heartbeats_by_runtime.items()}
         assert measurable_runtimes, (
-            f"No runtime emitted enough heartbeats to check delays (runtimes seen: {dict((r, len(h)) for r, h in heartbeats_by_runtime.items())})"
+            f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
         )
 
         for runtime_id, heartbeats in measurable_runtimes.items():
