@@ -1008,9 +1008,11 @@ class Test_FFE_Exposure_Missing_Flag:
         """Set up FFE exposure test for a missing flag."""
         # Set up a config with a different flag (not the one we'll request)
         config_id = "ffe-missing-flag-test"
-        config_state = rc.tracer_rc_state.reset().set_config(
-            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
-        ).apply()
+        config_state = (
+            rc.tracer_rc_state.reset()
+            .set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag"))
+            .apply()
+        )
 
         self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
         self.targeting_key = "missing-flag-user"
@@ -1093,9 +1095,11 @@ class Test_FFE_Exposure_DoLog_False:
         self.targeting_key = "dolog-false-user"
 
         # Set up config with doLog=false
-        config_state = rc.tracer_rc_state.reset().set_config(
-            f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE
-        ).apply()
+        config_state = (
+            rc.tracer_rc_state.reset()
+            .set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE)
+            .apply()
+        )
 
         # Evaluate the flag multiple times
         self.responses = []
@@ -1148,9 +1152,11 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
         self.flag_key = "exp-5-missing-targeting-key-flag"
 
         # Use a simple fixture with doLog=true
-        config_state = rc.tracer_rc_state.reset().set_config(
-            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)
-        ).apply()
+        config_state = (
+            rc.tracer_rc_state.reset()
+            .set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key))
+            .apply()
+        )
 
         # Evaluate the flag with an empty targeting key
         self.response = post_ffe(
