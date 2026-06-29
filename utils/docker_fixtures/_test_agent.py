@@ -143,7 +143,7 @@ class TestAgentFactory:
         for _ in range(100):
             try:
                 resp = client.info()
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
                 time.sleep(0.1)
             else:

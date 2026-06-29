@@ -1,4 +1,4 @@
-from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, agent_env_key
+from utils.docker_fixtures._test_agent_pool import AgentLease, WorkerAgentPool, agent_env_key
 
 
 class _FakeApi:
@@ -20,9 +20,7 @@ class _FakeCreator:
         self.created_envs: list[dict] = []
         self.stopped = 0
 
-    def __call__(self, request, agent_env: dict[str, str]):
-        from utils.docker_fixtures._test_agent_pool import AgentLease
-
+    def __call__(self, request: object, agent_env: dict[str, str]) -> AgentLease:  # noqa: ARG002
         self.created_envs.append(dict(agent_env))
         api = _FakeApi()
 

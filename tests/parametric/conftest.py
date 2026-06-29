@@ -91,7 +91,7 @@ def test_agent(
     agent_env: dict[str, str],
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
-    test_agent_pool,
+    test_agent_pool: WorkerAgentPool,
 ) -> Generator[TestAgentAPI, None, None]:
     # POC: pool only default-agent_env, non-snapshot tests. Snapshot-marked tests need
     # per-test snapshot_context lifecycle; non-default agent_env would require a second

@@ -34,7 +34,7 @@ class DockerFixturesScenario(Scenario):
         )
 
         self._test_agent_factory = TestAgentFactory(agent_image)
-        self._agent_pool: "WorkerAgentPool | None" = None
+        self._agent_pool: WorkerAgentPool | None = None
 
     def _clean(self):
         if self.is_main_worker:
@@ -110,8 +110,8 @@ class DockerFixturesScenario(Scenario):
                 except BaseException:
                     try:
                         network.remove()
-                    except Exception:  # noqa: BLE001
-                        pass
+                    except Exception as e:
+                        logger.info(f"Failed to remove network after start_agent failure, ignoring: {e}")
                     raise
 
                 def _stop() -> None:
@@ -120,7 +120,7 @@ class DockerFixturesScenario(Scenario):
                     finally:
                         try:
                             network.remove()
-                        except Exception as e:  # noqa: BLE001
+                        except Exception as e:
                             logger.info(f"Failed to remove worker network, ignoring: {e}")
 
                 return AgentLease(api=api, stop=_stop)

@@ -1,8 +1,12 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from utils._logger import logger
+
+if TYPE_CHECKING:
+    import pytest
+    from ._test_agent import TestAgentAPI
 
 
 def agent_env_key(agent_env: dict[str, str]) -> tuple:
@@ -31,11 +35,11 @@ class WorkerAgentPool:
     `api.rebind_request()` (re-point per-test logging at the current test).
     """
 
-    def __init__(self, creator: Callable[[Any, dict[str, str]], AgentLease]) -> None:
+    def __init__(self, creator: Callable[["pytest.FixtureRequest", dict[str, str]], AgentLease]) -> None:
         self._creator = creator
         self._leases: dict[tuple, AgentLease] = {}
 
-    def acquire(self, request: Any, agent_env: dict[str, str]) -> Any:
+    def acquire(self, request: "pytest.FixtureRequest", agent_env: dict[str, str]) -> "TestAgentAPI":
         key = agent_env_key(agent_env)
         lease = self._leases.get(key)
         if lease is None:
@@ -50,6 +54,6 @@ class WorkerAgentPool:
         for lease in self._leases.values():
             try:
                 lease.stop()
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 logger.info(f"Error stopping pooled agent lease, ignoring: {e}")
         self._leases.clear()

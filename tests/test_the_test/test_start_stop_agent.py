@@ -1,20 +1,20 @@
 import pytest
 
+from utils._context._scenarios import scenarios
+from utils.docker_fixtures._core import get_docker_client
+
 pytestmark = pytest.mark.skipif(
     __import__("os").getenv("DOCKER_SMOKE") != "1",
     reason="Docker-backed; run with DOCKER_SMOKE=1",
 )
 
 
-def test_start_agent_then_stop(request):
-    from utils._context._scenarios import scenarios
-
-    factory = scenarios.parametric._test_agent_factory
+def test_start_agent_then_stop(request: pytest.FixtureRequest):
+    factory = scenarios.parametric._test_agent_factory  # noqa: SLF001
     factory.configure("logs_parametric")
     factory.pull()
 
-    network = __import__("utils.docker_fixtures._core", fromlist=["get_docker_client"])
-    client = network.get_docker_client().networks.create(name="reuse_smoke_net", driver="bridge")
+    client = get_docker_client().networks.create(name="reuse_smoke_net", driver="bridge")
     try:
         api, stop = factory.start_agent(
             request=request,
