@@ -63,13 +63,13 @@ if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ] && [
 	export COMPOSER=composer.gte8.2.json
 fi
 echo "Using composer config: $COMPOSER"
-composer install --prefer-dist
+composer install --prefer-dist || composer install --prefer-source
 
 # Install OTel SDK for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
 # DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
 # with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
-    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction || composer require "open-telemetry/sdk:^1.0.0" --prefer-source --no-interaction
 fi
 
 # Set proper permissions
