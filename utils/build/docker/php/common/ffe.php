@@ -19,91 +19,6 @@ function dd_ffe_error_response($statusCode, $errorCode, $errorMessage)
     ));
 }
 
-function dd_ffe_loaded_remote_config_keys()
-{
-    if (!function_exists('dd_trace_internal_fn')) {
-        return array();
-    }
-
-    $loadedConfigs = dd_trace_internal_fn('get_loaded_remote_configs');
-    if (!is_array($loadedConfigs)) {
-        return array();
-    }
-
-    return array_keys($loadedConfigs);
-}
-
-function dd_ffe_config_key_matches($loadedKey, $expectedId)
-{
-    return $loadedKey === $expectedId || strpos($loadedKey, $expectedId) !== false;
-}
-
-function dd_ffe_missing_config_ids(array $loadedKeys, array $expectedIds)
-{
-    $missing = array();
-    foreach ($expectedIds as $expectedId) {
-        $found = false;
-        foreach ($loadedKeys as $loadedKey) {
-            if (dd_ffe_config_key_matches($loadedKey, $expectedId)) {
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
-            $missing[] = $expectedId;
-        }
-    }
-
-    return $missing;
-}
-
-function dd_ffe_config_status()
-{
-    $nativeStateAvailable = function_exists('DDTrace\\ffe_has_config') && function_exists('DDTrace\\ffe_config_version');
-
-    return array(
-        'nativeStateAvailable' => $nativeStateAvailable,
-        'hasConfig' => $nativeStateAvailable ? \DDTrace\ffe_has_config() : false,
-        'configVersion' => $nativeStateAvailable ? \DDTrace\ffe_config_version() : null,
-    );
-}
-
-function dd_ffe_wait_for_config_state(array $ids, $expectedVersion, $timeoutMs)
-{
-    $timeoutMs = max(0, min($timeoutMs, 30000));
-    $deadline = microtime(true) * 1000 + $timeoutMs;
-    $loadedKeys = array();
-    $missing = $ids;
-    $status = dd_ffe_config_status();
-    $ready = false;
-
-    do {
-        $status = dd_ffe_config_status();
-        $loadedKeys = dd_ffe_loaded_remote_config_keys();
-        $missing = dd_ffe_missing_config_ids($loadedKeys, $ids);
-        if ($status['nativeStateAvailable']) {
-            $ready = $status['hasConfig']
-                && ($expectedVersion === null || $status['configVersion'] >= $expectedVersion);
-        } else {
-            $ready = count($missing) === 0;
-        }
-
-        if ($ready) {
-            $missing = array();
-            break;
-        }
-        usleep(10000);
-    } while (microtime(true) * 1000 < $deadline);
-
-    return array(
-        'ready' => $ready,
-        'missing' => array_values($missing),
-        'loadedConfigKeys' => array_values($loadedKeys),
-        'expectedVersion' => $expectedVersion,
-        'nativeState' => $status,
-    );
-}
-
 function dd_ffe_flush_exposures()
 {
     if (function_exists('DDTrace\\Testing\\flush_ffe_exposures')) {
@@ -127,19 +42,6 @@ function dd_ffe_read_payload()
     }
 
     return $payload;
-}
-
-function dd_ffe_expected_config_ids(array $payload)
-{
-    if (isset($payload['expectedConfigIds']) && is_array($payload['expectedConfigIds'])) {
-        return array_values(array_filter(array_map('strval', $payload['expectedConfigIds'])));
-    }
-
-    if (isset($payload['expectedConfigId']) && is_string($payload['expectedConfigId'])) {
-        return array($payload['expectedConfigId']);
-    }
-
-    return array();
 }
 
 function dd_ffe_normalized_variation_type($variationType)
@@ -240,6 +142,12 @@ function dd_ffe_should_wait_for_flag(array $payload)
     return isset($payload['waitForFlag']) && $payload['waitForFlag'] === true;
 }
 
+function dd_ffe_flag_wait_timeout_ms(array $payload)
+{
+    $timeoutMs = isset($payload['flagWaitTimeoutMs']) ? (int) $payload['flagWaitTimeoutMs'] : 5000;
+    return max(0, min($timeoutMs, 30000));
+}
+
 function dd_ffe_should_retry_evaluation($details)
 {
     if (!method_exists($details, 'getErrorCode')) {
@@ -259,7 +167,6 @@ function dd_ffe_evaluate_until_flag_ready(
     $timeoutMs,
     &$attempts
 ) {
-    $timeoutMs = max(0, min((int) $timeoutMs, 30000));
     $deadline = microtime(true) * 1000 + $timeoutMs;
     $attempts = 0;
     $details = null;
@@ -316,15 +223,6 @@ if (!array_key_exists('defaultValue', $payload)) {
 $flagKey = $payload['flag'];
 $variationType = $payload['variationType'];
 $defaultValue = dd_ffe_normalize_default_value($payload['defaultValue'], $variationType);
-$configWait = null;
-$configWaitTimeoutMs = isset($payload['configWaitTimeoutMs']) ? (int) $payload['configWaitTimeoutMs'] : 5000;
-if (isset($payload['expectedConfigVersion'])) {
-    $configWait = dd_ffe_wait_for_config_state(
-        dd_ffe_expected_config_ids($payload),
-        (int) $payload['expectedConfigVersion'],
-        $configWaitTimeoutMs
-    );
-}
 $targetingKey = isset($payload['targetingKey']) && $payload['targetingKey'] !== null
     ? (string) $payload['targetingKey']
     : null;
@@ -334,22 +232,6 @@ $targetingKeys = isset($payload['targetingKeys']) && is_array($payload['targetin
 $attributes = isset($payload['attributes']) && is_array($payload['attributes'])
     ? dd_ffe_scalar_attributes($payload['attributes'])
     : array();
-
-if ($configWait !== null && $configWait['ready'] !== true) {
-    dd_ffe_json_response(200, array(
-        'value' => $defaultValue,
-        'reason' => 'ERROR',
-        'variant' => null,
-        'errorCode' => 'PROVIDER_NOT_READY',
-        'errorMessage' => 'Timed out waiting for PHP FFE config before evaluation.',
-        'configWait' => $configWait,
-        'providerState' => array(
-            'ready' => false,
-            'productionRuntime' => false,
-        ),
-    ));
-    return;
-}
 
 try {
     $details = null;
@@ -364,7 +246,7 @@ try {
                 $defaultValue,
                 $key,
                 $attributes,
-                $configWaitTimeoutMs,
+                dd_ffe_flag_wait_timeout_ms($payload),
                 $attempts
             );
             $flagWaitAttempts += $attempts;
@@ -374,9 +256,6 @@ try {
     }
     if ($details !== null) {
         $response = dd_ffe_details_payload($details);
-        if ($configWait !== null) {
-            $response['configWait'] = $configWait;
-        }
         if ($waitForFlag) {
             $response['flagWaitAttempts'] = $flagWaitAttempts;
         }
@@ -392,7 +271,6 @@ try {
         'variant' => null,
         'errorCode' => 'PROVIDER_NOT_READY',
         'errorMessage' => $exception->getMessage(),
-        'configWait' => $configWait,
         'providerState' => array(
             'ready' => false,
             'productionRuntime' => false,
@@ -407,7 +285,6 @@ dd_ffe_json_response(200, array(
     'variant' => null,
     'errorCode' => 'PROVIDER_NOT_READY',
     'errorMessage' => 'Datadog-backed PHP feature flag evaluation is not wired in this weblog yet.',
-    'configWait' => $configWait,
     'providerState' => array(
         'ready' => false,
         'productionRuntime' => false,

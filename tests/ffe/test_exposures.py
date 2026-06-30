@@ -1,7 +1,6 @@
 """Test feature flags exposure events logging in weblog end-to-end scenario."""
 
 import json
-import time
 
 from tests.ffe.utils.fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
@@ -12,15 +11,13 @@ from utils import (
     features,
     remote_config as rc,
 )
-from utils._weblog import HttpResponse
 
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
-PHP_FFE_CONFIG_WAIT_TIMEOUT_MS = 5000
-_UNSET = object()
+PHP_FFE_FLAG_WAIT_TIMEOUT_MS = 5000
 
 WaitResult = tuple[bool, str]
 
@@ -78,87 +75,18 @@ def exposure_flag_keys_seen(flag_keys: set[str], subject_id: str | None = None) 
     return seen
 
 
-def post_ffe(
-    payload: dict,
-    config_ids: set[str],
-    version: int,
-    *,
-    wait_for_flag: bool = True,
-    wait_for_config_version: bool = False,
-    expected_value: object = _UNSET,
-    expected_allocation_key: str | None = None,
-    expected_variant: str | None = None,
-    require_exposure_flush: bool = False,
-):
-    """Evaluate FFE, asking PHP to retry readiness-sensitive requests in setup."""
+def post_ffe(payload: dict, *, wait_for_flag: bool = True):
+    """Evaluate FFE, asking PHP to wait for the requested flag before flushing exposure EVP."""
     timeout = 5
     if context.library == "php":
         payload = {
             **payload,
-            "configWaitTimeoutMs": PHP_FFE_CONFIG_WAIT_TIMEOUT_MS,
             "waitForFlag": wait_for_flag,
+            "flagWaitTimeoutMs": PHP_FFE_FLAG_WAIT_TIMEOUT_MS,
         }
-        if wait_for_config_version:
-            payload["expectedConfigIds"] = sorted(config_ids)
-            payload["expectedConfigVersion"] = version
-        timeout = (PHP_FFE_CONFIG_WAIT_TIMEOUT_MS * 2 // 1000) + 5
+        timeout = (PHP_FFE_FLAG_WAIT_TIMEOUT_MS * 2 // 1000) + 5
 
-    if context.library != "php":
-        return weblog.post("/ffe", json=payload, timeout=timeout)
-
-    deadline = time.monotonic() + EXPOSURE_WAIT_TIMEOUT_SECONDS
-    response = None
-    while response is None or time.monotonic() < deadline:
-        response = weblog.post("/ffe", json=payload, timeout=timeout)
-        if php_ffe_response_ready(
-            response,
-            wait_for_flag=wait_for_flag,
-            expected_value=expected_value,
-            expected_allocation_key=expected_allocation_key,
-            expected_variant=expected_variant,
-            require_exposure_flush=require_exposure_flush,
-        ):
-            return response
-        time.sleep(0.1)
-
-    return response
-
-
-def php_ffe_response_ready(
-    response: HttpResponse,
-    *,
-    wait_for_flag: bool,
-    expected_value: object = _UNSET,
-    expected_allocation_key: str | None = None,
-    expected_variant: str | None = None,
-    require_exposure_flush: bool = False,
-) -> bool:
-    """Return whether a PHP FFE response should stop setup-time request retries."""
-    if response.status_code != 200 or response.text is None:
-        return False
-
-    try:
-        payload = json.loads(response.text)
-    except json.JSONDecodeError:
-        return True
-
-    error_code = payload.get("errorCode")
-    if error_code == "PROVIDER_NOT_READY":
-        return False
-    if wait_for_flag and error_code == "FLAG_NOT_FOUND":
-        return False
-    if require_exposure_flush and payload.get("exposuresFlushed") is not True:
-        return False
-    if expected_value is not _UNSET and payload.get("value") != expected_value:
-        return False
-    if expected_variant is not None and payload.get("variant") != expected_variant:
-        return False
-    if expected_allocation_key is not None:
-        exposure_data = payload.get("exposureData")
-        allocation_key = exposure_data.get("allocationKey") if isinstance(exposure_data, dict) else None
-        if allocation_key != expected_allocation_key:
-            return False
-    return True
+    return weblog.post("/ffe", json=payload, timeout=timeout)
 
 
 def flush_ffe_payloads() -> WaitResult:
@@ -264,7 +192,7 @@ class Test_FFE_Exposure_Events:
         # Set up Remote Config
         config_id = "ffe-test-config"
         rc_config = UFC_FIXTURE_DATA
-        config_state = rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
 
         # Evaluate a feature flag
         self.flag = "test-flag"
@@ -281,9 +209,6 @@ class Test_FFE_Exposure_Events:
                 "targetingKey": self.targeting_key,
                 "attributes": attributes,
             },
-            {config_id},
-            config_state.version,
-            require_exposure_flush=True,
         )
         self.exposure_ready = wait_for_exposure_event({self.flag}, self.targeting_key)
 
@@ -403,7 +328,7 @@ class Test_FFE_Exposure_Events:
         self.flag_2 = "test-flag-2"
         self.targeting_key = "test-user-multi"
 
-        config_state_1 = rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
         self.r1 = post_ffe(
             {
                 "flag": self.flag_1,
@@ -412,14 +337,10 @@ class Test_FFE_Exposure_Events:
                 "targetingKey": self.targeting_key,
                 "attributes": {},
             },
-            {config_id_1},
-            config_state_1.version,
-            expected_value="on",
-            require_exposure_flush=True,
         )
         self.exposure_ready_1 = wait_for_exposure_event({self.flag_1}, self.targeting_key)
 
-        config_state_2 = rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
 
         self.r2 = post_ffe(
             {
@@ -429,10 +350,6 @@ class Test_FFE_Exposure_Events:
                 "targetingKey": self.targeting_key,
                 "attributes": {},
             },
-            {config_id_2},
-            config_state_2.version,
-            expected_value=True,
-            require_exposure_flush=True,
         )
         self.exposure_ready_2 = wait_for_exposure_event({self.flag_2}, self.targeting_key)
 
@@ -555,7 +472,7 @@ class Test_FFE_Exposure_Events_Errors:
             },
         }
 
-        config_state = rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", valid_rc_config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", valid_rc_config).apply()
 
         # Evaluate the flag with valid config
         self.flag = "test-flag-resilient"
@@ -569,9 +486,6 @@ class Test_FFE_Exposure_Events_Errors:
                 "targetingKey": self.targeting_key,
                 "attributes": {},
             },
-            {config_id},
-            config_state.version,
-            require_exposure_flush=True,
         )
         self.exposure_ready = wait_for_exposure_event({self.flag}, self.targeting_key)
 
@@ -605,8 +519,6 @@ class Test_FFE_Exposure_Events_Errors:
                 "targetingKey": self.targeting_key,
                 "attributes": {},
             },
-            {config_id},
-            config_state.version,
         )
 
     def test_ffe_malformed_remote_config_rejection(self):
@@ -679,11 +591,7 @@ class Test_FFE_Exposure_Caching_Same_Subject:
         """Set up FFE exposure caching test with multiple evaluations for the same subject."""
         config_id = "ffe-caching-test"
         self.flag_key = "same-subject-test-flag"  # Unique flag key for this test
-        config_state = (
-            rc.tracer_rc_state.reset()
-            .set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key))
-            .apply()
-        )
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.targeting_key = "same-subject-user"
 
@@ -698,9 +606,6 @@ class Test_FFE_Exposure_Caching_Same_Subject:
                     "targetingKey": self.targeting_key,
                     "attributes": {},
                 },
-                {config_id},
-                config_state.version,
-                require_exposure_flush=_i == 0,
             )
             self.responses.append(r)
         self.exposure_ready = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
@@ -740,11 +645,7 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
         """Set up FFE exposure caching test with multiple different subjects."""
         config_id = "ffe-caching-test-subjects"
         self.flag_key = "diff-subjects-test-flag"  # Unique flag key for this test
-        config_state = (
-            rc.tracer_rc_state.reset()
-            .set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key))
-            .apply()
-        )
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.subjects = [f"unique-subject-{i}" for i in range(5)]
 
@@ -759,9 +660,6 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
                     "targetingKey": subject,
                     "attributes": {},
                 },
-                {config_id},
-                config_state.version,
-                require_exposure_flush=True,
             )
             self.responses.append(r)
         self.exposure_wait_results = [
@@ -1001,11 +899,9 @@ class Test_FFE_Exposure_Missing_Flag:
         """Set up FFE exposure test for a missing flag."""
         # Set up a config with a different flag (not the one we'll request)
         config_id = "ffe-missing-flag-test"
-        config_state = (
-            rc.tracer_rc_state.reset()
-            .set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag"))
-            .apply()
-        )
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
         self.targeting_key = "missing-flag-user"
@@ -1021,8 +917,6 @@ class Test_FFE_Exposure_Missing_Flag:
                     "targetingKey": self.targeting_key,
                     "attributes": {},
                 },
-                {config_id},
-                config_state.version,
                 wait_for_flag=False,
             )
             self.responses.append(r)
@@ -1087,11 +981,7 @@ class Test_FFE_Exposure_DoLog_False:
         self.targeting_key = "dolog-false-user"
 
         # Set up config with doLog=false
-        config_state = (
-            rc.tracer_rc_state.reset()
-            .set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE)
-            .apply()
-        )
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE).apply()
 
         # Evaluate the flag multiple times
         self.responses = []
@@ -1104,8 +994,6 @@ class Test_FFE_Exposure_DoLog_False:
                     "targetingKey": self.targeting_key,
                     "attributes": {},
                 },
-                {config_id},
-                config_state.version,
             )
             self.responses.append(r)
 
@@ -1144,11 +1032,7 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
         self.flag_key = "exp-5-missing-targeting-key-flag"
 
         # Use a simple fixture with doLog=true
-        config_state = (
-            rc.tracer_rc_state.reset()
-            .set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key))
-            .apply()
-        )
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         # Evaluate the flag with an empty targeting key
         self.response = post_ffe(
@@ -1159,9 +1043,6 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
                 "targetingKey": "",  # Empty targeting key
                 "attributes": {},
             },
-            {config_id},
-            config_state.version,
-            require_exposure_flush=True,
         )
         self.exposure_ready = wait_for_exposure_event({self.flag_key}, "")
 
