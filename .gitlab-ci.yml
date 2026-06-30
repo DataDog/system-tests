@@ -401,6 +401,7 @@ build_ci_image:
     - changes:
         - utils/ci/gitlab/docker/system-tests.Dockerfile
         - requirements.txt
+        - utils/ci/gitlab/main.yml
 
 # ──────────────────────────────────────────────
 # Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
