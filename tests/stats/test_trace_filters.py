@@ -150,10 +150,9 @@ class Test_Trace_Filters_Require:
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation_trace_filter_reject_edge_cases
 class Test_Trace_Filters_Reject_Edge_Cases:
-    """
-    Filter config (see scenario):
-      filter_tags.reject:       [" key : tf-trim ", ":tf-no-key"]
-      filter_tags_regex.reject: [" key : tf-regex-trim.* ", "key:[invalid"]
+    """Filter config (see scenario):
+    filter_tags.reject:       [" key : tf-trim ", ":tf-no-key"]
+    filter_tags_regex.reject: [" key : tf-regex-trim.* ", "key:[invalid"]
     """
 
     def setup_literal_whitespace_trim_drops(self) -> None:
@@ -197,8 +196,7 @@ class Test_Trace_Filters_Reject_Edge_Cases:
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation_trace_filter_key_only_reject
 class Test_Trace_Filters_Key_Only_Reject:
-    """
-    Filter config (see scenario):
+    """Filter config (see scenario):
       filter_tags.reject: ["appsec.events.system_tests_appsec_event.value"]  (key only, no value)
 
     /stats-unique is used as control because /tag_value/* would also be rejected by the key-only filter.
@@ -221,8 +219,7 @@ class Test_Trace_Filters_Key_Only_Reject:
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation_trace_filter_require_edge_cases
 class Test_Trace_Filters_Require_Edge_Cases:
-    """
-    Filter config (see scenario):
+    """Filter config (see scenario):
       filter_tags.require:       [" key : tf-req-trim "]   (trimmed: exact value "tf-req-trim")
       filter_tags_regex.require: [" key : tf-req.* "]      (trimmed: regex matches "tf-req.*")
 
