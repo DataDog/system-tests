@@ -256,6 +256,21 @@ Route::get('/dbm', function (Request $request) {
     return response('', 200);
 });
 
+Route::get('/stub_dbm', function (Request $request) {
+    $integration = $request->query('integration', '');
+    $stmt = null;
+
+    if ($integration === 'pdo-pgsql') {
+        $stmt = DB::connection('postgresql')->getPdo()->query('SELECT version()');
+    } elseif ($integration === 'pdo-mysql') {
+        $stmt = DB::connection('mysql')->getPdo()->query('SELECT version()');
+    }
+
+    $captured = $stmt instanceof PDOStatement ? $stmt->queryString : null;
+
+    return response()->json(['status' => 'ok', 'dbm_comment' => $captured]);
+});
+
 Route::get('/log/library', function (Request $request) {
     $dir = env('SYSTEM_TESTS_LOGS', '/var/log/system-tests');
     if (! is_dir($dir)) {
