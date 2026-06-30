@@ -305,11 +305,11 @@ class Test_FFE_Exposure_Events:
             },
         }
 
-        # Evaluate both feature flags
         self.flag_1 = "test-flag-1"
         self.flag_2 = "test-flag-2"
         self.targeting_key = "test-user-multi"
 
+        # UFC config is replaced, not merged; evaluate each flag while its config is current.
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
         self.r1 = weblog.post(
             "/ffe",
@@ -321,6 +321,7 @@ class Test_FFE_Exposure_Events:
                 "attributes": {},
             },
         )
+        # Store setup-time wait results; tests run after teardown and cannot produce new payloads.
         self.exposure_ready_1 = wait_for_exposure_event({self.flag_1}, self.targeting_key)
 
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
@@ -752,17 +753,16 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         """Test that allocation-a → allocation-b → allocation-a generates 3 exposures."""
         # Verify step 1: variant-a from default-allocation
         assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
-        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
-        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
-
         result_1 = json.loads(self.response_1.text)
         assert result_1["value"] == "value-a", f"Request 1: expected 'value-a', got '{result_1['value']}'"
 
         # Verify step 2: variant-a from different-allocation
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
         result_2 = json.loads(self.response_2.text)
         assert result_2["value"] == "value-a", f"Request 2: expected 'value-a', got '{result_2['value']}'"
 
         # Verify step 3: variant-a from default-allocation again
+        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
         result_3 = json.loads(self.response_3.text)
         assert result_3["value"] == "value-a", f"Request 3: expected 'value-a', got '{result_3['value']}'"
 
@@ -848,17 +848,16 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         """Test that variant-a → variant-b → variant-a generates 3 exposures."""
         # Verify step 1: variant-a
         assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
-        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
-        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
-
         result_1 = json.loads(self.response_1.text)
         assert result_1["value"] == "value-a", f"Request 1: expected 'value-a', got '{result_1['value']}'"
 
         # Verify step 2: variant-b
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
         result_2 = json.loads(self.response_2.text)
         assert result_2["value"] == "value-b", f"Request 2: expected 'value-b', got '{result_2['value']}'"
 
         # Verify step 3: variant-a again
+        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
         result_3 = json.loads(self.response_3.text)
         assert result_3["value"] == "value-a", f"Request 3: expected 'value-a', got '{result_3['value']}'"
 
@@ -919,6 +918,7 @@ class Test_FFE_Exposure_Missing_Flag:
             assert result["value"] == "default-value", (
                 f"Request {i + 1}: expected 'default-value', got '{result['value']}'"
             )
+
         # Count exposure events - should be 0 because flag doesn't exist
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
