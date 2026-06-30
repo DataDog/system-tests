@@ -90,7 +90,7 @@ def post_ffe(
     expected_variant: str | None = None,
     require_exposure_flush: bool = False,
 ):
-    """Evaluate FFE, asking PHP to wait for the applied config version in the same request."""
+    """Evaluate FFE, asking PHP to retry readiness-sensitive requests in setup."""
     timeout = 5
     if context.library == "php":
         payload = {
@@ -414,7 +414,6 @@ class Test_FFE_Exposure_Events:
             },
             {config_id_1},
             config_state_1.version,
-            wait_for_config_version=True,
             expected_value="on",
             require_exposure_flush=True,
         )
@@ -432,7 +431,6 @@ class Test_FFE_Exposure_Events:
             },
             {config_id_2},
             config_state_2.version,
-            wait_for_config_version=True,
             expected_value=True,
             require_exposure_flush=True,
         )
@@ -1026,7 +1024,6 @@ class Test_FFE_Exposure_Missing_Flag:
                 {config_id},
                 config_state.version,
                 wait_for_flag=False,
-                wait_for_config_version=True,
             )
             self.responses.append(r)
 
