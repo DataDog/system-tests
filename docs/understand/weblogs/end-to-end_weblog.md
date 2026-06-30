@@ -1078,17 +1078,17 @@ accept a JSON body with these fields:
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
 
-PHP weblogs may also accept these test-only fields:
+Weblogs may also accept these test-only fields:
 
 - `waitForFlag`: whether to retry `FLAG_NOT_FOUND` results until the requested
-  flag is visible in the PHP sidecar-backed evaluator.
+  flag is visible in the evaluator.
 - `flagWaitTimeoutMs`: timeout in milliseconds. The endpoint caps the value at
   30000.
 
 The response must be JSON and include at least `value` and `reason`. Error
-responses should also include `errorCode` and `errorMessage`. PHP responses
-include `flagWaitAttempts` when `waitForFlag` is true and `exposuresFlushed`
-after evaluating the flag.
+responses should also include `errorCode` and `errorMessage`. Weblogs that
+implement `waitForFlag` may include `flagWaitAttempts`, and weblogs that flush
+exposure events may include `exposuresFlushed`.
 
 ### GET /healthcheck
 

@@ -17,7 +17,7 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
-PHP_FFE_FLAG_WAIT_TIMEOUT_MS = 5000
+FFE_FLAG_WAIT_TIMEOUT_MS = 5000
 
 WaitResult = tuple[bool, str]
 
@@ -76,16 +76,13 @@ def exposure_flag_keys_seen(flag_keys: set[str], subject_id: str | None = None) 
 
 
 def post_ffe(payload: dict, *, wait_for_flag: bool = True):
-    """Evaluate FFE, asking PHP to wait for the requested flag before flushing exposure EVP."""
-    timeout = 5
-    if context.library == "php":
-        payload = {
-            **payload,
-            "waitForFlag": wait_for_flag,
-            "flagWaitTimeoutMs": PHP_FFE_FLAG_WAIT_TIMEOUT_MS,
-        }
-        timeout = (PHP_FFE_FLAG_WAIT_TIMEOUT_MS * 2 // 1000) + 5
-
+    """Evaluate FFE with test coordination fields understood by weblogs that need them."""
+    payload = {
+        **payload,
+        "waitForFlag": wait_for_flag,
+        "flagWaitTimeoutMs": FFE_FLAG_WAIT_TIMEOUT_MS,
+    }
+    timeout = (FFE_FLAG_WAIT_TIMEOUT_MS * 2 // 1000) + 5
     return weblog.post("/ffe", json=payload, timeout=timeout)
 
 
