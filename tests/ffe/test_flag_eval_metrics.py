@@ -12,6 +12,10 @@ from utils import (
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
+EVAL_METRIC_WAIT_TIMEOUT_SECONDS = 30
+EXPECTED_EVAL_METRIC_FLAGS: set[str] = set()
+
+WaitResult = tuple[bool, str]
 
 
 def find_eval_metrics(flag_key: str | None = None):
@@ -32,6 +36,23 @@ def find_eval_metrics(flag_key: str | None = None):
 
         results.append(point)
     return results
+
+
+def wait_for_expected_eval_metrics() -> WaitResult:
+    """Wait for metric payloads that are known to arrive near the end of setup."""
+    missing = {flag_key for flag_key in EXPECTED_EVAL_METRIC_FLAGS if len(find_eval_metrics(flag_key)) == 0}
+
+    def has_expected_metrics(_: dict) -> bool:
+        missing.difference_update(flag_key for flag_key in list(missing) if len(find_eval_metrics(flag_key)) > 0)
+        return not missing
+
+    if not missing or interfaces.agent.wait_for(
+        has_expected_metrics,
+        timeout=EVAL_METRIC_WAIT_TIMEOUT_SECONDS,
+    ):
+        return True, ""
+
+    return False, f"Timed out waiting for feature_flag.evaluations metrics for flags {sorted(missing)}"
 
 
 def get_tag_value(tags: list[str], key: str):
@@ -617,6 +638,7 @@ class Test_FFE_Eval_Config_Exists_Flag_Missing:
                 "attributes": {},
             },
         )
+        EXPECTED_EVAL_METRIC_FLAGS.add(self.flag_key)
 
     def test_ffe_eval_config_exists_flag_missing(self):
         """Test that missing flag (with config loaded) produces error.type=flag_not_found."""
@@ -979,6 +1001,7 @@ class Test_FFE_Eval_Nested_Attributes_Ignored:
                 "attributes": {"nested": {"inner": "value"}, "flat": "value"},  # Nested dict should be ignored
             },
         )
+        EXPECTED_EVAL_METRIC_FLAGS.add(self.flag_key)
 
     def test_ffe_eval_nested_attributes_ignored(self):
         """Test that nested attributes are ignored and evaluation succeeds (OF.3)."""
@@ -1027,6 +1050,7 @@ class Test_FFE_Eval_Lowercase_Consistency:
                 "attributes": {},
             },
         )
+        EXPECTED_EVAL_METRIC_FLAGS.add(self.flag_key)
 
     def test_ffe_lowercase_reason(self):
         """Test that reason values are lowercase."""
@@ -1060,10 +1084,14 @@ class Test_FFE_Eval_Lowercase_Consistency:
                 "attributes": {},
             },
         )
+        EXPECTED_EVAL_METRIC_FLAGS.add(self.error_flag_key)
+        self.metric_drain_ready = wait_for_expected_eval_metrics()
 
     def test_ffe_lowercase_error_type(self):
         """Test that error.type values are lowercase."""
         assert self.r_error.status_code == 200, f"Flag evaluation request failed: {self.r_error.text}"
+        success, failure_message = self.metric_drain_ready
+        assert success, failure_message
 
         metrics = find_eval_metrics(self.error_flag_key)
         assert len(metrics) > 0, f"Expected metric for flag '{self.error_flag_key}', found none."
