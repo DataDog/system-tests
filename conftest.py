@@ -293,7 +293,7 @@ def _collect_item_metadata(item: pytest.Item):
         item.user_properties.append(
             (
                 "dd_tags[systest.case.feature_ids]",
-                str(filter(lambda x: x != NOT_REPORTED_FEATURE_ID, metadata["features"])),
+                str(list(filter(lambda x: x != NOT_REPORTED_FEATURE_ID, metadata["features"]))),
             )
         )
 
