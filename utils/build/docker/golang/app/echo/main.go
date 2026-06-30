@@ -174,6 +174,11 @@ func main() {
 
 		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after client.Do (the wrapped client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(c.Request().Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := client.Do(req)
 		if err != nil {
 			logrus.Fatalln(err)
@@ -183,7 +188,7 @@ func main() {
 
 		requestHeaders := make(map[string]string, len(req.Header))
 		for key, values := range req.Header {
-			requestHeaders[key] = strings.Join(values, ",")
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
 		}
 
 		responseHeaders := make(map[string]string, len(res.Header))
@@ -384,6 +389,11 @@ func main() {
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
 	r.Any("/debugger/expression", echoHandleFunc(d.expression))
+	r.Any("/debugger/budgets/:count", func(c echo.Context) error {
+		loops, _ := strconv.Atoi(c.Param("count"))
+		d.budgets(c.Response().Writer, c.Request(), loops)
+		return nil
+	})
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

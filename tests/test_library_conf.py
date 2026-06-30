@@ -718,6 +718,149 @@ class Test_ExtractBehavior_Restart:
         assert "key1=value1" in data["request_headers"]["baggage"]
 
 
+@scenarios.tracing_config_nondefault
+@features.context_propagation_extract_behavior
+class Test_ExtractBehavior_Restart_Otel:
+    """Same as Test_ExtractBehavior_Restart but the trace is started through the OTel extraction API.
+
+    Covers the gap where restart span links were not attached when a trace was initiated via
+    the OTel propagation API rather than the auto-instrumented HTTP path.
+    """
+
+    def _get_otel_span(self, spans: list) -> DataDogAgentSpan:
+        """Return the span created by the OTel tracer (named otel_extract_distant_call)."""
+        for span in spans:
+            if span.get("resource") == "otel_extract_distant_call" or span.get("name") == "otel_extract_distant_call":
+                return span
+        # Fallback: return whichever span has span links
+        for span in spans:
+            if retrieve_span_links(span) is not None:
+                return span
+        return spans[0]
+
+    def setup_single_tracecontext(self):
+        self.r = weblog.get(
+            "/otel_drop_in_extract_and_make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
+                "tracestate": "dd=s:2;t.dm:-4,foo=1",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_single_tracecontext(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+
+        span = self._get_otel_span(spans)
+        assert span.get("traceID") != "1"
+        assert span.get("parentID") is None
+
+        span_links = retrieve_span_links(span)
+        assert span_links is not None, "Expected span links to be present"
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span.trace.format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
+        assert int(link["spanID"]) == 1
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
+
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags", "")
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
+    def setup_multiple_tracecontexts(self):
+        self.r = weblog.get(
+            "/otel_drop_in_extract_and_make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_multiple_tracecontexts(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+
+        span = self._get_otel_span(spans)
+        assert span.get("traceID") != "1"
+        assert span.get("traceID") != "8687463697196027922"
+        assert span.get("parentID") is None
+
+        span_links = retrieve_span_links(span)
+        assert span_links is not None, "Expected span links to be present"
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span.trace.format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
+        assert int(link["spanID"]) == 1
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
+
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags", "")
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
+    def setup_multiple_tracecontexts_with_overrides(self):
+        self.r = weblog.get(
+            "/otel_drop_in_extract_and_make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-11111111111111110000000000000001-1234567890123456-01",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_multiple_tracecontexts_with_overrides(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+
+        span = self._get_otel_span(spans)
+        assert span.get("traceID") != "1"
+        assert span.get("parentID") is None
+
+        span_links = retrieve_span_links(span)
+        assert span_links is not None, "Expected span links to be present"
+        assert len(span_links) == 1
+
+        link = span_links[0]
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span.trace.format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
+        assert int(link["spanID"]) == 1311768467284833366
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
+
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags", "")
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
+
 def _get_span_link_trace_id(link: dict, span_format: AgentTraceFormat) -> tuple[int, int]:
     """Returns the trace ID of a span link according to its format split into high and low 64 bits"""
     if span_format == AgentTraceFormat.efficient_trace_payload_format:
