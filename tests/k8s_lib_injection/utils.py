@@ -5,7 +5,7 @@ from kubernetes import client
 
 from utils import logger, context
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
-from utils._context._scenarios.k8s_lib_injection import K8sScenarioWithClusterProvider
+from utils._context._scenarios.k8s_lib_injection import K8sScenario, K8sScenarioWithClusterProvider
 
 
 def get_dev_agent_traces(k8s_cluster_info: K8sClusterInfo, retry: int = 10) -> list:
@@ -26,6 +26,13 @@ def get_cluster_info() -> K8sClusterInfo:
     assert isinstance(context.scenario, K8sScenarioWithClusterProvider)
 
     return context.scenario.k8s_cluster_provider.get_cluster_info()
+
+
+def get_library_init_image() -> str:
+    """Return the init image under test (the image the scenario deploys as the init container)."""
+    assert isinstance(context.scenario, K8sScenario)
+
+    return context.scenario.test_weblog.library_init_image
 
 
 def run_https_probe_pod(

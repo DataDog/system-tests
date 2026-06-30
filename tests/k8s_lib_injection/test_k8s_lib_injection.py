@@ -1,5 +1,10 @@
 from utils import scenarios, features, context, bug, logger
-from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info, run_https_probe_pod
+from tests.k8s_lib_injection.utils import (
+    get_dev_agent_traces,
+    get_cluster_info,
+    get_library_init_image,
+    run_https_probe_pod,
+)
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -27,7 +32,7 @@ class TestK8sLibInjection:
         pod from the init image doing `curl -fsS https://...` (verification on) and asserts it
         succeeds; a missing or broken cert store makes curl exit non-zero.
         """
-        image = context.scenario.test_weblog.library_init_image
+        image = get_library_init_image()
         phase, logs = run_https_probe_pod(get_cluster_info(), image, "https://app.datadoghq.com")
         if phase != "Succeeded":
             logger.error(f"[HTTPS probe] init image {image} failed HTTPS egress; pod logs:\n{logs}")
