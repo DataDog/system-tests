@@ -973,6 +973,10 @@ class WeblogContainer(TestedContainer):
         if not library or not weblog:
             return result
 
+        if weblog in ("envoy", "haproxy"):
+            # Those are not based on a dockerfile. TODO : weblog abstraction
+            return result
+
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
