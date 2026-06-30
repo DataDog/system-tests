@@ -73,11 +73,11 @@ def run_https_probe_pod(
         logs = ""
         try:
             logs = api.read_namespaced_pod_log(name=name, namespace=namespace)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.warning(f"[HTTPS probe] could not read probe pod logs: {e}")
         return phase, logs
     finally:
         try:
             api.delete_namespaced_pod(name=name, namespace=namespace)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.warning(f"[HTTPS probe] could not delete probe pod: {e}")
