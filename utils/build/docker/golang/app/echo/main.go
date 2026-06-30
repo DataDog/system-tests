@@ -389,6 +389,11 @@ func main() {
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
 	r.Any("/debugger/expression", echoHandleFunc(d.expression))
+	r.Any("/debugger/budgets/:count", func(c echo.Context) error {
+		loops, _ := strconv.Atoi(c.Param("count"))
+		d.budgets(c.Response().Writer, c.Request(), loops)
+		return nil
+	})
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
