@@ -7,7 +7,14 @@ manifest:
       weblog: [rails61, uds-rails, rails80, rails72, rails52]
     - declaration: missing_feature (APPSEC-62218)
       excluded_weblog: [rails61, uds-rails, rails80, rails72, rails52]
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.36.0'
+        rails72: '>=2.36.0'
+        rails80: '>=2.36.0'
+        rails61: '>=2.36.0'
+        rails52: '>=2.36.0'
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -224,6 +231,7 @@ manifest:
         "*": v2.20.0-dev
         graphql23: missing_feature (no way to separate request paths)
         rack: missing_feature (performance impact of JSON parsing)
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -3139,6 +3147,14 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.34.0'  # added in 2.31.0 (dd-trace-rb#5464), spawn fixed in 2.34.0 (dd-trace-rb#5634)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.34.0'  # added in 2.31.0 (dd-trace-rb#5464), spawn fixed in 2.34.0 (dd-trace-rb#5634)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature

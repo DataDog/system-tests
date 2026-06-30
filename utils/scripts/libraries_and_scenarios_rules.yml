@@ -560,6 +560,10 @@ patterns:
         scenario_groups: exotics
         libraries: null
 
+    tests/appsec/test_sca_reachability.py:
+        scenario_groups: null
+        libraries: [java, python]
+
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
 # They are considered safe to override in previous rules. They should match a
