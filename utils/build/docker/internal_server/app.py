@@ -40,6 +40,45 @@ async def mirror(status: int, request: fastapi.Request):
     return fastapi.responses.JSONResponse({"status": "OK", "payload": body}, status_code=status, headers=query)
 
 
+_DOWNSTREAM_RESPONSE_BODY = b'{"ok":true}'
+_DOWNSTREAM_RESPONSE_BODY_TOO_BIG = b'{"payload":"' + b"x" * 180 + b'"}'
+
+
+@app.get("/downstream_response/{profile}")
+async def downstream_response(profile: str):
+    """Controlled downstream responses for API10 response body limit guards."""
+
+    if profile == "invalid_content_type":
+        return fastapi.responses.Response(
+            content=_DOWNSTREAM_RESPONSE_BODY,
+            status_code=200,
+            media_type="text/html",
+            headers={"content-length": str(len(_DOWNSTREAM_RESPONSE_BODY))},
+        )
+
+    if profile == "content_length_missing":
+
+        async def body_stream():
+            yield _DOWNSTREAM_RESPONSE_BODY
+
+        return fastapi.responses.StreamingResponse(
+            body_stream(),
+            status_code=200,
+            media_type="application/json",
+        )
+
+    if profile == "content_length_too_big":
+        body = _DOWNSTREAM_RESPONSE_BODY_TOO_BIG
+        return fastapi.responses.Response(
+            content=body,
+            status_code=200,
+            media_type="application/json",
+            headers={"content-length": str(len(body))},
+        )
+
+    return fastapi.responses.JSONResponse({"error": "unknown profile"}, status_code=404)
+
+
 @app.get("/redirect", response_class=fastapi.responses.RedirectResponse)
 async def redirect(request: fastapi.Request):
     """Redirect endpoint for testing API 10 with redirects

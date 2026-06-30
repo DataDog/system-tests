@@ -10,6 +10,7 @@
 # use `>1.0.0` to indicate that requirement.
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -49,6 +50,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature (APPSEC_API_SECURITY_NO_RESPONSE_BODY not supported)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.8.0
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: irrelevant (not applicable to proxies)
@@ -267,6 +269,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
@@ -434,7 +437,9 @@ manifest:
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py: '>=1.20.0'  # TODO: a lower version might be supported
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_edge_cases: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
@@ -468,6 +473,8 @@ manifest:
       component_version: <1.12.0
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (nginx master/worker model - only the worker emits telemetry, with DD-Root-Session-ID pointing at the non-emitting master, so root/runtime can't be validated)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (nginx master/worker model - only the worker emits telemetry, with DD-Root-Session-ID pointing at the non-emitting master, so root/runtime can't be validated)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: '>=1.12.0'  # Modified by easy win activation script

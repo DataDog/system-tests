@@ -1405,6 +1405,24 @@ class _Scenarios:
         scenario_groups=[scenario_groups.ai_guard],
     )
 
+    ai_guard_standalone = AIGuardScenario(
+        "AI_GUARD_STANDALONE",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+        },
+        doc="AI Guard standalone mode",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
     ai_guard_telemetry = AIGuardScenario(
         "AI_GUARD_TELEMETRY",
         other_weblog_containers=(VCRCassettesContainer,),

@@ -31,7 +31,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         for probe in probes:
             if "methodName" in probe["where"]:
                 del probe["where"]["methodName"]
-            probe["where"]["lines"] = lines
+            probe["where"]["lines"] = [str(n) for n in lines] if lines is not None else lines
             probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
             probe["where"]["typeName"] = None
 

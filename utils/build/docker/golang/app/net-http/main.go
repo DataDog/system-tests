@@ -43,6 +43,8 @@ import (
 )
 
 func main() {
+	common.RunAsChildIfRequested()
+
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)
@@ -188,6 +190,8 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/spawn_child", common.SpawnChild)
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		if url == "" {
@@ -197,6 +201,11 @@ func main() {
 
 		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after client.Do (the wrapped client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := client.Do(req)
 		if err != nil {
 			logrus.Fatalln("client.Do", err)
@@ -206,7 +215,7 @@ func main() {
 
 		requestHeaders := make(map[string]string, len(req.Header))
 		for key, values := range req.Header {
-			requestHeaders[key] = strings.Join(values, ",")
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
 		}
 
 		responseHeaders := make(map[string]string, len(res.Header))
@@ -769,6 +778,10 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 	mux.HandleFunc("/debugger/expression", d.expression)
+	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(r.PathValue("count"))
+		d.budgets(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

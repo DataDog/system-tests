@@ -622,6 +622,38 @@ def _sum_points(series_list: list[dict]) -> int:
 TELEMETRY_NAMESPACE = "ai_guard"
 
 
+@features.ai_guard_standalone
+@scenarios.ai_guard_standalone
+class Test_AIGuardStandalone:
+    """AI Guard standalone mode (DD_APM_TRACING_ENABLED=false).
+
+    Traces produced by AI Guard must still reach the backend with USER_KEEP
+    sampling priority and the AI_GUARD decision maker so they can be attributed
+    to AI Guard.
+    """
+
+    def setup_standalone_keeps_ai_guard_trace(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: "false"}, json=self.messages)
+
+    def test_standalone_keeps_ai_guard_trace(self):
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        root_spans = [span for span in spans if span.get("parent_id") in (0, None)]
+        assert root_spans, "No root span found in the trace"
+
+        for root_span in root_spans:
+            assert root_span.get_sampling_priority() == SamplingPriority.USER_KEEP, (
+                "Root span must be kept (USER_KEEP) for AI Guard traces in standalone mode"
+            )
+            assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
+                "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism in standalone mode"
+            )
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/x/54JqiQE")
 @features.ai_guard
 @scenarios.ai_guard_telemetry
