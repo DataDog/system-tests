@@ -1,5 +1,6 @@
 import base64
 from collections.abc import Generator
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -131,3 +132,60 @@ class StableConfigWriter:
             cmd = "sudo " + cmd
         success, message = test_library.container_exec_run(cmd)
         assert success, message
+
+
+# dd_* keys whose canonical telemetry name is not simply the upper-cased key. The tracer
+# reports the canonical name (e.g. DD_TRACE_LOG_LEVEL); DD_LOG_LEVEL is only an alias.
+_TELEMETRY_NAME_OVERRIDES = {"dd_log_level": "DD_TRACE_LOG_LEVEL"}
+
+
+def _telemetry_name(dd_key: str) -> str:
+    return _TELEMETRY_NAME_OVERRIDES.get(dd_key, dd_key.upper())
+
+
+def nodejs_telemetry_value(test_agent: TestAgentAPI, dd_key: str) -> str | int | float | bool | None:
+    """Return the effective nodejs telemetry value for a dd_* config key.
+
+    dd-trace-js builds /trace/config from internal property paths that a series of config
+    PRs is renaming to canonical names; the telemetry keeps reporting the stable canonical
+    names, so asserting there stays decoupled from those refactors. The effective value is
+    the highest-seq_id entry (already sorted first).
+    """
+    name = _telemetry_name(dd_key)
+    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    entries = configuration_by_name.get(name)
+    assert entries, f"No telemetry configuration '{name}'"
+    return entries[0].get("value")
+
+
+def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
+    """Assert expected dd_* config values against the nodejs telemetry configuration."""
+    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    for dd_key, expected_value in expected.items():
+        name = _telemetry_name(dd_key)
+        entries = configuration_by_name.get(name)
+        assert entries, f"No telemetry configuration '{name}'"
+        actual = entries[0].get("value")
+        if dd_key == "dd_tags":
+            actual_tags = "" if actual is None else str(actual)
+            expected_tags = expected_value if isinstance(expected_value, list) else str(expected_value).split(",")
+            for tag in expected_tags:
+                assert tag in actual_tags, f"Expected tag '{tag}' not found in telemetry tags: {actual_tags}"
+        else:
+            assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
+
+
+def nodejs_startup_config(test_library: APMLibrary) -> dict:
+    """Parse the tracer's published `DATADOG TRACER CONFIGURATION - {json}` startup line.
+
+    Some facts have no telemetry signal: an unreachable agent never delivers telemetry (so the
+    resolved agent URL is unobservable that way), and OTEL_LOG_LEVEL=debug toggles debug logging
+    without a DD_TRACE_DEBUG telemetry entry. The startup diagnostic is a published, user-facing
+    log line that carries them, so it is the non-internal source for those cases.
+    """
+    marker = "DATADOG TRACER CONFIGURATION - "
+    for line in test_library.get_logs().splitlines():
+        index = line.find(marker)
+        if index != -1:
+            return json.loads(line[index + len(marker) :])
+    raise AssertionError("No 'DATADOG TRACER CONFIGURATION' line found in container logs")

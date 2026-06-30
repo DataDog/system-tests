@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -96,6 +97,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: v1.6.2
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v1.21.0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
@@ -226,6 +228,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
@@ -357,7 +362,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_user_failure_basic: missing_feature (Basic auth not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v1.8.0
-  tests/appsec/test_automated_payment_events.py: missing_feature
+  tests/appsec/test_automated_payment_events.py: v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
@@ -621,6 +626,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py: v1.21.0-dev
   tests/ffe/test_exposures.py: v1.21.0-dev
+  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v1.21.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
@@ -675,7 +681,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: v1.21.0
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
@@ -701,7 +707,7 @@ manifest:
     - declaration: missing_feature (OTel SDK requires PHP >= 8.1)
       excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics: missing_feature
-  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: v1.22.0
   tests/integrations/test_sql.py::Test_Sql: v1.17.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.16.0
@@ -951,7 +957,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.2.0
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
+  tests/parametric/test_tracer.py::Test_TracerServiceNameSource: v1.22.0
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: '>=1.16.0'
@@ -1042,6 +1048,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_single_tracecontext: v1.17.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_HeaderTags: v0.68.2
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.74.0
@@ -1549,6 +1556,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration: missing_feature (Telemetry is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once: irrelevant (PHP registers 2 telemetry services)
   tests/test_telemetry.py::Test_Telemetry::test_seq_id: irrelevant (PHP registers 2 telemetry services)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v0.99.1

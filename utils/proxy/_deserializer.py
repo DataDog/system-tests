@@ -27,6 +27,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from ._decoders.metrics_v3 import decode_metrics_v3
 from .trace_bytes_decoding import decode_trace_bytes_ascii, unpack_trace_bytes_msgpack
 from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
 from .traces.otlp_v1 import deserialize_otlp_v1_trace
@@ -226,8 +227,13 @@ def deserialize_http_message(
             _deserialized_nested_json_from_trace_payloads(result, interface)
             _uncompress_agent_v1_trace(result, interface)
             return result
-        if path == "/api/v2/series":
+        if path in ("/api/v2/series", "/api/intake/metrics/v3/series"):
             if key == "request":
+                if path == "/api/intake/metrics/v3/series":
+                    # v3 uses a columnar, dictionary-encoded protobuf format; the descriptor
+                    # parses the envelope but the dictionary/delta encoding on top is undone
+                    # by our custom decoder.
+                    return decode_metrics_v3(content)
                 return MessageToDict(MetricPayload.FromString(content))
 
             return MessageToDict(BackendResponsePayload.FromString(content))
@@ -402,7 +408,7 @@ def deserialize(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except Exception:  # Many possible errors, catching all
-        status_code: int = data[key]["status_code"]
+        status_code: int | None = data[key].get("status_code")
         if key == "response" and status_code in (
             HTTPStatus.INTERNAL_SERVER_ERROR,
             HTTPStatus.REQUEST_TIMEOUT,

@@ -5,7 +5,8 @@
         "weblog/acme": "*",
         "monolog/monolog": "*",
         "openai-php/client": "*",
-        "guzzlehttp/guzzle": "*"
+        "guzzlehttp/guzzle": "*",
+        "stripe/stripe-php": "^10.0"
     },
     "repositories": [
         {
