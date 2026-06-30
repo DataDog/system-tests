@@ -857,10 +857,10 @@ def get_log_message_from_record(record: dict | str) -> str | None:
 def parse_log_trace_id(record: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
-    return record.get("dd.trace_id", record.get("trace_id", record.get("dd_trace_id")))
+    return record.get("dd.trace_id", record.get("trace_id", record.get("dd_trace_id", "")))
 
 
 def parse_log_span_id(record: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
     # APMAPI-1234: update dotnet to use dd.span_id instead of dd_span_id
-    return record.get("dd.span_id", record.get("span_id", record.get("dd_span_id")))
+    return record.get("dd.span_id", record.get("span_id", record.get("dd_span_id", "")))
