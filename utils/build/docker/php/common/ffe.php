@@ -137,52 +137,6 @@ function dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey,
     }
 }
 
-function dd_ffe_should_wait_for_flag(array $payload)
-{
-    return isset($payload['waitForFlag']) && $payload['waitForFlag'] === true;
-}
-
-function dd_ffe_flag_wait_timeout_ms(array $payload)
-{
-    $timeoutMs = isset($payload['flagWaitTimeoutMs']) ? (int) $payload['flagWaitTimeoutMs'] : 5000;
-    return max(0, min($timeoutMs, 30000));
-}
-
-function dd_ffe_should_retry_evaluation($details)
-{
-    if (!method_exists($details, 'getErrorCode')) {
-        return false;
-    }
-
-    $errorCode = $details->getErrorCode();
-    return $errorCode === 'FLAG_NOT_FOUND' || $errorCode === 'PROVIDER_NOT_READY';
-}
-
-function dd_ffe_evaluate_until_flag_ready(
-    $flagKey,
-    $variationType,
-    $defaultValue,
-    $targetingKey,
-    array $attributes,
-    $timeoutMs,
-    &$attempts
-) {
-    $deadline = microtime(true) * 1000 + $timeoutMs;
-    $attempts = 0;
-    $details = null;
-
-    do {
-        $attempts++;
-        $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey, $attributes);
-        if (!dd_ffe_should_retry_evaluation($details)) {
-            break;
-        }
-        usleep(10000);
-    } while (microtime(true) * 1000 < $deadline);
-
-    return $details;
-}
-
 function dd_ffe_details_payload($details)
 {
     $payload = array(
@@ -235,30 +189,11 @@ $attributes = isset($payload['attributes']) && is_array($payload['attributes'])
 
 try {
     $details = null;
-    $flagWaitAttempts = 0;
-    $waitForFlag = dd_ffe_should_wait_for_flag($payload);
     foreach ($targetingKeys as $key) {
-        if ($waitForFlag) {
-            $attempts = 0;
-            $details = dd_ffe_evaluate_until_flag_ready(
-                $flagKey,
-                $variationType,
-                $defaultValue,
-                $key,
-                $attributes,
-                dd_ffe_flag_wait_timeout_ms($payload),
-                $attempts
-            );
-            $flagWaitAttempts += $attempts;
-        } else {
-            $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $key, $attributes);
-        }
+        $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $key, $attributes);
     }
     if ($details !== null) {
         $response = dd_ffe_details_payload($details);
-        if ($waitForFlag) {
-            $response['flagWaitAttempts'] = $flagWaitAttempts;
-        }
         $response['count'] = count($targetingKeys);
         $response['exposuresFlushed'] = dd_ffe_flush_exposures();
         dd_ffe_json_response(200, $response);
