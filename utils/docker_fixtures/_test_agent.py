@@ -454,6 +454,14 @@ class TestAgentAPI:
         # The trace-session clear is safety-critical for pooled-agent reuse (a silent
         # failure leaves the next test on dirty state), so surface a bad status here.
         self._session.get(self._url("/test/session/clear")).raise_for_status()
+        # /test/session/clear drops recorded requests but NOT the remote-config the
+        # agent serves on /v0.7/config (RemoteConfigServer._responses). Pooled
+        # non-snapshot tests all share the default (token-less) RC slot, so a prior
+        # test's RC would leak into the next test's no-RC baseline (e.g. the
+        # dynamic-config sampling tests assert the default sample rate before applying
+        # RC). Posting an empty config restores the same {} state a fresh agent has.
+        # Safety-critical for reuse, so surface a bad status.
+        self._session.post(self._url("/test/session/responses/config"), json={}).raise_for_status()
         # The OTLP test-agent's clear is best-effort and can return non-2xx (e.g. 400);
         # don't fail the reset on it (matches the original fire-and-forget behavior).
         self._session.get(self._otlp_url("/test/session/clear"))
