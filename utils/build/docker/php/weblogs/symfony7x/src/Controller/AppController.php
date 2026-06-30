@@ -12,14 +12,16 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Process\Exception\RuntimeException as ProcessRuntimeException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AppController extends AbstractController
 {
+    // PUBLIC_ACCESS allows anonymous access while still triggering AccessDecisionManager::decide,
+    // which lets the tracer auto-call track_authenticated_user_event_automated for authenticated users.
+    #[IsGranted('PUBLIC_ACCESS')]
     #[Route('/', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
-        $this->getUser();
-
         return new Response("Hello world!\n", 200, [
             'Content-Type'   => 'text/plain; charset=utf-8',
             'Content-Length' => '13',
@@ -67,9 +69,8 @@ class AppController extends AbstractController
             return new JsonResponse(['error' => 'url parameter required'], 400);
         }
 
-        $client   = HttpClient::create();
-        $response = $client->request('GET', $url);
-
+        $client          = HttpClient::create();
+        $response        = $client->request('GET', $url);
         $statusCode      = $response->getStatusCode();
         $responseHeaders = [];
         foreach ($response->getHeaders(false) as $name => $values) {

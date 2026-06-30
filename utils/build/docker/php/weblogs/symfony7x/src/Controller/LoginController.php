@@ -42,6 +42,8 @@ class LoginController extends AbstractController
 
         $user = new User($id, $username, $hashedPassword, $username);
         $entityManager->persist($user);
+
+        // Signup event is tracked automatically by the tracer via Doctrine\ORM\UnitOfWork::executeInserts hook.
         $entityManager->flush();
 
         $this->security->login($user, AppAuthenticator::class, 'main');

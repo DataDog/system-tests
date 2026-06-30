@@ -443,6 +443,9 @@ manifest:
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_auto:
+    - weblog_declaration:
+        symfony7x: "missing_feature (APPSEC-68783: Symfony decide hook uses getUserIdentifier which returns username not database ID)"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_sdk_overwrite:
     - weblog_declaration:
         laravel11x: missing_feature
