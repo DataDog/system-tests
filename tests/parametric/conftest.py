@@ -11,6 +11,7 @@ import yaml
 
 from utils import scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
 
 
@@ -67,12 +68,12 @@ def docker() -> str | None:
 
 @pytest.fixture
 def test_agent_otlp_http_port() -> int:
-    return 4318
+    return DEFAULT_OTLP_HTTP_PORT
 
 
 @pytest.fixture
 def test_agent_otlp_grpc_port() -> int:
-    return 4317
+    return DEFAULT_OTLP_GRPC_PORT
 
 
 @pytest.fixture(scope="session")
@@ -93,11 +94,18 @@ def test_agent(
     test_agent_otlp_grpc_port: int,
     test_agent_pool: WorkerAgentPool,
 ) -> Generator[TestAgentAPI, None, None]:
-    # POC: pool only default-agent_env, non-snapshot tests. Snapshot-marked tests need
-    # per-test snapshot_context lifecycle; non-default agent_env would require a second
-    # pooled agent per worker (worker-keyed host ports would collide). Both fall back to
-    # the fresh-per-test path. Pooled agents are reset with clear() between tests.
-    poolable = request.node.get_closest_marker("snapshot") is None and not agent_env
+    # POC: pool only default-agent_env, default-OTLP-port, non-snapshot tests.
+    # Snapshot-marked tests need per-test snapshot_context lifecycle; non-default
+    # agent_env would require a second pooled agent per worker (worker-keyed host ports
+    # would collide); a parametrized custom container OTLP port needs an agent listening
+    # on that port, which the pool's fixed-port agent cannot serve. All fall back to the
+    # fresh-per-test path. Pooled agents are reset with clear() between tests.
+    poolable = (
+        request.node.get_closest_marker("snapshot") is None
+        and not agent_env
+        and test_agent_otlp_http_port == DEFAULT_OTLP_HTTP_PORT
+        and test_agent_otlp_grpc_port == DEFAULT_OTLP_GRPC_PORT
+    )
     if poolable:
         api = test_agent_pool.acquire(request=request, agent_env=agent_env)
         yield api

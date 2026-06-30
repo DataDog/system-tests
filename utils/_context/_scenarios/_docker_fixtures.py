@@ -7,7 +7,12 @@ import pytest
 
 from docker.errors import DockerException
 
-from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
+from utils.docker_fixtures._test_agent import (
+    TestAgentFactory,
+    TestAgentAPI,
+    DEFAULT_OTLP_HTTP_PORT,
+    DEFAULT_OTLP_GRPC_PORT,
+)
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, AgentLease, agent_env_key
 from utils._context.docker import get_docker_client
 from utils._logger import logger
@@ -101,8 +106,11 @@ class DockerFixturesScenario(Scenario):
                         container_name=container_name,
                         docker_network=network.name,
                         agent_env=agent_env,
-                        container_otlp_http_port=4318,
-                        container_otlp_grpc_port=4317,
+                        # Fixed container OTLP ports for the pooled agent. The poolable check
+                        # in tests/parametric/conftest.py only pools tests using these ports,
+                        # since a parametrized custom OTLP port needs an agent listening on it.
+                        container_otlp_http_port=DEFAULT_OTLP_HTTP_PORT,
+                        container_otlp_grpc_port=DEFAULT_OTLP_GRPC_PORT,
                         agent_port_base=4900,
                         otlp_http_port_base=5000,
                         otlp_grpc_port_base=5100,
@@ -135,8 +143,8 @@ class DockerFixturesScenario(Scenario):
         request: pytest.FixtureRequest,
         test_id: str,
         agent_env: dict[str, str],
-        container_otlp_http_port: int = 4318,
-        container_otlp_grpc_port: int = 4317,
+        container_otlp_http_port: int = DEFAULT_OTLP_HTTP_PORT,
+        container_otlp_grpc_port: int = DEFAULT_OTLP_GRPC_PORT,
     ) -> Generator[TestAgentAPI, None, None]:
         with (
             self._get_docker_network(test_id) as docker_network,

@@ -26,6 +26,14 @@ from .spec.trace import Trace
 
 from ._core import get_host_port, get_docker_client, docker_run
 
+# Default container-internal OTLP ports for the test-agent. The pooled parametric agent
+# (DockerFixturesScenario.get_agent_pool) is created with these, and the poolable check
+# in tests/parametric/conftest.py only pools tests that use them — a test that
+# parametrizes a custom OTLP port needs a fresh agent listening on that port. Single
+# source of truth so the pool creator and the poolable check cannot drift apart.
+DEFAULT_OTLP_HTTP_PORT = 4318
+DEFAULT_OTLP_GRPC_PORT = 4317
+
 
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
