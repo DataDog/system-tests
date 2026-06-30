@@ -3,10 +3,12 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 import yaml
 
+
 class BuildMode(StrEnum):
     none = "none"
     local = "local"
     prebuild = "prebuild"
+
 
 @dataclass
 class WeblogMetaData:
@@ -35,19 +37,17 @@ class WeblogMetaData:
 
     @staticmethod
     def _load_explicit_metadata() -> dict[str, "WeblogMetaData"]:
-
         with Path("utils/build/docker/weblog_metadata.yml").open() as f:
-            data:dict = yaml.safe_load(f)
+            data: dict = yaml.safe_load(f)
 
-        result: list[str, WeblogMetaData] = {}
+        result: dict[str, WeblogMetaData] = {}
         for name, kwargs in data.items():
             result[name] = WeblogMetaData(name=name, **kwargs)
 
         return result
 
     @staticmethod
-    def load(library:str) -> list["WeblogMetaData"]:
-
+    def load(library: str) -> list["WeblogMetaData"]:
         metadata = WeblogMetaData._load_explicit_metadata()
         result: list[WeblogMetaData] = []
 
@@ -60,7 +60,7 @@ class WeblogMetaData:
             ]
 
             for name in set(names + [w.name for w in metadata.values() if w.library == library]):
-                item = WeblogMetaData(name = name, library=library) if name not in metadata else metadata[name]
+                item = WeblogMetaData(name=name, library=library) if name not in metadata else metadata[name]
 
                 # integration-framework weblogs fan out into one weblog per version;
                 # all other weblogs map to a single weblog.
@@ -73,6 +73,9 @@ class WeblogMetaData:
 
         return result
 
-x = WeblogMetaData.load("python")
-from pprint import pprint
-pprint(x)
+
+if __name__ == "__main__":
+    x = WeblogMetaData.load("python")
+    from pprint import pprint
+
+    pprint(x)  # noqa: T203

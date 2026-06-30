@@ -4,7 +4,6 @@ from utils._context._scenarios import go_proxies
 from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
 
 
-
 def _load_json(file_path: str) -> dict:
     with open(file_path, "r") as file:
         return json.load(file)
@@ -269,7 +268,6 @@ class Job:
         return result
 
 
-
 def _get_endtoend_weblogs(
     library: str,
     weblogs_filter: list[str],
@@ -286,7 +284,6 @@ def _get_endtoend_weblogs(
         weblogs = [w for w in weblogs if w.name in weblogs_filter]
 
     for weblog in weblogs:
-
         if force_prebuild and weblog.build_mode == BuildMode.local:
             weblog.build_mode = BuildMode.prebuild
 

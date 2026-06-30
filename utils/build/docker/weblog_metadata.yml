@@ -1,22 +1,20 @@
 # This file contains weblog metadata (mainly used for build steps)
 
 # properties:
-#   library
-#   build_mode
+#   library : one of valid library
+#   build_mode : How a weblog's image is produced for end-to-end runs:
+#       "none"     → no Docker build; reuse the shared binaries_artifact as-is
+#                    (integration frameworks, go_proxies, otel_collector)
+#       "local"    → built in-line by the run_end_to_end job (weblog_build_required)
+#       "prebuild" → built ahead of time by a dedicated build_end_to_end job that
+#                    uploads a per-weblog artifact, then still built locally by the run
+#     "prebuild" implies a local build too, so weblog_build_required is true for both
+#     "local" and "prebuild".
 
-# How a weblog's image is produced for end-to-end runs:
-#   "none"     → no Docker build; reuse the shared binaries_artifact as-is
-#                (integration frameworks, go_proxies, otel_collector)
-#   "local"    → built in-line by the run_end_to_end job (weblog_build_required)
-#   "prebuild" → built ahead of time by a dedicated build_end_to_end job that
-#                uploads a per-weblog artifact, then still built locally by the run
-# "prebuild" implies a local build too, so weblog_build_required is true for both
-# "local" and "prebuild".
-
-
-# They are not listed exhaustively : if ever a utils/build/docker/<lang>/<name>.Dockerfile file exists
-# the weblog also exists with those defaults : 
-
+# They are not listed exhaustively : if ever a utils/build/docker/<library>/<name>.Dockerfile file exists
+# the weblog also exists with those defaults :
+# name: <name>
+# library: <library>
 # build_mode: prebuild
 
 ## Java weblogs
