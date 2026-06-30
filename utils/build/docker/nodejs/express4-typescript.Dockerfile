@@ -1,4 +1,4 @@
-FROM datadog/system-tests:express4-typescript.base-v2
+FROM datadog/system-tests:express4-typescript.base-v3
 
 EXPOSE 7777
 

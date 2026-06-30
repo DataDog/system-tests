@@ -13,7 +13,10 @@ manifest:
       weblog: [flask-poc, uds-flask, uwsgi-poc]
     - declaration: missing_feature (APPSEC-62216)
       excluded_weblog: [flask-poc, uds-flask, uwsgi-poc]
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.10.0
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -166,6 +169,7 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.11.0-rc1
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
@@ -431,10 +435,10 @@ manifest:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader::test_secure:
     - weblog_declaration:
-        "*": flaky (APPSEC-62470)
+        "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
     - weblog_declaration:
-        "*": flaky (APPSEC-62470)
+        "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -443,10 +447,10 @@ manifest:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
     - weblog_declaration:
-        "*": flaky (APPSEC-62470)
+        "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
-        "*": flaky (APPSEC-62470)
+        "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -586,6 +590,9 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v4.5.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -1772,7 +1779,9 @@ manifest:
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+      component_version: <4.10.5
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v2.0.0
@@ -1832,7 +1841,17 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v3.7.0
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v2.8.0
   tests/parametric/test_headers_none.py::Test_Headers_None: v2.8.0
-  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
+      component_version: <4.10.5
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_AgentInfo::test_tracer_consumes_info_opm: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_state: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_tracestate_member: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_missing_inbound_opm_does_not_enforce: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Injection::test_local_opm_overrides_inbound_opm: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Injection::test_opm_injected_in_both_styles: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Strict::test_strict_missing_inbound_enforces: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_TrustedOpms::test_untrusted_inbound_opm_is_enforced: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: v2.8.0
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was switched to datadog,tracecontext)
@@ -2063,7 +2082,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging: v0.36.0
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <4.10.5
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v3.12.0.dev
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices:
     - weblog_declaration:
@@ -2266,7 +2287,17 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
+  tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        python3.12: '>=4.10.5'
+        django-poc: '>=4.10.5'
+        flask-poc: '>=4.10.5'
+        tornado: '>=4.10.5'
+        fastapi: '>=4.10.5'
+        uwsgi-poc: '>=4.10.5'
+        uds-flask: '>=4.10.5'
+        django-py3.13: '>=4.10.5'
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
@@ -2482,6 +2513,14 @@ manifest:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
     - declaration: bug (APMAPI-1858)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        "*": missing_feature (not implemented yet)
+        flask-poc: '>=4.8.0'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        flask-poc: missing_feature (exec child is not traced; only fork is supported)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:

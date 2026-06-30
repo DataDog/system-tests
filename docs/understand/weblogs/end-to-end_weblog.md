@@ -225,6 +225,20 @@ if the request to `internal_server` is a failure, it must return a json body wit
 - `status` the status code of the `internal_server` response if available or a null value
 - `error` a string describing the error, for debug purposes
 
+### GET /external_request/body_limit/{failure_reason}
+### POST /external_request/body_limit/{failure_reason}
+### TRACE /external_request/body_limit/{failure_reason}
+### PUT /external_request/body_limit/{failure_reason}
+
+Same behavior as `/external_request`, but the downstream call targets `http://internal_server:8089/downstream_response/{failure_reason}`.
+
+Supported `{failure_reason}` values (defined in `internal_server`):
+- `invalid_content_type`
+- `content_length_missing`
+- `content_length_too_big`
+
+Unknown values must return HTTP 404 with a json error body.
+
 ### GET /external_request/redirect
 
 This endpoint tests HTTP redirect chains with downstream requests, using the fastapi application in `/utils/build/docker/internal_server/app.py`
@@ -938,6 +952,22 @@ It supports the following body fields:
 ### GET /flush
 
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/edit/flushing.md`.
+
+### GET /spawn_child
+
+Used by the telemetry session ID header tests ([Stable Service Instance Identifier RFC](https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit)). Forks or execs a child process, waits for it, and returns a response. Validates the `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers across child processes.
+
+OPTIONAL: only one weblog variant per language needs it; others are skipped via the manifests.
+
+Required query parameters:
+
+- `sleep`: seconds the child sleeps before exiting
+- `crash`: `true` to kill the child with SIGSEGV after sleeping, else `false`
+- `fork`: `true` to fork, `false` to exec. Runtimes without fork support (e.g. Java, .NET) return 400 for `fork=true`
+
+Returns 200 on success, or 400 if any parameter is missing or invalid.
+
+Note: `/fork_and_crash` exists only in lib-injection weblogs.
 
 ### \[GET,POST\] /rasp/lfi
 

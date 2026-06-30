@@ -284,6 +284,7 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v1.63.0
@@ -1205,6 +1206,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.60.1  # TODO: a lower version might be supported
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1927,10 +1931,10 @@ manifest:
         "*": v1.62.0-SNAPSHOT
         spring-boot: v1.61.0-SNAPSHOT
         uds-spring-boot: v1.61.0-SNAPSHOT
-        spring-boot-jetty: missing_feature (no instrumentation for Jetty)
+        spring-boot-jetty: v1.64.0-SNAPSHOT
         spring-boot-payara: v1.63.0-SNAPSHOT
-        vertx3: missing_feature (no instrumentation for Vert.x async multipart)
-        vertx4: missing_feature (no instrumentation for Vert.x async multipart)
+        vertx3: v1.64.0-SNAPSHOT
+        vertx4: v1.64.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
     - weblog_declaration:
@@ -4560,6 +4564,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_seq_id:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (Java does not support fork)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: '>=1.61.0'
   tests/test_telemetry.py::Test_Telemetry::test_status_ok:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
