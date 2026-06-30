@@ -451,20 +451,30 @@ class TestAgentAPI:
         raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
 
     def clear(self) -> None:
-        # The trace-session clear is safety-critical for pooled-agent reuse (a silent
-        # failure leaves the next test on dirty state), so surface a bad status here.
+        # Drops recorded requests (traces, telemetry, integrations) only. Also used
+        # mid-test by the clear=True helpers, so it must NOT touch the remote-config the
+        # agent serves -- wiping a test's active RC mid-test would change tracer behavior
+        # before the test asserts it. The pooled-reuse RC reset lives in
+        # reset_remote_config(), called only between tests. Safety-critical for reuse (a
+        # silent failure leaves the next test on dirty state), so surface a bad status.
         self._session.get(self._url("/test/session/clear")).raise_for_status()
-        # /test/session/clear drops recorded requests but NOT the remote-config the
-        # agent serves on /v0.7/config (RemoteConfigServer._responses). Pooled
-        # non-snapshot tests all share the default (token-less) RC slot, so a prior
-        # test's RC would leak into the next test's no-RC baseline (e.g. the
-        # dynamic-config sampling tests assert the default sample rate before applying
-        # RC). Posting an empty config restores the same {} state a fresh agent has.
-        # Safety-critical for reuse, so surface a bad status.
-        self._session.post(self._url("/test/session/responses/config"), json={}).raise_for_status()
         # The OTLP test-agent's clear is best-effort and can return non-2xx (e.g. 400);
         # don't fail the reset on it (matches the original fire-and-forget behavior).
         self._session.get(self._otlp_url("/test/session/clear"))
+
+    def reset_remote_config(self) -> None:
+        """Restore the served remote-config to the empty `{}` state a fresh agent has.
+
+        Kept out of `clear()` on purpose: `clear()` is also invoked mid-test by the
+        `clear=True` helpers, where wiping the active config would flip what the tracer
+        polls before the test asserts on it. Only the pooled-reuse path (between tests)
+        calls this, so a pooled non-snapshot test starts from a clean RC baseline --
+        e.g. the dynamic-config sampling tests assert the default rate before applying
+        their own RC. `/test/session/clear` does not reset RC (RemoteConfigServer
+        keeps `_responses` keyed by token), and non-snapshot tests share the default
+        token, so a prior test's RC would otherwise leak in.
+        """
+        self._session.post(self._url("/test/session/responses/config"), json={}).raise_for_status()
 
     def info(self):
         resp = self._session.get(self._url("/info"))

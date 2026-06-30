@@ -4,10 +4,14 @@ from utils.docker_fixtures._test_agent_pool import AgentLease, WorkerAgentPool, 
 class _FakeApi:
     def __init__(self) -> None:
         self.clear_calls = 0
+        self.reset_rc_calls = 0
         self.rebind_calls: list[object] = []
 
     def clear(self) -> None:
         self.clear_calls += 1
+
+    def reset_remote_config(self) -> None:
+        self.reset_rc_calls += 1
 
     def rebind_request(self, request: object) -> None:
         self.rebind_calls.append(request)
@@ -44,6 +48,7 @@ def test_same_env_reuses_and_clears():
     assert api1 is api2  # reused, not recreated
     assert len(creator.created_envs) == 1  # created exactly once
     assert api1.clear_calls == 2  # cleared on both acquires (first + reuse)
+    assert api1.reset_rc_calls == 2  # remote-config reset on both acquires too
     assert api1.rebind_calls == ["req2"]  # rebound only on reuse, not on first acquire
 
 

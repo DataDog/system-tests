@@ -45,7 +45,12 @@ class WorkerAgentPool:
             self._leases[key] = lease
         else:
             lease.api.rebind_request(request)
-        lease.api.clear()  # always return a clean agent (covers first acquire too)
+        # Always hand back a fully reset agent (covers the first acquire too): drop
+        # recorded requests, then restore the served remote-config to a fresh-agent
+        # state. The RC reset is done here, not in clear(), so mid-test clear=True
+        # helpers don't wipe a test's active config.
+        lease.api.clear()
+        lease.api.reset_remote_config()
         return lease.api
 
     def shutdown(self) -> None:
