@@ -1684,7 +1684,11 @@ manifest:
     - weblog_declaration:
         envoy: missing_feature
         haproxy: missing_feature
-  tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Default:
+    - weblog_declaration:
+        "*": v2.10.0-dev
+        envoy: missing_feature
+        haproxy: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
