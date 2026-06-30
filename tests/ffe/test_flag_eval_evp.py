@@ -470,6 +470,9 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         assert anchor_response.status_code == 200, f"Window anchor request failed: {anchor_response.text}"
         wait_for_evp_flagevaluation_event(anchor_flag_key)
 
+        # Keep this just over the SDK's per-flag full-tier cap. The test is
+        # asserting degraded EVP aggregation shape, not Rails request throughput
+        # or async queue pressure from a parallel burst.
         self.responses = []
         for batch_start in range(0, self.eval_count, EVP_DEGRADATION_BATCH_SIZE):
             targeting_keys = [
