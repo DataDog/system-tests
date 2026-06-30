@@ -362,10 +362,14 @@ def get_endtoend_definitions(
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_prebuild],
+            "parallel_weblogs": [_serialize_weblog(weblog) for weblog in weblogs if weblog.require_prebuild],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
+
+
+def _serialize_weblog(weblog: Weblog) -> dict:
+    return {"name": weblog.name, "artifact_name": weblog.artifact_name}
 
 
 def _split_jobs_for_parallel_execution(

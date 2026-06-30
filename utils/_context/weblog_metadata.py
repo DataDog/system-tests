@@ -6,8 +6,10 @@ import yaml
 
 class BuildMode(StrEnum):
     none = "none"
+    """ The weblog does not require any build step"""
     local = "local"
     prebuild = "prebuild"
+    """ The weblog will be built in a dedicated job in the CI """
 
 
 @dataclass
@@ -25,15 +27,12 @@ class WeblogMetaData:
     @property
     def require_build(self) -> bool:
         """The run_end_to_end job builds the weblog locally (weblog_build_required)."""
-        return self.build_mode != "none"
+        return self.build_mode != BuildMode.none
 
     @property
     def require_prebuild(self) -> bool:
         """A dedicated build_end_to_end job pre-builds the weblog (parallel_weblogs)."""
-        return self.build_mode == "prebuild"
-
-    def serialize(self) -> dict:
-        return {"name": self.name, "artifact_name": self.artifact_name}
+        return self.build_mode == BuildMode.prebuild
 
     @staticmethod
     def _load_explicit_metadata() -> dict[str, "WeblogMetaData"]:
