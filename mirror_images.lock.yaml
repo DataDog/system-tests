@@ -18,6 +18,10 @@ images:
     digest: sha256:f6c7557c63d9da34d081bc681768798bc4f70d8be36c565c526e57cecd6c2249
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.0-release
     tag: php-8.0-release
+  datadog/dd-appsec-php-ci:php-8.2-release:
+    digest: sha256:0199e251729b25276f97049cbcd39dd1997e98413a07b10a3c7e9e755d505a42
+    target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
+    tag: php-8.2-release
   datadog/system-tests:apache-mod-7.0-zts.base-v1:
     digest: sha256:bafc072734341cafb86f45673df2de4851a04b951d0717c88f7958cac1815b20
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-v1
