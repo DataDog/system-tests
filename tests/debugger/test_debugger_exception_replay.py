@@ -63,7 +63,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ setup ############
     def _setup(self, request_path: str, exception_message: str):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first
@@ -230,19 +230,42 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
                 return value
+            elif key == "staticFields" and isinstance(value, dict):
+
+                def is_empty_result_static_field(field_name: str, field_value: object) -> bool:
+                    return (
+                        field_name == "Empty"
+                        and isinstance(field_value, dict)
+                        and field_value.get("type") == "EmptyResult"
+                        and set(field_value).issubset({"type", "notCapturedReason"})
+                        and field_value.get("notCapturedReason") in (None, "typeInitializer")
+                    )
+
+                scrubbed_static_fields = {
+                    field_name: __scrub(field_value)
+                    for field_name, field_value in value.items()
+                    if not is_empty_result_static_field(field_name, field_value)
+                }
+                return scrubbed_static_fields or None
             elif key == "function":
                 assert isinstance(value, str)
                 if "lambda_" in value:
                     value = re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", value)
-                if re.search(r"<[^>]+>", value):
+                if re.search(r"<[^>]+>", value) and not value.endswith("<scrubbed>"):
                     value = re.sub(r"(.*>)(.*)", r"\1<scrubbed>", value)
                 return value
             elif key in ["stacktrace", "stack"]:
                 scrubbed = []
                 assert isinstance(value, list)
                 for entry in value:
+                    function = entry.get("function")
+                    if function is None:
+                        if entry != {"<runtime>": "<scrubbed>"}:
+                            scrubbed.append(__scrub(entry))
+                        continue
+
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
-                    if entry["function"].startswith(("Microsoft", "System", "Unknown")):
+                    if function.startswith(("Microsoft", "System", "Unknown")):
                         continue
 
                     scrubbed.append(__scrub(entry))
@@ -318,6 +341,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self._write_approval(snapshots, test_name, "snapshots_expected")
 
             expected_snapshots = self._read_approval(test_name, "snapshots_expected")
+            if self.get_tracer()["language"] == "dotnet" and not _SKIP_SCRUB:
+                expected_snapshots = [__scrub_dict(snapshot) for snapshot in expected_snapshots]  # type: ignore[assignment]
             if self.get_tracer()["language"] == "php":
                 expected_snapshots = __normalize_php_fields(expected_snapshots)  # type: ignore[assignment]
             assert expected_snapshots == snapshots
@@ -604,7 +629,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ Rock Paper Scissors ############
     def setup_exception_replay_rockpaperscissors(self):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first

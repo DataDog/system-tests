@@ -43,6 +43,8 @@ import (
 )
 
 func main() {
+	common.RunAsChildIfRequested()
+
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)
@@ -187,6 +189,8 @@ func main() {
 		}
 		w.Write([]byte("OK"))
 	})
+
+	mux.HandleFunc("/spawn_child", common.SpawnChild)
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
@@ -774,6 +778,10 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 	mux.HandleFunc("/debugger/expression", d.expression)
+	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(r.PathValue("count"))
+		d.budgets(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

@@ -375,6 +375,10 @@ func main() {
 	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
 	r.Any("/debugger/expression", ginHandleFunc(d.expression))
+	r.Any("/debugger/budgets/:count", func(ctx *gin.Context) {
+		loops, _ := strconv.Atoi(ctx.Param("count"))
+		d.budgets(ctx.Writer, ctx.Request, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

@@ -1,7 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62215)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.62.0
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
@@ -284,6 +287,7 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v1.63.0
@@ -2452,11 +2456,31 @@ manifest:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
-  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
-  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
-  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: missing_feature
-  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: missing_feature
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in spring-boot weblog)
+        spring-boot: v1.64.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in spring-boot weblog)
+        spring-boot: v1.64.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in spring-boot weblog)
+        spring-boot: v1.64.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in spring-boot weblog)
+        spring-boot: v1.64.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins:
+    - weblog_declaration:
+        "*": irrelevant (endpoint only implemented in spring-boot weblog)
+        spring-boot: v1.64.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
@@ -3244,7 +3268,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.62.0
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count: bug (FFL-1972)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.63.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
@@ -3571,7 +3598,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.63.0-SNAPSHOT
+        spring-boot: v1.64.0-SNAPSHOT
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -4563,6 +4590,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_seq_id:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (Java does not support fork)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: '>=1.61.0'
   tests/test_telemetry.py::Test_Telemetry::test_status_ok:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
