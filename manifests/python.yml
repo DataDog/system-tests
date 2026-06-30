@@ -1581,7 +1581,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.10.6  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1589,7 +1589,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.10.6  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1646,7 +1646,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        uds-flask: v4.10.6  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1695,7 +1695,7 @@ manifest:
         flask-poc: v2.16.0
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.10.6  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
