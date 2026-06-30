@@ -1,0 +1,93 @@
+// # B3 single-header propagation tests
+
+// Ported from `tests/parametric/test_headers_b3.py`. The `b3` header packs
+// `traceid-spanid-sampled[-parentspanid]`. Adapter-only (`fakeSupported = false`).
+
+let B3_SAMPLING_PRIORITY = "_sampling_priority_v1";
+
+let b3SingleHeaders(value: String): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("b3", value));
+  h.toList()
+}
+
+let checkInjectedB3Single(c: Checker, headers: Mapped<String, String>, span: CapturedSpan): Void {
+  let parts = headers.getOr("b3", "").split("-");
+  c.isTrue(parts.length >= 3, "b3 header has at least 3 parts");
+  if (parts.length >= 3) {
+    let tid = parts[0];
+    let sid = parts[1];
+    c.isTrue(strLen(tid) == 16 || strLen(tid) == 32, "b3 trace-id is 16 or 32 hex chars");
+    c.eqStr(hexLow64ToDecimal(tid), span.traceId, "b3 trace-id == span trace_id");
+    c.eqStr(hexToDecimal(sid), span.spanId, "b3 span-id == span span_id");
+    c.eqInt(strLen(sid), 16, "b3 span-id is 16 hex chars");
+    let expected = if (span.metrics.getOr(B3_SAMPLING_PRIORITY, 0.0) > 0.0) { "1" } else { "0" };
+    c.eqStr(parts[2], expected, "b3 sampled reflects priority");
+  }
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "no origin");
+}
+
+// ## extract valid
+
+export let runB3SingleExtractValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, b3SingleHeaders("000000000000000000000000075bcd15-000000003ade68b1-1"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "123456789", "trace_id extracted");
+  c.eqStr(span.parentId, "987654321", "parent_id extracted");
+  c.eqFloat(span.metrics.getOr(B3_SAMPLING_PRIORITY, 0.0), 1.0, "sampling priority 1");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "no origin");
+  c.result()
+}
+
+// ## extract invalid
+
+export let runB3SingleExtractInvalid(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, b3SingleHeaders("0-0-1"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.traceId != "0", "trace_id not 0");
+  c.isTrue(spanHasNoParent(span), "no parent extracted");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "no origin");
+  c.result()
+}
+
+// ## inject valid
+
+export let runB3SingleInjectValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let empty = new ListBuilder<Pair<String, String>>().toList();
+  let headers = makeChildSpanAndGetHeaders(t, empty);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  checkInjectedB3Single(c, headers, span);
+  c.result()
+}
+
+// ## propagate valid
+
+export let runB3SinglePropagateValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let headers = makeChildSpanAndGetHeaders(t, b3SingleHeaders("000000000000000000000000075bcd15-000000003ade68b1-1"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  checkInjectedB3Single(c, headers, span);
+  let parts = headers.getOr("b3", "").split("-");
+  if (parts.length >= 3) { c.eqStr(parts[2], "1", "sampled stays 1"); }
+  c.result()
+}
+
+// ## propagate invalid
+
+export let runB3SinglePropagateInvalid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let headers = makeChildSpanAndGetHeaders(t, b3SingleHeaders("0-0-1"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.traceId != "0", "trace_id not 0");
+  c.isTrue(span.spanId != "0", "span_id not 0");
+  checkInjectedB3Single(c, headers, span);
+  c.result()
+}

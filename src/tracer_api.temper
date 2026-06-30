@@ -1,0 +1,194 @@
+// # Tracer API
+
+// The language-agnostic surface that each `dd-trace-*` adapter implements.
+// In-memory capture model: after `flush()`, `capturedSpans()` returns the spans
+// the tracer emitted, decoded into these neutral shapes by the adapter.
+
+// Span/trace ids are **decimal strings** (64-bit ids don't fit a Temper `Int`, and
+// this matches the on-the-wire/header form). `"0"` means "no id" / no parent.
+
+// ## Captured shapes
+
+// A span link, with attributes already flattened by the adapter the same way the
+// tracer serializes them (e.g. `array.0 -> "a"`).
+
+export class CapturedLink(
+  public spanId: String,
+  public traceId: String,
+  public traceIdHigh: Int,
+  public attributes: Mapped<String, String>,
+) {}
+
+// A captured span. `parentId` is `"0"` when the span has no parent. `meta` holds
+// string tags, `metrics` holds numeric tags.
+
+// An OTel span context (hex ids), returned by `otelSpanContext`.
+
+export class OtelSpanContextInfo(
+  public traceIdHex: String,
+  public spanIdHex: String,
+) {}
+
+// A telemetry configuration entry (name + stringified value + origin), as the
+// tracer reports it in the app-started telemetry payload.
+// A typed attribute for an OTel span event. `kind` is one of: string, int,
+// double, bool, str_arr, int_arr, double_arr, bool_arr. `values` holds the
+// stringified value(s) (one for scalars, many for arrays); adapters coerce by
+// kind so 0 vs 0.0 (int vs double) survive the round-trip.
+export class EventAttr(
+  public key: String,
+  public kind: String,
+  public values: Listed<String>,
+) {}
+
+export class TelemetryConfigItem(
+  public name: String,
+  public value: String,
+  public origin: String,
+) {}
+
+export class CapturedSpan(
+  public traceId: String,
+  public spanId: String,
+  public parentId: String,
+  public name: String,
+  public service: String,
+  public resource: String,
+  public spanType: String,
+  public meta: Mapped<String, String>,
+  public metrics: Mapped<String, Float64>,
+  public links: Listed<CapturedLink>,
+  public error: Int = 0,
+) {}
+
+// ## Tracer interface
+
+// `parentId == "0"` means start a root span; `service`/`resource`/`spanType` are
+// optional. `extractHeaders` returns an id for the extracted context (`"0"` if
+// none) that can be passed as a `parentId`. `injectHeaders` returns the propagation
+// headers for a span.
+
+export interface Tracer {
+  startSpan(
+    name: String, parentId: String,
+    service: String = "", resource: String = "", spanType: String = "",
+  ): CapturedSpan;
+  finishSpan(spanId: String): Void;
+  setMeta(spanId: String, key: String, value: String): Void;
+  setMetric(spanId: String, key: String, value: Float64): Void;
+  setBaggage(spanId: String, key: String, value: String): Void;
+  getBaggage(spanId: String, key: String): String;
+  getAllBaggage(spanId: String): Mapped<String, String>;
+  removeBaggage(spanId: String, key: String): Void;
+  removeAllBaggage(spanId: String): Void;
+  addLink(spanId: String, linkToSpanId: String, attributes: Mapped<String, String>): Void;
+  // update a span's resource (used by OTel<->DD interop)
+  setResource(spanId: String, value: String): Void;
+  // DD-API removals + OTel-API typed set/remove (OTel<->DD interop)
+  removeMeta(spanId: String, key: String): Void;
+  removeMetric(spanId: String, key: String): Void;
+  otelSetAttributeNum(spanId: String, key: String, value: Float64): Void;
+  otelRemoveAttribute(spanId: String, key: String): Void;
+  extractHeaders(headers: Listed<Pair<String, String>>): String;
+  injectHeaders(spanId: String): Mapped<String, String>;
+  flush(): Void;
+  capturedSpans(): Listed<CapturedSpan>;
+  // resolved tracer configuration (env-driven), keys per the parametric `config` endpoint
+  config(): Mapped<String, String>;
+  // OpenTelemetry span API (subset)
+  otelStartSpan(name: String, parentId: String, kind: String): CapturedSpan;
+  otelSetAttribute(spanId: String, key: String, value: String): Void;
+  otelEndSpan(spanId: String): Void;
+  otelIsRecording(spanId: String): Boolean;
+  otelSpanContext(spanId: String): OtelSpanContextInfo;
+  otelSetStatus(spanId: String, code: String, description: String): Void;
+  otelRecordException(spanId: String, message: String, attributes: Mapped<String, String>): Void;
+  // telemetry config reported in the app-started payload (name/value/origin)
+  telemetryConfig(): Listed<TelemetryConfigItem>;
+  // add a typed event to an OTel span (timestamp in microseconds)
+  otelAddEvent(spanId: String, name: String, timeMicros: Int, attrs: Listed<EventAttr>): Void;
+  // the span's `span_events` as it appears on the agent wire (post-encode),
+  // serialized to JSON; empty string if none. Adapter-only.
+  wireSpanEventsJson(spanId: String): String;
+  // the span's v0.5 `meta.events` (string-attribute JSON), re-serialized compact;
+  // empty string if none. Adapter-only.
+  wireSpanMetaEventsJson(spanId: String): String;
+  // spans delivered to the real test-agent (flushes, then polls). Agent-backed cases.
+  deliveredSpans(): Listed<CapturedSpan>;
+  // client-computed stats payload from the test-agent, as JSON. Agent-backed cases.
+  computedStatsJson(): String;
+  // remote-config capability bit positions the tracer advertised, as a
+  // comma-wrapped CSV (e.g. ",12,13,19,"); empty if none. Agent-backed cases.
+  rcCapabilitiesCsv(): String;
+  // push an APM_TRACING remote-config sampling rate and wait for the tracer to
+  // ACK it; returns true on ACKNOWLEDGED. Agent-backed cases.
+  rcApplySamplingRate(rate: Float64): Boolean;
+}
+
+// ## Query helpers (ported from utils/parametric/spec/trace.py)
+
+export let findSpan(spans: Listed<CapturedSpan>, spanId: String): CapturedSpan {
+  for (var i = 0; i < spans.length; i++) {
+    let s = spans[i];
+    if (s.spanId == spanId) { return s; }
+  }
+  panic()
+}
+
+export let findOnlySpan(spans: Listed<CapturedSpan>): CapturedSpan {
+  if (spans.length != 1) { panic() }
+  spans[0]
+}
+
+export let spanHasNoParent(s: CapturedSpan): Boolean { s.parentId == "0" || s.parentId == "" }
+
+export let traceSpans(spans: Listed<CapturedSpan>, traceId: String): List<CapturedSpan> {
+  let out = new ListBuilder<CapturedSpan>();
+  for (var i = 0; i < spans.length; i++) {
+    let s = spans[i];
+    if (s.traceId == traceId) { out.add(s); }
+  }
+  out.toList()
+}
+
+// ## Header helpers
+
+export let headersToMap(headers: Listed<Pair<String, String>>): Mapped<String, String> {
+  let m = new MapBuilder<String, String>();
+  for (var i = 0; i < headers.length; i++) {
+    let p = headers[i];
+    m.set(p.key, p.value);
+  }
+  m
+}
+
+// `makeChildSpanAndGetHeaders` mirrors the parametric client helper: extract the
+// given headers, start a child span, inject, finish, and return the injected
+// headers as a map. The child span is available via `capturedSpans()` afterward.
+
+export let makeChildSpanAndGetHeaders(
+  t: Tracer, headers: Listed<Pair<String, String>>,
+): Mapped<String, String> {
+  let parentId = t.extractHeaders(headers);
+  let span = t.startSpan("child", parentId);
+  let injected = t.injectHeaders(span.spanId);
+  t.finishSpan(span.spanId);
+  injected
+}
+
+// Value/origin of a telemetry config item by name. The app-started payload may
+// list a name more than once (default, then env override); the last entry wins.
+export let telemetryValue(items: Listed<TelemetryConfigItem>, name: String): String {
+  var out = "";
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].name == name) { out = items[i].value; }
+  }
+  out
+}
+export let telemetryOrigin(items: Listed<TelemetryConfigItem>, name: String): String {
+  var out = "";
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].name == name) { out = items[i].origin; }
+  }
+  out
+}

@@ -1,0 +1,144 @@
+// # Trace sampling tests (more)
+//
+// Ported from `tests/parametric/test_trace_sampling.py`, beyond the two cases
+// already in `trace_sampling.temper` (runTraceSampledByRuleExactMatch /
+// runTraceDroppedByRule, which cover the plain web.request/webserver span shape
+// and are reused below for additional rule-shape env variants).
+//
+// All adapter-only: they assert the tracer's sampling *decision*
+// (`_sampling_priority_v1` 2=keep / -1=drop) and the rule rate (`_dd.rule_psr`).
+
+let tsmPriority = "_sampling_priority_v1";
+let tsmRulePsr = "_dd.rule_psr";
+
+let assertKeptByRule(c: Checker, s: CapturedSpan): Void {
+  c.eqFloat(s.metrics.getOr(tsmPriority, 0.0), 2.0, "kept (priority 2)");
+  c.eqFloat(s.metrics.getOr(tsmRulePsr, -1.0), 1.0, "rule rate 1.0");
+}
+let assertDroppedByRule(c: Checker, s: CapturedSpan): Void {
+  c.eqFloat(s.metrics.getOr(tsmPriority, 0.0), -1.0, "dropped (priority -1)");
+  c.eqFloat(s.metrics.getOr(tsmRulePsr, -1.0), 0.0, "rule rate 0.0");
+}
+
+// ## Resource-based rules — span has resource "/bar"
+
+export let runTraceSampledByResourceRule(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver", "/bar");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertKeptByRule(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+export let runTraceDroppedByResourceRule(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver", "/bar");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertDroppedByRule(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## Tag-based rules — span has resource "/bar" + meta tag1=val1, tag2=val2
+
+export let runTraceSampledByTagsRule(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver", "/bar");
+  t.setMeta(span.spanId, "tag1", "val1");
+  t.setMeta(span.spanId, "tag2", "val2");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertKeptByRule(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+export let runTraceDroppedByTagsRule(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver", "/bar");
+  t.setMeta(span.spanId, "tag1", "val1");
+  t.setMeta(span.spanId, "tag2", "val2");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertDroppedByRule(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## Field case-insensitivity — span web.request/webserver, resource "/random",
+// meta key=value; rules use mixed-case service/name/resource/tag values.
+
+export let runTraceSampledFieldCaseInsensitive(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver", "/random");
+  t.setMeta(span.spanId, "key", "value");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertKeptByRule(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## Manual keep overrides a matching drop rule
+// (set_metric "sampling.priority"=2 + a resource that matches the drop rule)
+
+export let runTraceKeptManualPriority(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.setMetric(span.spanId, "sampling.priority", 2.0);
+  t.setMeta(span.spanId, "resource.name", "drop-me");
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  c.eqFloat(s.metrics.getOr(tsmPriority, 0.0), 2.0, "kept by manual.keep (priority 2)");
+  c.result()
+}
+
+// ## Feb-2024 tag-glob revision — span "matching-span"/"test", meta tag=<value>
+// The sampling rule is [{tags:{tag:<pattern>}, rate 1}, {rate 0}]: a match keeps
+// (priority 2, rule_psr 1.0); a mismatch falls through to the rate-0 rule.
+
+let matchOnMetaTag(t: Tracer, tagValue: String): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("matching-span", "0", "test");
+  t.setMeta(span.spanId, "tag", tagValue);
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  assertKeptByRule(c, s);
+  c.eqStr(s.name, "matching-span", "span name");
+  c.eqStr(s.service, "test", "span service");
+  c.result()
+}
+
+export let runTraceTagMatchFoo(t: Tracer): CheckResult { matchOnMetaTag(t, "foo") }
+export let runTraceTagMatchSet(t: Tracer): CheckResult { matchOnMetaTag(t, "[abc]") }
+export let runTraceTagMatchRange(t: Tracer): CheckResult { matchOnMetaTag(t, "[a-c]") }
+
+// metric-valued tag: matches numeric glob patterns (20 / 2* / 2?) and any (*)
+
+let matchOnMetricTag(t: Tracer, metricValue: Float64): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("matching-span", "0", "test");
+  t.setMetric(span.spanId, "tag", metricValue);
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  assertKeptByRule(c, s);
+  c.eqStr(s.name, "matching-span", "span name");
+  c.eqStr(s.service, "test", "span service");
+  c.result()
+}
+
+export let runTraceTagMetricMatch20(t: Tracer): CheckResult { matchOnMetricTag(t, 20.0) }
+
+export let runTraceTagMetricMismatchNonInteger(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("mismatching-span", "0", "test");
+  t.setMetric(span.spanId, "tag", 20.1);
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  assertDroppedByRule(c, s);
+  c.eqStr(s.name, "mismatching-span", "span name");
+  c.eqStr(s.service, "test", "span service");
+  c.result()
+}

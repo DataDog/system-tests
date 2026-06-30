@@ -1,0 +1,2216 @@
+{
+    "about": "Backend names selected by user via the temper CLI. This file should be committed.",
+    "toolchain-version": "temper-0.6.1-dev+137-g6cbfc29",
+    "library-name": "std",
+    "backend-id": "py",
+    "selections": [
+        {
+            "qualified-name": "std/testing.type Test",
+            "selected-name": "Test"
+        },
+        {
+            "qualified-name": "std/testing.type Test.assert()",
+            "selected-name": "assert_42"
+        },
+        {
+            "qualified-name": "std/testing.type Test.assertHard()",
+            "selected-name": "assert_hard_46"
+        },
+        {
+            "qualified-name": "std/testing.type Test.softFailToHard()",
+            "selected-name": "soft_fail_to_hard_50"
+        },
+        {
+            "qualified-name": "std/testing.type Test.passing",
+            "selected-name": "passing_22"
+        },
+        {
+            "qualified-name": "std/testing.type Test.get passing()",
+            "selected-name": "get_dotpassing_54"
+        },
+        {
+            "qualified-name": "std/testing.type Test.messages()",
+            "selected-name": "messages_56"
+        },
+        {
+            "qualified-name": "std/testing.type Test.failedOnAssert",
+            "selected-name": "failed_on_assert_23"
+        },
+        {
+            "qualified-name": "std/testing.type Test.get failedOnAssert()",
+            "selected-name": "get_dotfailed_on_assert_58"
+        },
+        {
+            "qualified-name": "std/testing.type Test.hasUnhandledFail",
+            "selected-name": "has_unhandled_fail_24"
+        },
+        {
+            "qualified-name": "std/testing.type Test.get hasUnhandledFail()",
+            "selected-name": "get_dothas_unhandled_fail_60"
+        },
+        {
+            "qualified-name": "std/testing.type Test.messagesCombined()",
+            "selected-name": "messages_combined_62"
+        },
+        {
+            "qualified-name": "std/testing.type Test.messagesCombined().return=",
+            "selected-name": "return_35"
+        },
+        {
+            "qualified-name": "std/testing.type Test._failedOnAssert",
+            "selected-name": "failed_on_assert_65"
+        },
+        {
+            "qualified-name": "std/testing.type Test._passing",
+            "selected-name": "passing_66"
+        },
+        {
+            "qualified-name": "std/testing.type Test._messages",
+            "selected-name": "messages_67"
+        },
+        {
+            "qualified-name": "std/testing.type Test.constructor()",
+            "selected-name": "constructor_68"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases()",
+            "selected-name": "process_test_cases"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().key=",
+            "selected-name": "key_73"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().fun=",
+            "selected-name": "fun_74"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().test=",
+            "selected-name": "test_75"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().hadBubble=",
+            "selected-name": "had_bubble_76"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().messages=",
+            "selected-name": "messages_77"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().failures=",
+            "selected-name": "failures_78"
+        },
+        {
+            "qualified-name": "std/testing.processTestCases().failures=.allMessages=",
+            "selected-name": "all_messages_79"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml()",
+            "selected-name": "escape_xml_41"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().return",
+            "selected-name": "return_40"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().sb=",
+            "selected-name": "sb_105"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().end=",
+            "selected-name": "end_106"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().emitted=",
+            "selected-name": "emitted_107"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().i=",
+            "selected-name": "i_108"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().c=",
+            "selected-name": "c_109"
+        },
+        {
+            "qualified-name": "std/testing.escapeXml().esc=",
+            "selected-name": "esc_110"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults()",
+            "selected-name": "report_test_results"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().total=",
+            "selected-name": "total_83"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().fails=",
+            "selected-name": "fails_84"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().totals=",
+            "selected-name": "totals_88"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().i=",
+            "selected-name": "i_89"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().testResult=",
+            "selected-name": "test_result_90"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().failureMessages=",
+            "selected-name": "failure_messages_91"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().name=",
+            "selected-name": "name_92"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().basics=",
+            "selected-name": "basics_93"
+        },
+        {
+            "qualified-name": "std/testing.reportTestResults().message=",
+            "selected-name": "message_94"
+        },
+        {
+            "qualified-name": "std/testing.runTestCases()",
+            "selected-name": "run_test_cases"
+        },
+        {
+            "qualified-name": "std/testing.runTestCases().report=",
+            "selected-name": "report_98"
+        },
+        {
+            "qualified-name": "std/testing.runTest()",
+            "selected-name": "run_test"
+        },
+        {
+            "qualified-name": "std/testing.runTest().test=",
+            "selected-name": "test_102"
+        },
+        {
+            "qualified-name": "std/json.type InterchangeContext",
+            "selected-name": "InterchangeContext"
+        },
+        {
+            "qualified-name": "std/json.type InterchangeContext.getHeader()",
+            "selected-name": "get_header_375"
+        },
+        {
+            "qualified-name": "std/json.type NullInterchangeContext",
+            "selected-name": "NullInterchangeContext"
+        },
+        {
+            "qualified-name": "std/json.type NullInterchangeContext.getHeader()",
+            "selected-name": "get_header_378"
+        },
+        {
+            "qualified-name": "std/json.type NullInterchangeContext.instance",
+            "selected-name": "instance_381"
+        },
+        {
+            "qualified-name": "std/json.type NullInterchangeContext.constructor()",
+            "selected-name": "constructor_382"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer",
+            "selected-name": "JsonProducer"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.interchangeContext",
+            "selected-name": "interchange_context_383"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.startObject()",
+            "selected-name": "start_object_384"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.endObject()",
+            "selected-name": "end_object_386"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.objectKey()",
+            "selected-name": "object_key_388"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.startArray()",
+            "selected-name": "start_array_391"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.endArray()",
+            "selected-name": "end_array_393"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.nullValue()",
+            "selected-name": "null_value_395"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.booleanValue()",
+            "selected-name": "boolean_value_397"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.int32Value()",
+            "selected-name": "int32_value_400"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.int64Value()",
+            "selected-name": "int64_value_403"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.float64Value()",
+            "selected-name": "float64_value_406"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.numericTokenValue()",
+            "selected-name": "numeric_token_value_409"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.stringValue()",
+            "selected-name": "string_value_412"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.parseErrorReceiver",
+            "selected-name": "parse_error_receiver_191"
+        },
+        {
+            "qualified-name": "std/json.type JsonParseErrorReceiver",
+            "selected-name": "JsonParseErrorReceiver"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer.get parseErrorReceiver()",
+            "selected-name": "get_dotparse_error_receiver_415"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTree",
+            "selected-name": "JsonSyntaxTree"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTree.produce()",
+            "selected-name": "produce_417"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject",
+            "selected-name": "JsonObject"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.properties",
+            "selected-name": "properties_420"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.propertyValueOrNull()",
+            "selected-name": "property_value_or_null_421"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.propertyValueOrNull().return=",
+            "selected-name": "return_209"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.propertyValueOrNull().treeList=",
+            "selected-name": "tree_list_424"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.propertyValueOrNull().lastIndex=",
+            "selected-name": "last_index_425"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.propertyValueOrBubble()",
+            "selected-name": "property_value_or_bubble_426"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.propertyValueOrBubble().return=",
+            "selected-name": "return_210"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.produce()",
+            "selected-name": "produce_429"
+        },
+        {
+            "qualified-name": "std/json.type JsonObject.constructor()",
+            "selected-name": "constructor_435"
+        },
+        {
+            "qualified-name": "std/json.type JsonArray",
+            "selected-name": "JsonArray"
+        },
+        {
+            "qualified-name": "std/json.type JsonArray.elements",
+            "selected-name": "elements_437"
+        },
+        {
+            "qualified-name": "std/json.type JsonArray.produce()",
+            "selected-name": "produce_438"
+        },
+        {
+            "qualified-name": "std/json.type JsonArray.constructor()",
+            "selected-name": "constructor_442"
+        },
+        {
+            "qualified-name": "std/json.type JsonBoolean",
+            "selected-name": "JsonBoolean"
+        },
+        {
+            "qualified-name": "std/json.type JsonBoolean.content",
+            "selected-name": "content_444"
+        },
+        {
+            "qualified-name": "std/json.type JsonBoolean.produce()",
+            "selected-name": "produce_445"
+        },
+        {
+            "qualified-name": "std/json.type JsonBoolean.constructor()",
+            "selected-name": "constructor_448"
+        },
+        {
+            "qualified-name": "std/json.type JsonNull",
+            "selected-name": "JsonNull"
+        },
+        {
+            "qualified-name": "std/json.type JsonNull.produce()",
+            "selected-name": "produce_450"
+        },
+        {
+            "qualified-name": "std/json.type JsonNull.constructor()",
+            "selected-name": "constructor_453"
+        },
+        {
+            "qualified-name": "std/json.type JsonString",
+            "selected-name": "JsonString"
+        },
+        {
+            "qualified-name": "std/json.type JsonString.content",
+            "selected-name": "content_454"
+        },
+        {
+            "qualified-name": "std/json.type JsonString.produce()",
+            "selected-name": "produce_455"
+        },
+        {
+            "qualified-name": "std/json.type JsonString.constructor()",
+            "selected-name": "constructor_458"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumeric",
+            "selected-name": "JsonNumeric"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumeric.asJsonNumericToken()",
+            "selected-name": "as_json_numeric_token_460"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumeric.asInt32()",
+            "selected-name": "as_int32_462"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumeric.asInt64()",
+            "selected-name": "as_int64_464"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumeric.asFloat64()",
+            "selected-name": "as_float64_466"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32",
+            "selected-name": "JsonInt32"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.content",
+            "selected-name": "content_468"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.produce()",
+            "selected-name": "produce_469"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.asJsonNumericToken()",
+            "selected-name": "as_json_numeric_token_472"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.asInt32()",
+            "selected-name": "as_int32_474"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.asInt64()",
+            "selected-name": "as_int64_476"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.asFloat64()",
+            "selected-name": "as_float64_478"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt32.constructor()",
+            "selected-name": "constructor_480"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64",
+            "selected-name": "JsonInt64"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.content",
+            "selected-name": "content_482"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.produce()",
+            "selected-name": "produce_483"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.asJsonNumericToken()",
+            "selected-name": "as_json_numeric_token_486"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.asInt32()",
+            "selected-name": "as_int32_488"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.asInt64()",
+            "selected-name": "as_int64_490"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.asFloat64()",
+            "selected-name": "as_float64_492"
+        },
+        {
+            "qualified-name": "std/json.type JsonInt64.constructor()",
+            "selected-name": "constructor_494"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64",
+            "selected-name": "JsonFloat64"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.content",
+            "selected-name": "content_496"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.produce()",
+            "selected-name": "produce_497"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.asJsonNumericToken()",
+            "selected-name": "as_json_numeric_token_500"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.asInt32()",
+            "selected-name": "as_int32_502"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.asInt64()",
+            "selected-name": "as_int64_504"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.asFloat64()",
+            "selected-name": "as_float64_506"
+        },
+        {
+            "qualified-name": "std/json.type JsonFloat64.constructor()",
+            "selected-name": "constructor_508"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken",
+            "selected-name": "JsonNumericToken"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.content",
+            "selected-name": "content_510"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.produce()",
+            "selected-name": "produce_511"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.asJsonNumericToken()",
+            "selected-name": "as_json_numeric_token_514"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.asInt32()",
+            "selected-name": "as_int32_516"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.asInt32().return=",
+            "selected-name": "return_254"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.asInt64()",
+            "selected-name": "as_int64_518"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.asInt64().return=",
+            "selected-name": "return_255"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.asFloat64()",
+            "selected-name": "as_float64_520"
+        },
+        {
+            "qualified-name": "std/json.type JsonNumericToken.constructor()",
+            "selected-name": "constructor_522"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer",
+            "selected-name": "JsonTextProducer"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.interchangeContext",
+            "selected-name": "interchange_context_524"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.buffer",
+            "selected-name": "buffer_525"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.stack",
+            "selected-name": "stack_526"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.wellFormed",
+            "selected-name": "well_formed_527"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.constructor()",
+            "selected-name": "constructor_528"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.constructor().(interchangeContext)",
+            "selected-name": "interchange_context_529"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.state()",
+            "selected-name": "state_531"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.beforeValue()",
+            "selected-name": "before_value_533"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.beforeValue().currentState=",
+            "selected-name": "current_state_535"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.startObject()",
+            "selected-name": "start_object_536"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.endObject()",
+            "selected-name": "end_object_538"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.endObject().currentState=",
+            "selected-name": "current_state_540"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.objectKey()",
+            "selected-name": "object_key_541"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.objectKey().currentState=",
+            "selected-name": "current_state_544"
+        },
+        {
+            "qualified-name": "std/json.encodeJsonString()",
+            "selected-name": "encode_json_string_351"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.startArray()",
+            "selected-name": "start_array_545"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.endArray()",
+            "selected-name": "end_array_547"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.endArray().currentState=",
+            "selected-name": "current_state_549"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.nullValue()",
+            "selected-name": "null_value_550"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.booleanValue()",
+            "selected-name": "boolean_value_552"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.int32Value()",
+            "selected-name": "int32_value_555"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.int64Value()",
+            "selected-name": "int64_value_558"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.float64Value()",
+            "selected-name": "float64_value_561"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.numericTokenValue()",
+            "selected-name": "numeric_token_value_564"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.stringValue()",
+            "selected-name": "string_value_567"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.toJsonString()",
+            "selected-name": "to_json_string_570"
+        },
+        {
+            "qualified-name": "std/json.type JsonTextProducer.toJsonString().return=",
+            "selected-name": "return_272"
+        },
+        {
+            "qualified-name": "std/json.type JsonParseErrorReceiver.explainJsonError()",
+            "selected-name": "explain_json_error_587"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer",
+            "selected-name": "JsonSyntaxTreeProducer"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.stack",
+            "selected-name": "stack_590"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.error",
+            "selected-name": "error_591"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.interchangeContext",
+            "selected-name": "interchange_context_276"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.get interchangeContext()",
+            "selected-name": "get_dotinterchange_context_592"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.constructor()",
+            "selected-name": "constructor_594"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.storeValue()",
+            "selected-name": "store_value_596"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.startObject()",
+            "selected-name": "start_object_599"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject()",
+            "selected-name": "end_object_601"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().ls=",
+            "selected-name": "ls_603"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().m=",
+            "selected-name": "m_604"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().multis=#0",
+            "selected-name": "multis_605"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().i=",
+            "selected-name": "i_606"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().n=",
+            "selected-name": "n_607"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().keyTree=",
+            "selected-name": "key_tree_608"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().key=",
+            "selected-name": "key_609"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().value=",
+            "selected-name": "value_610"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().mb=",
+            "selected-name": "mb_611"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endObject().multis=#1",
+            "selected-name": "multis_612"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.objectKey()",
+            "selected-name": "object_key_615"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.startArray()",
+            "selected-name": "start_array_618"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endArray()",
+            "selected-name": "end_array_620"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.endArray().ls=",
+            "selected-name": "ls_622"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.nullValue()",
+            "selected-name": "null_value_623"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.booleanValue()",
+            "selected-name": "boolean_value_625"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.int32Value()",
+            "selected-name": "int32_value_628"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.int64Value()",
+            "selected-name": "int64_value_631"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.float64Value()",
+            "selected-name": "float64_value_634"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.numericTokenValue()",
+            "selected-name": "numeric_token_value_637"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.stringValue()",
+            "selected-name": "string_value_640"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.toJsonSyntaxTree()",
+            "selected-name": "to_json_syntax_tree_643"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.toJsonSyntaxTree().ls=",
+            "selected-name": "ls_645"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.jsonError",
+            "selected-name": "json_error_277"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.get jsonError()",
+            "selected-name": "get_dotjson_error_646"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.parseErrorReceiver",
+            "selected-name": "parse_error_receiver_278"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.get parseErrorReceiver()",
+            "selected-name": "get_dotparse_error_receiver_648"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTreeProducer.explainJsonError()",
+            "selected-name": "explain_json_error_650"
+        },
+        {
+            "qualified-name": "std/json.parseJsonValue()",
+            "selected-name": "parse_json_value_356"
+        },
+        {
+            "qualified-name": "std/json.parseJsonValue().return",
+            "selected-name": "return_302"
+        },
+        {
+            "qualified-name": "std/json.skipJsonSpaces()",
+            "selected-name": "skip_json_spaces_355"
+        },
+        {
+            "qualified-name": "std/json.expectedTokenError()",
+            "selected-name": "expected_token_error_353"
+        },
+        {
+            "qualified-name": "std/json.parseJsonObject()",
+            "selected-name": "parse_json_object_357"
+        },
+        {
+            "qualified-name": "std/json.parseJsonArray()",
+            "selected-name": "parse_json_array_358"
+        },
+        {
+            "qualified-name": "std/json.parseJsonString()",
+            "selected-name": "parse_json_string_359"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean()",
+            "selected-name": "parse_json_boolean_362"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNull()",
+            "selected-name": "parse_json_null_363"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber()",
+            "selected-name": "parse_json_number_365"
+        },
+        {
+            "qualified-name": "std/json.type JsonAdapter",
+            "selected-name": "JsonAdapter"
+        },
+        {
+            "qualified-name": "std/json.type JsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_764"
+        },
+        {
+            "qualified-name": "std/json.type JsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_768"
+        },
+        {
+            "qualified-name": "std/json.type BooleanJsonAdapter",
+            "selected-name": "BooleanJsonAdapter_164"
+        },
+        {
+            "qualified-name": "std/json.type BooleanJsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_772"
+        },
+        {
+            "qualified-name": "std/json.type BooleanJsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_776"
+        },
+        {
+            "qualified-name": "std/json.type BooleanJsonAdapter.constructor()",
+            "selected-name": "constructor_780"
+        },
+        {
+            "qualified-name": "std/json.type Float64JsonAdapter",
+            "selected-name": "Float64JsonAdapter_167"
+        },
+        {
+            "qualified-name": "std/json.type Float64JsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_782"
+        },
+        {
+            "qualified-name": "std/json.type Float64JsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_786"
+        },
+        {
+            "qualified-name": "std/json.type Float64JsonAdapter.constructor()",
+            "selected-name": "constructor_790"
+        },
+        {
+            "qualified-name": "std/json.type Int32JsonAdapter",
+            "selected-name": "Int32JsonAdapter_170"
+        },
+        {
+            "qualified-name": "std/json.type Int32JsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_792"
+        },
+        {
+            "qualified-name": "std/json.type Int32JsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_796"
+        },
+        {
+            "qualified-name": "std/json.type Int32JsonAdapter.constructor()",
+            "selected-name": "constructor_800"
+        },
+        {
+            "qualified-name": "std/json.type Int64JsonAdapter",
+            "selected-name": "Int64JsonAdapter_173"
+        },
+        {
+            "qualified-name": "std/json.type Int64JsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_802"
+        },
+        {
+            "qualified-name": "std/json.type Int64JsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_806"
+        },
+        {
+            "qualified-name": "std/json.type Int64JsonAdapter.constructor()",
+            "selected-name": "constructor_810"
+        },
+        {
+            "qualified-name": "std/json.type StringJsonAdapter",
+            "selected-name": "StringJsonAdapter_176"
+        },
+        {
+            "qualified-name": "std/json.type StringJsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_812"
+        },
+        {
+            "qualified-name": "std/json.type StringJsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_816"
+        },
+        {
+            "qualified-name": "std/json.type StringJsonAdapter.constructor()",
+            "selected-name": "constructor_820"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter",
+            "selected-name": "ListJsonAdapter_179"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.adapterForT",
+            "selected-name": "adapter_for_t_822"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_823"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_828"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.decodeFromJson().b=",
+            "selected-name": "b_832"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.decodeFromJson().elements=",
+            "selected-name": "elements_833"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.decodeFromJson().n=",
+            "selected-name": "n_834"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.decodeFromJson().i=",
+            "selected-name": "i_835"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.decodeFromJson().el=",
+            "selected-name": "el_836"
+        },
+        {
+            "qualified-name": "std/json.type ListJsonAdapter.constructor()",
+            "selected-name": "constructor_837"
+        },
+        {
+            "qualified-name": "std/json.type OrNullJsonAdapter",
+            "selected-name": "OrNullJsonAdapter"
+        },
+        {
+            "qualified-name": "std/json.type OrNullJsonAdapter.adapterForT",
+            "selected-name": "adapter_for_t_841"
+        },
+        {
+            "qualified-name": "std/json.type OrNullJsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_842"
+        },
+        {
+            "qualified-name": "std/json.type OrNullJsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_846"
+        },
+        {
+            "qualified-name": "std/json.type OrNullJsonAdapter.decodeFromJson().return=",
+            "selected-name": "return_350"
+        },
+        {
+            "qualified-name": "std/json.type OrNullJsonAdapter.constructor()",
+            "selected-name": "constructor_850"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_OPEN_OBJECT",
+            "selected-name": "json_state_open_object_366"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_AFTER_KEY",
+            "selected-name": "json_state_after_key_367"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_AFTER_PROPERTY",
+            "selected-name": "json_state_after_property_368"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_OPEN_ARRAY",
+            "selected-name": "json_state_open_array_369"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_AFTER_ELEMENT",
+            "selected-name": "json_state_after_element_370"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_NO_VALUE",
+            "selected-name": "json_state_no_value_371"
+        },
+        {
+            "qualified-name": "std/json.JSON_STATE_ONE_VALUE",
+            "selected-name": "json_state_one_value_372"
+        },
+        {
+            "qualified-name": "std/json.hexDigits",
+            "selected-name": "hex_digits_373"
+        },
+        {
+            "qualified-name": "std/json.encodeHex4()",
+            "selected-name": "encode_hex4_352"
+        },
+        {
+            "qualified-name": "std/json.encodeHex4().b0=",
+            "selected-name": "b0_583"
+        },
+        {
+            "qualified-name": "std/json.encodeHex4().b1=",
+            "selected-name": "b1_584"
+        },
+        {
+            "qualified-name": "std/json.encodeHex4().b2=",
+            "selected-name": "b2_585"
+        },
+        {
+            "qualified-name": "std/json.encodeHex4().b3=",
+            "selected-name": "b3_586"
+        },
+        {
+            "qualified-name": "std/json.encodeJsonString().i=",
+            "selected-name": "i_575"
+        },
+        {
+            "qualified-name": "std/json.encodeJsonString().emitted=",
+            "selected-name": "emitted_576"
+        },
+        {
+            "qualified-name": "std/json.encodeJsonString().cp=",
+            "selected-name": "cp_577"
+        },
+        {
+            "qualified-name": "std/json.encodeJsonString().replacement=",
+            "selected-name": "replacement_578"
+        },
+        {
+            "qualified-name": "std/json.encodeJsonString().nextI=",
+            "selected-name": "next_i_579"
+        },
+        {
+            "qualified-name": "std/json.storeJsonError()",
+            "selected-name": "store_json_error_354"
+        },
+        {
+            "qualified-name": "std/json.expectedTokenError().gotten=",
+            "selected-name": "gotten_658"
+        },
+        {
+            "qualified-name": "std/json.decodeHexUnsigned()",
+            "selected-name": "decode_hex_unsigned_361"
+        },
+        {
+            "qualified-name": "std/json.decodeHexUnsigned().return",
+            "selected-name": "return_307"
+        },
+        {
+            "qualified-name": "std/json.decodeHexUnsigned().n=",
+            "selected-name": "n_712"
+        },
+        {
+            "qualified-name": "std/json.decodeHexUnsigned().i=",
+            "selected-name": "i_713"
+        },
+        {
+            "qualified-name": "std/json.decodeHexUnsigned().cp=",
+            "selected-name": "cp_714"
+        },
+        {
+            "qualified-name": "std/json.decodeHexUnsigned().digit=",
+            "selected-name": "digit_715"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo()",
+            "selected-name": "parse_json_string_to_360"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().return",
+            "selected-name": "return_306"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().leadSurrogate=",
+            "selected-name": "lead_surrogate_697"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().consumed=",
+            "selected-name": "consumed_698"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().cp=",
+            "selected-name": "cp_699"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().iNext=",
+            "selected-name": "i_next_700"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().end=",
+            "selected-name": "end_701"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().needToFlush=",
+            "selected-name": "need_to_flush_702"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().decodedCp=.esc0=",
+            "selected-name": "esc0_704"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().decodedCp=.hex=.startHex=",
+            "selected-name": "start_hex_706"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().decodedCp=.hex=",
+            "selected-name": "hex_705"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().decodedCp=",
+            "selected-name": "decoded_cp_703"
+        },
+        {
+            "qualified-name": "std/json.parseJsonStringTo().lead=",
+            "selected-name": "lead_707"
+        },
+        {
+            "qualified-name": "std/json.parseJsonObject().return",
+            "selected-name": "return_303"
+        },
+        {
+            "qualified-name": "std/json.parseJsonObject().keyBuffer=",
+            "selected-name": "key_buffer_678"
+        },
+        {
+            "qualified-name": "std/json.parseJsonObject().afterKey=",
+            "selected-name": "after_key_679"
+        },
+        {
+            "qualified-name": "std/json.parseJsonObject().afterPropertyValue=",
+            "selected-name": "after_property_value_680"
+        },
+        {
+            "qualified-name": "std/json.parseJsonArray().return",
+            "selected-name": "return_304"
+        },
+        {
+            "qualified-name": "std/json.parseJsonArray().afterElementValue=",
+            "selected-name": "after_element_value_685"
+        },
+        {
+            "qualified-name": "std/json.parseJsonString().sb=",
+            "selected-name": "sb_690"
+        },
+        {
+            "qualified-name": "std/json.parseJsonString().after=",
+            "selected-name": "after_691"
+        },
+        {
+            "qualified-name": "std/json.afterSubstring()",
+            "selected-name": "after_substring_364"
+        },
+        {
+            "qualified-name": "std/json.afterSubstring().return",
+            "selected-name": "return_310"
+        },
+        {
+            "qualified-name": "std/json.afterSubstring().i=",
+            "selected-name": "i_734"
+        },
+        {
+            "qualified-name": "std/json.afterSubstring().j=",
+            "selected-name": "j_735"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean().return",
+            "selected-name": "return_308"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean().ch0=",
+            "selected-name": "ch0_720"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean().end=",
+            "selected-name": "end_721"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean().keyword=",
+            "selected-name": "keyword_722"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean().n=",
+            "selected-name": "n_723"
+        },
+        {
+            "qualified-name": "std/json.parseJsonBoolean().after=",
+            "selected-name": "after_724"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNull().return",
+            "selected-name": "return_309"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNull().after=",
+            "selected-name": "after_729"
+        },
+        {
+            "qualified-name": "std/json.minInt64",
+            "selected-name": "min_int64_374"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().return",
+            "selected-name": "return_311"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().isNegative=",
+            "selected-name": "is_negative_740"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().startOfNumber=",
+            "selected-name": "start_of_number_741"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().digit0=",
+            "selected-name": "digit0_742"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().error=",
+            "selected-name": "error_743"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().nDigits=",
+            "selected-name": "n_digits_744"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().tentativeFloat64=",
+            "selected-name": "tentative_float64_745"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().tentativeInt64=",
+            "selected-name": "tentative_int64_746"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().overflowInt64=",
+            "selected-name": "overflow_int64_747"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().possibleDigit=#0",
+            "selected-name": "possible_digit_748"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().nextDigit=",
+            "selected-name": "next_digit_749"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().oldInt64=",
+            "selected-name": "old_int64_750"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().nDigitsAfterPoint=",
+            "selected-name": "n_digits_after_point_751"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().afterPoint=",
+            "selected-name": "after_point_752"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().possibleDigit=#1",
+            "selected-name": "possible_digit_753"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().nExponentDigits=",
+            "selected-name": "n_exponent_digits_754"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().afterE=",
+            "selected-name": "after_e_755"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().possibleDigit=#2",
+            "selected-name": "possible_digit_756"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().afterExponent=",
+            "selected-name": "after_exponent_757"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().value=",
+            "selected-name": "value_758"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().numericTokenString=",
+            "selected-name": "numeric_token_string_759"
+        },
+        {
+            "qualified-name": "std/json.parseJsonNumber().doubleValue=",
+            "selected-name": "double_value_760"
+        },
+        {
+            "qualified-name": "std/json.parseJsonToProducer()",
+            "selected-name": "parse_json_to_producer"
+        },
+        {
+            "qualified-name": "std/json.parseJsonToProducer().i=",
+            "selected-name": "i_665"
+        },
+        {
+            "qualified-name": "std/json.parseJsonToProducer().afterValue=",
+            "selected-name": "after_value_666"
+        },
+        {
+            "qualified-name": "std/json.parseJson()",
+            "selected-name": "parse_json"
+        },
+        {
+            "qualified-name": "std/json.parseJson().p=",
+            "selected-name": "p_763"
+        },
+        {
+            "qualified-name": "std/json.booleanJsonAdapter()",
+            "selected-name": "boolean_json_adapter"
+        },
+        {
+            "qualified-name": "std/json.float64JsonAdapter()",
+            "selected-name": "float64_json_adapter"
+        },
+        {
+            "qualified-name": "std/json.int32JsonAdapter()",
+            "selected-name": "int32_json_adapter"
+        },
+        {
+            "qualified-name": "std/json.int64JsonAdapter()",
+            "selected-name": "int64_json_adapter"
+        },
+        {
+            "qualified-name": "std/json.stringJsonAdapter()",
+            "selected-name": "string_json_adapter"
+        },
+        {
+            "qualified-name": "std/json.listJsonAdapter()",
+            "selected-name": "list_json_adapter"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest",
+            "selected-name": "NetRequest"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.url",
+            "selected-name": "url_17"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.method",
+            "selected-name": "method_18"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.bodyContent",
+            "selected-name": "body_content_19"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.bodyMimeType",
+            "selected-name": "body_mime_type_20"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.post()",
+            "selected-name": "post_21"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.send()",
+            "selected-name": "send_25"
+        },
+        {
+            "qualified-name": "std/net.type NetRequest.constructor()",
+            "selected-name": "constructor_27"
+        },
+        {
+            "qualified-name": "std/net.type NetResponse",
+            "selected-name": "NetResponse"
+        },
+        {
+            "qualified-name": "std/net.type NetResponse.status",
+            "selected-name": "status_9"
+        },
+        {
+            "qualified-name": "std/net.type NetResponse.contentType",
+            "selected-name": "content_type_10"
+        },
+        {
+            "qualified-name": "std/net.type NetResponse.bodyContent",
+            "selected-name": "body_content_11"
+        },
+        {
+            "qualified-name": "std/net.sendRequest()",
+            "selected-name": "send_request_16"
+        },
+        {
+            "qualified-name": "std/regex.type RegexNode",
+            "selected-name": "RegexNode"
+        },
+        {
+            "qualified-name": "std/regex.type RegexNode.compiled()",
+            "selected-name": "compiled_169"
+        },
+        {
+            "qualified-name": "std/regex.type Regex",
+            "selected-name": "Regex"
+        },
+        {
+            "qualified-name": "std/regex.type RegexNode.found()",
+            "selected-name": "found_171"
+        },
+        {
+            "qualified-name": "std/regex.type RegexNode.find()",
+            "selected-name": "find_174"
+        },
+        {
+            "qualified-name": "std/regex.type Match",
+            "selected-name": "Match"
+        },
+        {
+            "qualified-name": "std/regex.type RegexNode.replace()",
+            "selected-name": "replace_177"
+        },
+        {
+            "qualified-name": "std/regex.type RegexNode.split()",
+            "selected-name": "split_181"
+        },
+        {
+            "qualified-name": "std/regex.type Capture",
+            "selected-name": "Capture"
+        },
+        {
+            "qualified-name": "std/regex.type Capture.name",
+            "selected-name": "name_184"
+        },
+        {
+            "qualified-name": "std/regex.type Capture.item",
+            "selected-name": "item_185"
+        },
+        {
+            "qualified-name": "std/regex.type Capture.constructor()",
+            "selected-name": "constructor_186"
+        },
+        {
+            "qualified-name": "std/regex.type CodePart",
+            "selected-name": "CodePart"
+        },
+        {
+            "qualified-name": "std/regex.type CodePoints",
+            "selected-name": "CodePoints"
+        },
+        {
+            "qualified-name": "std/regex.type CodePoints.value",
+            "selected-name": "value_189"
+        },
+        {
+            "qualified-name": "std/regex.type CodePoints.constructor()",
+            "selected-name": "constructor_190"
+        },
+        {
+            "qualified-name": "std/regex.type Special",
+            "selected-name": "Special"
+        },
+        {
+            "qualified-name": "std/regex.type SpecialSet",
+            "selected-name": "SpecialSet"
+        },
+        {
+            "qualified-name": "std/regex.type CodeRange",
+            "selected-name": "CodeRange"
+        },
+        {
+            "qualified-name": "std/regex.type CodeRange.min",
+            "selected-name": "min_206"
+        },
+        {
+            "qualified-name": "std/regex.type CodeRange.max",
+            "selected-name": "max_207"
+        },
+        {
+            "qualified-name": "std/regex.type CodeRange.constructor()",
+            "selected-name": "constructor_208"
+        },
+        {
+            "qualified-name": "std/regex.type CodeSet",
+            "selected-name": "CodeSet"
+        },
+        {
+            "qualified-name": "std/regex.type CodeSet.items",
+            "selected-name": "items_211"
+        },
+        {
+            "qualified-name": "std/regex.type CodeSet.negated",
+            "selected-name": "negated_212"
+        },
+        {
+            "qualified-name": "std/regex.type CodeSet.constructor()",
+            "selected-name": "constructor_213"
+        },
+        {
+            "qualified-name": "std/regex.type CodeSet.constructor().(negated)",
+            "selected-name": "negated_215"
+        },
+        {
+            "qualified-name": "std/regex.type Or",
+            "selected-name": "Or"
+        },
+        {
+            "qualified-name": "std/regex.type Or.items",
+            "selected-name": "items_216"
+        },
+        {
+            "qualified-name": "std/regex.type Or.constructor()",
+            "selected-name": "constructor_217"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat",
+            "selected-name": "Repeat"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat.item",
+            "selected-name": "item_219"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat.min",
+            "selected-name": "min_220"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat.max",
+            "selected-name": "max_221"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat.reluctant",
+            "selected-name": "reluctant_222"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat.constructor()",
+            "selected-name": "constructor_223"
+        },
+        {
+            "qualified-name": "std/regex.type Repeat.constructor().(reluctant)",
+            "selected-name": "reluctant_227"
+        },
+        {
+            "qualified-name": "std/regex.type Sequence",
+            "selected-name": "Sequence"
+        },
+        {
+            "qualified-name": "std/regex.type Sequence.items",
+            "selected-name": "items_236"
+        },
+        {
+            "qualified-name": "std/regex.type Sequence.constructor()",
+            "selected-name": "constructor_237"
+        },
+        {
+            "qualified-name": "std/regex.type Match.full",
+            "selected-name": "full_239"
+        },
+        {
+            "qualified-name": "std/regex.type Group",
+            "selected-name": "Group"
+        },
+        {
+            "qualified-name": "std/regex.type Match.groups",
+            "selected-name": "groups_240"
+        },
+        {
+            "qualified-name": "std/regex.type Match.constructor()",
+            "selected-name": "constructor_241"
+        },
+        {
+            "qualified-name": "std/regex.type Group.name",
+            "selected-name": "name_244"
+        },
+        {
+            "qualified-name": "std/regex.type Group.value",
+            "selected-name": "value_245"
+        },
+        {
+            "qualified-name": "std/regex.type Group.begin",
+            "selected-name": "begin_246"
+        },
+        {
+            "qualified-name": "std/regex.type Group.end",
+            "selected-name": "end_247"
+        },
+        {
+            "qualified-name": "std/regex.type Group.constructor()",
+            "selected-name": "constructor_248"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs",
+            "selected-name": "RegexRefs_56"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.codePoints",
+            "selected-name": "code_points_253"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.group",
+            "selected-name": "group_254"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.match",
+            "selected-name": "match_255"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.orObject",
+            "selected-name": "or_object_256"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.constructor()",
+            "selected-name": "constructor_257"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.constructor().(codePoints)",
+            "selected-name": "code_points_258"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.constructor().(group)",
+            "selected-name": "group_259"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.constructor().(match)",
+            "selected-name": "match_260"
+        },
+        {
+            "qualified-name": "std/regex.type RegexRefs.constructor().(orObject)",
+            "selected-name": "or_object_261"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.data",
+            "selected-name": "data_262"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.constructor()",
+            "selected-name": "constructor_263"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.constructor().formatted=",
+            "selected-name": "formatted_266"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter",
+            "selected-name": "RegexFormatter_66"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.found()",
+            "selected-name": "found_267"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.find()",
+            "selected-name": "find_270"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.find().(begin)",
+            "selected-name": "begin_272"
+        },
+        {
+            "qualified-name": "std/regex.regexRefs",
+            "selected-name": "regex_refs_164"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.replace()",
+            "selected-name": "replace_274"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.split()",
+            "selected-name": "split_278"
+        },
+        {
+            "qualified-name": "std/regex.type Regex.compiled",
+            "selected-name": "compiled_281"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.out",
+            "selected-name": "out_303"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.regexFormat()",
+            "selected-name": "regex_format_308"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.format()",
+            "selected-name": "format_311"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushRegex()",
+            "selected-name": "push_regex_314"
+        },
+        {
+            "qualified-name": "std/regex.Begin",
+            "selected-name": "begin"
+        },
+        {
+            "qualified-name": "std/regex.Dot",
+            "selected-name": "dot"
+        },
+        {
+            "qualified-name": "std/regex.End",
+            "selected-name": "end"
+        },
+        {
+            "qualified-name": "std/regex.WordBoundary",
+            "selected-name": "word_boundary"
+        },
+        {
+            "qualified-name": "std/regex.Digit",
+            "selected-name": "digit"
+        },
+        {
+            "qualified-name": "std/regex.Space",
+            "selected-name": "space"
+        },
+        {
+            "qualified-name": "std/regex.Word",
+            "selected-name": "word"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCapture()",
+            "selected-name": "push_capture_317"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCode()",
+            "selected-name": "push_code_324"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCode().specialEscape=",
+            "selected-name": "special_escape_328"
+        },
+        {
+            "qualified-name": "std/regex.type Codes",
+            "selected-name": "Codes_83"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCode().escapeNeed=",
+            "selected-name": "escape_need_329"
+        },
+        {
+            "qualified-name": "std/regex.escapeNeeds",
+            "selected-name": "escape_needs_165"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodePoints()",
+            "selected-name": "push_code_points_335"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodePoints().value=",
+            "selected-name": "value_339"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodePoints().index=",
+            "selected-name": "index_340"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodeRange()",
+            "selected-name": "push_code_range_341"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodeRangeUnwrapped()",
+            "selected-name": "push_code_range_unwrapped_344"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodeSet()",
+            "selected-name": "push_code_set_347"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodeSet().adjusted=",
+            "selected-name": "adjusted_350"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodeSet().i=",
+            "selected-name": "i_351"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.adjustCodeSet()",
+            "selected-name": "adjust_code_set_352"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushCodeSetItem()",
+            "selected-name": "push_code_set_item_356"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushOr()",
+            "selected-name": "push_or_359"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushOr().i=",
+            "selected-name": "i_362"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushRepeat()",
+            "selected-name": "push_repeat_363"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushRepeat().min=",
+            "selected-name": "min_366"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushRepeat().max=",
+            "selected-name": "max_367"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushSequence()",
+            "selected-name": "push_sequence_368"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.pushSequence().i=",
+            "selected-name": "i_371"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.maxCode()",
+            "selected-name": "max_code_372"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.maxCode().return=",
+            "selected-name": "return_159"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.maxCode().value=",
+            "selected-name": "value_375"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.maxCode().max=",
+            "selected-name": "max_376"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.maxCode().index=",
+            "selected-name": "index_377"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.maxCode().next=",
+            "selected-name": "next_378"
+        },
+        {
+            "qualified-name": "std/regex.type RegexFormatter.constructor()",
+            "selected-name": "constructor_379"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.ampersand",
+            "selected-name": "ampersand_383"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.backslash",
+            "selected-name": "backslash_384"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.caret",
+            "selected-name": "caret_385"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.carriageReturn",
+            "selected-name": "carriage_return_386"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.curlyLeft",
+            "selected-name": "curly_left_387"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.curlyRight",
+            "selected-name": "curly_right_388"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.dash",
+            "selected-name": "dash_389"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.dot",
+            "selected-name": "dot_390"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.highControlMin",
+            "selected-name": "high_control_min_391"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.highControlMax",
+            "selected-name": "high_control_max_392"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.digit0",
+            "selected-name": "digit0_393"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.digit9",
+            "selected-name": "digit9_394"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.lowerA",
+            "selected-name": "lower_a_395"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.lowerZ",
+            "selected-name": "lower_z_396"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.newline",
+            "selected-name": "newline_397"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.peso",
+            "selected-name": "peso_398"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.pipe",
+            "selected-name": "pipe_399"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.plus",
+            "selected-name": "plus_400"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.question",
+            "selected-name": "question_401"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.roundLeft",
+            "selected-name": "round_left_402"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.roundRight",
+            "selected-name": "round_right_403"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.slash",
+            "selected-name": "slash_404"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.squareLeft",
+            "selected-name": "square_left_405"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.squareRight",
+            "selected-name": "square_right_406"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.star",
+            "selected-name": "star_407"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.tab",
+            "selected-name": "tab_408"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.tilde",
+            "selected-name": "tilde_409"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.upperA",
+            "selected-name": "upper_a_410"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.upperZ",
+            "selected-name": "upper_z_411"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.space",
+            "selected-name": "space_412"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.surrogateMin",
+            "selected-name": "surrogate_min_413"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.surrogateMax",
+            "selected-name": "surrogate_max_414"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.supplementalMin",
+            "selected-name": "supplemental_min_415"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.uint16Max",
+            "selected-name": "uint16_max_416"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.underscore",
+            "selected-name": "underscore_417"
+        },
+        {
+            "qualified-name": "std/regex.type Codes.constructor()",
+            "selected-name": "constructor_418"
+        },
+        {
+            "qualified-name": "std/regex.Begin.type Begin",
+            "selected-name": "Begin_49"
+        },
+        {
+            "qualified-name": "std/regex.Begin.type Begin.constructor()",
+            "selected-name": "constructor_193"
+        },
+        {
+            "qualified-name": "std/regex.Dot.type Dot",
+            "selected-name": "Dot_50"
+        },
+        {
+            "qualified-name": "std/regex.Dot.type Dot.constructor()",
+            "selected-name": "constructor_195"
+        },
+        {
+            "qualified-name": "std/regex.End.type End",
+            "selected-name": "End_51"
+        },
+        {
+            "qualified-name": "std/regex.End.type End.constructor()",
+            "selected-name": "constructor_197"
+        },
+        {
+            "qualified-name": "std/regex.WordBoundary.type WordBoundary",
+            "selected-name": "WordBoundary_52"
+        },
+        {
+            "qualified-name": "std/regex.WordBoundary.type WordBoundary.constructor()",
+            "selected-name": "constructor_199"
+        },
+        {
+            "qualified-name": "std/regex.Digit.type Digit",
+            "selected-name": "Digit_53"
+        },
+        {
+            "qualified-name": "std/regex.Digit.type Digit.constructor()",
+            "selected-name": "constructor_201"
+        },
+        {
+            "qualified-name": "std/regex.Space.type Space",
+            "selected-name": "Space_54"
+        },
+        {
+            "qualified-name": "std/regex.Space.type Space.constructor()",
+            "selected-name": "constructor_203"
+        },
+        {
+            "qualified-name": "std/regex.Word.type Word",
+            "selected-name": "Word_55"
+        },
+        {
+            "qualified-name": "std/regex.Word.type Word.constructor()",
+            "selected-name": "constructor_205"
+        },
+        {
+            "qualified-name": "std/regex.needsNoEscape",
+            "selected-name": "needs_no_escape_166"
+        },
+        {
+            "qualified-name": "std/regex.needsSimpleEscape",
+            "selected-name": "needs_simple_escape_168"
+        },
+        {
+            "qualified-name": "std/regex.needsNumericEscape",
+            "selected-name": "needs_numeric_escape_167"
+        },
+        {
+            "qualified-name": "std/regex.buildEscapeNeeds()",
+            "selected-name": "build_escape_needs_163"
+        },
+        {
+            "qualified-name": "std/regex.buildEscapeNeeds().escapeNeeds=",
+            "selected-name": "escape_needs_381"
+        },
+        {
+            "qualified-name": "std/regex.buildEscapeNeeds().code=",
+            "selected-name": "code_382"
+        },
+        {
+            "qualified-name": "std/regex.entire()",
+            "selected-name": "entire"
+        },
+        {
+            "qualified-name": "std/regex.oneOrMore()",
+            "selected-name": "one_or_more"
+        },
+        {
+            "qualified-name": "std/regex.oneOrMore().(reluctant)",
+            "selected-name": "reluctant_231"
+        },
+        {
+            "qualified-name": "std/regex.optional()",
+            "selected-name": "optional"
+        },
+        {
+            "qualified-name": "std/regex.optional().(reluctant)",
+            "selected-name": "reluctant_234"
+        },
+        {
+            "qualified-name": "std/json.type JsonAdapter",
+            "selected-name": "JsonAdapter"
+        },
+        {
+            "qualified-name": "std/json.type JsonProducer",
+            "selected-name": "JsonProducer"
+        },
+        {
+            "qualified-name": "std/json.type JsonSyntaxTree",
+            "selected-name": "JsonSyntaxTree"
+        },
+        {
+            "qualified-name": "std/json.type InterchangeContext",
+            "selected-name": "InterchangeContext"
+        },
+        {
+            "qualified-name": "std/json.type JsonString",
+            "selected-name": "JsonString"
+        },
+        {
+            "qualified-name": "std/temporal.type DateJsonAdapter",
+            "selected-name": "DateJsonAdapter_109"
+        },
+        {
+            "qualified-name": "std/temporal.type DateJsonAdapter.encodeToJson()",
+            "selected-name": "encode_to_json_126"
+        },
+        {
+            "qualified-name": "std/temporal.type Date",
+            "selected-name": "date"
+        },
+        {
+            "qualified-name": "std/temporal.type Date.encodeToJson()",
+            "selected-name": "encode_to_json_90"
+        },
+        {
+            "qualified-name": "std/temporal.type DateJsonAdapter.decodeFromJson()",
+            "selected-name": "decode_from_json_128"
+        },
+        {
+            "qualified-name": "std/temporal.type Date.decodeFromJson()",
+            "selected-name": "decode_from_json_93"
+        },
+        {
+            "qualified-name": "std/temporal.type DateJsonAdapter.constructor()",
+            "selected-name": "constructor_130"
+        },
+        {
+            "qualified-name": "std/temporal.type Date.jsonAdapter()",
+            "selected-name": "json_adapter_124"
+        },
+        {
+            "qualified-name": "std/temporal.daysInMonth",
+            "selected-name": "days_in_month_34"
+        },
+        {
+            "qualified-name": "std/temporal.isLeapYear()",
+            "selected-name": "is_leap_year_32"
+        },
+        {
+            "qualified-name": "std/temporal.isLeapYear().return",
+            "selected-name": "return_21"
+        },
+        {
+            "qualified-name": "std/temporal.padTo()",
+            "selected-name": "pad_to_33"
+        },
+        {
+            "qualified-name": "std/temporal.padTo().decimal=",
+            "selected-name": "decimal_47"
+        },
+        {
+            "qualified-name": "std/temporal.padTo().decimalIndex=",
+            "selected-name": "decimal_index_48"
+        },
+        {
+            "qualified-name": "std/temporal.padTo().decimalEnd=",
+            "selected-name": "decimal_end_49"
+        },
+        {
+            "qualified-name": "std/temporal.padTo().nNeeded=",
+            "selected-name": "n_needed_50"
+        },
+        {
+            "qualified-name": "std/temporal.dayOfWeekLookupTableLeapy",
+            "selected-name": "day_of_week_lookup_table_leapy_35"
+        },
+        {
+            "qualified-name": "std/temporal.dayOfWeekLookupTableNotLeapy",
+            "selected-name": "day_of_week_lookup_table_not_leapy_36"
+        }
+    ]
+}

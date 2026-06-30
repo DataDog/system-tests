@@ -1,0 +1,88 @@
+// # Config consistency tests
+
+// Ported from `tests/parametric/test_config_consistency.py`. Two kinds: env that
+// shows up on emitted span tags (DD_SERVICE/VERSION/ENV/TAGS), and env read back
+// via `config()` (agent URL, rate limit). Adapter-only — these assert the real
+// tracer applying env (each verified to differ from the default).
+
+let ccContains(s: String, sub: String): Boolean { s.split(sub).length > 1 }
+
+// ## DD_SERVICE + DD_VERSION → span service + version meta
+
+export let runConfigSpecificVersion(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("op", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.service, "version_test", "DD_SERVICE applied to span.service");
+  c.eqStr(span.meta.getOr("version", ""), "5.2.0", "DD_VERSION applied to meta.version");
+  c.result()
+}
+
+// ## DD_ENV → span env meta
+
+export let runConfigSpecificEnv(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("op", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("env", ""), "dev", "DD_ENV applied to meta.env");
+  c.result()
+}
+
+// ## DD_TAGS → span meta tags
+
+export let runConfigTags(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("op", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("key1", ""), "value1", "DD_TAGS key1");
+  c.eqStr(span.meta.getOr("key2", ""), "value2", "DD_TAGS key2");
+  c.result()
+}
+
+// ## DD_SERVICE override + DD_ENV together
+
+export let runConfigServiceOverride(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("op", "0");
+  t.finishSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.service, "random-service", "DD_SERVICE override");
+  c.eqStr(span.meta.getOr("env", ""), "dev", "DD_ENV present alongside service override");
+  c.result()
+}
+
+// ## default trace rate limit is 100
+
+export let runConfigDefaultRateLimit(t: Tracer): CheckResult {
+  let c = new Checker();
+  c.eqStr(t.config().getOr("dd_trace_rate_limit", ""), "100", "default dd_trace_rate_limit == 100");
+  c.result()
+}
+
+// ## DD_TRACE_AGENT_URL http → config agent url
+
+export let runConfigAgentHttpUrl(t: Tracer): CheckResult {
+  let c = new Checker();
+  let url = t.config().getOr("dd_trace_agent_url", "");
+  c.isTrue(ccContains(url, "http"), "agent url scheme http: ${url}");
+  c.isTrue(ccContains(url, "random-host"), "agent url host random-host: ${url}");
+  c.isTrue(ccContains(url, "9999"), "agent url port 9999: ${url}");
+  c.result()
+}
+
+// ## DD_TRACE_AGENT_URL unix → config agent url
+
+export let runConfigAgentUnixUrl(t: Tracer): CheckResult {
+  let c = new Checker();
+  let url = t.config().getOr("dd_trace_agent_url", "");
+  c.isTrue(ccContains(url, "unix"), "agent url scheme unix: ${url}");
+  c.isTrue(ccContains(url, "/var/run/datadog/apm.socket"), "agent url path: ${url}");
+  c.result()
+}

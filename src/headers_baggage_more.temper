@@ -1,0 +1,128 @@
+// # More baggage cases (ported from tests/parametric/test_headers_baggage.py)
+// Reuse the baggage API surface (setBaggage/getBaggage/getAllBaggage) plus
+// extract/inject. Adapter-only (fakeSupported=false): the fake doesn't inject
+// or cap baggage.
+
+let bgRepeat(ch: String, n: Int): String {
+  var b = "";
+  for (var i = 0; i < n; i++) { b = "${b}${ch}"; }
+  b
+}
+
+// D001: baggage is on by default and doesn't disturb Datadog headers.
+export let runBaggageDefaultD001(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-datadog-trace-id", "123456789"));
+  h.add(new Pair("x-datadog-parent-id", "987654321"));
+  h.add(new Pair("baggage", "foo=bar"));
+  let inj = makeChildSpanAndGetHeaders(t, h.toList());
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "123456789", "datadog trace id propagated");
+  c.eqStr(span.parentId, "987654321", "datadog parent id propagated");
+  c.eqStr(inj.getOr("baggage", ""), "foo=bar", "baggage injected");
+  c.result()
+}
+
+// D002: only baggage enabled -> Datadog headers are not injected.
+export let runBaggageOnlyD002(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-datadog-trace-id", "123456789"));
+  h.add(new Pair("baggage", "foo=bar"));
+  let inj = makeChildSpanAndGetHeaders(t, h.toList());
+  c.isTrue(!inj.has("x-datadog-trace-id"), "no x-datadog-trace-id injected");
+  c.isTrue(!inj.has("x-datadog-parent-id"), "no x-datadog-parent-id injected");
+  c.eqStr(inj.getOr("baggage", ""), "foo=bar", "baggage injected");
+  c.result()
+}
+
+// D003: baggage disabled -> baggage not injected, datadog headers still work.
+export let runBaggageDisabledD003(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-datadog-trace-id", "123456789"));
+  h.add(new Pair("x-datadog-parent-id", "987654321"));
+  h.add(new Pair("baggage", "foo=bar"));
+  let inj = makeChildSpanAndGetHeaders(t, h.toList());
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "123456789", "datadog trace id propagated");
+  c.eqStr(span.parentId, "987654321", "datadog parent id propagated");
+  c.isTrue(!inj.has("baggage"), "baggage not injected when disabled");
+  c.result()
+}
+
+// D005: baggage header extraction + decoding.
+export let runBaggageExtractD005(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("baggage", "foo=bar,userId=Am%C3%A9lie,serverNode=DF%2028"));
+  let pid = t.extractHeaders(h.toList());
+  let s = t.startSpan("d005", pid);
+  c.eqStr(t.getBaggage(s.spanId, "foo"), "bar", "decoded foo");
+  c.eqStr(t.getBaggage(s.spanId, "userId"), "Amélie", "decoded userId");
+  c.eqStr(t.getBaggage(s.spanId, "serverNode"), "DF 28", "decoded serverNode");
+  t.finishSpan(s.spanId);
+  c.result()
+}
+
+// D007: baggage disabled -> set_baggage produces no baggage header on inject.
+export let runBaggageSetDisabledD007(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("d007", "0");
+  t.setBaggage(s.spanId, "foo", "bar");
+  t.setBaggage(s.spanId, "baz", "qux");
+  let inj = t.injectHeaders(s.spanId);
+  t.finishSpan(s.spanId);
+  c.isTrue(!inj.has("baggage"), "no baggage header when disabled");
+  c.result()
+}
+
+// D009: get_all_baggage after extracting one item then adding more.
+export let runBaggageGetAllD009(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("baggage", "foo=bar"));
+  let pid = t.extractHeaders(h.toList());
+  let s = t.startSpan("d009", pid);
+  t.setBaggage(s.spanId, "baz", "qux");
+  t.setBaggage(s.spanId, "userId", "Amélie");
+  t.setBaggage(s.spanId, "serverNode", "DF 28");
+  let all = t.getAllBaggage(s.spanId);
+  t.finishSpan(s.spanId);
+  c.eqInt(all.keys().toList().length, 4, "four baggage items");
+  c.eqStr(all.getOr("foo", ""), "bar", "extracted foo retained");
+  c.eqStr(all.getOr("baz", ""), "qux", "added baz");
+  c.eqStr(all.getOr("userId", ""), "Amélie", "added userId");
+  c.eqStr(all.getOr("serverNode", ""), "DF 28", "added serverNode");
+  c.result()
+}
+
+// D016: baggage injection capped at 64 items.
+export let runBaggageMaxItemsD016(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("d016", "0");
+  for (var i = 0; i < 66; i++) { t.setBaggage(s.spanId, "key${i}", "value${i}"); }
+  let inj = t.injectHeaders(s.spanId);
+  t.finishSpan(s.spanId);
+  let items = inj.getOr("baggage", "").split(",");
+  c.eqInt(items.length, 64, "baggage capped at 64 items");
+  c.result()
+}
+
+// D017: baggage injection capped at 8192 bytes.
+export let runBaggageMaxBytesD017(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("d017", "0");
+  t.setBaggage(s.spanId, "key1", bgRepeat("a", 2730));
+  t.setBaggage(s.spanId, "key2", bgRepeat("b", 2730));
+  t.setBaggage(s.spanId, "key3", bgRepeat("c", 2730));
+  t.setBaggage(s.spanId, "key4", "d");
+  let inj = t.injectHeaders(s.spanId);
+  t.finishSpan(s.spanId);
+  let bag = inj.getOr("baggage", "");
+  let items = bag.split(",");
+  c.eqInt(items.length, 2, "baggage capped to 2 items by byte limit");
+  c.isTrue(strLen(bag) <= 8192, "baggage header within 8192 bytes");
+  c.result()
+}

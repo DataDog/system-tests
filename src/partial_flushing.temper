@@ -1,0 +1,23 @@
+// # Partial flushing (tests/parametric/test_partial_flushing.py)
+// With partial flushing enabled (min_spans=1), finishing a child of a still-open
+// root flushes that child to the agent before the root completes. Agent-backed.
+
+export let runPartialFlushOneSpan(t: Tracer): CheckResult {
+  let c = new Checker();
+  let root = t.startSpan("root", "0");
+  let child = t.startSpan("child1", root.spanId);
+  t.finishSpan(child.spanId);
+  let delivered = t.deliveredSpans();
+  var foundChild = false;
+  var priority = 0.0;
+  for (var i = 0; i < delivered.length; i++) {
+    if (delivered[i].spanId == child.spanId && delivered[i].name == "child1") {
+      foundChild = true;
+      priority = delivered[i].metrics.getOr("_sampling_priority_v1", 0.0);
+    }
+  }
+  t.finishSpan(root.spanId);
+  c.isTrue(foundChild, "child1 was partially flushed to the agent");
+  c.eqFloat(priority, 1.0, "partially flushed chunk carries trace-level sampling priority");
+  c.result()
+}

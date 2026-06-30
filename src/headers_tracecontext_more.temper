@@ -1,0 +1,425 @@
+// # W3C tracecontext propagation tests (more)
+
+// Ported from `tests/parametric/test_headers_tracecontext.py` (the cases not
+// covered by `headers_tracecontext.temper.md`). Each case extracts input
+// `traceparent`/`tracestate` header(s), makes a child span, and inspects the
+// **injected** output. Adapter-only (`fakeSupported = false`); env is
+// `...STYLE=tracecontext` unless noted.
+
+// A traceparent is `version-traceid-parentid-flags`. The "good" trace id used
+// throughout the malformed cases is `12345678901234567890123456789012`.
+
+// ## File-local helpers
+
+let tcmPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+let tcmExtract(t: Tracer, pairs: Listed<Pair<String, String>>): Mapped<String, String> {
+  makeChildSpanAndGetHeaders(t, pairs)
+}
+let tcmExtractTp(t: Tracer, value: String): Mapped<String, String> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("traceparent", value));
+  makeChildSpanAndGetHeaders(t, h.toList())
+}
+
+let tcmTraceId(out: Mapped<String, String>): String {
+  let parts = out.getOr("traceparent", "").split("-");
+  if (parts.length >= 2) { parts[1] } else { "" }
+}
+let tcmParentId(out: Mapped<String, String>): String {
+  let parts = out.getOr("traceparent", "").split("-");
+  if (parts.length >= 3) { parts[2] } else { "" }
+}
+let tcmTs(out: Mapped<String, String>): String { out.getOr("tracestate", "") }
+let tcmTsCount(out: Mapped<String, String>): Int { tcmTs(out).split(",").length }
+let tcmTsGet(out: Mapped<String, String>, key: String): String {
+  let members = tcmTs(out).split(",");
+  for (var i = 0; i < members.length; i++) {
+    let kv = members[i].split("=");
+    if (kv.length >= 2 && kv[0] == key) { return kv[1]; }
+  }
+  ""
+}
+let tcmTsHasKey(out: Mapped<String, String>, key: String): Boolean {
+  let members = tcmTs(out).split(",");
+  for (var i = 0; i < members.length; i++) {
+    let kv = members[i].split("=");
+    if (kv.length >= 2 && kv[0] == key) { return true; }
+  }
+  false
+}
+let tcmTsContains(out: Mapped<String, String>, sub: String): Boolean {
+  tcmTs(out).split(sub).length > 1
+}
+
+// The shared good trace id, asserted as either preserved or regenerated.
+
+let GOOD = "12345678901234567890123456789012";
+
+// ## both traceparent and tracestate missing → still returns a valid traceparent
+
+export let runBothMissing(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtract(t, new ListBuilder<Pair<String, String>>().toList());
+  c.isTrue(out.has("traceparent"), "a traceparent is injected");
+  c.result()
+}
+
+// ## single-key style: valid traceparent propagated (env override DD_TRACE_PROPAGATION_STYLE)
+
+export let runSingleKeyTpValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-01");
+  c.eqStr(tcmTraceId(out), GOOD, "trace_id propagated");
+  c.isTrue(tcmParentId(out) != "1234567890123456", "parent_id regenerated");
+  c.result()
+}
+
+// ## duplicated traceparent headers → trace id regenerated
+
+export let runTpDuplicated(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789011-1234567890123456-01"),
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+  ]);
+  c.isTrue(tcmTraceId(out) != "12345678901234567890123456789011", "not first dup trace id");
+  c.isTrue(tcmTraceId(out) != "12345678901234567890123456789012", "not second dup trace id");
+  c.result()
+}
+
+// ## wrong traceparent header name → trace id regenerated
+
+export let runTpHeaderName(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [tcmPr("trace-parent", "00-12345678901234567890123456789012-1234567890123456-01")]);
+  c.isTrue(tcmTraceId(out1) != GOOD, "trace-parent not recognized");
+  let out2 = tcmExtract(t, [tcmPr("trace.parent", "00-12345678901234567890123456789012-1234567890123456-01")]);
+  c.isTrue(tcmTraceId(out2) != GOOD, "trace.parent not recognized");
+  c.result()
+}
+
+// ## case-insensitive traceparent header name → propagated
+
+export let runTpHeaderNameValidCasing(t: Tracer): CheckResult {
+  let c = new Checker();
+  let names = ["TraceParent", "TrAcEpArEnT", "TRACEPARENT"];
+  for (var i = 0; i < names.length; i++) {
+    let out = tcmExtract(t, [tcmPr(names[i], "00-12345678901234567890123456789012-1234567890123456-01")]);
+    c.eqStr(tcmTraceId(out), GOOD, "${names[i]} recognized");
+  }
+  c.result()
+}
+
+// ## version 00 with trailing junk → regenerated
+
+export let runTpVersion0x00(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-01.");
+  c.isTrue(tcmTraceId(out1) != GOOD, "trailing dot rejected");
+  let out2 = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like");
+  c.isTrue(tcmTraceId(out2) != GOOD, "extra fields rejected for version 00");
+  c.result()
+}
+
+// ## version cc (forward-compat): extra dash fields allowed, dot not
+
+export let runTpVersion0xcc(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtractTp(t, "cc-12345678901234567890123456789012-1234567890123456-01");
+  c.eqStr(tcmTraceId(out1), GOOD, "cc valid base propagated");
+  let out2 = tcmExtractTp(t, "cc-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like");
+  c.eqStr(tcmTraceId(out2), GOOD, "cc with extra dash fields propagated");
+  let out3 = tcmExtractTp(t, "cc-12345678901234567890123456789012-1234567890123456-01.what-the-future-will-be-like");
+  c.isTrue(tcmTraceId(out3) != GOOD, "cc with dot rejected");
+  c.result()
+}
+
+// ## version ff (invalid) → regenerated
+
+export let runTpVersion0xff(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtractTp(t, "ff-12345678901234567890123456789012-1234567890123456-01");
+  c.isTrue(tcmTraceId(out) != GOOD, "version ff rejected");
+  c.result()
+}
+
+// ## version illegal characters → regenerated
+
+export let runTpVersionIllegalChars(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtractTp(t, ".0-12345678901234567890123456789012-1234567890123456-01");
+  c.isTrue(tcmTraceId(out1) != GOOD, "leading-dot version rejected");
+  let out2 = tcmExtractTp(t, "0.-12345678901234567890123456789012-1234567890123456-01");
+  c.isTrue(tcmTraceId(out2) != GOOD, "trailing-dot version rejected");
+  c.result()
+}
+
+// ## version too long → regenerated
+
+export let runTpVersionTooLong(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtractTp(t, "000-12345678901234567890123456789012-1234567890123456-01");
+  c.isTrue(tcmTraceId(out1) != GOOD, "3-char version rejected");
+  let out2 = tcmExtractTp(t, "0000-12345678901234567890123456789012-1234567890123456-01");
+  c.isTrue(tcmTraceId(out2) != GOOD, "4-char version rejected");
+  c.result()
+}
+
+// ## parent id illegal characters → regenerated
+
+export let runTpParentIdIllegalChars(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtractTp(t, "00-12345678901234567890123456789012-.234567890123456-01");
+  c.isTrue(tcmTraceId(out1) != GOOD, "leading-dot parent id rejected");
+  let out2 = tcmExtractTp(t, "00-12345678901234567890123456789012-123456789012345.-01");
+  c.isTrue(tcmTraceId(out2) != GOOD, "trailing-dot parent id rejected");
+  c.result()
+}
+
+// ## parent id too long / too short → regenerated
+
+export let runTpParentIdTooLong(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtractTp(t, "00-12345678901234567890123456789012-12345678901234567-01");
+  c.isTrue(tcmTraceId(out) != GOOD, "17-char parent id rejected");
+  c.result()
+}
+export let runTpParentIdTooShort(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtractTp(t, "00-12345678901234567890123456789012-123456789012345-01");
+  c.isTrue(tcmTraceId(out) != GOOD, "15-char parent id rejected");
+  c.result()
+}
+
+// ## trace flags illegal / too long / too short → regenerated
+
+export let runTpFlagsIllegalChars(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-.0");
+  c.isTrue(tcmTraceId(out1) != GOOD, "leading-dot flags rejected");
+  let out2 = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-0.");
+  c.isTrue(tcmTraceId(out2) != GOOD, "trailing-dot flags rejected");
+  c.result()
+}
+export let runTpFlagsTooLong(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-001");
+  c.isTrue(tcmTraceId(out) != GOOD, "3-char flags rejected");
+  c.result()
+}
+export let runTpFlagsTooShort(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtractTp(t, "00-12345678901234567890123456789012-1234567890123456-1");
+  c.isTrue(tcmTraceId(out) != GOOD, "1-char flags rejected");
+  c.result()
+}
+
+// ## OWS (leading/trailing space and tab) tolerated → propagated
+
+export let runTpOwsHandling(t: Tracer): CheckResult {
+  let c = new Checker();
+  let values = [
+    " 00-12345678901234567890123456789012-1234567890123456-01",
+    "\t00-12345678901234567890123456789012-1234567890123456-01",
+    "00-12345678901234567890123456789012-1234567890123456-01 ",
+    "00-12345678901234567890123456789012-1234567890123456-01\t",
+    "\t 00-12345678901234567890123456789012-1234567890123456-01 \t",
+  ];
+  for (var i = 0; i < values.length; i++) {
+    let out = tcmExtractTp(t, values[i]);
+    c.eqStr(tcmTraceId(out), GOOD, "OWS variant ${i + 1} propagated");
+  }
+  c.result()
+}
+
+// ## tracestate without traceparent → both responses have equal member count
+
+export let runTsIncludedTpMissing(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [tcmPr("tracestate", "foo=1")]);
+  let out2 = tcmExtract(t, [tcmPr("tracestate", "foo=1,bar=2")]);
+  c.eqInt(tcmTsCount(out1), tcmTsCount(out2), "equal tracestate member count");
+  c.result()
+}
+
+// ## tracestate + traceparent → foreign members retained
+
+export let runTsIncludedTpIncluded(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1,bar=2"),
+  ]);
+  c.eqStr(tcmTraceId(out), GOOD, "trace_id propagated");
+  c.eqStr(tcmTsGet(out, "foo"), "1", "foo retained");
+  c.eqStr(tcmTsGet(out, "bar"), "2", "bar retained");
+  c.result()
+}
+
+// ## wrong tracestate header name → not extracted
+
+export let runTsHeaderName(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("trace-state", "foo=1"),
+  ]);
+  c.isTrue(!tcmTsHasKey(out1, "foo"), "trace-state not recognized");
+  let out2 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("trace.state", "foo=1"),
+  ]);
+  c.isTrue(!tcmTsHasKey(out2, "foo"), "trace.state not recognized");
+  c.result()
+}
+
+// ## case-insensitive tracestate header name → extracted
+
+export let runTsHeaderNameValidCasing(t: Tracer): CheckResult {
+  let c = new Checker();
+  let names = ["TraceState", "TrAcEsTaTe", "TRACESTATE"];
+  for (var i = 0; i < names.length; i++) {
+    let out = tcmExtract(t, [
+      tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+      tcmPr(names[i], "foo=1"),
+    ]);
+    c.eqStr(tcmTsGet(out, "foo"), "1", "${names[i]} recognized");
+  }
+  c.result()
+}
+
+// ## empty tracestate header (+ duplicate headers) → still valid
+
+export let runTsEmptyHeader(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", ""),
+  ]);
+  c.eqStr(tcmTraceId(out1), GOOD, "trace_id propagated (empty tracestate)");
+  let out2 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1"),
+    tcmPr("tracestate", ""),
+  ]);
+  c.eqStr(tcmTsGet(out2, "foo"), "1", "foo retained with trailing empty header");
+  let out3 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", ""),
+    tcmPr("tracestate", "foo=1"),
+  ]);
+  c.eqStr(tcmTsGet(out3, "foo"), "1", "foo retained with leading empty header");
+  c.result()
+}
+
+// ## multiple tracestate headers, different keys → all retained
+
+export let runTsMultipleHeadersDifferentKeys(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1,bar=2"),
+    tcmPr("tracestate", "rojo=1,congo=2"),
+    tcmPr("tracestate", "baz=3"),
+  ]);
+  c.eqStr(tcmTraceId(out), GOOD, "trace_id propagated");
+  c.isTrue(tcmTsContains(out, "foo=1"), "foo=1 present");
+  c.isTrue(tcmTsContains(out, "bar=2"), "bar=2 present");
+  c.isTrue(tcmTsContains(out, "rojo=1"), "rojo=1 present");
+  c.isTrue(tcmTsContains(out, "congo=2"), "congo=2 present");
+  c.isTrue(tcmTsContains(out, "baz=3"), "baz=3 present");
+  c.result()
+}
+
+// ## duplicated tracestate keys → one value retained
+
+export let runTsDuplicatedKeys(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1,foo=1"),
+  ]);
+  c.eqStr(tcmTraceId(out1), GOOD, "r1 trace_id propagated");
+  c.isTrue(tcmTsContains(out1, "foo=1"), "r1 foo=1 present");
+  let out2 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1,foo=2"),
+  ]);
+  c.eqStr(tcmTraceId(out2), GOOD, "r2 trace_id propagated");
+  c.isTrue(tcmTsContains(out2, "foo=1") || tcmTsContains(out2, "foo=2"), "r2 foo=1 or foo=2 present");
+  let out3 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1"),
+    tcmPr("tracestate", "foo=1"),
+  ]);
+  c.eqStr(tcmTraceId(out3), GOOD, "r3 trace_id propagated");
+  c.isTrue(tcmTsContains(out3, "foo=1"), "r3 foo=1 present");
+  let out4 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1"),
+    tcmPr("tracestate", "foo=2"),
+  ]);
+  c.eqStr(tcmTraceId(out4), GOOD, "r4 trace_id propagated");
+  c.isTrue(tcmTsContains(out4, "foo=1") || tcmTsContains(out4, "foo=2"), "r4 foo=1 or foo=2 present");
+  c.result()
+}
+
+// ## tracestate all allowed characters → key/value round-tripped
+
+let TS_VALUE = " !\"#$%&'()*+-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+let TS_KEY_NO_VENDOR = "abcdefghijklmnopqrstuvwxyz0123456789_-*/";
+let TS_KEY_WITH_VENDOR = "abcdefghijklmnopqrstuvwxyz0123456789_-*/@a-z0-9_-*/";
+
+export let runTsAllAllowedChars(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "${TS_KEY_NO_VENDOR}=${TS_VALUE}"),
+  ]);
+  c.isTrue(tcmTsHasKey(out1, TS_KEY_NO_VENDOR), "key (no vendor) present");
+  c.eqStr(tcmTsGet(out1, TS_KEY_NO_VENDOR), TS_VALUE, "value (no vendor) round-tripped");
+  let out2 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "${TS_KEY_WITH_VENDOR}=${TS_VALUE}"),
+  ]);
+  c.isTrue(tcmTsHasKey(out2, TS_KEY_WITH_VENDOR), "key (with vendor) present");
+  c.eqStr(tcmTsGet(out2, TS_KEY_WITH_VENDOR), TS_VALUE, "value (with vendor) round-tripped");
+  c.result()
+}
+
+// ## tracestate OWS handling → foo/bar/baz parsed
+
+export let runTsOwsHandling(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out1 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1 \t , \t bar=2, \t baz=3"),
+  ]);
+  c.eqStr(tcmTsGet(out1, "foo"), "1", "r1 foo");
+  c.eqStr(tcmTsGet(out1, "bar"), "2", "r1 bar");
+  c.eqStr(tcmTsGet(out1, "baz"), "3", "r1 baz");
+  let out2 = tcmExtract(t, [
+    tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+    tcmPr("tracestate", "foo=1\t \t,\t \tbar=2,\t \tbaz=3"),
+  ]);
+  c.eqStr(tcmTsGet(out2, "foo"), "1", "r2 foo");
+  c.eqStr(tcmTsGet(out2, "bar"), "2", "r2 bar");
+  c.eqStr(tcmTsGet(out2, "baz"), "3", "r2 baz");
+  let single = [
+    " foo=1",
+    "\tfoo=1",
+    "foo=1 ",
+    "foo=1\t",
+    "\t foo=1 \t",
+  ];
+  for (var i = 0; i < single.length; i++) {
+    let out = tcmExtract(t, [
+      tcmPr("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+      tcmPr("tracestate", single[i]),
+    ]);
+    c.eqStr(tcmTraceId(out), GOOD, "single r${i + 1} trace_id");
+    c.eqStr(tcmTsGet(out, "foo"), "1", "single r${i + 1} foo");
+  }
+  c.result()
+}

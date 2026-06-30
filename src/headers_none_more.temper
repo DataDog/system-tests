@@ -1,0 +1,84 @@
+// # More "none" propagation cases
+// Ported from `tests/parametric/test_headers_none.py` (inject / propagate /
+// single-key). Adapter-only (`fakeSupported = false`): the fake doesn't honor
+// `style=none` when injecting. Env (propagation style) is carried on the
+// `ConformanceCase` and applied by the adapter.
+
+let hnPrioStr(f: Float64): String { "${f.toInt32Unsafe()}" }
+
+// The trace-context header keys that must be absent under "none".
+let hnNoTraceContext(c: Checker, h: Mapped<String, String>): Void {
+  c.isTrue(!h.has("traceparent"), "no traceparent injected");
+  c.isTrue(!h.has("tracestate"), "no tracestate injected");
+  c.isTrue(!h.has("x-datadog-trace-id"), "no x-datadog-trace-id injected");
+  c.isTrue(!h.has("x-datadog-parent-id"), "no x-datadog-parent-id injected");
+  c.isTrue(!h.has("x-datadog-sampling-priority"), "no x-datadog-sampling-priority injected");
+  c.isTrue(!h.has("x-datadog-origin"), "no x-datadog-origin injected");
+  c.isTrue(!h.has("x-datadog-tags"), "no x-datadog-tags injected");
+}
+
+let hnDdInputHeaders(): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-datadog-trace-id", "123456789"));
+  h.add(new Pair("x-datadog-parent-id", "987654321"));
+  h.add(new Pair("x-datadog-sampling-priority", "2"));
+  h.add(new Pair("x-datadog-origin", "synthetics"));
+  h.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  h.toList()
+}
+
+let hnAssertNotExtracted(c: Checker, span: CapturedSpan): Void {
+  c.isTrue(span.traceId != "123456789", "trace_id not extracted");
+  c.isTrue(span.parentId != "987654321", "parent_id not extracted");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "origin absent");
+  c.isTrue(span.meta.getOr("_dd.p.dm", "") != "-4", "_dd.p.dm not extracted");
+  c.isTrue(span.metrics.getOr("_sampling_priority_v1", 1.0) != 2.0, "priority not extracted");
+}
+
+// ## inject with style=none → no distributed headers injected
+export let runHeadersNoneInject(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = makeChildSpanAndGetHeaders(t, new ListBuilder<Pair<String, String>>().toList());
+  hnNoTraceContext(c, h);
+  c.result()
+}
+
+// ## inject with style=none,Datadog → "none" ignored, Datadog headers injected
+export let runHeadersNoneInjectWithOtherPropagators(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = makeChildSpanAndGetHeaders(t, new ListBuilder<Pair<String, String>>().toList());
+  let span = findOnlySpan(t.capturedSpans());
+  // "none" is ignored, but only the Datadog propagator runs: no W3C headers.
+  c.isTrue(!h.has("traceparent"), "no traceparent (only Datadog injects)");
+  c.isTrue(!h.has("tracestate"), "no tracestate (only Datadog injects)");
+  c.eqStr(h.getOr("x-datadog-trace-id", ""), span.traceId, "x-datadog-trace-id == span trace_id");
+  c.eqStr(h.getOr("x-datadog-parent-id", ""), span.spanId, "x-datadog-parent-id == span span_id");
+  c.eqStr(
+    h.getOr("x-datadog-sampling-priority", ""),
+    hnPrioStr(span.metrics.getOr("_sampling_priority_v1", 1.0)),
+    "x-datadog-sampling-priority == span priority",
+  );
+  c.result()
+}
+
+// ## propagate with style=none → nothing extracted and nothing injected
+export let runHeadersNonePropagate(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = makeChildSpanAndGetHeaders(t, hnDdInputHeaders());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  hnAssertNotExtracted(c, span);
+  hnNoTraceContext(c, h);
+  c.result()
+}
+
+// ## single-key style=none → same as propagate (DD_TRACE_PROPAGATION_STYLE=none)
+export let runHeadersNoneSingleKeyPropagate(t: Tracer): CheckResult {
+  let c = new Checker();
+  let h = makeChildSpanAndGetHeaders(t, hnDdInputHeaders());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  hnAssertNotExtracted(c, span);
+  hnNoTraceContext(c, h);
+  c.result()
+}
