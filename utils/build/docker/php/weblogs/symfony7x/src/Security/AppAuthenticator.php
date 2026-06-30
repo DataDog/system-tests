@@ -60,11 +60,19 @@ class AppAuthenticator extends AbstractAuthenticator
             $password = $request->request->get('password', '');
         }
 
+        // Store username in session so the tracer's handleAuthenticationFailure hook can extract it
+        // via extractLoginFromAuthFailure Path C (_security.last_username) for wrong-password failures.
+        if ($request->hasSession()) {
+            $request->getSession()->set('_security.last_username', $username);
+        }
+
         return new Passport(new UserBadge($username), new PasswordCredentials($password));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        // Login success is tracked automatically by the tracer via
+        // AuthenticatorManager::handleAuthenticationSuccess hook.
         $sdkTrigger = $request->query->get('sdk_trigger', '');
         $sdkEvent   = $request->query->get('sdk_event', '');
         $sdkUser    = $request->query->get('sdk_user', '');
@@ -79,6 +87,8 @@ class AppAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
+        // Login failure is tracked automatically by the tracer via
+        // AuthenticatorManager::handleAuthenticationFailure hook.
         $sdkTrigger = $request->query->get('sdk_trigger', '');
         $sdkEvent   = $request->query->get('sdk_event', '');
         $sdkUser    = $request->query->get('sdk_user', '');
