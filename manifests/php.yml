@@ -983,7 +983,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
-  tests/stats/test_trace_filters.py: missing_feature
+  tests/stats/test_trace_filters.py: v1.22.0
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
