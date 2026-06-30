@@ -1893,6 +1893,10 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.49.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:
+    - weblog_declaration:
+        haproxy: missing_feature
+        envoy: missing_feature
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (Go does not support fork; use test_session_id_headers_across_spawned instead)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
