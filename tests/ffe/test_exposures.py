@@ -4,7 +4,6 @@ import json
 
 from tests.ffe.utils.fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
-    context,
     weblog,
     interfaces,
     scenarios,
@@ -17,7 +16,6 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
-FFE_FLAG_WAIT_TIMEOUT_MS = 5000
 
 WaitResult = tuple[bool, str]
 
@@ -75,24 +73,10 @@ def exposure_flag_keys_seen(flag_keys: set[str], subject_id: str | None = None) 
     return seen
 
 
-def post_ffe(payload: dict, *, wait_for_flag: bool = True):
-    """Evaluate FFE with test coordination fields understood by weblogs that need them."""
-    payload = {
-        **payload,
-        "waitForFlag": wait_for_flag,
-        "flagWaitTimeoutMs": FFE_FLAG_WAIT_TIMEOUT_MS,
-    }
-    timeout = (FFE_FLAG_WAIT_TIMEOUT_MS * 2 // 1000) + 5
-    return weblog.post("/ffe", json=payload, timeout=timeout)
-
-
 def flush_ffe_payloads() -> WaitResult:
-    """Flush FFE payloads for weblogs that expose a flush endpoint."""
-    if context.library not in ("nodejs", "ruby"):
-        return True, ""
-
+    """Flush buffered payloads when the weblog exposes the common flush endpoint."""
     response = weblog.get("/flush", timeout=10)
-    if response.status_code == 200:
+    if response.status_code in (200, 404, 405):
         return True, ""
 
     return False, f"Failed to flush FFE payloads with status {response.status_code}: {response.text}"
@@ -198,8 +182,9 @@ class Test_FFE_Exposure_Events:
         self.targeting_key = "test-user"
         attributes: dict[str, str] = {}
 
-        self.r = post_ffe(
-            {
+        self.r = weblog.post(
+            "/ffe",
+            json={
                 "flag": self.flag,
                 "variationType": variation_type,
                 "defaultValue": default_value,
@@ -326,8 +311,9 @@ class Test_FFE_Exposure_Events:
         self.targeting_key = "test-user-multi"
 
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
-        self.r1 = post_ffe(
-            {
+        self.r1 = weblog.post(
+            "/ffe",
+            json={
                 "flag": self.flag_1,
                 "variationType": "STRING",
                 "defaultValue": "default",
@@ -339,8 +325,9 @@ class Test_FFE_Exposure_Events:
 
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
 
-        self.r2 = post_ffe(
-            {
+        self.r2 = weblog.post(
+            "/ffe",
+            json={
                 "flag": self.flag_2,
                 "variationType": "BOOLEAN",
                 "defaultValue": False,
@@ -475,8 +462,9 @@ class Test_FFE_Exposure_Events_Errors:
         self.flag = "test-flag-resilient"
         self.targeting_key = "test-user-resilient"
 
-        self.r1 = post_ffe(
-            {
+        self.r1 = weblog.post(
+            "/ffe",
+            json={
                 "flag": self.flag,
                 "variationType": "STRING",
                 "defaultValue": "default",
@@ -508,8 +496,9 @@ class Test_FFE_Exposure_Events_Errors:
         rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", malformed_rc_config).apply()
 
         # Evaluate the flag again after malformed config update
-        self.r2 = post_ffe(
-            {
+        self.r2 = weblog.post(
+            "/ffe",
+            json={
                 "flag": self.flag,
                 "variationType": "STRING",
                 "defaultValue": "default",
@@ -595,8 +584,9 @@ class Test_FFE_Exposure_Caching_Same_Subject:
         # Evaluate the same flag multiple times with the same subject
         self.responses = []
         for _i in range(5):
-            r = post_ffe(
-                {
+            r = weblog.post(
+                "/ffe",
+                json={
                     "flag": self.flag_key,
                     "variationType": "STRING",
                     "defaultValue": "default",
@@ -649,8 +639,9 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
         # Evaluate the flag with different subjects
         self.responses = []
         for subject in self.subjects:
-            r = post_ffe(
-                {
+            r = weblog.post(
+                "/ffe",
+                json={
                     "flag": self.flag_key,
                     "variationType": "STRING",
                     "defaultValue": "default",
@@ -906,15 +897,15 @@ class Test_FFE_Exposure_Missing_Flag:
         # Evaluate a flag that doesn't exist
         self.responses = []
         for _i in range(3):
-            r = post_ffe(
-                {
+            r = weblog.post(
+                "/ffe",
+                json={
                     "flag": self.flag_key,
                     "variationType": "STRING",
                     "defaultValue": "default-value",
                     "targetingKey": self.targeting_key,
                     "attributes": {},
                 },
-                wait_for_flag=False,
             )
             self.responses.append(r)
 
@@ -983,8 +974,9 @@ class Test_FFE_Exposure_DoLog_False:
         # Evaluate the flag multiple times
         self.responses = []
         for _i in range(3):
-            r = post_ffe(
-                {
+            r = weblog.post(
+                "/ffe",
+                json={
                     "flag": self.flag_key,
                     "variationType": "STRING",
                     "defaultValue": "default",
@@ -1032,8 +1024,9 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         # Evaluate the flag with an empty targeting key
-        self.response = post_ffe(
-            {
+        self.response = weblog.post(
+            "/ffe",
+            json={
                 "flag": self.flag_key,
                 "variationType": "STRING",
                 "defaultValue": "default",
