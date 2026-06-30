@@ -1,21 +1,8 @@
 from collections import defaultdict
-from dataclasses import dataclass
 import json
-import os
-from pathlib import Path
-from typing import Literal
-import yaml
 from utils._context._scenarios import go_proxies
+from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
 
-# How a weblog's image is produced for end-to-end runs:
-#   "none"     → no Docker build; reuse the shared binaries_artifact as-is
-#                (integration frameworks, go_proxies, otel_collector)
-#   "local"    → built in-line by the run_end_to_end job (weblog_build_required)
-#   "prebuild" → built ahead of time by a dedicated build_end_to_end job that
-#                uploads a per-weblog artifact, then still built locally by the run
-# "prebuild" implies a local build too, so weblog_build_required is true for both
-# "local" and "prebuild".
-BuildMode = Literal["none", "local", "prebuild"]
 
 
 def _load_json(file_path: str) -> dict:
@@ -208,24 +195,6 @@ def get_docker_ssi_matrix(
 
 
 # End-to-end corner
-@dataclass
-class Weblog:
-    name: str
-    build_mode: BuildMode
-    artifact_name: str
-
-    @property
-    def require_build(self) -> bool:
-        """The run_end_to_end job builds the weblog locally (weblog_build_required)."""
-        return self.build_mode != "none"
-
-    @property
-    def require_prebuild(self) -> bool:
-        """A dedicated build_end_to_end job pre-builds the weblog (parallel_weblogs)."""
-        return self.build_mode == "prebuild"
-
-    def serialize(self) -> dict:
-        return {"name": self.name, "artifact_name": self.artifact_name}
 
 
 class Job:
@@ -300,34 +269,6 @@ class Job:
         return result
 
 
-def _load_build_modes(folder: str) -> dict[str, BuildMode]:
-    """Load per-weblog build_mode declarations from {folder}/build.yml.
-
-    build.yml is the single source of build requirement for a library's weblogs:
-
-        build_mode:
-          openai-py: none
-          express4: local
-
-    The file is optional and need only list weblogs that deviate; any weblog not
-    listed defaults to "prebuild" (the historical behavior for Dockerfile weblogs).
-    """
-    build_file = Path(folder) / "build.yml"
-    if not build_file.is_file():
-        return {}
-
-    with open(build_file) as file:
-        data = yaml.safe_load(file) or {}
-
-    build_modes: dict[str, BuildMode] = {}
-    for name, build_mode in (data.get("build_mode") or {}).items():
-        if build_mode not in ("none", "local", "prebuild"):
-            raise ValueError(
-                f"Invalid build_mode {build_mode!r} for {name} in {build_file} (expected none, local or prebuild)"
-            )
-        build_modes[name] = build_mode
-    return build_modes
-
 
 def _get_endtoend_weblogs(
     library: str,
@@ -338,64 +279,24 @@ def _get_endtoend_weblogs(
     *,
     force_prebuild: bool = False,
 ) -> list[Weblog]:
-    result: list[Weblog] = []
+    weblogs: list[Weblog] = Weblog.load(library)
 
-    integration_frameworks_weblogs = {
-        # openai
-        "openai-py": ["2.0.0"],
-        "openai-js": ["6.0.0"],
-        "openai-java": ["4.29.0"],
-        # anthropic
-        "anthropic-js": ["0.71.0"],
-        "anthropic-py": ["0.75.0"],
-        # google_genai
-        "google_genai-py": ["1.55.0"],
-        "google_genai-js": ["1.34.0"],
-    }
+    if len(weblogs_filter) != 0:
+        # filter weblogs by the weblogs_filter set
+        weblogs = [w for w in weblogs if w.name in weblogs_filter]
 
-    folder = f"utils/build/docker/{library}"
-    if Path(folder).exists():  # some lib does not have any weblog
-        build_modes = _load_build_modes(folder)
-        names = [
-            f.replace(".Dockerfile", "")
-            for f in os.listdir(folder)
-            if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
-        ]
+    for weblog in weblogs:
 
-        if len(weblogs_filter) != 0:
-            # filter weblogs by the weblogs_filter set
-            names = [weblog for weblog in names if weblog in weblogs_filter]
+        if force_prebuild and weblog.build_mode == BuildMode.local:
+            weblog.build_mode = BuildMode.prebuild
 
-        for name in names:
-            build_mode: BuildMode = build_modes.get(name, "prebuild")
-            if force_prebuild and build_mode == "local":
-                build_mode = "prebuild"
-            artifact_name = (
-                f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
-                if build_mode == "prebuild"
-                else binaries_artifact
-            )
-            # integration-framework weblogs fan out into one weblog per version;
-            # all other weblogs map to a single weblog.
-            variant_names = (
-                [f"{name}@{version}" for version in integration_frameworks_weblogs[name]]
-                if name in integration_frameworks_weblogs
-                else [name]
-            )
-            result.extend(
-                Weblog(name=variant_name, build_mode=build_mode, artifact_name=artifact_name)
-                for variant_name in variant_names
-            )
+        weblog.artifact_name = (
+            f"binaries_{ci_environment}_{library}_{weblog.name}_{unique_id}"
+            if weblog.build_mode == "prebuild"
+            else binaries_artifact
+        )
 
-    # weblog not related to a docker file
-    for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
-        if lib == library:
-            result.append(Weblog(name=weblog, build_mode="none", artifact_name=binaries_artifact))
-
-    if library == "otel_collector":
-        result.append(Weblog(name="otel_collector", build_mode="none", artifact_name=binaries_artifact))
-
-    return sorted(result, key=lambda w: w.name)
+    return sorted(weblogs, key=lambda w: w.name)
 
 
 def get_endtoend_definitions(
