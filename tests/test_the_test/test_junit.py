@@ -90,7 +90,7 @@ def _normalize_etree(filename: str, ignore_attrs: Iterable[str] | None = None) -
     # sort testcase by name, as the order does not matter
     for suite in root.findall("testsuite"):
         # extract and sort by @name
-        testcases = sorted(suite.findall("testcase"), key=lambda tc: tc.get("name"))
+        testcases = sorted(suite.findall("testcase"), key=lambda tc: tc.get("name", ""))
 
         # remove old testcases
         for tc in suite.findall("testcase"):

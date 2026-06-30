@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -83,6 +84,7 @@ manifest:
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v2.10.0-dev
@@ -229,6 +231,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.7.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
@@ -1042,8 +1047,8 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.2.3
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: missing_feature (span decoration probes not yet implemented for Go)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: v2.2.3
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_collection_size: missing_feature (no /debugger/snapshot/limits endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_field_count: missing_feature (no /debugger/snapshot/limits endpoint)
@@ -1084,7 +1089,7 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors: bug (FFL-2182)
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py: v2.10.0-dev
   tests/ffe/test_flag_eval_metrics.py: v2.8.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex: irrelevant (Go validates regex at config load time)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
@@ -1169,7 +1174,13 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: irrelevant
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
+    - weblog_declaration:
+        "*": irrelevant
+        chi: v2.10.0-dev
+        echo: v2.10.0-dev
+        gin: v2.10.0-dev
+        net-http: v2.10.0-dev
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -1354,7 +1365,7 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
     - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
-      component_version: <2.9.0
+      component_version: '<=2.10.0-dev'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
@@ -1673,11 +1684,11 @@ manifest:
     - weblog_declaration:
         envoy: missing_feature
         haproxy: missing_feature
-  tests/test_library_conf.py::Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link in v1.71.0)
-  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.10.0-dev
   tests/test_library_conf.py::Test_HeaderTags: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_basic:
     - weblog_declaration:
@@ -1883,6 +1894,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (Go does not support fork; use test_session_id_headers_across_spawned instead)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        '*': irrelevant
+        net-http: '>=2.8.0'
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
