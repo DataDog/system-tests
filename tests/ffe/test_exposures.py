@@ -745,6 +745,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
                 "attributes": {},
             },
         )
+        self.exposure_ready = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
     def test_ffe_exposure_caching_allocation_cycle(self):
         """Test that allocation-a → allocation-b → allocation-a generates 3 exposures."""
@@ -767,6 +768,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
+        assert_wait_results(self.exposure_ready)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
@@ -840,6 +842,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
                 "attributes": {},
             },
         )
+        self.exposure_ready = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
     def test_ffe_exposure_caching_variant_cycle(self):
         """Test that variant-a → variant-b → variant-a generates 3 exposures."""
@@ -862,6 +865,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
+        assert_wait_results(self.exposure_ready)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
