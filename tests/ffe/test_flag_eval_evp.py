@@ -1,6 +1,7 @@
 """Test server-side feature flag evaluation counts via EVP flagevaluation."""
 
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import cast
 
@@ -21,7 +22,15 @@ EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
-EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
+
+# The degradation contract is: the first 10,000 evaluations for one flag keep
+# full targeting/context detail, and evaluations after that are aggregated into
+# degraded buckets. 10,000 + 50 is enough to prove both sides of that boundary.
+# Batching keeps the shared system test from depending on one oversized request
+# and one async drain window to deliver every evaluation before CI times out.
+EVP_DEGRADATION_OVERFLOW_EVALS = 50
+EVP_DEGRADATION_BATCH_SIZE = 1_000
+EVP_DEGRADATION_BATCH_PAUSE_SECONDS = 0.2
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
@@ -458,17 +467,33 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         config_id = "ffe-evp-degradation"
         self.flag_key = "evp-degradation-flag"
         self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        anchor_flag_key = "evp-degradation-window-anchor"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_multi_flag_fixture([self.flag_key, anchor_flag_key])
+        ).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
-        self.responses = [
-            evaluate_flag(
-                self.flag_key,
-                targeting_key=targeting_keys[0],
-                targeting_keys=targeting_keys,
-                attributes={},
+        anchor_response = evaluate_flag(anchor_flag_key, targeting_key="evp-degradation-window-anchor")
+        assert anchor_response.status_code == 200, f"Window anchor request failed: {anchor_response.text}"
+        wait_for_evp_flagevaluation_event(anchor_flag_key)
+
+        # The endpoint accepts multiple targeting keys, so these batches cross
+        # the cap while keeping each HTTP request and flush window bounded.
+        self.responses = []
+        for batch_start in range(0, self.eval_count, EVP_DEGRADATION_BATCH_SIZE):
+            targeting_keys = [
+                f"evp-degradation-user-{index}"
+                for index in range(batch_start, min(batch_start + EVP_DEGRADATION_BATCH_SIZE, self.eval_count))
+            ]
+            self.responses.append(
+                evaluate_flag(
+                    self.flag_key,
+                    targeting_key=targeting_keys[0],
+                    targeting_keys=targeting_keys,
+                    attributes={},
+                )
             )
-        ]
+            if batch_start + EVP_DEGRADATION_BATCH_SIZE < self.eval_count:
+                time.sleep(EVP_DEGRADATION_BATCH_PAUSE_SECONDS)
 
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
@@ -483,9 +508,16 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         assert_no_duplicate_visible_events(events)
         assert_total_evaluation_count(events, self.eval_count, self.flag_key)
 
+        degraded_count = 0
         for event in degraded_events:
             assert_event_contract(event, self.flag_key)
             assert "context" not in event, f"degraded event must omit context: {event}"
             assert "targeting_key" not in event, f"degraded event must omit targeting_key: {event}"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+            degraded_count += cast("int", event["evaluation_count"])
+
+        assert degraded_count == EVP_DEGRADATION_OVERFLOW_EVALS, (
+            f"expected {EVP_DEGRADATION_OVERFLOW_EVALS} degraded evaluations after "
+            f"the {EVP_FULL_TIER_PER_FLAG_CAP} full-detail cap, got {degraded_count}"
+        )
