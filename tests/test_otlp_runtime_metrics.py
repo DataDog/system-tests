@@ -269,7 +269,6 @@ def wait_for_runtime_metrics(library: str) -> None:
     )
 
 
-
 @scenarios.otlp_runtime_metrics
 @features.runtime_metrics
 class Test_OtlpRuntimeMetrics:
