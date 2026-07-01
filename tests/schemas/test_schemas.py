@@ -119,6 +119,7 @@ class Test_DdtraceSchemas:
                 in (
                     scenarios.appsec_blocking,
                     scenarios.trace_stats_computation,
+                    scenarios.trace_stats_computation_client_drop_p0s_false,
                     scenarios.trace_stats_computation_error_sampler,
                     scenarios.trace_stats_computation_obfuscation_disabled,
                     scenarios.trace_stats_computation_future_obfuscation_version,
