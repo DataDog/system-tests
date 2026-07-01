@@ -201,6 +201,9 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE"')
       run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE
     - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES"')
       run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES

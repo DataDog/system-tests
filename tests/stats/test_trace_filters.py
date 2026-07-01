@@ -47,8 +47,7 @@ def _wait_for_stats_with_http_status(status_code: int) -> None:
             for stat in bucket.get("Stats", [])
         )
 
-    interfaces.library.wait_for(wait_function, 30)
-    _assert_status_present(status_code)
+    assert interfaces.library.wait_for(wait_function, 30), f"Timed out waiting for request with status {status_code}"
 
 
 def _observed_status_codes() -> list[int]:
@@ -123,9 +122,7 @@ class Test_Trace_Filters_Require:
         _wait_for_stats_with_http_status(207)
 
     def test_trace_matching_required_filters(self) -> None:
-        # Because:
-        #   - 207 (http.status_code) does matches the pattern 20[78]
-        #   - "appsec.events.system_tests_appsec_event.value:tf-required" tag is present
+        # "tf-required" satisfies filter_tags.require
         _assert_status_present(207)
 
     def setup_filter_tags_require(self) -> None:
@@ -134,17 +131,29 @@ class Test_Trace_Filters_Require:
         _wait_for_stats_with_http_status(207)
 
     def test_filter_tags_require(self) -> None:
-        # Because the "appsec.events.system_tests_appsec_event.value:tf-required" required tag is absent
+        # "tf-wrong" does not match the required tag value "tf-required"
         _assert_status_absent(208)
 
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_trace_filter_regex_require
+class Test_Trace_Filters_Regex_Require:
+    def setup_trace_matching_required_filters(self) -> None:
+        weblog.get("/tag_value/tf-required/207")
+        _wait_for_stats_with_http_status(207)
+
+    def test_trace_matching_required_filters(self) -> None:
+        # "tf-required" matches the regex pattern "tf-req.*"
+        _assert_status_present(207)
+
     def setup_filter_tags_regex_require(self) -> None:
-        weblog.get("/tag_value/tf-required/418")
+        weblog.get("/tag_value/tf-wrong/208")
         weblog.get("/tag_value/tf-required/207")
         _wait_for_stats_with_http_status(207)
 
     def test_filter_tags_regex_require(self) -> None:
-        # Because 418 (http.status_code) does not match the pattern 20[78]
-        _assert_status_absent(418)
+        # "tf-wrong" does not match the regex pattern "tf-req.*"
+        _assert_status_absent(208)
 
 
 @features.client_side_stats_supported

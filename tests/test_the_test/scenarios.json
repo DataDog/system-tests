@@ -5635,8 +5635,11 @@
   "tests/stats/test_trace_filters.py::Test_Trace_Filters_Require::test_filter_tags_require": [
     "TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE"
   ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Require::test_filter_tags_regex_require": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE"
+  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Regex_Require::test_trace_matching_required_filters": [
+    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE"
+  ],
+  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Regex_Require::test_filter_tags_regex_require": [
+    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE"
   ],
   "tests/stream_processing_offload/test_apm.py::Test_StreamProcessingOffload_Tracing::test_correct_span_structure": [
     "STREAM_PROCESSING_OFFLOAD"
