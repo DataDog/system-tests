@@ -1,0 +1,22 @@
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+# Override WAF routes to disable strict_slashes so /waf/ does not 301-redirect to /waf
+waf:
+    path: /waf
+    controller: App\Controller\AppController::waf
+    methods: [GET, POST]
+    options:
+        strict_slashes: false
+
+waf_path:
+    path: /waf/{path}
+    controller: App\Controller\AppController::wafPath
+    methods: [GET, POST]
+    requirements:
+        path: '.*'
+    options:
+        strict_slashes: false
