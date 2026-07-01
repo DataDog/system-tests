@@ -1,0 +1,37 @@
+[package]
+name          = "weblog"
+version       = "0.0.1"
+description   = "Dockerized Rust/Axum based HTTP weblog for end-to-end System tests"
+edition       = "2021"
+license       = "Apache-2.0"
+publish       = false
+
+rust-version  = "1.87" # should match Dockerfile rustc version
+
+[[bin]]
+name = "weblog"
+path = "src/main.rs"
+doc = false
+bench = false
+
+[dependencies]
+anyhow                  = { version = "1.0" }
+axum                    = { version = "0.8.4", features = [ "http1", "json", "query" ] }
+hyper                   = { version = "1.0", features = ["client", "http1"] }
+hyper-util              = { version = "0.1", features = ["tokio", "client", "client-legacy", "http1"] }
+http-body-util         = { version = "0.1" }
+reqwest                 = { version = "0.12", default-features = false, features = ["json"] }
+serde                   = { version = "1.0", features = [ "derive" ] }
+serde_json              = { version = "1.0" }
+tokio                   = { version = "1", features = [ "macros", "rt-multi-thread", "signal", "net" ] }
+tracing                 = { version = "0.1", default-features = false }
+tracing-subscriber      = { version = "0.3", default-features = false, features = [ "env-filter", "fmt" ] }
+opentelemetry           = { version = "0.31.0" }
+opentelemetry_sdk       = { version = "0.31.0" }
+opentelemetry-http      = { version = "0.31.0" }
+opentelemetry-semantic-conventions = { version = "0.31.0", features = [ "semconv_experimental" ] }
+
+# Trace-only OTLP export: default features (no metrics/logs gRPC), which keeps the dependency tree
+# off tonic and lets this build on the rust:1.87 base image. The path points at the dd-trace-rs
+# checkout placed in /binaries by the weblog build (see axum.Dockerfile).
+datadog-opentelemetry  = { path = "/binaries/dd-trace-rs/datadog-opentelemetry" }
