@@ -7,7 +7,11 @@ import yaml
 class BuildMode(StrEnum):
     none = "none"
     """ The weblog does not require any build step"""
+
     local = "local"
+    """ The weblog has a fully baked base image, so the build step is extra light,
+    and does not requires a full job in the CI"""
+
     prebuild = "prebuild"
     """ The weblog will be built in a dedicated job in the CI """
 
