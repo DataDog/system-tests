@@ -115,7 +115,7 @@ class Test_Library_Tracestats:
     def test_distinct_aggregationkeys_TS003(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
-        The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics, version }
+        The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
         """
         name = "name"
         resource = "resource"
@@ -247,6 +247,7 @@ class Test_Library_Tracestats:
     def test_top_level_TS005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
+        Asserts that version and env are set correctly in the stats request.
         """
         with (
             test_library,
