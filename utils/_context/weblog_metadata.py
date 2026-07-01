@@ -60,19 +60,19 @@ class WeblogMetaData:
         return None
 
     @staticmethod
-    def _load_explicit_metadata() -> dict[str, "WeblogMetaData"]:
-        with Path("utils/build/docker/weblog_metadata.yml").open() as f:
-            data: dict = yaml.safe_load(f)
+    def _load_explicit_metadata(library: str) -> dict[str, "WeblogMetaData"]:
+        path = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
+        if not path.exists():
+            return {}
 
-        result: dict[str, WeblogMetaData] = {}
-        for name, kwargs in data.items():
-            result[name] = WeblogMetaData(name=name, **kwargs)
+        with path.open() as f:
+            data: dict = yaml.safe_load(f) or {}
 
-        return result
+        return {name: WeblogMetaData(name=name, library=library, **kwargs) for name, kwargs in data.items()}
 
     @staticmethod
     def load(library: str) -> list["WeblogMetaData"]:
-        metadata = WeblogMetaData._load_explicit_metadata()
+        metadata = WeblogMetaData._load_explicit_metadata(library)
         result: list[WeblogMetaData] = []
 
         folder = Path(f"utils/build/docker/{library}")
