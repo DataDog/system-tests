@@ -80,7 +80,7 @@ class CiData:
         )
 
         # as now, only node.js has fully baked base images.
-        build_base_images=build_nodejs_base_images and library == "nodejs"
+        build_base_images = build_nodejs_base_images and library == "nodejs"
 
         self.data |= get_endtoend_definitions(
             library,

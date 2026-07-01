@@ -150,7 +150,7 @@ jobs:
     - name: Build lambda-proxy image
       if: inputs._build_lambda_proxy_image
       run: ./build.sh -i lambda-proxy
-    
+
     - name: Build weblog base image
       if: inputs._build_weblog_base_image
       run: |

@@ -200,7 +200,14 @@ class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
     def __init__(
-        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float, *, build_base_images:bool
+        self,
+        library: str,
+        weblog: Weblog,
+        weblog_instance: int,
+        scenarios_times: dict[str, float],
+        build_time: float,
+        *,
+        build_base_images: bool,
     ):
         self.library = library
         self.weblog = weblog
@@ -230,7 +237,9 @@ class Job:
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
-            "build_weblog_base_image": self.weblog.build_mode == BuildMode.local and self.build_base_images and self.weblog.base_dockerfile is not None
+            "build_weblog_base_image": self.weblog.build_mode == BuildMode.local
+            and self.build_base_images
+            and self.weblog.base_dockerfile is not None,
         }
 
     @property
@@ -266,6 +275,7 @@ class Job:
                     weblog_instance=i + 1,
                     scenarios_times={scenario: self._scenarios_times[scenario] for scenario in scenarios},
                     build_time=self.build_time,
+                    build_base_images=self.build_base_images,
                 )
             )
 
@@ -343,7 +353,7 @@ def get_endtoend_definitions(
                     weblog_instance=1,
                     scenarios_times=scenarios_times,
                     build_time=_get_build_time(library, weblog, time_stats["build"]),
-                    build_base_images=build_base_images
+                    build_base_images=build_base_images,
                 )
             )
 
