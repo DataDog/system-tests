@@ -371,7 +371,9 @@ def get_endtoend_definitions(
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": [_serialize_weblog(weblog) for weblog in weblogs if weblog.require_prebuild],
+            "parallel_weblogs": [
+                _serialize_weblog(weblog) for weblog in weblogs if weblog.build_mode == BuildMode.prebuild
+            ],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
@@ -446,7 +448,7 @@ def _split_scenarios_for_parallel_execution(
 
 
 def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
-    if not weblog.require_prebuild:
+    if weblog.build_mode != BuildMode.prebuild:
         return 0.0
 
     if library not in build_stats:

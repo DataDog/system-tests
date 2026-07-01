@@ -34,11 +34,6 @@ class WeblogMetaData:
         return self.build_mode != BuildMode.none
 
     @property
-    def require_prebuild(self) -> bool:
-        """A dedicated build_end_to_end job pre-builds the weblog (parallel_weblogs)."""
-        return self.build_mode == BuildMode.prebuild
-
-    @property
     def base_dockerfile(self) -> Path | None:
         """Returns the path of the base image docker file if exists, else None"""
         path = Path(f"utils/build/docker/{self.library}/{self.name}.base.Dockerfile")
