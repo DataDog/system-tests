@@ -292,9 +292,13 @@ def _collect_item_metadata(item: pytest.Item):
     # decorate test for junit
     item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
-    for feature_id in metadata["features"]:
-        if feature_id != NOT_REPORTED_FEATURE_ID:
-            item.user_properties.append(("dd_tags[systest.case.feature_id]", str(feature_id)))
+    if metadata["features"] != [NOT_REPORTED_FEATURE_ID]:
+        item.user_properties.append(
+            (
+                "dd_tags[systest.case.feature_ids]",
+                str(list(filter(lambda x: x != NOT_REPORTED_FEATURE_ID, metadata["features"]))),
+            )
+        )
 
     if declaration:
         item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
