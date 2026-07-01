@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/v2/llm-obs/v1/dc4158e7-c60f-446e-bcf1-540aa68ffa0f/datasets/55388929-34b8-405b-b717-8e0511b91456/batch_update",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "353",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-4236"
+    },
+    "body": "{\"data\": {\"type\": \"datasets\", \"id\": \"55388929-34b8-405b-b717-8e0511b91456\", \"attributes\": {\"insert_records\": [{\"input\": {\"text\": \"hello\"}, \"expected_output\": \"HELLO\", \"metadata\": {}}, {\"input\": {\"text\": \"world\"}, \"expected_output\": \"WORLD\", \"metadata\": {}}], \"update_records\": [], \"delete_records\": [], \"deduplicate\": true, \"create_new_version\": true}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "848",
+      "date": "Wed, 01 Apr 2026 13:23:20 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":[{\"id\":\"62ec2b2d-b38b-482f-92fd-70c73d731a05\",\"type\":\"datasets\",\"attributes\":{\"author\":{\"id\":\"0dd9d379-c1a3-11ed-b4e0-566658a732f8\"},\"canonical_id\":\"e0068e86-a418-400f-b203-9174e9e0dc42\",\"created_at\":\"2026-04-01T13:23:20.909430194Z\",\"dataset_id\":\"55388929-34b8-405b-b717-8e0511b91456\",\"expected_output\":\"HELLO\",\"input\":{\"text\":\"hello\"},\"metadata\":{},\"tags\":[],\"updated_at\":\"2026-04-01T13:23:20.909430194Z\",\"version\":1}},{\"id\":\"d2f602bc-60a9-48ff-91c8-7fd4780c34cb\",\"type\":\"datasets\",\"attributes\":{\"author\":{\"id\":\"0dd9d379-c1a3-11ed-b4e0-566658a732f8\"},\"canonical_id\":\"de29c963-87fd-47af-8d92-7f296f262b81\",\"created_at\":\"2026-04-01T13:23:20.909430194Z\",\"dataset_id\":\"55388929-34b8-405b-b717-8e0511b91456\",\"expected_output\":\"WORLD\",\"input\":{\"text\":\"world\"},\"metadata\":{},\"tags\":[],\"updated_at\":\"2026-04-01T13:23:20.909430194Z\",\"version\":1}}]}"
+  }
+}

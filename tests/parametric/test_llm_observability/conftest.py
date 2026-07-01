@@ -49,6 +49,11 @@ def dd_app_key() -> str | None:
 
 
 @pytest.fixture
+def dd_site() -> str | None:
+    return None
+
+
+@pytest.fixture
 def library_env(
     llmobs_ml_app: str | None,
     dd_service: str,
@@ -56,6 +61,7 @@ def library_env(
     llmobs_project_name: str | None,
     dd_api_key: str | None,
     dd_app_key: str | None,
+    dd_site: str | None,
     *,
     llmobs_enabled: bool,
 ) -> dict[str, object]:
@@ -69,6 +75,9 @@ def library_env(
 
     if dd_app_key is not None:
         env["DD_APP_KEY"] = dd_app_key
+
+    if dd_site is not None:
+        env["DD_SITE"] = dd_site
 
     if llmobs_ml_app is not None:
         env["DD_LLMOBS_ML_APP"] = llmobs_ml_app
@@ -84,12 +93,20 @@ def library_env(
 
 
 @pytest.fixture
-def agent_env(request: pytest.FixtureRequest) -> dict[str, object]:
+def vcr_provider_map() -> str | None:
+    return None
+
+
+@pytest.fixture
+def agent_env(request: pytest.FixtureRequest, vcr_provider_map: str | None) -> dict[str, object]:
     agent_env: dict[str, object] = {
         "VCR_IGNORE_HEADERS": "content-security-policy",
     }
 
     if not request.config.option.generate_cassettes:
         agent_env["VCR_CI_MODE"] = "1"
+
+    if vcr_provider_map is not None:
+        agent_env["VCR_PROVIDER_MAP"] = vcr_provider_map
 
     return agent_env
