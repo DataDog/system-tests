@@ -5,15 +5,20 @@ security:
 
     providers:
         app_user_provider:
-            id: App\Security\UserProvider
-
+            entity:
+                class: App\Entity\User
+                property: username
     firewalls:
         main:
             pattern: ^/
             lazy: true
             provider: app_user_provider
             stateless: false
-            custom_authenticators:
-                - App\Security\AppAuthenticator
+            form_login:
+                login_path: login
+                check_path: login
+                username_parameter: username
+                password_parameter: password
+                success_handler: App\Security\LoginSuccessHandler
 
     access_control: []

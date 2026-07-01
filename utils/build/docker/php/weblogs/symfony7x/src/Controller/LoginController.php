@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Security\AppAuthenticator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -11,7 +10,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class LoginController extends AbstractController
 {
@@ -25,11 +23,9 @@ class LoginController extends AbstractController
     ) {}
 
     #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(): Response
     {
-        // Authentication is handled by AppAuthenticator.
-        // This method is reached only for GET requests or when the authenticator does not support the request.
-        return new Response('', 200);
+        return new Response('', Response::HTTP_OK);
     }
 
     #[Route('/signup', name: 'signup', methods: ['POST'])]
@@ -46,7 +42,7 @@ class LoginController extends AbstractController
         // Signup event is tracked automatically by the tracer via Doctrine\ORM\UnitOfWork::executeInserts hook.
         $entityManager->flush();
 
-        $this->security->login($user, AppAuthenticator::class, 'main');
+        $this->security->login($user);
 
         return new Response('', 200);
     }
