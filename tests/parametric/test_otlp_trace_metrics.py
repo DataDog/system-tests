@@ -690,23 +690,27 @@ class Test_FR06_Otel_Span_Attributes:
         assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("grpc_status", ["OK", "NOT_FOUND", "UNAVAILABLE"])
     def test_fr06_7_rpc_status_code(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
+        grpc_status: str,
     ):
-        """The Datadog gRPC span tag grpc.status.code is translated to OTel rpc.response.status_code."""
+        """grpc.status.code is translated to the canonical OTel rpc.response.status_code name."""
         with test_library as t:
             with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                # gRPC status code 0 == OK.
-                span.set_meta("grpc.status.code", "0")
+                # Note - grpc.status.code is the Datadog gRPC span tag set in dd-trace-py. Other
+                # tracers may use a different tag name. All tag names MUST be mapped to the canonical
+                # OTel status name. Update this test.
+                span.set_meta("grpc.status.code", grpc_status)
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("rpc.response.status_code") == 0, (
-            f"Expected rpc.response.status_code == 0 (typed int), got attrs: {attrs}"
+        assert attrs.get("rpc.response.status_code") == grpc_status, (
+            f"Expected rpc.response.status_code == {grpc_status!r}, got attrs: {attrs}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
