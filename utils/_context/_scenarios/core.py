@@ -2,12 +2,12 @@ from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from utils._context.component_version import Version
-    from collections.abc import Callable
 
 import pytest
 from utils._logger import logger, get_log_formatter
@@ -128,6 +128,7 @@ class Scenario:
             group.scenarios.append(self)
 
         self.warmups: list[Callable] = []
+        self.post_collection_warmups: list[Callable] = []
         self.collect_only: bool = False
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
@@ -187,10 +188,15 @@ class Scenario:
         """Called at the very begining of the process"""
 
         logger.terminal.write_sep("=", "test context", bold=True)
+        self._run_warmups(self.warmups, label="")
 
+    def execute_post_collection_warmups(self):
+        self._run_warmups(self.post_collection_warmups, label="post-collection ")
+
+    def _run_warmups(self, warmups: list[Callable], *, label: str):
         try:
-            for warmup in self.warmups:
-                logger.info(f"Executing warmup {warmup}")
+            for warmup in warmups:
+                logger.info(f"Executing {label}warmup {warmup}")
                 warmup()
         except:
             self.close_targets()

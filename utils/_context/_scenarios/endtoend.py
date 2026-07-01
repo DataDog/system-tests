@@ -1,5 +1,7 @@
 from typing import Literal
 import os
+from collections.abc import Callable  # noqa: TC003 (used at runtime in annotation)
+
 import pytest
 
 from docker.models.networks import Network
@@ -93,14 +95,19 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
-            self.warmups.append(self._create_network)
-            self.warmups.append(self._start_containers)
 
         for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
-        for container in self._containers:
-            self.warmups.append(container.post_start)
+        self._container_warmups: list[Callable] = [
+            lambda: logger.stdout("Starting containers..."),
+            self._create_network,
+            self._start_containers,
+            *(c.post_start for c in self._containers),
+        ]
+
+        if not self.replay:
+            self.warmups.extend(self._container_warmups)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._containers:
@@ -157,7 +164,6 @@ class DockerScenario(Scenario):
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
     def _start_containers(self):
-        logger.stdout("Starting containers...")
         threads = []
 
         for container in self._containers:
@@ -338,12 +344,41 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
-        if not self.replay:
-            self.warmups.insert(1, self._start_interfaces_watchdog)
+        # Resolve component versions (from image labels when available, else as a warmup).
+        library_known = self.weblog_container._library is not None  # noqa: SLF001
+        agent_known = self.agent_container.agent_version is not None
+
+        if library_known:
+            self._set_library_component()
+        else:
+            self.warmups.append(self._set_library_component)
+        self.warmups.append(self._log_weblog_info)
+
+        if agent_known:
+            self._set_agent_component()
+        else:
+            self.warmups.append(self._set_agent_component)
+        self.warmups.append(self._log_agent_info)
+
+        if self.replay:
+            return
+
+        self.post_collection_warmups.append(self._wait_for_app_readiness)
+        self.post_collection_warmups.append(self._set_weblog_domain)
+
+        if library_known and agent_known:
+            # Both versions known upfront: defer container startup to post-collection so an empty
+            # test session skips Docker entirely. Watchdog must run after network/before containers.
+            for step in self._container_warmups:
+                self.warmups.remove(step)
+            steps = list(self._container_warmups)
+            steps.insert(2, self._start_interfaces_watchdog)
+            steps.append(self._get_weblog_system_info)
+            self.post_collection_warmups[0:0] = steps
+        else:
+            net_idx = self.warmups.index(self._create_network)
+            self.warmups.insert(net_idx + 1, self._start_interfaces_watchdog)
             self.warmups.append(self._get_weblog_system_info)
-            self.warmups.append(self._wait_for_app_readiness)
-            self.warmups.append(self._set_weblog_domain)
-        self.warmups.append(self._set_components)
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
@@ -389,10 +424,24 @@ class EndToEndScenario(DockerScenario):
         if self.enable_ipv6:
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
-    def _set_components(self):
-        self.components["agent"] = self.agent_version
+    def _log_agent_info(self):
+        logger.stdout(f"Agent: {self.agent_container.agent_version}")
+        logger.stdout(f"Backend: {self.agent_container.dd_site}")
+
+    def _log_weblog_info(self):
+        logger.stdout(f"Library: {self.library}")
+        if self.weblog_container.appsec_rules_file:
+            logger.stdout("Using a custom appsec rules file")
+        if self.weblog_container.uds_mode:
+            logger.stdout(f"UDS socket: {self.weblog_container.uds_socket}")
+        logger.stdout(f"Weblog variant: {self.weblog_variant}")
+
+    def _set_library_component(self):
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
+
+    def _set_agent_component(self):
+        self.components["agent"] = self.agent_version
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:

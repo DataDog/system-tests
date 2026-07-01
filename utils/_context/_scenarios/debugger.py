@@ -76,7 +76,10 @@ class DebuggerScenario(EndToEndScenario):
             self.agent_container.environment["DD_AGENT_HOST"] = weblog_env["DD_AGENT_HOST"]
 
         if not self.replay:
-            self.warmups.append(self._wait_for_agent_debugging)
+            target = (
+                self.post_collection_warmups if self._start_containers in self.post_collection_warmups else self.warmups
+            )
+            target.append(self._wait_for_agent_debugging)
 
     def _wait_for_agent_debugging(self) -> None:
         logger.stdout("Wait for /debugger/v1/diagnostics endpoint on agent")
