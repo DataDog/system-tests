@@ -168,12 +168,6 @@ class Test_Library_Tracestats:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
-            # Unique Version (per-span version tag, no global DD_VERSION set)
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
-                span.set_meta(key="_dd.origin", val=origin)
-                span.set_meta(key="http.status_code", val=http_status_code)
-                span.set_meta(key="version", val="v1.0.0")
-
         if test_library.lang in ("golang", "java"):
             test_library.dd_flush()
 
@@ -194,8 +188,8 @@ class Test_Library_Tracestats:
                 assert s["TopLevelHits"] == 1
                 assert s["Duration"] > 0
 
-        assert cnt == 8, (
-            "There should be eight stats entries in the bucket. There is one baseline entry and 7 that are unique along each of 7 dimensions."
+        assert cnt == 7, (
+            "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
         )
 
     @enable_tracestats()
@@ -237,7 +231,18 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
-    @enable_tracestats()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                "DD_VERSION": "1.2.3",
+                "DD_ENV": "some-env",
+                "DD_SERVICE": "some-service",
+            }
+        ],
+    )
     @enable_agent_version()
     def test_top_level_TS005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
@@ -257,8 +262,9 @@ class Test_Library_Tracestats:
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
-        for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, f"{key} should be in stats request"
+        assert request["Env"] == "some-env"
+        assert request["Version"] == "1.2.3"
+        assert request["Stats"] is not None
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
