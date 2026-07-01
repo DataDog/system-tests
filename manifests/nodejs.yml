@@ -207,7 +207,15 @@ manifest:
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create: missing_feature
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: missing_feature
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: missing_feature
-  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        fastify: '>=5.110.0'
+        express5: '>=5.110.0'
+        express4-typescript: '>=5.110.0'
+        uds-express4: '>=5.110.0'
+        nextjs: '>=5.110.0'
+        express4: '>=5.110.0'
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0
@@ -547,7 +555,12 @@ manifest:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # TODO: a lower version might be supported
+    - declaration: missing_feature (weblog does not respond)
+      component_version: <5.110.0
+      weblog: [fastify, express5, express4-typescript, uds-express4, express4]
+    - declaration: missing_feature (weblog does not respond)
+      excluded_weblog: [fastify, express5, express4-typescript, uds-express4, express4]
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -967,7 +980,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py: v5.92.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: v5.110.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         nextjs: missing_feature
@@ -977,7 +990,7 @@ manifest:
         nextjs: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
     - weblog_declaration:
-        nextjs: missing_feature
+        nextjs: v5.110.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         nextjs: missing_feature
@@ -1125,6 +1138,18 @@ manifest:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
+        nextjs: v5.110.0  # TODO: a lower version might be supported
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
+    - weblog_declaration:
         nextjs: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: *ref_5_17_0
@@ -2455,7 +2480,13 @@ manifest:
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
         "*": *ref_5_81_0
-        nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+        nextjs: v5.110.0  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_basic:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_edge_cases:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_root:
     - weblog_declaration:
         fastify: missing_feature (Fasitfy root route is always '/' not empty string)
