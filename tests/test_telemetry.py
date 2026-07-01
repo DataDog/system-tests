@@ -327,9 +327,16 @@ class Test_Telemetry:
 
         delays_by_runtime = {}
 
-        for runtime_id, heartbeats in heartbeats_by_runtime.items():
-            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
+        # Short-lived processes (e.g. children spawned by the session-id tests) can emit
+        # only a couple of heartbeats before exiting, which is not enough samples to measure
+        # interval drift. Only long-lived runtimes are measured here.
+        measurable_runtimes = {rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2}
+        heartbeat_counts = {rid: len(hbs) for rid, hbs in heartbeats_by_runtime.items()}
+        assert measurable_runtimes, (
+            f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
+        )
 
+        for runtime_id, heartbeats in measurable_runtimes.items():
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
@@ -425,8 +432,15 @@ class Test_Telemetry:
         seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
         seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
+        # The same dependency reported once per process is valid: children spawned by the
+        # session-id tests are separate processes (distinct runtime_id) that legitimately
+        # re-load and re-report the same dependency. Duplicate detection is therefore scoped
+        # to a single runtime_id rather than the whole app.
+        loaded_per_runtime: dict[str, set[str]] = defaultdict(set)
+
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
+            runtime_id = content.get("runtime_id")
             if content.get("request_type") == "app-started":
                 if "dependencies" in content["payload"]:
                     for dependency in content["payload"]["dependencies"]:
@@ -439,14 +453,15 @@ class Test_Telemetry:
             elif content.get("request_type") == "app-dependencies-loaded":
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"]  # +dependency["version"]
-                    if seen_loaded_dependencies.get(dependency_id) is True:
-                        raise Exception(
-                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
-                        )
+                    if dependency_id in seen_loaded_dependencies:
+                        if dependency_id in loaded_per_runtime[runtime_id]:
+                            raise Exception(
+                                "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                            )
+                        loaded_per_runtime[runtime_id].add(dependency_id)
+                        seen_loaded_dependencies[dependency_id] = True
                     if dependency_id in seen_defined_dependencies:
                         seen_defined_dependencies[dependency_id] = True
-                    if dependency_id in seen_loaded_dependencies:
-                        seen_loaded_dependencies[dependency_id] = True
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
@@ -582,6 +597,90 @@ class Test_Telemetry:
 
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
+
+    def setup_session_id_headers_across_forks(self):
+        """Trigger spawn_child endpoint to create a fork tree for session ID header validation."""
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "true"})
+
+    def setup_session_id_headers_across_spawned(self):
+        """Trigger spawn_child endpoint with exec (fork=false) for session ID header validation."""
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "false"})
+
+    def _validate_session_id_headers_across_processes(self) -> None:
+        """Validate DD-Session-ID, DD-Root-Session-ID, DD-Parent-Session-ID in telemetry.
+
+        Stable Service Instance Identifier RFC: each app instance has one root runtime_id,
+        and DD-Session-ID (instance id) must equal runtime_id. When DD-Root-Session-ID is
+        absent, the process is its own root. All processes from one app instance share a
+        single root session ID, whether they run per-process tracers (e.g. parent/child
+        from spawn_child) or share one tracer (e.g. nginx workers).
+        """
+        # Fail loudly if the endpoint is missing/broken instead of passing on unrelated
+        # startup/shutdown events: the child process must have been spawned successfully.
+        assert self.spawn_child_response.status_code == 200, (
+            f"/spawn_child did not succeed: status {self.spawn_child_response.status_code}"
+        )
+
+        # Use lifecycle events only; metrics and log events from lib-datadog can contain
+        # runtime/session_ids that do not map to tracer-generated telemetry.
+        telemetry_data = list(interfaces.library.get_lifecycle_events())
+        if not telemetry_data:
+            raise ValueError("No telemetry data to validate on")
+
+        assert len(telemetry_data) > 1, (
+            f"Expected multiple telemetry events to verify consistency, got {len(telemetry_data)}"
+        )
+
+        runtime_ids = set[str]()
+        parent_runtime_ids = set[str]()
+        root_runtime_ids = set[str]()
+
+        for data in telemetry_data:
+            # Headers are not case sensitive
+            curr_sid = get_header(data, "request", "dd-session-id")
+            curr_rid = get_header(data, "request", "dd-root-session-id")
+            curr_pid = get_header(data, "request", "dd-parent-session-id")
+            curr_id = data["request"]["content"].get("runtime_id")
+
+            # Instance id (DD-Session-ID) must be present in all lifecycle events and equal to runtime_id
+            assert curr_sid is not None, f"DD-Session-ID is required in telemetry data: {data}"
+            assert curr_sid == curr_id, f"DD-Session-ID must match runtime_id: {curr_sid} != {curr_id}"
+
+            runtime_ids.add(curr_id)
+            if curr_pid is not None:
+                parent_runtime_ids.add(curr_pid)
+            if curr_rid is not None:
+                root_runtime_ids.add(curr_rid)
+            else:
+                # If dd-root-session-id is not set, dd-session-id is treated as root
+                root_runtime_ids.add(curr_id)
+
+        # One root per app instance: all processes share the same root session ID
+        assert len(root_runtime_ids) == 1, f"Expected 1 root runtime_id, got {root_runtime_ids}"
+
+        if len(runtime_ids) > 1:
+            # Multiple runtimes (per-process tracers): root must be consistent
+            # across all payloads from all processes
+            if parent_runtime_ids:
+                # DD-Parent-Session-ID is optional but must reference a known runtime if present
+                missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
+                assert not missing_parent_runtime_ids, (
+                    f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
+                )
+        else:
+            # Single runtime (e.g. nginx workers sharing one tracer): session ID
+            # must be consistent across all events
+            sole_rid = next(iter(runtime_ids))
+            sole_root = next(iter(root_runtime_ids))
+            assert sole_rid == sole_root, f"Single runtime_id {sole_rid} does not match root {sole_root}"
+
+    def test_session_id_headers_across_forks(self):
+        """Test session ID headers in telemetry (fork=true). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
+
+    def test_session_id_headers_across_spawned(self):
+        """Test session ID headers in telemetry (fork=false, exec). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
 
 
 @features.telemetry_app_started_event

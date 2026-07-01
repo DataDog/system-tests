@@ -6,13 +6,14 @@ PHP_MAJOR_VERSION=$(php -r "echo PHP_MAJOR_VERSION;")
 PHP_MINOR_VERSION=$(php -r "echo PHP_MINOR_VERSION;")
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
 VARIANT=$(php-config --prefix| grep release-zts && echo release-zts || echo "")
+WEBLOG=${1:-plain}
 
 export TRACER_VERSION=latest
 export APPSEC_VERSION=latest
 
 mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
-cp -rf /tmp/php/common/* /var/www/html/
+cp -rf /tmp/php/weblogs/$WEBLOG/* /var/www/html/
 cp -rf /tmp/php/common/php.ini /etc/php/
 
 # Install required packages and PHP extensions
@@ -58,17 +59,17 @@ curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin
 cd /var/www/html
 # Use composer.json for PHP < 8.2, composer.gte8.2.json for PHP >= 8.2 (COMPOSER env = config filename)
 export COMPOSER=composer.json
-if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ] && [ -f composer.gte8.2.json ]; then
 	export COMPOSER=composer.gte8.2.json
 fi
 echo "Using composer config: $COMPOSER"
-composer install --prefer-dist
+composer install --prefer-dist || composer install --prefer-source
 
 # Install OTel SDK for PHP 8.1+ (open-telemetry/context requires PHP ^8.1)
 # DDTrace hooks into the SDK when DD_TRACE_OTEL_ENABLED=true, bridging OTel context
 # with DDTrace context so that Baggage::getCurrent() and activate() work correctly.
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]] && [[ "${PHP_MINOR_VERSION}" -ge 1 ]]; then
-    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction
+    composer require "open-telemetry/sdk:^1.0.0" --prefer-dist --no-interaction || composer require "open-telemetry/sdk:^1.0.0" --prefer-source --no-interaction
 fi
 
 # Set proper permissions

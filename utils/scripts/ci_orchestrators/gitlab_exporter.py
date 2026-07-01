@@ -40,6 +40,9 @@ def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3)
 
 def should_run_only_defaults_vm() -> bool:
     """Default rules to run only default VMs or all VMs"""
+    # Consuming repos can opt in, e.g. for merge queues
+    if os.getenv("SYSTEM_TESTS_RUN_ALL_VMS") == "true":
+        return False
     # Get gitlab variables from the environment
     ci_commit_tag = os.getenv("CI_COMMIT_TAG")
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
@@ -51,7 +54,7 @@ def should_run_only_defaults_vm() -> bool:
     if ci_pipeline_source == "schedule" or ci_commit_tag:
         return False
 
-    # if we run on system-tests repository and it's the main branch, we should run all the VMs
+    # If we run on system-tests repository and it's the main branch, we should run all the VMs
     return not (ci_project_name == "system-tests" and ci_commit_branch == "main")
 
 
