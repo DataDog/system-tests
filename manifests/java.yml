@@ -3306,7 +3306,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v0.2.0  # real version not known
-  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+      component_version: <1.63.2
+      weblog: [spring-boot]
+    - declaration: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+      excluded_weblog: [spring-boot]
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_produce_trace_equality: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
   tests/integrations/test_base_service.py::Test_BaseService_SqlSpan:
     - weblog_declaration:
@@ -3595,7 +3600,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:  # Easy win for spring-boot and version 1.63.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.64.0-SNAPSHOT
@@ -3660,15 +3665,15 @@ manifest:
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process::test_dsm_manual_checkpoint_intra_process:
     - weblog_declaration:
         spring-boot: flaky (AIDM-117)
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:  # Easy win for spring-boot and version 1.63.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:  # Easy win for spring-boot and version 1.63.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:  # Easy win for spring-boot and version 1.63.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
