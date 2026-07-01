@@ -256,7 +256,20 @@ manifest:
   : missing_feature (Not implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v0.0.1
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py: '>=0.4.1-dev+83c985c'  # TODO: a lower version might be supported
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header: missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Finish: v0.0.1
