@@ -17,6 +17,8 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
 
+WaitResult = tuple[bool, str]
+
 
 def exposure_events_from_data(
     data: dict, flag_keys: set[str] | None = None, subject_id: str | None = None
@@ -59,26 +61,84 @@ def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[d
     return events
 
 
-def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
-    """Wait until the agent receives an exposure event for one of the given flags."""
-    assert interfaces.agent.wait_for(
-        lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
+def exposure_flag_keys_seen(flag_keys: set[str], subject_id: str | None = None) -> set[str]:
+    """Return matching flag keys already captured by the agent."""
+    seen = set()
+    for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        for event in exposure_events_from_data(data, flag_keys, subject_id):
+            flag = event.get("flag")
+            flag_key = flag.get("key") if isinstance(flag, dict) else None
+            if isinstance(flag_key, str):
+                seen.add(flag_key)
+    return seen
+
+
+def flush_ffe_payloads() -> WaitResult:
+    """Flush buffered payloads when the weblog exposes the common flush endpoint."""
+    response = weblog.get("/flush", timeout=10)
+    if response.status_code in (200, 404, 405):
+        return True, ""
+
+    return False, f"Failed to flush FFE payloads with status {response.status_code}: {response.text}"
+
+
+def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> WaitResult:
+    """Wait until the agent receives exposure events for all of the given flags."""
+    flush_result = flush_ffe_payloads()
+    if not flush_result[0]:
+        return flush_result
+
+    sorted_flag_keys = sorted(flag_keys)
+    seen_flag_keys = exposure_flag_keys_seen(flag_keys, subject_id)
+
+    def collect_matching_flags(data: dict) -> bool:
+        for event in exposure_events_from_data(data, flag_keys, subject_id):
+            flag = event.get("flag")
+            flag_key = flag.get("key") if isinstance(flag, dict) else None
+            if isinstance(flag_key, str):
+                seen_flag_keys.add(flag_key)
+        return flag_keys <= seen_flag_keys
+
+    if flag_keys <= seen_flag_keys or interfaces.agent.wait_for(
+        collect_matching_flags,
         timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
-    ), f"Timed out waiting for exposure event for flags {sorted(flag_keys)} and subject {subject_id!r}"
+    ):
+        return True, ""
+
+    missing_flag_keys = sorted(flag_keys - seen_flag_keys)
+    return (
+        False,
+        f"Timed out waiting for exposure events for flags {sorted_flag_keys} "
+        f"and subject {subject_id!r}; missing {missing_flag_keys}",
+    )
 
 
-def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> int:
-    """Wait until enough matching exposure events are available, then return the current count."""
+def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> WaitResult:
+    """Wait until enough matching exposure events are available."""
+    flush_result = flush_ffe_payloads()
+    if not flush_result[0]:
+        return flush_result
+
+    if count_exposure_events(flag_key, subject_id) >= expected:
+        return True, ""
+
+    if interfaces.agent.wait_for(
+        lambda _: count_exposure_events(flag_key, subject_id) >= expected,
+        timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    ):
+        return True, ""
+
     count = count_exposure_events(flag_key, subject_id)
+    return (
+        False,
+        f"Timed out waiting for exposure count >= {expected} for flag {flag_key} "
+        f"and subject {subject_id!r}; observed {count}",
+    )
 
-    if count < expected:
-        assert interfaces.agent.wait_for(
-            lambda _: count_exposure_events(flag_key, subject_id) >= expected,
-            timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
-        ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
-        count = count_exposure_events(flag_key, subject_id)
 
-    return count
+def assert_wait_results(*wait_results: WaitResult) -> None:
+    for success, failure_message in wait_results:
+        assert success, failure_message
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -132,11 +192,12 @@ class Test_FFE_Exposure_Events:
                 "attributes": attributes,
             },
         )
+        self.exposure_ready = wait_for_exposure_event({self.flag}, self.targeting_key)
 
     def test_ffe_exposure_event_generation(self):
         """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
-        wait_for_exposure_event({self.flag}, self.targeting_key)
+        assert_wait_results(self.exposure_ready)
 
         # Search for our specific flag in all exposure events
         matching_event = None
@@ -244,17 +305,12 @@ class Test_FFE_Exposure_Events:
             },
         }
 
-        # Apply both configurations
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
-            f"{RC_PATH}/{config_id_2}/config", rc_config_2
-        ).apply()
-
-        # Evaluate both feature flags
         self.flag_1 = "test-flag-1"
         self.flag_2 = "test-flag-2"
         self.targeting_key = "test-user-multi"
 
-        # Evaluate first flag
+        # UFC config is replaced, not merged; evaluate each flag while its config is current.
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
         self.r1 = weblog.post(
             "/ffe",
             json={
@@ -265,8 +321,11 @@ class Test_FFE_Exposure_Events:
                 "attributes": {},
             },
         )
+        # Store setup-time wait results; tests run after teardown and cannot produce new payloads.
+        self.exposure_ready_1 = wait_for_exposure_event({self.flag_1}, self.targeting_key)
 
-        # Evaluate second flag
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
+
         self.r2 = weblog.post(
             "/ffe",
             json={
@@ -277,12 +336,13 @@ class Test_FFE_Exposure_Events:
                 "attributes": {},
             },
         )
+        self.exposure_ready_2 = wait_for_exposure_event({self.flag_2}, self.targeting_key)
 
     def test_ffe_multiple_remote_config_files(self):
         """Test that FFE correctly handles multiple remote config files with different flags."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
-        wait_for_exposure_event({self.flag_1, self.flag_2}, self.targeting_key)
+        assert_wait_results(self.exposure_ready_1, self.exposure_ready_2)
 
         # Collect all exposure events for our specific flags
         flags_found = set()
@@ -410,6 +470,7 @@ class Test_FFE_Exposure_Events_Errors:
                 "attributes": {},
             },
         )
+        self.exposure_ready = wait_for_exposure_event({self.flag}, self.targeting_key)
 
         # Now update with a malformed config (missing allocations and variationType)
         malformed_rc_config = {
@@ -448,7 +509,7 @@ class Test_FFE_Exposure_Events_Errors:
         """Test that FFE rejects malformed remote config and preserves the old valid configuration."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
-        wait_for_exposure_event({self.flag}, self.targeting_key)
+        assert_wait_results(self.exposure_ready)
 
         # Verify that exposure events are still generated for both requests
         # and the flag configuration remained valid despite the malformed update
@@ -532,17 +593,21 @@ class Test_FFE_Exposure_Caching_Same_Subject:
                 },
             )
             self.responses.append(r)
+        self.exposure_ready = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
 
     def test_ffe_exposure_caching_same_subject(self):
         """Test that multiple evaluations for the same subject generate at most one exposure event."""
         # Verify all requests succeeded
         for i, r in enumerate(self.responses):
             assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+        assert_wait_results(self.exposure_ready)
+
+        for i, r in enumerate(self.responses):
             result = json.loads(r.text)
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
         # Count exposure events for this specific subject
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         # The exposure cache should deduplicate events - we expect exactly 1 exposure
         # for the same (subject, allocation, variant) tuple
@@ -583,18 +648,20 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
                 },
             )
             self.responses.append(r)
+        self.exposure_wait_results = [
+            wait_for_min_exposure_count(self.flag_key, 1, subject) for subject in self.subjects
+        ]
 
     def test_ffe_exposure_caching_different_subjects(self):
         """Test that each unique subject generates exactly one exposure event."""
         # Verify all requests succeeded
         for i, r in enumerate(self.responses):
             assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+        assert_wait_results(*self.exposure_wait_results)
+
+        for i, r in enumerate(self.responses):
             result = json.loads(r.text)
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
-
-        # Wait for each subject to be observed before asserting exact totals.
-        for subject in self.subjects:
-            wait_for_min_exposure_count(self.flag_key, 1, subject)
 
         # Count total exposure events for this flag
         total_exposure_count = count_exposure_events(self.flag_key)
@@ -678,6 +745,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
                 "attributes": {},
             },
         )
+        self.exposure_ready = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
     def test_ffe_exposure_caching_allocation_cycle(self):
         """Test that allocation-a → allocation-b → allocation-a generates 3 exposures."""
@@ -700,7 +768,8 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        assert_wait_results(self.exposure_ready)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -773,6 +842,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
                 "attributes": {},
             },
         )
+        self.exposure_ready = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
     def test_ffe_exposure_caching_variant_cycle(self):
         """Test that variant-a → variant-b → variant-a generates 3 exposures."""
@@ -795,7 +865,8 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        assert_wait_results(self.exposure_ready)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -921,6 +992,8 @@ class Test_FFE_Exposure_DoLog_False:
         # Verify all requests succeeded and returned the expected value
         for i, r in enumerate(self.responses):
             assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+
+        for i, r in enumerate(self.responses):
             result = json.loads(r.text)
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
@@ -962,14 +1035,15 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
                 "attributes": {},
             },
         )
+        self.exposure_ready = wait_for_exposure_event({self.flag_key}, "")
 
     def test_ffe_exp_5_missing_targeting_key(self):
         """EXP.5: Test that empty targeting key generates exposure with subject.id = ''."""
         assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+        assert_wait_results(self.exposure_ready)
 
         result = json.loads(self.response.text)
         assert result["value"] == "value-a", f"Expected 'value-a', got '{result['value']}'"
-        wait_for_exposure_event({self.flag_key}, "")
 
         # Search for exposure event with empty subject.id
         matching_event = None

@@ -19,6 +19,15 @@ function dd_ffe_error_response($statusCode, $errorCode, $errorMessage)
     ));
 }
 
+function dd_ffe_flush_exposures()
+{
+    if (function_exists('DDTrace\\Testing\\flush_ffe_exposures')) {
+        return \DDTrace\Testing\flush_ffe_exposures();
+    }
+
+    return null;
+}
+
 function dd_ffe_read_payload()
 {
     $rawBody = file_get_contents('php://input');
@@ -186,6 +195,7 @@ try {
     if ($details !== null) {
         $response = dd_ffe_details_payload($details);
         $response['count'] = count($targetingKeys);
+        $response['exposuresFlushed'] = dd_ffe_flush_exposures();
         dd_ffe_json_response(200, $response);
         return;
     }
