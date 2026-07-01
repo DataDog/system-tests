@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, features, scenarios
+from utils import context, interfaces, features, scenarios, logger
 from utils.dd_types import DataDogLibrarySpan
 
 
@@ -15,8 +15,6 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
-    "envoy": "go",
-    "haproxy": "go",
 }
 
 """
@@ -166,7 +164,6 @@ optional_uds_feature = (
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -287,12 +284,15 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
+            logger.info(f"span mane is {span['name']}")
             expected_component = get_component_name(span["name"])
 
             assert "component" in span.get("meta", {}), (
                 f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
             )
             actual_component = span["meta"]["component"]
+
+            logger.info(f"actual_component is {actual_component}")
 
             if isinstance(expected_component, list):
                 exception_message = f"""Expected span {span["name"]} to have component meta tag equal
@@ -340,7 +340,6 @@ class Test_MetaDatadogTags:
 
 
 @features.trace_data_integrity
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

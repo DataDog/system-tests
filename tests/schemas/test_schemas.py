@@ -137,8 +137,9 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/v0.7/config",
                 data_path="$.client.client_tracer",
-                condition=context.library in ("haproxy", "envoy")
-                and context.scenario in (scenarios.go_proxies_appsec_blocking, scenarios.go_proxies_default),
+                condition=context.weblog_variant in ("haproxy", "envoy")
+                and context.scenario in (scenarios.appsec_blocking, scenarios.default)
+                and context.library < "golang@2.5.0",
                 ticket="APMSP-2590",
             ),
         ]
