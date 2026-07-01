@@ -248,6 +248,11 @@
             <artifactId>sdk</artifactId>
             <version>1.18.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.junrar</groupId>
+            <artifactId>junrar</artifactId>
+            <version>7.5.5</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
