@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 ruby:3.2.1-bullseye
+FROM ruby:3.2.1-bullseye
 
 WORKDIR /app
 COPY utils/build/docker/ruby/parametric .
