@@ -515,7 +515,7 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             assert "targeting_key" not in event, f"degraded event must omit targeting_key: {event}"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
-            degraded_count += cast(int, event["evaluation_count"])
+            degraded_count += cast("int", event["evaluation_count"])
 
         assert degraded_count == EVP_DEGRADATION_OVERFLOW_EVALS, (
             f"expected {EVP_DEGRADATION_OVERFLOW_EVALS} degraded evaluations after "
