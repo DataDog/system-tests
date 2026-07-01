@@ -31,7 +31,6 @@ You'll commonly need to run unmerged changes to your library against system test
 10. [update-docker-images.md](./update-docker-images.md): Modify test app docker images
 12. [remote-config.md](./remote-config.md): Write remote config tests
 13. [versions.md](./versions.md): Version specification guidelines
-14. [runbook.md](./runbook.md): Operational runbook
 15. [flushing.md](./flushing.md): How data flushing works and implementing `/flush`
 
 ### Interface validation API reference

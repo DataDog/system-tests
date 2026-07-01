@@ -9,6 +9,9 @@
       local_path: binaries/
 
   remote-command: |
+    # Pin to 7.78.4 agent release. APMSP-3059
+    export DD_AGENT_MAJOR_VERSION=7
+    export DD_AGENT_MINOR_VERSION=78.4
     # Check if Docker is installed and ensure it's running
     if command -v docker >/dev/null 2>&1; then
         echo "Docker is installed, ensuring service is enabled and running..."

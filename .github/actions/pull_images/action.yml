@@ -22,6 +22,42 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Free Disk Space
+      shell: bash
+      run: |
+        before=$(df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}')
+        ts_total=$(date +%s)
+        tmpdir=$(mktemp -d)
+        paths=(
+          /usr/share/dotnet          # .NET runtime
+          /usr/share/doc/dotnet-*    # .NET documentation
+          /opt/ghc                   # GHC (Haskell compiler)
+          /usr/local/.ghcup          # GHCup (Haskell toolchain manager)
+          /opt/cabal                 # Cabal (Haskell build tool)
+          /home/runner/.ghcup        # GHCup user data
+          /home/runner/.cabal        # Cabal user data
+          /usr/share/swift           # Swift toolchain
+          /usr/local/share/chromium  # Chromium browser
+          /usr/share/az*             # Azure CLI
+        )
+        pids=()
+        for path in "${paths[@]}"; do
+          [ -e "${path}" ] || continue
+          outfile="${tmpdir}/${path//\//_}"
+          {
+            ts=$(date +%s)
+            sudo rm -rf "${path}"
+            echo "Removed ${path} in $(( $(date +%s) - ts ))s"
+          } > "${outfile}" &
+          pids+=($!)
+        done
+        for pid in "${pids[@]}"; do wait "$pid" || true; done
+        cat "${tmpdir}"/* 2>/dev/null || true
+        rm -rf "${tmpdir}"
+        after=$(df -B1 / | awk 'NR==2 {printf "%.2f", $4/1024/1024}')
+        echo "Total Recovered Space: $(awk "BEGIN {printf \"%.2f\", ${after} - ${before}}") MB"
+        echo "Total Time: $(( $(date +%s) - ts_total ))s"
+
     - name: Get image list
       shell: bash
       run: |
@@ -32,25 +68,32 @@ runs:
 
     - name: Login to Docker Hub
       if: inputs.dockerhub_username != '' && inputs.dockerhub_token != ''
-      uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
-    - name: clean-up
-      shell: bash
-      run: sudo rm -rf /usr/local/lib/android
-
-#retry
     - name: Pull
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
-      with:
-        shell: bash
-        command: docker compose pull
-        timeout_minutes: 15
-        retry_wait_seconds: 10
-        max_attempts: 3
-
-    - name: Disk space usage
       shell: bash
-      run: df -h
+      run: |
+        max_attempts=5
+        timeout_seconds=900
+        attempt=1
+        while true; do
+          echo "Running docker compose pull (attempt ${attempt}/${max_attempts}, timeout ${timeout_seconds}s)..."
+
+          if timeout "${timeout_seconds}" docker compose pull; then
+            break
+          fi
+
+          if [ "${attempt}" -ge "${max_attempts}" ]; then
+            echo "docker compose pull failed after ${attempt} attempts"
+            exit 1
+          fi
+
+          # Exponential backoff: 30s, 60s, 120s, 240s
+          retry_wait_seconds=$(( 30 * (1 << (attempt - 1)) ))
+          echo "docker compose pull failed (attempt ${attempt}/${max_attempts}), retrying in ${retry_wait_seconds}s..."
+          sleep "${retry_wait_seconds}"
+          attempt=$((attempt + 1))
+        done

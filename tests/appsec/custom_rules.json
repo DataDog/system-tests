@@ -51,6 +51,31 @@
           }
         }
       ]
+    },
+    {
+      "id": "custom-test-file-write",
+      "name": "Test rule for server.io.fs.file_write address",
+      "tags": {
+        "type": "lfi",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.fs.file_write"
+              }
+            ],
+            "regex": "(?:^|[/\\\\])\\.\\.[/\\\\]",
+            "options": {
+              "case_sensitive": true,
+              "min_length": 4
+            }
+          }
+        }
+      ]
     }
   ],
   "exclusions": [

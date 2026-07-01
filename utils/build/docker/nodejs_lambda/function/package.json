@@ -1,0 +1,7 @@
+{
+  "name": "nodejs-lambda-weblog",
+  "version": "1.0.0",
+  "description": "Node.js Lambda weblog application for system-tests",
+  "private": true,
+  "dependencies": {}
+}

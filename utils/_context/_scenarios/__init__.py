@@ -8,7 +8,12 @@ from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
-from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
+from .integrations import (
+    CrossedTracingLibraryScenario,
+    DbmDynamicServiceScenario,
+    IntegrationsScenario,
+    AWSIntegrationsScenario,
+)
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
@@ -36,6 +41,7 @@ from utils._context.containers import (
     PostgresContainer,
     RabbitMqContainer,
     VCRCassettesContainer,
+    InternalServerContainer,
 )
 
 update_environ_with_local_env()
@@ -55,6 +61,7 @@ class _Scenarios:
     )
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
+    dbm_dynamic_service = DbmDynamicServiceScenario()
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
@@ -93,6 +100,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
@@ -110,11 +118,110 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         client_drop_p0s=False,
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
             "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_future_obfuscation_version = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
+        # Same as trace_stats_computation but with the agent advertising an obfuscation_version
+        # higher than what any current SDK supports (99), to test that the SDK correctly falls
+        # back to no client-side obfuscation when it encounters an unknown/future version.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        obfuscation_version=99,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 99. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent advertises an obfuscation version higher than what the SDK supports."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_missing_obfuscation_version = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",
+        # Same as trace_stats_computation but with the agent not advertising obfuscation_version
+        # in /info, to test that the SDK correctly falls back to no client-side obfuscation.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        obfuscation_version="MISSING",
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent not advertising obfuscation_version. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent does not advertise any obfuscation version."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_obfuscation_version_zero = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO",
+        # Same as trace_stats_computation but with the agent advertising obfuscation_version=0,
+        # to test that the SDK treats version 0 as "not supported" and skips client-side obfuscation.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        obfuscation_version=0,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 0. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent advertises obfuscation_version=0."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_obfuscation_disabled = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
+        # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
+        # the SDK correctly reads the obfuscation config from agent's /info and respects it.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        agent_env={
+            "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
+        },
+        doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_error_sampler = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
+        # Same as trace_stats_computation but with the trace sample rate set to 0, so that all traces
+        # are P0 and would normally be dropped by the tracer. Error traces must still be sent to the
+        # agent, because the agent error sampler keeps a portion of them.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "DD_TRACE_SAMPLE_RATE": "0",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. "
+            "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
         ),
         scenario_groups=[scenario_groups.appsec],
     )
@@ -184,6 +291,16 @@ class _Scenarios:
         "TELEMETRY_METRIC_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
+        scenario_groups=[scenario_groups.telemetry],
+    )
+    telemetry_extended_heartbeat = EndToEndScenario(
+        "TELEMETRY_EXTENDED_HEARTBEAT",
+        weblog_env={
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+            "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+            "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
+        },
+        doc="Test app-extended-heartbeat telemetry event with a shortened interval",
         scenario_groups=[scenario_groups.telemetry],
     )
 
@@ -410,6 +527,18 @@ class _Scenarios:
             Scenario to test User ID collection config change via Remote config
         """,
         scenario_groups=[scenario_groups.appsec],
+        other_weblog_containers=(InternalServerContainer,),
+    )
+
+    runtime_sca_reachability = EndToEndScenario(
+        "RUNTIME_SCA_REACHABILITY",
+        weblog_env={
+            "DD_APPSEC_SCA_ENABLED": "true",
+        },
+        doc="""
+            Scenario to test SCA telemetry events
+        """,
+        scenario_groups=[scenario_groups.appsec],
     )
 
     appsec_standalone = EndToEndScenario(
@@ -425,6 +554,40 @@ class _Scenarios:
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    appsec_apm_standalone = EndToEndScenario(
+        "APPSEC_APM_STANDALONE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec with APM Standalone (infra opt out)",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    appsec_standalone_apm_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE_APM_STANDALONE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -499,7 +662,12 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
+        weblog_env={
+            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+            # configs below will used to debug connection failures in ddtrace-py
+            "DD_TRACE_LOGGING_RATE": "0",
+            "DD_TRACE_DEBUG": "true",
+        },
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
@@ -511,7 +679,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DEBUGGER_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
         doc="",
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
@@ -542,11 +710,21 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            # set_provider() in Python blocks until we receive RC
+            # configuration for feature flags. But it is only sent
+            # after weblog sucessfully boots and tests start
+            # executing. Unfortunately, Python's OpenFeature SDK does
+            # not have "set provider and don't wait," so we reduce the
+            # timeout here, so that the provider initialization fails
+            # fast, weblog boots, and provider recovers when we set RC
+            # configuration later.
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
         },
-        agent_interface_timeout=30,
         doc="",
         scenario_groups=[scenario_groups.ffe],
     )
@@ -585,6 +763,7 @@ class _Scenarios:
             "OTEL_TRACES_EXPORTER": "otlp",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "DD_TRACE_OTEL_ENABLED": "true",
         },
         backend_interface_timeout=5,
         include_opentelemetry=True,
@@ -720,6 +899,8 @@ class _Scenarios:
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
@@ -1048,7 +1229,7 @@ class _Scenarios:
         "DOCKER_SSI_APPSEC",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
-        appsec_enabled="true",
+        appsec_enabled=True,
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(
@@ -1145,12 +1326,23 @@ class _Scenarios:
         # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
         weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
-        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
-        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
-        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
-        use_proxy_for_weblog=False,
         library_interface_timeout=20,
         doc="Test runtime metrics",
+    )
+
+    otlp_runtime_metrics = EndToEndScenario(
+        "OTLP_RUNTIME_METRICS",
+        weblog_env={
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "DD_DOGSTATSD_START_DELAY": "0",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
+            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        runtime_metrics_enabled=True,
+        include_opentelemetry=True,
+        library_interface_timeout=20,
+        doc="Test runtime metrics exported via OTLP with OTel semantic convention names",
     )
 
     # Appsec Lambda Scenarios
@@ -1200,13 +1392,52 @@ class _Scenarios:
     ai_guard = AIGuardScenario(
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
         weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
             "DD_API_KEY": "mock_api_key",
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_standalone = AIGuardScenario(
+        "AI_GUARD_STANDALONE",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+        },
+        doc="AI Guard standalone mode",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_telemetry = AIGuardScenario(
+        "AI_GUARD_TELEMETRY",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
+            "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
+        },
+        doc="AI Guard telemetry tests with low truncation thresholds",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

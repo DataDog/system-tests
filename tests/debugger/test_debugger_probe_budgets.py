@@ -31,7 +31,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         for probe in probes:
             if "methodName" in probe["where"]:
                 del probe["where"]["methodName"]
-            probe["where"]["lines"] = lines
+            probe["where"]["lines"] = [str(n) for n in lines] if lines is not None else lines
             probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
             probe["where"]["typeName"] = None
 
@@ -87,6 +87,41 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             # captures for 150 requests.
             assert 1 <= snapshots_with_captures <= 20, (
                 f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
+            )
+
+    def setup_log_line_capture_expression_budgets(self):
+        self._setup(
+            "probe_capture_expressions_budgets",
+            "/debugger/budgets/150",
+            lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
+        )
+
+    def test_log_line_capture_expression_budgets(self):
+        self._assert()
+        self._validate_snapshots()
+
+        snapshots_with_captures = 0
+        for _id in self.probe_ids:
+            for span in self.probe_snapshots[_id]:
+                captures = span.get("debugger", {}).get("snapshot", {}).get("captures", None)
+                if captures is None:
+                    continue
+
+                # Capture expressions live under captures.lines.{line}.captureExpressions for line probes.
+                has_capture_expressions = any(
+                    isinstance(line_data, dict) and "captureExpressions" in line_data
+                    for line_data in captures.get("lines", {}).values()
+                )
+                if not has_capture_expressions:
+                    continue
+
+                snapshots_with_captures += 1
+
+            # Probe budgets aren't exact and can take time to be applied, so we allow a range of 1-20 snapshots with
+            # capture expressions for 150 requests, matching the 1/s snapshot limit.
+            assert 1 <= snapshots_with_captures <= 20, (
+                f"Expected 1-20 snapshots with capture expressions, got {snapshots_with_captures} in "
+                f"{self.total_request_time} seconds"
             )
 
     def setup_span_probe_expression_budgets(self):

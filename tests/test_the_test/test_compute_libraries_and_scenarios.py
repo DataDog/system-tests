@@ -21,11 +21,14 @@ default_libs_with_prod = [
     "java",
     "java_lambda",
     "nodejs",
+    "nodejs_lambda",
     "otel_collector",
     "php",
     "python",
     "python_lambda",
     "ruby",
+    "ruby_lambda",
+    "rust",
 ]
 default_libs_with_dev = [
     "cpp",
@@ -39,10 +42,12 @@ default_libs_with_dev = [
     "java",
     "java_lambda",
     "nodejs",
+    "nodejs_lambda",
     "php",
     "python",
     "python_lambda",
     "ruby",
+    "ruby_lambda",
     "rust",
 ]
 default_otel_libs = ["java_otel", "python_otel"]
@@ -338,16 +343,42 @@ class Test_ComputeLibrariesAndScenarios:
 
         assert_github_processor(
             inputs,
-            ["java_lambda", "python_lambda"],
-            ["java_lambda", "python_lambda"],
+            ["java_lambda", "nodejs_lambda", "python_lambda", "ruby_lambda"],
+            ["java_lambda", "nodejs_lambda", "python_lambda", "ruby_lambda"],
             3600,
             "true",
             "DEFAULT",
             "lambda_end_to_end",
         )
 
+    def test_ruby_lambda_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/ruby_lambda/ruby-apigw-rest.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["ruby_lambda"],
+            ["ruby_lambda"],
+            600,
+            "false",
+            "DEFAULT",
+            "appsec_lambda",
+        )
+
     def test_doc(self):
         inputs = build_inputs(["binaries/dd-trace-go/_tools/README.md"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_nix_workflow(self):
+        inputs = build_inputs([".github/workflows/nix.yml"])
 
         assert_github_processor(
             inputs,

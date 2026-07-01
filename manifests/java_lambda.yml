@@ -13,6 +13,8 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: missing_feature
@@ -59,6 +61,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
+  tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_v1_payloads.py: missing_feature

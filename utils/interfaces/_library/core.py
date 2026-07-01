@@ -22,6 +22,15 @@ from utils.interfaces._library.telemetry import (
 from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
+LIFECYCLE_EVENTS = [
+    "app-started",
+    "app-closing",
+    "app-integrations-change",
+    "app-dependencies-loaded",
+    "app-client-configuration-change",
+    "app-product-change",
+]
+
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
@@ -148,7 +157,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert request is not None, "A request object is mandatory"
         spans = [s for _, s in self.get_root_spans(request=request)]
         assert spans, "No root spans found"
-        assert len(spans) == 1, "More then one root span found"
+        assert len(spans) == 1, "More than one root span found"
         return spans[0]
 
     def get_appsec_events(self, request: HttpResponse | None = None, *, full_trace: bool = False):
@@ -216,6 +225,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                         yield copied
                 else:
                     yield data
+
+    def get_lifecycle_events(self):
+        for data in self.get_telemetry_data(flatten_message_batches=True):
+            content = data["request"]["content"]
+            if content.get("request_type") not in LIFECYCLE_EVENTS:
+                continue
+            yield data
 
     def get_telemetry_configurations(self) -> list[dict]:
         """Extract and sort configuration entries from telemetry events."""

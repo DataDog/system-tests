@@ -1,6 +1,7 @@
 import pytest
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
+from utils._context.containers import InternalServerContainer
 from utils._context.containers import PostgresContainer
 
 
@@ -49,6 +50,7 @@ _iast_security_controls_map = {
     ),
     "ruby": "TODO",
     "rust": "TODO",
+    "nodejs_lambda": "TODO",
 }
 
 
@@ -79,6 +81,9 @@ class DefaultScenario(EndToEndScenario):
         )
 
     def configure(self, config: pytest.Config):
+        self._internal_server = InternalServerContainer()
+        self._containers.append(self._internal_server)
+
         super().configure(config)
         library = self.weblog_infra.library_name
         value = _iast_security_controls_map[library]

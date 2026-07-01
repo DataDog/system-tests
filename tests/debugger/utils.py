@@ -125,6 +125,11 @@ class BaseDebuggerTest:
     probe_spans: dict[str, list[DataDogAgentSpan]] = {}
     all_spans: list[DataDogAgentSpan] = []
     symbols: list[dict[str, Any]] = []
+    # symdb_upload_events holds the parsed JSON metadata blobs from each
+    # /symdb/v1/input upload (the "event" multipart part, alongside the
+    # gzipped symbols attachment). Each entry is the deserialized event
+    # JSON (e.g. {"ddsource": ..., "service": ..., "type": "symdb", ...}).
+    symdb_upload_events: list[dict[str, Any]] = []
 
     start_time: int | None = None
 
@@ -153,7 +158,8 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
+            "Budgets": {"java": [138], "dotnet": [136], "python": [142], "golang": [117]},
+            "LogProbe": {"nodejs": [20]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
@@ -248,16 +254,30 @@ class BaseDebuggerTest:
                         go_build_dir = {"uds-echo": "echo"}.get(variant, variant)
                         source_file = f"{go_build_dir}/debugger.go"
                     elif language == "php":
-                        source_file = "debugger.php"
+                        # PHP does not support line probes; convert to a method probe.
+                        php_line_to_method = {
+                            "20": "LogProbe",
+                            "71": "expression",
+                        }
+                        lines = probe["where"].get("lines", [])
+                        method = next((php_line_to_method[line] for line in lines if line in php_line_to_method), None)
+                        if method:
+                            probe["where"]["typeName"] = "DebuggerController"
+                            probe["where"]["methodName"] = method
+                            probe["where"]["sourceFile"] = None
+                            probe["where"]["lines"] = []
+                            probe["evaluateAt"] = "EXIT"
+                        else:
+                            source_file = "debugger.php"
 
-                    if uppercase_source_files:
-                        source_file = source_file.upper()
-                    if path_prefix:
-                        source_file = os.path.join(path_prefix, source_file)
-                    if use_backslashes:
-                        source_file = source_file.replace("/", "\\")
-
-                    probe["where"]["sourceFile"] = source_file
+                    if source_file != "":
+                        if uppercase_source_files:
+                            source_file = source_file.upper()
+                        if path_prefix:
+                            source_file = os.path.join(path_prefix, source_file)
+                        if use_backslashes:
+                            source_file = source_file.replace("/", "\\")
+                        probe["where"]["sourceFile"] = source_file
 
                     # Go system-probe requires methodName for line probes to identify the function.
                     # Other languages resolve this from sourceFile+line, but the eBPF-based
@@ -266,8 +286,9 @@ class BaseDebuggerTest:
                         golang_line_to_method = {
                             "20": "main.(*DebuggerController).logProbe",
                             "71": "main.(*DebuggerController).expression",
+                            "117": "main.(*DebuggerController).budgetStep",
                         }
-                        line = probe["where"]["lines"][0]
+                        line = str(probe["where"]["lines"][0])
                         if line in golang_line_to_method:
                             probe["where"]["methodName"] = golang_line_to_method[line]
 
@@ -294,9 +315,11 @@ class BaseDebuggerTest:
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
 
-        # PHP tracer requires a request to /debugger/* to start logging the probe information.
+        # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
         if context.library == "php":
-            weblog.get("/debugger/init")
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_apm_tracing(
         self,
@@ -373,6 +396,12 @@ class BaseDebuggerTest:
             )
         )
 
+        # PHP tracer requires requests to /debugger/* to process RC before the test request.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
+        if context.library == "php":
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
+
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
         if reset:
@@ -392,12 +421,13 @@ class BaseDebuggerTest:
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
         logger.debug("Wating for all probes")
         self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
+        found_ids: set[str] = set()
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_all_probes(data, statuses=statuses, found_ids=found_ids), timeout=timeout
+        )
         return self._wait_successful
 
-    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus]):
-        found_ids = set()
-
+    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus], found_ids: set[str]):
         def _check_all_probes_status(probe_diagnostics: ProbeDiagnosticsCollection, statuses: list[ProbeStatus]):
             statuses = statuses + ["ERROR"]
             logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")
@@ -687,6 +717,7 @@ class BaseDebuggerTest:
         self._collect_snapshots()
         self._collect_spans()
         self._collect_symbols()
+        self._collect_symdb_upload_events()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
@@ -801,7 +832,7 @@ class BaseDebuggerTest:
             span_hash: dict[str, list[DataDogAgentSpan]] = {}
 
             span_decoration_line_key = None
-            if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
+            if self.get_tracer()["language"] in ["dotnet", "python", "php"]:
                 span_decoration_line_key = "_dd.di.SpanDecorationArgsAndLocals.probe_id"
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
@@ -894,6 +925,34 @@ class BaseDebuggerTest:
             return result
 
         self.symbols = _get_symbols()
+
+    def _collect_symdb_upload_events(self):
+        """Collect the JSON event metadata from each /symdb/v1/input upload.
+
+        Each request to /symdb/v1/input is a multipart with two parts: the
+        gzipped symbols attachment (collected by _collect_symbols) and a
+        small JSON blob describing the upload (the "event" part). This
+        populates self.symdb_upload_events with the parsed event JSON for
+        every captured upload, matched by the Content-Disposition name
+        parameter equaling "event".
+        """
+        events: list[dict[str, Any]] = []
+        raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+        for data in raw_data:
+            if not isinstance(data, dict) or "request" not in data:
+                continue
+            for part in data["request"].get("content", []) or []:
+                if not isinstance(part, dict):
+                    continue
+                disposition = part.get("headers", {}).get("content-disposition", "")
+                # Disposition arrives quoted from some tracers (Python) and
+                # unquoted from others (.NET); normalize before checking.
+                if "name=event" not in disposition.replace('"', ""):
+                    continue
+                content = part.get("content")
+                if isinstance(content, dict):
+                    events.append(content)
+        self.symdb_upload_events = events
 
     def get_tracer(self) -> dict[str, str]:
         if not BaseDebuggerTest.tracer:

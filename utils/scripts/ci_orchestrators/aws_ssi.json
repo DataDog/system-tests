@@ -518,12 +518,18 @@
                 "name": "test-app-python-alpine",
                 "excluded_os_branches": [
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_23_04_arm64"
                 ]
             },
             {
                 "name": "test-app-python-container",
                 "excluded_os_branches": [
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_23_04_arm64"
                 ]
             },
             {

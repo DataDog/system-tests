@@ -10,7 +10,9 @@ class DebuggerScenario(EndToEndScenario):
     def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+            # added temporarily to troubleshoot debugger test flakiness
+            "JAVA_OPTS": " -Ddatadog.slf4j.simpleLogger.log.com.datadog.debugger=debug ",
         }
 
         base_weblog_env.update(weblog_env)
@@ -29,9 +31,20 @@ class DebuggerScenario(EndToEndScenario):
         super().configure(config)
 
         library = self.weblog_infra.library_name
+        if library == "php":
+            # Disable appsec for PHP debugger tests so appsec-specific span tags don't
+            # appear in snapshot comparisons, which were generated without appsec.
+            self.weblog_container.environment["DD_APPSEC_ENABLED"] = "0"
         if library == "python":
+            # Python v4.0+ only recognizes UPLOAD_INTERVAL_SECONDS, while v3.9 and
+            # earlier only recognizes UPLOAD_FLUSH_INTERVAL (both use seconds as the
+            # unit). Set both so it works regardless of the Python tracer version.
+            self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_INTERVAL_SECONDS"] = "0.1"
             self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "0.1"
-        else:
+        elif library == "nodejs":
+            self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_INTERVAL_SECONDS"] = "0.1"
+        elif library in ("java", "dotnet"):
+            # Java and .NET use UPLOAD_FLUSH_INTERVAL in milliseconds
             self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "100"
         if library == "golang":
             # The Go debugger is primarily implemented in the system-probe, so

@@ -66,6 +66,7 @@ node_modules/
 
 # debugger
 /tests/debugger/approvals/**/*received*
+/tests/debugger/utils/approvals/**/*received*
 .aider*
 
 # version check
@@ -81,3 +82,6 @@ go.work*
 
 # Rust
 target
+# Git worktrees
+.claude/worktrees/
+.worktrees/

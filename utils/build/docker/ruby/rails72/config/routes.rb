@@ -16,6 +16,7 @@ Rails.application.routes.draw do
 
   get '/healthcheck' => 'internal#healthcheck'
   get '/flush' => 'internal#flush'
+  get '/spawn_child' => 'system_test#spawn_child'
 
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
@@ -64,6 +65,7 @@ Rails.application.routes.draw do
   get '/otel_drop_in_default_propagator_inject' => 'system_test#otel_drop_in_default_propagator_inject'
   get '/otel_drop_in_baggage_api_otel' => 'system_test#otel_drop_in_baggage_api_otel'
   get '/otel_drop_in_baggage_api_datadog' => 'system_test#otel_drop_in_baggage_api_datadog'
+  get '/otel_drop_in_extract_and_make_distant_call' => 'system_test#otel_drop_in_extract_and_make_distant_call'
 
   get '/debugger/init' => 'debugger#init'
   get '/debugger/pii' => 'debugger#pii'
@@ -89,10 +91,14 @@ Rails.application.routes.draw do
   get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
   get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
   get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
+  get '/api_security/multi-params-in-segment/:id.:format' => 'api_security#multi_params_in_segment'
+  get '/api_security/optional-params/:id(.:format)' => 'api_security#optional_params'
 
   post '/ffe' => 'open_feature#evaluate'
   post '/ffe/start' => 'open_feature#start'
   post '/ffe/evaluate' => 'open_feature#evaluate'
 
   post '/ai_guard/evaluate' => 'ai_guard#evaluate'
+
+  get '/inferred-proxy/span-creation' => 'system_test#inferred_proxy_span_creation'
 end

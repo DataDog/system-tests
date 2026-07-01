@@ -319,15 +319,12 @@ fastify.get('/stub_dbm', async (request, reply) => {
   const operation = request.query.operation
 
   if (integration === 'pg') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const dbmComment = await pgsql.doOperation(operation)
     return { status: 'ok', dbm_comment: dbmComment }
   } else if (integration === 'mysql2') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const result = await mysql.doOperation(operation)
     return { status: 'ok', dbm_comment: result }
   } else if (integration === 'mssql') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     return await mssql.doOperation(operation)
   }
 })
@@ -845,15 +842,21 @@ fastify.get('/add_event', async (request, reply) => {
   return { message: 'Event added' }
 })
 
-fastify.all('/external_request', async (request, reply) => {
+const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
+  'invalid_content_type',
+  'content_length_missing',
+  'content_length_too_big'
+])
+
+function forwardExternalRequest (request, reply, downstreamPath) {
   const status = request.query.status || '200'
   const urlExtra = request.query.url_extra || ''
 
   const headers = {}
+  const queryParamsExcludedFromHeaders = new Set(['status', 'url_extra'])
   for (const [key, value] of Object.entries(request.query)) {
-    if (key !== 'status' && key !== 'url_extra') {
-      headers[key] = String(value)
-    }
+    if (queryParamsExcludedFromHeaders.has(key)) continue
+    headers[key] = String(value)
   }
 
   let body = null
@@ -862,15 +865,17 @@ fastify.all('/external_request', async (request, reply) => {
     headers['Content-Type'] = request.headers['content-type'] || 'application/json'
   }
 
+  const path = downstreamPath || `/mirror/${status}${urlExtra}`
+
   const options = {
     hostname: 'internal_server',
     port: 8089,
-    path: `/mirror/${status}${urlExtra}`,
+    path,
     method: request.method,
     headers
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const httpRequest = http.request(options, (response) => {
       let responseBody = ''
       response.on('data', (chunk) => {
@@ -888,13 +893,26 @@ fastify.all('/external_request', async (request, reply) => {
       })
     })
 
-    // Write body if present
     if (body) {
       httpRequest.write(body)
     }
 
     httpRequest.end()
   })
+}
+
+fastify.all('/external_request', async (request, reply) => {
+  return forwardExternalRequest(request, reply)
+})
+
+fastify.all('/external_request/body_limit/:failureReason', async (request, reply) => {
+  const { failureReason } = request.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    reply.status(404)
+    return { error: 'unknown failure reason' }
+  }
+
+  return forwardExternalRequest(request, reply, `/downstream_response/${failureReason}`)
 })
 
 fastify.get('/external_request/redirect', async (request, reply) => {

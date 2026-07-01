@@ -2,8 +2,11 @@ name: Nightly
 
 on:
   workflow_dispatch: {}
-  # schedule:
-  #   - cron:  '00 03 * * 1-5'
+  push:
+    branches:
+      - "main"
+  schedule:
+    - cron:  '00 03 * * *'
 
 
 jobs:
@@ -20,6 +23,7 @@ jobs:
           - php
           - python
           - python_lambda
+          - nodejs_lambda
           - ruby
           - cpp_nginx
           - rust
@@ -29,21 +33,13 @@ jobs:
           - library: rust
             version: dev
       fail-fast: false
-    uses:  DataDog/system-tests/.github/workflows/system-tests.yml@main
+    uses: ./.github/workflows/system-tests.yml
     secrets:
-      TEST_OPTIMIZATION_API_KEY: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-      DD_API_KEY: ${{ secrets.DD_API_KEY }}
-      DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-      DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-      DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-      DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-      DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     permissions:
       contents: read
-      packages: write
+      id-token: write
     with:
       scenarios_groups: tracer_release
       library: ${{ matrix.library }}
@@ -56,13 +52,18 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     needs:
       - nightly
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: false
       - name: Download logs artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: ./.github/actions/download_artifact
         with:
           merge-multiple: false
           pattern: logs_*
@@ -74,7 +75,7 @@ jobs:
               fi
             done
       - name: Upload test report
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: ./.github/actions/upload_artifact
         with:
           name: test-report
           path: |
@@ -84,7 +85,7 @@ jobs:
   test_activation:
     name: Test activation
     runs-on: ubuntu-latest
-    if: success() || failure()
+    if: (success() || failure()) && github.event_name == 'schedule'
     strategy:
       fail-fast: false
       matrix:
@@ -99,6 +100,7 @@ jobs:
           - php
           - python
           - python_lambda
+          - nodejs_lambda
           - ruby
           - rust
         include:
@@ -132,6 +134,9 @@ jobs:
           - library: python_lambda
             exclude_owners: ""
             use_dev: ""
+          - library: nodejs_lambda
+            exclude_owners: ""
+            use_dev: ""
           - library: ruby
             exclude_owners: ""
             use_dev: ""
@@ -155,7 +160,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+      - uses: ./.github/actions/download_artifact
         with:
           name: test-report
           path: data
@@ -206,7 +211,7 @@ jobs:
         if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         with:
           repository: DataDog/commit-headless
-          ref: action/v2.0.3
+          ref: action/v3.3.0
           path: .commit-headless
 
       - name: Push signed branches and create PRs
@@ -230,7 +235,7 @@ jobs:
 
             if [[ -n "$PR_NUMBER" ]]; then
               # Skip if the PR has any activity (comments, reviews, or extra commits)
-              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq 'length')
+              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq '[.[] | select(.user.login | endswith("[bot]") | not)] | length')
               REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq 'length')
               COMMITS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/commits" --jq 'length')
 
@@ -271,8 +276,8 @@ jobs:
               PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
             fi
 
-            # Enable auto-merge on the PR
-            echo "Enabling auto-merge on PR #$PR_NUMBER..."
-            gh pr merge "$PR_NUMBER" --auto --squash
+            # # Enable auto-merge on the PR
+            # echo "Enabling auto-merge on PR #$PR_NUMBER..."
+            # gh pr merge "$PR_NUMBER" --auto --squash
 
           done

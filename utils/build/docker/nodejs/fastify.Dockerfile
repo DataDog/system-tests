@@ -1,19 +1,4 @@
-FROM node:22-alpine
-
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-COPY utils/build/docker/nodejs/fastify /usr/app
-
-WORKDIR /usr/app
-
-ENV NODE_ENV=production
-
-RUN npm install || sleep 60 && npm install
+FROM datadog/system-tests:fastify.base-v3
 
 EXPOSE 7777
 
@@ -32,5 +17,5 @@ RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent

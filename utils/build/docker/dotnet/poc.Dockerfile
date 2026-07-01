@@ -1,6 +1,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
+# Copy binaries folder for local NuGet packages (for testing with local builds)
+COPY binaries/ /binaries/
+RUN if ls /binaries/*.nupkg 1> /dev/null 2>&1; then \
+        dotnet nuget add source /binaries --name local-packages; \
+    fi
+
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
 RUN dotnet restore
@@ -38,6 +44,8 @@ ENV ASPNETCORE_hostBuilder__reloadConfigOnChange=false
 ENV COMPlus_DbgEnableMiniDump=1
 # - MiniDumpWithPrivateReadWriteMemory is 2
 ENV COMPlus_DbgMiniDumpType=2
+ENV DOTNET_ThreadPool_ForceMinWorkerThreads=32
+ENV DOTNET_ThreadPool_ForceMinIOCompletionThreads=32
 
 # copy the dotnet app (built above)
 COPY --from=build-app /app/out .

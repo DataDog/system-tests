@@ -214,6 +214,12 @@ class TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
+    def otlp_requests(self) -> list[dict]:
+        """Raw requests intercepted by the OTLP HTTP port (e.g. /v1/traces, /v1/metrics)."""
+        resp = self._session.get(self._otlp_url("/test/session/requests"))
+        resp.raise_for_status()
+        return resp.json()
+
     def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Any]:  # noqa: ANN401
         resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
         if clear:
@@ -300,8 +306,8 @@ class TestAgentAPI:
                 "expires": expires_date,
                 "spec_version": "1.0.0",
                 "targets": targets_tmp,
+                "version": 0,
             },
-            "version": 0,
         }
         targets = str(base64.b64encode(bytes(json.dumps(data), encoding="utf-8")), encoding="utf-8")
         remote_config_payload = {
@@ -371,6 +377,20 @@ class TestAgentAPI:
                 )
             )
         return agent_requests
+
+    def wait_for_num_v06_stats(self, num: int, *, wait_loops: int = 200) -> list[AgentRequestV06Stats]:
+        """Wait for at least `num` /v0.6/stats requests to be received by the test agent.
+
+        Native client-side stats are flushed on the concentrator's bucket boundary rather than
+        synchronously on flush, so callers asserting their presence must poll.
+        """
+        requests: list[AgentRequestV06Stats] = []
+        for _ in range(wait_loops):
+            requests = self.get_v06_stats_requests()
+            if len(requests) >= num:
+                return requests
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
 
     def clear(self) -> None:
         self._session.get(self._url("/test/session/clear"))
@@ -573,7 +593,7 @@ class TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
-    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 30) -> list[Any]:
+    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 80) -> list[Any]:
         """Wait for `num` metrics to be received from the test agent."""
         metrics = []
         for _ in range(wait_loops):
@@ -605,7 +625,7 @@ class TestAgentAPI:
         raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_telemetry_configurations(
-        self, *, service: str | None = None, clear: bool = False
+        self, *, service: str | None = None, clear: bool = False, wait_loops: int = 100
     ) -> dict[str, list[dict]]:
         """Waits for and returns configurations captured in telemetry events.
 
@@ -617,12 +637,16 @@ class TestAgentAPI:
         """
         events = []
         configurations: dict[str, list[dict]] = {}
-        # Allow time for telemetry events to be captured
-        time.sleep(1)
-        # Attempt to retrieve telemetry events, suppressing request-related exceptions
-        with contextlib.suppress(requests.exceptions.RequestException):
-            events = self.telemetry(clear=False)
-        if not events:
+        # Poll until telemetry is captured instead of sleeping a fixed delay: returns as soon as
+        # app-started arrives (usually within a heartbeat) and retries the empty-read window that
+        # a single fixed-delay read can land in.
+        for _ in range(wait_loops):
+            with contextlib.suppress(requests.exceptions.RequestException):
+                events = self.telemetry(clear=False)
+            if events:
+                break
+            time.sleep(0.05)
+        else:
             raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
         # Sort events by tracer_time to ensure configurations are processed in order
@@ -805,53 +829,55 @@ class TestAgentAPI:
         raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
     def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        """Wait for RC capabilities to be reported by the tracer and return the most recent set seen.
+
+        The tracer's RC capabilities bitmask is monotonically increasing: capabilities are added
+        as products start but never removed. Earlier requests may therefore carry a partial set
+        (e.g. only AppSec capabilities, before APM capabilities are registered). Using the most
+        recent non-empty request gives the fullest picture of what the tracer actually supports.
+        """
         for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
-                # Look for capabilities in the requests.
-                for req in rc_reqs:
+                # Walk all requests newest-first and return the first (most recent) non-empty set.
+                for req in reversed(rc_reqs):
                     raw_caps = req["body"]["client"].get("capabilities")
-                    if raw_caps:
-                        # Capabilities can be a base64 encoded string or an array of numbers. This is due
-                        # to the Go json library used in the trace agent accepting and being able to decode
-                        # both: https://go.dev/play/p/fkT5Q7GE5VD
+                    if not raw_caps:
+                        continue
 
-                        # byte-array:
-                        if isinstance(raw_caps, list):
-                            decoded_capabilities = bytes(raw_caps)
-                        # base64-encoded string:
-                        else:
-                            decoded_capabilities = base64.b64decode(raw_caps)
+                    # Capabilities can be a base64 encoded string or an array of numbers. This is due
+                    # to the Go json library used in the trace agent accepting and being able to decode
+                    # both: https://go.dev/play/p/fkT5Q7GE5VD
+                    decoded_capabilities = bytes(raw_caps) if isinstance(raw_caps, list) else base64.b64decode(raw_caps)
 
-                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+                    int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
 
-                        if int_capabilities >= (1 << 64):
-                            raise AssertionError(
-                                f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}"
-                            )
+                    if int_capabilities >= (1 << 64):
+                        raise AssertionError(f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}")
 
-                        valid_bits = sum(1 << c for c in Capabilities)
-                        if int_capabilities & ~valid_bits != 0:
-                            raise AssertionError(
-                                f"RC capabilities contains unknown bits: {bin(int_capabilities & ~valid_bits)}"
-                            )
+                    valid_bits = sum(1 << c for c in Capabilities)
+                    if int_capabilities & ~valid_bits != 0:
+                        raise AssertionError(
+                            f"RC capabilities contains unknown bits: {bin(int_capabilities & ~valid_bits)}"
+                        )
 
-                        capabilities_seen = remoteconfig.human_readable_capabilities(int_capabilities)
-                        if len(capabilities_seen) > 0:
-                            return capabilities_seen
+                    capabilities_seen = remoteconfig.human_readable_capabilities(int_capabilities)
+                    if capabilities_seen:
+                        return capabilities_seen
             time.sleep(0.01)
         raise AssertionError("RemoteConfig capabilities were empty")
 
     def assert_rc_capabilities(self, expected_capabilities: set[Capabilities], wait_loops: int = 100) -> None:
-        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        """Assert that the tracer reports all expected RC capabilities, polling up to wait_loops cycles."""
         seen_capabilities = self.wait_for_rc_capabilities(wait_loops)
         missing_capabilities = expected_capabilities.difference(seen_capabilities)
         if missing_capabilities:
-            raise AssertionError(f"RemoteConfig capabilities missing: {missing_capabilities}")
+            raise AssertionError(
+                f"RemoteConfig capabilities missing: {missing_capabilities}; seen: {seen_capabilities}"
+            )
 
     def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""

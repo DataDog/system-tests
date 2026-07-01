@@ -50,6 +50,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_IAST_CONTEXT_MODE": "GLOBAL",
                 "INCLUDE_OTEL_DROP_IN": "true",
+                "DD_TRACE_OTEL_ENABLED": "1",
             },
             other_weblog_containers=(
                 ElasticMQContainer,
@@ -72,6 +73,22 @@ class IntegrationsScenario(EndToEndScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
+
+
+class DbmDynamicServiceScenario(EndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DBM_DYNAMIC_SERVICE",
+            weblog_env={
+                "DD_DBM_PROPAGATION_MODE": "dynamic_service",
+            },
+            other_weblog_containers=(PostgresContainer,),
+            doc=(
+                "Verifies DD_DBM_PROPAGATION_MODE=dynamic_service injects ddsh into SQL comments "
+                "and sets _dd.propagated_hash on SQL spans with the same value."
+            ),
+            scenario_groups=[scenario_groups.integrations],
+        )
 
 
 class AWSIntegrationsScenario(EndToEndScenario):

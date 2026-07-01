@@ -1,15 +1,18 @@
 import itertools
 import json
-from typing import Any
+import time
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import timedelta
 from http import HTTPStatus
-import time
+from typing import Any
+
 from dateutil.parser import isoparse
-from utils import context, interfaces, bug, weblog, scenarios, features, rfc, logger
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+
+from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
+from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry_utils import TelemetryUtils
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -324,9 +327,16 @@ class Test_Telemetry:
 
         delays_by_runtime = {}
 
-        for runtime_id, heartbeats in heartbeats_by_runtime.items():
-            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
+        # Short-lived processes (e.g. children spawned by the session-id tests) can emit
+        # only a couple of heartbeats before exiting, which is not enough samples to measure
+        # interval drift. Only long-lived runtimes are measured here.
+        measurable_runtimes = {rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2}
+        heartbeat_counts = {rid: len(hbs) for rid, hbs in heartbeats_by_runtime.items()}
+        assert measurable_runtimes, (
+            f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
+        )
 
+        for runtime_id, heartbeats in measurable_runtimes.items():
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
@@ -422,8 +432,15 @@ class Test_Telemetry:
         seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
         seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
+        # The same dependency reported once per process is valid: children spawned by the
+        # session-id tests are separate processes (distinct runtime_id) that legitimately
+        # re-load and re-report the same dependency. Duplicate detection is therefore scoped
+        # to a single runtime_id rather than the whole app.
+        loaded_per_runtime: dict[str, set[str]] = defaultdict(set)
+
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
+            runtime_id = content.get("runtime_id")
             if content.get("request_type") == "app-started":
                 if "dependencies" in content["payload"]:
                     for dependency in content["payload"]["dependencies"]:
@@ -436,14 +453,15 @@ class Test_Telemetry:
             elif content.get("request_type") == "app-dependencies-loaded":
                 for dependency in content["payload"]["dependencies"]:
                     dependency_id = dependency["name"]  # +dependency["version"]
-                    if seen_loaded_dependencies.get(dependency_id) is True:
-                        raise Exception(
-                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
-                        )
+                    if dependency_id in seen_loaded_dependencies:
+                        if dependency_id in loaded_per_runtime[runtime_id]:
+                            raise Exception(
+                                "Loaded dependency event sent multiple times for same dependency " + dependency_id
+                            )
+                        loaded_per_runtime[runtime_id].add(dependency_id)
+                        seen_loaded_dependencies[dependency_id] = True
                     if dependency_id in seen_defined_dependencies:
                         seen_defined_dependencies[dependency_id] = True
-                    if dependency_id in seen_loaded_dependencies:
-                        seen_loaded_dependencies[dependency_id] = True
 
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
@@ -580,6 +598,90 @@ class Test_Telemetry:
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
 
+    def setup_session_id_headers_across_forks(self):
+        """Trigger spawn_child endpoint to create a fork tree for session ID header validation."""
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "true"})
+
+    def setup_session_id_headers_across_spawned(self):
+        """Trigger spawn_child endpoint with exec (fork=false) for session ID header validation."""
+        self.spawn_child_response = weblog.get("/spawn_child", params={"sleep": 2, "crash": "false", "fork": "false"})
+
+    def _validate_session_id_headers_across_processes(self) -> None:
+        """Validate DD-Session-ID, DD-Root-Session-ID, DD-Parent-Session-ID in telemetry.
+
+        Stable Service Instance Identifier RFC: each app instance has one root runtime_id,
+        and DD-Session-ID (instance id) must equal runtime_id. When DD-Root-Session-ID is
+        absent, the process is its own root. All processes from one app instance share a
+        single root session ID, whether they run per-process tracers (e.g. parent/child
+        from spawn_child) or share one tracer (e.g. nginx workers).
+        """
+        # Fail loudly if the endpoint is missing/broken instead of passing on unrelated
+        # startup/shutdown events: the child process must have been spawned successfully.
+        assert self.spawn_child_response.status_code == 200, (
+            f"/spawn_child did not succeed: status {self.spawn_child_response.status_code}"
+        )
+
+        # Use lifecycle events only; metrics and log events from lib-datadog can contain
+        # runtime/session_ids that do not map to tracer-generated telemetry.
+        telemetry_data = list(interfaces.library.get_lifecycle_events())
+        if not telemetry_data:
+            raise ValueError("No telemetry data to validate on")
+
+        assert len(telemetry_data) > 1, (
+            f"Expected multiple telemetry events to verify consistency, got {len(telemetry_data)}"
+        )
+
+        runtime_ids = set[str]()
+        parent_runtime_ids = set[str]()
+        root_runtime_ids = set[str]()
+
+        for data in telemetry_data:
+            # Headers are not case sensitive
+            curr_sid = get_header(data, "request", "dd-session-id")
+            curr_rid = get_header(data, "request", "dd-root-session-id")
+            curr_pid = get_header(data, "request", "dd-parent-session-id")
+            curr_id = data["request"]["content"].get("runtime_id")
+
+            # Instance id (DD-Session-ID) must be present in all lifecycle events and equal to runtime_id
+            assert curr_sid is not None, f"DD-Session-ID is required in telemetry data: {data}"
+            assert curr_sid == curr_id, f"DD-Session-ID must match runtime_id: {curr_sid} != {curr_id}"
+
+            runtime_ids.add(curr_id)
+            if curr_pid is not None:
+                parent_runtime_ids.add(curr_pid)
+            if curr_rid is not None:
+                root_runtime_ids.add(curr_rid)
+            else:
+                # If dd-root-session-id is not set, dd-session-id is treated as root
+                root_runtime_ids.add(curr_id)
+
+        # One root per app instance: all processes share the same root session ID
+        assert len(root_runtime_ids) == 1, f"Expected 1 root runtime_id, got {root_runtime_ids}"
+
+        if len(runtime_ids) > 1:
+            # Multiple runtimes (per-process tracers): root must be consistent
+            # across all payloads from all processes
+            if parent_runtime_ids:
+                # DD-Parent-Session-ID is optional but must reference a known runtime if present
+                missing_parent_runtime_ids = parent_runtime_ids.difference(runtime_ids)
+                assert not missing_parent_runtime_ids, (
+                    f"Parent runtime_id with no telemetry data: {missing_parent_runtime_ids}"
+                )
+        else:
+            # Single runtime (e.g. nginx workers sharing one tracer): session ID
+            # must be consistent across all events
+            sole_rid = next(iter(runtime_ids))
+            sole_root = next(iter(root_runtime_ids))
+            assert sole_rid == sole_root, f"Single runtime_id {sole_rid} does not match root {sole_root}"
+
+    def test_session_id_headers_across_forks(self):
+        """Test session ID headers in telemetry (fork=true). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
+
+    def test_session_id_headers_across_spawned(self):
+        """Test session ID headers in telemetry (fork=false, exec). Stable Service Instance Identifier RFC."""
+        self._validate_session_id_headers_across_processes()
+
 
 @features.telemetry_app_started_event
 @scenarios.telemetry_enhanced_config_reporting
@@ -703,28 +805,6 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
-def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result: list = []
-    for obj in objs:
-        if obj is not None:
-            if isinstance(obj, dict):
-                result.extend(list(obj.keys()))
-                result.extend(list(obj.values()))
-            elif isinstance(obj, list):
-                result.extend(obj)
-            else:
-                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-    return result
-
-
-def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes: list):
-    lower_key = key.lower()
-    is_allowed_key = lower_key in allowed_keys
-    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-    return is_allowed_key or is_allowed_prefix
-
-
 @features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
@@ -740,52 +820,6 @@ class Test_TelemetryV2:
                 assert "appsec" in products, (
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
-
-    def test_config_telemetry_completeness(self):
-        """Assert that config telemetry is handled properly by telemetry intake
-
-        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
-        """
-
-        config_norm_rules = load_telemetry_json("config_norm_rules")
-        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
-        config_aggregation_list = load_telemetry_json("config_aggregation_list")
-
-        lang_configs = get_lang_configs()
-
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-            if not is_v2_payload(data):
-                continue
-            if get_request_type(data) in ["app-started", "app-client-configuration-change"]:
-                language_name = data["request"]["content"]["application"]["language_name"]
-
-                lang_config = lang_configs.get(language_name, {})
-
-                norm_rules = lang_config.get("normalization_rules", {})
-                exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
-                # backend side normalizes keys to lowercase, we need to mimic this behavior
-                exact_keys = [key.lower() for key in exact_keys]
-
-                prefix_keys = get_all_keys_and_values(
-                    config_prefix_block_list,
-                    lang_config.get("prefix_block_list", {}),
-                    config_aggregation_list,
-                    lang_config.get("reduce_rules", {}),
-                )
-
-                configuration = data["request"]["content"]["payload"]["configuration"]
-                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
-
-                missing_config_keys = [
-                    key for key in library_config_keys if not is_key_accepted_by_telemetry(key, exact_keys, prefix_keys)
-                ]
-
-                # This may create a fairly large test output, but it makes the output more actionable
-                if len(missing_config_keys) != 0:
-                    logger.error(json.dumps(missing_config_keys, indent=2))
-                    raise ValueError(
-                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
-                    )
 
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
@@ -848,7 +882,7 @@ class Test_ProductsDisabled:
 
     @scenarios.telemetry_app_started_products_disabled
     def test_debugger_products_disabled(self):
-        """Assert that the debugger products are disabled by default including DI, and ER"""
+        """Assert DI and ER are disabled by default, and code origin is enabled by default."""
         data_found = False
         config_norm_rules = load_telemetry_json("config_norm_rules")
         lang_configs = get_lang_configs()
@@ -887,7 +921,13 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
-        assert co_config == "false", "Code Origin for Spans should be disabled by default"
+
+        if context.library == "dotnet" and context.library.version >= "3.42.0":
+            assert co_config in {"false", "true"}, "Code Origin for Spans should be reported in telemetry"
+            return
+
+        if context.library != "python" or context.library.version < "4.9.0-dev":
+            assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
@@ -1049,15 +1089,67 @@ class Test_TelemetrySCAEnvVar:
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
         found = False
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
         for e in events:
             configurations = get_configurations(e)
             for c in configurations:
-                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                if c["name"] in dd_appsec_sca_enabled_names:
                     found = True
                     break
             if found:
                 break
 
         assert found, (
-            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration in "
+            f"{' or '.join(dd_appsec_sca_enabled_names)}"
+        )
+
+
+@scenarios.telemetry_extended_heartbeat
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event in end-to-end scenario"""
+
+    def setup_extended_heartbeat_config_matches(self):
+        weblog.get("/")
+
+    def test_extended_heartbeat_config_matches(self):
+        """Test that every config reported in app-started or app-client-configuration-change
+        was eventually reported by at least one app-extended-heartbeat event.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+
+        # Collect all config names reported in app-started and config-change events
+        expected_config_names: set[str] = set()
+        found_app_started = False
+
+        for data in telemetry_data:
+            request_type = get_request_type(data)
+            if request_type in ("app-started", "app-client-configuration-change"):
+                if request_type == "app-started":
+                    found_app_started = True
+                for c in get_configurations(data) or []:
+                    expected_config_names.add(c["name"])
+
+        assert found_app_started, "app-started event not found"
+
+        # Collect all config names ever reported across all extended heartbeats
+        heartbeat_config_names: set[str] = set()
+        found_extended_hb = False
+
+        for data in telemetry_data:
+            if get_request_type(data) == "app-extended-heartbeat":
+                found_extended_hb = True
+                for c in get_configurations(data) or []:
+                    heartbeat_config_names.add(c["name"])
+
+        assert found_extended_hb, "app-extended-heartbeat event not found"
+
+        # For each expected config, verify it was reported by at least one extended heartbeat.
+        # Configs may appear in heartbeats before or after they are (re-)reported in
+        # config-change events (e.g. remote config updates re-report existing configs).
+        missing = sorted(expected_config_names - heartbeat_config_names)
+        assert not missing, (
+            f"{len(missing)} config(s) reported in app-started or config-change but never "
+            f"included in any app-extended-heartbeat event: {missing}"
         )

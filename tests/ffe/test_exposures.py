@@ -2,6 +2,7 @@
 
 import json
 
+from tests.ffe.utils.fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
     weblog,
     interfaces,
@@ -13,6 +14,71 @@ from utils import (
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
+EXPOSURES_PATH = "/api/v2/exposures"
+EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
+
+
+def exposure_events_from_data(
+    data: dict, flag_keys: set[str] | None = None, subject_id: str | None = None
+) -> list[dict]:
+    """Return exposure events from one agent payload matching the optional flag/subject filters."""
+    if data.get("path") != EXPOSURES_PATH:
+        return []
+
+    exposure_data = data.get("request", {}).get("content")
+    if not isinstance(exposure_data, dict):
+        return []
+
+    exposures = exposure_data.get("exposures")
+    if not isinstance(exposures, list):
+        return []
+
+    events = []
+    for event in exposures:
+        if not isinstance(event, dict):
+            continue
+
+        flag = event.get("flag")
+        subject = event.get("subject")
+        event_flag_key = flag.get("key") if isinstance(flag, dict) else None
+        event_subject_id = subject.get("id") if isinstance(subject, dict) else None
+
+        if flag_keys is not None and event_flag_key not in flag_keys:
+            continue
+        if subject_id is not None and event_subject_id != subject_id:
+            continue
+        events.append(event)
+    return events
+
+
+def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[dict]:
+    """Find captured exposure events for a specific flag key and optionally a specific subject."""
+    events = []
+    for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
+        events.extend(exposure_events_from_data(data, {flag_key}, subject_id))
+    return events
+
+
+def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
+    """Wait until the agent receives an exposure event for one of the given flags."""
+    assert interfaces.agent.wait_for(
+        lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
+        timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    ), f"Timed out waiting for exposure event for flags {sorted(flag_keys)} and subject {subject_id!r}"
+
+
+def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | None = None) -> int:
+    """Wait until enough matching exposure events are available, then return the current count."""
+    count = count_exposure_events(flag_key, subject_id)
+
+    if count < expected:
+        assert interfaces.agent.wait_for(
+            lambda _: count_exposure_events(flag_key, subject_id) >= expected,
+            timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+        ), f"Timed out waiting for exposure count >= {expected} for flag {flag_key} and subject {subject_id!r}"
+        count = count_exposure_events(flag_key, subject_id)
+
+    return count
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -44,9 +110,6 @@ UFC_FIXTURE_DATA = {
 class Test_FFE_Exposure_Events:
     def setup_ffe_exposure_event_generation(self):
         """Set up FFE exposure event generation."""
-        # Reset remote config to empty state
-        rc.tracer_rc_state.reset().apply()
-
         # Set up Remote Config
         config_id = "ffe-test-config"
         rc_config = UFC_FIXTURE_DATA
@@ -73,12 +136,13 @@ class Test_FFE_Exposure_Events:
     def test_ffe_exposure_event_generation(self):
         """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+        wait_for_exposure_event({self.flag}, self.targeting_key)
 
         # Search for our specific flag in all exposure events
         matching_event = None
         context_validated = False
 
-        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
             # validate data sent to /api/v2/exposures
 
             exposure_data = data["request"]["content"]
@@ -130,9 +194,6 @@ class Test_FFE_Exposure_Events:
 
     def setup_ffe_multiple_remote_config_files(self):
         """Set up FFE with multiple remote config files across different target paths."""
-        # Reset remote config to empty state
-        rc.tracer_rc_state.reset().apply()
-
         # Set up multiple Remote Config files with different config IDs
         config_id_1 = "ffe-test-config-1"
         config_id_2 = "ffe-test-config-2"
@@ -184,7 +245,7 @@ class Test_FFE_Exposure_Events:
         }
 
         # Apply both configurations
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
             f"{RC_PATH}/{config_id_2}/config", rc_config_2
         ).apply()
 
@@ -221,11 +282,12 @@ class Test_FFE_Exposure_Events:
         """Test that FFE correctly handles multiple remote config files with different flags."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+        wait_for_exposure_event({self.flag_1, self.flag_2}, self.targeting_key)
 
         # Collect all exposure events for our specific flags
         flags_found = set()
 
-        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             assert exposure_data is not None, "No exposure events were sent to agent"
 
@@ -291,7 +353,7 @@ class Test_FFE_Exposure_Events_Empty:
 
         # When no remote config is set, FFE should still work but return default value
         # The exposure events should still be generated based on library configuration
-        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             if exposure_data is not None:
                 # Validate that context is still present
@@ -308,9 +370,6 @@ class Test_FFE_Exposure_Events_Empty:
 class Test_FFE_Exposure_Events_Errors:
     def setup_ffe_malformed_remote_config_rejection(self):
         """Set up FFE with a valid config, then update with malformed config to test rejection."""
-        # Reset remote config to empty state
-        rc.tracer_rc_state.reset().apply()
-
         # First, set up a valid Remote Config
         config_id = "ffe-test-config-malformed"
         valid_rc_config = {
@@ -389,12 +448,13 @@ class Test_FFE_Exposure_Events_Errors:
         """Test that FFE rejects malformed remote config and preserves the old valid configuration."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+        wait_for_exposure_event({self.flag}, self.targeting_key)
 
         # Verify that exposure events are still generated for both requests
         # and the flag configuration remained valid despite the malformed update
         events_found = []
 
-        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             assert exposure_data is not None, "No exposure events were sent to agent"
 
@@ -438,52 +498,7 @@ def count_exposure_events(flag_key: str, subject_id: str | None = None) -> int:
         Number of matching exposure events found
 
     """
-    count = 0
-    for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
-        exposure_data = data["request"]["content"]
-        if exposure_data is None:
-            continue
-
-        exposures = exposure_data.get("exposures", [])
-        for event in exposures:
-            event_flag_key = event.get("flag", {}).get("key")
-            event_subject_id = event.get("subject", {}).get("id")
-
-            if event_flag_key == flag_key:
-                if subject_id is None or event_subject_id == subject_id:
-                    count += 1
-    return count
-
-
-def make_ufc_fixture(flag_key: str, variant_key: str = "variant-a", allocation_key: str = "default-allocation"):
-    """Create a UFC fixture with the given flag key and variant.
-
-    Each test should use a unique flag_key to avoid counting exposures from other tests.
-    """
-    return {
-        "createdAt": "2024-04-17T19:40:53.716Z",
-        "format": "SERVER",
-        "environment": {"name": "Test"},
-        "flags": {
-            flag_key: {
-                "key": flag_key,
-                "enabled": True,
-                "variationType": "STRING",
-                "variations": {
-                    "variant-a": {"key": "variant-a", "value": "value-a"},
-                    "variant-b": {"key": "variant-b", "value": "value-b"},
-                },
-                "allocations": [
-                    {
-                        "key": allocation_key,
-                        "rules": [],
-                        "splits": [{"variationKey": variant_key, "shards": []}],
-                        "doLog": True,
-                    }
-                ],
-            }
-        },
-    }
+    return len(find_exposure_events(flag_key, subject_id))
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -497,11 +512,9 @@ class Test_FFE_Exposure_Caching_Same_Subject:
 
     def setup_ffe_exposure_caching_same_subject(self):
         """Set up FFE exposure caching test with multiple evaluations for the same subject."""
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-caching-test"
         self.flag_key = "same-subject-test-flag"  # Unique flag key for this test
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.targeting_key = "same-subject-user"
 
@@ -529,7 +542,7 @@ class Test_FFE_Exposure_Caching_Same_Subject:
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
 
         # Count exposure events for this specific subject
-        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
 
         # The exposure cache should deduplicate events - we expect exactly 1 exposure
         # for the same (subject, allocation, variant) tuple
@@ -550,11 +563,9 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
 
     def setup_ffe_exposure_caching_different_subjects(self):
         """Set up FFE exposure caching test with multiple different subjects."""
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-caching-test-subjects"
         self.flag_key = "diff-subjects-test-flag"  # Unique flag key for this test
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.subjects = [f"unique-subject-{i}" for i in range(5)]
 
@@ -580,6 +591,10 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
             assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
             result = json.loads(r.text)
             assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
+
+        # Wait for each subject to be observed before asserting exact totals.
+        for subject in self.subjects:
+            wait_for_min_exposure_count(self.flag_key, 1, subject)
 
         # Count total exposure events for this flag
         total_exposure_count = count_exposure_events(self.flag_key)
@@ -609,14 +624,12 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
 
     def setup_ffe_exposure_caching_allocation_cycle(self):
         """Set up FFE exposure test that cycles through allocations."""
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-allocation-change-test"
         self.flag_key = "alloc-change-test-flag"  # Unique flag key for this test
         self.targeting_key = "allocation-change-user"
 
         # Step 1: Config with default-allocation returning variant-a
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config",
             make_ufc_fixture(self.flag_key, "variant-a", "default-allocation"),
         ).apply()
@@ -687,7 +700,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
-        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -709,14 +722,12 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
 
     def setup_ffe_exposure_caching_variant_cycle(self):
         """Set up FFE exposure test that cycles through variants."""
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-variant-cycle-test"
         self.flag_key = "variant-cycle-test-flag"  # Unique flag key for this test
         self.targeting_key = "variant-cycle-user"
 
         # Step 1: Config with variant-a
-        rc.tracer_rc_state.set_config(
+        rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")
         ).apply()
 
@@ -784,7 +795,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
-        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -803,11 +814,11 @@ class Test_FFE_Exposure_Missing_Flag:
 
     def setup_ffe_exposure_missing_flag(self):
         """Set up FFE exposure test for a missing flag."""
-        rc.tracer_rc_state.reset().apply()
-
         # Set up a config with a different flag (not the one we'll request)
         config_id = "ffe-missing-flag-test"
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")
+        ).apply()
 
         self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
         self.targeting_key = "missing-flag-user"
@@ -883,14 +894,12 @@ class Test_FFE_Exposure_DoLog_False:
 
     def setup_ffe_exposure_dolog_false(self):
         """Set up FFE exposure test with doLog=false."""
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-dolog-false-test"
         self.flag_key = "no-log-flag"
         self.targeting_key = "dolog-false-user"
 
         # Set up config with doLog=false
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE).apply()
 
         # Evaluate the flag multiple times
         self.responses = []
@@ -936,13 +945,11 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
 
     def setup_ffe_exp_5_missing_targeting_key(self):
         """Set up FFE exposure test with missing/empty targeting key."""
-        rc.tracer_rc_state.reset().apply()
-
         config_id = "ffe-exp-5-missing-targeting-key"
         self.flag_key = "exp-5-missing-targeting-key-flag"
 
         # Use a simple fixture with doLog=true
-        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         # Evaluate the flag with an empty targeting key
         self.response = weblog.post(
@@ -962,11 +969,12 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
 
         result = json.loads(self.response.text)
         assert result["value"] == "value-a", f"Expected 'value-a', got '{result['value']}'"
+        wait_for_exposure_event({self.flag_key}, "")
 
         # Search for exposure event with empty subject.id
         matching_event = None
         all_events_for_flag = []  # Collect all events for debugging
-        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
             exposure_data = data["request"]["content"]
             if exposure_data is None:
                 continue

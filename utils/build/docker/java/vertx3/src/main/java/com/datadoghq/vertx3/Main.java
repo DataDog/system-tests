@@ -39,7 +39,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import io.vertx.ext.web.FileUpload;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -172,6 +177,17 @@ public class Main {
                 ctx.response().setStatusCode(200).end(body.toString());
             });
         }
+        router.post("/waf").consumes("multipart/form-data").handler(ctx -> {
+            var sb = new StringBuilder();
+            for (FileUpload upload : ctx.fileUploads()) {
+                try {
+                    sb.append(new String(Files.readAllBytes(Paths.get(upload.uploadedFileName()))));
+                } catch (IOException e) {
+                    // ignore read errors for individual uploads
+                }
+            }
+            ctx.response().setStatusCode(200).end(sb.toString());
+        });
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");

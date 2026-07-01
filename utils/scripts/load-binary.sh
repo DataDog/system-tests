@@ -18,11 +18,13 @@
 # * Java Lambda:   S3 (same binary as Java)
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
+# * Node.js Lambda: Fetch from GitHub Actions artifact
 # * C++:           Direct from github source
 # * Python:        S3 https://dd-trace-py-builds.s3.amazonaws.com/<GIT_REF>/index.html
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
+# * Ruby Lambda:   Clone locally the github repo
 # * Rust:          Clone locally the github repo
 ##########################################################################################
 
@@ -290,6 +292,22 @@ elif [ "$TARGET" = "python_lambda" ]; then
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
     get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" $LIBRARY_TARGET_BRANCH "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip" "false"
+
+elif [ "$TARGET" = "nodejs_lambda" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    get_github_action_artifact "DataDog/datadog-lambda-js" "build_layer.yml" $LIBRARY_TARGET_BRANCH "datadog_lambda_node18.12" "datadog_lambda_node18.12.zip" "false"
+
+elif [ "$TARGET" = "ruby_lambda" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "Cloning datadog-lambda-rb branch ${LIBRARY_TARGET_BRANCH}"
+    rm -rf datadog-lambda-rb
+    git clone --depth 1 --branch "$LIBRARY_TARGET_BRANCH" \
+        https://github.com/DataDog/datadog-lambda-rb.git datadog-lambda-rb
+    echo "Using datadog-lambda-rb@$(git -C datadog-lambda-rb rev-parse --short HEAD)"
 
 elif [ "$TARGET" = "otel_collector" ]; then
     assert_version_is_dev
