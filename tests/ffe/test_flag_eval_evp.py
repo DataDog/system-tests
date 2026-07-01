@@ -22,6 +22,12 @@ EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
+
+# The degradation contract is: the first 10,000 evaluations for one flag keep
+# full targeting/context detail, and evaluations after that are aggregated into
+# degraded buckets. 10,000 + 50 is enough to prove both sides of that boundary.
+# Batching keeps the shared system test from depending on one oversized request
+# and one async drain window to deliver every evaluation before CI times out.
 EVP_DEGRADATION_OVERFLOW_EVALS = 50
 EVP_DEGRADATION_BATCH_SIZE = 1_000
 EVP_DEGRADATION_BATCH_PAUSE_SECONDS = 0.2
@@ -470,9 +476,8 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         assert anchor_response.status_code == 200, f"Window anchor request failed: {anchor_response.text}"
         wait_for_evp_flagevaluation_event(anchor_flag_key)
 
-        # Keep this just over the SDK's per-flag full-tier cap. The test is
-        # asserting degraded EVP aggregation shape, not Rails request throughput
-        # or async queue pressure from a parallel burst.
+        # The endpoint accepts multiple targeting keys, so these batches cross
+        # the cap while keeping each HTTP request and flush window bounded.
         self.responses = []
         for batch_start in range(0, self.eval_count, EVP_DEGRADATION_BATCH_SIZE):
             targeting_keys = [
@@ -503,9 +508,16 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
         assert_no_duplicate_visible_events(events)
         assert_total_evaluation_count(events, self.eval_count, self.flag_key)
 
+        degraded_count = 0
         for event in degraded_events:
             assert_event_contract(event, self.flag_key)
             assert "context" not in event, f"degraded event must omit context: {event}"
             assert "targeting_key" not in event, f"degraded event must omit targeting_key: {event}"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+            degraded_count += cast(int, event["evaluation_count"])
+
+        assert degraded_count == EVP_DEGRADATION_OVERFLOW_EVALS, (
+            f"expected {EVP_DEGRADATION_OVERFLOW_EVALS} degraded evaluations after "
+            f"the {EVP_FULL_TIER_PER_FLAG_CAP} full-detail cap, got {degraded_count}"
+        )
