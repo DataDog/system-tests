@@ -94,3 +94,23 @@ def test_python_build_base_image():
     # all python weblog with build_mode=prebuild should rebuild base images in the build job
     for job in defs["endtoend_defs"]["parallel_weblogs"]:
         assert job["build_base_images"] is True, job
+
+
+@scenarios.test_the_test
+def test_otel_collector():
+    scenario_map = {"endtoend": ["OTEL_COLLECTOR"]}
+    defs = get_endtoend_definitions("otel_collector", scenario_map, [], "prod", 200000, 256, "123", "")
+
+    assert defs["endtoend_defs"]["parallel_jobs"] == [
+        {
+            "binaries_artifact": "",
+            "build_weblog_base_image": False,
+            "expected_job_time": 74.34217318962216,
+            "library": "otel_collector",
+            "runs_on": "ubuntu-latest",
+            "scenarios": ["OTEL_COLLECTOR"],
+            "weblog": "otel_collector",
+            "weblog_build_required": False,
+            "weblog_instance": 1,
+        }
+    ]

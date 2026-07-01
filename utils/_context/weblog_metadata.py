@@ -82,18 +82,20 @@ class WeblogMetaData:
                 for f in folder.iterdir()
                 if f.suffix == ".Dockerfile" and ".base." not in f.name and f.is_file()
             ]
+        else:
+            names = []
 
-            for name in set(names + [w.name for w in metadata.values() if w.library == library]):
-                item = WeblogMetaData(name=name, library=library) if name not in metadata else metadata[name]
+        for name in set(names + [w.name for w in metadata.values() if w.library == library]):
+            item = WeblogMetaData(name=name, library=library) if name not in metadata else metadata[name]
 
-                # integration-framework weblogs fan out into one weblog per version;
-                # all other weblogs map to a single weblog.
-                if item.framework_versions:
-                    for version in item.framework_versions:
-                        sub_item = replace(item, name=f"{name}@{version}")
-                        result.append(sub_item)
-                else:
-                    result.append(item)
+            # integration-framework weblogs fan out into one weblog per version;
+            # all other weblogs map to a single weblog.
+            if item.framework_versions:
+                for version in item.framework_versions:
+                    sub_item = replace(item, name=f"{name}@{version}")
+                    result.append(sub_item)
+            else:
+                result.append(item)
 
         return result
 
