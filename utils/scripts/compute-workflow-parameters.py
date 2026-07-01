@@ -43,7 +43,7 @@ class CiData:
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
-        build_nodejs_base_images: bool = False,
+        build_weblog_base_images: bool = False,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
@@ -79,9 +79,6 @@ class CiData:
             excluded_scenario_names=excluded_scenarios.split(","),
         )
 
-        # as now, only node.js has fully baked base images.
-        build_base_images = build_nodejs_base_images and library == "nodejs"
-
         self.data |= get_endtoend_definitions(
             library,
             scenario_map,
@@ -91,7 +88,7 @@ class CiData:
             maximum_parallel_jobs=256,
             unique_id=self.unique_id,
             binaries_artifact=self.binaries_artifact,
-            build_base_images=build_base_images,
+            build_base_images=build_weblog_base_images,
         )
 
         self.data["parametric"] = {
@@ -292,9 +289,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
     parser.add_argument(
-        "--build-nodejs-base-images",
+        "--build-weblog-base-images",
         type=str,
-        help="true to force nodejs local weblogs into prebuild mode so base images are built first",
+        help="Rebuild weblog base images",
         default="",
     )
 
@@ -316,5 +313,5 @@ if __name__ == "__main__":
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
-        build_nodejs_base_images=args.build_nodejs_base_images == "true",
+        build_weblog_base_images=args.build_weblog_base_images == "true",
     ).export(export_format=args.format, output=args.output)

@@ -44,18 +44,8 @@ on:
         default: 'custom'
         required: false
         type: string
-      _build_python_base_images:
-        description: "Shall we build python base images for tests on python tracer"
-        default: false
-        required: false
-        type: boolean
-      _build_php_base_images:
-        description: "Shall we build PHP base images for tests on PHP tracer"
-        default: false
-        required: false
-        type: boolean
-      _build_nodejs_base_images:
-        description: "Shall we build Node.js base images for tests on Node.js tracer"
+      _build_weblog_base_images:
+        description: "Shall we rebuild weblog base images"
         default: false
         required: false
         type: boolean
@@ -169,7 +159,7 @@ jobs:
       binaries_artifact: ${{ inputs.binaries_artifact }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
       _system_tests_library_target_branch_map: ${{ inputs._system_tests_library_target_branch_map }}
-      _build_nodejs_base_images: ${{ inputs._build_nodejs_base_images }}
+      _build_weblog_base_images: ${{ inputs._build_weblog_base_images }}
 
   parametric:
     needs:
