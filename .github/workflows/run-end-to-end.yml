@@ -195,6 +195,9 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO"')
       run: ./run.sh TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO
+    - name: Run TRACE_STATS_COMPUTATION_ERROR_SAMPLER scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_ERROR_SAMPLER"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_ERROR_SAMPLER
     - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT"')
       run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT

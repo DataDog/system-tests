@@ -251,6 +251,22 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     return result
 
 
+RUNTIME_METRICS_WAIT_TIMEOUT = 60
+
+
+def wait_for_runtime_metrics(library: str) -> None:
+    # OTLP metrics are exported on an interval, so wait (while the weblog is still up) until every expected
+    # metric for this library reaches the agent instead of relying on the fixed collection window.
+    expected = EXPECTED_METRICS.get(library)
+    if not expected:
+        return
+
+    interfaces.agent.wait_for(
+        lambda _: expected.keys() <= get_runtime_metrics_by_name().keys(),
+        timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
+    )
+
+
 @scenarios.otlp_runtime_metrics
 @features.runtime_metrics
 class Test_OtlpRuntimeMetrics:
@@ -258,6 +274,7 @@ class Test_OtlpRuntimeMetrics:
 
     def setup_otel_metrics_are_present_and_attributed(self) -> None:
         self.req = weblog.get("/")
+        wait_for_runtime_metrics(context.library.name)
 
     def test_otel_metrics_are_present_and_attributed(self) -> None:
         assert self.req.status_code == 200
