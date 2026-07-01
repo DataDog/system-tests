@@ -63,3 +63,34 @@ def test_weblog_build_mode_is_resolved_from_metadata():
     assert nodejs_modes["express4"] == "local"
     # integration-framework weblogs fan out per version and need no build
     assert build_modes["openai-py@2.0.0"] == "none"
+
+
+@scenarios.test_the_test
+def test_nodejs_build_base_image():
+    scenario_map = {"endtoend": ["DEFAULT", "INTEGRATION_FRAMEWORKS"]}
+    defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "", build_base_images=True)
+
+    assert defs["endtoend_defs"]["parallel_weblogs"] == []
+
+    jobs = {job["weblog"]: job for job in defs["endtoend_defs"]["parallel_jobs"]}
+
+    # express4 is build_mode=local and has a base Dockerfile → should build base image
+    assert jobs["express4"]["build_weblog_base_image"] is True
+
+    # openai-js is build_mode=none and has no base Dockerfile → should not build base image
+    assert jobs["openai-js@6.0.0"]["build_weblog_base_image"] is False
+
+
+@scenarios.test_the_test
+def test_python_build_base_image():
+    scenario_map = {"endtoend": ["DEFAULT", "INTEGRATION_FRAMEWORKS"]}
+    defs = get_endtoend_definitions("python", scenario_map, [], "dev", 200000, 256, "123", "", build_base_images=True)
+
+    # all python weblog has build_mode=prebuild. build_weblog_base_image
+    # only applies to build_mode=local weblogs → should not build base image inline
+    for job in defs["endtoend_defs"]["parallel_jobs"]:
+        assert job["build_weblog_base_image"] is False, job
+
+    # all python weblog with build_mode=prebuild should rebuild base images in the build job
+    for job in defs["endtoend_defs"]["parallel_weblogs"]:
+        assert job["build_base_images"] is True, job

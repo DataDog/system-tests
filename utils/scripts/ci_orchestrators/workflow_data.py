@@ -372,15 +372,21 @@ def get_endtoend_definitions(
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
             "parallel_weblogs": [
-                _serialize_weblog(weblog) for weblog in weblogs if weblog.build_mode == BuildMode.prebuild
+                _get_weblog_build_job(weblog, build_base_images=build_base_images)
+                for weblog in weblogs
+                if weblog.build_mode == BuildMode.prebuild
             ],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
 
 
-def _serialize_weblog(weblog: Weblog) -> dict:
-    return {"name": weblog.name, "artifact_name": weblog.artifact_name}
+def _get_weblog_build_job(weblog: Weblog, *, build_base_images: bool) -> dict:
+    return {
+        "name": weblog.name,
+        "artifact_name": weblog.artifact_name,
+        "build_base_images": build_base_images and weblog.base_dockerfile is not None,
+    }
 
 
 def _split_jobs_for_parallel_execution(

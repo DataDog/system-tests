@@ -230,18 +230,11 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Build python weblog base images
-        if: inputs.library == 'python' && inputs._build_python_base_images
+      - name: Build weblog base images
+        if: matrix.weblog.build_base_image
         run: |
-          ./utils/build/build_python_base_images.sh
-      - name: Build php weblog base images
-        if: inputs.library == 'php' && inputs._build_php_base_images
-        run: |
-          ./utils/build/build_php_base_images.sh
-      - name: Build nodejs weblog base images
-        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
-        run: |
-          ./utils/build/build_nodejs_base_images.sh
+          source venv/bin/activate
+          ./utils/script/build_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
