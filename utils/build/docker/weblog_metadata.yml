@@ -5,7 +5,8 @@
 #   build_mode : How a weblog's image is produced for end-to-end runs:
 #       "none"     → no Docker build; reuse the shared binaries_artifact as-is
 #                    (integration frameworks, go_proxies, otel_collector)
-#       "local"    → built in-line by the run_end_to_end job (weblog_build_required)
+#       "local"    → Those weblog are fully baked in a base image, and does not require a real build step
+#                    The build will happen inside the test job, and will be only a bunch of COPY command
 #       "prebuild" → built ahead of time by a dedicated build_end_to_end job that
 #                    uploads a per-weblog artifact, then still built locally by the run
 #     "prebuild" implies a local build too, so weblog_build_required is true for both

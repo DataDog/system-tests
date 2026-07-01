@@ -200,7 +200,7 @@ class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
     def __init__(
-        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
+        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float, *, build_base_images:bool
     ):
         self.library = library
         self.weblog = weblog
@@ -217,6 +217,9 @@ class Job:
         # split mechanism
         self.build_time = build_time
 
+        self.build_base_images = build_base_images
+        """ Shall the end-to-end scenario rebuild the weblog base image for fully baked weblog """
+
     def serialize(self) -> dict:
         return {
             "runs_on": "ubuntu-latest",
@@ -227,6 +230,7 @@ class Job:
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
+            "build_weblog_base_image": self.weblog.build_mode == BuildMode.local and self.build_base_images and self.weblog.base_dockerfile is not None
         }
 
     @property
@@ -274,8 +278,6 @@ def _get_endtoend_weblogs(
     unique_id: str,
     ci_environment: str,
     binaries_artifact: str,
-    *,
-    force_prebuild: bool = False,
 ) -> list[Weblog]:
     weblogs: list[Weblog] = Weblog.load(library)
 
@@ -284,9 +286,6 @@ def _get_endtoend_weblogs(
         weblogs = [w for w in weblogs if w.name in weblogs_filter]
 
     for weblog in weblogs:
-        if force_prebuild and weblog.build_mode == BuildMode.local:
-            weblog.build_mode = BuildMode.prebuild
-
         weblog.artifact_name = (
             f"binaries_{ci_environment}_{library}_{weblog.name}_{unique_id}"
             if weblog.build_mode == "prebuild"
@@ -306,7 +305,7 @@ def get_endtoend_definitions(
     unique_id: str,
     binaries_artifact: str,
     *,
-    force_prebuild: bool = False,
+    build_base_images: bool = False,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -321,7 +320,6 @@ def get_endtoend_definitions(
         ci_environment=ci_environment,
         unique_id=unique_id,
         binaries_artifact=binaries_artifact,
-        force_prebuild=force_prebuild,
     )
 
     # check that jobs can be splitted
@@ -345,6 +343,7 @@ def get_endtoend_definitions(
                     weblog_instance=1,
                     scenarios_times=scenarios_times,
                     build_time=_get_build_time(library, weblog, time_stats["build"]),
+                    build_base_images=build_base_images
                 )
             )
 

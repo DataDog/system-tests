@@ -79,6 +79,9 @@ class CiData:
             excluded_scenario_names=excluded_scenarios.split(","),
         )
 
+        # as now, only node.js has fully baked base images.
+        build_base_images=build_nodejs_base_images and library == "nodejs"
+
         self.data |= get_endtoend_definitions(
             library,
             scenario_map,
@@ -88,7 +91,7 @@ class CiData:
             maximum_parallel_jobs=256,
             unique_id=self.unique_id,
             binaries_artifact=self.binaries_artifact,
-            force_prebuild=build_nodejs_base_images and library == "nodejs",
+            build_base_images=build_base_images,
         )
 
         self.data["parametric"] = {
