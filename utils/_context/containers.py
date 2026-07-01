@@ -1697,7 +1697,10 @@ class HAProxyContainer(TestedContainer):
                     "bind": "/usr/local/etc/haproxy/haproxy.cfg",
                     "mode": "ro",
                 },
-                "./utils/build/docker/golang/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
+                "./utils/build/docker/golang/haproxy/spoe.cfg": {
+                    "bind": "/usr/local/etc/haproxy/spoe.cfg",
+                    "mode": "ro",
+                },
                 "./utils/build/docker/golang/haproxy/datadog_aap_blocking_response.lua": {
                     "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
                     "mode": "ro",
