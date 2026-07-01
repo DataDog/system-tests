@@ -231,11 +231,23 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
-    @enable_tracestats()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                "DD_VERSION": "1.2.3",
+                "DD_ENV": "some-env",
+                "DD_SERVICE": "some-service",
+            }
+        ],
+    )
     @enable_agent_version()
     def test_top_level_TS005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
+        Asserts that version and env are set correctly in the stats request.
         """
         with (
             test_library,
@@ -251,8 +263,9 @@ class Test_Library_Tracestats:
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
-        for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, f"{key} should be in stats request"
+        assert request["Env"] == "some-env"
+        assert request["Version"] == "1.2.3"
+        assert request["Stats"] is not None
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
