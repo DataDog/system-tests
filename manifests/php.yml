@@ -1108,6 +1108,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler: missing_feature (error traces dropped client-side under sampling; errors counted in stats but traces not sent)
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
+  tests/stats/test_trace_filters.py: v1.22.0
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
         laravel11x: missing_feature (pending to be implemented on this weblog)

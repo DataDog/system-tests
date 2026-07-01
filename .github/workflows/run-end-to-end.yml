@@ -198,6 +198,24 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION_ERROR_SAMPLER scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_ERROR_SAMPLER"')
       run: ./run.sh TRACE_STATS_COMPUTATION_ERROR_SAMPLER
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_KEY_ONLY_REJECT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_KEY_ONLY_REJECT"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_KEY_ONLY_REJECT
+    - name: Run TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE_EDGE_CASES scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE_EDGE_CASES"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE_EDGE_CASES
     - name: Run IAST_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
