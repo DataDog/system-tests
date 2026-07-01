@@ -367,7 +367,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_failure_local:
     - weblog_declaration:
         laravel11x: v1.8.0
@@ -376,7 +375,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_local:
     - weblog_declaration:
         laravel11x: v1.8.0
@@ -385,12 +383,10 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_password_failure_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_password_failure_local:
     - weblog_declaration:
         laravel11x: v1.8.0
@@ -399,13 +395,11 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_failure_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_failure_local:
     - weblog_declaration:
         laravel11x: v1.8.0
@@ -414,7 +408,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_local:
     - weblog_declaration:
         laravel11x: v1.8.0
@@ -423,17 +416,14 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_password_failure_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_user_failure_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
         laravel11x: v1.8.0
-        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v1.8.0
   tests/appsec/test_automated_payment_events.py:
