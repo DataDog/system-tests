@@ -275,8 +275,8 @@ jobs:
               PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
             fi
 
-            # Enable auto-merge on the PR
-            echo "Enabling auto-merge on PR #$PR_NUMBER..."
-            gh pr merge "$PR_NUMBER" --auto --squash
+            # # Enable auto-merge on the PR
+            # echo "Enabling auto-merge on PR #$PR_NUMBER..."
+            # gh pr merge "$PR_NUMBER" --auto --squash
 
           done
