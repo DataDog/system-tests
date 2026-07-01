@@ -1621,7 +1621,7 @@ class EnvoyContainer(TestedContainer):
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            volumes={"./utils/build/docker/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            volumes={"./utils/build/docker/golang/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
                 "test": "/bin/bash -c \"\
@@ -1693,12 +1693,12 @@ class HAProxyContainer(TestedContainer):
             image_name="haproxy:3.2",
             name="haproxy",
             volumes={
-                "./utils/build/docker/haproxy/haproxy.cfg": {
+                "./utils/build/docker/golang/haproxy/haproxy.cfg": {
                     "bind": "/usr/local/etc/haproxy/haproxy.cfg",
                     "mode": "ro",
                 },
-                "./utils/build/docker/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
-                "./utils/build/docker/haproxy/datadog_aap_blocking_response.lua": {
+                "./utils/build/docker/golang/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
+                "./utils/build/docker/golang/haproxy/datadog_aap_blocking_response.lua": {
                     "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
                     "mode": "ro",
                 },
