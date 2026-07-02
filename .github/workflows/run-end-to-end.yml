@@ -62,6 +62,11 @@ on:
         default: false
         required: false
         type: boolean
+      _build_weblog_base_image:
+        description: "Shall we build the weblog base image (only valid if weblog build is local)"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -145,6 +150,13 @@ jobs:
     - name: Build lambda-proxy image
       if: inputs._build_lambda_proxy_image
       run: ./build.sh -i lambda-proxy
+
+    - name: Build weblog base image
+      if: inputs._build_weblog_base_image
+      run: |
+        source venv/bin/activate
+        ./utils/script/build_base_image.py ${{ inputs.library }} ${{ inputs.weblog }}
+
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
@@ -198,6 +210,9 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION_ERROR_SAMPLER scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_ERROR_SAMPLER"')
       run: ./run.sh TRACE_STATS_COMPUTATION_ERROR_SAMPLER
+    - name: Run TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE
     - name: Run IAST_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
