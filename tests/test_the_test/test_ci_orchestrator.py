@@ -46,6 +46,8 @@ def test_get_endtoend_definitions_empty_scenario_map():
 def test_get_endtoend_definitions_missing_endtoend_key():
     defs = get_endtoend_definitions("ruby", {"other": ["X"]}, [], "dev", 200000, 256, "123", "")
     assert defs["endtoend_defs"]["parallel_jobs"] == []
+
+
 def test_nodejs_weblogs_dont_require_prebuild():
     scenario_map = {"endtoend": ["DEFAULT"]}
     defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "")
