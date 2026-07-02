@@ -1,6 +1,6 @@
 FROM rust:1.94.1-slim-bookworm AS builder
 
-RUN apt-get update && apt-get install -y openssh-client git jq curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssh-client git jq && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/app
 COPY utils/build/docker/rust/axum .
