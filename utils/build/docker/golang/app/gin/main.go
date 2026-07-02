@@ -362,6 +362,7 @@ func main() {
 	r.Any("/rasp/multiple", ginHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
+	r.Any("/rasp/cmdi", ginHandleFunc(rasp.CMDI))
 
 	r.Any("/external_request", ginHandleFunc(rasp.ExternalRequest))
 	r.GET("/external_request/redirect", ginHandleFunc(rasp.ExternalRedirectRequest))
