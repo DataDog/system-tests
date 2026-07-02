@@ -1338,6 +1338,7 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
             "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "GOMEMLIMIT": "500MiB",
         },
         runtime_metrics_enabled=True,
         include_opentelemetry=True,
