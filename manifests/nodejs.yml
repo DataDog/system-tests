@@ -1729,14 +1729,34 @@ manifest:
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Targeting_Key_Optional: bug (FFL-1730)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create: missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_content_block: missing_feature  # ephemeral cache TTL metrics not yet released
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create:  # ephemeral cache TTL metrics not yet released
+    - weblog_declaration:
+        '*': missing_feature
+        anthropic-js@0.71.0: '>=5.110.0'
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_content_block:  # ephemeral cache TTL metrics not yet released
+    - weblog_declaration:
+        '*': missing_feature
+        anthropic-js@0.71.0: '>=5.110.0'
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   ? tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_multiple_system_prompts
-  : missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_redact_image_input: missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_stream_method: missing_feature  # ephemeral cache TTL metrics not yet released
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result: bug (MLOB-1234)
+  :  # ephemeral cache TTL metrics not yet released
+    - weblog_declaration:
+        '*': missing_feature
+        anthropic-js@0.71.0: '>=5.110.0'
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_redact_image_input:  # ephemeral cache TTL metrics not yet released
+    - weblog_declaration:
+        '*': missing_feature
+        anthropic-js@0.71.0: '>=5.110.0'
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_stream_method:  # ephemeral cache TTL metrics not yet released
+    - weblog_declaration:
+        '*': missing_feature
+        anthropic-js@0.71.0: '>=5.110.0'
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result:  # TODO: a lower version might be supported
+    - declaration: bug (MLOB-1234)
+      component_version: <5.110.0
+      weblog: [anthropic-js@0.71.0]
+    - declaration: bug (MLOB-1234)
+      excluded_weblog: [anthropic-js@0.71.0]
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_with_tools: missing_feature (Node.js LLM Observability Anthropic integration does not submit tool definitions)
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
@@ -2110,7 +2130,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: "missing_feature (CSS v1.2.0: dd-trace-js does not drop P0 traces when DD_TRACE_SAMPLE_RATE=0; traces are still emitted with _sampling_priority_v1=-1 instead of being dropped client-side)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: "missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: "missing_feature (CSS v1.2.0: dd-trace-js does not produce stats for nested top-level (service-entry) child spans when parent and child are in different services; only the outer span yields a stats entry)"
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags:  # TODO: a lower version might be supported
+    - declaration: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
+      component_version: <5.110.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: *ref_5_83_0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: missing_feature
