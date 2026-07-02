@@ -55,3 +55,5 @@ SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
 
+cp /binaries/SYSTEM_TESTS_LIBRARY_VERSION /system-tests-library-version
+

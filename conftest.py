@@ -436,6 +436,13 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.replay:
         setup_properties.load(context.scenario.host_log_folder)
 
+    if not session.items:
+        if not session.config.option.replay:
+            setup_properties.dump(context.scenario.host_log_folder)
+        return
+
+    context.scenario.execute_post_collection_warmups()
+
     last_item_file = ""
     for item in session.items:
         if _item_is_skipped(item):

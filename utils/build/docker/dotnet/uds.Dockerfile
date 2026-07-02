@@ -20,6 +20,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
 COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
 RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 
+# extract library version from installed assembly if install script could not determine it
+COPY --from=system_tests/dotnet-version-tool /out /tmp/get-assembly-version/
+RUN if [ ! -f /system-tests-library-version ]; then \
+        dll=$(ls /opt/datadog/net*/Datadog.Trace.dll 2>/dev/null | head -1); \
+        if [ -n "$dll" ]; then \
+            /tmp/get-assembly-version/GetAssemblyVersion "$dll" > /system-tests-library-version; \
+        fi; \
+    fi && rm -rf /tmp/get-assembly-version
+
 # Enable Datadog .NET SDK
 ENV CORECLR_ENABLE_PROFILING=1
 ENV CORECLR_PROFILER='{846F5F1C-F9AE-4B07-969E-05C26BC060D8}'
