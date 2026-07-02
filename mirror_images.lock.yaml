@@ -278,6 +278,10 @@ images:
     digest: sha256:3b2d2b1287d7e5443e89dbcad1946e7cdac804494e3ad55a87ed02b916750006
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0
     tag: v1.62.0
+  ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0:
+    digest: sha256:e83bb3b3805a88faf37ea0f957d6700d9dcf3ed8845847134699c6bb2b7d6ff7
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0
+    tag: v1.63.0
   ghcr.io/datadog/images-rb/engines/ruby:2.5:
     digest: sha256:80a31383585fff1a3c0d33c149171460bca182deddd50f2ed8f54217252f5178
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.5

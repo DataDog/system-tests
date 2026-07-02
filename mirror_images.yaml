@@ -76,6 +76,7 @@
 - "eclipse-temurin:17-jre"
 - "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.59.0"
 - "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0"
+- "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0"
 - "ghcr.io/datadog/images-rb/engines/ruby:2.5"
 - "ghcr.io/datadog/images-rb/engines/ruby:2.7"
 - "ghcr.io/datadog/images-rb/engines/ruby:3.0"
