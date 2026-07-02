@@ -78,6 +78,9 @@ async fn main() {
         .route("/tag_value/{tag_value}/{status_code}", get(tag_value))
         .route("/tag_value/{tag_value}/{status_code}", post(tag_value))
         .route("/tag_value/{tag_value}/{status_code}", options(tag_value))
+        // RASP / SQL endpoints (used by client-side stats obfuscation tests)
+        .route("/rasp/sqli", get(rasp_sqli))
+        .route("/rasp/sqli", post(rasp_sqli))
         // External request endpoints
         .route("/make_distant_call", get(make_distant_call))
         // Service overrides
@@ -513,6 +516,27 @@ async fn tag_value(
     }
 
     (status, response_headers, "Value tagged").into_response()
+}
+
+// ─── RASP / SQL endpoints ──────────────────────────────────────────────────────
+
+/// Emit a SQL client span with a raw (unobfuscated) statement so that the tracer
+/// exercises its client-side stats obfuscation. Distinct `user_id` values produce
+/// distinct raw resources that all normalise to `SELECT * FROM users WHERE id = ?`
+/// once obfuscated.
+async fn rasp_sqli(Query(params): Query<HashMap<String, String>>) -> Response {
+    let user_id = params.get("user_id").cloned().unwrap_or_default();
+    let statement = format!("SELECT * FROM users WHERE id = '{user_id}'");
+    let _guard = tracing::info_span!(
+        parent: None,
+        "sqlite.query",
+        "otel.kind" = "client",
+        "db.system" = "sqlite",
+        "db.statement" = %statement,
+    )
+    .entered();
+    add_dd_tags();
+    StatusCode::OK.into_response()
 }
 
 // ─── External request endpoints ───────────────────────────────────────────────

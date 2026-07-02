@@ -26,5 +26,7 @@ COPY --from=builder /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBR
 COPY utils/build/docker/rust/axum/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
+ENV DD_LOG_LEVEL=debug
+
 WORKDIR /app
 CMD ["./app.sh"]
