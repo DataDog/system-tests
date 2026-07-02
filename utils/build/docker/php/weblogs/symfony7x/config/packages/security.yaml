@@ -20,5 +20,6 @@ security:
                 username_parameter: username
                 password_parameter: password
                 success_handler: App\Security\LoginSuccessHandler
+                failure_handler: App\Security\LoginFailureHandler
 
     access_control: []

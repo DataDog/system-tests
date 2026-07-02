@@ -1470,7 +1470,7 @@ class Test_V3_Login_Events:
             assert_boolean_meta_tag(meta, "appsec.events.users.signup.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["appsec.events.users.signup.usr.id"] == "new-user"
                 assert meta["_dd.appsec.usr.id"] == "new-user"
 
@@ -1772,7 +1772,7 @@ class Test_V3_Login_Events_Anon:
             assert is_same_boolean(actual=meta["appsec.events.users.signup.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["appsec.events.users.signup.usr.id"] == NEW_USER_HASH
                 assert meta["_dd.appsec.usr.id"] == NEW_USER_HASH
 
