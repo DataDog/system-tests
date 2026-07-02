@@ -1179,10 +1179,7 @@ def login_failure_includes_usr_id_meta() -> bool:
 
 def login_success_includes_usr_id_meta() -> bool:
     """True when this library and weblog emit usr.id on login success spans."""
-    return (
-        context.library not in libs_without_user_id
-        and context.weblog_variant not in weblogs_without_user_id
-    )
+    return context.library not in libs_without_user_id and context.weblog_variant not in weblogs_without_user_id
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
