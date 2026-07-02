@@ -883,10 +883,19 @@ manifest:
       component_version: <2.51.0
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : bug (APMAPI-914)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: missing_feature
       component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010:
     - declaration: missing_feature
       component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009:
@@ -898,6 +907,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014:
     - declaration: missing_feature (CSS v1.2.0 - .NET does not exclude spans with _dd.partial_version from stats aggregation)
       component_version: '<3.46.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
     - declaration: missing_feature
@@ -1088,11 +1100,30 @@ manifest:
     - weblog_declaration:
         uds: '>=3.43.0'
         poc: '>=3.43.0'
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Error_Sampler:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
   tests/stats/test_stats.py::Test_Peer_Tags:
     - weblog_declaration:
         uds: '>=3.43.0'
