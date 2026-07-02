@@ -1160,6 +1160,9 @@ weblogs_without_user_exist = ["laravel11x", "symfony7x"]
 # Weblog variants that omit usr.id on login failure (library-wide: libs_without_user_id_on_failure).
 weblogs_without_user_id_on_failure = ["laravel11x", "symfony7x"]
 
+# Weblog variants that omit usr.id on login success (library-wide: libs_without_user_id).
+weblogs_without_user_id = ["symfony7x"]
+
 
 def login_failure_includes_usr_exists_meta() -> bool:
     """True when this library and weblog emit usr.exists on login failure spans."""
@@ -1171,6 +1174,14 @@ def login_failure_includes_usr_id_meta() -> bool:
     return (
         context.library not in libs_without_user_id_on_failure
         and context.weblog_variant not in weblogs_without_user_id_on_failure
+    )
+
+
+def login_success_includes_usr_id_meta() -> bool:
+    """True when this library and weblog emit usr.id on login success spans."""
+    return (
+        context.library not in libs_without_user_id
+        and context.weblog_variant not in weblogs_without_user_id
     )
 
 
@@ -1226,7 +1237,7 @@ class Test_V3_Login_Events:
             assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == "social-security-id"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1248,7 +1259,7 @@ class Test_V3_Login_Events:
             assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == "social-security-id"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1364,7 +1375,7 @@ class Test_V3_Login_Events:
                 assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.success.sdk")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1394,7 +1405,7 @@ class Test_V3_Login_Events:
                 assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.success.sdk")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1532,7 +1543,7 @@ class Test_V3_Login_Events_Anon:
             assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1552,7 +1563,7 @@ class Test_V3_Login_Events_Anon:
             assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1668,7 +1679,7 @@ class Test_V3_Login_Events_Anon:
                 assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1696,7 +1707,7 @@ class Test_V3_Login_Events_Anon:
                 assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1903,7 +1914,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
-        if context.library not in libs_without_user_id:
+        if login_success_includes_usr_id_meta():
             interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
             assert self.r_login_blocked.status_code == 403
 
