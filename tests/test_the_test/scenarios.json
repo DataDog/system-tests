@@ -5617,54 +5617,6 @@
   "tests/stats/test_stats.py::Test_Time_Bucketing::test_agent_aggregated_stats": [
     "TRACE_STATS_COMPUTATION"
   ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject::test_ignore_resources": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject::test_filter_tags_reject": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject::test_filter_tags_regex_reject": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject::test_trace_not_matching_reject_filters": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Require::test_trace_matching_required_filters": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Require::test_filter_tags_require": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Regex_Require::test_trace_matching_required_filters": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Regex_Require::test_filter_tags_regex_require": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REGEX_REQUIRE"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject_Edge_Cases::test_literal_whitespace_trim_drops": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject_Edge_Cases::test_empty_key_skipped_keeps": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject_Edge_Cases::test_regex_whitespace_trim_drops": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Reject_Edge_Cases::test_bad_regex_skipped_keeps": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REJECT_EDGE_CASES"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Key_Only_Reject::test_key_only_reject_drops_any_value": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_KEY_ONLY_REJECT"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Key_Only_Reject::test_no_tag_not_dropped": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_KEY_ONLY_REJECT"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Require_Edge_Cases::test_whitespace_trim_require_keeps": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE_EDGE_CASES"
-  ],
-  "tests/stats/test_trace_filters.py::Test_Trace_Filters_Require_Edge_Cases::test_whitespace_trim_require_drops": [
-    "TRACE_STATS_COMPUTATION_TRACE_FILTER_REQUIRE_EDGE_CASES"
-  ],
   "tests/stream_processing_offload/test_apm.py::Test_StreamProcessingOffload_Tracing::test_correct_span_structure": [
     "STREAM_PROCESSING_OFFLOAD"
   ],

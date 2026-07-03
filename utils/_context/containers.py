@@ -24,13 +24,11 @@ from utils._context.ports import ContainerPorts
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
-    TraceFiltersConfig,
     RemoveMetaStructsSupport,
     MockedTracerResponse,
     MockedBackendResponse,
     SetSpanEventFlags,
     SetClientDropP0s,
-    SetTraceFilters,
     SetObfuscationVersion,
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
@@ -609,7 +607,6 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         client_drop_p0s: bool | None = None,
-        trace_filters: TraceFiltersConfig | None = None,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
@@ -656,9 +653,6 @@ class ProxyContainer(TestedContainer):
 
         if client_drop_p0s is not None:
             self.internal_mocked_tracer_responses.append(SetClientDropP0s(client_drop_p0s=client_drop_p0s))
-
-        if trace_filters is not None:
-            self.internal_mocked_tracer_responses.append(SetTraceFilters(trace_filters=trace_filters))
 
         if obfuscation_version is not None:
             self.internal_mocked_tracer_responses.append(SetObfuscationVersion(obfuscation_version=obfuscation_version))

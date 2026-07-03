@@ -318,7 +318,6 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
-  tests/stats/test_trace_filters.py: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_single_tracecontext: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore::test_multiple_tracecontexts: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)

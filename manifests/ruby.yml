@@ -2529,7 +2529,6 @@ manifest:
         sinatra14: missing_feature
         rails52: missing_feature
         sinatra22: missing_feature
-  tests/stats/test_trace_filters.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
