@@ -119,6 +119,7 @@ class Test_DdtraceSchemas:
                 in (
                     scenarios.appsec_blocking,
                     scenarios.trace_stats_computation,
+                    scenarios.trace_stats_computation_error_sampler,
                     scenarios.trace_stats_computation_obfuscation_disabled,
                     scenarios.trace_stats_computation_future_obfuscation_version,
                     scenarios.trace_stats_computation_missing_obfuscation_version,
@@ -139,6 +140,20 @@ class Test_DdtraceSchemas:
                 condition=context.library in ("haproxy", "envoy")
                 and context.scenario in (scenarios.go_proxies_appsec_blocking, scenarios.go_proxies_default),
                 ticket="APMSP-2590",
+            ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path="$",  # service is missing
+                condition=context.library == "nodejs"
+                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                ticket="APMLP-1498",
+            ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path="$.Stats[].Stats[]",  # IsTraceRoot is missing
+                condition=context.library == "nodejs"
+                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                ticket="APMLP-1498",
             ),
         ]
 

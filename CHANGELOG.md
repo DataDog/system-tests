@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-06 (140 PR merged)
+
+* 2026-06-05 [[ruby] Add new Ruby-lang weblog `ruby_lambda`](https://github.com/DataDog/system-tests/pull/7065) by @Strech
+* 2026-06-01 [SSI GitLab Test Optimization](https://github.com/DataDog/system-tests/pull/6966) by @robertomonteromiguel
+
+
 ### 2026-05 (159 PR merged)
 
 * 2026-05-20 [SSI: Pin agent version to 7.78.4](https://github.com/DataDog/system-tests/pull/6984) by @robertomonteromiguel
