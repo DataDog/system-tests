@@ -71,7 +71,7 @@ docker_login() {
 }
 
 if [ -n "${DOCKERHUB_USERNAME:-}" ] && [ -n "${DOCKERHUB_TOKEN:-}" ]; then
-  export -f docker_login  # makes the function docker_login available in any child process spawned from it 
+  export -f docker_login  # makes the function docker_login available in any child process spawned from it
   retry_with_timeout "Logging in to Docker Hub" 60 bash -c docker_login
 fi
 
