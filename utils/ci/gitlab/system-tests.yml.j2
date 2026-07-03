@@ -1,0 +1,163 @@
+{% macro docker_auth() %}
+    - section_start "docker_auth" "Docker hub auth"
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - |
+      for i in 1 2 3; do
+        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
+        if [ "$i" -eq 3 ]; then echo "docker login failed after 3 attempts"; exit 1; fi
+        echo "docker login failed (attempt $i), retrying in $((i*5))s..."
+        sleep $((i*5))
+      done
+    - section_end "docker_auth"
+{% endmacro %}
+{% macro copy_binaries(path) %}
+    - section_start "copy_binaries" "Copying pre-built binaries into binaries/"
+    - mkdir -p binaries
+    - cp -r "$CI_PROJECT_DIR/{{path}}/." binaries/
+    - ls -la binaries/
+    - section_end "copy_binaries"
+{% endmacro %}
+{% if not skip_header %}
+workflow:
+  name: "System-tests end to end"
+
+include:
+  - project: 'DataDog/system-tests'
+    ref: {{ref}}
+    file: 'utils/ci/gitlab/templates.yml'
+    inputs:
+      stage: {{stage}}
+      ref: {{ref}}
+
+stages:
+  - {{stage}}
+
+variables:
+  CI_IMAGE: {{ci_image}}
+
+.push_to_test_optimization:
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
+  after_script:
+    - echo -e "section_start:$(date +%s):test_optim[collapsed=true]\r\e[0KPush to tests optimization"
+    - dd-sts debug
+    - >
+      dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
+      --service system-tests
+      --env ci
+      --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+    - echo -e "section_end:$(date +%s):test_optim\r\e[0K"
+
+setup:
+  extends: .system_tests_base
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
+  script:
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level pipeline --tags "system-tests:true"
+{% endif %}
+
+{% for variant in weblog_variants %}
+system_tests_build_{{library}}_{{variant}}:
+  extends: .system_tests_base
+  {% if binaries_artifacts_list %}
+  needs:
+    {% for artifact_job in binaries_artifacts_list %}
+    - job: "{{artifact_job}}"
+      artifacts: true
+      pipeline: $UPSTREAM_PIPELINE_ID
+    {% endfor %}
+  {% endif %}
+  script:
+    {% if docker_auth_enabled %}
+    {{ docker_auth() }}
+    {% endif %}
+    {% if binaries_artifacts_list and binaries_artifact_path %}
+    {{ copy_binaries(binaries_artifact_path) }}
+    {% endif %}
+    - section_start "build" "Building weblog"
+    - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
+    - mv binaries ..
+    - section_end "build"
+  artifacts:
+    paths:
+      - binaries/
+
+{% endfor %}
+{% for variant, scenario, build_required in scenario_pairs %}
+system_tests_run_{{library}}_{{scenario}}_{{variant}}:
+  extends:
+    - .system_tests_base
+{% if push_to_test_optimization %}
+    - .push_to_test_optimization
+{% endif %}
+  needs:
+  {% if build_required %}
+    - job: system_tests_build_{{library}}_{{variant}}
+      artifacts: true
+  {% elif binaries_artifacts_list %}
+    {% for artifact_job in binaries_artifacts_list %}
+    - job: "{{artifact_job}}"
+      artifacts: true
+      pipeline: $UPSTREAM_PIPELINE_ID
+    {% endfor %}
+  {% endif %}
+  script:
+    {% if docker_auth_enabled %}
+    {{ docker_auth() }}
+    {% endif %}
+    - section_start "weblog_setup" "Setting up the weblog"
+    {% if build_required %}
+    - mv ../binaries/* binaries/
+    - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
+    {% elif binaries_artifacts_list and binaries_artifact_path %}
+    {{ copy_binaries(binaries_artifact_path) }}
+    {% endif %}
+    - section_end "weblog_setup"
+    - section_start "scenario_run" "Running scenario"
+    {% if scenario == "INTEGRATION_FRAMEWORKS" %}
+    - ./run.sh {{scenario}} -L {{library}} --weblog {{variant}}
+    {% elif scenario in ("GO_PROXIES_DEFAULT", "GO_PROXIES_APPSEC_BLOCKING") %}
+    - ./run.sh {{scenario}} --weblog {{variant}}
+    {% else %}
+    - ./run.sh {{scenario}}
+    {% endif %}
+    - section_end "scenario_run"
+  artifacts:
+    when: always
+    paths:
+      - system-tests/logs*
+
+{% endfor %}
+{% if parametric.enable %}
+{% for job_index in parametric.job_matrix %}
+system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
+  extends:
+    - .system_tests_base
+{% if push_to_test_optimization %}
+    - .push_to_test_optimization
+{% endif %}
+  {% if binaries_artifacts_list %}
+  needs:
+    {% for artifact_job in binaries_artifacts_list %}
+    - job: "{{artifact_job}}"
+      artifacts: true
+      pipeline: $UPSTREAM_PIPELINE_ID
+    {% endfor %}
+  {% endif %}
+  script:
+    - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
+    {% if binaries_artifacts_list and binaries_artifact_path %}
+    {{ copy_binaries(binaries_artifact_path) }}
+    {% endif %}
+    - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
+    - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
+  artifacts:
+    when: always
+    paths:
+      - system-tests/logs*
+
+{% endfor %}
+{% endif %}

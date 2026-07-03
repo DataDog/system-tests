@@ -69,6 +69,7 @@ def print_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_enviro
 
 def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_environment: str) -> None:
     result_pipeline = {}  # type: dict
+    result_pipeline["workflow"] = {"name": f"{language} SSI"}
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
     pipeline_file = ".gitlab/ssi_gitlab-ci.yml"
