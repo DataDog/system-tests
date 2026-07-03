@@ -14,6 +14,9 @@ from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
+# Minimum test agent version that supports client-side stats according to the spec
+MIN_AGENT_VERSION_FOR_CSS = "7.65.0"
+
 
 def _human_stats(stats: V06StatsAggr) -> str:
     """Return human-readable stats for debugging stat aggregations."""
@@ -37,7 +40,9 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
     return msgpack.unpackb(base64.b64decode(raw_body))
 
 
-def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
+def enable_tracestats(
+    sample_rate: float | None = None, extra_env: dict[str, str] | None = None
+) -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
@@ -47,12 +52,14 @@ def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
         env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
+    if extra_env is not None:
+        env.update(extra_env)
 
     return parametrize("library_env", [env])
 
 
-def enable_agent_version(version: str = "7.65.0") -> pytest.MarkDecorator:
-    """Set the test agent version. Java tracer requires agent version >= 7.65.0 for client-side stats."""
+def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
+    """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
     return parametrize("agent_env", [agent_env_config])
 

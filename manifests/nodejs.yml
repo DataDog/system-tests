@@ -2259,6 +2259,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: *ref_5_13_0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: *ref_5_59_0
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature (agent /info trace filters not applied client-side)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:

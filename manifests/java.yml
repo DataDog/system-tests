@@ -3968,6 +3968,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature (agent /info trace filters not applied client-side)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.111.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.25.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
