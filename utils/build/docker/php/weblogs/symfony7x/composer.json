@@ -11,6 +11,8 @@
         "symfony/console": "^7.2",
         "symfony/framework-bundle": "^7.2",
         "symfony/security-bundle": "^7.2",
+        "symfony/dom-crawler": "^7.2",
+        "symfony/filesystem": "^7.2",
         "symfony/http-client": "^7.2",
         "symfony/process": "^7.2",
         "symfony/yaml": "^7.2",
@@ -48,6 +50,7 @@
             "ext-pdo": "8.2.0",
             "ext-session": "8.2.0",
             "ext-tokenizer": "8.2.0",
+            "ext-dom": "8.2.0",
             "ext-xml": "8.2.0"
         }
     },

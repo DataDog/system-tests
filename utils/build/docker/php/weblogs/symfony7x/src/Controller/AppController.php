@@ -2,9 +2,14 @@
 
 namespace App\Controller;
 
+use Doctrine\DBAL\Connection;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +21,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AppController extends AbstractController
 {
+    public function __construct(
+        #[Autowire(service: 'doctrine.dbal.default_connection')]
+        private Connection $defaultConnection,
+        #[Autowire(service: 'doctrine.dbal.mysql_connection')]
+        private Connection $mysqlConnection,
+        #[Autowire(service: 'doctrine.dbal.postgres_connection')]
+        private Connection $postgresConnection,
+    ) {}
+
     // PUBLIC_ACCESS allows anonymous access while still triggering AccessDecisionManager::decide,
     // which lets the tracer auto-call track_authenticated_user_event_automated for authenticated users.
     #[IsGranted('PUBLIC_ACCESS')]
@@ -89,10 +103,13 @@ class AppController extends AbstractController
     #[Route('/read_file', name: 'read_file', methods: ['GET'])]
     public function readFile(Request $request): Response
     {
-        $file    = $request->query->get('file', '');
-        $content = @file_get_contents($file);
+        $filePath = $request->query->get('file', '');
+        $content  = '';
+        try {
+            $content = (new Filesystem())->readFile($filePath);
+        } catch (IOException $e) {}
 
-        return new Response($content === false ? '' : $content, 200, ['Content-Type' => 'text/plain']);
+        return new Response($content, 200, ['Content-Type' => 'text/plain']);
     }
 
     #[Route('/users', name: 'users', methods: ['GET'])]
@@ -287,12 +304,11 @@ class AppController extends AbstractController
         $query       = 'SELECT version()';
 
         if ($integration === 'pdo-mysql') {
-            $connection = new \PDO('mysql:dbname=mysql_dbname;host=mysqldb', 'mysqldb', 'mysqldb');
-            $connection->query($query);
+            $this->mysqlConnection->executeQuery($query);
         } elseif ($integration === 'pdo-pgsql') {
-            $connection = new \PDO('pgsql:dbname=system_tests_dbname;host=postgres;port=5433', 'system_tests_user', 'system_tests');
-            $connection->query($query);
+            $this->postgresConnection->executeQuery($query);
         } elseif ($integration === 'mysqli') {
+            // Doctrine DBAL 3.x dropped the mysqli driver; raw mysqli is the only option here.
             $connection = new \mysqli('mysqldb', 'mysqldb', 'mysqldb', 'mysql_dbname');
             $connection->query($query);
         }
@@ -359,17 +375,19 @@ class AppController extends AbstractController
     public function stubDbm(Request $request): JsonResponse
     {
         $integration = $request->query->get('integration', '');
-        $stmt        = null;
+        $captured    = null;
 
         if ($integration === 'pdo-pgsql') {
-            $con  = new \PDO('pgsql:dbname=system_tests_dbname;host=postgres;port=5433', 'system_tests_user', 'system_tests');
-            $stmt = $con->query('SELECT version()');
+            /** @var \PDO $nativePdo */
+            $nativePdo = $this->postgresConnection->getNativeConnection();
+            $stmt      = $nativePdo->query('SELECT version()');
+            $captured  = $stmt instanceof \PDOStatement ? $stmt->queryString : null;
         } elseif ($integration === 'pdo-mysql') {
-            $con  = new \PDO('mysql:dbname=mysql_dbname;host=mysqldb', 'mysqldb', 'mysqldb');
-            $stmt = $con->query('SELECT version()');
+            /** @var \PDO $nativePdo */
+            $nativePdo = $this->mysqlConnection->getNativeConnection();
+            $stmt      = $nativePdo->query('SELECT version()');
+            $captured  = $stmt instanceof \PDOStatement ? $stmt->queryString : null;
         }
-
-        $captured = $stmt instanceof \PDOStatement ? $stmt->queryString : null;
 
         return new JsonResponse([
             'status'      => 'ok',
@@ -386,17 +404,17 @@ class AppController extends AbstractController
             $decoded = json_decode($request->getContent(), true);
             $userId  = $decoded['user_id'] ?? '';
         } elseif ($contentType === 'application/xml') {
-            $decoded = simplexml_load_string(stripslashes($request->getContent()));
-            $userId  = (string) ($decoded[0] ?? '');
+            $crawler = new Crawler();
+            $crawler->addXmlContent(stripslashes($request->getContent()));
+            $userId = $crawler->text('');
         } else {
             $userId = urldecode($request->get('user_id', ''));
         }
 
-        // Use SQLite (always available) for RASP SQL injection detection
-        $dbPath = getenv('SYMFONY_DB_PATH') ?: '/tmp/symfony.db';
-        $pdo    = new \PDO("sqlite:$dbPath");
         // Intentionally unsafe query so ddtrace RASP can detect the injection
-        @$pdo->query("SELECT * FROM users WHERE id = '" . $userId . "'");
+        try {
+            $this->defaultConnection->executeQuery("SELECT * FROM users WHERE id = '" . $userId . "'");
+        } catch (\Doctrine\DBAL\Exception $e) {}
 
         return new Response('Hello, SQLi!', 200, ['Content-Type' => 'text/plain']);
     }
@@ -410,12 +428,16 @@ class AppController extends AbstractController
             $decoded = json_decode($request->getContent(), true);
             $file    = $decoded['file'] ?? '';
         } elseif ($contentType === 'application/xml') {
-            $decoded = simplexml_load_string(stripslashes($request->getContent()));
-            $file    = (string) ($decoded[0] ?? '');
+            $crawler = new Crawler();
+            $crawler->addXmlContent(stripslashes($request->getContent()));
+            $file = $crawler->text('');
         } else {
             $file = urldecode($request->get('file', ''));
         }
-        @file_get_contents($file);
+
+        try {
+            (new Filesystem())->readFile($file);
+        } catch (IOException $e) {}
 
         return new Response('Hello, LFI!', 200, ['Content-Type' => 'text/plain']);
     }
@@ -429,11 +451,14 @@ class AppController extends AbstractController
             $decoded = json_decode($request->getContent(), true);
             $domain  = $decoded['domain'] ?? '';
         } elseif ($contentType === 'application/xml') {
-            $decoded = simplexml_load_string(stripslashes($request->getContent()));
-            $domain  = (string) ($decoded[0] ?? '');
+            $crawler = new Crawler();
+            $crawler->addXmlContent(stripslashes($request->getContent()));
+            $domain = $crawler->text('');
         } else {
             $domain = urldecode($request->get('domain', ''));
         }
+
+        // RASP SSRF detection hooks into file_get_contents HTTP wrappers, not into curl/HttpClient
         @file_get_contents('http://' . $domain);
 
         return new Response('Hello, SSRF!', 200, ['Content-Type' => 'text/plain']);
@@ -442,9 +467,16 @@ class AppController extends AbstractController
     #[Route('/rasp/multiple', name: 'rasp_multiple', methods: ['GET'])]
     public function raspMultiple(Request $request): Response
     {
-        @file_get_contents(urldecode($request->query->get('file1', '')));
-        @file_get_contents(urldecode($request->query->get('file2', '')));
-        @file_get_contents('../etc/passwd');
+        $filesystem = new Filesystem();
+        foreach ([
+            urldecode($request->query->get('file1', '')),
+            urldecode($request->query->get('file2', '')),
+            '../etc/passwd',
+        ] as $file) {
+            try {
+                $filesystem->readFile($file);
+            } catch (IOException $e) {}
+        }
 
         return new Response('Hello, multiple rasp!', 200, ['Content-Type' => 'text/plain']);
     }
@@ -455,94 +487,10 @@ class AppController extends AbstractController
         $service   = $request->query->get('service', '');
         $operation = $request->query->get('operation', '');
 
-        $mysqlOp = static function (string $op): void {
-            $db = new \PDO('mysql:dbname=mysql_dbname;host=mysqldb', 'mysqldb', 'mysqldb');
-            switch ($op) {
-                case 'init':
-                    $db->exec('CREATE TABLE IF NOT EXISTS demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
-                    $db->exec("INSERT IGNORE INTO demo (id, name, age) VALUES (1, 'test', 16)");
-                    $db->exec("INSERT IGNORE INTO demo (id, name, age) VALUES (2, 'test2', 17)");
-                    $db->exec('DROP PROCEDURE IF EXISTS test_procedure');
-                    $db->exec('CREATE PROCEDURE test_procedure(IN test_id INT, IN other VARCHAR(20))
-BEGIN
-    SELECT demo.id, demo.name, demo.age FROM demo WHERE demo.id = test_id;
-END');
-                    break;
-                case 'select':
-                    $db->query('SELECT * from demo where id=1 or id IN (3, 4)');
-                    break;
-                case 'insert':
-                    try {
-                        $db->exec("insert into demo (id, name, age) values(3, 'test3', 163)");
-                    } catch (\PDOException $e) {}
-                    break;
-                case 'update':
-                    $db->exec('update demo set age=22 where id=1');
-                    break;
-                case 'delete':
-                    $db->exec('delete from demo where id=2 or id=11111111');
-                    break;
-                case 'procedure':
-                    $db->exec("call test_procedure(1, 'test')");
-                    break;
-                case 'select_error':
-                    try {
-                        $db->query('SELECT * from demosssss where id=1 or id=233333');
-                    } catch (\PDOException $e) {}
-                    break;
-            }
-        };
-
-        $postgresOp = static function (string $op): void {
-            $db = new \PDO('pgsql:dbname=system_tests_dbname;host=postgres;port=5433', 'system_tests_user', 'system_tests');
-            switch ($op) {
-                case 'init':
-                    try {
-                        $db->exec('CREATE TABLE demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
-                    } catch (\PDOException $e) {}
-                    try {
-                        $db->exec("INSERT INTO demo (id, name, age) VALUES (1, 'test', 16)");
-                    } catch (\PDOException $e) {}
-                    try {
-                        $db->exec("INSERT INTO demo (id, name, age) VALUES (2, 'test2', 17)");
-                    } catch (\PDOException $e) {}
-                    $db->exec("CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10))
-LANGUAGE plpgsql
-AS \$\$
-BEGIN
-    raise info 'Hello World';
-END;
-\$\$");
-                    break;
-                case 'select':
-                    $db->query('SELECT * from demo where id=1 or id IN (3, 4)');
-                    break;
-                case 'insert':
-                    try {
-                        $db->exec("insert into demo (id, name, age) values(3, 'test3', 163)");
-                    } catch (\PDOException $e) {}
-                    break;
-                case 'update':
-                    $db->exec("update demo set age=22 where name like '%tes%'");
-                    break;
-                case 'delete':
-                    $db->exec('delete from demo where id=2 or id=11111111');
-                    break;
-                case 'procedure':
-                    $db->exec("call helloworld(1, 'test')");
-                    break;
-                case 'select_error':
-                    try {
-                        $db->query('SELECT * from demosssssssss where id=1 or id=233333');
-                    } catch (\PDOException $e) {}
-                    break;
-            }
-        };
-
         if ($service === 'mysql') {
-            $mysqlOp($operation);
+            $this->mysqlOperation($operation);
         } elseif ($service === 'postgresql') {
-            $postgresOp($operation);
+            $this->postgresOperation($operation);
         } else {
             return new Response('Unsupported service: ' . htmlspecialchars($service), 400, ['Content-Type' => 'text/plain']);
         }
@@ -554,9 +502,8 @@ END;
     public function traceSql(): Response
     {
         try {
-            $pdo = new \PDO('mysql:dbname=mysql_dbname;host=mysqldb', 'mysqldb', 'mysqldb');
-            $pdo->query('SELECT 1');
-        } catch (\Exception $e) {}
+            $this->mysqlConnection->executeQuery('SELECT 1');
+        } catch (\Doctrine\DBAL\Exception $e) {}
 
         return new Response('OK', 200, ['Content-Type' => 'text/plain']);
     }
@@ -848,6 +795,90 @@ END;
             return new JsonResponse(['error' => $e->getMessage()], 500);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function mysqlOperation(string $op): void
+    {
+        switch ($op) {
+            case 'init':
+                $this->mysqlConnection->executeStatement('CREATE TABLE IF NOT EXISTS demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
+                $this->mysqlConnection->executeStatement("INSERT IGNORE INTO demo (id, name, age) VALUES (1, 'test', 16)");
+                $this->mysqlConnection->executeStatement("INSERT IGNORE INTO demo (id, name, age) VALUES (2, 'test2', 17)");
+                $this->mysqlConnection->executeStatement('DROP PROCEDURE IF EXISTS test_procedure');
+                $this->mysqlConnection->executeStatement('CREATE PROCEDURE test_procedure(IN test_id INT, IN other VARCHAR(20))
+BEGIN
+    SELECT demo.id, demo.name, demo.age FROM demo WHERE demo.id = test_id;
+END');
+                break;
+            case 'select':
+                $this->mysqlConnection->executeQuery('SELECT * from demo where id=1 or id IN (3, 4)');
+                break;
+            case 'insert':
+                try {
+                    $this->mysqlConnection->executeStatement("insert into demo (id, name, age) values(3, 'test3', 163)");
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                break;
+            case 'update':
+                $this->mysqlConnection->executeStatement('update demo set age=22 where id=1');
+                break;
+            case 'delete':
+                $this->mysqlConnection->executeStatement('delete from demo where id=2 or id=11111111');
+                break;
+            case 'procedure':
+                $this->mysqlConnection->executeStatement("call test_procedure(1, 'test')");
+                break;
+            case 'select_error':
+                try {
+                    $this->mysqlConnection->executeQuery('SELECT * from demosssss where id=1 or id=233333');
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                break;
+        }
+    }
+
+    private function postgresOperation(string $op): void
+    {
+        switch ($op) {
+            case 'init':
+                try {
+                    $this->postgresConnection->executeStatement('CREATE TABLE demo(id INT NOT NULL, name VARCHAR(20) NOT NULL, age INT NOT NULL, PRIMARY KEY (id))');
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                try {
+                    $this->postgresConnection->executeStatement("INSERT INTO demo (id, name, age) VALUES (1, 'test', 16)");
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                try {
+                    $this->postgresConnection->executeStatement("INSERT INTO demo (id, name, age) VALUES (2, 'test2', 17)");
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                $this->postgresConnection->executeStatement("CREATE OR REPLACE PROCEDURE helloworld(id int, other varchar(10))
+LANGUAGE plpgsql
+AS \$\$
+BEGIN
+    raise info 'Hello World';
+END;
+\$\$");
+                break;
+            case 'select':
+                $this->postgresConnection->executeQuery('SELECT * from demo where id=1 or id IN (3, 4)');
+                break;
+            case 'insert':
+                try {
+                    $this->postgresConnection->executeStatement("insert into demo (id, name, age) values(3, 'test3', 163)");
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                break;
+            case 'update':
+                $this->postgresConnection->executeStatement("update demo set age=22 where name like '%tes%'");
+                break;
+            case 'delete':
+                $this->postgresConnection->executeStatement('delete from demo where id=2 or id=11111111');
+                break;
+            case 'procedure':
+                $this->postgresConnection->executeStatement("call helloworld(1, 'test')");
+                break;
+            case 'select_error':
+                try {
+                    $this->postgresConnection->executeQuery('SELECT * from demosssssssss where id=1 or id=233333');
+                } catch (\Doctrine\DBAL\Exception $e) {}
+                break;
         }
     }
 }
