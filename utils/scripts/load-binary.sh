@@ -167,8 +167,8 @@ elif [ "$TARGET" = "php" ]; then
     mkdir -p temp
 
     if [ -n "${LIBRARY_TARGET_BRANCH:-}" ]; then
-        # Match GitLab's CI_COMMIT_REF_SLUG: lowercase, non-alphanumeric → '-', collapse and trim
-        NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/-\+/-/g;s/^-//;s/-$//')
+        # Match GitLab's CI_COMMIT_REF_SLUG: lowercase, non-alphanumeric → '-', collapse, truncate to 63 bytes and trim
+        NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/-\+/-/g;s/^-//;s/-$//' | cut -c1-63 | sed 's/-$//')
         ghcr_login_if_token_set
         ../utils/scripts/docker_base_image.sh \
             "ghcr.io/datadog/dd-trace-php/dd-library-php:${NORMALIZED_BRANCH}" \
