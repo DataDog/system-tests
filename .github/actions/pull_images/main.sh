@@ -75,4 +75,4 @@ if [ -n "${DOCKERHUB_USERNAME:-}" ] && [ -n "${DOCKERHUB_TOKEN:-}" ]; then
   retry_with_timeout "Logging in to Docker Hub" 60 bash -c docker_login
 fi
 
-retry_with_timeout "Running docker compose pull" 900 docker compose pull
+retry_with_timeout "Running docker compose pull" 900 docker compose --progress plain pull
