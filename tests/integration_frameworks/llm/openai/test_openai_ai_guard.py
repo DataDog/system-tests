@@ -20,6 +20,8 @@ span attached to the OpenAI trace. The evaluation *outcome* (ALLOW / DENY / ABOR
 already covered by the ``AI_GUARD`` scenario and is intentionally not re-asserted here.
 """
 
+import os
+
 import pytest
 
 from utils import features, scenarios
@@ -29,15 +31,22 @@ from .utils import TOOLS, BaseOpenaiTest
 
 
 @pytest.fixture
-def library_env() -> dict[str, str]:
-    return {
+def library_env(request: pytest.FixtureRequest) -> dict[str, str]:
+    env = {
         "DD_AI_GUARD_ENABLED": "true",
         # after-model evaluation of streamed responses is opt-in
         "DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED": "true",
-        # the AI Guard client requires both an API key and an app key
-        "DD_API_KEY": "mock_api_key",
-        "DD_APP_KEY": "mock_app_key",
     }
+    # The AI Guard client needs an API key + app key. Real keys are required when recording
+    # cassettes (the client calls the real AI Guard API); mock keys are fine on replay since
+    # the VCR proxy matches on the request, not on auth.
+    if request.config.option.generate_cassettes:
+        env["DD_API_KEY"] = os.environ["DD_API_KEY"]
+        env["DD_APP_KEY"] = os.environ["DD_APP_KEY"]
+    else:
+        env["DD_API_KEY"] = "mock_api_key"
+        env["DD_APP_KEY"] = "mock_app_key"
+    return env
 
 
 def _ai_guard_spans(traces: list[list[dict]]) -> list[dict]:
