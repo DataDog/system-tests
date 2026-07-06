@@ -52,6 +52,11 @@ properties:
         type: [string, number]
         description: Runtime version for container-based applications
         examples: ["18", "6", "default"]
+
+      nginx_config:
+        type: string
+        description: Nginx configuration file used by multicontainer weblogs
+        pattern: "^[a-zA-Z0-9_/.-]+$"
       
       install:
         type: array
@@ -159,4 +164,4 @@ examples:
           copy_files:
             - name: "copy-container-run-script"
               local_path: "utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh"
-          remote-command: "sh create_and_run_app_container.sh" 
+          remote-command: "sh create_and_run_app_container.sh"
