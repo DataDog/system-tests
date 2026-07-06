@@ -46,27 +46,28 @@ def _bake_file(library: str) -> Path:
     return REPO_ROOT / "utils" / "build" / "docker" / library / "docker-bake.hcl"
 
 
+def _run(cmd: list[str]) -> subprocess.CompletedProcess:
+    """Run `cmd`, printing stderr (and stdout, if any) before raising on failure."""
+    result = subprocess.run(cmd, cwd=REPO_ROOT, check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Error: command failed: {' '.join(cmd)}")
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
+        result.check_returncode()
+    return result
+
+
 def _bake_config(bake_file: Path, target: str) -> dict:
     """Resolved bake config (context, dockerfile, args, tags) for a single target."""
-    result = subprocess.run(
-        ["docker", "buildx", "bake", "--print", "--progress", "quiet", "-f", str(bake_file), target],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    result = _run(["docker", "buildx", "bake", "--print", "--progress", "quiet", "-f", str(bake_file), target])
     return json.loads(result.stdout)["target"][target]
 
 
 def _tracked_files(path: str) -> list[Path]:
     """Every git-tracked file under `path` (a file or a directory), sorted."""
-    result = subprocess.run(
-        ["git", "ls-files", path],
-        cwd=REPO_ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    result = _run(["git", "ls-files", path])
     return sorted(REPO_ROOT / line for line in result.stdout.splitlines() if line)
 
 
@@ -94,18 +95,25 @@ def compute_hash(bake_config: dict, dependencies: list[str]) -> str:
 
 
 def image_exists(tag: str) -> bool:
+    """Whether `tag` exists on the registry. `docker manifest inspect` exits non-zero both
+    when the tag genuinely doesn't exist and on unrelated failures (auth, network); print
+    the error either way so a real failure isn't silently mistaken for a missing tag.
+    """
     result = subprocess.run(
         ["docker", "manifest", "inspect", tag],
         cwd=REPO_ROOT,
         check=False,
         capture_output=True,
+        text=True,
     )
+    if result.returncode != 0 and result.stderr:
+        print(result.stderr.strip())
     return result.returncode == 0
 
 
 def build_and_push(bake_file: Path, target: str, tag: str) -> None:
     print(f"Building and pushing {tag}")
-    subprocess.run(
+    _run(
         [
             "docker",
             "buildx",
@@ -117,9 +125,7 @@ def build_and_push(bake_file: Path, target: str, tag: str) -> None:
             "-f",
             str(bake_file),
             target,
-        ],
-        cwd=REPO_ROOT,
-        check=True,
+        ]
     )
 
 
