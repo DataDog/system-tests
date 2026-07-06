@@ -99,9 +99,13 @@ refs:
   - &ref_5_107_0 '>=5.107.0'
   - &ref_5_109_0 '>=5.109.0'
   - &ref_5_110_0 '>=5.110.0'
+  - &ref_5_111_0 '>=5.111.0'
   - &ref_6_0_0 '>=6.0.0-pre'
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62217)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_5_98_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -171,7 +175,13 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: *ref_5_27_0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: *ref_5_27_0
-  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
+  tests/appsec/api_security/test_apisecurity_telemetry.py:
+    - weblog_declaration:
+        express4: *ref_5_110_0
+        express5: *ref_5_110_0
+        fastify: *ref_5_110_0
+        nextjs: *ref_5_110_0
+        "*": irrelevant (testing additional variants does not provide extra value here)
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: *ref_5_76_0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: *ref_5_76_0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: *ref_5_76_0
@@ -236,6 +246,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: *ref_4_21_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: *ref_5_104_0
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
@@ -707,9 +718,9 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: *ref_5_109_0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: *ref_5_109_0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: *ref_5_109_0
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: *ref_5_87_0
@@ -2183,8 +2194,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: *ref_5_32_0
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_4_native_stats_no_otlp: missing_feature (nodejs has not implemented native client-side /v0.6/stats computation)
+  tests/parametric/test_otlp_trace_metrics.py: *ref_5_111_0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence::test_fr05_1_metrics_computed_before_sampling: missing_feature (nodejs does not drop sampled-out traces when client-side stats are computed)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (nodejs does not tag child spans with a different service than their parent as top-level)
@@ -2650,6 +2660,14 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
     - weblog_declaration:
         nextjs: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        express4: '>=5.92.0'  # dd-trace-js#7821
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        "*": missing_feature (spawn_child endpoint not implemented)
+        express4: '>=5.92.0'  # dd-trace-js#7821
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
     - weblog_declaration:

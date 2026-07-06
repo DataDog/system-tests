@@ -1,0 +1,11 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+openai-py:
+  build_mode: none
+  framework_versions: ["2.0.0"]
+anthropic-py:
+  build_mode: none
+  framework_versions: ["0.75.0"]
+google_genai-py:
+  build_mode: none
+  framework_versions: ["1.55.0"]

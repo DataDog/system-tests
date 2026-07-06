@@ -1,0 +1,23 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+express4:
+  build_mode: local
+express4-typescript:
+  build_mode: local
+express5:
+  build_mode: local
+fastify:
+  build_mode: local
+nextjs:
+  build_mode: local
+uds-express4:
+  build_mode: local
+openai-js:
+  build_mode: none
+  framework_versions: ["6.0.0"]
+anthropic-js:
+  build_mode: none
+  framework_versions: ["0.71.0"]
+google_genai-js:
+  build_mode: none
+  framework_versions: ["1.34.0"]
