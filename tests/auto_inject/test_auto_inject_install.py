@@ -27,7 +27,8 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         reason="PROF-10783",
     )
     @irrelevant(
-        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
+        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"]
+        and context.weblog_variant in ["test-app-nodejs", "test-app-nodejs-22"],
         reason="PROF-11264",
     )
     @irrelevant(
@@ -48,7 +49,8 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-10783",
     )
     @irrelevant(
-        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
+        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"]
+        and context.weblog_variant in ["test-app-nodejs", "test-app-nodejs-22"],
         reason="PROF-11264",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
@@ -128,6 +130,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
             "test-app-ruby-container",
             "test-app-python-container",
             "test-app-nodejs-container",
+            "test-app-nodejs-container-22",
         ],
         reason="Zombies only appears in containers",
     )
