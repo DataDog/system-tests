@@ -284,7 +284,7 @@ class Test_Meta:
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            logger.info(f"span mane is {span['name']}")
+            logger.info(f"span name is {span['name']}")
             expected_component = get_component_name(span["name"])
 
             assert "component" in span.get("meta", {}), (
