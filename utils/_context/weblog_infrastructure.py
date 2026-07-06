@@ -3,6 +3,7 @@ from typing import Literal, get_args, cast
 
 import pytest
 
+from utils._logger import logger
 from utils._context.containers import (
     WeblogContainer,
     TestedContainer,
@@ -169,6 +170,23 @@ class EndToEndWeblogInfra(WeblogInfra):
         if self._is_proxy_weblog:
             return self._processor_container
         return self.http_container
+
+    def get_weblog_system_info(self) -> None:
+        try:
+            code, (stdout, stderr) = self.library_container.exec_run("uname -a", demux=True)
+            if code or stdout is None:
+                message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
+            else:
+                message = stdout.decode()
+        except BaseException:
+            logger.exception("can't get weblog system info")
+        else:
+            logger.stdout(f"Weblog system: {message.strip()}")
+
+        if self.library_container.environment.get("DD_TRACE_DEBUG") == "true":
+            logger.stdout("\t/!\\ Debug logs are activated in weblog")
+
+        logger.stdout("")
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         self._configure_proxy_weblog(weblog)

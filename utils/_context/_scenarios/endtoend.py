@@ -346,7 +346,7 @@ class EndToEndScenario(DockerScenario):
 
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
-            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self.weblog_infra.get_weblog_system_info)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
@@ -360,23 +360,6 @@ class EndToEndScenario(DockerScenario):
 
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
-
-    def _get_weblog_system_info(self):
-        try:
-            code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
-            if code or stdout is None:
-                message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
-            else:
-                message = stdout.decode()
-        except BaseException:
-            logger.exception("can't get weblog system info")
-        else:
-            logger.stdout(f"Weblog system: {message.strip()}")
-
-        if self.weblog_infra.library_container.environment.get("DD_TRACE_DEBUG") == "true":
-            logger.stdout("\t/!\\ Debug logs are activated in weblog")
-
-        logger.stdout("")
 
     def _start_interfaces_watchdog(self):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
