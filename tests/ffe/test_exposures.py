@@ -253,9 +253,13 @@ class Test_FFE_Exposure_Events:
             f"Expected subject '{self.targeting_key}', got '{matching_event['subject']['id']}'"
         )
 
-    def setup_ffe_multiple_remote_config_files(self):
-        """Set up FFE with multiple remote config files across different target paths."""
-        # Set up multiple Remote Config files with different config IDs
+    def setup_ffe_remote_config_last_received_wins(self):
+        """Set up FFE where a later UFC config replaces (does not merge with) the earlier one.
+
+        FFE_FLAGS delivers a single canonical UFC document: the last received config wins and
+        multiple config files are not merged into one flag set (confirmed across the Go, PHP,
+        Java and libdatadog SDKs).
+        """
         config_id_1 = "ffe-test-config-1"
         config_id_2 = "ffe-test-config-2"
 
@@ -307,16 +311,19 @@ class Test_FFE_Exposure_Events:
 
         self.flag_1 = "test-flag-1"
         self.flag_2 = "test-flag-2"
+        self.flag_1_variation_value = "on"  # value test-flag-1 resolves to under config 1
+        self.flag_1_default = "last-received-wins-default"
         self.targeting_key = "test-user-multi"
+        self.recheck_key = "test-user-last-received-wins"
 
-        # UFC config is replaced, not merged; evaluate each flag while its config is current.
+        # Apply config 1 and evaluate flag 1 while config 1 is the current config.
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).apply()
         self.r1 = weblog.post(
             "/ffe",
             json={
                 "flag": self.flag_1,
                 "variationType": "STRING",
-                "defaultValue": "default",
+                "defaultValue": self.flag_1_default,
                 "targetingKey": self.targeting_key,
                 "attributes": {},
             },
@@ -324,8 +331,8 @@ class Test_FFE_Exposure_Events:
         # Store setup-time wait results; tests run after teardown and cannot produce new payloads.
         self.exposure_ready_1 = wait_for_exposure_event({self.flag_1}, self.targeting_key)
 
+        # Replace config 1 with config 2. Configs are not merged; the last received wins.
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id_2}/config", rc_config_2).apply()
-
         self.r2 = weblog.post(
             "/ffe",
             json={
@@ -338,46 +345,57 @@ class Test_FFE_Exposure_Events:
         )
         self.exposure_ready_2 = wait_for_exposure_event({self.flag_2}, self.targeting_key)
 
-    def test_ffe_multiple_remote_config_files(self):
-        """Test that FFE correctly handles multiple remote config files with different flags."""
+        # Re-evaluate flag 1 now that config 2 is current. Because config 1 was replaced (not
+        # merged), flag 1 is no longer known and must fall through to the caller default.
+        self.r1_after_replace = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_1,
+                "variationType": "STRING",
+                "defaultValue": self.flag_1_default,
+                "targetingKey": self.recheck_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_remote_config_last_received_wins(self):
+        """A later UFC config replaces the earlier one; FFE_FLAGS files are not merged."""
         assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
         assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+        assert self.r1_after_replace.status_code == 200, (
+            f"Flag re-evaluation after config replacement failed: {self.r1_after_replace.text}"
+        )
         assert_wait_results(self.exposure_ready_1, self.exposure_ready_2)
 
-        # Collect all exposure events for our specific flags
-        flags_found = set()
+        # Each flag produced an exposure while its own config was the current config.
+        flag_1_events = find_exposure_events(self.flag_1, self.targeting_key)
+        flag_2_events = find_exposure_events(self.flag_2, self.targeting_key)
+        assert flag_1_events, f"Expected an exposure for '{self.flag_1}' while config 1 was current"
+        assert flag_2_events, f"Expected an exposure for '{self.flag_2}' while config 2 was current"
 
-        for data in interfaces.agent.get_data(path_filters=EXPOSURES_PATH):
-            exposure_data = data["request"]["content"]
-            assert exposure_data is not None, "No exposure events were sent to agent"
+        for event in flag_1_events + flag_2_events:
+            assert event["subject"]["id"] == self.targeting_key, (
+                f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            )
 
-            # Validate context
-            assert "context" in exposure_data, "Response missing 'context' field"
-            context = exposure_data["context"]
-            assert context.get("service") == "weblog", f"Expected service_name 'weblog', got '{context}'"
+        # last-received-wins: after config 2 replaced config 1, flag 1 must no longer resolve to
+        # its config-1 variation and must fall through to the caller default. Had the configs been
+        # merged, flag 1 would still return its config-1 value.
+        value_after_replace = json.loads(self.r1_after_replace.text).get("value")
+        assert value_after_replace != self.flag_1_variation_value, (
+            f"'{self.flag_1}' still resolved to its config-1 value {value_after_replace!r} after its "
+            f"config was replaced; FFE_FLAGS configs must not be merged (last received wins)"
+        )
+        assert value_after_replace == self.flag_1_default, (
+            f"Expected '{self.flag_1}' to fall through to default {self.flag_1_default!r} after config "
+            f"replacement, got {value_after_replace!r}"
+        )
 
-            # Validate exposures array
-            assert "exposures" in exposure_data, "Response missing 'exposures' field"
-            assert isinstance(exposure_data["exposures"], list), "Exposures should be a list"
-
-            # Collect flag keys and validate events for our test flags
-            for event in exposure_data["exposures"]:
-                assert "flag" in event, "Exposure event missing 'flag' field"
-                assert "key" in event["flag"], "Flag missing 'key' field"
-                flag_key = event["flag"]["key"]
-
-                # Only validate events for our test flags with our specific targeting_key
-                if flag_key in (self.flag_1, self.flag_2) and event.get("subject", {}).get("id") == self.targeting_key:
-                    flags_found.add(flag_key)
-                    # Validate subject for our test events
-                    assert "subject" in event, "Exposure event missing 'subject' field"
-                    assert event["subject"]["id"] == self.targeting_key, (
-                        f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
-                    )
-
-        # Verify that both flags were evaluated and sent exposure events
-        assert self.flag_1 in flags_found or self.flag_2 in flags_found, (
-            f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
+        # No new exposure should be emitted for the replaced flag under the recheck subject.
+        replaced_flag_events = find_exposure_events(self.flag_1, self.recheck_key)
+        assert not replaced_flag_events, (
+            f"Expected no exposure for replaced flag '{self.flag_1}' under subject '{self.recheck_key}', "
+            f"but found {len(replaced_flag_events)}"
         )
 
 
