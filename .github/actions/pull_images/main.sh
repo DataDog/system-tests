@@ -22,7 +22,6 @@ NON_RETRYABLE_PATTERNS=(
   "no configuration file provided: not found"
   "empty compose file"
   "yaml: construct errors"
-  "failed to resolve reference"
 )
 
 retry_with_timeout() {
