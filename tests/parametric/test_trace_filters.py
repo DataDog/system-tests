@@ -142,7 +142,6 @@ class Test_Trace_Filters:
             pass
         assert len(test_agent.traces()) == 1, "trace should be kept (regex match)"
 
-
     @enable_tracestats()
     @enable_trace_filters(ignore_resources=[".*ignored.*"])
     def test_trace_filters_ignore_resources(self, test_agent: TestAgentAPI, test_library: APMLibrary):
