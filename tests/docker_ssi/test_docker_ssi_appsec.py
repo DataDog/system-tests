@@ -4,6 +4,13 @@ from tests.parametric.test_telemetry import _mapped_telemetry_name
 from utils import scenarios, interfaces, weblog, features, irrelevant, context
 
 
+_NODEJS_V6_OR_LATER = context.library == "nodejs" and context.library.version.major >= 6
+_NODEJS_UNSUPPORTED_RUNTIME = context.library == "nodejs" and (
+    (_NODEJS_V6_OR_LATER and context.installed_language_runtime < "22.0")
+    or (not _NODEJS_V6_OR_LATER and context.installed_language_runtime < "12.17.0")
+)
+
+
 @features.appsec_service_activation_origin_metric
 @scenarios.docker_ssi_appsec
 class TestDockerSSIAppsecFeatures:
@@ -17,7 +24,7 @@ class TestDockerSSIAppsecFeatures:
 
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "22.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0", reason="Ruby 2.6+ required")

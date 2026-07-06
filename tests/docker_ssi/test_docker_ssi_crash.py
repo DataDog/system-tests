@@ -10,6 +10,13 @@ from utils import (
 from utils import weblog, logger
 
 
+_NODEJS_V6_OR_LATER = context.library == "nodejs" and context.library.version.major >= 6
+_NODEJS_UNSUPPORTED_RUNTIME = context.library == "nodejs" and (
+    (_NODEJS_V6_OR_LATER and context.installed_language_runtime < "22.0")
+    or (not _NODEJS_V6_OR_LATER and context.installed_language_runtime < "12.17.0")
+)
+
+
 @scenarios.docker_ssi_crashtracking
 class TestDockerSSICrash:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
@@ -36,7 +43,7 @@ class TestDockerSSICrash:
 
     @features.ssi_crashtracking
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "22.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
