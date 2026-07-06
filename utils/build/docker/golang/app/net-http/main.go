@@ -687,6 +687,58 @@ func main() {
 		w.Write(jsonData)
 	})
 
+	mux.HandleFunc("/otel_drop_in_extract_and_make_distant_call", func(w http.ResponseWriter, r *http.Request) {
+		url := r.URL.Query().Get("url")
+		if url == "" {
+			w.Write([]byte("OK"))
+			return
+		}
+
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		propagator := otel.GetTextMapPropagator()
+		ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+
+		p := ddotel.NewTracerProvider()
+		otel.SetTracerProvider(p)
+		otelTracer := p.Tracer("")
+		ctx, span := otelTracer.Start(ctx, "otel_extract_distant_call")
+		defer span.End()
+
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if ddSpan, ok := tracer.SpanFromContext(ctx); ok {
+			tracer.Inject(ddSpan.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
+		propagator.Inject(ctx, propagation.HeaderCarrier(req.Header))
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			logrus.Fatalln("client.Do", err)
+		}
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		jsonResponse, err := json.Marshal(struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
+		if err != nil {
+			logrus.Fatalln(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResponse)
+	})
+
 	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
 		sessionID := strconv.Itoa(rand.Int())
 		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
