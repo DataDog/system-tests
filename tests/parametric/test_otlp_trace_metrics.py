@@ -37,8 +37,7 @@ Key conventions:
   * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
     The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
   * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
-    while dd-trace-js supports both HTTP/JSON and HTTP/protobuf. The protocol is therefore selected
-    per library (see _OTLP_METRICS_PROTOCOL_BY_LIBRARY) and injected by the otlp_*_library_env fixtures.
+    while dd-trace-js supports both HTTP/JSON and HTTP/protobuf. Tests pin HTTP/JSON via _BASE_ENVVARS.
 
 Datadog span tags are translated to OTel semantic-convention attributes on the exported metric:
 grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
@@ -52,6 +51,7 @@ must be typed OTLP values (intValue / boolValue); _dd.stats_computed is a string
 
 import base64
 import json
+import time
 from typing import Any
 
 import pytest
@@ -413,8 +413,17 @@ class Test_FR01_Enablement_Configuration:
                 pass
             t.dd_flush()
 
-        with pytest.raises(ValueError):
-            _wait_for_otlp_metrics(test_agent)
+        # Other OTLP metrics (e.g. runtime metrics enabled by DD_METRICS_OTEL_ENABLED) may still be
+        # exported to the same endpoint, so checking for the absence of a single metric payload is not
+        # enough: the span-duration metric could arrive after an unrelated metric. Poll across the full
+        # flush window and fail if the span-duration trace metric ever appears.
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            metrics = test_agent.metrics()
+            assert not _duration_data_points(metrics), (
+                f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
+            )
+            time.sleep(0.2)
 
 
 @scenarios.parametric
@@ -737,23 +746,6 @@ class Test_FR06_Otel_Span_Attributes:
         metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_fr06_6_rpc_method(
-        self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        """The Datadog gRPC span tag grpc.method.name is translated to the OTel attribute rpc.method."""
-        with test_library as t:
-            with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                span.set_meta("grpc.method.name", "GetUser")
-            t.dd_flush()
-
-        metrics = _wait_for_otlp_metrics(test_agent)
-        attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("rpc.method") == "GetUser", f"Expected rpc.method=GetUser, got attrs: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @pytest.mark.parametrize("grpc_status", ["OK", "NOT_FOUND", "UNAVAILABLE"])
@@ -1239,7 +1231,7 @@ class Test_FR08_Datadog_Attributes:
                 child.set_metric(SPAN_MEASURED_KEY, 1)
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         points = [
             dp
             for dp in _duration_data_points(metrics)

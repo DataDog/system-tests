@@ -3924,7 +3924,6 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_6_rpc_method: missing_feature (Java tracer does not translate the grpc.method.name span tag to the rpc.method attribute)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
