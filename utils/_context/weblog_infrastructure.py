@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, get_args
+from typing import Literal, get_args, cast
 
 import pytest
 
@@ -115,7 +115,7 @@ class EndToEndWeblogInfra(WeblogInfra):
         if weblog not in get_args(GoProxyWeblogs):
             return
 
-        self._go_proxy_weblog = weblog
+        self._go_proxy_weblog = cast("GoProxyWeblogs", weblog)
 
         if self._go_proxy_weblog == "envoy":
             self._processor_container = ExternalProcessingContainer()
