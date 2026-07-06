@@ -43,9 +43,7 @@ class TestDockerSSICrash:
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
         crash_url = scenarios.docker_ssi_crashtracking.weblog_url + "/crashme"
-        assert self.r.status_code is None, (
-            f"Response from request {crash_url} was supposed to fail: {self.r}"
-        )
+        assert self.r.status_code is None, f"Response from request {crash_url} was supposed to fail: {self.r}"
 
         # No traces should have been generated
         assert not interfaces.test_agent.get_traces(self.r), (

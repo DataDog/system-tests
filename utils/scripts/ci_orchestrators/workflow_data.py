@@ -97,9 +97,10 @@ def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: lis
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
+                            selected_weblog = weblog
                             if language == "nodejs":
-                                weblog = select_nodejs_aws_weblog_for_ci(weblog)
-                            weblog_spec = _get_weblog_spec(weblogs_spec, weblog)
+                                selected_weblog = select_nodejs_aws_weblog_for_ci(weblog)
+                            weblog_spec = _get_weblog_spec(weblogs_spec, selected_weblog)
                             excluded = set(weblog_spec.get("excluded_os_branches", []))
                             exact = set(weblog_spec.get("exact_os_branches", []))
                             excluded_names = set(weblog_spec.get("excluded_os_names", []))
@@ -124,7 +125,7 @@ def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: lis
                                     if os_type in excludes_types:
                                         should_add_vm = False
                                 if should_add_vm:
-                                    results[scenario][weblog].append(vm["name"])
+                                    results[scenario][selected_weblog].append(vm["name"])
 
     return results
 

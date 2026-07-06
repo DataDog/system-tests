@@ -6,6 +6,8 @@ from utils._context.component_version import ComponentVersion, Version
 
 NODEJS_V5_MIN_RUNTIME = Version("18.0")
 NODEJS_V6_MIN_RUNTIME = Version("22.0")
+NODEJS_V5_MAJOR = 5
+NODEJS_V6_MAJOR = 6
 
 _RELEASE_REF_RE = re.compile(r"^v?(?P<major>\d+)\.")
 _NODEJS_AWS_V6_WEBLOGS = {
@@ -61,18 +63,18 @@ def infer_minimum_nodejs_runtime_for_ci(library_version: str | None = None) -> V
     for ref in refs:
         if not ref:
             continue
-        ref = ref.removeprefix("refs/heads/").removeprefix("refs/tags/")
-        if ref == "master":
+        normalized_ref = ref.removeprefix("refs/heads/").removeprefix("refs/tags/")
+        if normalized_ref == "master":
             return NODEJS_V6_MIN_RUNTIME
 
-        match = _RELEASE_REF_RE.match(ref)
+        match = _RELEASE_REF_RE.match(normalized_ref)
         if not match:
             continue
 
         major = int(match.group("major"))
-        if major >= 6:
+        if major >= NODEJS_V6_MAJOR:
             return NODEJS_V6_MIN_RUNTIME
-        if major == 5:
+        if major == NODEJS_V5_MAJOR:
             return NODEJS_V5_MIN_RUNTIME
 
     return None
