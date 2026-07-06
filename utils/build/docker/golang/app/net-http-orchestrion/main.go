@@ -195,9 +195,14 @@ func main() {
 			return
 		}
 
+		// Extract the incoming trace context via the OTel propagation API and start a new span.
+		// We intentionally use context.Background() instead of r.Context(): r.Context() already
+		// carries the server span created by the HTTP middleware, which would cause the dd-trace-go
+		// OTel bridge to parent otel_extract_distant_call to that span rather than creating a
+		// fresh root with a span link (the expected restart behavior).
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 		propagator := otel.GetTextMapPropagator()
-		ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+		ctx := propagator.Extract(context.Background(), propagation.HeaderCarrier(r.Header))
 
 		p := opentelemetry.NewTracerProvider()
 		otel.SetTracerProvider(p)
