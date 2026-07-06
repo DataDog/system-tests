@@ -21,3 +21,26 @@ anthropic-js:
 google_genai-js:
   build_mode: none
   framework_versions: ["1.34.0"]
+
+# Dependencies for base images built by utils/scripts/build_base_images.py, keyed by
+# docker-bake.hcl target name. See docs/understand/weblogs/weblog-metadata.md.
+base_image_dependencies:
+  express4:
+    - utils/build/docker/nodejs/express
+    - utils/build/docker/nodejs/express4/package.json
+    - utils/build/docker/nodejs/express4/bun.lock
+    - utils/build/docker/nodejs/nft-prune.mjs
+  express5:
+    - utils/build/docker/nodejs/express
+    - utils/build/docker/nodejs/express5/package.json
+    - utils/build/docker/nodejs/express5/bun.lock
+    - utils/build/docker/nodejs/nft-prune.mjs
+  express4-typescript:
+    - utils/build/docker/nodejs/express4-typescript
+    - utils/build/docker/nodejs/nft-prune.mjs
+  fastify:
+    - utils/build/docker/nodejs/fastify
+    - utils/build/docker/nodejs/nft-prune.mjs
+  nextjs:
+    - utils/build/docker/nodejs/nextjs
+    - utils/build/docker/nodejs/nft-prune.mjs
