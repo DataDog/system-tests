@@ -2388,7 +2388,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.31.0-dev
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.18.0
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature (agent /info trace filters not applied client-side)
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.0.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
