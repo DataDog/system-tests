@@ -13,7 +13,7 @@ from utils import weblog, logger
 _NODEJS_V6_OR_LATER = context.library == "nodejs" and context.library.version.major >= 6
 _NODEJS_UNSUPPORTED_RUNTIME = context.library == "nodejs" and (
     (_NODEJS_V6_OR_LATER and context.installed_language_runtime < "22.0")
-    or (not _NODEJS_V6_OR_LATER and context.installed_language_runtime < "12.17.0")
+    or (not _NODEJS_V6_OR_LATER and context.installed_language_runtime < "17.0")
 )
 
 
