@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 COPY --from=oven/bun:1.3.13-alpine /usr/local/bin/bun /usr/local/bin/bun
 
