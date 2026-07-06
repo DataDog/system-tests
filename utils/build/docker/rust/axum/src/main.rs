@@ -9,17 +9,18 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
     routing::{get, options, post},
-    Json, Router,
+    Extension, Json, Router,
 };
-use opentelemetry::trace::TracerProvider as _;
+use opentelemetry::{
+    global::{self, BoxedTracer},
+    trace::{Span as _, SpanKind, Status, TraceContextExt as _, Tracer as _},
+    Context, KeyValue,
+};
+use opentelemetry_http::HeaderExtractor;
 use serde::Deserialize;
 use serde_json::{json, Value};
-use tower_otel::{metrics, trace};
-use tracing::{level_filters::LevelFilter, Instrument as _, Level};
-use tracing_opentelemetry::OpenTelemetrySpanExt as _;
-use tracing_subscriber::{
-    fmt::format::FmtSpan, layer::SubscriberExt as _, util::SubscriberInitExt, Layer as _,
-};
+use tracing::{level_filters::LevelFilter, Level};
+use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
 
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
 
@@ -29,30 +30,36 @@ fn runtime_id() -> &'static str {
     RUNTIME_ID.get_or_init(|| uuid::Uuid::new_v4().to_string())
 }
 
+/// Process-wide handle to the datadog-opentelemetry tracer.
+///
+/// `datadog_opentelemetry::tracing().init()` registers itself as the global
+/// tracer provider, so `global::tracer(..)` returns the Datadog tracer. Creating
+/// spans through this (instead of via the `tracing` crate + a bridge layer) is
+/// what keeps the `opentelemetry` dependency free to float across dd-trace-rs
+/// versions.
+fn tracer() -> &'static BoxedTracer {
+    static TRACER: OnceLock<BoxedTracer> = OnceLock::new();
+    TRACER.get_or_init(|| global::tracer("weblog"))
+}
+
+/// The per-request server span, threaded to handlers via request extensions so
+/// they can enrich it without relying on a thread-local "current span".
+#[derive(Clone)]
+struct ServerSpan(Context);
+
 #[tokio::main]
 async fn main() {
     let tracer_provider = datadog_opentelemetry::tracing().init();
     let meter_provider = datadog_opentelemetry::metrics().init();
 
-    const PKG_NAME: &str = env!("CARGO_PKG_NAME");
-
-    let telemetry = tracing_opentelemetry::layer()
-        .with_tracer(tracer_provider.tracer("default_tracer"))
-        .with_tracked_inactivity(true)
-        .with_filter(LevelFilter::TRACE);
-
-    let fmt = tracing_subscriber::fmt::layer()
-        .with_level(true)
-        .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE);
+    let fmt = tracing_subscriber::fmt::layer().json().with_level(true);
 
     tracing_subscriber::registry()
         .with(LevelFilter::from_level(Level::TRACE))
-        .with(telemetry)
         .with(fmt)
         .init();
 
     opentelemetry::global::set_meter_provider(meter_provider.clone());
-    let meter = opentelemetry::global::meter(PKG_NAME);
 
     let app = Router::new()
         // Root endpoint
@@ -90,9 +97,7 @@ async fn main() {
         .route("/e2e_otel_span", get(e2e_otel_span))
         // endpoint_fallback
         .route("/endpoint_fallback", get(endpoint_fallback))
-        .route_layer(axum::middleware::from_fn(set_http_route))
-        .route_layer(trace::HttpLayer::server(Level::DEBUG))
-        .layer(metrics::HttpLayer::server(&meter))
+        .route_layer(axum::middleware::from_fn(server_span))
         .into_make_service();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:7777").await.unwrap();
@@ -103,36 +108,41 @@ async fn main() {
     tracer_provider.shutdown().unwrap();
 }
 
-// tower-otel 0.9.0 declares no "http.route" field in its span macro, so
-// span.record("http.route", ...) is a silent no-op even when MatchedPath is
-// available. Work around it by setting the attribute directly on the OTel span
-// via OpenTelemetrySpanExt::set_attribute, which bypasses the field registry.
-async fn set_http_route(
-    matched_path: MatchedPath,
-    req: Request<axum::body::Body>,
-    next: Next,
-) -> Response {
-    // Capture for post-response error tagging
-    let span_before = tracing::Span::current();
-    let span = tracing::Span::current();
-    span.set_attribute("http.route", matched_path.as_str().to_owned());
-    // _dd.top_level marks this as a root span so the library interface can
-    // match traces to requests via the user-agent header.
-    span.set_attribute("_dd.top_level", 1i64);
-    // Datadog semantic-convention tags required by system-tests.
-    span.set_attribute("language", "rust");
-    span.set_attribute("component", "axum");
-    span.set_attribute("runtime-id", runtime_id());
-    // process_id goes to the metrics map (numeric value).
-    span.set_attribute("process_id", std::process::id() as i64);
+/// Datadog semantic-convention tags every span needs to satisfy
+/// `validate_all_spans` in system-tests.
+fn dd_tags() -> Vec<KeyValue> {
+    vec![
+        KeyValue::new("language", "rust"),
+        KeyValue::new("component", "axum"),
+        KeyValue::new("runtime-id", runtime_id()),
+        // process_id goes to the metrics map (numeric value).
+        KeyValue::new("process_id", std::process::id() as i64),
+    ]
+}
 
-    // Set http.url from the request URI + host header (with sensitive params scrubbed)
+/// Middleware that opens the root HTTP server span for the request.
+///
+/// This replaces tower-otel's HTTP layer: it extracts any upstream trace context,
+/// starts a server-kind OTel span with the HTTP semantic + Datadog tags, exposes
+/// it to handlers through the request extensions, and closes it once the response
+/// is ready.
+async fn server_span(matched_path: MatchedPath, mut req: Request, next: Next) -> Response {
+    // Continue an upstream distributed trace if the propagation headers are present.
+    let parent_cx =
+        global::get_text_map_propagator(|prop| prop.extract(&HeaderExtractor(req.headers())));
+
+    let route = matched_path.as_str().to_owned();
+    let method = req.method().to_string();
+
     let host = req
         .headers()
         .get(axum::http::header::HOST)
         .and_then(|h| h.to_str().ok())
-        .unwrap_or("localhost:7777");
-    let path = req.uri().path();
+        .unwrap_or("localhost:7777")
+        .to_owned();
+    let server_address = host.split(':').next().unwrap_or(&host).to_owned();
+    let path = req.uri().path().to_owned();
+    // http.url from the request URI + host header (with sensitive params scrubbed)
     let query_scrubbed = req
         .uri()
         .query()
@@ -140,38 +150,65 @@ async fn set_http_route(
         .map(|q| format!("?{q}"))
         .unwrap_or_default();
     let url = format!("http://{host}{path}{query_scrubbed}");
-    span.set_attribute("http.url", url);
 
-    // Set http.referrer_hostname from the Referer header
+    let mut attributes = dd_tags();
+    // _dd.top_level marks this as a root span so the library interface can
+    // match traces to requests via the user-agent header.
+    attributes.push(KeyValue::new("_dd.top_level", 1i64));
+    attributes.push(KeyValue::new("http.request.method", method.clone()));
+    attributes.push(KeyValue::new("http.route", route.clone()));
+    attributes.push(KeyValue::new("url.path", path));
+    attributes.push(KeyValue::new("url.scheme", "http"));
+    attributes.push(KeyValue::new("network.protocol.name", "http"));
+    attributes.push(KeyValue::new("server.address", server_address));
+    attributes.push(KeyValue::new("http.url", url));
+
+    // http.referrer_hostname from the Referer header
     if let Some(referer) = req.headers().get(axum::http::header::REFERER) {
         if let Ok(referer_str) = referer.to_str() {
             if let Some(hostname) = extract_hostname_from_referer(referer_str) {
-                span.set_attribute("http.referrer_hostname", hostname);
+                attributes.push(KeyValue::new("http.referrer_hostname", hostname));
             }
         }
     }
-
-    // Set http.useragent from the User-Agent header
+    // http.useragent from the User-Agent header
     if let Some(ua) = req.headers().get(axum::http::header::USER_AGENT) {
         if let Ok(ua_str) = ua.to_str() {
-            span.set_attribute("http.useragent", ua_str.to_owned());
+            attributes.push(KeyValue::new("http.useragent", ua_str.to_owned()));
         }
     }
-
-    // Set http.client_ip from the best IP header available
+    // http.client_ip / network.client.ip from the best IP header available
     if let Some(ip) = extract_client_ip(req.headers()) {
-        span.set_attribute("http.client_ip", ip.clone());
-        span.set_attribute("network.client.ip", ip);
+        attributes.push(KeyValue::new("http.client_ip", ip.clone()));
+        attributes.push(KeyValue::new("network.client.ip", ip));
     }
+
+    let span = tracer()
+        .span_builder(format!("{method} {route}"))
+        .with_kind(SpanKind::Server)
+        .with_attributes(attributes)
+        .start_with_context(tracer(), &parent_cx);
+
+    let cx = parent_cx.with_span(span);
+    req.extensions_mut().insert(ServerSpan(cx.clone()));
 
     let response = next.run(req).await;
-    // Mark 5xx server errors on the span
+
     let status = response.status();
-    if status.is_server_error() {
-        span_before.set_status(opentelemetry::trace::Status::Error {
-            description: format!("HTTP {}", status.as_u16()).into(),
-        });
+    {
+        let span = cx.span();
+        span.set_attribute(KeyValue::new(
+            "http.response.status_code",
+            status.as_u16() as i64,
+        ));
+        // Mark 5xx server errors on the span
+        if status.is_server_error() {
+            span.set_status(Status::Error {
+                description: format!("HTTP {}", status.as_u16()).into(),
+            });
+        }
     }
+    cx.span().end();
     response
 }
 
@@ -314,16 +351,6 @@ fn is_public_ip(ip: &str) -> bool {
     }
 }
 
-/// Add Datadog semantic tags to the *current* tracing span.
-/// Call this inside any manually-created span to keep validate_all_spans happy.
-fn add_dd_tags() {
-    let span = tracing::Span::current();
-    span.set_attribute("language", "rust");
-    span.set_attribute("component", "axum");
-    span.set_attribute("runtime-id", runtime_id());
-    span.set_attribute("process_id", std::process::id() as i64);
-}
-
 // ─── Basic endpoints ───────────────────────────────────────────────────────────
 
 async fn healthcheck() -> Json<Value> {
@@ -409,22 +436,22 @@ async fn log_library(Query(params): Query<HashMap<String, String>>) -> Response 
 
 // ─── Identification endpoints ──────────────────────────────────────────────────
 
-async fn identify() -> Response {
-    let span = tracing::Span::current();
-    span.set_attribute("usr.id", "usr.id");
-    span.set_attribute("usr.email", "usr.email");
-    span.set_attribute("usr.name", "usr.name");
-    span.set_attribute("usr.session_id", "usr.session_id");
-    span.set_attribute("usr.role", "usr.role");
-    span.set_attribute("usr.scope", "usr.scope");
+async fn identify(Extension(ServerSpan(cx)): Extension<ServerSpan>) -> Response {
+    let span = cx.span();
+    span.set_attribute(KeyValue::new("usr.id", "usr.id"));
+    span.set_attribute(KeyValue::new("usr.email", "usr.email"));
+    span.set_attribute(KeyValue::new("usr.name", "usr.name"));
+    span.set_attribute(KeyValue::new("usr.session_id", "usr.session_id"));
+    span.set_attribute(KeyValue::new("usr.role", "usr.role"));
+    span.set_attribute(KeyValue::new("usr.scope", "usr.scope"));
     (StatusCode::OK, "").into_response()
 }
 
-async fn identify_propagate() -> Response {
-    let span = tracing::Span::current();
+async fn identify_propagate(Extension(ServerSpan(cx)): Extension<ServerSpan>) -> Response {
+    let span = cx.span();
+    span.set_attribute(KeyValue::new("usr.id", "usr.id"));
     // base64 encoding of "usr.id"
-    span.set_attribute("usr.id", "usr.id");
-    span.set_attribute("_dd.p.usr.id", "dXNyLmlk");
+    span.set_attribute(KeyValue::new("_dd.p.usr.id", "dXNyLmlk"));
     (StatusCode::OK, "").into_response()
 }
 
@@ -451,15 +478,16 @@ async fn spans_endpoint(Query(params): Query<HashMap<String, String>>) -> Respon
         .unwrap_or(1);
 
     for _ in 0..repeats {
-        let span = tracing::info_span!(parent: None, "custom.span");
-        let _guard = span.enter();
-        let otel_span = tracing::Span::current();
-        add_dd_tags();
+        let mut attributes = dd_tags();
         for i in 0..garbage {
-            let tag_key = format!("garbage{i}");
-            let tag_val = format!("Random string {i}");
-            otel_span.set_attribute(tag_key, tag_val);
+            attributes.push(KeyValue::new(format!("garbage{i}"), format!("Random string {i}")));
         }
+        // A detached root span (equivalent to the old `parent: None`).
+        let mut span = tracer()
+            .span_builder("custom.span")
+            .with_attributes(attributes)
+            .start_with_context(tracer(), &Context::new());
+        span.end();
     }
 
     let body = format!("Generated {repeats} spans with {garbage} garbage tags\n");
@@ -475,17 +503,17 @@ struct TagValuePath {
 }
 
 async fn tag_value(
+    Extension(ServerSpan(cx)): Extension<ServerSpan>,
     Path(path): Path<TagValuePath>,
     Query(query_params): Query<HashMap<String, String>>,
     method: Method,
     _headers: HeaderMap,
     body: Bytes,
 ) -> Response {
-    let span = tracing::Span::current();
-    span.set_attribute(
+    cx.span().set_attribute(KeyValue::new(
         "appsec.events.system_tests_appsec_event.value",
         path.tag_value.clone(),
-    );
+    ));
 
     let status = StatusCode::from_u16(path.status_code).unwrap_or(StatusCode::OK);
 
@@ -527,21 +555,27 @@ async fn tag_value(
 async fn rasp_sqli(Query(params): Query<HashMap<String, String>>) -> Response {
     let user_id = params.get("user_id").cloned().unwrap_or_default();
     let statement = format!("SELECT * FROM users WHERE id = '{user_id}'");
-    let _guard = tracing::info_span!(
-        parent: None,
-        "sqlite.query",
-        "otel.kind" = "client",
-        "db.system" = "sqlite",
-        "db.statement" = %statement,
-    )
-    .entered();
-    add_dd_tags();
+
+    let mut attributes = dd_tags();
+    attributes.push(KeyValue::new("db.system", "sqlite"));
+    attributes.push(KeyValue::new("db.statement", statement));
+
+    let mut span = tracer()
+        .span_builder("sqlite.query")
+        .with_kind(SpanKind::Client)
+        .with_attributes(attributes)
+        .start_with_context(tracer(), &Context::new());
+    span.end();
+
     StatusCode::OK.into_response()
 }
 
 // ─── External request endpoints ───────────────────────────────────────────────
 
-async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
+async fn make_distant_call(
+    Extension(ServerSpan(server_cx)): Extension<ServerSpan>,
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
     let url = params.get("url").cloned().unwrap_or_default();
     let parsed = reqwest::Url::parse(&url).ok();
     let host = parsed
@@ -567,43 +601,37 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
         })
         .unwrap_or_else(|| url.clone());
 
-    let span = tracing::info_span!(
-        "http.client.request",
-        "otel.kind" = "client",
-        "http.request.method" = "GET",
-        "server.address" = %host,
-        "out.host" = %host,
-        "network.protocol.name" = "http",
-        "http.response.status_code" = tracing::field::Empty,
-    );
-    span.in_scope(|| {
-        add_dd_tags();
-        tracing::Span::current().set_attribute("http.url", scrubbed_url.clone());
-        tracing::Span::current().set_attribute("span.kind", "client");
-    });
+    let mut attributes = dd_tags();
+    attributes.push(KeyValue::new("http.request.method", "GET"));
+    attributes.push(KeyValue::new("server.address", host.clone()));
+    attributes.push(KeyValue::new("out.host", host));
+    attributes.push(KeyValue::new("network.protocol.name", "http"));
+    attributes.push(KeyValue::new("http.url", scrubbed_url));
+    attributes.push(KeyValue::new("span.kind", "client"));
 
-    let resp = reqwest::Client::new()
-        .get(&url)
-        .send()
-        .instrument(span.clone())
-        .await;
+    // Child of the current server span.
+    let mut span = tracer()
+        .span_builder("http.client.request")
+        .with_kind(SpanKind::Client)
+        .with_attributes(attributes)
+        .start_with_context(tracer(), &server_cx);
+
+    let resp = reqwest::Client::new().get(&url).send().await;
 
     match resp {
         Ok(r) => {
             let status = r.status().as_u16();
-            span.in_scope(|| {
-                let s = tracing::Span::current();
-                // Set as both string (meta) and int (metrics) for compatibility
-                s.set_attribute("http.status_code", status.to_string());
-                s.set_attribute("http.response.status_code", status as i64);
-                if status >= 400 {
-                    s.set_attribute("error.type", "HTTP Error");
-                    // Set OTel span status to Error — translated to error:1 by datadog-opentelemetry
-                    s.set_status(opentelemetry::trace::Status::Error {
-                        description: format!("HTTP {status}").into(),
-                    });
-                }
-            });
+            // Set as both string (meta) and int (metrics) for compatibility
+            span.set_attribute(KeyValue::new("http.status_code", status.to_string()));
+            span.set_attribute(KeyValue::new("http.response.status_code", status as i64));
+            if status >= 400 {
+                span.set_attribute(KeyValue::new("error.type", "HTTP Error"));
+                // Set OTel span status to Error — translated to error:1 by datadog-opentelemetry
+                span.set_status(Status::Error {
+                    description: format!("HTTP {status}").into(),
+                });
+            }
+            span.end();
             Json(json!({
                 "url": url,
                 "status_code": status,
@@ -614,6 +642,7 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
         }
         Err(e) => {
             tracing::warn!("make_distant_call failed: {e}");
+            span.end();
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -621,11 +650,14 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
 
 // ─── Service override ─────────────────────────────────────────────────────────
 
-async fn create_extra_service(Query(params): Query<HashMap<String, String>>) -> Response {
+async fn create_extra_service(
+    Extension(ServerSpan(cx)): Extension<ServerSpan>,
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
     let service_name = params.get("serviceName").cloned().unwrap_or_default();
-    let span = tracing::Span::current();
-    span.set_attribute("service.name", service_name.clone());
-    span.set_attribute("service", service_name);
+    let span = cx.span();
+    span.set_attribute(KeyValue::new("service.name", service_name.clone()));
+    span.set_attribute(KeyValue::new("service", service_name));
     (StatusCode::OK, "").into_response()
 }
 
@@ -636,40 +668,40 @@ async fn e2e_single_span(Query(params): Query<HashMap<String, String>>) -> Respo
     let child_name = params.get("childName").cloned().unwrap_or_default();
     let should_index = params.get("shouldIndex").cloned().unwrap_or_default();
 
-    let parent_span = tracing::info_span!(
-        parent: None,
-        "e2e.single.span",
-        "span.name" = %parent_name,
-    );
-
-    {
-        let _guard = parent_span.enter();
-        let otel_span = tracing::Span::current();
-        if should_index == "1" {
-            otel_span.set_attribute("_dd.filter.kept", 1i64);
-            otel_span.set_attribute("manual.keep", "true");
-        }
-
-        let child_span = tracing::info_span!("e2e.child.span", "span.name" = %child_name);
-        let _child_guard = child_span.enter();
-        if should_index == "1" {
-            tracing::Span::current().set_attribute("_dd.filter.kept", 1i64);
-            tracing::Span::current().set_attribute("manual.keep", "true");
-        }
+    let mut parent_attrs = vec![KeyValue::new("span.name", parent_name.clone())];
+    if should_index == "1" {
+        parent_attrs.push(KeyValue::new("_dd.filter.kept", 1i64));
+        parent_attrs.push(KeyValue::new("manual.keep", "true"));
     }
+    // Detached root span (equivalent to the old `parent: None`).
+    let parent_span = tracer()
+        .span_builder("e2e.single.span")
+        .with_attributes(parent_attrs)
+        .start_with_context(tracer(), &Context::new());
+    let parent_cx = Context::new().with_span(parent_span);
+
+    let mut child_attrs = vec![KeyValue::new("span.name", child_name.clone())];
+    if should_index == "1" {
+        child_attrs.push(KeyValue::new("_dd.filter.kept", 1i64));
+        child_attrs.push(KeyValue::new("manual.keep", "true"));
+    }
+    let mut child_span = tracer()
+        .span_builder("e2e.child.span")
+        .with_attributes(child_attrs)
+        .start_with_context(tracer(), &parent_cx);
+    child_span.end();
+
+    parent_cx.span().end();
 
     (StatusCode::OK, "").into_response()
 }
 
 async fn e2e_otel_span(Query(params): Query<HashMap<String, String>>) -> Response {
-    use opentelemetry::trace::{Span as OtelSpan, SpanKind, TraceContextExt, Tracer};
-    use opentelemetry::{Context, KeyValue};
-
     let parent_name = params.get("parentName").cloned().unwrap_or_default();
     let child_name = params.get("childName").cloned().unwrap_or_default();
     let should_index = params.get("shouldIndex").cloned().unwrap_or_default();
 
-    let tracer = opentelemetry::global::tracer("e2e_otel");
+    let tracer = tracer();
 
     let mut parent_builder = tracer.span_builder(parent_name.clone());
     parent_builder.span_kind = Some(SpanKind::Internal);
@@ -701,28 +733,31 @@ async fn e2e_otel_span(Query(params): Query<HashMap<String, String>>) -> Respons
 
 // ─── endpoint_fallback ────────────────────────────────────────────────────────
 
-async fn endpoint_fallback(Query(params): Query<HashMap<String, String>>) -> Response {
+async fn endpoint_fallback(
+    Extension(ServerSpan(cx)): Extension<ServerSpan>,
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
     let case = params.get("case").cloned().unwrap_or_default();
-    let span = tracing::Span::current();
+    let span = cx.span();
 
     match case.as_str() {
         "with_route" => {
-            span.set_attribute("http.route", "/users/{id}/profile".to_owned());
+            span.set_attribute(KeyValue::new("http.route", "/users/{id}/profile"));
             (StatusCode::OK, "").into_response()
         }
         "with_endpoint" => {
-            span.set_attribute("http.endpoint", "/api/products/{param:int}".to_owned());
+            span.set_attribute(KeyValue::new("http.endpoint", "/api/products/{param:int}"));
             (StatusCode::OK, "").into_response()
         }
         "404" => {
-            span.set_attribute("http.endpoint", "/api/notfound/{param:int}".to_owned());
+            span.set_attribute(KeyValue::new("http.endpoint", "/api/notfound/{param:int}"));
             (StatusCode::NOT_FOUND, "").into_response()
         }
         "computed" => {
-            span.set_attribute(
+            span.set_attribute(KeyValue::new(
                 "http.url",
-                "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456".to_owned(),
-            );
+                "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456",
+            ));
             (StatusCode::OK, "").into_response()
         }
         _ => (StatusCode::OK, "").into_response(),

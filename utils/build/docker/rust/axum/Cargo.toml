@@ -16,16 +16,16 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0" }
 reqwest = { version = "0.12", default-features = false, features = ["json"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tower = "0.5.3"
-tower-otel = { version = "*", features = ["axum"] }
-tracing = "0.1.44"
-tracing-opentelemetry = "*"
-tracing-subscriber = "0.3.23"
+tracing = { version = "0.1", default-features = false }
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+  "env-filter",
+  "fmt",
+  "json",
+] }
 uuid = { version = "1", features = ["v4"] }
 
-# NOTE: the opentelemetry versions are managed by install_ddtrace.sh during the docker build.
-# The "*" requirement here is only used for local development.
-opentelemetry = "*"
+opentelemetry = { version = "*", features = ["logs"] }
+opentelemetry-http = { version = "*" }
 
 # Version changed at build time by install_ddtrace.sh
 datadog-opentelemetry = { path = "../../../../../binaries/dd-trace-rs/datadog-opentelemetry", features = [
