@@ -527,6 +527,10 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_infra.appsec_rules_file or ""
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.appsec_rules_file or ""
 
         return result
+
+    @property
+    def appsec_rules_file(self) -> str | None:
+        return self.weblog_infra.appsec_rules_file

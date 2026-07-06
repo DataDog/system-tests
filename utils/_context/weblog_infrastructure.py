@@ -95,9 +95,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             "INCLUDE_SQLSERVER": "true" if MsSqlServerContainer in other_containers else "false",
         }
 
-        self.appsec_rules_file: str | None = None
-        if "DD_APPSEC_RULES" in self._environment:
-            self.appsec_rules_file: str = self._environment["DD_APPSEC_RULES"]
+        self.appsec_rules_file: str | None = self._environment.get("DD_APPSEC_RULES", None)
 
     def configure(self, config: pytest.Config):
         self._configure_proxy_weblog(config.option.weblog)
