@@ -21,9 +21,33 @@ manifest:
         net-http: v0.1  # real version not known
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: flaky (APMAPI-178)
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.0.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.0.0
@@ -47,6 +71,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         echo: v2.7.0-dev  # Automatic with orchestrion, semi-manual without
+        uds-echo: v2.9.1  # TODO: a lower version might be supported
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
@@ -872,7 +897,12 @@ manifest:
   ? tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot
   : missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_method_snapshot: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:  # TODO: a lower version might be supported
+    - declaration: missing_feature (feature not implemented)
+      component_version: <2.9.1
+      weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+    - declaration: missing_feature (feature not implemented)
+      excluded_weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_log_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
@@ -882,7 +912,12 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.2.3
   # TODO(andrei): un-skip when datadog-agent v7.79.0 is released (Go's symdb upload comes from the agent, not from dd-trace-go)
-  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata:  # TODO: a lower version might be supported
+    - declaration: missing_feature (extended event schema not yet shipped)
+      component_version: <2.9.1
+      weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+    - declaration: missing_feature (extended event schema not yet shipped)
+      excluded_weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
@@ -1064,7 +1099,15 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
-  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: missing_feature
+  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
@@ -1076,7 +1119,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.50.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.72.0-dev
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+      component_version: <2.9.1
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v1.67.0
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: bug (APMAPI-1030)
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v1.70.1
@@ -1093,7 +1138,9 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.61.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v1.59.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: missing_feature (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Tracer doesn't support automatic logs injection)
+      component_version: <2.9.1
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v1.73.0-dev
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: v1.59.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_match_service_target_case_insensitively:  # Modified by easy win activation script
@@ -1103,7 +1150,13 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.59.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: '>=2.9.1'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Experiments_Per_Subject: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Subjects: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <2.5.0
@@ -1133,7 +1186,17 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_key_with_asterisk: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_opm.py: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
+      component_version: <2.9.1
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_AgentInfo::test_tracer_consumes_info_opm: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_state: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_tracestate_member: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_missing_inbound_opm_does_not_enforce: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Injection::test_local_opm_overrides_inbound_opm: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Injection::test_opm_injected_in_both_styles: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_Strict::test_strict_missing_inbound_enforces: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_TrustedOpms::test_untrusted_inbound_opm_is_enforced: missing_feature (Org Propagation Guard RFC not yet implemented)
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was updated in v1.62.0 (w3c phase 2))
       component_version: <1.62.0
@@ -1163,7 +1226,9 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # TODO: a lower version might be supported
+    - declaration: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
+      component_version: <2.9.1
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
     - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
       component_version: '<=2.10.0-dev'
@@ -1191,10 +1256,10 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: missing_feature
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: '>=2.9.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: missing_feature
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: '>=2.9.1'  # TODO: a lower version might be supported
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: '>=2.9.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error:  # Modified by easy win activation script
@@ -1229,7 +1294,20 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : "irrelevant (\"Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py: '>=2.9.1'  # TODO: a lower version might be supported
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header: missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
@@ -1263,7 +1341,9 @@ manifest:
   tests/parametric/test_span_links.py: missing_feature
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_always_keep_span_sampling_sss011: missing_feature (The Go tracer does not have a way to modulate trace sampling once started)
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: bug (APMAPI-1545)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-1545)
+      component_version: <2.9.1
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019:  # Modified by easy win activation script
     - declaration: bug (APMAPI-1545)
       component_version: <2.5.0
@@ -1292,7 +1372,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: '>=2.7.0-dev.1'
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_srv_src_inherited_on_child_span: v2.9.0-dev
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
+      component_version: <2.9.1
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.5.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
@@ -1314,20 +1396,72 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Go does not set top-level Service field in stats payload)
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)
-  tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+  tests/test_baggage.py::Test_Baggage_Headers_Basic:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      component_version: <2.9.1
+      weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      excluded_weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v2.2.3
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v2.2.3
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-  tests/test_baggage.py::Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      component_version: <2.9.1
+      weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      excluded_weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Items:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      component_version: <2.9.1
+      weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      excluded_weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+  tests/test_baggage.py::Test_Only_Baggage_Header:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      component_version: <2.9.1
+      weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
+    - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+      excluded_weblog: [net-http, gin, uds-echo, net-http-orchestrion, echo, chi]
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: v1.70.1
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: v1.60.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: v1.69.0
@@ -1407,7 +1541,15 @@ manifest:
     - declaration: missing_feature (Implemented in v1.72.0)
       component_version: <1.73.0-dev
   tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: v1.38.0 (APMRP-360)
-  tests/test_distributed.py::Test_DistributedHttp: missing_feature
+  tests/test_distributed.py::Test_DistributedHttp:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -1438,7 +1580,7 @@ manifest:
       component_version: <=1.41.0
   tests/test_identify.py::Test_Propagate: v1.48.0-rc.1
   tests/test_identify.py::Test_Propagate_Legacy: v1.41.0
-  tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.10.0-dev
+  tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.10.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.9.1
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
@@ -1460,7 +1602,15 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v2.10.0-dev
-  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py:
     - weblog_declaration:
@@ -1469,7 +1619,15 @@ manifest:
         net-http-orchestrion: v2.4.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v2.7.0-dev
-  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.72.1  # real version unknown
@@ -1489,7 +1647,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         net-http: v1.73.0
-  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport::test_send_as_a_tag:
+  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport::test_send_as_a_tag:  # Easy win for net-http and version 2.9.1
     - component_version: ">=2.7.0-dev"
       declaration: missing_feature (span got an event property set as an empty list)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v1.46.0
@@ -1611,7 +1769,23 @@ manifest:
         '*': irrelevant
         net-http: '>=2.8.0'
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.9.1'
+        gin: '>=2.9.1'
+        uds-echo: '>=2.9.1'
+        net-http-orchestrion: '>=2.9.1'
+        echo: '>=2.9.1'
+        chi: '>=2.9.1'
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence:
+    - weblog_declaration:
+        net-http: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+        uds-echo: missing_feature
+        gin: missing_feature
+        echo: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
   tests/test_v1_payloads.py:  # Modified by easy win activation script
@@ -1619,5 +1793,21 @@ manifest:
         '*': missing_feature
         net-http: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
-  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (not implemented by default yet)
+        uds-echo: v2.9.1  # TODO: a lower version might be supported
+        chi: v2.9.1  # TODO: a lower version might be supported
+        echo: v2.9.1  # TODO: a lower version might be supported
+        gin: v2.9.1  # TODO: a lower version might be supported
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - declaration: missing_feature (not implemented by default yet)
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
   tests/test_v1_payloads.py::Test_V1Payloads: v2.7.0
+  tests/test_v1_payloads.py::Test_V1SpanEvents:
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
