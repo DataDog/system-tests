@@ -494,8 +494,7 @@ build_base_images:
     - job: build_ci_image
       artifacts: false
       optional: true
-  stage: system-tests-utils
-  allow_failure: true
+  stage: e2e
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
