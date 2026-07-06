@@ -19,6 +19,7 @@ import requests
 
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
+from utils._context._image_mirror import mirror_image
 from utils._context.ports import ContainerPorts
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
@@ -526,7 +527,10 @@ class ImageInfo:
 
         self.env: dict[str, str] | None = None
         self.labels: dict[str, str] = {}
-        self.name = image_name
+        # When the image mirror is enabled (USE_IMAGE_MIRROR), pull from the
+        # mirror; keep the original ref for diagnostics if the mirror pull fails.
+        self.original_name = image_name
+        self.name = mirror_image(image_name)
         self.local_image_only = local_image_only
 
     def _pull_with_retries(self, max_retries: int = 4, delay: int = 4):
@@ -555,7 +559,20 @@ class ImageInfo:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
-            self._image = self._pull_with_retries()
+            try:
+                self._image = self._pull_with_retries()
+            except (docker.errors.APIError, requests.exceptions.ConnectionError):
+                if self.name != self.original_name:
+                    # The mirror rewrote this ref but the mirror copy could not be
+                    # pulled. Don't silently fall back to the original registry:
+                    # that would mask an incomplete mirror and could pull a
+                    # different digest than the one that was mirrored.
+                    logger.stdout(
+                        f"Could not pull mirrored image {self.name} (mirror of {self.original_name}). "
+                        "The mirror may be incomplete — regenerate it with "
+                        "utils/scripts/update_mirror_images.py and check the mirror_images CI job."
+                    )
+                raise
 
         self._init_from_attrs(self._image.attrs)
 
