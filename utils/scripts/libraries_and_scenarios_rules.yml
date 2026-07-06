@@ -157,7 +157,7 @@ patterns:
 # This section contains rules to apply to files related to GitHub Actions.
 ################################################################################
 
-    .github/actions/pull_images/action.yml:
+    .github/actions/pull_images/*:
         scenario_groups: end_to_end
     .github/chainguard/*:
         scenario_groups: null

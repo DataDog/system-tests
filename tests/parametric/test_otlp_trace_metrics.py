@@ -1155,6 +1155,40 @@ class Test_FR08_Datadog_Attributes:
             f"Expected at least one datadog.<process-tag> resource attribute, got: {list(resource_attrs)}"
         )
 
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_fr08_9_top_level_not_mixed_with_measured(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """A top-level and a non-top-level span with identical dimensions bucket separately.
+
+        The measured child (selected per FR04) shares every aggregation dimension with its top-level root,
+        yet the two must yield separate data points -- one datadog.span.top_level=true, one false -- rather
+        than being merged into a single bucket mislabeled false.
+        """
+        with test_library as t:
+            with (
+                t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as parent,
+                t.dd_start_span(name="web.request", service=SERVICE, typestr="web", parent_id=parent.span_id) as child,
+            ):
+                child.set_metric(SPAN_MEASURED_KEY, 1)
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        points = [
+            dp
+            for dp in _duration_data_points(metrics)
+            if _data_point_attrs(dp).get("datadog.operation.name") == "web.request"
+        ]
+        top_level_flags = {_data_point_attrs(dp).get("datadog.span.top_level") for dp in points}
+        assert top_level_flags == {True, False}, (
+            "Top-level and non-top-level measured spans sharing the same aggregation dimensions must bucket "
+            "separately, each keeping its datadog.span.top_level flag; expected both a true and a false data "
+            f"point, got: {[_data_point_attrs(dp) for dp in points]}"
+        )
+
 
 @scenarios.parametric
 @features.client_side_stats_supported
