@@ -41,7 +41,6 @@ class EndToEndWeblogInfra(WeblogInfra):
     This class is meant to work with EndToEndScenario
     """
 
-    _is_proxy_weblog: bool
     _go_proxy_weblog: GoProxyWeblogs | None = None
     _processor_container: GoProcessorContainer
     """the Datadog library under test, running as an Envoy external processor
