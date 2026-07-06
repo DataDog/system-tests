@@ -52,7 +52,6 @@ must be typed OTLP values (intValue / boolValue); _dd.stats_computed is a string
 
 import base64
 import json
-import time
 from typing import Any
 
 import pytest
@@ -106,10 +105,12 @@ _PROCESS_TAG_KEYS = (
     "svc.auto",
 )
 
+
 # OTLP metrics export protocol per library. Transport support differs across tracers: dd-trace-py
 # and dd-trace-go export HTTP/JSON, dd-trace-java exports HTTP/protobuf.
 def _get_otlp_metrics_protocol() -> str:
     return "http/protobuf" if context.library.name == "java" else "http/json"
+
 
 # Common env shared by every test. The OTLP trace-metrics flush cadence is fixed at 10s and is not
 # driven by OTEL_METRIC_EXPORT_INTERVAL; the internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL
@@ -188,7 +189,8 @@ def _all_metric_names(metrics: list[Any]) -> list[str]:
 
 def _snake_to_camel(key: str) -> str:
     """Convert a snake_case protobuf field name to its canonical OTLP/JSON camelCase form.
-    Already-camelCase keys (no underscore) pass through unchanged."""
+    Already-camelCase keys (no underscore) pass through unchanged.
+    """
     head, *rest = key.split("_")
     return head + "".join(word[:1].upper() + word[1:] for word in rest)
 
@@ -198,7 +200,8 @@ def _normalize_keys(obj: Any) -> Any:  # noqa: ANN401
     read identically: canonical OTLP/JSON (camelCase, the http/json path) and protobuf decoded
     by the test agent (snake_case, via MessageToDict(preserving_proto_field_name=True), the
     http/protobuf and grpc paths). Only dict keys are rewritten; values — including attribute
-    names carried under "key"/"value" — are left untouched."""
+    names carried under "key"/"value" — are left untouched.
+    """
     if isinstance(obj, dict):
         return {_snake_to_camel(k): _normalize_keys(v) for k, v in obj.items()}
     if isinstance(obj, list):
@@ -753,6 +756,7 @@ class Test_FR06_Otel_Span_Attributes:
         assert attrs.get("rpc.method") == "GetUser", f"Expected rpc.method=GetUser, got attrs: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("grpc_status", ["OK", "NOT_FOUND", "UNAVAILABLE"])
     def test_fr06_7_rpc_status_code(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
@@ -771,11 +775,8 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        # The value may be carried as a typed int (intValue) or as a string (stringValue) depending
-        # on the tracer; accept either representation of gRPC status code 0.
-        rpc_status = attrs.get("rpc.response.status_code")
-        assert rpc_status is not None and int(rpc_status) == 0, (
-            f"Expected rpc.response.status_code == 0, got attrs: {attrs}"
+        assert attrs.get("rpc.response.status_code") == grpc_status, (
+            f"Expected rpc.response.status_code == {grpc_status!r}, got attrs: {attrs}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
