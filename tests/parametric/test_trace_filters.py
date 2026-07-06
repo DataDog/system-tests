@@ -87,6 +87,30 @@ class Test_Trace_Filters:
         assert not test_agent.traces(), "trace lacking the required tag should be dropped"
 
     @enable_tracestats()
+    @enable_trace_filters(require_regex=["require_tag:.*true.*"])
+    def test_trace_filters_require_regex_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """A require_regex filter drops traces whose root span lacks a tag matching the regex."""
+        with test_library, test_library.dd_start_span(name="web.request"):
+            pass
+        assert not test_agent.traces(), "trace lacking the required regex tag should be dropped"
+
+    @enable_tracestats()
+    @enable_trace_filters(reject=["reject_tag:true"])
+    def test_trace_filters_reject_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """A reject filter does not drop traces whose root span lacks the reject tag."""
+        with test_library, test_library.dd_start_span(name="web.request"):
+            pass
+        assert len(test_agent.traces()) == 1, "trace lacking the reject tag should not be dropped"
+
+    @enable_tracestats()
+    @enable_trace_filters(reject_regex=["reject_tag:.*true.*"])
+    def test_trace_filters_reject_regex_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """A reject_regex filter does not drop traces whose root span lacks a tag matching the regex."""
+        with test_library, test_library.dd_start_span(name="web.request"):
+            pass
+        assert len(test_agent.traces()) == 1, "trace lacking the reject regex tag should not be dropped"
+
+    @enable_tracestats()
     @enable_trace_filters(reject=["reject_tag"])
     def test_trace_filters_reject_no_value(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """A key-only reject filter matches the tag regardless of its value."""
@@ -118,13 +142,6 @@ class Test_Trace_Filters:
             pass
         assert len(test_agent.traces()) == 1, "trace should be kept (regex match)"
 
-    @enable_tracestats()
-    @enable_trace_filters(require_regex=["require_tag:.*true.*"])
-    def test_trace_filters_require_regex_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """A require_regex filter drops traces whose root span lacks a tag matching the regex."""
-        with test_library, test_library.dd_start_span(name="web.request"):
-            pass
-        assert not test_agent.traces(), "trace lacking the required regex tag should be dropped"
 
     @enable_tracestats()
     @enable_trace_filters(ignore_resources=[".*ignored.*"])
