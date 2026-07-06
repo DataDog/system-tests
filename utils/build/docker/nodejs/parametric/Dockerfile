@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:18.10-slim
 
 COPY --from=oven/bun:1.3.13 /usr/local/bin/bun /usr/local/bin/bun
 
