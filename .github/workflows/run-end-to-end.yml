@@ -67,11 +67,6 @@ on:
         default: false
         required: false
         type: boolean
-      push_to_feature_parity_dashbaord:
-        description: "Shall we push results to Feature Parity Dashbaord"
-        default: false
-        required: false
-        type: boolean
       skip_empty_scenarios:
         description: "Skip scenarios that contains only xfail or irrelevant tests"
         default: false
@@ -566,21 +561,6 @@ jobs:
         name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
         retention-days: ${{ inputs.artifact_retention_days }}
-
-    - name: Push results to Feature Parity Dashboard
-      if: ${{ inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
-      run: |
-        for folder in logs*/ ; do
-          curl -X POST ${FP_IMPORT_URL} \
-            --fail
-            --header "Content-Type: application/json" \
-            --header "FP_API_KEY: ${FP_API_KEY}" \
-            --data "@./${folder}feature_parity.json" \
-            --include
-        done
-      env:
-        FP_API_KEY: ${{ secrets.FP_API_KEY }}
-        FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Push results to Test Optimization
       if: steps.build.outcome == 'success' && inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)

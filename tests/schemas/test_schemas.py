@@ -142,6 +142,20 @@ class Test_DdtraceSchemas:
                 and context.library < "golang@2.5.0",
                 ticket="APMSP-2590",
             ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path="$",  # service is missing
+                condition=context.library == "nodejs"
+                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                ticket="APMLP-1498",
+            ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path="$.Stats[].Stats[]",  # IsTraceRoot is missing
+                condition=context.library == "nodejs"
+                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                ticket="APMLP-1498",
+            ),
         ]
 
         assert_no_schema_error(interfaces.library, known_bugs)

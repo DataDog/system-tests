@@ -484,3 +484,39 @@ class Test_ComputeLibrariesAndScenarios:
                 new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
                 old_manifests=Path("./wrong/path"),
             )
+
+
+@scenarios.test_the_test
+class Test_GitLabMode:
+    @pytest.mark.parametrize(
+        ("source", "expected_event"),
+        [("merge_request_event", "pull_request"), ("push", "push"), ("schedule", "schedule")],
+    )
+    def test_event_and_ref_normalization(self, monkeypatch: pytest.MonkeyPatch, source: str, expected_event: str):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
+        inputs = build_inputs()
+        assert inputs.event_name == expected_event
+        assert inputs.ref == "refs/heads/feat-x"
+        assert inputs.is_gitlab
+
+    def test_empty_ref(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "")
+        inputs = build_inputs()
+        assert inputs.ref == ""
+
+    def test_libraries_output_sorted(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
+        # all-libs trigger file
+        inputs = build_inputs(modified_files=[".github/workflows/run-docker-ssi.yml"])
+        output = process(inputs)
+        libs_line = next((line for line in output if line.startswith("libraries=")), None)
+        assert libs_line is not None, "GitLab mode must emit 'libraries=' output"
+        libs = json.loads(libs_line.split("=", 1)[1])
+        parts = libs.split()
+        assert parts == sorted(parts)

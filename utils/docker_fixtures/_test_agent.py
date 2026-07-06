@@ -18,6 +18,7 @@ import requests
 from retry import retry
 
 from utils._logger import logger
+from utils._context._image_mirror import mirror_image
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from .spec import remoteconfig
 from .spec.trace import V06StatsPayload
@@ -54,7 +55,8 @@ class TestAgentFactory:
     """
 
     def __init__(self, image: str):
-        self.image = image
+        # Pull/run from the mirror when USE_IMAGE_MIRROR is enabled (no-op otherwise).
+        self.image = mirror_image(image)
         self.host_log_folder = ""
 
     def configure(self, host_log_folder: str):

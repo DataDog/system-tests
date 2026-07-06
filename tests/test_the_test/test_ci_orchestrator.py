@@ -36,6 +36,19 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
+def test_get_endtoend_definitions_empty_scenario_map():
+    # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
+    defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")
+    assert isinstance(defs["endtoend_defs"]["parallel_jobs"], list)
+
+
+@scenarios.test_the_test
+def test_get_endtoend_definitions_missing_endtoend_key():
+    defs = get_endtoend_definitions("ruby", {"other": ["X"]}, [], "dev", 200000, 256, "123", "")
+    assert defs["endtoend_defs"]["parallel_jobs"] == []
+
+
+@scenarios.test_the_test
 def test_nodejs_weblogs_dont_require_prebuild():
     scenario_map = {"endtoend": ["DEFAULT"]}
     defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "")

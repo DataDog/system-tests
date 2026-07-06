@@ -6,6 +6,8 @@ jvm.*, go.*, v8js.*, etc.) instead of DD-proprietary naming (runtime.dotnet.*,
 runtime.go.*, runtime.node.*, etc.).
 """
 
+from __future__ import annotations
+
 from typing import TypedDict
 
 from utils import context, features, interfaces, scenarios, weblog
@@ -54,7 +56,7 @@ EXPECTED_METRICS: dict[str, dict[str, MetricConstraints]] = {
         "go.memory.allocations": {"all": []},
         "go.memory.gc.goal": {"all": []},
         "go.memory.limit": {"all": []},
-        "go.memory.used": {"all": []},
+        "go.memory.used": {"all": [], "present_values": {"go.memory.type": ["other", "stack"]}},
         "go.processor.limit": {"all": []},
     },
     "nodejs": {
