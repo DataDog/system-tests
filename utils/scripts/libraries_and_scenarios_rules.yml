@@ -157,7 +157,7 @@ patterns:
 # This section contains rules to apply to files related to GitHub Actions.
 ################################################################################
 
-    .github/actions/pull_images/action.yml:
+    .github/actions/pull_images/*:
         scenario_groups: end_to_end
     .github/chainguard/*:
         scenario_groups: null
@@ -559,6 +559,10 @@ patterns:
     tests/fuzzer/*:
         scenario_groups: exotics
         libraries: null
+
+    tests/appsec/test_sca_reachability.py:
+        scenario_groups: null
+        libraries: [java, python]
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.

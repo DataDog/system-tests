@@ -1,0 +1,4 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+otel_collector:
+  build_mode: none

@@ -13,9 +13,41 @@ ALLOWED_VARIABLES = [
     "DD_INSTALLER_INJECTOR_VERSION",
     "SYSTEM_TESTS_REF",
     "DD_INSTALL_SCRIPT_VERSION",
+    "SYSTEM_TESTS_RUN_ALL_VMS",
 ]
 
 LANG_STAGES = sorted(COMPONENT_GROUPS.ssi)
+
+
+def _is_local_include(entry: object) -> bool:
+    """Return True if a GitLab include entry refers to a local file path.
+
+    local: includes are resolved against the root project, not the project
+    that wrote the YAML.  When this file's output is used as a child pipeline
+    in a tracer repo, any local: path from system-tests' .gitlab-ci.yml would
+    be looked up inside the tracer repo and cause a pipeline compilation error.
+    """
+    if isinstance(entry, str):
+        return True  # bare strings are local file paths
+    if isinstance(entry, dict):
+        return "local" in entry
+    return False
+
+
+def _strip_local_includes(data: dict) -> None:
+    """Remove local: include entries from *data* in-place.
+
+    Only remote: (and other non-local) entries are kept so that the generated
+    pipeline is safe to run from any project.
+    """
+    raw = data.get("include")
+    if raw is None:
+        return
+    if isinstance(raw, list):
+        data["include"] = [e for e in raw if not _is_local_include(e)]
+    else:
+        # Single mapping or bare string
+        data["include"] = [] if _is_local_include(raw) else [raw]
 
 
 def main(language: str | None = None) -> None:
@@ -29,6 +61,11 @@ def main(language: str | None = None) -> None:
 
     with open(".gitlab-ci.yml", "r") as file:
         data = yaml.safe_load(file)
+
+    # Drop local: includes — they resolve against the root project (the tracer
+    # repo) when this output is used as a child pipeline, not against
+    # system-tests, so any local: path would cause a compilation error there.
+    _strip_local_includes(data)
 
     # Ensure 'variables' section exists and update with new values
     data.setdefault("variables", {}).update(new_variables)
