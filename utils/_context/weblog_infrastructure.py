@@ -100,8 +100,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             self.appsec_rules_file: str = self._environment["DD_APPSEC_RULES"]
 
     def configure(self, config: pytest.Config):
-        if config.option.weblog in get_args(GoProxyWeblogs):
-            self._activate_proxy_weblog(config.option.weblog)
+        self._configure_proxy_weblog(config.option.weblog)
 
         self.library_container.depends_on.extend(self._other_containers)
 
@@ -112,7 +111,12 @@ class EndToEndWeblogInfra(WeblogInfra):
             self.library_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.library_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
-    def _activate_proxy_weblog(self, weblog: GoProxyWeblogs) -> None:
+    def _configure_proxy_weblog(self, weblog: str) -> None:
+        """Configure Proxy weblog if weblog argument correspond tyo any value of GoProxyWeblogs"""
+
+        if weblog not in get_args(GoProxyWeblogs):
+            return
+
         self._go_proxy_weblog = weblog
 
         if self._go_proxy_weblog == "envoy":
@@ -169,6 +173,8 @@ class EndToEndWeblogInfra(WeblogInfra):
         return self.http_container
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
+        self._configure_proxy_weblog(weblog)
+
         return [
             image_name
             for container in self.get_containers()
