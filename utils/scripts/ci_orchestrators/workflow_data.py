@@ -631,16 +631,16 @@ if __name__ == "__main__":
         unique_id="000",
     )
 
-if __name__ == "__main__":
-    from utils._context._scenarios import get_all_scenarios
+# if __name__ == "__main__":
+#     from utils._context._scenarios import get_all_scenarios
 
-    library = "python"
-    for weblog in Weblog.load(library):
-        for scenario in get_all_scenarios():
-            if scenario.github_workflow != "endtoend":
-                continue
-            groups = [group.name for group in scenario.scenario_groups]
-            legacy = _is_supported(weblog, scenario, "")
-            new_value = weblog.support_scenario(scenario.name, groups)
-            if legacy is not new_value:
-                print((legacy, new_value, weblog.name, scenario.name, groups))
+#     library = "python"
+#     for weblog in Weblog.load(library):
+#         for scenario in get_all_scenarios():
+#             if scenario.github_workflow != "endtoend":
+#                 continue
+#             groups = [group.name for group in scenario.scenario_groups]
+#             legacy = _is_supported(weblog, scenario, "")
+#             new_value = weblog.support_scenario(scenario.name, groups)
+#             if legacy is not new_value:
+#                 print((legacy, new_value, weblog.name, scenario.name, groups))
