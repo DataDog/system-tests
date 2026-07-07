@@ -25,14 +25,14 @@ MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
 
 BASE_ENVVARS = {
-    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+    "DD_FLAGGING_ENABLED": "true",
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
 
 CDN_ENVVARS = {
-    "DD_FLAGGING_CDN_POLL_INTERVAL_SECONDS": "0.2",
-    "DD_FLAGGING_CDN_REQUEST_TIMEOUT_SECONDS": "1",
+    "DD_FLAGGING_CONFIGURATION_SOURCE_POLL_INTERVAL_SECONDS": "0.2",
+    "DD_FLAGGING_CONFIGURATION_SOURCE_REQUEST_TIMEOUT_SECONDS": "1",
 }
 
 EVALUATION_CASE: dict[str, Any] = {
@@ -74,13 +74,13 @@ def library_env(request: pytest.FixtureRequest, mock_ffe_cdn: MockFFECDNServer) 
         mock_ffe_cdn.set_response(str(response))
 
     if configuration_source is not None:
-        env["DD_FLAGGING_SOURCE_MODE"] = str(configuration_source)
+        env["DD_FLAGGING_CONFIGURATION_SOURCE"] = str(configuration_source)
 
     if params.get("cdn", True):
         base_url_form = params.get("base_url_form", "root")
         cdn_base_url = mock_ffe_cdn.library_config_url if base_url_form == "endpoint" else mock_ffe_cdn.library_base_url
         env |= CDN_ENVVARS
-        env["DD_FLAGGING_CDN_BASE_URL"] = cdn_base_url
+        env["DD_FLAGGING_CONFIGURATION_SOURCE_BASE_URL"] = cdn_base_url
 
     if api_key is not None:
         env["DD_API_KEY"] = str(api_key)

@@ -101,7 +101,12 @@ class MockFFECDNState:
 
     def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
-        configuration_source = headers.get("DD-Flagging-Source-Mode") or headers.get("X-Datadog-Flagging-Source-Mode")
+        configuration_source = (
+            headers.get("DD-Flagging-Configuration-Source")
+            or headers.get("X-Datadog-Flagging-Configuration-Source")
+            or headers.get("DD-Flagging-Source-Mode")
+            or headers.get("X-Datadog-Flagging-Source-Mode")
+        )
         if configuration_source is None:
             query = parse_qs(parsed.query)
             values = query.get("configuration_source") or query.get("source_mode")
