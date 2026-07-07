@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
-from docker.errors import DockerException
+from docker.errors import DockerException, NotFound
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from .core import Scenario, ScenarioGroup, scenario_groups as groups
@@ -41,7 +41,20 @@ class DockerFixturesScenario(Scenario):
     def _clean_containers(self):
         """Some containers may still exists from previous unfinished sessions"""
 
-        for container in get_docker_client().containers.list(all=True):
+        try:
+            containers = get_docker_client().containers.list(all=True)
+        except NotFound:
+            # Docker SDK raises NotFound when a container disappears between list() and inspect().
+            # Fall back to the raw API which returns only IDs and names without a second inspect call.
+            raw = get_docker_client().api.containers(all=True)
+            containers = []
+            for r in raw:
+                try:
+                    containers.append(get_docker_client().containers.get(r["Id"]))
+                except NotFound:
+                    pass
+
+        for container in containers:
             if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
                 logger.info(f"Removing {container}")
 

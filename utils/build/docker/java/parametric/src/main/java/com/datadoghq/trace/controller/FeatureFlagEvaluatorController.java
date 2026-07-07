@@ -2,7 +2,9 @@ package com.datadoghq.trace.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.datadoghq.trace.opentracing.controller.OpenTracingController;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import datadog.trace.api.DDSpanId;
 import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
@@ -13,6 +15,9 @@ import dev.openfeature.sdk.OpenFeatureAPI;
 import dev.openfeature.sdk.ProviderState;
 import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,26 +83,19 @@ public class FeatureFlagEvaluatorController {
         Object value;
         String reason;
         final EvaluationContext context = context(request);
+        // Re-activate the caller-supplied root span around the eval so the ffe_* tags (Phase 2) land
+        // on the test's span. The client sends span_id as a decimal STRING (see
+        // _test_client_parametric.py:814-815); the OT registry is keyed by DDSpanId.from(...).
+        // An unknown/missing/unparsable span_id leaves target null -> skip activation, never throw (T-01-DOS).
+        final Span target = resolveSpan(request.getSpanId());
         try {
-            value = switch (request.getVariationType()) {
-                case "BOOLEAN" ->
-                        client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
-                case "STRING" -> client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
-                case "INTEGER" -> {
-                    final Number integerEval = (Number) request.getDefaultValue();
-                    yield client.getIntegerValue(request.getFlag(), integerEval.intValue(), context);
+            if (target != null) {
+                try (Scope scope = GlobalTracer.get().scopeManager().activate(target)) {
+                    value = evaluate(request, context);
                 }
-                case "NUMERIC" -> {
-                    final Number doubleEval = (Number) request.getDefaultValue();
-                    yield client.getDoubleValue(request.getFlag(), doubleEval.doubleValue(), context);
-                }
-                case "JSON" -> {
-                    final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                    yield context.convertValue(objectValue);
-                }
-                default -> request.getDefaultValue();
-            };
-
+            } else {
+                value = evaluate(request, context);
+            }
             reason = "DEFAULT";
         } catch (Throwable e) {
             LOGGER.error("Error on resolution", e);
@@ -108,6 +106,40 @@ public class FeatureFlagEvaluatorController {
         result.put("reason", reason);
         result.put("value", value);
         return ResponseEntity.ok(result);
+    }
+
+    /** Look up a span by the (string) span_id the test client sends; null when missing/unparsable. */
+    private static Span resolveSpan(final String spanId) {
+        if (spanId == null || spanId.isEmpty()) {
+            return null;
+        }
+        try {
+            return OpenTracingController.getSpan(DDSpanId.from(spanId));
+        } catch (Throwable e) {
+            LOGGER.warn("Could not resolve span for span_id {}", spanId, e);
+            return null;
+        }
+    }
+
+    private Object evaluate(final EvaluateRequest request, final EvaluationContext context) {
+        return switch (request.getVariationType()) {
+            case "BOOLEAN" ->
+                    client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+            case "STRING" -> client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+            case "INTEGER" -> {
+                final Number integerEval = (Number) request.getDefaultValue();
+                yield client.getIntegerValue(request.getFlag(), integerEval.intValue(), context);
+            }
+            case "NUMERIC" -> {
+                final Number doubleEval = (Number) request.getDefaultValue();
+                yield client.getDoubleValue(request.getFlag(), doubleEval.doubleValue(), context);
+            }
+            case "JSON" -> {
+                final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
+                yield context.convertValue(objectValue);
+            }
+            default -> request.getDefaultValue();
+        };
     }
 
     private static EvaluationContext context(final EvaluateRequest request) {
@@ -141,10 +173,21 @@ public class FeatureFlagEvaluatorController {
         private Object defaultValue;
         @JsonAlias("targeting_key")
         private String targetingKey;
+        // The test client sends span_id as a STRING (see _test_client_parametric.py:814-815).
+        @JsonAlias("span_id")
+        private String spanId;
         private Map<String, Object> attributes;
 
         public Map<String, Object> getAttributes() {
             return attributes;
+        }
+
+        public String getSpanId() {
+            return spanId;
+        }
+
+        public void setSpanId(String spanId) {
+            this.spanId = spanId;
         }
 
         public void setAttributes(Map<String, Object> attributes) {
