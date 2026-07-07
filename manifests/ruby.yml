@@ -247,9 +247,48 @@ manifest:
         sinatra41: '>=2.35.0'
         rack: '>=2.35.0'
         sinatra32: '>=2.35.0'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
