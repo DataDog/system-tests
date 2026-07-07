@@ -3734,7 +3734,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: v1.31.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.31.0
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Sources: missing_feature (FFL-2731 tracks agentless CDN configuration-source system-tests contract until SDK implementation lands)
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Sources: missing_feature (FFL-2693 tracks Java agentless CDN implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
