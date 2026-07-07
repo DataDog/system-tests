@@ -242,9 +242,11 @@ class Test_Feature_Flag_Source_Modes:
         mock_cdn.set_fixture("malformed_warm")
         _wait_for_status(
             mock_cdn,
-            lambda current: current["fixture"] == "malformed_warm"
-            and current["requests_total"] > requests_before
-            and current["last_status_code"] == 200,
+            lambda current: (
+                current["fixture"] == "malformed_warm"
+                and current["requests_total"] > requests_before
+                and current["last_status_code"] == 200
+            ),
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -258,9 +260,11 @@ class Test_Feature_Flag_Source_Modes:
         mock_cdn.set_fixture("unchanged_etag_304")
         status = _wait_for_status(
             mock_cdn,
-            lambda current: current["fixture"] == "unchanged_etag_304"
-            and current["last_status_code"] == 304
-            and current["last_if_none_match"] is not None,
+            lambda current: (
+                current["fixture"] == "unchanged_etag_304"
+                and current["last_status_code"] == 304
+                and current["last_if_none_match"] is not None
+            ),
             "unchanged_etag_304 conditional request",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -287,6 +291,18 @@ class Test_Feature_Flag_Source_Modes:
             mock_cdn,
             lambda current: current["status_codes"][-2:] == [509, 200],
             "bad_to_good 509 to 200 recovery",
+        )
+        _assert_expected_value(_evaluate(test_library))
+        assert status["last_source_mode"] == "cdn"
+
+    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "error_500_to_good"}], indirect=True)
+    def test_500_to_good_cold_recovery(self, test_library: APMLibrary, mock_cdn: MockCDNServer) -> None:
+        assert test_library.ffe_start(), "failed to start FFE provider for error_500_to_good"
+
+        status = _wait_for_status(
+            mock_cdn,
+            lambda current: current["status_codes"][-2:] == [500, 200],
+            "error_500_to_good 500 to 200 recovery",
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["last_source_mode"] == "cdn"
@@ -334,10 +350,29 @@ class Test_Feature_Flag_Source_Modes:
 
         status = _wait_for_status(
             mock_cdn,
-            lambda current: current["fixture"] == "delayed_no_overlap"
-            and current["in_flight"] == 0
-            and current["max_in_flight"] >= 1,
+            lambda current: (
+                current["fixture"] == "delayed_no_overlap"
+                and current["in_flight"] == 0
+                and current["max_in_flight"] >= 1
+            ),
             "delayed_no_overlap completion",
         )
         assert status["max_in_flight"] == 1
         assert status["last_source_mode"] == "cdn"
+
+    def test_mock_cdn_status_is_metadata_only(self, mock_cdn: MockCDNServer) -> None:
+        status = mock_cdn.status()
+        assert set(status) == {
+            "fixture",
+            "requests_total",
+            "in_flight",
+            "max_in_flight",
+            "last_if_none_match",
+            "last_auth_present",
+            "last_source_mode",
+            "last_status_code",
+            "status_codes",
+        }
+        assert "ufc" not in status
+        assert "payload" not in status
+        assert "body" not in status

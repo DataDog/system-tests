@@ -28,6 +28,7 @@ FIXTURE_IDS = {
     "explicit_source_mode",
     "delayed_no_overlap",
     "bad_to_good",
+    "error_500_to_good",
     "bad_to_unchanged",
     "good_to_bad",
     "good_to_unchanged",
@@ -43,6 +44,7 @@ REPO_ROOT = Path(__file__).parents[2]
 FIXTURE_DIR = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "fixtures"
 RESPONSE_SEQUENCES = {
     "bad_to_good": (RETRYABLE_STATUS_CODE, HTTPStatus.OK),
+    "error_500_to_good": (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.OK),
     "bad_to_unchanged": (RETRYABLE_STATUS_CODE, HTTPStatus.NOT_MODIFIED),
     "good_to_bad": (HTTPStatus.OK, RETRYABLE_STATUS_CODE),
     "good_to_unchanged": (HTTPStatus.OK, HTTPStatus.NOT_MODIFIED),
