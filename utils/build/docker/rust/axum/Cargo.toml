@@ -1,0 +1,26 @@
+[package]
+name         = "weblog"
+version      = "0.0.1"
+description  = "Dockerized Rust/Axum based HTTP server for System tests"
+edition      = "2021"
+publish      = false
+
+rust-version = "1.91" # should match Dockerfile rustc version
+
+[[bin]]
+name  = "weblog"
+path  = "src/main.rs"
+doc   = false
+bench = false
+
+[dependencies]
+axum               = { version = "0.8.9", features = ["json"] }
+opentelemetry      = { version = "*", features = ["logs"] }
+opentelemetry-http = { version = "*" }
+reqwest = "0.13.4"
+serde_json = "1.0.150"
+tokio              = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.44"
+
+# Version changed at build time by install_ddtrace.sh
+datadog-opentelemetry = "0.4.0"
