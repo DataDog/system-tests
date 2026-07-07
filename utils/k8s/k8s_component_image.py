@@ -28,7 +28,7 @@ class K8sComponentImage:
         """Initialize a K8sComponentImage instance.
 
         Args:
-            registry_url: The full Docker image URL (e.g. 'gcr.io/datadoghq/apm-inject:latest')
+            registry_url: The full Docker image URL (e.g. 'registry.datadoghq.com/apm-inject:latest')
             version_extractor: A function that takes a registry URL and returns the extracted version
             ssi_registry_base: Optional base registry URL to prepend to the registry_url
 
