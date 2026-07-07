@@ -1,0 +1,45 @@
+lang_variant:
+    name: nodejs22
+    version: 22
+    cache: true
+    install:
+      - os_type: linux
+        os_distro: deb
+        remote-command: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl gnupg
+          curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+
+      - os_type: linux
+        os_distro: rpm
+        remote-command: |
+          sudo yum install tar -y || sudo dnf install tar -y || true
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm install 22
+          nvm use 22
+          n=$(which node)
+          n=${n%/bin/node}
+          chmod -R 755 "$n/bin/"*
+          sudo cp -r "$n"/bin "$n"/lib "$n"/share /usr/local
+
+weblog:
+    name: test-app-nodejs-22
+    install:
+      - os_type: linux
+        copy_files:
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
+
+          - name: copy-binary
+            local_path: lib-injection/build/docker/nodejs/sample-app/index.js
+
+        remote-command: sh test-app-nodejs_run.sh

@@ -1,6 +1,7 @@
 from collections import defaultdict
 import json
 from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
+from utils.nodejs_runtime import filter_nodejs_runtimes_for_ci, select_nodejs_aws_weblog_for_ci
 
 
 def _load_json(file_path: str) -> dict:
@@ -95,7 +96,10 @@ def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: lis
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
-                            weblog_spec = _get_weblog_spec(weblogs_spec, weblog)
+                            selected_weblog = weblog
+                            if language == "nodejs":
+                                selected_weblog = select_nodejs_aws_weblog_for_ci(weblog)
+                            weblog_spec = _get_weblog_spec(weblogs_spec, selected_weblog)
                             excluded = set(weblog_spec.get("excluded_os_branches", []))
                             exact = set(weblog_spec.get("exact_os_branches", []))
                             excluded_names = set(weblog_spec.get("excluded_os_names", []))
@@ -120,7 +124,7 @@ def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: lis
                                     if os_type in excludes_types:
                                         should_add_vm = False
                                 if should_add_vm:
-                                    results[scenario][weblog].append(vm["name"])
+                                    results[scenario][selected_weblog].append(vm["name"])
 
     return results
 
@@ -159,10 +163,10 @@ def get_docker_ssi_matrix(
                                 if not allowed_versions:
                                     allowed_runtimes.append("")
                                 elif "*" in allowed_versions:
-                                    allowed_runtimes.extend(
-                                        runtime["version"]
-                                        for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
-                                    )
+                                    language_runtimes = runtimes["docker_ssi_runtimes"].get(language, [])
+                                    if language == "nodejs":
+                                        language_runtimes = filter_nodejs_runtimes_for_ci(language_runtimes)
+                                    allowed_runtimes.extend(runtime["version"] for runtime in language_runtimes)
                                 else:
                                     runtime_map = {
                                         rt["version_id"]: rt["version"]

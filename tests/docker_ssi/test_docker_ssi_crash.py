@@ -8,6 +8,7 @@ from utils import (
     interfaces,
 )
 from utils import weblog, logger
+from utils.nodejs_runtime import is_unsupported_nodejs_runtime
 
 
 @scenarios.docker_ssi_crashtracking
@@ -36,14 +37,13 @@ class TestDockerSSICrash:
 
     @features.ssi_crashtracking
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(is_unsupported_nodejs_runtime(context.library, context.installed_language_runtime))
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
-        assert self.r.status_code is None, (
-            f"Response from request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'} was supposed to fail: {self.r}"
-        )
+        crash_url = scenarios.docker_ssi_crashtracking.weblog_url + "/crashme"
+        assert self.r.status_code is None, f"Response from request {crash_url} was supposed to fail: {self.r}"
 
         # No traces should have been generated
         assert not interfaces.test_agent.get_traces(self.r), (
