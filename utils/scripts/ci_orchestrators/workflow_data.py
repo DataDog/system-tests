@@ -1,6 +1,6 @@
 from collections import defaultdict
 import json
-from utils._context._scenarios import go_proxies, Scenario
+from utils._context._scenarios import Scenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
 
 
@@ -578,11 +578,8 @@ def _is_supported(weblog: Weblog, scenario: Scenario, _ci_environment: str) -> b
             return False
 
     # Go proxies
-    if scenario_name.startswith("GO_PROXIES"):
-        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog_name) != library:
-            return False
-    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog_name):
-        if not scenario_name.startswith("GO_PROXIES"):
+    if weblog.name in ("envoy", "haproxy"):
+        if scenario.name not in ("DEFAULT", "APPSEC_BLOCKING"):
             return False
 
     # otel collector
