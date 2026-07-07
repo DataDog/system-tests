@@ -34,20 +34,6 @@ class WeblogMetaData:
         return self.build_mode != BuildMode.none
 
     @property
-    def base_dockerfile(self) -> Path | None:
-        """Returns the path of the base image docker file if exists, else None"""
-        image_name = self.base_image_tag
-
-        if image_name is None:
-            return None
-
-        file_prefix = image_name.replace("datadog/system-tests:", "").rsplit("-", 1)[0]
-        assert file_prefix.endswith(".base")
-
-        path = Path(f"utils/build/docker/{self.library}/{file_prefix}.Dockerfile")
-        return path if path.exists() else None
-
-    @property
     def base_image_tag(self) -> str | None:
         """system-tests base image tag read from the first FROM in the weblog Dockerfile."""
         dockerfile = Path(f"utils/build/docker/{self.library}/{self.name}.Dockerfile")

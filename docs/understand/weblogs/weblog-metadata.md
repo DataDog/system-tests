@@ -65,3 +65,7 @@ listed paths, then pushes the base image to Docker Hub tagged `<base-tag>-<hash1
 doesn't already exist. It never overwrites an existing tag, so weblog Dockerfiles that `FROM` a
 base image must have their tag updated by hand after a new one is pushed (run the script with
 `--dry-run` to find the current tag for each target).
+
+GitHub Actions never builds these base images itself: `utils/scripts/wait_for_base_image.py`
+polls Docker Hub for the tag currently referenced in the weblog's `FROM` line (with a timeout)
+before building the weblog, since GitLab CI is the only pipeline that builds and pushes them.
