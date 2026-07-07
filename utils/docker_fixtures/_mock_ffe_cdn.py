@@ -20,22 +20,16 @@ from utils.docker_fixtures._core import get_host_port
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-FIXTURE_IDS = {
-    "valid_control",
-    "missing_auth_cold",
-    "missing_auth_warm",
-    "malformed_cold",
-    "malformed_warm",
-    "unchanged_etag_304",
-    "explicit_source_mode",
-    "delayed_no_overlap",
-    "bad_to_good",
-    "error_500_to_good",
-    "bad_to_unchanged",
-    "good_to_bad",
-    "good_to_unchanged",
+RESPONSE_IDS = {
+    "valid",
+    "unauthorized",
+    "malformed",
+    "not_modified",
+    "retryable",
+    "server_error",
+    "delayed_valid",
 }
-DEFAULT_FIXTURE = "valid_control"
+DEFAULT_RESPONSE = "valid"
 UFC_ETAG = '"ufc-v1"'
 EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 0.5
@@ -45,17 +39,10 @@ RETRYABLE_STATUS_CODE = 509
 REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
-RESPONSE_SEQUENCES = {
-    "bad_to_good": (RETRYABLE_STATUS_CODE, HTTPStatus.OK),
-    "error_500_to_good": (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.OK),
-    "bad_to_unchanged": (RETRYABLE_STATUS_CODE, HTTPStatus.NOT_MODIFIED),
-    "good_to_bad": (HTTPStatus.OK, RETRYABLE_STATUS_CODE),
-    "good_to_unchanged": (HTTPStatus.OK, HTTPStatus.NOT_MODIFIED),
-}
 
 
 class MockFFECDNStatus(TypedDict):
-    fixture: str
+    response: str
     requests_total: int
     in_flight: int
     max_in_flight: int
@@ -71,7 +58,8 @@ class MockFFECDNStatus(TypedDict):
 class MockFFECDNState:
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self.fixture = DEFAULT_FIXTURE
+        self.responses: tuple[str, ...] = (DEFAULT_RESPONSE,)
+        self.last_response = DEFAULT_RESPONSE
         self.requests_total = 0
         self.in_flight = 0
         self.max_in_flight = 0
@@ -86,7 +74,8 @@ class MockFFECDNState:
 
     def reset(self) -> None:
         with self._lock:
-            self.fixture = DEFAULT_FIXTURE
+            self.responses = (DEFAULT_RESPONSE,)
+            self.last_response = DEFAULT_RESPONSE
             self.requests_total = 0
             self.in_flight = 0
             self.max_in_flight = 0
@@ -99,18 +88,18 @@ class MockFFECDNState:
             self.status_codes = []
             self._sequence_index = 0
 
-    def set_fixture(self, fixture: str) -> None:
+    def set_responses(self, responses: object) -> None:
+        validated_responses = validate_responses(responses)
         with self._lock:
-            if fixture not in FIXTURE_IDS:
-                raise ValueError(f"unknown mock FFE CDN fixture: {fixture}")
-            self.fixture = fixture
+            self.responses = tuple(validated_responses)
+            self.last_response = validated_responses[0]
             self.last_if_none_match = None
             self.last_source_mode = None
             self.last_status_code = None
             self.status_codes = []
             self._sequence_index = 0
 
-    def record_request(self, headers: Mapping[str, str], path: str) -> tuple[str, int]:
+    def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
         source_mode = headers.get("DD-Flagging-Source-Mode") or headers.get("X-Datadog-Flagging-Source-Mode")
         if source_mode is None:
@@ -126,9 +115,10 @@ class MockFFECDNState:
             self.last_if_none_match = headers.get("If-None-Match")
             self.last_auth_present = _has_auth(headers)
             self.last_source_mode = source_mode
-            sequence_index = self._sequence_index
+            response = self.responses[min(self._sequence_index, len(self.responses) - 1)]
+            self.last_response = response
             self._sequence_index += 1
-            return self.fixture, sequence_index
+            return response
 
     def record_response(self, status_code: int) -> None:
         with self._lock:
@@ -142,7 +132,7 @@ class MockFFECDNState:
     def status(self) -> MockFFECDNStatus:
         with self._lock:
             return {
-                "fixture": self.fixture,
+                "response": self.last_response,
                 "requests_total": self.requests_total,
                 "in_flight": self.in_flight,
                 "max_in_flight": self.max_in_flight,
@@ -168,7 +158,7 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
     # Endpoint contract:
     # - GET /mock/ufc/config
     # - GET /status
-    # - POST /control/fixture
+    # - POST /control/responses
     # - POST /control/reset
     server: MockFFECDNHTTPServer
 
@@ -184,8 +174,8 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path == "/control/fixture":
-            self._handle_fixture_control()
+        if path == "/control/responses":
+            self._handle_responses_control()
             return
         if path == "/control/reset":
             self.server.state.reset()
@@ -198,16 +188,14 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
 
     def _handle_config(self) -> None:
         request_headers = dict(self.headers)
-        fixture, sequence_index = self.server.state.record_request(request_headers, self.path)
+        response = self.server.state.record_request(request_headers, self.path)
         try:
-            if fixture == "delayed_no_overlap":
+            if response == "delayed_valid":
                 time.sleep(DELAYED_RESPONSE_SECONDS)
 
-            status_code, body, headers = _response_for_fixture(
-                fixture=fixture,
+            status_code, body, headers = _response_for_response(
+                response=response,
                 has_auth=_has_auth(request_headers),
-                if_none_match=self.headers.get("If-None-Match"),
-                sequence_index=sequence_index,
             )
             self.server.state.record_response(status_code)
             self.send_response(status_code)
@@ -219,7 +207,7 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
         finally:
             self.server.state.finish_request()
 
-    def _handle_fixture_control(self) -> None:
+    def _handle_responses_control(self) -> None:
         content_length = int(self.headers.get("Content-Length", "0"))
         if content_length > MAX_CONTROL_BODY_BYTES:
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": "control body too large"})
@@ -232,16 +220,18 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
             self._write_json(HTTPStatus.BAD_REQUEST, {"error": "invalid control JSON"})
             return
 
-        if not isinstance(payload, dict) or set(payload) != {"fixture"}:
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain only fixture"})
+        if not isinstance(payload, dict) or set(payload) != {"responses"}:
+            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain only responses"})
             return
 
-        fixture = payload["fixture"]
-        if not isinstance(fixture, str) or fixture not in FIXTURE_IDS:
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "unknown fixture"})
+        responses = payload["responses"]
+        try:
+            validated_responses = validate_responses(responses)
+        except ValueError as error:
+            self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
             return
 
-        self.server.state.set_fixture(fixture)
+        self.server.state.set_responses(validated_responses)
         self._write_json(HTTPStatus.OK, self.server.state.status())
 
     def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFECDNStatus) -> None:
@@ -260,43 +250,35 @@ def _valid_ufc_bytes() -> bytes:
     return UFC_FIXTURE_PATH.read_bytes()
 
 
-def _response_for_fixture(
-    fixture: str, *, has_auth: bool, if_none_match: str | None, sequence_index: int
-) -> tuple[int, bytes, dict[str, str]]:
-    if fixture in {"missing_auth_cold", "missing_auth_warm"}:
-        return HTTPStatus.UNAUTHORIZED, b"", {}
+def validate_responses(responses: object) -> list[str]:
+    if not isinstance(responses, list) or not responses:
+        raise ValueError("responses must be a non-empty list")
 
+    if any(not isinstance(response, str) for response in responses):
+        raise ValueError("responses must contain only strings")
+
+    unknown_responses = sorted({response for response in responses if response not in RESPONSE_IDS})
+    if unknown_responses:
+        raise ValueError(f"unknown response: {', '.join(unknown_responses)}")
+
+    return responses
+
+
+def _response_for_response(response: str, *, has_auth: bool) -> tuple[int, bytes, dict[str, str]]:
     if not has_auth:
         return HTTPStatus.UNAUTHORIZED, b"", {}
 
-    if fixture in RESPONSE_SEQUENCES:
-        return _response_for_sequence(fixture, if_none_match, sequence_index)
-
-    if fixture == "unchanged_etag_304" and if_none_match == UFC_ETAG:
-        return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
-
-    if fixture in {"malformed_cold", "malformed_warm"}:
+    if response == "unauthorized":
+        return HTTPStatus.UNAUTHORIZED, b"", {}
+    if response == "malformed":
         return HTTPStatus.OK, MALFORMED_UFC_BYTES, {"Content-Type": "application/json"}
-
-    return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
-
-
-def _response_for_sequence(
-    fixture: str, if_none_match: str | None, sequence_index: int
-) -> tuple[int, bytes, dict[str, str]]:
-    sequence = RESPONSE_SEQUENCES[fixture]
-    status_code = sequence[min(sequence_index, len(sequence) - 1)]
-
-    if fixture == "good_to_unchanged" and status_code == HTTPStatus.NOT_MODIFIED and if_none_match != UFC_ETAG:
-        status_code = HTTPStatus.OK
-
-    if status_code == HTTPStatus.OK:
-        return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
-
-    if status_code == HTTPStatus.NOT_MODIFIED:
+    if response == "not_modified":
         return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
-
-    return RETRYABLE_STATUS_CODE, b"", {"Retry-After": "0"}
+    if response == "retryable":
+        return RETRYABLE_STATUS_CODE, b"", {"Retry-After": "0"}
+    if response == "server_error":
+        return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
+    return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
 
 
 def _strip_config_path(url: str) -> str:
@@ -335,8 +317,14 @@ class MockFFECDNServer:
         response = requests.post(f"{self.base_url}/control/reset", timeout=5)
         response.raise_for_status()
 
-    def set_fixture(self, fixture: str) -> None:
-        response = requests.post(f"{self.base_url}/control/fixture", json={"fixture": fixture}, timeout=5)
+    def set_response(self, response_id: str) -> None:
+        self.set_responses([response_id])
+
+    def set_responses(self, responses: object) -> None:
+        validated_responses = validate_responses(responses)
+        response = requests.post(
+            f"{self.base_url}/control/responses", json={"responses": validated_responses}, timeout=5
+        )
         response.raise_for_status()
 
     def status(self) -> MockFFECDNStatus:

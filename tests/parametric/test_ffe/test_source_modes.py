@@ -64,11 +64,14 @@ def library_env(request: pytest.FixtureRequest, mock_ffe_cdn: MockFFECDNServer) 
 
     env = dict(BASE_ENVVARS)
     source_mode = params.get("source_mode", "cdn")
-    fixture = params.get("fixture", "valid_control")
+    response = params.get("response", "valid")
+    responses = params.get("responses")
     api_key = params.get("api_key", TEST_API_KEY)
 
-    if fixture is not None:
-        mock_ffe_cdn.set_fixture(str(fixture))
+    if responses is not None:
+        mock_ffe_cdn.set_responses(responses)
+    elif response is not None:
+        mock_ffe_cdn.set_response(str(response))
 
     if source_mode is not None:
         env["DD_FLAGGING_SOURCE_MODE"] = str(source_mode)
@@ -152,8 +155,8 @@ class Test_Feature_Flag_Source_Modes:
     @parametrize(
         "library_env",
         [
-            {"source_mode": "cdn", "fixture": "valid_control", "base_url_form": "root"},
-            {"source_mode": "cdn", "fixture": "valid_control", "base_url_form": "endpoint"},
+            {"source_mode": "cdn", "response": "valid", "base_url_form": "root"},
+            {"source_mode": "cdn", "response": "valid", "base_url_form": "endpoint"},
         ],
         indirect=True,
     )
@@ -164,13 +167,13 @@ class Test_Feature_Flag_Source_Modes:
         status = _wait_for_status(
             mock_ffe_cdn,
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
-            "valid_control request",
+            "valid response request",
         )
-        assert status["fixture"] == "valid_control"
+        assert status["response"] == "valid"
         assert status["last_auth_present"] is True
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": None, "fixture": "valid_control"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": None, "response": "valid"}], indirect=True)
     def test_default_cdn_positive(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider in default cdn mode"
         _assert_expected_value(_evaluate(test_library))
@@ -180,12 +183,12 @@ class Test_Feature_Flag_Source_Modes:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "default cdn request",
         )
-        assert status["fixture"] == "valid_control"
+        assert status["response"] == "valid"
         assert status["last_source_mode"] == "cdn"
 
     @parametrize(
         "library_env",
-        [{"source_mode": None, "fixture": "valid_control", "base_url_form": "endpoint"}],
+        [{"source_mode": None, "response": "valid", "base_url_form": "endpoint"}],
         indirect=True,
     )
     def test_customer_http_endpoint_default_cdn_positive(
@@ -199,13 +202,13 @@ class Test_Feature_Flag_Source_Modes:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "customer HTTP endpoint request",
         )
-        assert status["fixture"] == "valid_control"
+        assert status["response"] == "valid"
         assert status["last_path"] == "/mock/ufc/config"
         assert status["last_source_mode"] == "cdn"
 
     @parametrize(
         "library_env",
-        [{"source_mode": "cdn", "fixture": "missing_auth_cold", "api_key": None}],
+        [{"source_mode": "cdn", "response": "valid", "api_key": None}],
         indirect=True,
     )
     def test_missing_auth_cold(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
@@ -217,19 +220,19 @@ class Test_Feature_Flag_Source_Modes:
             lambda current: current["last_status_code"] in {401, 403},
             "missing_auth_cold auth failure",
         )
-        assert status["fixture"] == "missing_auth_cold"
+        assert status["response"] == "valid"
         assert status["last_auth_present"] is False
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "valid_control"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "response": "valid"}], indirect=True)
     def test_missing_auth_warm(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider before missing_auth_warm"
         _assert_expected_value(_evaluate(test_library))
 
-        mock_ffe_cdn.set_fixture("missing_auth_warm")
+        mock_ffe_cdn.set_response("unauthorized")
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["fixture"] == "missing_auth_warm" and current["last_status_code"] in {401, 403},
+            lambda current: current["response"] == "unauthorized" and current["last_status_code"] in {401, 403},
             "missing_auth_warm auth failure",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -238,7 +241,7 @@ class Test_Feature_Flag_Source_Modes:
 
     @parametrize(
         "library_env",
-        [{"source_mode": "cdn", "fixture": "malformed_cold"}],
+        [{"source_mode": "cdn", "response": "malformed"}],
         indirect=True,
     )
     def test_malformed_cold(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
@@ -247,23 +250,23 @@ class Test_Feature_Flag_Source_Modes:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["fixture"] == "malformed_cold" and current["last_status_code"] == 200,
+            lambda current: current["response"] == "malformed" and current["last_status_code"] == 200,
             "malformed_cold response",
         )
         assert status["last_auth_present"] is True
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "valid_control"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "response": "valid"}], indirect=True)
     def test_malformed_warm(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider before malformed_warm"
         _assert_expected_value(_evaluate(test_library))
 
         requests_before = mock_ffe_cdn.status()["requests_total"]
-        mock_ffe_cdn.set_fixture("malformed_warm")
+        mock_ffe_cdn.set_response("malformed")
         _wait_for_status(
             mock_ffe_cdn,
             lambda current: (
-                current["fixture"] == "malformed_warm"
+                current["response"] == "malformed"
                 and current["requests_total"] > requests_before
                 and current["last_status_code"] == 200
             ),
@@ -272,16 +275,16 @@ class Test_Feature_Flag_Source_Modes:
         _assert_expected_value(_evaluate(test_library))
         assert mock_ffe_cdn.status()["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "valid_control"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "response": "valid"}], indirect=True)
     def test_unchanged_etag_304(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider before unchanged_etag_304"
         _assert_expected_value(_evaluate(test_library))
 
-        mock_ffe_cdn.set_fixture("unchanged_etag_304")
+        mock_ffe_cdn.set_response("not_modified")
         status = _wait_for_status(
             mock_ffe_cdn,
             lambda current: (
-                current["fixture"] == "unchanged_etag_304"
+                current["response"] == "not_modified"
                 and current["last_status_code"] == 304
                 and current["last_if_none_match"] is not None
             ),
@@ -291,19 +294,19 @@ class Test_Feature_Flag_Source_Modes:
         assert status["last_if_none_match"] == '"ufc-v1"'
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "explicit_source_mode"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "response": "valid"}], indirect=True)
     def test_explicit_source_mode(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for explicit_source_mode"
         _assert_expected_value(_evaluate(test_library))
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["fixture"] == "explicit_source_mode" and current["requests_total"] > 0,
+            lambda current: current["response"] == "valid" and current["requests_total"] > 0,
             "explicit_source_mode request",
         )
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "bad_to_good"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "responses": ["retryable", "valid"]}], indirect=True)
     def test_bad_to_good_cold_recovery(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for bad_to_good"
 
@@ -315,7 +318,7 @@ class Test_Feature_Flag_Source_Modes:
         _assert_expected_value(_evaluate(test_library))
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "error_500_to_good"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "responses": ["server_error", "valid"]}], indirect=True)
     def test_500_to_good_cold_recovery(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for error_500_to_good"
 
@@ -327,7 +330,7 @@ class Test_Feature_Flag_Source_Modes:
         _assert_expected_value(_evaluate(test_library))
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "bad_to_unchanged"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "responses": ["retryable", "not_modified"]}], indirect=True)
     def test_bad_to_unchanged_cold_preserves_not_ready(
         self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer
     ) -> None:
@@ -341,7 +344,7 @@ class Test_Feature_Flag_Source_Modes:
         _assert_default_or_not_ready(_evaluate(test_library))
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "good_to_bad"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "responses": ["valid", "retryable"]}], indirect=True)
     def test_good_to_bad_warm_preservation(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for good_to_bad"
 
@@ -353,7 +356,7 @@ class Test_Feature_Flag_Source_Modes:
         _assert_expected_value(_evaluate(test_library))
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "good_to_unchanged"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "responses": ["valid", "not_modified"]}], indirect=True)
     def test_good_to_unchanged_etag_sequence(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for good_to_unchanged"
 
@@ -365,7 +368,7 @@ class Test_Feature_Flag_Source_Modes:
         _assert_expected_value(_evaluate(test_library))
         assert status["last_source_mode"] == "cdn"
 
-    @parametrize("library_env", [{"source_mode": "cdn", "fixture": "delayed_no_overlap"}], indirect=True)
+    @parametrize("library_env", [{"source_mode": "cdn", "response": "delayed_valid"}], indirect=True)
     def test_delayed_no_overlap(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for delayed_no_overlap"
         _assert_expected_value(_evaluate(test_library))
@@ -373,9 +376,7 @@ class Test_Feature_Flag_Source_Modes:
         status = _wait_for_status(
             mock_ffe_cdn,
             lambda current: (
-                current["fixture"] == "delayed_no_overlap"
-                and current["in_flight"] == 0
-                and current["max_in_flight"] >= 1
+                current["response"] == "delayed_valid" and current["in_flight"] == 0 and current["max_in_flight"] >= 1
             ),
             "delayed_no_overlap completion",
         )
@@ -385,7 +386,7 @@ class Test_Feature_Flag_Source_Modes:
     def test_mock_ffe_cdn_status_is_metadata_only(self, mock_ffe_cdn: MockFFECDNServer) -> None:
         status = mock_ffe_cdn.status()
         assert set(status) == {
-            "fixture",
+            "response",
             "requests_total",
             "in_flight",
             "max_in_flight",
