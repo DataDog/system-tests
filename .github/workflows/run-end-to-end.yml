@@ -67,11 +67,6 @@ on:
         default: false
         required: false
         type: boolean
-      push_to_feature_parity_dashbaord:
-        description: "Shall we push results to Feature Parity Dashbaord"
-        default: false
-        required: false
-        type: boolean
       skip_empty_scenarios:
         description: "Skip scenarios that contains only xfail or irrelevant tests"
         default: false
@@ -117,6 +112,7 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
+      SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -521,12 +517,6 @@ jobs:
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
-    - name: Run GO_PROXIES_DEFAULT scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GO_PROXIES_DEFAULT"')
-      run: ./run.sh GO_PROXIES_DEFAULT --weblog ${{ inputs.weblog }}
-    - name: Run GO_PROXIES_APPSEC_BLOCKING scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING"')
-      run: ./run.sh GO_PROXIES_APPSEC_BLOCKING --weblog ${{ inputs.weblog }}
     - name: Run OTEL_COLLECTOR scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
@@ -571,21 +561,6 @@ jobs:
         name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
         retention-days: ${{ inputs.artifact_retention_days }}
-
-    - name: Push results to Feature Parity Dashboard
-      if: ${{ inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
-      run: |
-        for folder in logs*/ ; do
-          curl -X POST ${FP_IMPORT_URL} \
-            --fail
-            --header "Content-Type: application/json" \
-            --header "FP_API_KEY: ${FP_API_KEY}" \
-            --data "@./${folder}feature_parity.json" \
-            --include
-        done
-      env:
-        FP_API_KEY: ${{ secrets.FP_API_KEY }}
-        FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Push results to Test Optimization
       if: steps.build.outcome == 'success' && inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
