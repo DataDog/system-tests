@@ -1389,7 +1389,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
         }
 
         super().__init__(
-            image_name="mcr.microsoft.com/mssql/server:2022-latest",
+            image_name="ghcr.io/datadog/system-tests/mcr.microsoft.com/mssql/server:2022-latest",
             name="mssql",
             cap_add=["SYS_PTRACE"],
             user="root",
