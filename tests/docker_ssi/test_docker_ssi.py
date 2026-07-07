@@ -17,7 +17,9 @@ from utils import (
 _NODEJS_STALE_DEV_V6 = (
     context.library == "nodejs" and context.library.version.major == 6 and context.configuration.get("env") == "dev"
 )
-_NODEJS_REQUIRES_NODE_22 = context.library == "nodejs" and context.library.version.major >= 6 and not _NODEJS_STALE_DEV_V6
+_NODEJS_REQUIRES_NODE_22 = (
+    context.library == "nodejs" and context.library.version.major >= 6 and not _NODEJS_STALE_DEV_V6
+)
 _NODEJS_UNSUPPORTED_RUNTIME = context.library == "nodejs" and (
     (_NODEJS_REQUIRES_NODE_22 and context.installed_language_runtime < "22.0")
     or (not _NODEJS_REQUIRES_NODE_22 and context.installed_language_runtime < "17.0")
