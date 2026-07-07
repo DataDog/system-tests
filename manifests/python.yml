@@ -1811,7 +1811,7 @@ manifest:
     - declaration: flaky (APMAPI-1400)
       component_version: '>3.7.0'
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
-  tests/parametric/test_ffe/test_source_modes.py::Test_Feature_Flag_Source_Modes: missing_feature (agentless CDN source mode not implemented yet)
+  tests/parametric/test_ffe/test_source_modes.py::Test_Feature_Flag_Source_Modes: missing_feature (FFL-2731 tracks agentless CDN source-mode system-tests contract until SDK implementation lands)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=4.9.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
