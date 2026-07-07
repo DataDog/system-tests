@@ -3264,10 +3264,7 @@ manifest:
         spring-boot: v1.56.0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_metrics.py:
-    - weblog_declaration:
-        "*": irrelevant
-        spring-boot: v1.62.0
+  tests/ffe/test_flag_eval_metrics.py: bug (FFL-2339)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count:
     - weblog_declaration:
         "*": irrelevant
