@@ -118,11 +118,15 @@ def _assert_expected_value(result: dict[str, Any]) -> None:
 
 def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
     assert result.get("value") == EVALUATION_CASE["default_value"]
-    assert result.get("errorCode") in {
-        "PROVIDER_NOT_READY",
-        "GENERAL",
-        "PARSE_ERROR",
-    } or result.get("reason") == "ERROR"
+    assert (
+        result.get("errorCode")
+        in {
+            "PROVIDER_NOT_READY",
+            "GENERAL",
+            "PARSE_ERROR",
+        }
+        or result.get("reason") == "ERROR"
+    )
 
 
 @scenarios.parametric
@@ -288,9 +292,7 @@ class Test_Feature_Flag_Source_Modes:
         assert status["last_source_mode"] == "cdn"
 
     @parametrize("library_env", [{"source_mode": "cdn", "fixture": "bad_to_unchanged"}], indirect=True)
-    def test_bad_to_unchanged_cold_preserves_not_ready(
-        self, test_library: APMLibrary, mock_cdn: MockCDNServer
-    ) -> None:
+    def test_bad_to_unchanged_cold_preserves_not_ready(self, test_library: APMLibrary, mock_cdn: MockCDNServer) -> None:
         assert test_library.ffe_start(), "failed to start FFE provider for bad_to_unchanged"
 
         status = _wait_for_status(
@@ -319,8 +321,7 @@ class Test_Feature_Flag_Source_Modes:
 
         status = _wait_for_status(
             mock_cdn,
-            lambda current: current["status_codes"][-2:] == [200, 304]
-            and current["last_if_none_match"] == '"ufc-v1"',
+            lambda current: current["status_codes"][-2:] == [200, 304] and current["last_if_none_match"] == '"ufc-v1"',
             "good_to_unchanged 200 to 304 ETag sequence",
         )
         _assert_expected_value(_evaluate(test_library))
