@@ -13,7 +13,7 @@ from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._mock_cdn import MockCDNServer
+from utils.docker_fixtures._mock_cdn import MockCDNServer, MockCDNStatus
 
 parametrize = pytest.mark.parametrize
 pytest_plugins = ["utils.docker_fixtures._mock_cdn"]
@@ -87,9 +87,9 @@ def library_env(request: pytest.FixtureRequest, mock_cdn: MockCDNServer) -> dict
 
 
 def _wait_for_status(
-    mock_cdn: MockCDNServer, predicate: Callable[[dict[str, Any]], bool], description: str
-) -> dict[str, Any]:
-    last_status: dict[str, Any] = {}
+    mock_cdn: MockCDNServer, predicate: Callable[[MockCDNStatus], bool], description: str
+) -> MockCDNStatus:
+    last_status: MockCDNStatus | None = None
     for _ in range(MOCK_STATUS_ATTEMPTS):
         last_status = mock_cdn.status()
         if predicate(last_status):
@@ -97,6 +97,7 @@ def _wait_for_status(
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
 
     pytest.fail(f"mock CDN status did not reach expected state: {description}; status={last_status}", pytrace=False)
+    raise AssertionError("unreachable")
 
 
 def _evaluate(test_library: APMLibrary) -> dict[str, Any]:
@@ -181,6 +182,26 @@ class Test_Feature_Flag_Source_Modes:
             "default cdn request",
         )
         assert status["fixture"] == "valid_control"
+        assert status["last_source_mode"] == "cdn"
+
+    @parametrize(
+        "library_env",
+        [{"source_mode": None, "fixture": "valid_control", "base_url_form": "endpoint"}],
+        indirect=True,
+    )
+    def test_customer_http_endpoint_default_cdn_positive(
+        self, test_library: APMLibrary, mock_cdn: MockCDNServer
+    ) -> None:
+        assert test_library.ffe_start(), "failed to start FFE provider with customer HTTP endpoint override"
+        _assert_expected_value(_evaluate(test_library))
+
+        status = _wait_for_status(
+            mock_cdn,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "customer HTTP endpoint request",
+        )
+        assert status["fixture"] == "valid_control"
+        assert status["last_path"] == "/mock/ufc/config"
         assert status["last_source_mode"] == "cdn"
 
     @parametrize(
@@ -367,6 +388,8 @@ class Test_Feature_Flag_Source_Modes:
             "requests_total",
             "in_flight",
             "max_in_flight",
+            "last_path",
+            "last_query",
             "last_if_none_match",
             "last_auth_present",
             "last_source_mode",

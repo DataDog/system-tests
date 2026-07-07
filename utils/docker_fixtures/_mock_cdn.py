@@ -56,6 +56,8 @@ class MockCDNStatus(TypedDict):
     requests_total: int
     in_flight: int
     max_in_flight: int
+    last_path: str | None
+    last_query: str | None
     last_if_none_match: str | None
     last_auth_present: bool
     last_source_mode: str | None
@@ -70,6 +72,8 @@ class MockCDNState:
         self.requests_total = 0
         self.in_flight = 0
         self.max_in_flight = 0
+        self.last_path: str | None = None
+        self.last_query: str | None = None
         self.last_if_none_match: str | None = None
         self.last_auth_present = False
         self.last_source_mode: str | None = None
@@ -83,6 +87,8 @@ class MockCDNState:
             self.requests_total = 0
             self.in_flight = 0
             self.max_in_flight = 0
+            self.last_path = None
+            self.last_query = None
             self.last_if_none_match = None
             self.last_auth_present = False
             self.last_source_mode = None
@@ -112,6 +118,8 @@ class MockCDNState:
             self.requests_total += 1
             self.in_flight += 1
             self.max_in_flight = max(self.max_in_flight, self.in_flight)
+            self.last_path = parsed.path
+            self.last_query = parsed.query or None
             self.last_if_none_match = headers.get("If-None-Match")
             self.last_auth_present = _has_auth(headers)
             self.last_source_mode = source_mode
@@ -135,6 +143,8 @@ class MockCDNState:
                 "requests_total": self.requests_total,
                 "in_flight": self.in_flight,
                 "max_in_flight": self.max_in_flight,
+                "last_path": self.last_path,
+                "last_query": self.last_query,
                 "last_if_none_match": self.last_if_none_match,
                 "last_auth_present": self.last_auth_present,
                 "last_source_mode": self.last_source_mode,
@@ -184,14 +194,15 @@ class MockCDNRequestHandler(BaseHTTPRequestHandler):
         return
 
     def _handle_config(self) -> None:
-        fixture, sequence_index = self.server.state.record_request(dict(self.headers), self.path)
+        request_headers = dict(self.headers)
+        fixture, sequence_index = self.server.state.record_request(request_headers, self.path)
         try:
             if fixture == "delayed_no_overlap":
                 time.sleep(DELAYED_RESPONSE_SECONDS)
 
             status_code, body, headers = _response_for_fixture(
                 fixture=fixture,
-                has_auth=_has_auth(self.headers),
+                has_auth=_has_auth(request_headers),
                 if_none_match=self.headers.get("If-None-Match"),
                 sequence_index=sequence_index,
             )
