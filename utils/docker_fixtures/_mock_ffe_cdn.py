@@ -1,3 +1,5 @@
+"""FFE UFC delivery fixture used to exercise CDN/default source-mode behavior."""
+
 from __future__ import annotations
 
 from http import HTTPStatus
@@ -41,7 +43,8 @@ MAX_CONTROL_BODY_BYTES = 512
 CONFIG_PATH = "/mock/ufc/config"
 RETRYABLE_STATUS_CODE = 509
 REPO_ROOT = Path(__file__).parents[2]
-FIXTURE_DIR = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "fixtures"
+UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
+MALFORMED_UFC_BYTES = b'{"flags": ['
 RESPONSE_SEQUENCES = {
     "bad_to_good": (RETRYABLE_STATUS_CODE, HTTPStatus.OK),
     "error_500_to_good": (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.OK),
@@ -51,7 +54,7 @@ RESPONSE_SEQUENCES = {
 }
 
 
-class MockCDNStatus(TypedDict):
+class MockFFECDNStatus(TypedDict):
     fixture: str
     requests_total: int
     in_flight: int
@@ -65,7 +68,7 @@ class MockCDNStatus(TypedDict):
     status_codes: list[int]
 
 
-class MockCDNState:
+class MockFFECDNState:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self.fixture = DEFAULT_FIXTURE
@@ -99,7 +102,7 @@ class MockCDNState:
     def set_fixture(self, fixture: str) -> None:
         with self._lock:
             if fixture not in FIXTURE_IDS:
-                raise ValueError(f"unknown mock CDN fixture: {fixture}")
+                raise ValueError(f"unknown mock FFE CDN fixture: {fixture}")
             self.fixture = fixture
             self.last_if_none_match = None
             self.last_source_mode = None
@@ -136,7 +139,7 @@ class MockCDNState:
         with self._lock:
             self.in_flight = max(0, self.in_flight - 1)
 
-    def status(self) -> MockCDNStatus:
+    def status(self) -> MockFFECDNStatus:
         with self._lock:
             return {
                 "fixture": self.fixture,
@@ -153,21 +156,21 @@ class MockCDNState:
             }
 
 
-class MockCDNHTTPServer(ThreadingHTTPServer):
+class MockFFECDNHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
 
     def __init__(self, server_address: tuple[str, int]) -> None:
-        super().__init__(server_address, MockCDNRequestHandler)
-        self.state = MockCDNState()
+        super().__init__(server_address, MockFFECDNRequestHandler)
+        self.state = MockFFECDNState()
 
 
-class MockCDNRequestHandler(BaseHTTPRequestHandler):
+class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
     # Endpoint contract:
     # - GET /mock/ufc/config
     # - GET /status
     # - POST /control/fixture
     # - POST /control/reset
-    server: MockCDNHTTPServer
+    server: MockFFECDNHTTPServer
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
@@ -241,7 +244,7 @@ class MockCDNRequestHandler(BaseHTTPRequestHandler):
         self.server.state.set_fixture(fixture)
         self._write_json(HTTPStatus.OK, self.server.state.status())
 
-    def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockCDNStatus) -> None:
+    def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFECDNStatus) -> None:
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
@@ -253,8 +256,8 @@ def _has_auth(headers: Mapping[str, str]) -> bool:
     return any(normalized.get(header) == EXPECTED_API_KEY for header in ("dd-api-key", "x-datadog-api-key"))
 
 
-def _fixture_bytes(filename: str) -> bytes:
-    return (FIXTURE_DIR / filename).read_bytes()
+def _valid_ufc_bytes() -> bytes:
+    return UFC_FIXTURE_PATH.read_bytes()
 
 
 def _response_for_fixture(
@@ -273,9 +276,9 @@ def _response_for_fixture(
         return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
 
     if fixture in {"malformed_cold", "malformed_warm"}:
-        return HTTPStatus.OK, _fixture_bytes("ufc_malformed.json"), {"Content-Type": "application/json"}
+        return HTTPStatus.OK, MALFORMED_UFC_BYTES, {"Content-Type": "application/json"}
 
-    return HTTPStatus.OK, _fixture_bytes("ufc_valid.json"), {"Content-Type": "application/json", "ETag": UFC_ETAG}
+    return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
 
 
 def _response_for_sequence(
@@ -288,7 +291,7 @@ def _response_for_sequence(
         status_code = HTTPStatus.OK
 
     if status_code == HTTPStatus.OK:
-        return HTTPStatus.OK, _fixture_bytes("ufc_valid.json"), {"Content-Type": "application/json", "ETag": UFC_ETAG}
+        return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
 
     if status_code == HTTPStatus.NOT_MODIFIED:
         return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
@@ -300,11 +303,11 @@ def _strip_config_path(url: str) -> str:
     return url.removesuffix(CONFIG_PATH)
 
 
-class MockCDNServer:
+class MockFFECDNServer:
     def __init__(self, worker_id: str) -> None:
         self.port = get_host_port(worker_id, 4900)
-        self._server = MockCDNHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
-        self._thread = threading.Thread(target=self._server.serve_forever, name="mock-cdn", daemon=True)
+        self._server = MockFFECDNHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
+        self._thread = threading.Thread(target=self._server.serve_forever, name="mock-ffe-cdn", daemon=True)
         self._thread.start()
 
     @property
@@ -313,11 +316,15 @@ class MockCDNServer:
 
     @property
     def library_base_url(self) -> str:
-        configured_url = os.environ.get("SYSTEM_TESTS_MOCK_CDN_BASE_URL")
+        configured_url = os.environ.get("SYSTEM_TESTS_MOCK_FFE_CDN_BASE_URL") or os.environ.get(
+            "SYSTEM_TESTS_MOCK_CDN_BASE_URL"
+        )
         if configured_url is not None:
             return _strip_config_path(configured_url.rstrip("/"))
 
-        host = os.environ.get("SYSTEM_TESTS_MOCK_CDN_HOST", "host.docker.internal")
+        host = os.environ.get("SYSTEM_TESTS_MOCK_FFE_CDN_HOST") or os.environ.get(
+            "SYSTEM_TESTS_MOCK_CDN_HOST", "host.docker.internal"
+        )
         return f"http://{host}:{self.port}"
 
     @property
@@ -332,10 +339,10 @@ class MockCDNServer:
         response = requests.post(f"{self.base_url}/control/fixture", json={"fixture": fixture}, timeout=5)
         response.raise_for_status()
 
-    def status(self) -> MockCDNStatus:
+    def status(self) -> MockFFECDNStatus:
         response = requests.get(f"{self.base_url}/status", timeout=5)
         response.raise_for_status()
-        return cast("MockCDNStatus", response.json())
+        return cast("MockFFECDNStatus", response.json())
 
     def close(self) -> None:
         self._server.shutdown()
@@ -344,8 +351,8 @@ class MockCDNServer:
 
 
 @pytest.fixture
-def mock_cdn(worker_id: str) -> Generator[MockCDNServer, None, None]:
-    server = MockCDNServer(worker_id)
+def mock_ffe_cdn(worker_id: str) -> Generator[MockFFECDNServer, None, None]:
+    server = MockFFECDNServer(worker_id)
     try:
         server.reset()
         yield server
