@@ -16,11 +16,11 @@
     if command -v docker >/dev/null 2>&1; then
         echo "Docker is installed, ensuring service is enabled and running..."
         sudo systemctl enable docker.service docker.socket
-        
+
         if ! sudo systemctl is-active --quiet docker.service; then
             echo "Docker service is not running, starting it..."
             sudo systemctl start docker.service docker.socket
-            
+
             # Wait for Docker to be fully ready
             echo "Waiting for Docker service to be ready..."
             MAX_WAIT=20
@@ -34,7 +34,7 @@
                 sleep 1
                 ((COUNTER++))
             done
-            
+
             if [ $COUNTER -eq $MAX_WAIT ]; then
                 echo "WARNING: Docker service did not become ready after $MAX_WAIT seconds"
             fi
@@ -56,8 +56,8 @@
         export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=4
       fi
 
-    else 
-      export DD_SITE="datadoghq.com" 
+    else
+      export DD_SITE="datadoghq.com"
       #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       if [ "${DD_LANG}" == "python" ]; then
@@ -76,7 +76,7 @@
 
     if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
         # Special case for Node.js, the staging major version is 1 above the prod major (7 here)
-        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="7"
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="6"
     fi
 
     if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
@@ -156,10 +156,10 @@
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
-    
+
     # Add dd-agent user to docker group for docker socket access
     sudo usermod -aG docker dd-agent || echo "Warning: Could not add dd-agent to docker group"
-    
+
     # Restart datadog-agent so the new group membership takes effect
     sudo systemctl restart datadog-agent || echo "Warning: Could not restart datadog-agent"
 - os_type: windows
@@ -201,7 +201,7 @@
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
-    
+
     # Check if Install-Datadog.ps1 exists locally in binaries folder
     if (Test-Path "Install-Datadog.ps1") {
         Write-Host "*** Execute installation script from provided binaries ***"
@@ -210,5 +210,5 @@
         Write-Host "Download installation script from datadoghq.com"
         (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
     }
-    
+
     C:\Windows\SystemTemp\Install-Datadog.ps1
