@@ -1,4 +1,4 @@
-"""FFE UFC delivery fixture used to exercise CDN/default source-mode behavior."""
+"""FFE UFC delivery fixture used to exercise CDN/default configuration-source behavior."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ class MockFFECDNStatus(TypedDict):
     last_query: str | None
     last_if_none_match: str | None
     last_auth_present: bool
-    last_source_mode: str | None
+    last_configuration_source: str | None
     last_status_code: int | None
     status_codes: list[int]
 
@@ -67,7 +67,7 @@ class MockFFECDNState:
         self.last_query: str | None = None
         self.last_if_none_match: str | None = None
         self.last_auth_present = False
-        self.last_source_mode: str | None = None
+        self.last_configuration_source: str | None = None
         self.last_status_code: int | None = None
         self.status_codes: list[int] = []
         self._sequence_index = 0
@@ -83,7 +83,7 @@ class MockFFECDNState:
             self.last_query = None
             self.last_if_none_match = None
             self.last_auth_present = False
-            self.last_source_mode = None
+            self.last_configuration_source = None
             self.last_status_code = None
             self.status_codes = []
             self._sequence_index = 0
@@ -94,17 +94,18 @@ class MockFFECDNState:
             self.responses = tuple(validated_responses)
             self.last_response = validated_responses[0]
             self.last_if_none_match = None
-            self.last_source_mode = None
+            self.last_configuration_source = None
             self.last_status_code = None
             self.status_codes = []
             self._sequence_index = 0
 
     def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
-        source_mode = headers.get("DD-Flagging-Source-Mode") or headers.get("X-Datadog-Flagging-Source-Mode")
-        if source_mode is None:
-            values = parse_qs(parsed.query).get("source_mode")
-            source_mode = values[0] if values else None
+        configuration_source = headers.get("DD-Flagging-Source-Mode") or headers.get("X-Datadog-Flagging-Source-Mode")
+        if configuration_source is None:
+            query = parse_qs(parsed.query)
+            values = query.get("configuration_source") or query.get("source_mode")
+            configuration_source = values[0] if values else None
 
         with self._lock:
             self.requests_total += 1
@@ -114,7 +115,7 @@ class MockFFECDNState:
             self.last_query = parsed.query or None
             self.last_if_none_match = headers.get("If-None-Match")
             self.last_auth_present = _has_auth(headers)
-            self.last_source_mode = source_mode
+            self.last_configuration_source = configuration_source
             response = self.responses[min(self._sequence_index, len(self.responses) - 1)]
             self.last_response = response
             self._sequence_index += 1
@@ -140,7 +141,7 @@ class MockFFECDNState:
                 "last_query": self.last_query,
                 "last_if_none_match": self.last_if_none_match,
                 "last_auth_present": self.last_auth_present,
-                "last_source_mode": self.last_source_mode,
+                "last_configuration_source": self.last_configuration_source,
                 "last_status_code": self.last_status_code,
                 "status_codes": list(self.status_codes),
             }
