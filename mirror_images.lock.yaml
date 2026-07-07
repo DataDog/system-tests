@@ -426,6 +426,10 @@ images:
     digest: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
     target: registry.ddbuild.io/system-tests/mirror/rockylinux:9
     tag: '9'
+  rust:1.94.1-slim-bookworm:
+    digest: sha256:cf9dd0ec73e75f827fe59123fff9dc65af1a1c8363c3c31ee8d7f8ad0b6a5fb2
+    target: registry.ddbuild.io/system-tests/mirror/rust:1.94.1-slim-bookworm
+    tag: 1.94.1-slim-bookworm
   softwaremill/elasticmq-native:1.6.11:
     digest: sha256:fe3af4a8dd59f310b20e07ec3499cfdeb16a14f518c95ad7e70f200845dce3f5
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11
