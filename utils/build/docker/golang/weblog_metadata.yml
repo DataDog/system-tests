@@ -1,4 +1,6 @@
 # docs/understand/weblogs/weblog-metadata.md
 
+haproxy:
+  build_mode: none
 envoy:
   build_mode: none
