@@ -34,12 +34,12 @@ def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[Scenario], language: str) 
 
     # Process each entry in the scenario matrix
     for matrix_entry in k8s_config["scenario_matrix"]:
-        applicable_scenarios = matrix_entry["scenarios"]
-        weblogs = matrix_entry["weblogs"]
+        applicable_scenarios: list[str] = matrix_entry["scenarios"]
+        weblogs: list[dict[str, list[str]]] = matrix_entry["weblogs"]
 
         # Match scenarios and weblogs
         for scenario in scenarios:
-            if scenario not in applicable_scenarios:
+            if scenario.name not in applicable_scenarios:
                 continue
 
             for weblog_entry in weblogs:
@@ -59,16 +59,16 @@ def get_k8s_injector_dev_matrix(
     k8s_injector_dev = _load_json(k8s_injector_dev_file)
 
     results = defaultdict(lambda: defaultdict(list))  # type: dict
-    scenario_matrix = k8s_injector_dev["scenario_matrix"]
+    scenario_matrix: list[dict] = k8s_injector_dev["scenario_matrix"]
     for entry in scenario_matrix:
-        applicable_scenarios = entry["scenarios"]
-        weblogs = entry["weblogs"]
+        applicable_scenarios: list[str] = entry["scenarios"]
+        weblogs: list[dict[str, list[str]]] = entry["weblogs"]
         for scenario in scenarios:
             if scenario.name in applicable_scenarios:
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
-                            results[scenario][weblog] = []
+                            results[scenario.name][weblog] = []
     return results
 
 
@@ -86,17 +86,17 @@ def get_aws_matrix(
     virtual_machines = [item for item in raw_data_virtual_machines if item.get("disabled") is not True]
 
     results = defaultdict(lambda: defaultdict(list))  # type: dict
-    scenario_matrix = aws_ssi["scenario_matrix"]
+    scenario_matrix: list[dict] = aws_ssi["scenario_matrix"]
     if language not in aws_ssi["weblogs_spec"]:
         return results
     weblogs_spec = aws_ssi["weblogs_spec"][language]
 
     for entry in scenario_matrix:
-        applicable_scenarios = entry["scenarios"]
-        weblogs = entry["weblogs"]
+        applicable_scenarios: list[str] = entry["scenarios"]
+        weblogs: list[dict[str, list[str]]] = entry["weblogs"]
 
         for scenario in scenarios:
-            if scenario in applicable_scenarios:
+            if scenario.name in applicable_scenarios:
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
@@ -125,7 +125,7 @@ def get_aws_matrix(
                                     if os_type in excludes_types:
                                         should_add_vm = False
                                 if should_add_vm:
-                                    results[scenario][weblog].append(vm["name"])
+                                    results[scenario.name][weblog].append(vm["name"])
 
     return results
 
@@ -146,11 +146,11 @@ def get_docker_ssi_matrix(
         return results
 
     for entry in scenario_matrix:
-        applicable_scenarios = set(entry.get("scenarios", []))
-        weblogs = entry.get("weblogs", [])
+        applicable_scenarios: set[str] = set(entry.get("scenarios", []))
+        weblogs: list[dict[str, list[str]]] = entry.get("weblogs", [])
 
         for scenario in scenarios:
-            if scenario in applicable_scenarios:
+            if scenario.name in applicable_scenarios:
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
@@ -190,7 +190,7 @@ def get_docker_ssi_matrix(
                                 if not image_reference:
                                     raise ValueError(f"Image {supported_image['name']} not found in the images file")
 
-                                results[scenario][weblog].append(
+                                results[scenario.name][weblog].append(
                                     {image_reference: allowed_runtimes, "arch": image_arch_reference}
                                 )
 
