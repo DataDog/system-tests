@@ -1,6 +1,6 @@
 from collections import defaultdict
 import json
-from utils._context._scenarios import go_proxies
+from utils._context._scenarios import go_proxies, Scenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
 
 
@@ -16,7 +16,7 @@ def _get_weblog_spec(weblogs_spec: list[dict], weblog_name: str) -> dict:
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
 
-def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
+def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[Scenario], language: str) -> dict:
     """Computes the K8s test matrix mapping scenarios to weblogs and their component versions.
 
     Args:
@@ -47,12 +47,14 @@ def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> di
                     continue
 
                 for weblog in weblog_entry[language]:
-                    results[scenario].append(weblog)
+                    results[scenario.name].append(weblog)
 
     return results
 
 
-def get_k8s_injector_dev_matrix(k8s_injector_dev_file: str, scenarios: list[str], language: str) -> dict:
+def get_k8s_injector_dev_matrix(
+    k8s_injector_dev_file: str, scenarios: list[Scenario], language: str
+) -> dict[str, list[str]]:
     """Computes the matrix "scenario" - "weblog" given a list of scenarios and a language."""
     k8s_injector_dev = _load_json(k8s_injector_dev_file)
 
@@ -62,7 +64,7 @@ def get_k8s_injector_dev_matrix(k8s_injector_dev_file: str, scenarios: list[str]
         applicable_scenarios = entry["scenarios"]
         weblogs = entry["weblogs"]
         for scenario in scenarios:
-            if scenario in applicable_scenarios:
+            if scenario.name in applicable_scenarios:
                 for weblog_entry in weblogs:
                     if language in weblog_entry:
                         for weblog in weblog_entry[language]:
@@ -70,7 +72,9 @@ def get_k8s_injector_dev_matrix(k8s_injector_dev_file: str, scenarios: list[str]
     return results
 
 
-def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: list[str], language: str) -> dict:
+def get_aws_matrix(
+    virtual_machines_file: str, aws_ssi_file: str, scenarios: list[Scenario], language: str
+) -> dict[str, list[str]]:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.
     """
@@ -127,8 +131,8 @@ def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: lis
 
 
 def get_docker_ssi_matrix(
-    images_file: str, runtimes_file: str, docker_ssi_file: str, scenarios: list[str], language: str
-) -> dict:
+    images_file: str, runtimes_file: str, docker_ssi_file: str, scenarios: list[Scenario], language: str
+) -> dict[str, list[str]]:
     """Load the JSON files (the docker imgs and runtimes supported by the system and the scenario-weblog definition)"""
     images = _load_json(images_file)
     runtimes = _load_json(runtimes_file)
@@ -338,11 +342,11 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        supported_scenarios = _filter_scenarios(scenarios, library, weblog.name, ci_environment)
+        supported_scenarios = _filter_scenarios(scenarios, weblog, ci_environment)
 
         if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
             scenarios_times = {
-                scenario: _get_execution_time(library, weblog.name, scenario, time_stats["run"])
+                scenario.name: _get_execution_time(library, weblog.name, scenario.name, time_stats["run"])
                 for scenario in supported_scenarios
             }
 
@@ -479,16 +483,23 @@ def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dic
     return run_stats[scenario][library][weblog]
 
 
-def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_environment: str) -> list[str]:
-    return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
+def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog, ci_environment: str) -> list[Scenario]:
+    return sorted(
+        [scenario for scenario in set(scenarios) if _is_supported(weblog, scenario, ci_environment)],
+        key=lambda scenario: scenario.name,
+    )
 
 
 def _is_uds_weblog(weblog: str) -> bool:
     return weblog == "uds" or weblog.startswith("uds-")
 
 
-def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
+def _is_supported(weblog: Weblog, scenario: Scenario, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
+
+    library = weblog.library
+    weblog_name = weblog.name
+    scenario_name = scenario.name
 
     # Only Allow Lambda scenarios for the lambda libraries
     is_lambda_library = library in (
@@ -497,7 +508,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         "nodejs_lambda",
         "ruby_lambda",
     )
-    is_lambda_scenario = scenario in (
+    is_lambda_scenario = scenario_name in (
         "APPSEC_LAMBDA_DEFAULT",
         "APPSEC_LAMBDA_BLOCKING",
         "APPSEC_LAMBDA_API_SECURITY",
@@ -508,21 +519,21 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         return False
 
     # open-telemetry-automatic
-    if scenario == "OTEL_INTEGRATIONS":
+    if scenario_name == "OTEL_INTEGRATIONS":
         possible_values: tuple = (
             ("java_otel", "spring-boot-otel"),
             ("nodejs_otel", "express4-otel"),
             ("python_otel", "flask-poc-otel"),
         )
-        if (library, weblog) not in possible_values:
+        if (library, weblog_name) not in possible_values:
             return False
 
     # open-telemetry-manual
-    if scenario in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
-        if (library, weblog) != ("java_otel", "spring-boot-native"):
+    if scenario_name in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+        if (library, weblog_name) != ("java_otel", "spring-boot-native"):
             return False
 
-    if scenario in ("GRAPHQL_APPSEC",):
+    if scenario_name in ("GRAPHQL_APPSEC",):
         possible_values: tuple = (
             ("golang", "gqlgen"),
             ("golang", "graph-gophers"),
@@ -533,53 +544,53 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
             ("nodejs", "express4-typescript"),
             ("nodejs", "express5"),
         )
-        if (library, weblog) not in possible_values:
+        if (library, weblog_name) not in possible_values:
             return False
 
-    if scenario in ("PERFORMANCES",):
+    if scenario_name in ("PERFORMANCES",):
         return False
 
-    if scenario == "IPV6":
-        if library == "ruby" or _is_uds_weblog(weblog):
+    if scenario_name == "IPV6":
+        if library == "ruby" or _is_uds_weblog(weblog_name):
             return False
 
-    if scenario in ("CROSSED_TRACING_LIBRARIES",):
-        if weblog in ("python3.12", "django-py3.13", "spring-boot-payara"):
+    if scenario_name in ("CROSSED_TRACING_LIBRARIES",):
+        if weblog_name in ("python3.12", "django-py3.13", "spring-boot-payara"):
             # python 3.13 issue : APMAPI-1096
             return False
 
-    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
+    if scenario_name in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
         # C++ 1.2.0 freeze when the rules file is missing
         return False
 
-    if weblog in ["gqlgen", "graph-gophers", "graphql-go", "graphql23"]:
-        if scenario not in ("GRAPHQL_APPSEC",):
+    if weblog_name in ["gqlgen", "graph-gophers", "graphql-go", "graphql23"]:
+        if scenario_name not in ("GRAPHQL_APPSEC",):
             return False
 
     # open-telemetry-manual
-    if weblog == "spring-boot-native":
-        if scenario not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+    if weblog_name == "spring-boot-native":
+        if scenario_name not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
             return False
 
     # open-telemetry-automatic
-    if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
-        if scenario not in ("OTEL_INTEGRATIONS",):
+    if weblog_name in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
+        if scenario_name not in ("OTEL_INTEGRATIONS",):
             return False
 
     # Go proxies
-    if scenario.startswith("GO_PROXIES"):
-        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog) != library:
+    if scenario_name.startswith("GO_PROXIES"):
+        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog_name) != library:
             return False
-    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog):
-        if not scenario.startswith("GO_PROXIES"):
+    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog_name):
+        if not scenario_name.startswith("GO_PROXIES"):
             return False
 
     # otel collector
-    if weblog == "otel_collector" or scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):
-        return weblog == "otel_collector" and scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E")
+    if weblog_name == "otel_collector" or scenario_name in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):
+        return weblog_name == "otel_collector" and scenario_name in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E")
 
-    if "@" in weblog or scenario == "INTEGRATION_FRAMEWORKS":
-        return "@" in weblog and scenario == "INTEGRATION_FRAMEWORKS"
+    if "@" in weblog_name or scenario_name == "INTEGRATION_FRAMEWORKS":
+        return "@" in weblog_name and scenario_name == "INTEGRATION_FRAMEWORKS"
 
     return True
 
@@ -682,3 +693,17 @@ if __name__ == "__main__":
         binaries_artifact="",
         unique_id="000",
     )
+
+# if __name__ == "__main__":
+#     from utils._context._scenarios import get_all_scenarios
+
+#     library = "python"
+#     for weblog in Weblog.load(library):
+#         for scenario in get_all_scenarios():
+#             if scenario.github_workflow != "endtoend":
+#                 continue
+#             groups = [group.name for group in scenario.scenario_groups]
+#             legacy = _is_supported(weblog, scenario, "")
+#             new_value = weblog.support_scenario(scenario.name, groups)
+#             if legacy is not new_value:
+#                 print((legacy, new_value, weblog.name, scenario.name, groups))
