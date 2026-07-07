@@ -115,10 +115,6 @@ class TestDockerSSIFeatures:
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
-    @irrelevant(
-        context.library >= "nodejs@6.0.0" and context.installed_language_runtime < "22.0",
-        reason="dd-trace-js v6 supports Node.js v22+",
-    )
     @irrelevant(context.library == "dotnet" and context.installed_language_runtime >= "6.0.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime >= "2.6.0")
     def test_telemetry_abort(self):
