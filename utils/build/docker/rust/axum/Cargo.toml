@@ -14,13 +14,19 @@ doc   = false
 bench = false
 
 [dependencies]
-axum               = { version = "0.8.9", features = ["json"] }
-opentelemetry      = { version = "*", features = ["logs"] }
-opentelemetry-http = { version = "*" }
-reqwest = "0.13.4"
-serde_json = "1.0.150"
-tokio              = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
-tracing = "0.1.44"
+axum                       = { version = "0.8.9", features = ["json"] }
+http                       = "1"
+opentelemetry              = { version = "0.31", features = ["logs"] }
+reqwest                    = "0.13.4"
+reqwest-middleware         = "0.5.2"
+reqwest-tracing            = { version = "0.7.1", features = ["opentelemetry_0_31"] }
+serde_json                 = "1.0.150"
+tokio                      = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
+tracing                    = "0.1.44"
+tracing-opentelemetry      = "0.32.1"
+tracing-subscriber         = "0.3"
 
 # Version changed at build time by install_ddtrace.sh
 datadog-opentelemetry = "0.4.0"
+uuid = "1.23.4"
+opentelemetry-instrumentation-tower = { git = "https://github.com/open-telemetry/opentelemetry-rust-contrib", rev = "66bfea4", package = "opentelemetry-instrumentation-tower" }

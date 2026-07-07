@@ -1,52 +1,41 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Query, Request},
+    extract::Query,
     http::StatusCode,
-    middleware::{self, Next},
+    middleware::{self},
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{get, options, post},
     Json, Router,
 };
-use opentelemetry::{
-    context::FutureExt,
-    global,
-    trace::{TraceContextExt, Tracer},
-    Context,
-};
-use opentelemetry_http::{HeaderExtractor, HeaderInjector};
+
+use opentelemetry::trace::TracerProvider;
+use reqwest_middleware::ClientBuilder;
+use reqwest_tracing::TracingMiddleware;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use integration::DatadogClientSpanBackend;
+
+mod integration;
 
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
-
-
-async fn trace_request(request: Request, next: Next) -> Response {
-    let parent_cx = global::get_text_map_propagator(|propagator| {
-        propagator.extract(&HeaderExtractor(request.headers()))
-    });
-
-    let tracer = global::tracer("rust-axum-weblog");
-    let span = tracer.start_with_context(request.uri().path().to_string(), &parent_cx);
-
-    // Run the rest of the request with the span's context set as current so
-    // downstream handlers (e.g. make_distant_call) can inject it into
-    // outgoing requests. The span ends when `cx`, and the span it owns, are
-    // dropped.
-    let cx = parent_cx.with_span(span);
-    next.run(request).with_context(cx).await
-}
 
 #[tokio::main]
 async fn main() {
     let tracer_provider = datadog_opentelemetry::tracing().init();
+    tracing_subscriber::registry()
+        .with(tracing_opentelemetry::layer().with_tracer(tracer_provider.tracer("weblog")))
+        .init();
 
     let app = Router::new()
-        // Root endpoint
         .route("/", get(index))
         .route("/", post(index))
+        .route("/", options(index))
         // Basic info endpoints
         .route("/healthcheck", get(healthcheck))
         .route("/make_distant_call", get(make_distant_call))
-        .layer(middleware::from_fn(trace_request))
+        //.layer(middleware::from_fn(integration::enrich_span))
+        .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
         .into_make_service();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:7777").await.unwrap();
@@ -86,28 +75,15 @@ async fn index() -> Response {
 
 async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
     let url = params.get("url").cloned().unwrap_or_default();
-    tracing::Span::current().record("url", &url);
 
-    let mut headers = axum::http::HeaderMap::new();
-    global::get_text_map_propagator(|propagator| {
-        propagator.inject_context(&Context::current(), &mut HeaderInjector(&mut headers))
-    });
+    // `TracingMiddleware` creates a client span nested under the current
+    // (server) tracing span and injects its OTel context into the outgoing
+    // request headers automatically.
+    let client = ClientBuilder::new(reqwest::Client::new())
+        .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
+        .build();
 
-    let request_headers: HashMap<String, String> = headers
-        .iter()
-        .map(|(name, value)| {
-            (
-                name.to_string(),
-                value.to_str().unwrap_or_default().to_string(),
-            )
-        })
-        .collect();
-
-    let resp = reqwest::Client::new()
-        .get(&url)
-        .headers(headers)
-        .send()
-        .await;
+    let resp = client.get(&url).send().await;
 
     match resp {
         Ok(r) => {
@@ -115,7 +91,7 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
             Json(serde_json::json!({
                 "url": url,
                 "status_code": status,
-                "request_headers": request_headers,
+                "request_headers": {},
                 "response_headers": {}
             }))
             .into_response()
