@@ -15,7 +15,7 @@ FR -> test-class mapping:
                                                                          Test_FR06_Otel_Resource_Attributes
   FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
   FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes,
-        DD_TAGS / OTEL_RESOURCE_ATTRIBUTES surfaced as resource attributes     Test_FR08_AdditionalTags
+        DD_TAGS / OTEL_RESOURCE_ATTRIBUTES / DD_TRACE_STATS_ADDITIONAL_TAGS    Test_FR08_AdditionalTags
   FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
@@ -1191,7 +1191,9 @@ class Test_FR08_Datadog_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR08_AdditionalTags:
-    """FR08: DD_TAGS and OTEL_RESOURCE_ATTRIBUTES surface as resource attributes (support pending in several SDKs)."""
+    """FR08: DD_TAGS / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
+    DD_TRACE_STATS_ADDITIONAL_TAGS as data-point attributes (support pending in several SDKs).
+    """
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1255,6 +1257,30 @@ class Test_FR08_AdditionalTags:
         assert resource_attrs.get("deployment.region") == "us-east-1", (
             f"Expected deployment.region=us-east-1 resource attribute, got: {resource_attrs}"
         )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "DD_TRACE_STATS_ADDITIONAL_TAGS": "customer.tier,region"}],
+    )
+    def test_fr08_12_stats_additional_tags(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS are emitted per-span as data-point attributes,
+        since their values vary per span (unlike the process-wide DD_TAGS carried on the resource).
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
+                span.set_meta("customer.tier", "gold")
+                span.set_meta("region", "us-east-1")
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        attrs = _data_point_attrs(_duration_data_points(metrics)[0])
+        assert attrs.get("customer.tier") == "gold", f"Expected customer.tier=gold data-point attribute, got: {attrs}"
+        assert attrs.get("region") == "us-east-1", f"Expected region=us-east-1 data-point attribute, got: {attrs}"
 
 
 @scenarios.parametric
