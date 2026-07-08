@@ -1,28 +1,28 @@
-from collections.abc import Generator, Iterable
 import contextlib
+from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
 from typing import TypedDict, cast
 
-from requests.exceptions import RequestException
+import pytest
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
-import pytest
+from requests.exceptions import RequestException
 
-from utils.docker_fixtures._core import get_host_port, docker_run
+from utils._logger import logger
+from utils.docker_fixtures._core import docker_run, get_host_port
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.parametric import Link, LogLevel
 from utils.docker_fixtures.spec.llm_observability import (
-    SpanRequest,
-    LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
     DatasetResponse,
+    LlmObsAnnotationContextRequest,
+    SpanRequest,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
-from utils.docker_fixtures.parametric import LogLevel, Link
-from utils._logger import logger
 
-from ._core import TestClientFactory, TestClientApi
+from ._core import TestClientApi, TestClientFactory
 
 
 class ParametricTestClientFactory(TestClientFactory):
@@ -146,6 +146,12 @@ class _TestSpan:
                 assert all(c in "0123456789abcdefABCDEF" for c in span_id[2:]), f"{span_id} is not hexadecimal"
             else:
                 assert span_id.isdigit(), f"{span_id} is not decimal"
+
+    def get_trace_id(self) -> int:
+        return self.trace_id
+
+    def get_span_id(self) -> int | str:
+        return self.span_id
 
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)

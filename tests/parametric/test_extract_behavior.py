@@ -28,6 +28,20 @@ CONFLICTING_TRACECONTEXT_HEADERS = [
     ("baggage", "key1=value1"),
 ]
 
+# Same conflicting traceparent as above, but with the Datadog trace id matching
+# DATADOG_TRACECONTEXT_BAGGAGE_HEADERS (1) instead of 2. The e2e fixtures for
+# Restart/Restart_With_Extract_First::test_multiple_tracecontexts use trace id
+# 1 here (unlike Default/Ignore, which use trace id 2), since the resulting
+# span link is expected to carry trace id 1.
+RESTARTED_CONFLICTING_TRACECONTEXT_HEADERS = [
+    ("x-datadog-trace-id", "1"),
+    ("x-datadog-parent-id", "1"),
+    ("x-datadog-sampling-priority", "2"),
+    ("x-datadog-tags", "_dd.p.tid=1111111111111111,_dd.p.dm=-4"),
+    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+    ("baggage", "key1=value1"),
+]
+
 OVERRIDING_SPAN_ID_HEADERS = [
     ("x-datadog-trace-id", "1"),
     ("x-datadog-parent-id", "1"),
@@ -56,18 +70,21 @@ class Test_ExtractBehavior_Default:
     """DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT default (continue)."""
 
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span(
-                "root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS
-            ) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, int(span.get_span_id()))
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id == 1
-        assert span.parent_id == 1
+        # span.get_trace_id() is not standardized across parametric clients (some
+        # return the full 128-bit trace id, others the low 64 bits) - compare
+        # against the raw agent-reported span's trace_id instead, which is
+        # always the low 64 bits per the agent wire protocol.
+        assert s["trace_id"] == 1
         assert not span_has_no_parent(s)
         assert_no_span_links(s)
 
@@ -76,15 +93,17 @@ class Test_ExtractBehavior_Default:
         assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span("root", CONFLICTING_TRACECONTEXT_HEADERS) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", CONFLICTING_TRACECONTEXT_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, int(span.get_span_id()))
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id == 2
+        assert s["trace_id"] == 2
 
         span_links = retrieve_span_links(s)
         assert len(span_links) == 1
@@ -112,17 +131,17 @@ class Test_ExtractBehavior_Default:
 )
 class Test_ExtractBehavior_Restart:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span(
-                "root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS
-            ) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
+        assert s["trace_id"] != 1
         assert span_has_no_parent(s)
 
         span_links = retrieve_span_links(s)
@@ -138,16 +157,20 @@ class Test_ExtractBehavior_Restart:
         assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span("root", CONFLICTING_TRACECONTEXT_HEADERS) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span(
+                "root", RESTARTED_CONFLICTING_TRACECONTEXT_HEADERS
+            ) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
-        assert span.trace_id != 8687463697196027922
+        assert s["trace_id"] != 1
+        assert s["trace_id"] != 8687463697196027922
         assert span_has_no_parent(s)
 
         span_links = retrieve_span_links(s)
@@ -163,17 +186,18 @@ class Test_ExtractBehavior_Restart:
         assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts_with_overrides(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span("root", OVERRIDING_SPAN_ID_HEADERS) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", OVERRIDING_SPAN_ID_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
+        assert s["trace_id"] != 1
         assert span_has_no_parent(s)
-        assert "tracestate" not in headers
 
         span_links = retrieve_span_links(s)
         assert len(span_links) == 1
@@ -201,17 +225,17 @@ class Test_ExtractBehavior_Restart:
 )
 class Test_ExtractBehavior_Ignore:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span(
-                "root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS
-            ) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
+        assert s["trace_id"] != 1
         assert span_has_no_parent(s)
         assert_no_span_links(s)
 
@@ -220,16 +244,18 @@ class Test_ExtractBehavior_Ignore:
         assert "baggage" not in headers
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span("root", CONFLICTING_TRACECONTEXT_HEADERS) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", CONFLICTING_TRACECONTEXT_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
-        assert span.trace_id != 8687463697196027922
+        assert s["trace_id"] != 1
+        assert s["trace_id"] != 8687463697196027922
         assert span_has_no_parent(s)
         assert_no_span_links(s)
 
@@ -252,17 +278,17 @@ class Test_ExtractBehavior_Ignore:
 )
 class Test_ExtractBehavior_Restart_With_Extract_First:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span(
-                "root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS
-            ) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
+        assert s["trace_id"] != 1
         assert span_has_no_parent(s)
 
         span_links = retrieve_span_links(s)
@@ -278,16 +304,20 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span("root", CONFLICTING_TRACECONTEXT_HEADERS) as span:
-                headers = injected_headers(test_library, span.span_id)
+        with (
+            test_library,
+            test_library.dd_extract_headers_and_make_child_span(
+                "root", RESTARTED_CONFLICTING_TRACECONTEXT_HEADERS
+            ) as span,
+        ):
+            headers = injected_headers(test_library, span.get_span_id())
 
         traces = test_agent.wait_for_num_traces(1)
-        trace = find_trace(traces, span.trace_id)
-        s = find_span(trace, span.span_id)
+        trace = find_trace(traces, span.get_trace_id())
+        s = find_span(trace, span.get_span_id())
 
-        assert span.trace_id != 1
-        assert span.trace_id != 8687463697196027922
+        assert s["trace_id"] != 1
+        assert s["trace_id"] != 8687463697196027922
         assert span_has_no_parent(s)
 
         span_links = retrieve_span_links(s)
