@@ -158,6 +158,8 @@ def _attr_value(item: dict) -> Any:  # noqa: ANN401
         return int(value["intValue"])
     if "doubleValue" in value:
         return value["doubleValue"]
+    if "arrayValue" in value:
+        return [_attr_value({"value": element}) for element in value["arrayValue"].get("values", [])]
     return None
 
 
@@ -1191,8 +1193,8 @@ class Test_FR08_Datadog_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR08_AdditionalTags:
-    """FR08: DD_TAGS / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
-    DD_TRACE_STATS_ADDITIONAL_TAGS as data-point attributes (support pending in several SDKs).
+    """FR08: DD_TAGS (tracer_dd_tags) / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
+    DD_TRACE_STATS_ADDITIONAL_TAGS (additional_metric_tags) as data-point attributes (support pending in some SDKs).
     """
 
     @pytest.mark.parametrize(
@@ -1213,8 +1215,8 @@ class Test_FR08_AdditionalTags:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Global DD_TAGS surface as resource attributes in default mode; reserved
-        service/env/version/runtime_id keys are ignored (they map to dedicated fields).
+        """Global DD_TAGS surface as the tracer_dd_tags resource-attribute container (repeated key:value
+        strings) in default mode; reserved service/env/version/runtime_id keys are ignored.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1223,13 +1225,12 @@ class Test_FR08_AdditionalTags:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         resource_attrs = _resource_attributes(metrics)
-        assert resource_attrs.get("team") == "apm", f"Expected team=apm resource attribute, got: {resource_attrs}"
-        assert resource_attrs.get("tier") == "backend", (
-            f"Expected tier=backend resource attribute, got: {resource_attrs}"
-        )
+        tracer_dd_tags = resource_attrs.get("tracer_dd_tags") or []
+        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {resource_attrs}"
+        assert "tier:backend" in tracer_dd_tags, f"Expected tier:backend in tracer_dd_tags, got: {resource_attrs}"
         for reserved in ("service", "env", "version", "runtime_id", "runtime-id"):
-            assert reserved not in resource_attrs, (
-                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {resource_attrs}"
+            assert not any(str(entry).startswith(f"{reserved}:") for entry in tracer_dd_tags), (
+                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {tracer_dd_tags}"
             )
         assert resource_attrs.get("service.name") == SERVICE, (
             f"DD_TAGS service must not override configured service.name={SERVICE}, got: {resource_attrs}"
@@ -1268,8 +1269,8 @@ class Test_FR08_AdditionalTags:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS are emitted per-span as data-point attributes,
-        since their values vary per span (unlike the process-wide DD_TAGS carried on the resource).
+        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS surface as the additional_metric_tags
+        data-point container (repeated key:value strings), since their values vary per span.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
@@ -1279,8 +1280,13 @@ class Test_FR08_AdditionalTags:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("customer.tier") == "gold", f"Expected customer.tier=gold data-point attribute, got: {attrs}"
-        assert attrs.get("region") == "us-east-1", f"Expected region=us-east-1 data-point attribute, got: {attrs}"
+        additional_metric_tags = attrs.get("additional_metric_tags") or []
+        assert "customer.tier:gold" in additional_metric_tags, (
+            f"Expected customer.tier:gold in additional_metric_tags, got: {attrs}"
+        )
+        assert "region:us-east-1" in additional_metric_tags, (
+            f"Expected region:us-east-1 in additional_metric_tags, got: {attrs}"
+        )
 
 
 @scenarios.parametric
