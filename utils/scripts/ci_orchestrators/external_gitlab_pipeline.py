@@ -80,7 +80,7 @@ def main(language: str | None = None) -> None:
 
 def is_allowed_stage(stage: str | None, language: str | None) -> bool:
     """Check if a stage is allowed based on the language."""
-    if not language or language == "auto_inject":
+    if not language or language not in LANG_STAGES:
         return stage in LANG_STAGES or stage in {"configure", "pipeline-status"}
     return stage in {language, "configure", "pipeline-status"}
 
