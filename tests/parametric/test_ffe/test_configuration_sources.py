@@ -13,7 +13,7 @@ from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._mock_ffe_cdn import MockFFECDNServer, MockFFECDNStatus
+from utils.docker_fixtures._mock_ffe_cdn import CONFIG_PATH, MockFFECDNServer, MockFFECDNStatus
 
 parametrize = pytest.mark.parametrize
 pytest_plugins = ["utils.docker_fixtures._mock_ffe_cdn"]
@@ -23,9 +23,10 @@ RC_PRODUCT = "FFE_FLAGS"
 TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
+NO_MOCK_REQUEST_ATTEMPTS = 5
 
 BASE_ENVVARS = {
-    "DD_FLAGGING_ENABLED": "true",
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
@@ -79,7 +80,12 @@ def library_env(request: pytest.FixtureRequest, mock_ffe_cdn: MockFFECDNServer) 
     if params.get("cdn", True):
         base_url_form = params.get("base_url_form", "root")
         cdn_base_url = mock_ffe_cdn.library_config_url if base_url_form == "endpoint" else mock_ffe_cdn.library_base_url
-        env |= CDN_ENVVARS
+        cdn_env = dict(CDN_ENVVARS)
+        if "poll_interval" in params:
+            cdn_env["DD_FLAGGING_CONFIGURATION_SOURCE_POLL_INTERVAL_SECONDS"] = str(params["poll_interval"])
+        if "request_timeout" in params:
+            cdn_env["DD_FLAGGING_CONFIGURATION_SOURCE_REQUEST_TIMEOUT_SECONDS"] = str(params["request_timeout"])
+        env |= cdn_env
         env["DD_FLAGGING_CONFIGURATION_SOURCE_BASE_URL"] = cdn_base_url
 
     if api_key is not None:
@@ -100,6 +106,14 @@ def _wait_for_status(
 
     pytest.fail(f"mock FFE CDN status did not reach expected state: {description}; status={last_status}", pytrace=False)
     raise AssertionError("unreachable")
+
+
+def _assert_no_mock_requests(mock_ffe_cdn: MockFFECDNServer) -> None:
+    status: MockFFECDNStatus | None = None
+    for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
+        status = mock_ffe_cdn.status()
+        assert status["requests_total"] == 0, f"unexpected mock FFE CDN request: status={status}"
+        time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
 
 
 def _evaluate(test_library: APMLibrary) -> dict[str, Any]:
@@ -137,8 +151,8 @@ def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
 class Test_Feature_Flag_Configuration_Source_Selection:
     """Validate source selection for Agent RC, CDN, and customer endpoint overrides."""
 
-    @parametrize("library_env", [{"configuration_source": "remote_config", "cdn": False}], indirect=True)
-    def test_remote_config_positive_suppresses_cdn(
+    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
+    def test_remote_config_positive_ignores_cdn_env(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer
     ) -> None:
         mock_ffe_cdn.reset()
@@ -149,8 +163,18 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         assert test_library.ffe_start(UFC_VALID_DATA), "failed to start FFE provider in remote_config mode"
         _assert_expected_value(_evaluate(test_library))
 
-        status = mock_ffe_cdn.status()
-        assert status["requests_total"] == 0
+        _assert_no_mock_requests(mock_ffe_cdn)
+
+    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
+    def test_remote_config_without_rc_does_not_fallback_to_cdn(
+        self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer
+    ) -> None:
+        mock_ffe_cdn.reset()
+
+        assert test_library.ffe_start(), "failed to start FFE provider without remote_config payload"
+        _assert_default_or_not_ready(_evaluate(test_library))
+
+        _assert_no_mock_requests(mock_ffe_cdn)
 
     @parametrize(
         "library_env",
@@ -170,7 +194,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             "valid response request",
         )
         assert status["last_auth_present"] is True
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize("library_env", [{"configuration_source": None, "response": "valid"}], indirect=True)
     def test_default_cdn_positive(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
@@ -182,7 +206,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "default cdn request",
         )
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         "library_env",
@@ -200,20 +224,16 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "customer HTTP endpoint request",
         )
-        assert status["last_path"] == "/mock/ufc/config"
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
-    @parametrize("library_env", [{"configuration_source": "cdn", "response": "valid"}], indirect=True)
-    def test_explicit_configuration_source(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
-        assert test_library.ffe_start(), "failed to start FFE provider for explicit configuration source"
-        _assert_expected_value(_evaluate(test_library))
-
-        status = _wait_for_status(
-            mock_ffe_cdn,
-            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
-            "explicit configuration source request",
-        )
-        assert status["last_configuration_source"] == "cdn"
+    @parametrize("library_env", [{"configuration_source": "invalid", "response": "valid"}], indirect=True)
+    def test_invalid_configuration_source_fails_closed(
+        self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer
+    ) -> None:
+        started = test_library.ffe_start()
+        if started:
+            _assert_default_or_not_ready(_evaluate(test_library))
+        _assert_no_mock_requests(mock_ffe_cdn)
 
 
 @scenarios.parametric
@@ -236,7 +256,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "missing_auth_cold auth failure",
         )
         assert status["last_auth_present"] is False
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         "library_env",
@@ -253,16 +273,28 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "malformed_cold response",
         )
         assert status["last_auth_present"] is True
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "cdn", "response": "timeout", "poll_interval": "5", "request_timeout": "1"}],
+        indirect=True,
+    )
+    def test_request_timeout_cold(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
+        assert test_library.ffe_start(), "failed to start FFE provider for request_timeout_cold"
+
+        status = _wait_for_status(
+            mock_ffe_cdn,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "request_timeout_cold delayed valid response",
+        )
+        _assert_default_or_not_ready(_evaluate(test_library))
+        assert status["last_auth_present"] is True
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         ("library_env", "expected_status_codes"),
         [
-            pytest.param(
-                {"configuration_source": "cdn", "responses": ["retryable", "valid"]},
-                [509, 200],
-                id="retryable-to-valid",
-            ),
             pytest.param(
                 {"configuration_source": "cdn", "responses": ["server_error", "valid"]},
                 [500, 200],
@@ -285,16 +317,11 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             f"bad_to_good {expected_status_codes[0]} to 200 recovery",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         ("library_env", "expected_status_codes"),
         [
-            pytest.param(
-                {"configuration_source": "cdn", "responses": ["retryable", "not_modified"]},
-                [509, 304],
-                id="retryable-to-unchanged",
-            ),
             pytest.param(
                 {"configuration_source": "cdn", "responses": ["server_error", "not_modified"]},
                 [500, 304],
@@ -317,7 +344,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             f"bad_to_unchanged {expected_status_codes[0]} to 304 cold sequence",
         )
         _assert_default_or_not_ready(_evaluate(test_library))
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
 
 @scenarios.parametric
@@ -338,16 +365,11 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["requests_total"] > 0
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         ("library_env", "expected_status_codes"),
         [
-            pytest.param(
-                {"configuration_source": "cdn", "responses": ["valid", "retryable"]},
-                [200, 509],
-                id="valid-to-retryable",
-            ),
             pytest.param(
                 {"configuration_source": "cdn", "responses": ["valid", "server_error"]},
                 [200, 500],
@@ -370,7 +392,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
             f"good_to_bad 200 to {expected_status_codes[1]} preservation",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         "library_env", [{"configuration_source": "cdn", "responses": ["valid", "not_modified"]}], indirect=True
@@ -384,7 +406,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
             "good_to_unchanged 200 to 304 ETag sequence",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize("library_env", [{"configuration_source": "cdn", "response": "valid"}], indirect=True)
     def test_malformed_warm(self, test_library: APMLibrary, mock_ffe_cdn: MockFFECDNServer) -> None:
@@ -399,7 +421,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert mock_ffe_cdn.status()["last_configuration_source"] == "cdn"
+        assert mock_ffe_cdn.status()["last_path"] == CONFIG_PATH
 
 
 @scenarios.parametric
@@ -423,7 +445,7 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
             "delayed_no_overlap completion",
         )
         assert status["max_in_flight"] == 1
-        assert status["last_configuration_source"] == "cdn"
+        assert status["last_path"] == CONFIG_PATH
 
 
 @scenarios.parametric
@@ -440,7 +462,6 @@ class Test_Feature_Flag_Configuration_Source_Mock_Fixture:
             "last_path",
             "last_if_none_match",
             "last_auth_present",
-            "last_configuration_source",
             "last_status_code",
             "status_codes",
         }

@@ -3,11 +3,12 @@
 Tests configure the response timeline with ``mock_ffe_cdn.set_response(...)`` or
 ``mock_ffe_cdn.set_responses([...])`` before starting the test library. They can
 then call ``mock_ffe_cdn.status()`` to assert request counts, auth, ETag, response
-codes, and configuration-source metadata observed by the mock server.
+codes, and paths observed by the mock server.
 """
 
 from __future__ import annotations
 
+import contextlib
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -16,7 +17,7 @@ from pathlib import Path
 import threading
 import time
 from typing import TYPE_CHECKING, Any, TypedDict, cast
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -32,18 +33,18 @@ VALID_RESPONSE_IDS = frozenset(
         "unauthorized",
         "malformed",
         "not_modified",
-        "retryable",
         "server_error",
         "delayed_valid",
+        "timeout",
     }
 )
 DEFAULT_RESPONSE = "valid"
 UFC_ETAG = '"ufc-v1"'
 EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 0.5
+TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
 CONFIG_PATH = "/mock/ufc/config"
-RETRYABLE_STATUS_CODE = 509
 REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
@@ -56,7 +57,6 @@ class MockFFECDNStatus(TypedDict):
     last_path: str | None
     last_if_none_match: str | None
     last_auth_present: bool
-    last_configuration_source: str | None
     last_status_code: int | None
     status_codes: list[int]
 
@@ -71,7 +71,6 @@ class MockFFECDNState:
         self.last_path: str | None = None
         self.last_if_none_match: str | None = None
         self.last_auth_present = False
-        self.last_configuration_source: str | None = None
         self.last_status_code: int | None = None
         self.status_codes: list[int] = []
 
@@ -84,7 +83,6 @@ class MockFFECDNState:
             self.last_path = None
             self.last_if_none_match = None
             self.last_auth_present = False
-            self.last_configuration_source = None
             self.last_status_code = None
             self.status_codes = []
 
@@ -93,19 +91,11 @@ class MockFFECDNState:
         with self._lock:
             self.responses = list(validated_responses)
             self.last_if_none_match = None
-            self.last_configuration_source = None
             self.last_status_code = None
             self.status_codes = []
 
     def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
-        configuration_source = headers.get("DD-Flagging-Configuration-Source") or headers.get(
-            "X-Datadog-Flagging-Configuration-Source"
-        )
-        if configuration_source is None:
-            query = parse_qs(parsed.query)
-            values = query.get("configuration_source")
-            configuration_source = values[0] if values else None
 
         with self._lock:
             self.requests_total += 1
@@ -114,7 +104,6 @@ class MockFFECDNState:
             self.last_path = parsed.path
             self.last_if_none_match = headers.get("If-None-Match")
             self.last_auth_present = _has_auth(headers)
-            self.last_configuration_source = configuration_source
             response = self.responses[0]
             if len(self.responses) > 1:
                 self.responses.pop(0)
@@ -138,7 +127,6 @@ class MockFFECDNState:
                 "last_path": self.last_path,
                 "last_if_none_match": self.last_if_none_match,
                 "last_auth_present": self.last_auth_present,
-                "last_configuration_source": self.last_configuration_source,
                 "last_status_code": self.last_status_code,
                 "status_codes": list(self.status_codes),
             }
@@ -188,8 +176,8 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
         request_headers = dict(self.headers)
         response = self.server.state.record_request(request_headers, self.path)
         try:
-            if response == "delayed_valid":
-                time.sleep(DELAYED_RESPONSE_SECONDS)
+            if response in {"delayed_valid", "timeout"}:
+                time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
 
             status_code, body, headers = _response_for_response(
                 response=response,
@@ -201,7 +189,8 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
                 self.send_header(key, value)
             self.end_headers()
             if body:
-                self.wfile.write(body)
+                with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+                    self.wfile.write(body)
         finally:
             self.server.state.finish_request()
 
@@ -272,8 +261,6 @@ def _response_for_response(response: str, *, has_auth: bool) -> tuple[int, bytes
         return HTTPStatus.OK, MALFORMED_UFC_BYTES, {"Content-Type": "application/json"}
     if response == "not_modified":
         return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
-    if response == "retryable":
-        return RETRYABLE_STATUS_CODE, b"", {"Retry-After": "0"}
     if response == "server_error":
         return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
     return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
