@@ -45,3 +45,27 @@ produces `openai-js@6.0.0` and `openai-js@7.0.0`.
 `WeblogMetaData.load(library)` in `utils/_context/weblog_metadata.py` merges:
 1. Weblogs discovered from `*.Dockerfile` files in the library folder (default metadata).
 2. Explicit overrides from `weblog_metadata.yml`.
+
+## Base image dependencies
+
+A `weblog_metadata.yml` may also declare a top-level `base_image_dependencies` section, unrelated
+to the per-weblog entries above, used by the `build_base_images` CI job
+(`utils/scripts/build_base_images.py`) to know when a weblog base image needs to be rebuilt:
+
+```yaml
+base_image_dependencies:
+  <docker-bake.hcl target name>:
+    - <path to a file or directory the base image depends on>
+    - ...
+```
+
+For each target listed there, the job computes a content hash from the resolved
+`docker-bake.hcl` target config, the target's Dockerfile, and every git-tracked file under the
+listed paths, then pushes the base image to Docker Hub tagged `<base-tag>-<hash12>` if that tag
+doesn't already exist. It never overwrites an existing tag, so weblog Dockerfiles that `FROM` a
+base image must have their tag updated by hand after a new one is pushed (run the script with
+`--dry-run` to find the current tag for each target).
+
+GitHub Actions never builds these base images itself: `utils/scripts/wait_for_base_image.py`
+polls Docker Hub for the tag currently referenced in the weblog's `FROM` line (with a timeout)
+before building the weblog, since GitLab CI is the only pipeline that builds and pushes them.

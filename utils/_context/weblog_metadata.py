@@ -34,20 +34,6 @@ class WeblogMetaData:
         return self.build_mode != BuildMode.none
 
     @property
-    def base_dockerfile(self) -> Path | None:
-        """Returns the path of the base image docker file if exists, else None"""
-        image_name = self.base_image_tag
-
-        if image_name is None:
-            return None
-
-        file_prefix = image_name.replace("datadog/system-tests:", "").rsplit("-", 1)[0]
-        assert file_prefix.endswith(".base")
-
-        path = Path(f"utils/build/docker/{self.library}/{file_prefix}.Dockerfile")
-        return path if path.exists() else None
-
-    @property
     def base_image_tag(self) -> str | None:
         """system-tests base image tag read from the first FROM in the weblog Dockerfile."""
         dockerfile = Path(f"utils/build/docker/{self.library}/{self.name}.Dockerfile")
@@ -68,7 +54,24 @@ class WeblogMetaData:
         with path.open() as f:
             data: dict = yaml.safe_load(f) or {}
 
+        data.pop("base_image_dependencies", None)
+
         return {name: WeblogMetaData(name=name, library=library, **kwargs) for name, kwargs in data.items()}
+
+    @staticmethod
+    def load_base_image_dependencies(library: str) -> dict[str, list[str]]:
+        """Returns the `base_image_dependencies` section of weblog_metadata.yml: a mapping of
+        docker-bake.hcl target name to the list of paths (files or directories) that base image
+        depends on, used to compute a content-hash tag for the base image build job.
+        """
+        path = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
+        if not path.exists():
+            return {}
+
+        with path.open() as f:
+            data: dict = yaml.safe_load(f) or {}
+
+        return data.get("base_image_dependencies", {}) or {}
 
     @staticmethod
     def load(library: str) -> list["WeblogMetaData"]:

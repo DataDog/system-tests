@@ -155,6 +155,9 @@ system_tests_build_pipeline:
     - job: mirror_images
       optional: true
       artifacts: false
+    - job: build_base_images
+      optional: true
+      artifacts: false
   variables:
     SYSTEM_TESTS_FORCE_EXECUTE: "$SYSTEM_TESTS_FORCE_EXECUTE"
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$SYSTEM_TESTS_SKIP_EMPTY_SCENARIO"

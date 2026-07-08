@@ -44,11 +44,6 @@ on:
         default: 'custom'
         required: false
         type: string
-      _build_weblog_base_images:
-        description: "Shall we rebuild weblog base images"
-        default: false
-        required: false
-        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -154,7 +149,6 @@ jobs:
       binaries_artifact: ${{ inputs.binaries_artifact }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
       _system_tests_library_target_branch_map: ${{ inputs._system_tests_library_target_branch_map }}
-      _build_weblog_base_images: ${{ inputs._build_weblog_base_images }}
 
   parametric:
     needs:
@@ -215,11 +209,9 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Build weblog base images
-        if: matrix.weblog.build_base_image
-        run: |
-          source venv/bin/activate
-          ./utils/script/build_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
+      - name: Wait for weblog base image
+        if: matrix.weblog.build_weblog_base_image
+        run: python3 ./utils/scripts/wait_for_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }} --timeout 900 --poll-interval 30
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

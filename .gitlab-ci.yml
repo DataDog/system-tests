@@ -474,3 +474,35 @@ mirror_images:
     - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
+
+# ──────────────────────────────────────────────
+# Rebuild weblog base images whose content changed.
+#
+# For every library with a `base_image_dependencies` section in
+# utils/build/docker/<library>/weblog_metadata.yml, computes a content-hash tag per
+# docker-bake.hcl target and pushes it if missing (see utils/scripts/build_base_images.py).
+# Runs on every push, on every branch: it is idempotent (only pushes new tags, never
+# overwrites existing ones), so it is safe to build ahead of merge. Since new tags never
+# replace old ones, a weblog Dockerfile's FROM clause must be updated by hand to pick up
+# a newly pushed base image (run the script with --dry-run to find the new tag).
+# ──────────────────────────────────────────────
+
+build_base_images:
+  image: $CI_IMAGE
+  tags:
+    - docker-in-docker:amd64
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+  stage: e2e
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+  script:
+    - python utils/scripts/build_base_images.py
+  rules:
+    - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'

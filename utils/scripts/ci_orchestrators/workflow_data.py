@@ -205,8 +205,6 @@ class Job:
         weblog_instance: int,
         scenarios_times: dict[str, float],
         build_time: float,
-        *,
-        build_base_images: bool,
     ):
         self.library = library
         self.weblog = weblog
@@ -223,9 +221,6 @@ class Job:
         # split mechanism
         self.build_time = build_time
 
-        self.build_base_images = build_base_images
-        """ Shall the end-to-end scenario rebuild the weblog base image for fully baked weblog """
-
     def serialize(self) -> dict:
         return {
             "runs_on": "ubuntu-latest",
@@ -236,9 +231,10 @@ class Job:
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
+            # only local weblogs build their base image inline; prebuild weblogs wait for it
+            # once in the dedicated build_end_to_end job (see _get_weblog_build_job).
             "build_weblog_base_image": self.weblog.build_mode == BuildMode.local
-            and self.build_base_images
-            and self.weblog.base_dockerfile is not None,
+            and self.weblog.base_image_tag is not None,
         }
 
     @property
@@ -274,7 +270,6 @@ class Job:
                     weblog_instance=i + 1,
                     scenarios_times={scenario: self._scenarios_times[scenario] for scenario in scenarios},
                     build_time=self.build_time,
-                    build_base_images=self.build_base_images,
                 )
             )
 
@@ -313,8 +308,6 @@ def get_endtoend_definitions(
     maximum_parallel_jobs: int,
     unique_id: str,
     binaries_artifact: str,
-    *,
-    build_base_images: bool = False,
 ) -> dict:
     scenarios = scenario_map.get("endtoend", [])
 
@@ -352,7 +345,6 @@ def get_endtoend_definitions(
                     weblog_instance=1,
                     scenarios_times=scenarios_times,
                     build_time=_get_build_time(library, weblog, time_stats["build"]),
-                    build_base_images=build_base_images,
                 )
             )
 
@@ -371,20 +363,18 @@ def get_endtoend_definitions(
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
             "parallel_weblogs": [
-                _get_weblog_build_job(weblog, build_base_images=build_base_images)
-                for weblog in weblogs
-                if weblog.build_mode == BuildMode.prebuild
+                _get_weblog_build_job(weblog) for weblog in weblogs if weblog.build_mode == BuildMode.prebuild
             ],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
 
 
-def _get_weblog_build_job(weblog: Weblog, *, build_base_images: bool) -> dict:
+def _get_weblog_build_job(weblog: Weblog) -> dict:
     return {
         "name": weblog.name,
         "artifact_name": weblog.artifact_name,
-        "build_base_images": build_base_images and weblog.base_dockerfile is not None,
+        "build_weblog_base_image": weblog.base_image_tag is not None,
     }
 
 
