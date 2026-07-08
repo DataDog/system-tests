@@ -78,7 +78,7 @@ def main(language: str | None = None) -> None:
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
-def is_allowed_stage(stage: str | None, language: str) -> bool:
+def is_allowed_stage(stage: str | None, language: str | None) -> bool:
     """Check if a stage is allowed based on the language."""
     if not language or language == "auto_inject":
         return stage in LANG_STAGES or stage in {"configure", "pipeline-status"}
