@@ -382,8 +382,11 @@ build_ci_image:
     - docker-in-docker:amd64
   stage: e2e
   script:
-    - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
-    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
+    - GIT_TAG=$(cat utils/ci/gitlab/docker/git.Dockerfile | sha256sum | cut -c1-12)
+    - IMAGE_BUILDER_TAG=$(cat utils/ci/gitlab/docker/image-builder.Dockerfile | sha256sum | cut -c1-12)
+    - CI_RUNNER_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
+    - export GIT_TAG IMAGE_BUILDER_TAG CI_RUNNER_TAG
+    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$CI_RUNNER_TAG"
     - |
       if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
         echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
@@ -391,16 +394,29 @@ build_ci_image:
         echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
         exit 1
       fi
-    - >
-      if docker manifest inspect $EXPECTED_IMAGE > /dev/null 2>&1; then
-        echo "Image already exists, skipping build";
+    - |
+      TARGETS=""
+      for entry in "git:$GIT_TAG" "image-builder:$IMAGE_BUILDER_TAG" "ci-runner:$CI_RUNNER_TAG"; do
+        name="${entry%%:*}"
+        tag="${entry#*:}"
+        image="registry.ddbuild.io/system-tests/$name:$tag"
+        if docker manifest inspect "$image" > /dev/null 2>&1; then
+          echo "Image $image already exists, skipping build"
+        else
+          TARGETS="$TARGETS $name"
+        fi
+      done
+      if [ -n "$TARGETS" ]; then
+        docker buildx bake --push -f utils/ci/gitlab/docker/docker-bake.hcl $TARGETS
       else
-        docker build -f utils/ci/gitlab/docker/system-tests.Dockerfile -t $EXPECTED_IMAGE . &&
-        docker push $EXPECTED_IMAGE;
+        echo "All images already exist, nothing to build"
       fi
   rules:
     - changes:
+        - utils/ci/gitlab/docker/git.Dockerfile
+        - utils/ci/gitlab/docker/image-builder.Dockerfile
         - utils/ci/gitlab/docker/system-tests.Dockerfile
+        - utils/ci/gitlab/docker/docker-bake.hcl
         - requirements.txt
         - utils/ci/gitlab/main.yml
 
