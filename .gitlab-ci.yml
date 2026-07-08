@@ -376,7 +376,7 @@ system_tests_param:
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
 build_ci_image:
-  image: registry.ddbuild.io/images/docker:20.10.13-jammy
+  image: registry.ddbuild.io/system-tests/image-builder
   interruptible: false
   tags:
     - docker-in-docker:amd64
