@@ -444,7 +444,6 @@ class Test_Feature_Flag_Configuration_Source_Mock_Fixture:
             "in_flight",
             "max_in_flight",
             "last_path",
-            "last_query",
             "last_if_none_match",
             "last_auth_present",
             "last_configuration_source",

@@ -1,4 +1,10 @@
-"""FFE UFC delivery fixture used to exercise CDN/default configuration-source behavior."""
+"""FFE UFC delivery fixture used to exercise CDN/default configuration-source behavior.
+
+Tests configure the response timeline with ``mock_ffe_cdn.set_response(...)`` or
+``mock_ffe_cdn.set_responses([...])`` before starting the test library. They can
+then call ``mock_ffe_cdn.status()`` to assert request counts, auth, ETag, response
+codes, and configuration-source metadata observed by the mock server.
+"""
 
 from __future__ import annotations
 
@@ -47,7 +53,6 @@ class MockFFECDNStatus(TypedDict):
     in_flight: int
     max_in_flight: int
     last_path: str | None
-    last_query: str | None
     last_if_none_match: str | None
     last_auth_present: bool
     last_configuration_source: str | None
@@ -64,7 +69,6 @@ class MockFFECDNState:
         self.in_flight = 0
         self.max_in_flight = 0
         self.last_path: str | None = None
-        self.last_query: str | None = None
         self.last_if_none_match: str | None = None
         self.last_auth_present = False
         self.last_configuration_source: str | None = None
@@ -80,7 +84,6 @@ class MockFFECDNState:
             self.in_flight = 0
             self.max_in_flight = 0
             self.last_path = None
-            self.last_query = None
             self.last_if_none_match = None
             self.last_auth_present = False
             self.last_configuration_source = None
@@ -101,15 +104,12 @@ class MockFFECDNState:
 
     def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
-        configuration_source = (
-            headers.get("DD-Flagging-Configuration-Source")
-            or headers.get("X-Datadog-Flagging-Configuration-Source")
-            or headers.get("DD-Flagging-Source-Mode")
-            or headers.get("X-Datadog-Flagging-Source-Mode")
+        configuration_source = headers.get("DD-Flagging-Configuration-Source") or headers.get(
+            "X-Datadog-Flagging-Configuration-Source"
         )
         if configuration_source is None:
             query = parse_qs(parsed.query)
-            values = query.get("configuration_source") or query.get("source_mode")
+            values = query.get("configuration_source")
             configuration_source = values[0] if values else None
 
         with self._lock:
@@ -117,7 +117,6 @@ class MockFFECDNState:
             self.in_flight += 1
             self.max_in_flight = max(self.max_in_flight, self.in_flight)
             self.last_path = parsed.path
-            self.last_query = parsed.query or None
             self.last_if_none_match = headers.get("If-None-Match")
             self.last_auth_present = _has_auth(headers)
             self.last_configuration_source = configuration_source
@@ -143,7 +142,6 @@ class MockFFECDNState:
                 "in_flight": self.in_flight,
                 "max_in_flight": self.max_in_flight,
                 "last_path": self.last_path,
-                "last_query": self.last_query,
                 "last_if_none_match": self.last_if_none_match,
                 "last_auth_present": self.last_auth_present,
                 "last_configuration_source": self.last_configuration_source,
