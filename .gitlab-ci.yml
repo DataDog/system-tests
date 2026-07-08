@@ -381,6 +381,9 @@ build_ci_image:
   tags:
     - docker-in-docker:amd64
   stage: e2e
+  id_tokens:
+    DDSIGN_ID_TOKEN:
+      aud: image-integrity
   script:
     - IMAGE_BUILDER_TAG=$(cat utils/ci/gitlab/docker/image-builder.Dockerfile | sha256sum | cut -c1-12)
     - CI_RUNNER_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
@@ -406,7 +409,12 @@ build_ci_image:
         fi
       done
       if [ -n "$TARGETS" ]; then
-        docker buildx bake --push -f utils/ci/gitlab/docker/docker-bake.hcl $TARGETS
+        METADATA_FILE=$(mktemp)
+        docker buildx bake --push --metadata-file "$METADATA_FILE" -f utils/ci/gitlab/docker/docker-bake.hcl $TARGETS
+        for name in $TARGETS; do
+          digest=$(jq -r --arg name "$name" '.[$name]["containerimage.digest"]' "$METADATA_FILE")
+          ddsign sign "registry.ddbuild.io/system-tests/${name}@${digest}"
+        done
       else
         echo "All images already exist, nothing to build"
       fi
