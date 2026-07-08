@@ -1,8 +1,10 @@
 from functools import lru_cache
+from pathlib import Path
 
-from utils import scenarios
+from utils import scenarios, logger
+from utils.const import COMPONENT_GROUPS
 from utils._context.weblog_metadata import WeblogMetaData
-
+from utils._context._scenarios import get_all_scenarios
 from utils.scripts.ci_orchestrators.workflow_data import (
     _get_endtoend_weblogs,
     _is_supported,
@@ -139,3 +141,39 @@ def test_otel_collector():
             "weblog_instance": 1,
         }
     ]
+
+
+@scenarios.test_the_test
+def test_legacy_scenario_matrix():
+    has_error = False
+
+    for library in sorted(COMPONENT_GROUPS.all):
+        for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
+            for scenario in get_all_scenarios():
+                groups = [group.name for group in scenario.scenario_groups]
+                legacy = _is_supported(weblog, scenario, "")
+                new_value = weblog.support_scenario(scenario.name, groups)
+                if legacy is not new_value:
+                    has_error = True
+                    logger.error((library, legacy, new_value, weblog.name, scenario.name, groups))
+
+    assert not has_error
+
+
+@scenarios.test_the_test
+def test_all_weblog_has_metadata():
+    for library in sorted(COMPONENT_GROUPS.all):
+        folder = Path(f"utils/build/docker/{library}")
+        if folder.exists():  # some lib does not have any weblog
+            names = [
+                f.name.replace(".Dockerfile", "")
+                for f in folder.iterdir()
+                if f.suffix == ".Dockerfile" and ".base." not in f.name and f.is_file()
+            ]
+
+            known_weblog_names = {w.name.split("@")[0] for w in WeblogMetaData.load(library)}
+
+            for name in names:
+                assert name in known_weblog_names, (
+                    f"Please add {name} in utils/build/docker/{library}/weblog_metadata.yml"
+                )

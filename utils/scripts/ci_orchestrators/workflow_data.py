@@ -497,6 +497,9 @@ def _is_uds_weblog(weblog: str) -> bool:
 def _is_supported(weblog: Weblog, scenario: Scenario, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
 
+    if scenario.github_workflow != "endtoend":
+        return False
+
     library = weblog.library
     weblog_name = weblog.name
 
@@ -630,17 +633,3 @@ if __name__ == "__main__":
         binaries_artifact="",
         unique_id="000",
     )
-
-# if __name__ == "__main__":
-#     from utils._context._scenarios import get_all_scenarios
-
-#     library = "python"
-#     for weblog in Weblog.load(library):
-#         for scenario in get_all_scenarios():
-#             if scenario.github_workflow != "endtoend":
-#                 continue
-#             groups = [group.name for group in scenario.scenario_groups]
-#             legacy = _is_supported(weblog, scenario, "")
-#             new_value = weblog.support_scenario(scenario.name, groups)
-#             if legacy is not new_value:
-#                 print((legacy, new_value, weblog.name, scenario.name, groups))
