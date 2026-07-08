@@ -1246,17 +1246,19 @@ class Test_FR08_AdditionalTags:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Resource attributes configured via OTEL_RESOURCE_ATTRIBUTES are emitted on the metric resource."""
+        """OTEL_RESOURCE_ATTRIBUTES is an alias for DD_TAGS, so its entries also surface in the
+        tracer_dd_tags resource-attribute container.
+        """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        resource_attrs = _resource_attributes(metrics)
-        assert resource_attrs.get("team") == "apm", f"Expected team=apm resource attribute, got: {resource_attrs}"
-        assert resource_attrs.get("deployment.region") == "us-east-1", (
-            f"Expected deployment.region=us-east-1 resource attribute, got: {resource_attrs}"
+        tracer_dd_tags = _resource_attributes(metrics).get("tracer_dd_tags") or []
+        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {tracer_dd_tags}"
+        assert "deployment.region:us-east-1" in tracer_dd_tags, (
+            f"Expected deployment.region:us-east-1 in tracer_dd_tags, got: {tracer_dd_tags}"
         )
 
     @pytest.mark.parametrize(
