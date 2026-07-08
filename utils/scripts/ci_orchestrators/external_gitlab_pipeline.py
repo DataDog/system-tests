@@ -70,8 +70,7 @@ def main(language: str | None = None) -> None:
     # Ensure 'variables' section exists and update with new values
     data.setdefault("variables", {}).update(new_variables)
 
-    if language and language in LANG_STAGES:
-        data = filter_yaml(data, language)
+    data = filter_yaml(data, language)
 
     handle_parallelism(data)
 
@@ -81,10 +80,12 @@ def main(language: str | None = None) -> None:
 
 def is_allowed_stage(stage: str | None, language: str) -> bool:
     """Check if a stage is allowed based on the language."""
+    if not language or language == "auto_inject":
+        return stage in LANG_STAGES or stage in {"configure", "pipeline-status"}
     return stage in {language, "configure", "pipeline-status"}
 
 
-def filter_yaml(yaml_data: dict, language: str) -> dict:
+def filter_yaml(yaml_data: dict, language: str | None) -> dict:
     """Filter the pipeline to run only the jobs for the specified language"""
 
     # Find all jobs where stage == language
