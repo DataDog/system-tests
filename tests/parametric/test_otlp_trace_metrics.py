@@ -15,7 +15,7 @@ FR -> test-class mapping:
                                                                          Test_FR06_Otel_Resource_Attributes
   FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
   FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes,
-        DD_TAGS surfaced as datadog.<key> resource attributes                  Test_FR08_AdditionalTags
+        DD_TAGS / OTEL_RESOURCE_ATTRIBUTES surfaced as resource attributes     Test_FR08_AdditionalTags
   FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
@@ -1191,7 +1191,7 @@ class Test_FR08_Datadog_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR08_AdditionalTags:
-    """FR08: Global DD_TAGS are emitted as datadog.<key> resource attributes (support pending in several SDKs)."""
+    """FR08: DD_TAGS and OTEL_RESOURCE_ATTRIBUTES surface as resource attributes (support pending in several SDKs)."""
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1211,8 +1211,8 @@ class Test_FR08_AdditionalTags:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Global DD_TAGS surface as datadog.<key> resource attributes in default mode; reserved
-        service/env/version/runtime_id keys are ignored (they map to dedicated fields, not datadog.<key>).
+        """Global DD_TAGS surface as resource attributes in default mode; reserved
+        service/env/version/runtime_id keys are ignored (they map to dedicated fields).
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1221,19 +1221,39 @@ class Test_FR08_AdditionalTags:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         resource_attrs = _resource_attributes(metrics)
-        assert resource_attrs.get("datadog.team") == "apm", (
-            f"Expected datadog.team=apm resource attribute, got: {resource_attrs}"
-        )
-        assert resource_attrs.get("datadog.tier") == "backend", (
-            f"Expected datadog.tier=backend resource attribute, got: {resource_attrs}"
+        assert resource_attrs.get("team") == "apm", f"Expected team=apm resource attribute, got: {resource_attrs}"
+        assert resource_attrs.get("tier") == "backend", (
+            f"Expected tier=backend resource attribute, got: {resource_attrs}"
         )
         for reserved in ("service", "env", "version", "runtime_id", "runtime-id"):
-            assert f"datadog.{reserved}" not in resource_attrs, (
-                f"Reserved DD_TAGS key {reserved!r} must be ignored, not emitted as "
-                f"datadog.{reserved}, got: {resource_attrs}"
+            assert reserved not in resource_attrs, (
+                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {resource_attrs}"
             )
         assert resource_attrs.get("service.name") == SERVICE, (
             f"DD_TAGS service must not override configured service.name={SERVICE}, got: {resource_attrs}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "OTEL_RESOURCE_ATTRIBUTES": "team=apm,deployment.region=us-east-1"}],
+    )
+    def test_fr08_11_otel_resource_attributes_env(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Resource attributes configured via OTEL_RESOURCE_ATTRIBUTES are emitted on the metric resource."""
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource_attrs = _resource_attributes(metrics)
+        assert resource_attrs.get("team") == "apm", f"Expected team=apm resource attribute, got: {resource_attrs}"
+        assert resource_attrs.get("deployment.region") == "us-east-1", (
+            f"Expected deployment.region=us-east-1 resource attribute, got: {resource_attrs}"
         )
 
 
