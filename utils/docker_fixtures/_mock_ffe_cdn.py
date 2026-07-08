@@ -96,13 +96,14 @@ class MockFFECDNState:
 
     def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
+        normalized_headers = {key.lower(): value for key, value in headers.items()}
 
         with self._lock:
             self.requests_total += 1
             self.in_flight += 1
             self.max_in_flight = max(self.max_in_flight, self.in_flight)
             self.last_path = parsed.path
-            self.last_if_none_match = headers.get("If-None-Match")
+            self.last_if_none_match = normalized_headers.get("if-none-match")
             self.last_auth_present = _has_auth(headers)
             response = self.responses[0]
             if len(self.responses) > 1:

@@ -1,4 +1,13 @@
-"""Parametric FFE configuration-source coverage for mocked FFE CDN validation."""
+"""Parametric FFE configuration-source coverage for mocked FFE CDN validation.
+
+Feature under test: server SDKs can select where UFC flag definitions come from.
+The agentless path defaults to direct HTTP/CDN delivery, while explicit
+``remote_config`` keeps the existing Agent RC path.
+
+Test strategy: drive SDKs only through public env vars and OpenFeature evaluation
+endpoints, then use the mock FFE CDN for observable HTTP behavior: request path,
+auth, status transitions, ETag handling, retries, timeout, and poll overlap.
+"""
 
 from collections.abc import Callable
 import json
@@ -146,8 +155,16 @@ def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
     )
 
 
+def _has_status_sequence(status_codes: list[int], expected_status_codes: list[int]) -> bool:
+    expected_length = len(expected_status_codes)
+    return any(
+        status_codes[index : index + expected_length] == expected_status_codes
+        for index in range(len(status_codes) - expected_length + 1)
+    )
+
+
 @scenarios.parametric
-@features.feature_flags_dynamic_evaluation
+@features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Selection:
     """Validate source selection for Agent RC, CDN, and customer endpoint overrides."""
 
@@ -160,7 +177,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
-        assert test_library.ffe_start(UFC_VALID_DATA), "failed to start FFE provider in remote_config mode"
+        assert test_library.ffe_start(), "failed to start FFE provider in remote_config mode"
         _assert_expected_value(_evaluate(test_library))
 
         _assert_no_mock_requests(mock_ffe_cdn)
@@ -237,7 +254,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
 
 @scenarios.parametric
-@features.feature_flags_dynamic_evaluation
+@features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
     """Validate cold-start failure and recovery behavior for CDN configuration source."""
 
@@ -313,7 +330,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["status_codes"][-2:] == expected_status_codes,
+            lambda current: _has_status_sequence(current["status_codes"], expected_status_codes),
             f"bad_to_good {expected_status_codes[0]} to 200 recovery",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -340,7 +357,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["status_codes"][-2:] == expected_status_codes,
+            lambda current: _has_status_sequence(current["status_codes"], expected_status_codes),
             f"bad_to_unchanged {expected_status_codes[0]} to 304 cold sequence",
         )
         _assert_default_or_not_ready(_evaluate(test_library))
@@ -348,7 +365,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
 
 
 @scenarios.parametric
-@features.feature_flags_dynamic_evaluation
+@features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
     """Validate that later CDN failures do not corrupt last-known-good state."""
 
@@ -388,7 +405,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["status_codes"][-2:] == expected_status_codes,
+            lambda current: _has_status_sequence(current["status_codes"], expected_status_codes),
             f"good_to_bad 200 to {expected_status_codes[1]} preservation",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -402,7 +419,8 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["status_codes"][-2:] == [200, 304] and current["last_if_none_match"] == '"ufc-v1"',
+            lambda current: _has_status_sequence(current["status_codes"], [200, 304])
+            and current["last_if_none_match"] == '"ufc-v1"',
             "good_to_unchanged 200 to 304 ETag sequence",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -425,7 +443,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
 
 
 @scenarios.parametric
-@features.feature_flags_dynamic_evaluation
+@features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
     """Validate that CDN polling does not overlap requests under slow responses."""
 
@@ -449,7 +467,7 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
 
 
 @scenarios.parametric
-@features.feature_flags_dynamic_evaluation
+@features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Mock_Fixture:
     """Validate that the mock CDN exposes only metadata needed by the tests."""
 
