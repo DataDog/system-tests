@@ -1514,7 +1514,7 @@ manifest:
   tests/stats/test_stats.py: v1.54.0
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
-  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature (Go does not set top-level Service field in stats payload)
+  tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: v2.11.0-dev
   tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
