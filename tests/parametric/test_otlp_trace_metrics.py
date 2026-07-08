@@ -14,7 +14,8 @@ FR -> test-class mapping:
   FR06  OTel semantic-convention attributes wherever applicable          Test_FR06_Otel_Span_Attributes,
                                                                          Test_FR06_Otel_Resource_Attributes
   FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
-  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes
+  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes,
+        DD_TAGS surfaced as datadog.<key> resource attributes                  Test_FR08_AdditionalTags
   FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
@@ -1162,11 +1163,8 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A top-level and a non-top-level span with identical dimensions bucket separately.
-
-        The measured child (selected per FR04) shares every aggregation dimension with its top-level root,
-        yet the two must yield separate data points -- one datadog.span.top_level=true, one false -- rather
-        than being merged into a single bucket mislabeled false.
+        """A top-level and a non-top-level (measured) span with identical dimensions must bucket separately,
+        each keeping its own datadog.span.top_level flag rather than merging into one bucket mislabeled false.
         """
         with test_library as t:
             with (
@@ -1187,6 +1185,55 @@ class Test_FR08_Datadog_Attributes:
             "Top-level and non-top-level measured spans sharing the same aggregation dimensions must bucket "
             "separately, each keeping its datadog.span.top_level flag; expected both a true and a false data "
             f"point, got: {[_data_point_attrs(dp) for dp in points]}"
+        )
+
+
+@scenarios.parametric
+@features.client_side_stats_supported
+class Test_FR08_AdditionalTags:
+    """FR08: Global DD_TAGS are emitted as datadog.<key> resource attributes (support pending in several SDKs)."""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TAGS": (
+                    "team:apm,tier:backend,"
+                    "service:ignored-svc,env:ignored-env,version:ignored-ver,runtime_id:ignored-rid"
+                ),
+            }
+        ],
+    )
+    def test_fr08_10_dd_tags_resource_attributes(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Global DD_TAGS surface as datadog.<key> resource attributes in default mode; reserved
+        service/env/version/runtime_id keys are ignored (they map to dedicated fields, not datadog.<key>).
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource_attrs = _resource_attributes(metrics)
+        assert resource_attrs.get("datadog.team") == "apm", (
+            f"Expected datadog.team=apm resource attribute, got: {resource_attrs}"
+        )
+        assert resource_attrs.get("datadog.tier") == "backend", (
+            f"Expected datadog.tier=backend resource attribute, got: {resource_attrs}"
+        )
+        for reserved in ("service", "env", "version", "runtime_id", "runtime-id"):
+            assert f"datadog.{reserved}" not in resource_attrs, (
+                f"Reserved DD_TAGS key {reserved!r} must be ignored, not emitted as "
+                f"datadog.{reserved}, got: {resource_attrs}"
+            )
+        assert resource_attrs.get("service.name") == SERVICE, (
+            f"DD_TAGS service must not override configured service.name={SERVICE}, got: {resource_attrs}"
         )
 
 
