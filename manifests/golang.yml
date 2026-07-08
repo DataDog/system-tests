@@ -238,18 +238,51 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v2.7.0-dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v2.3.0-dev  # Possibly earlier
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:
+    - weblog_declaration:
+        "*": irrelevant (CMDi detection requires orchestrion)
+        net-http-orchestrion: v2.11.0-dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: v2.3.0-dev  # Possibly earlier
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
     - weblog_declaration:
