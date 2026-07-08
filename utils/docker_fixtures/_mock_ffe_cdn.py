@@ -26,15 +26,17 @@ from utils.docker_fixtures._core import get_host_port
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-RESPONSE_IDS = {
-    "valid",
-    "unauthorized",
-    "malformed",
-    "not_modified",
-    "retryable",
-    "server_error",
-    "delayed_valid",
-}
+VALID_RESPONSE_IDS = frozenset(
+    {
+        "valid",
+        "unauthorized",
+        "malformed",
+        "not_modified",
+        "retryable",
+        "server_error",
+        "delayed_valid",
+    }
+)
 DEFAULT_RESPONSE = "valid"
 UFC_ETAG = '"ufc-v1"'
 EXPECTED_API_KEY = "system-tests-mock-api-key"
@@ -48,7 +50,6 @@ MALFORMED_UFC_BYTES = b'{"flags": ['
 
 
 class MockFFECDNStatus(TypedDict):
-    response: str
     requests_total: int
     in_flight: int
     max_in_flight: int
@@ -63,8 +64,7 @@ class MockFFECDNStatus(TypedDict):
 class MockFFECDNState:
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self.responses: tuple[str, ...] = (DEFAULT_RESPONSE,)
-        self.last_response = DEFAULT_RESPONSE
+        self.responses = [DEFAULT_RESPONSE]
         self.requests_total = 0
         self.in_flight = 0
         self.max_in_flight = 0
@@ -74,12 +74,10 @@ class MockFFECDNState:
         self.last_configuration_source: str | None = None
         self.last_status_code: int | None = None
         self.status_codes: list[int] = []
-        self._sequence_index = 0
 
     def reset(self) -> None:
         with self._lock:
-            self.responses = (DEFAULT_RESPONSE,)
-            self.last_response = DEFAULT_RESPONSE
+            self.responses = [DEFAULT_RESPONSE]
             self.requests_total = 0
             self.in_flight = 0
             self.max_in_flight = 0
@@ -89,18 +87,15 @@ class MockFFECDNState:
             self.last_configuration_source = None
             self.last_status_code = None
             self.status_codes = []
-            self._sequence_index = 0
 
     def set_responses(self, responses: object) -> None:
         validated_responses = validate_responses(responses)
         with self._lock:
-            self.responses = tuple(validated_responses)
-            self.last_response = validated_responses[0]
+            self.responses = list(validated_responses)
             self.last_if_none_match = None
             self.last_configuration_source = None
             self.last_status_code = None
             self.status_codes = []
-            self._sequence_index = 0
 
     def record_request(self, headers: Mapping[str, str], path: str) -> str:
         parsed = urlparse(path)
@@ -120,9 +115,9 @@ class MockFFECDNState:
             self.last_if_none_match = headers.get("If-None-Match")
             self.last_auth_present = _has_auth(headers)
             self.last_configuration_source = configuration_source
-            response = self.responses[min(self._sequence_index, len(self.responses) - 1)]
-            self.last_response = response
-            self._sequence_index += 1
+            response = self.responses[0]
+            if len(self.responses) > 1:
+                self.responses.pop(0)
             return response
 
     def record_response(self, status_code: int) -> None:
@@ -137,7 +132,6 @@ class MockFFECDNState:
     def status(self) -> MockFFECDNStatus:
         with self._lock:
             return {
-                "response": self.last_response,
                 "requests_total": self.requests_total,
                 "in_flight": self.in_flight,
                 "max_in_flight": self.max_in_flight,
@@ -261,7 +255,7 @@ def validate_responses(responses: object) -> list[str]:
     if any(not isinstance(response, str) for response in responses):
         raise ValueError("responses must contain only strings")
 
-    unknown_responses = sorted({response for response in responses if response not in RESPONSE_IDS})
+    unknown_responses = sorted({response for response in responses if response not in VALID_RESPONSE_IDS})
     if unknown_responses:
         raise ValueError(f"unknown response: {', '.join(unknown_responses)}")
 

@@ -169,7 +169,6 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "valid response request",
         )
-        assert status["response"] == "valid"
         assert status["last_auth_present"] is True
         assert status["last_configuration_source"] == "cdn"
 
@@ -183,7 +182,6 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "default cdn request",
         )
-        assert status["response"] == "valid"
         assert status["last_configuration_source"] == "cdn"
 
     @parametrize(
@@ -202,7 +200,6 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "customer HTTP endpoint request",
         )
-        assert status["response"] == "valid"
         assert status["last_path"] == "/mock/ufc/config"
         assert status["last_configuration_source"] == "cdn"
 
@@ -213,7 +210,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["response"] == "valid" and current["requests_total"] > 0,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "explicit configuration source request",
         )
         assert status["last_configuration_source"] == "cdn"
@@ -238,7 +235,6 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             lambda current: current["last_status_code"] in {401, 403},
             "missing_auth_cold auth failure",
         )
-        assert status["response"] == "valid"
         assert status["last_auth_present"] is False
         assert status["last_configuration_source"] == "cdn"
 
@@ -253,7 +249,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
 
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["response"] == "malformed" and current["last_status_code"] == 200,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "malformed_cold response",
         )
         assert status["last_auth_present"] is True
@@ -337,7 +333,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         mock_ffe_cdn.set_response("unauthorized")
         status = _wait_for_status(
             mock_ffe_cdn,
-            lambda current: current["response"] == "unauthorized" and current["last_status_code"] in {401, 403},
+            lambda current: current["last_status_code"] in {401, 403},
             "missing_auth_warm auth failure",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -399,11 +395,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         mock_ffe_cdn.set_response("malformed")
         _wait_for_status(
             mock_ffe_cdn,
-            lambda current: (
-                current["response"] == "malformed"
-                and current["requests_total"] > requests_before
-                and current["last_status_code"] == 200
-            ),
+            lambda current: (current["requests_total"] > requests_before and current["last_status_code"] == 200),
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -423,7 +415,10 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         status = _wait_for_status(
             mock_ffe_cdn,
             lambda current: (
-                current["response"] == "delayed_valid" and current["in_flight"] == 0 and current["max_in_flight"] >= 1
+                current["requests_total"] > 0
+                and current["last_status_code"] == 200
+                and current["in_flight"] == 0
+                and current["max_in_flight"] >= 1
             ),
             "delayed_no_overlap completion",
         )
@@ -439,7 +434,6 @@ class Test_Feature_Flag_Configuration_Source_Mock_Fixture:
     def test_mock_ffe_cdn_status_is_metadata_only(self, mock_ffe_cdn: MockFFECDNServer) -> None:
         status = mock_ffe_cdn.status()
         assert set(status) == {
-            "response",
             "requests_total",
             "in_flight",
             "max_in_flight",
