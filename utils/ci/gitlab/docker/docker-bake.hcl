@@ -2,10 +2,6 @@
 # (see .gitlab-ci.yml). Tags are passed in as variables computed from the
 # content of each Dockerfile.
 
-variable "GIT_TAG" {
-  default = "latest"
-}
-
 variable "IMAGE_BUILDER_TAG" {
   default = "latest"
 }
@@ -15,19 +11,13 @@ variable "CI_RUNNER_TAG" {
 }
 
 group "default" {
-  targets = ["git", "image-builder", "ci-runner"]
+  targets = ["image-builder", "ci-runner"]
 }
 
 target "_common" {
   context    = "."
   platforms  = ["linux/amd64"]
   provenance = false
-}
-
-target "git" {
-  inherits   = ["_common"]
-  dockerfile = "utils/ci/gitlab/docker/git.Dockerfile"
-  tags       = ["registry.ddbuild.io/system-tests/git:${GIT_TAG}"]
 }
 
 target "image-builder" {

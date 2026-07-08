@@ -382,10 +382,9 @@ build_ci_image:
     - docker-in-docker:amd64
   stage: e2e
   script:
-    - GIT_TAG=$(cat utils/ci/gitlab/docker/git.Dockerfile | sha256sum | cut -c1-12)
     - IMAGE_BUILDER_TAG=$(cat utils/ci/gitlab/docker/image-builder.Dockerfile | sha256sum | cut -c1-12)
     - CI_RUNNER_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
-    - export GIT_TAG IMAGE_BUILDER_TAG CI_RUNNER_TAG
+    - export IMAGE_BUILDER_TAG CI_RUNNER_TAG
     - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$CI_RUNNER_TAG"
     - |
       if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
@@ -396,7 +395,7 @@ build_ci_image:
       fi
     - |
       TARGETS=""
-      for entry in "git:$GIT_TAG" "image-builder:$IMAGE_BUILDER_TAG" "ci-runner:$CI_RUNNER_TAG"; do
+      for entry in "image-builder:$IMAGE_BUILDER_TAG" "ci-runner:$CI_RUNNER_TAG"; do
         name="${entry%%:*}"
         tag="${entry#*:}"
         image="registry.ddbuild.io/system-tests/$name:$tag"
@@ -413,7 +412,6 @@ build_ci_image:
       fi
   rules:
     - changes:
-        - utils/ci/gitlab/docker/git.Dockerfile
         - utils/ci/gitlab/docker/image-builder.Dockerfile
         - utils/ci/gitlab/docker/system-tests.Dockerfile
         - utils/ci/gitlab/docker/docker-bake.hcl
