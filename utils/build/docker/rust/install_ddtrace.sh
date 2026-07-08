@@ -39,6 +39,38 @@ align_opentelemetry() {
     cargo add "opentelemetry-semantic-conventions@~${otel_minor}"
 }
 
+# Fails the build if more than one (semver-incompatible) version of the
+# `opentelemetry` crate ends up in the dependency graph.
+#
+# `opentelemetry::global::*` (the tracer provider and text map propagator set
+# up once in main.rs) is keyed on the exact crate version compiled into the
+# binary. If some other dependency (e.g. a git-pinned crate like
+# opentelemetry-instrumentation-tower) resolves a different major/minor of
+# `opentelemetry` than the one datadog-opentelemetry/tracing-opentelemetry use,
+# Rust links both versions side by side as distinct types with separate global
+# state. Anything using the *other* version's `global::tracer()` /
+# `global::get_text_map_propagator()` silently gets a no-op tracer/propagator:
+# no server spans, no inbound trace-context extraction, no errors anywhere.
+# This exact bug is what made every incoming-request test fail while
+# outgoing http.client spans kept working fine.
+check_single_opentelemetry_version() {
+    local versions
+    versions=$(cargo metadata --format-version 1 \
+        | jq -r '[.packages[] | select(.name == "opentelemetry") | .version] | unique | .[]')
+
+    if [[ $(echo "$versions" | grep -c .) -gt 1 ]]; then
+        echo "ERROR: multiple incompatible versions of the 'opentelemetry' crate were resolved:" >&2
+        echo "$versions" | sed 's/^/  - opentelemetry /' >&2
+        echo >&2
+        echo "opentelemetry::global::* keeps separate state per crate version, so any" >&2
+        echo "dependency using the 'wrong' version's global tracer/propagator will be" >&2
+        echo "silently turned into a no-op (no server spans, no context extraction)." >&2
+        echo "Align every opentelemetry* dependency (including git-pinned ones like" >&2
+        echo "opentelemetry-instrumentation-tower) on the same major.minor version." >&2
+        exit 1
+    fi
+}
+
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
 
@@ -84,3 +116,4 @@ fi
 
 # align the opentelemetry deps with whatever datadog-opentelemetry resolved to
 align_opentelemetry
+check_single_opentelemetry_version

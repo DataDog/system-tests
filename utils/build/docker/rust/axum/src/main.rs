@@ -34,7 +34,7 @@ async fn main() {
         // Basic info endpoints
         .route("/healthcheck", get(healthcheck))
         .route("/make_distant_call", get(make_distant_call))
-        //.layer(middleware::from_fn(integration::enrich_span))
+        .layer(middleware::from_fn(integration::enrich_span))
         .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
         .into_make_service();
 

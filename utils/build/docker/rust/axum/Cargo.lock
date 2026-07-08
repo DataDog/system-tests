@@ -329,14 +329,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "ctor"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "datadog-opentelemetry"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bd4dddf14872decc0c0d4a7d376ae2370f361c0ee7f12538dda9963554e1241"
+source = "git+https://github.com/DataDog/dd-trace-rs?rev=e2d2e95#e2d2e951169e6ee1c993a0ef0b8556582303a6d0"
 dependencies = [
  "anyhow",
  "arc-swap",
  "base64 0.21.7",
+ "ctor",
  "foldhash 0.1.5",
  "hashbrown 0.15.5",
  "http-body-util",
@@ -352,8 +362,8 @@ dependencies = [
  "libdd-tinybytes",
  "libdd-trace-utils",
  "lru",
- "opentelemetry 0.31.0",
- "opentelemetry-semantic-conventions 0.31.0",
+ "opentelemetry",
+ "opentelemetry-semantic-conventions",
  "opentelemetry_sdk",
  "percent-encoding",
  "rand 0.8.6",
@@ -1005,9 +1015,9 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libdd-capabilities"
-version = "2.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0ce42b411956272ea0ff851dddbd8ea4dae251192ffdbc50e90e20737ffd600"
+checksum = "43a946c29c5fe7cc2adec7a66a35f7cfc138ba75c988d09a7a99c12de7d3b9a7"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1098,9 +1108,9 @@ dependencies = [
 
 [[package]]
 name = "libdd-ddsketch"
-version = "1.0.1"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b31b2435e2e8eaba0e35a96df3e1407b68f8ef76055383ceb2ba5a09e5a1bb5"
+checksum = "a3f04a8501bc5f52f005f637beb18c900c69ad6deedb5f3104cd0a8c36bc8046"
 dependencies = [
  "prost",
 ]
@@ -1341,9 +1351,9 @@ checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
 name = "memchr"
-version = "2.8.2"
+version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88904434abc2901f197fe8cc55f0445e7ded921dba5911dad2e2b39b48e663c4"
+checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "memfd"
@@ -1415,20 +1425,6 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "opentelemetry"
-version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b84bcd6ae87133e903af7ef497404dda70c60d0ea14895fc8a5e6722754fc2a0"
-dependencies = [
- "futures-core",
- "futures-sink",
- "js-sys",
- "pin-project-lite",
- "thiserror 2.0.18",
- "tracing",
-]
-
-[[package]]
-name = "opentelemetry"
 version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0142c63252a9e054e68a4c61a5778f7b14f576274d593f8ce883d191a099682"
@@ -1450,7 +1446,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "http",
- "opentelemetry 0.32.0",
+ "opentelemetry",
 ]
 
 [[package]]
@@ -1460,19 +1456,13 @@ source = "git+https://github.com/open-telemetry/opentelemetry-rust-contrib?rev=6
 dependencies = [
  "http",
  "http-body",
- "opentelemetry 0.32.0",
+ "opentelemetry",
  "opentelemetry-http",
- "opentelemetry-semantic-conventions 0.32.1",
+ "opentelemetry-semantic-conventions",
  "pin-project-lite",
  "tower-layer",
  "tower-service",
 ]
-
-[[package]]
-name = "opentelemetry-semantic-conventions"
-version = "0.31.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e62e29dfe041afb8ed2a6c9737ab57db4907285d999ef8ad3a59092a36bdc846"
 
 [[package]]
 name = "opentelemetry-semantic-conventions"
@@ -1482,15 +1472,16 @@ checksum = "c913ac17a6c451661ee255f4625d143e51647ae78ebd969b75e41c4442f4fe47"
 
 [[package]]
 name = "opentelemetry_sdk"
-version = "0.31.0"
+version = "0.32.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e14ae4f5991976fd48df6d843de219ca6d31b01daaab2dad5af2badeded372bd"
+checksum = "9b59f80e1ac4d5ff7a2db8fb6c80badb7f0f3f858211fba08dd9aaec750894f9"
 dependencies = [
  "futures-channel",
  "futures-executor",
  "futures-util",
- "opentelemetry 0.31.0",
+ "opentelemetry",
  "percent-encoding",
+ "portable-atomic",
  "rand 0.9.4",
  "thiserror 2.0.18",
 ]
@@ -1532,6 +1523,12 @@ name = "pkg-config"
 version = "0.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19f132c84eca552bf34cab8ec81f1c1dcc229b811638f9d283dceabe58c5569e"
+
+[[package]]
+name = "portable-atomic"
+version = "1.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c33a9471896f1c69cecef8d20cbe2f7accd12527ce60845ff44c153bb2a21b49"
 
 [[package]]
 name = "potential_utf"
@@ -1858,7 +1855,7 @@ dependencies = [
  "getrandom 0.2.17",
  "http",
  "matchit",
- "opentelemetry 0.31.0",
+ "opentelemetry",
  "reqwest",
  "reqwest-middleware",
  "tracing",
@@ -2022,9 +2019,9 @@ dependencies = [
 
 [[package]]
 name = "rustversion"
-version = "1.0.22"
+version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
+checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
 name = "ryu"
@@ -2528,12 +2525,12 @@ dependencies = [
 
 [[package]]
 name = "tracing-opentelemetry"
-version = "0.32.1"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ac28f2d093c6c477eaa76b23525478f38de514fa9aeb1285738d4b97a9552fc"
+checksum = "adbc64cba7137545b8044cb1fe9814f7aacf3c6b5f9b45be8bb5db538befdb26"
 dependencies = [
  "js-sys",
- "opentelemetry 0.31.0",
+ "opentelemetry",
  "smallvec",
  "tracing",
  "tracing-core",
@@ -2749,7 +2746,7 @@ dependencies = [
  "axum",
  "datadog-opentelemetry",
  "http",
- "opentelemetry 0.31.0",
+ "opentelemetry",
  "opentelemetry-instrumentation-tower",
  "reqwest",
  "reqwest-middleware",

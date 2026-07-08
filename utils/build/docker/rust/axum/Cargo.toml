@@ -16,17 +16,25 @@ bench = false
 [dependencies]
 axum                       = { version = "0.8.9", features = ["json"] }
 http                       = "1"
-opentelemetry              = { version = "0.31", features = ["logs"] }
+opentelemetry              = { version = "0.32", features = ["logs"] }
 reqwest                    = "0.13.4"
 reqwest-middleware         = "0.5.2"
-reqwest-tracing            = { version = "0.7.1", features = ["opentelemetry_0_31"] }
+reqwest-tracing            = { version = "0.7.1", features = ["opentelemetry_0_32"] }
 serde_json                 = "1.0.150"
 tokio                      = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
 tracing                    = "0.1.44"
-tracing-opentelemetry      = "0.32.1"
+tracing-opentelemetry      = "0.33.0"
 tracing-subscriber         = "0.3"
-
-# Version changed at build time by install_ddtrace.sh
-datadog-opentelemetry = "0.4.0"
 uuid = "1.23.4"
+
+# relies on opentelemetry 0.32
 opentelemetry-instrumentation-tower = { git = "https://github.com/open-telemetry/opentelemetry-rust-contrib", rev = "66bfea4", package = "opentelemetry-instrumentation-tower" }
+
+# Pinned to a post-0.4.0 commit of main so the opentelemetry crate family lines
+# up with opentelemetry-instrumentation-tower below (both on 0.32.x). The
+# published 0.4.0 release on crates.io still depends on opentelemetry 0.31,
+# which would otherwise duplicate the opentelemetry crate graph and silently
+# turn HTTPLayer's spans (and context extraction) into no-ops.
+# Local/dev builds: install_ddtrace.sh may still override this with a path
+# dependency to /binaries/dd-trace-rs when a local checkout is provided.
+datadog-opentelemetry = { git = "https://github.com/DataDog/dd-trace-rs", rev = "e2d2e95", package = "datadog-opentelemetry" }
