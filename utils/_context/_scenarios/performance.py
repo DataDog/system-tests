@@ -4,6 +4,7 @@ import time
 import pytest
 
 from .endtoend import EndToEndScenario
+from .core import scenario_groups
 
 
 class PerformanceScenario(EndToEndScenario):
@@ -11,6 +12,7 @@ class PerformanceScenario(EndToEndScenario):
         super().__init__(
             name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy_for_agent=False, use_proxy_for_weblog=False
         )
+        self.scenario_groups = [scenario_groups.exotics]
 
     @property
     def appsec_enabled(self):

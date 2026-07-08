@@ -62,6 +62,7 @@ def test_tracer_release():
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
         scenarios.otel_collector_e2e,
+        scenarios.performances,
     ]
 
     for scenario in get_all_scenarios():
