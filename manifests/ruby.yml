@@ -2141,6 +2141,10 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v2.36.0-dev
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v2.36.0-dev
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.36.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0

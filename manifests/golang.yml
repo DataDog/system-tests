@@ -1102,6 +1102,10 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.59.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v2.10.0-dev
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v2.10.0-dev
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v2.10.0-dev
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: bug (dd-trace-go panics on DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails; e2e coverage is masked by a containers.py override forcing this env var to false)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
