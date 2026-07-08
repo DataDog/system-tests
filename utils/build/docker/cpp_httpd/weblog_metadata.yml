@@ -1,0 +1,6 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+httpd:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, go_proxies, open_telemetry, graphql]
+  excluded_scenarios: [APPSEC_MISSING_RULES, APPSEC_CORRUPTED_RULES] # C++ 1.2.0 freeze when the rules file is missing

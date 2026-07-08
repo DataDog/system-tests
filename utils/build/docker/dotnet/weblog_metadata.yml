@@ -1,0 +1,8 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+poc:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, go_proxies, open_telemetry, graphql]
+uds:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, go_proxies, open_telemetry, graphql, ipv6]

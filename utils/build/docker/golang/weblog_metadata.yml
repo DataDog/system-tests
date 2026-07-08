@@ -2,5 +2,37 @@
 
 haproxy:
   build_mode: none
+  supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
 envoy:
   build_mode: none
+  supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
+graphql-go:
+  supported_scenario_groups: [graphql]
+  # excluded_scenario_groups: [lambda_end_to_end, go_proxies, open_telemetry, graphql, ipv6]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
+gqlgen:
+  supported_scenario_groups: [graphql]
+  excluded_scenario_groups: [lambda_end_to_end]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
+graph-gophers:
+  supported_scenario_groups: [graphql]
+  excluded_scenario_groups: [lambda_end_to_end]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
+echo:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+gin:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+uds-echo:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [ipv6, lambda_end_to_end, graphql, open_telemetry]
+net-http:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+chi:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+net-http-orchestrion:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]

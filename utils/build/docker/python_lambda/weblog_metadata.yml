@@ -1,0 +1,10 @@
+alb:
+  supported_scenario_groups: [lambda_end_to_end]
+alb-multi:
+  supported_scenario_groups: [lambda_end_to_end]
+apigw-http:
+  supported_scenario_groups: [lambda_end_to_end]
+apigw-rest:
+  supported_scenario_groups: [lambda_end_to_end]
+function-url:
+  supported_scenario_groups: [lambda_end_to_end]

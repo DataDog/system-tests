@@ -1,0 +1,83 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+apache-mod-7.0:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.1:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.2:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.3:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.4:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-8.0:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-8.1:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-8.2:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+
+apache-mod-7.0-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.1-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.2-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.3-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-7.4-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-8.0-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-8.1-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+apache-mod-8.2-zts:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+
+php-fpm-7.0:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-7.1:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-7.2:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-7.3:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-7.4:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-8.0:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-8.1:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-8.2:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+php-fpm-8.5:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+
+laravel11x:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]

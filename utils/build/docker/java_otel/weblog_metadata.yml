@@ -1,0 +1,5 @@
+
+spring-boot-native:
+  supported_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]
+spring-boot-otel:
+  supported_scenarios: [OTEL_INTEGRATIONS]

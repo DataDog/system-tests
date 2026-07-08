@@ -1,5 +1,52 @@
 # docs/understand/weblogs/weblog-metadata.md
 
+akka-http:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+jersey-grizzly2:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
 openai-java:
   build_mode: none
   framework_versions: ["4.29.0"]
+  supported_scenario_groups: [integration_frameworks]
+play:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+ratpack:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+resteasy-netty3:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+spring-boot:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+spring-boot-3-native:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+spring-boot-jetty:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+spring-boot-openliberty:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+spring-boot-payara:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # probably because of a crash, but no history
+spring-boot-undertow:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+spring-boot-wildfly:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+uds-spring-boot:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [ipv6, lambda_end_to_end, graphql, open_telemetry]
+vertx3:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+vertx4:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]

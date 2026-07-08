@@ -1,0 +1,2 @@
+flask-poc-otel:
+  supported_scenarios: [OTEL_INTEGRATIONS]

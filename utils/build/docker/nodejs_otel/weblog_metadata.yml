@@ -1,0 +1,2 @@
+express4-otel:
+  supported_scenarios: [OTEL_INTEGRATIONS]

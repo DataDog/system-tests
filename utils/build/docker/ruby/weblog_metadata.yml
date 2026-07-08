@@ -1,0 +1,38 @@
+graphql23:
+  supported_scenarios: [GRAPHQL_APPSEC]
+rack:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+rails42:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+rails52:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+rails61:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+rails72:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+rails80:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+sinatra14:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+sinatra22:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+sinatra32:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+sinatra41:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+uds-rails:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]
+uds-sinatra:
+  supported_scenario_groups: [end_to_end]
+  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry, ipv6]

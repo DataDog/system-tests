@@ -1,5 +1,5 @@
 from enum import StrEnum
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, replace, field
 from pathlib import Path
 import yaml
 
@@ -24,6 +24,11 @@ class WeblogMetaData:
     framework_versions: list[str] | None = None
     artifact_name: str = ""
     """ not declared in the yml file, but populated later """
+
+    supported_scenarios: list[str] = field(default_factory=list)
+    supported_scenario_groups: list[str] = field(default_factory=list)
+    excluded_scenarios: list[str] = field(default_factory=list)
+    excluded_scenario_groups: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         self.build_mode = BuildMode(self.build_mode)
@@ -99,9 +104,14 @@ class WeblogMetaData:
 
         return result
 
+    def support_scenario(self, scenario_name: str, scenario_groups: list[str]) -> bool:
+        if scenario_name in self.excluded_scenarios:
+            return False
 
-if __name__ == "__main__":
-    x = WeblogMetaData.load("python")
-    from pprint import pprint
+        if any(group in self.excluded_scenario_groups for group in scenario_groups):
+            return False
 
-    pprint(x)  # noqa: T203
+        if scenario_name in self.supported_scenarios:
+            return True
+
+        return any(group in self.supported_scenario_groups for group in scenario_groups)

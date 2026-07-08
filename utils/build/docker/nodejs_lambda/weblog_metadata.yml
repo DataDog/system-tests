@@ -1,0 +1,10 @@
+nodejs-alb:
+  supported_scenario_groups: [lambda_end_to_end]
+nodejs-alb-multi:
+  supported_scenario_groups: [lambda_end_to_end]
+nodejs-apigw-http:
+  supported_scenario_groups: [lambda_end_to_end]
+nodejs-apigw-rest:
+  supported_scenario_groups: [lambda_end_to_end]
+nodejs-function-url:
+  supported_scenario_groups: [lambda_end_to_end]
