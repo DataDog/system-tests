@@ -1,9 +1,6 @@
 from collections import defaultdict
-from dataclasses import dataclass
 import json
-import os
-from pathlib import Path
-from utils._context._scenarios import go_proxies
+from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
 
 
 def _load_json(file_path: str) -> dict:
@@ -196,21 +193,20 @@ def get_docker_ssi_matrix(
 
 
 # End-to-end corner
-@dataclass
-class Weblog:
-    name: str
-    require_build: bool
-    artifact_name: str
-
-    def serialize(self) -> dict:
-        return {"name": self.name, "artifact_name": self.artifact_name}
 
 
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
     def __init__(
-        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
+        self,
+        library: str,
+        weblog: Weblog,
+        weblog_instance: int,
+        scenarios_times: dict[str, float],
+        build_time: float,
+        *,
+        build_base_images: bool,
     ):
         self.library = library
         self.weblog = weblog
@@ -227,6 +223,9 @@ class Job:
         # split mechanism
         self.build_time = build_time
 
+        self.build_base_images = build_base_images
+        """ Shall the end-to-end scenario rebuild the weblog base image for fully baked weblog """
+
     def serialize(self) -> dict:
         return {
             "runs_on": "ubuntu-latest",
@@ -237,6 +236,9 @@ class Job:
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
+            "build_weblog_base_image": self.weblog.build_mode == BuildMode.local
+            and self.build_base_images
+            and self.weblog.base_dockerfile is not None,
         }
 
     @property
@@ -272,6 +274,7 @@ class Job:
                     weblog_instance=i + 1,
                     scenarios_times={scenario: self._scenarios_times[scenario] for scenario in scenarios},
                     build_time=self.build_time,
+                    build_base_images=self.build_base_images,
                 )
             )
 
@@ -279,59 +282,26 @@ class Job:
 
 
 def _get_endtoend_weblogs(
-    library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
+    library: str,
+    weblogs_filter: list[str],
+    unique_id: str,
+    ci_environment: str,
+    binaries_artifact: str,
 ) -> list[Weblog]:
-    result: list[Weblog] = []
+    weblogs: list[Weblog] = Weblog.load(library)
 
-    integration_frameworks_weblogs = {
-        # openai
-        "openai-py": ["2.0.0"],
-        "openai-js": ["6.0.0"],
-        "openai-java": ["4.29.0"],
-        # anthropic
-        "anthropic-js": ["0.71.0"],
-        "anthropic-py": ["0.75.0"],
-        # google_genai
-        "google_genai-py": ["1.55.0"],
-        "google_genai-js": ["1.34.0"],
-    }
+    if len(weblogs_filter) != 0:
+        # filter weblogs by the weblogs_filter set
+        weblogs = [w for w in weblogs if w.name in weblogs_filter]
 
-    folder = f"utils/build/docker/{library}"
-    if Path(folder).exists():  # some lib does not have any weblog
-        names = [
-            f.replace(".Dockerfile", "")
-            for f in os.listdir(folder)
-            if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
-        ]
+    for weblog in weblogs:
+        weblog.artifact_name = (
+            f"binaries_{ci_environment}_{library}_{weblog.name}_{unique_id}"
+            if weblog.build_mode == "prebuild"
+            else binaries_artifact
+        )
 
-        if len(weblogs_filter) != 0:
-            # filter weblogs by the weblogs_filter set
-            names = [weblog for weblog in names if weblog in weblogs_filter]
-
-        for name in names:
-            if name not in integration_frameworks_weblogs:
-                result.append(
-                    Weblog(
-                        name=name,
-                        require_build=True,
-                        artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
-                    )
-                )
-            else:
-                for version in integration_frameworks_weblogs[name]:
-                    result.append(
-                        Weblog(name=f"{name}@{version}", require_build=False, artifact_name=binaries_artifact)
-                    )
-
-    # weblog not related to a docker file
-    for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
-        if lib == library:
-            result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
-
-    if library == "otel_collector":
-        result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
-
-    return sorted(result, key=lambda w: w.name)
+    return sorted(weblogs, key=lambda w: w.name)
 
 
 def get_endtoend_definitions(
@@ -343,8 +313,10 @@ def get_endtoend_definitions(
     maximum_parallel_jobs: int,
     unique_id: str,
     binaries_artifact: str,
+    *,
+    build_base_images: bool = False,
 ) -> dict:
-    scenarios = scenario_map["endtoend"]
+    scenarios = scenario_map.get("endtoend", [])
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
@@ -352,7 +324,11 @@ def get_endtoend_definitions(
 
     # get the list of end-to-end weblogs for the given library
     weblogs: list[Weblog] = _get_endtoend_weblogs(
-        library, weblogs_filter, ci_environment=ci_environment, unique_id=unique_id, binaries_artifact=binaries_artifact
+        library,
+        weblogs_filter,
+        ci_environment=ci_environment,
+        unique_id=unique_id,
+        binaries_artifact=binaries_artifact,
     )
 
     # check that jobs can be splitted
@@ -376,6 +352,7 @@ def get_endtoend_definitions(
                     weblog_instance=1,
                     scenarios_times=scenarios_times,
                     build_time=_get_build_time(library, weblog, time_stats["build"]),
+                    build_base_images=build_base_images,
                 )
             )
 
@@ -393,9 +370,21 @@ def get_endtoend_definitions(
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_build],
+            "parallel_weblogs": [
+                _get_weblog_build_job(weblog, build_base_images=build_base_images)
+                for weblog in weblogs
+                if weblog.build_mode == BuildMode.prebuild
+            ],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
+    }
+
+
+def _get_weblog_build_job(weblog: Weblog, *, build_base_images: bool) -> dict:
+    return {
+        "name": weblog.name,
+        "artifact_name": weblog.artifact_name,
+        "build_base_images": build_base_images and weblog.base_dockerfile is not None,
     }
 
 
@@ -464,7 +453,7 @@ def _split_scenarios_for_parallel_execution(
 
 
 def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
-    if not weblog.require_build:
+    if weblog.build_mode != BuildMode.prebuild:
         return 0.0
 
     if library not in build_stats:
@@ -577,11 +566,8 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
             return False
 
     # Go proxies
-    if scenario.startswith("GO_PROXIES"):
-        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog) != library:
-            return False
-    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog):
-        if not scenario.startswith("GO_PROXIES"):
+    if weblog in ("envoy", "haproxy"):
+        if scenario not in ("DEFAULT", "APPSEC_BLOCKING"):
             return False
 
     # otel collector

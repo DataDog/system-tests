@@ -25,7 +25,6 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .ai_guard import AIGuardScenario
@@ -1302,21 +1301,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    go_proxies_default = GoProxiesScenario(
-        name="GO_PROXIES_DEFAULT",
-        doc="Default tests for proxies using the security processor.",
-        rc_api_enabled=True,
-        scenario_groups=[],
-    )
-
-    go_proxies_appsec_blocking = GoProxiesScenario(
-        name="GO_PROXIES_APPSEC_BLOCKING",
-        doc="Default tests for proxies using the security processor with appsec blocking rule file",
-        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[],
-    )
-
     ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics_enabled = EndToEndScenario(
@@ -1338,6 +1322,7 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
             "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "GOMEMLIMIT": "500MiB",
         },
         runtime_metrics_enabled=True,
         include_opentelemetry=True,
