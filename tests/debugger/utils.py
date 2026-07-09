@@ -114,6 +114,37 @@ def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     return value in {"true", "True", "1"}
 
 
+def capture_point_contains_data(point: object) -> bool:
+    """Return True iff a single capture point (entry / return / one line entry) contains data."""
+    if not isinstance(point, dict):
+        return False
+    for key in ("arguments", "locals", "staticFields"):
+        if point.get(key):
+            return True
+    return bool(point.get("throwable"))
+
+
+def captures_contain_data(captures: object) -> bool:
+    """Return True iff the ``captures`` field of a snapshot contains any captured probe data.
+
+    A snapshot whose ``captures`` is missing, ``None``, or only contains empty
+    ``entry`` / ``return`` / ``lines`` sub-structures (i.e. no captured arguments,
+    locals, static fields, or throwable) returns False -- it is an empty captures
+    container and acceptable as part of an evaluation-error snapshot.
+    """
+    if not isinstance(captures, dict):
+        return False
+    for key, value in captures.items():
+        # `entry` and `return` map directly to a capture-point dict.
+        # `lines` maps line-numbers to capture-point dicts, so descend one level.
+        if key == "lines" and isinstance(value, dict):
+            if any(capture_point_contains_data(v) for v in value.values()):
+                return True
+        elif capture_point_contains_data(value):
+            return True
+    return False
+
+
 class BaseDebuggerTest:
     tracer: dict[str, str] = {}
 
