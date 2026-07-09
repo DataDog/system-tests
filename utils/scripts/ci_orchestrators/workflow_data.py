@@ -322,7 +322,7 @@ def get_endtoend_definitions(
     *,
     build_base_images: bool = False,
 ) -> dict:
-    scenarios = scenario_map.get("endtoend", [])
+    scenarios:list[Scenario] = scenario_map.get("endtoend", [])
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
