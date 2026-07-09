@@ -29,7 +29,7 @@ from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context.ports import ContainerPorts
+from utils._context.constants import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 from utils._context.containers import (
     CassandraContainer,
@@ -350,7 +350,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_error_tracking = EndToEndScenario(
@@ -362,7 +362,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="GraphQL error tracking tests with OpenTelemetry semantics",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",

@@ -30,8 +30,8 @@ if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
 fi
 
 if [ "${DD_LANG}" == "js" ] && [ "${SSI_ENV}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
-    # Special case for Node.js, the staging major version is 1 above the prod major (6 here)
-    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="6"
+    # Special case for Node.js, the staging major version is 1 above the prod major (7 here)
+    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="7"
 fi
 
 #We want specfic injector version (to run on auto_inject pipelines)
