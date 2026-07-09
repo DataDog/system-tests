@@ -376,7 +376,7 @@ system_tests_param:
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
 build_ci_image:
-  image: registry.ddbuild.io/system-tests/image-builder:6200a89c341d
+  image: registry.ddbuild.io/system-tests/image-builder:496bc0863a74
   interruptible: false
   tags:
     - docker-in-docker:amd64
@@ -385,39 +385,7 @@ build_ci_image:
     DDSIGN_ID_TOKEN:
       aud: image-integrity
   script:
-    - IMAGE_BUILDER_TAG=$(cat utils/ci/gitlab/docker/image-builder.Dockerfile | sha256sum | cut -c1-12)
-    - CI_RUNNER_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
-    - export IMAGE_BUILDER_TAG CI_RUNNER_TAG
-    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$CI_RUNNER_TAG"
-    - |
-      if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
-        echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
-        echo "   Update CI_IMAGE in utils/ci/gitlab/main.yml:"
-        echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
-        exit 1
-      fi
-    - |
-      TARGETS=""
-      for entry in "image-builder:$IMAGE_BUILDER_TAG" "ci-runner:$CI_RUNNER_TAG"; do
-        name="${entry%%:*}"
-        tag="${entry#*:}"
-        image="registry.ddbuild.io/system-tests/$name:$tag"
-        if docker manifest inspect "$image" > /dev/null 2>&1; then
-          echo "Image $image already exists, skipping build"
-        else
-          TARGETS="$TARGETS $name"
-        fi
-      done
-      if [ -n "$TARGETS" ]; then
-        METADATA_FILE=$(mktemp)
-        docker buildx bake --push --metadata-file "$METADATA_FILE" -f utils/ci/gitlab/docker/docker-bake.hcl $TARGETS
-        for name in $TARGETS; do
-          digest=$(jq -r --arg name "$name" '.[$name]["containerimage.digest"]' "$METADATA_FILE")
-          ddsign sign "registry.ddbuild.io/system-tests/${name}@${digest}"
-        done
-      else
-        echo "All images already exist, nothing to build"
-      fi
+    - python3 utils/ci/gitlab/build_ci_image.py
   rules:
     - changes:
         - utils/ci/gitlab/docker/image-builder.Dockerfile
