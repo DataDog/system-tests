@@ -14,12 +14,6 @@ group "default" {
   targets = ["image-builder", "ci-runner"]
 }
 
-target "_common" {
-  context    = "."
-  platforms  = ["linux/amd64"]
-  provenance = false
-}
-
 target "image-builder" {
   inherits   = ["_common"]
   dockerfile = "utils/ci/gitlab/docker/image-builder.Dockerfile"
