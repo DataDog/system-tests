@@ -1225,6 +1225,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1274,6 +1275,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_capture_limits_emit_incomplete: missing_feature (Debugger incomplete capture reason coverage not implemented yet)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track:
     - declaration: missing_feature (Python 3.15.0 introduced the track change)
       component_version: <3.15.0
