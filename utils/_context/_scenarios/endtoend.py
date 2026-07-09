@@ -194,7 +194,7 @@ class EndToEndScenario(DockerScenario):
         *,
         doc: str,
         github_workflow: str = "endtoend",
-        weblog_categories: list[WeblogCategory] | None = None,
+        weblog_categories: list[WeblogCategory],
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,

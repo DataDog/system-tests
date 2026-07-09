@@ -3,6 +3,7 @@ import time
 
 import pytest
 
+from utils._context.constants import WeblogCategory
 from .endtoend import EndToEndScenario
 from .core import scenario_groups
 
@@ -10,7 +11,12 @@ from .core import scenario_groups
 class PerformanceScenario(EndToEndScenario):
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(
-            name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy_for_agent=False, use_proxy_for_weblog=False
+            name,
+            doc=doc,
+            appsec_enabled=self.appsec_enabled,
+            use_proxy_for_agent=False,
+            use_proxy_for_weblog=False,
+            weblog_categories=[WeblogCategory.dd_trace],
         )
         self.scenario_groups = [scenario_groups.exotics]
 
