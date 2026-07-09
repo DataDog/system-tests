@@ -3,16 +3,9 @@
 refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
-  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
-  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
-  tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
-  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
-  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
-  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
-  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled::test_sdk_disabled: missing_feature (/ai_guard/evaluate endpoint not implemented)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (process tags not implemented)
+  tests/appsec/: irrelevant (AppSec/IAST/RASP is not implemented in dd-trace-rs)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
@@ -358,11 +351,53 @@ manifest:
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject::test_main: missing_feature (/mock_s3/copy_object endpoint not implemented)
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload::test_main: missing_feature (/mock_s3/multipart_upload endpoint not implemented)
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject::test_main: missing_feature (/mock_s3/put_object endpoint not implemented)
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject::test_non_ascii: missing_feature (/mock_s3/put_object endpoint not implemented)
   tests/stats/test_stats.py: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
+  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence::test_ip_headers_precedence: missing_feature (http.client_ip tagging not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom::test_status_code_200: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom::test_status_code_202: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_400: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_500: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom::test_status_code_200: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom::test_status_code_202: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (/kafka/produce endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_client: missing_feature (query string obfuscation not implemented)
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_server: missing_feature (query string obfuscation not implemented)
+  tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: missing_feature (/read_file endpoint not implemented)
+  tests/test_identify.py::Test_Basic: missing_feature (/identify endpoint not implemented)
+  tests/test_identify.py::Test_Propagate::test_identify_tags_incoming: missing_feature (/waf endpoint not implemented)
+  tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
+  tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_incoming: missing_feature (/waf endpoint not implemented)
+  tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Default: v0.0.1
+  tests/test_library_conf.py::Test_ExtractBehavior_Ignore: ">=0.3.4-dev"
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (/make_distant_call does not echo the outgoing request headers, so context-injection can't be verified)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: ">=0.3.4-dev"
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers::test_trace_header_tags: missing_feature (/waf endpoint not implemented)
+  tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers::test_trace_header_tags: missing_feature (wildcard header-tags config does not tag response headers)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_miscs.py::Test_Basic::test_spans_generation: missing_feature (/spans endpoint not implemented)
+  tests/test_protobuf.py::Test_Protobuf::test_protobuf: missing_feature (/protobuf/serialize and /protobuf/deserialize endpoints not implemented)
+  tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (/waf/ endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsMethod::test_methods: missing_feature (/waf endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip_with_attack: missing_feature (/waf endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsReferrerHostname::test_referrer_hostname: missing_feature (/status endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsRoute::test_route: missing_feature (/sample_rate_route endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsStatusCode::test_status_code: missing_feature (/status endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsUrl: missing_feature (/waf endpoint not implemented)
+  tests/test_standard_tags.py::Test_StandardTagsUserAgent::test_useragent: missing_feature (/waf endpoint not implemented)
+  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: missing_feature (/load_dependency endpoint not implemented)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (/enable_product endpoint not implemented)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (/spawn_child endpoint not implemented)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (/spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_v1_payloads.py: missing_feature
