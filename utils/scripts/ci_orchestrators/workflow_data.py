@@ -1,7 +1,8 @@
 from collections import defaultdict
 import json
 from utils._context._scenarios import Scenario
-from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
+from utils._context.weblog_metadata import WeblogMetaData as Weblog
+from utils._context.constants import WeblogBuildMode as BuildMode
 
 
 def _load_json(file_path: str) -> dict:
