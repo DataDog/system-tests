@@ -1,8 +1,13 @@
-use std::sync::OnceLock;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, OnceLock},
+};
 
 use axum::{extract::Request, http::HeaderMap, middleware::Next, response::Response};
 
+use http::Extensions;
 use opentelemetry::{trace::Status, KeyValue};
+use reqwest_middleware::Middleware;
 use reqwest_tracing::reqwest_otel_span;
 use tracing::Span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
@@ -85,9 +90,7 @@ impl reqwest_tracing::ReqwestOtelSpanBackend for DatadogClientSpanBackend {
 
         let host = req.url().host_str().unwrap_or_default().to_owned();
         let query_scrubbed = req.url().query().map(scrub_query_string);
-        let query_suffix = query_scrubbed
-            .map(|q| format!("?{q}"))
-            .unwrap_or_default();
+        let query_suffix = query_scrubbed.map(|q| format!("?{q}")).unwrap_or_default();
         let host_port = match req.url().port() {
             Some(p) => format!("{host}:{p}"),
             None => host.clone(),
@@ -298,5 +301,53 @@ fn is_public_ip(ip: &str) -> bool {
                 // filter unique-local (fc00::/7)
                 && (v6.segments()[0] & 0xfe00) != 0xfc00
         }
+    }
+}
+
+// Middleware to capture headers
+
+pub fn header_map_to_string_map(headers: &reqwest::header::HeaderMap) -> HashMap<String, String> {
+    headers
+        .iter()
+        .filter_map(|(name, value)| {
+            value
+                .to_str()
+                .ok()
+                .map(|v| (name.as_str().to_owned(), v.to_owned()))
+        })
+        .collect()
+}
+
+/// Records the headers of the outgoing request as they are right before
+/// it's sent, i.e. after every earlier middleware (in particular
+/// `TracingMiddleware`'s automatic OTel context injection) has run.
+///
+/// Construct it, hand a clone to `ClientBuilder::with` (`Middleware` impls
+/// are shared via `Arc` internally, so all clones see the same captured
+/// headers), then read them back afterwards with `take_headers`.
+#[derive(Clone, Default)]
+pub struct CaptureRequestHeaders(Arc<Mutex<Option<HashMap<String, String>>>>);
+
+impl CaptureRequestHeaders {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Returns the headers captured for the most recent request, if any.
+    pub fn take_headers(&self) -> HashMap<String, String> {
+        self.0.lock().unwrap().take().unwrap_or_default()
+    }
+}
+
+#[async_trait::async_trait]
+impl Middleware for CaptureRequestHeaders {
+    async fn handle(
+        &self,
+        req: reqwest::Request,
+        extensions: &mut Extensions,
+        next: reqwest_middleware::Next<'_>,
+    ) -> reqwest_middleware::Result<reqwest::Response> {
+        *self.0.lock().unwrap() = Some(header_map_to_string_map(req.headers()));
+        next.run(req, extensions).await
     }
 }

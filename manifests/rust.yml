@@ -375,7 +375,6 @@ manifest:
   tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v0.0.1
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: ">=0.3.4-dev"
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart: missing_feature (/make_distant_call does not echo the outgoing request headers, so context-injection can't be verified)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: ">=0.3.4-dev"
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)

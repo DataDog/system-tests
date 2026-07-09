@@ -2743,6 +2743,7 @@ dependencies = [
 name = "weblog"
 version = "0.0.1"
 dependencies = [
+ "async-trait",
  "axum",
  "datadog-opentelemetry",
  "http",

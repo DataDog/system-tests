@@ -76,11 +76,10 @@ async fn index() -> Response {
 async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
     let url = params.get("url").cloned().unwrap_or_default();
 
-    // `TracingMiddleware` creates a client span nested under the current
-    // (server) tracing span and injects its OTel context into the outgoing
-    // request headers automatically.
+    let capture_request_headers = integration::CaptureRequestHeaders::new();
     let client = ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
+        .with(capture_request_headers.clone())
         .build();
 
     let resp = client.get(&url).send().await;
@@ -88,11 +87,13 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
     match resp {
         Ok(r) => {
             let status = r.status().as_u16();
+            let request_headers = capture_request_headers.take_headers();
+            let response_headers = integration::header_map_to_string_map(r.headers());
             Json(serde_json::json!({
                 "url": url,
                 "status_code": status,
-                "request_headers": {},
-                "response_headers": {}
+                "request_headers": request_headers,
+                "response_headers": response_headers
             }))
             .into_response()
         }

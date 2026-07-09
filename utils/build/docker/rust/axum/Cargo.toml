@@ -14,6 +14,7 @@ doc   = false
 bench = false
 
 [dependencies]
+async-trait                = "0.1.89"
 axum                       = { version = "0.8.9", features = ["json"] }
 http                       = "1"
 opentelemetry              = { version = "0.32", features = ["logs"] }
