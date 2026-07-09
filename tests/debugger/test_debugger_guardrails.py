@@ -2,10 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
+import time
 from typing import Any
 
 import tests.debugger.utils as debugger
-from utils import context, features, scenarios, weblog
+from utils import context, features, scenarios, slow, weblog
+
+
+MAX_SNAPSHOT_BYTES = 1024 * 1024
 
 
 @features.debugger_expression_language
@@ -77,3 +82,127 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
                 f"Probe emitted {len(snapshots)} snapshot(s) after evaluation timeout. "
                 "A conforming tracer must skip event creation when expression evaluation exceeds 1 second."
             )
+
+
+@features.debugger_line_probe
+@scenarios.debugger_probes_snapshot
+@slow
+class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
+    """RFC guardrails for completed snapshot size and capture-time budget."""
+
+    SNAPSHOT_SIZE_COLLECTION_ITEMS = 300000
+    CAPTURE_TIMEOUT_COLLECTION_ITEMS = 1000000
+
+    def _setup_snapshot_guardrail(self, probes_name: str, collection_size: int) -> None:
+        self.initialize_weblog_remote_config()
+
+        probes = debugger.read_probes(probes_name)
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id("log")
+            if "methodName" in probe["where"]:
+                del probe["where"]["methodName"]
+            probe["where"]["lines"] = [
+                str(line) for line in self.method_and_language_to_line_number("SnapshotLimits", context.library.name)
+            ]
+            probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+            probe["where"]["typeName"] = None
+
+        self.set_probes(probes)
+        self.send_rc_probes()
+        if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=30):
+            self.setup_failures.append("Probes did not reach INSTALLED status within 30s")
+
+        self.weblog_responses.append(weblog.get(f"/debugger/snapshot/limits?collectionSize={collection_size}", timeout=30))
+        if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=10):
+            self.setup_failures.append("Probes did not reach EMITTING status within 10s")
+        if not self.wait_for_all_snapshots(timeout=30):
+            self.setup_failures.append("Snapshot was not received within 30s")
+
+    def setup_snapshot_size_cap(self) -> None:
+        self._setup_snapshot_guardrail("probe_snapshot_size_cap", self.SNAPSHOT_SIZE_COLLECTION_ITEMS)
+
+    def test_snapshot_size_cap(self) -> None:
+        _, snapshot = self._get_single_snapshot()
+        serialized_size = len(json.dumps(snapshot, separators=(",", ":")).encode())
+        assert serialized_size <= MAX_SNAPSHOT_BYTES, (
+            f"Snapshot should be trimmed to <= {MAX_SNAPSHOT_BYTES} bytes, got {serialized_size} bytes"
+        )
+
+        large_collection = self._get_captured_local(snapshot, "largeCollection")
+        assert self._is_partially_captured(large_collection, self.SNAPSHOT_SIZE_COLLECTION_ITEMS), (
+            "Expected the oversized snapshot to contain only part of largeCollection after trimming, "
+            f"got: {large_collection!r}"
+        )
+
+    def setup_capture_timeout_reason(self) -> None:
+        self._setup_snapshot_guardrail("probe_capture_timeout_reason", self.CAPTURE_TIMEOUT_COLLECTION_ITEMS)
+
+    def test_capture_timeout_reason(self) -> None:
+        _, snapshot = self._get_single_snapshot()
+        reasons = set(self._iter_not_captured_reasons(snapshot))
+        assert "timeout" in reasons, f"Expected notCapturedReason='timeout', got reasons: {sorted(reasons)}"
+        unexpected_reasons = {"collectionSize", "stringLength", "fieldCount", "depth"} & reasons
+        assert not unexpected_reasons, (
+            "Capture timeout fixture should avoid structural limit reasons, "
+            f"but found: {sorted(unexpected_reasons)}"
+        )
+
+    def _get_single_snapshot(self) -> tuple[dict[str, Any], dict[str, Any]]:
+        self.collect()
+        self.assert_setup_ok()
+        self.assert_rc_state_not_error()
+        self.assert_all_probes_are_emitting()
+        self.assert_all_weblog_responses_ok()
+
+        for probe_id in self.probe_ids:
+            snapshots = self.probe_snapshots.get(probe_id, [])
+            assert len(snapshots) == 1, f"Expected exactly 1 snapshot for {probe_id}, got {len(snapshots)}"
+            envelope = snapshots[0]
+            snapshot = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot")
+            assert isinstance(snapshot, dict), f"Snapshot data not found in expected format for {probe_id}"
+            return envelope, snapshot
+
+        raise AssertionError("No probe IDs were registered")
+
+    def _get_captured_local(self, snapshot: dict[str, Any], variable_name: str) -> dict[str, Any]:
+        captures = snapshot.get("captures", {})
+        lines = captures.get("lines", {})
+        assert isinstance(lines, dict) and len(lines) == 1, f"Expected one line capture, got: {lines!r}"
+
+        line_data = next(iter(lines.values()))
+        locals_data = line_data.get("locals", {})
+        assert variable_name in locals_data, f"{variable_name!r} is missing from snapshot locals"
+        value = locals_data[variable_name]
+        assert isinstance(value, dict), f"Expected {variable_name!r} to be a captured object, got: {value!r}"
+        return value
+
+    def _is_partially_captured(self, value: Any, expected_items: int) -> bool:
+        if not isinstance(value, dict):
+            return False
+
+        if value.get("notCapturedReason") == "payloadTooLarge" or value.get("pruned") is True:
+            return True
+
+        elements = value.get("elements") or value.get("entries")
+        if isinstance(elements, list) and len(elements) < expected_items:
+            return True
+
+        return any(self._is_partially_captured(child, expected_items) for child in value.values())
+
+    def _iter_not_captured_reasons(self, value: Any) -> list[str]:
+        if isinstance(value, dict):
+            reasons = []
+            reason = value.get("notCapturedReason")
+            if isinstance(reason, str):
+                reasons.append(reason)
+            for child in value.values():
+                reasons.extend(self._iter_not_captured_reasons(child))
+            return reasons
+
+        if isinstance(value, list):
+            reasons = []
+            for child in value:
+                reasons.extend(self._iter_not_captured_reasons(child))
+            return reasons
+
+        return []
