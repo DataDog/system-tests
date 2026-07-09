@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -96,6 +99,30 @@ func main() {
 			appsec.MonitorParsedHTTPBody(r.Context(), body)
 		}
 		write(w, r, []byte("Hello, WAF!"))
+	})
+
+	mux.HandleFunc("GET /iast/insecure_hashing/deduplicate", func(w http.ResponseWriter, _ *http.Request) {
+		var digest [md5.Size]byte
+		for range 10 {
+			digest = md5.Sum([]byte("insecure"))
+		}
+		fmt.Fprintf(w, "%x", digest)
+	})
+
+	mux.HandleFunc("GET /iast/insecure_hashing/multiple_hash", func(w http.ResponseWriter, _ *http.Request) {
+		md5Digest := md5.Sum([]byte("insecure"))
+		sha1Digest := sha1.Sum([]byte("insecure"))
+		fmt.Fprintf(w, "%x--- %x", md5Digest, sha1Digest)
+	})
+
+	mux.HandleFunc("GET /iast/insecure_hashing/test_secure_algorithm", func(w http.ResponseWriter, _ *http.Request) {
+		digest := sha256.Sum256([]byte("secure"))
+		fmt.Fprintf(w, "%x", digest)
+	})
+
+	mux.HandleFunc("GET /iast/insecure_hashing/test_md5_algorithm", func(w http.ResponseWriter, _ *http.Request) {
+		digest := md5.Sum([]byte("insecure"))
+		fmt.Fprintf(w, "%x", digest)
 	})
 
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
