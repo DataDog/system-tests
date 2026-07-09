@@ -10,16 +10,24 @@ from utils import context, features, rfc, scenarios, slow, weblog
 
 
 MAX_SNAPSHOT_BYTES = 1024 * 1024
-GUARDRAILS_RFC = (
-    "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
-)
+# `^(a+)+$` against a non-matching input backtracks exponentially (~2^n), so a few dozen
+# characters already blow past any evaluation-time budget. Keep it small so the value fits
+# comfortably in the request URL.
+REDOS_INPUT_LENGTH = 50
+GUARDRAILS_RFC = "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
 
 
 @rfc(GUARDRAILS_RFC)
 @features.debugger_expression_language
 @scenarios.debugger_probes_snapshot
+@slow
 class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
-    """RFC guardrail: expensive expression evaluation must stop before normal snapshot creation."""
+    """RFC guardrail: expensive expression evaluation must stop before normal snapshot creation.
+
+    A conforming tracer aborts the expensive ``when`` evaluation and surfaces the failure as an
+    evaluation-error snapshot (non-empty ``evaluationErrors[]`` with no captured user data),
+    exactly like a runtime condition error -- it must not produce a normal, fully-captured snapshot.
+    """
 
     def _convert_to_line_probe_if_needed(self, probe: dict[str, Any], method: str) -> None:
         if context.library.name not in ("nodejs", "ruby"):
@@ -45,18 +53,20 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
             self.setup_failures.append("Probes did not reach INSTALLED status within 30s")
 
         self.weblog_responses.append(weblog.get(request_path, timeout=15))
-        if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=5):
-            self.setup_failures.append("Probes did not reach EMITTING status within 5s")
+        # A conforming tracer emits an evaluation-error snapshot; wait for it to land before
+        # collect(). Tracers that (wrongly) emit nothing just hit the timeout and fail the
+        # snapshot-presence assertion in the test with a clear message.
+        self.wait_for_all_snapshots(timeout=10)
 
     def setup_evaluation_timeout_regex(self) -> None:
         self._setup_evaluation_timeout(
             "probe_evaluation_timeout_regex",
             "StringOperations",
-            f"/debugger/expression/strings?strValue={'a' * 30000}!",
+            f"/debugger/expression/strings?strValue={'a' * REDOS_INPUT_LENGTH}!",
         )
 
     def test_evaluation_timeout_regex(self) -> None:
-        self._assert_no_normal_snapshot()
+        self._assert_evaluation_timeout_snapshot()
 
     def setup_evaluation_timeout_collection_filter(self) -> None:
         self._setup_evaluation_timeout(
@@ -66,9 +76,9 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
         )
 
     def test_evaluation_timeout_collection_filter(self) -> None:
-        self._assert_no_normal_snapshot()
+        self._assert_evaluation_timeout_snapshot()
 
-    def _assert_no_normal_snapshot(self) -> None:
+    def _assert_evaluation_timeout_snapshot(self) -> None:
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
@@ -76,9 +86,24 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
 
         for probe_id in self.probe_ids:
             snapshots = self.probe_snapshots.get(probe_id, [])
-            assert not snapshots, (
-                f"Probe emitted {len(snapshots)} snapshot(s) after evaluation timeout. "
-                "A conforming tracer must skip event creation when expression evaluation exceeds 1 second."
+            assert snapshots, (
+                "Probe emitted no snapshot; a conforming tracer must surface the aborted "
+                "expression evaluation via a probe result carrying evaluationErrors[]."
+            )
+
+            envelope = snapshots[0]
+            snapshot = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot") or {}
+
+            evaluation_errors = snapshot.get("evaluationErrors") or []
+            assert evaluation_errors, (
+                "Evaluation-timeout snapshot has an empty evaluationErrors[]; the tracer must "
+                "report that expression evaluation was aborted."
+            )
+
+            captures = snapshot.get("captures")
+            assert not debugger.captures_contain_data(captures), (
+                f"Evaluation-timeout snapshot leaked captured data ({captures!r}); a conforming "
+                "tracer must stop before normal snapshot creation."
             )
 
 
@@ -100,9 +125,7 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
             probe["id"] = debugger.generate_probe_id("log")
             if "methodName" in probe["where"]:
                 del probe["where"]["methodName"]
-            probe["where"]["lines"] = [
-                str(line) for line in self.method_and_language_to_line_number("SnapshotLimits", context.library.name)
-            ]
+            probe["where"]["lines"] = self.method_and_language_to_line_number("SnapshotLimits", context.library.name)
             probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
             probe["where"]["typeName"] = None
 
@@ -111,7 +134,9 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
         if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=30):
             self.setup_failures.append("Probes did not reach INSTALLED status within 30s")
 
-        self.weblog_responses.append(weblog.get(f"/debugger/snapshot/limits?collectionSize={collection_size}", timeout=30))
+        self.weblog_responses.append(
+            weblog.get(f"/debugger/snapshot/limits?collectionSize={collection_size}", timeout=30)
+        )
         if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=10):
             self.setup_failures.append("Probes did not reach EMITTING status within 10s")
         if not self.wait_for_all_snapshots(timeout=30):
@@ -142,8 +167,7 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
         assert "timeout" in reasons, f"Expected notCapturedReason='timeout', got reasons: {sorted(reasons)}"
         unexpected_reasons = {"collectionSize", "stringLength", "fieldCount", "depth"} & reasons
         assert not unexpected_reasons, (
-            "Capture timeout fixture should avoid structural limit reasons, "
-            f"but found: {sorted(unexpected_reasons)}"
+            f"Capture timeout fixture should avoid structural limit reasons, but found: {sorted(unexpected_reasons)}"
         )
 
     def _get_single_snapshot(self) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -166,7 +190,8 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
     def _get_captured_local(self, snapshot: dict[str, Any], variable_name: str) -> dict[str, Any]:
         captures = snapshot.get("captures", {})
         lines = captures.get("lines", {})
-        assert isinstance(lines, dict) and len(lines) == 1, f"Expected one line capture, got: {lines!r}"
+        assert isinstance(lines, dict), f"Expected line captures to be a dict, got: {lines!r}"
+        assert len(lines) == 1, f"Expected one line capture, got: {lines!r}"
 
         line_data = next(iter(lines.values()))
         locals_data = line_data.get("locals", {})
@@ -175,7 +200,7 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
         assert isinstance(value, dict), f"Expected {variable_name!r} to be a captured object, got: {value!r}"
         return value
 
-    def _is_partially_captured(self, value: Any, expected_items: int) -> bool:
+    def _is_partially_captured(self, value: object, expected_items: int) -> bool:
         if not isinstance(value, dict):
             return False
 
@@ -188,7 +213,7 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
 
         return any(self._is_partially_captured(child, expected_items) for child in value.values())
 
-    def _iter_not_captured_reasons(self, value: Any) -> list[str]:
+    def _iter_not_captured_reasons(self, value: object) -> list[str]:
         if isinstance(value, dict):
             reasons = []
             reason = value.get("notCapturedReason")
