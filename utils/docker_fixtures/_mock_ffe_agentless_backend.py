@@ -1,8 +1,8 @@
-"""FFE UFC delivery fixture used to exercise CDN/default configuration-source behavior.
+"""FFE UFC delivery fixture used to exercise agentless default configuration-source behavior.
 
-Tests configure the response timeline with ``mock_ffe_cdn.set_response(...)`` or
-``mock_ffe_cdn.set_responses([...])`` before starting the test library. They can
-then call ``mock_ffe_cdn.status()`` to assert request counts, auth, ETag, response
+Tests configure the response timeline with ``mock_ffe_agentless_backend.set_response(...)`` or
+``mock_ffe_agentless_backend.set_responses([...])`` before starting the test library. They can
+then call ``mock_ffe_agentless_backend.status()`` to assert request counts, auth, ETag, response
 codes, and paths observed by the mock server.
 """
 
@@ -50,7 +50,7 @@ UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.j
 MALFORMED_UFC_BYTES = b'{"flags": ['
 
 
-class MockFFECDNStatus(TypedDict):
+class MockFFEAgentlessBackendStatus(TypedDict):
     requests_total: int
     in_flight: int
     max_in_flight: int
@@ -61,7 +61,7 @@ class MockFFECDNStatus(TypedDict):
     status_codes: list[int]
 
 
-class MockFFECDNState:
+class MockFFEAgentlessBackendState:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self.responses = [DEFAULT_RESPONSE]
@@ -119,7 +119,7 @@ class MockFFECDNState:
         with self._lock:
             self.in_flight = max(0, self.in_flight - 1)
 
-    def status(self) -> MockFFECDNStatus:
+    def status(self) -> MockFFEAgentlessBackendStatus:
         with self._lock:
             return {
                 "requests_total": self.requests_total,
@@ -133,21 +133,21 @@ class MockFFECDNState:
             }
 
 
-class MockFFECDNHTTPServer(ThreadingHTTPServer):
+class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
 
     def __init__(self, server_address: tuple[str, int]) -> None:
-        super().__init__(server_address, MockFFECDNRequestHandler)
-        self.state = MockFFECDNState()
+        super().__init__(server_address, MockFFEAgentlessBackendRequestHandler)
+        self.state = MockFFEAgentlessBackendState()
 
 
-class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
+class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
     # Endpoint contract:
     # - GET /mock/ufc/config
     # - GET /status
     # - POST /control/responses
     # - POST /control/reset
-    server: MockFFECDNHTTPServer
+    server: MockFFEAgentlessBackendHTTPServer
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
@@ -222,7 +222,7 @@ class MockFFECDNRequestHandler(BaseHTTPRequestHandler):
         self.server.state.set_responses(validated_responses)
         self._write_json(HTTPStatus.OK, self.server.state.status())
 
-    def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFECDNStatus) -> None:
+    def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFEAgentlessBackendStatus) -> None:
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
@@ -271,11 +271,13 @@ def _strip_config_path(url: str) -> str:
     return url.removesuffix(CONFIG_PATH)
 
 
-class MockFFECDNServer:
+class MockFFEAgentlessBackendServer:
     def __init__(self, worker_id: str) -> None:
         self.port = get_host_port(worker_id, 4900)
-        self._server = MockFFECDNHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
-        self._thread = threading.Thread(target=self._server.serve_forever, name="mock-ffe-cdn", daemon=True)
+        self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
+        self._thread = threading.Thread(
+            target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
+        )
         self._thread.start()
 
     @property
@@ -284,14 +286,14 @@ class MockFFECDNServer:
 
     @property
     def library_base_url(self) -> str:
-        configured_url = os.environ.get("SYSTEM_TESTS_MOCK_FFE_CDN_BASE_URL") or os.environ.get(
-            "SYSTEM_TESTS_MOCK_CDN_BASE_URL"
+        configured_url = os.environ.get("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL") or os.environ.get(
+            "SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL"
         )
         if configured_url is not None:
             return _strip_config_path(configured_url.rstrip("/"))
 
-        host = os.environ.get("SYSTEM_TESTS_MOCK_FFE_CDN_HOST") or os.environ.get(
-            "SYSTEM_TESTS_MOCK_CDN_HOST", "host.docker.internal"
+        host = os.environ.get("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST") or os.environ.get(
+            "SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", "host.docker.internal"
         )
         return f"http://{host}:{self.port}"
 
@@ -313,10 +315,10 @@ class MockFFECDNServer:
         )
         response.raise_for_status()
 
-    def status(self) -> MockFFECDNStatus:
+    def status(self) -> MockFFEAgentlessBackendStatus:
         response = requests.get(f"{self.base_url}/status", timeout=5)
         response.raise_for_status()
-        return cast("MockFFECDNStatus", response.json())
+        return cast("MockFFEAgentlessBackendStatus", response.json())
 
     def close(self) -> None:
         self._server.shutdown()
@@ -325,8 +327,8 @@ class MockFFECDNServer:
 
 
 @pytest.fixture
-def mock_ffe_cdn(worker_id: str) -> Generator[MockFFECDNServer, None, None]:
-    server = MockFFECDNServer(worker_id)
+def mock_ffe_agentless_backend(worker_id: str) -> Generator[MockFFEAgentlessBackendServer, None, None]:
+    server = MockFFEAgentlessBackendServer(worker_id)
     try:
         server.reset()
         yield server

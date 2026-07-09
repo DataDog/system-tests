@@ -21,7 +21,10 @@ namespace weblog
 
         private static global::OpenFeature.FeatureClient? InitClient()
         {
-            var activation = Environment.GetEnvironmentVariable("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED")?.ToLowerInvariant() ?? "0";
+            var activation = (
+                Environment.GetEnvironmentVariable("DD_FEATURE_FLAGS_ENABLED")
+                ?? Environment.GetEnvironmentVariable("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED")
+                ?? "0").ToLowerInvariant();
             if (activation == "1" || activation == "true")
             {
                 global::OpenFeature.Api.Instance.SetProviderAsync(new Datadog.FeatureFlags.OpenFeature.DatadogProvider()).Wait();

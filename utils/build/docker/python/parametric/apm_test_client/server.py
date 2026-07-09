@@ -68,9 +68,17 @@ from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
+
+def feature_flags_enabled():
+    value = os.environ.get("DD_FEATURE_FLAGS_ENABLED")
+    if value is None:
+        value = os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED")
+    return value in ("true", "True", "1")
+
+
 # OpenFeature client initialization
 openfeature_client = None
-if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+if feature_flags_enabled():
     try:
         from openfeature import api
         from ddtrace.openfeature import DataDogProvider
