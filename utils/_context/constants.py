@@ -25,10 +25,10 @@ class WeblogCategory(StrEnum):
     """ dd-trace instrumentation of an GraphQL app """
 
     dd_trace_lambda = "dd_trace_lambda"
-    """ dd-trace inside a lamnda function """
+    """ dd-trace inside a lambda function """
 
     dd_trace_frameworks = "dd_trace_frameworks"
-    """ dd-trace instrumentation of multi-language framneworks (mostly AI) """
+    """ dd-trace instrumentation of multi-language frameworks (mostly AI) """
 
     open_telemetry = "open_telemetry"
     """ Open Telemetry library """

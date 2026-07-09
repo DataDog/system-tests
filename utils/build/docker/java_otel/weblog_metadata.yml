@@ -1,5 +1,7 @@
 
 spring-boot-native:
-  supported_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]
+  categories: [open_telemetry]
+  excluded_scenarios: [OTEL_INTEGRATIONS]
 spring-boot-otel:
-  supported_scenarios: [OTEL_INTEGRATIONS]
+  categories: [open_telemetry]
+  excluded_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]
