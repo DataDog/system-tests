@@ -1816,7 +1816,6 @@ manifest:
         rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_capture_limits_emit_incomplete: missing_feature (Debugger incomplete capture reason coverage not implemented yet)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth:
     - declaration: bug (DEBUG-4675)
       component_version: '<2.34.0-dev'

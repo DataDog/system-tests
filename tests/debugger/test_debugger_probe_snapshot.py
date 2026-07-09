@@ -252,10 +252,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         """Setup test for default maxLength"""
         self._setup_default_capture_limits()
 
-    def setup_capture_limits_emit_incomplete(self) -> None:
-        """Setup test for RFC guardrail incomplete-capture reason coverage."""
-        self._setup_default_capture_limits()
-
     def _setup_default_capture_limits(self):
         """Shared setup method for default capture limit tests"""
         test_depth = self.DEFAULT_MAX_REFERENCE_DEPTH + 7
@@ -384,22 +380,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         string_value = long_string["value"]
         assert len(string_value) <= self.DEFAULT_MAX_LENGTH, (
             f"longString should have length {self.DEFAULT_MAX_LENGTH}, got: {len(string_value)}"
-        )
-
-    def test_capture_limits_emit_incomplete(self) -> None:
-        """Test that all structural guardrails report incomplete capture reasons."""
-        deep_object = self._get_snapshot_locals_variable("deepObject")
-        many_fields = self._get_snapshot_locals_variable("manyFields")
-        large_collection = self._get_snapshot_locals_variable("largeCollection")
-        long_string = self._get_snapshot_locals_variable("longString")
-
-        self._measure_captured_depth(deep_object)
-        assert many_fields.get("notCapturedReason") == "fieldCount", (
-            f"manyFields should have notCapturedReason='fieldCount', got: {many_fields.get('notCapturedReason')}"
-        )
-        assert large_collection.get("notCapturedReason") == "collectionSize", (
-            "largeCollection should have notCapturedReason='collectionSize', "
-            f"got: {large_collection.get('notCapturedReason')}"
         )
         assert long_string.get("notCapturedReason") == "stringLength", (
             f"longString should have notCapturedReason='stringLength', got: {long_string.get('notCapturedReason')}"

@@ -7,38 +7,8 @@
 import time
 
 import tests.debugger.utils as debugger
+from tests.debugger.utils import captures_contain_data
 from utils import context, features, scenarios
-
-
-def _capture_point_contains_data(point: object) -> bool:
-    """Return True iff a single capture point (entry / return / one line entry) contains data."""
-    if not isinstance(point, dict):
-        return False
-    for key in ("arguments", "locals", "staticFields"):
-        if point.get(key):
-            return True
-    return bool(point.get("throwable"))
-
-
-def _captures_contain_data(captures: object) -> bool:
-    """Return True iff the ``captures`` field of a snapshot contains any captured probe data.
-
-    A snapshot whose ``captures`` is missing, ``None``, or only contains empty
-    ``entry`` / ``return`` / ``lines`` sub-structures (i.e. no captured arguments,
-    locals, static fields, or throwable) returns False -- it is an empty captures
-    container and acceptable as part of an evaluation-error snapshot.
-    """
-    if not isinstance(captures, dict):
-        return False
-    for key, value in captures.items():
-        # `entry` and `return` map directly to a capture-point dict.
-        # `lines` maps line-numbers to capture-point dicts, so descend one level.
-        if key == "lines" and isinstance(value, dict):
-            if any(_capture_point_contains_data(v) for v in value.values()):
-                return True
-        elif _capture_point_contains_data(value):
-            return True
-    return False
 
 
 class _ConditionTestBase(debugger.BaseDebuggerTest):
@@ -214,7 +184,7 @@ class Test_Debugger_Runtime_Condition_Error(_ConditionTestBase):
             )
 
             captures = snap.get("captures")
-            assert not _captures_contain_data(captures), (
+            assert not captures_contain_data(captures), (
                 f"The probe emitted a snapshot whose ``captures`` field contains captured "
                 f"data ({captures!r}); an eval-error snapshot must have empty captures "
                 f"because the condition was not successfully evaluated."
