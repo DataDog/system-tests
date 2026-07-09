@@ -44,7 +44,7 @@ EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 0.5
 TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
-CONFIG_PATH = "/mock/ufc/config"
+CONFIG_PATH = "/api/v2/feature-flagging/config/server-distribution"
 REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
@@ -143,7 +143,7 @@ class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
 
 class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
     # Endpoint contract:
-    # - GET /mock/ufc/config
+    # - GET /api/v2/feature-flagging/config/server-distribution
     # - GET /status
     # - POST /control/responses
     # - POST /control/reset
