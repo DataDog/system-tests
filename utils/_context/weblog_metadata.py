@@ -2,7 +2,7 @@ from dataclasses import dataclass, replace, field
 from pathlib import Path
 import yaml
 
-from .constants import WeblogBuildMode
+from .constants import WeblogBuildMode, WeblogCategory
 
 
 @dataclass
@@ -15,12 +15,14 @@ class WeblogMetaData:
     """ not declared in the yml file, but populated later """
 
     supported_scenarios: list[str] = field(default_factory=list)
-    supported_scenario_groups: list[str] = field(default_factory=list)
     excluded_scenarios: list[str] = field(default_factory=list)
-    excluded_scenario_groups: list[str] = field(default_factory=list)
+
+    categories: list[WeblogCategory] = field(default_factory=list)
 
     def __post_init__(self):
+        # cast enums
         self.build_mode = WeblogBuildMode(self.build_mode)
+        self.categories = [WeblogCategory[category] for category in self.categories]
 
     @property
     def require_build(self) -> bool:
@@ -93,14 +95,11 @@ class WeblogMetaData:
 
         return result
 
-    def support_scenario(self, scenario_name: str, scenario_groups: list[str]) -> bool:
+    def support_scenario(self, scenario_name: str, weblog_categories: list[WeblogCategory]) -> bool:
         if scenario_name in self.excluded_scenarios:
-            return False
-
-        if any(group in self.excluded_scenario_groups for group in scenario_groups):
             return False
 
         if scenario_name in self.supported_scenarios:
             return True
 
-        return any(group in self.supported_scenario_groups for group in scenario_groups)
+        return any(category in self.categories for category in weblog_categories)

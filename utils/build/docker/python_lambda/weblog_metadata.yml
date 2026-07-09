@@ -1,10 +1,10 @@
 alb:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 alb-multi:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 apigw-http:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 apigw-rest:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 function-url:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]

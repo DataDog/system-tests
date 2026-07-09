@@ -150,12 +150,11 @@ def test_legacy_scenario_matrix():
     for library in sorted(COMPONENT_GROUPS.all):
         for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
             for scenario in get_all_scenarios():
-                groups = [group.name for group in scenario.scenario_groups]
                 legacy = _is_supported(weblog, scenario, "")
-                new_value = weblog.support_scenario(scenario.name, groups)
+                new_value = weblog.support_scenario(scenario.name, scenario.weblog_categories)
                 if legacy is not new_value:
                     has_error = True
-                    logger.error((library, legacy, new_value, weblog.name, scenario.name, groups))
+                    logger.error((library, legacy, new_value, weblog.name, scenario.name, scenario.weblog_categories))
 
     assert not has_error
 

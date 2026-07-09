@@ -4,7 +4,8 @@ from typing import Any
 
 import pytest
 
-from utils._context._scenarios import get_all_scenarios, EndToEndScenario, scenarios
+from utils._context._scenarios import get_all_scenarios, scenarios
+from utils._context._scenarios.endtoend import EndToEndScenario
 from utils import logger
 
 # Map of scenario pairs that cannot be merged and their specific reasons

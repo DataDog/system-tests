@@ -1,5 +1,5 @@
 
 ruby-apigw-http:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 ruby-apigw-rest:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]

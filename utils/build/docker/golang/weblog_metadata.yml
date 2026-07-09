@@ -7,32 +7,26 @@ envoy:
   build_mode: none
   supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
 graphql-go:
-  supported_scenario_groups: [graphql]
+  categories: [dd_trace_graphql]
   # excluded_scenario_groups: [lambda_end_to_end, go_proxies, open_telemetry, graphql, ipv6]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 gqlgen:
-  supported_scenario_groups: [graphql]
-  excluded_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_graphql]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 graph-gophers:
-  supported_scenario_groups: [graphql]
+  categories: [dd_trace_graphql]
   excluded_scenario_groups: [lambda_end_to_end]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 echo:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 gin:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 uds-echo:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [ipv6, lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
 net-http:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 chi:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 net-http-orchestrion:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]

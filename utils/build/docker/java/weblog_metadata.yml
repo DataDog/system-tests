@@ -1,52 +1,38 @@
 # docs/understand/weblogs/weblog-metadata.md
 
 akka-http:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 jersey-grizzly2:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 openai-java:
   build_mode: none
   framework_versions: ["4.29.0"]
-  supported_scenario_groups: [integration_frameworks]
+  categories: [dd_trace_frameworks]
 play:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 ratpack:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 resteasy-netty3:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 spring-boot:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 spring-boot-3-native:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 spring-boot-jetty:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 spring-boot-openliberty:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 spring-boot-payara:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
   excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # probably because of a crash, but no history
 spring-boot-undertow:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 spring-boot-wildfly:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 uds-spring-boot:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [ipv6, lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
 vertx3:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]
 vertx4:
-  supported_scenario_groups: [end_to_end]
-  excluded_scenario_groups: [lambda_end_to_end, graphql, open_telemetry]
+  categories: [dd_trace]

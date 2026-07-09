@@ -1,10 +1,10 @@
 nodejs-alb:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 nodejs-alb-multi:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 nodejs-apigw-http:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 nodejs-apigw-rest:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
 nodejs-function-url:
-  supported_scenario_groups: [lambda_end_to_end]
+  categories: [dd_trace_lambda]
