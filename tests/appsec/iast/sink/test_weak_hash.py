@@ -33,7 +33,7 @@ def _expected_location() -> str | None:
 
 
 def _expected_evidence() -> str:
-    if context.library.name == "dotnet":
+    if context.library.name == "dotnet" or context.library.name == "golang":
         return "MD5"
     else:
         return "md5"
