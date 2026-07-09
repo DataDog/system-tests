@@ -358,6 +358,8 @@ manifest:
   tests/stats/test_stats.py: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence::test_ip_headers_precedence: missing_feature (http.client_ip tagging not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_400: missing_feature (/status endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_500: missing_feature (/status endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom::test_status_code_200: missing_feature (/status endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom::test_status_code_202: missing_feature (/status endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_400: missing_feature (/status endpoint not implemented)
