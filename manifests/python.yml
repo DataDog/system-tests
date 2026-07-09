@@ -1226,6 +1226,7 @@ manifest:
         "*": missing_feature
         *flask: v2.11.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Guardrails: missing_feature (Debugger snapshot size and capture timeout guardrails not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
