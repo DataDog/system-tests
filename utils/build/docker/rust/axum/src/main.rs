@@ -17,6 +17,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use integration::DatadogClientSpanBackend;
 
 mod integration;
+mod url;
 
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
 
