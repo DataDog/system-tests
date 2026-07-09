@@ -165,6 +165,19 @@ def test_legacy_scenario_matrix():
 
 
 @scenarios.test_the_test
+def test_weblog_metadata_scenario_names_are_valid():
+    valid_names = {scenario.name for scenario in get_all_scenarios()}
+
+    for library in sorted(COMPONENT_GROUPS.all):
+        for weblog in WeblogMetaData.load(library):
+            for scenario_name in weblog.supported_scenarios + weblog.excluded_scenarios:
+                assert scenario_name in valid_names, (
+                    f"{library}/{weblog.name}: '{scenario_name}' is not a known scenario name "
+                    f"(check utils/build/docker/{library}/weblog_metadata.yml)"
+                )
+
+
+@scenarios.test_the_test
 def test_all_weblog_has_metadata():
     for library in sorted(COMPONENT_GROUPS.all):
         folder = Path(f"utils/build/docker/{library}")
