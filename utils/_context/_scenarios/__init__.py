@@ -29,7 +29,7 @@ from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context.ports import ContainerPorts
+from utils._context.constants import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 from utils._context.containers import (
     CassandraContainer,

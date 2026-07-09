@@ -30,6 +30,12 @@ class ScenarioGroup:
 
 
 class _ScenarioGroups:
+    """Group scenario into coherents buckets. It's used in two usages :
+
+    1. decorate test classes if ever they should be applied to more than one scenario
+    2. select a set of scenario to execute in the official system-tests workflow
+    """
+
     all = ScenarioGroup()
     ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()

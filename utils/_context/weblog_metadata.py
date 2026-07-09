@@ -1,26 +1,15 @@
-from enum import StrEnum
 from dataclasses import dataclass, replace, field
 from pathlib import Path
 import yaml
 
-
-class BuildMode(StrEnum):
-    none = "none"
-    """ The weblog does not require any build step"""
-
-    local = "local"
-    """ The weblog has a fully baked base image, so the build step is extra light,
-    and does not requires a full job in the CI"""
-
-    prebuild = "prebuild"
-    """ The weblog will be built in a dedicated job in the CI """
+from .constants import WeblogBuildMode
 
 
 @dataclass
 class WeblogMetaData:
     name: str
     library: str
-    build_mode: BuildMode = BuildMode.prebuild
+    build_mode: WeblogBuildMode = WeblogBuildMode.prebuild
     framework_versions: list[str] | None = None
     artifact_name: str = ""
     """ not declared in the yml file, but populated later """
@@ -31,12 +20,12 @@ class WeblogMetaData:
     excluded_scenario_groups: list[str] = field(default_factory=list)
 
     def __post_init__(self):
-        self.build_mode = BuildMode(self.build_mode)
+        self.build_mode = WeblogBuildMode(self.build_mode)
 
     @property
     def require_build(self) -> bool:
         """The run_end_to_end job builds the weblog locally (weblog_build_required)."""
-        return self.build_mode != BuildMode.none
+        return self.build_mode != WeblogBuildMode.none
 
     @property
     def base_dockerfile(self) -> Path | None:
