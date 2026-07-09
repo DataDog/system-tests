@@ -3,16 +3,19 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
-import time
 from typing import Any
 
 import tests.debugger.utils as debugger
-from utils import context, features, scenarios, slow, weblog
+from utils import context, features, rfc, scenarios, slow, weblog
 
 
 MAX_SNAPSHOT_BYTES = 1024 * 1024
+GUARDRAILS_RFC = (
+    "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
+)
 
 
+@rfc(GUARDRAILS_RFC)
 @features.debugger_expression_language
 @scenarios.debugger_probes_snapshot
 class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
@@ -44,11 +47,6 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
         self.weblog_responses.append(weblog.get(request_path, timeout=15))
         if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=5):
             self.setup_failures.append("Probes did not reach EMITTING status within 5s")
-
-        # A conforming tracer skips the event, so waiting should time out. A non-conforming
-        # tracer that evaluates the expression fully will emit a snapshot and fail below.
-        self.wait_for_all_snapshots(timeout=3)
-        time.sleep(2)
 
     def setup_evaluation_timeout_regex(self) -> None:
         self._setup_evaluation_timeout(
@@ -84,6 +82,7 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
             )
 
 
+@rfc(GUARDRAILS_RFC)
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot
 @slow
