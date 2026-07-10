@@ -3300,27 +3300,6 @@
   "tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot": [
     "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"
   ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_log_method_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_metric_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_decoration_method_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_log_line_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
   "tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata": [
     "DEBUGGER_SYMDB"
   ],
