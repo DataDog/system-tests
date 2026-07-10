@@ -157,7 +157,7 @@ patterns:
 # This section contains rules to apply to files related to GitHub Actions.
 ################################################################################
 
-    .github/actions/pull_images/action.yml:
+    .github/actions/pull_images/*:
         scenario_groups: end_to_end
     .github/chainguard/*:
         scenario_groups: null
@@ -237,8 +237,6 @@ patterns:
         scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
-    utils/_context/_scenarios/go_proxies.py:
-        scenario_groups: go_proxies
 
 
 ############################### Script file rules ##############################
@@ -289,7 +287,7 @@ patterns:
 ################################################################################
 
     utils/interfaces/_library/*:
-        scenario_groups: [end_to_end, open_telemetry, go_proxies]
+        scenario_groups: [end_to_end, open_telemetry]
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
@@ -418,13 +416,6 @@ patterns:
         libraries: golang
     utils/build/build_golang_base_images.sh:
         libraries: golang
-
-    manifests/envoy.yml:
-        scenario_groups: null  # already handled by the manifest comparison
-        libraries: envoy
-    manifests/haproxy.yml:
-        scenario_groups: null  # already handled by the manifest comparison
-        libraries: haproxy
 
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -559,6 +550,10 @@ patterns:
     tests/fuzzer/*:
         scenario_groups: exotics
         libraries: null
+
+    tests/appsec/test_sca_reachability.py:
+        scenario_groups: null
+        libraries: [java, python]
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.

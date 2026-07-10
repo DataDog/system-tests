@@ -101,3 +101,18 @@ func intLen(s string) int {
 func expressionWrite(w http.ResponseWriter, localValue int, testStruct ExpressionTestStruct, inputValue string) {
 	w.Write([]byte(fmt.Sprintf("Great success number %d %s %s", localValue, testStruct.StringValue, inputValue)))
 }
+
+//go:noinline
+func (d *DebuggerController) budgets(w http.ResponseWriter, r *http.Request, loops int) {
+	total := 0
+	for i := 0; i < loops; i++ {
+		total += d.budgetStep(i, loops)
+	}
+	runtime.KeepAlive(total)
+	w.Write([]byte("Budgets"))
+}
+
+//go:noinline
+func (d *DebuggerController) budgetStep(i, loops int) int {
+	return i + loops // loops is referenced so the capture-expression probe can read it at this line.
+}

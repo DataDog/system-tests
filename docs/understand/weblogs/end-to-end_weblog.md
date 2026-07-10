@@ -139,6 +139,33 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /api_security/multi-params-in-segment/{id}.{format}
+
+This endpoint is used to test RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+
+The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must combine them into a single atomic element `{id+format}` in `_dd.appsec.normalized_route`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/optional-params/{id} and /api_security/optional-params/{id}.{format}
+
+These two routes together test RFC-1103 optional-element resolution (rule 5 + rule 6).
+
+- `/api_security/optional-params/{id}` — mandatory parameter only; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}`.
+- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id+format}`.
+
+Frameworks with native optional-parameter support (e.g. Express `:id.:format?`, Rails `/:id(.:format)`) may declare these as a single route with an optional second sub-parameter. Frameworks without that support must declare them as two separate routes with the same handler.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
 ### GET /endpoint_fallback
 
 This endpoint tests RFC-1076: API Security sampling fallback behavior when
@@ -197,6 +224,20 @@ if the request to `internal_server` was a success (2xx code), it must return a j
 if the request to `internal_server` is a failure, it must return a json body with 2 keys:
 - `status` the status code of the `internal_server` response if available or a null value
 - `error` a string describing the error, for debug purposes
+
+### GET /external_request/body_limit/{failure_reason}
+### POST /external_request/body_limit/{failure_reason}
+### TRACE /external_request/body_limit/{failure_reason}
+### PUT /external_request/body_limit/{failure_reason}
+
+Same behavior as `/external_request`, but the downstream call targets `http://internal_server:8089/downstream_response/{failure_reason}`.
+
+Supported `{failure_reason}` values (defined in `internal_server`):
+- `invalid_content_type`
+- `content_length_missing`
+- `content_length_too_big`
+
+Unknown values must return HTTP 404 with a json error body.
 
 ### GET /external_request/redirect
 
@@ -911,6 +952,22 @@ It supports the following body fields:
 ### GET /flush
 
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/edit/flushing.md`.
+
+### GET /spawn_child
+
+Used by the telemetry session ID header tests ([Stable Service Instance Identifier RFC](https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit)). Forks or execs a child process, waits for it, and returns a response. Validates the `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers across child processes.
+
+OPTIONAL: only one weblog variant per language needs it; others are skipped via the manifests.
+
+Required query parameters:
+
+- `sleep`: seconds the child sleeps before exiting
+- `crash`: `true` to kill the child with SIGSEGV after sleeping, else `false`
+- `fork`: `true` to fork, `false` to exec. Runtimes without fork support (e.g. Java, .NET) return 400 for `fork=true`
+
+Returns 200 on success, or 400 if any parameter is missing or invalid.
+
+Note: `/fork_and_crash` exists only in lib-injection weblogs.
 
 ### \[GET,POST\] /rasp/lfi
 

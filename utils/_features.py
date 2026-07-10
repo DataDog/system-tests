@@ -94,7 +94,14 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })
-    injection_platform   = _OwnerDef("@DataDog/injection-platform")
+    injection_platform   = _OwnerDef("@DataDog/injection-platform", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                            })
     language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
                                 "dd-trace-cpp":     "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                                 "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
@@ -2699,6 +2706,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_evp_flagevaluation(test_object):
+        """Feature Flags EVP Flagevaluation
+
+        https://feature-parity.us1.prod.dog/#/?feature=540
+        """
+        return _mark_test_object(test_object, feature_id=540, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_event_enrichment(test_object):
         """Feature Flags Event Enrichment (APM span tags)
 
@@ -2859,6 +2874,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
 
     @staticmethod
+    def ai_guard_standalone(test_object):
+        """AI Guard standalone mode
+
+        https://feature-parity.us1.prod.dog/#/?feature=559
+        """
+        return _mark_test_object(test_object, feature_id=559, owner=_Owner.asm)
+
+    @staticmethod
     def apm_google_genai_generate_content(test_object):
         """APM supports Google GenAI generate content interactions
 
@@ -2986,6 +3009,16 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=557
         """
         return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
+
+    @staticmethod
+    def auth_schemas(test_object):
+        """API Security - authentication token schema extraction: the extract-auth
+        processor reports schemas of JSON Web Tokens (`_dd.appsec.s.req.jwt`) and
+        cookies (`_dd.appsec.s.req.cookies`) when API Security is enabled.
+
+        https://feature-parity.us1.prod.dog/#/?feature=560
+        """
+        return _mark_test_object(test_object, feature_id=560, owner=_Owner.asm)
 
 
 features = _Features()

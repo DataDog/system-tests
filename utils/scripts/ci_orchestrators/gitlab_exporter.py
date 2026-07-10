@@ -40,6 +40,9 @@ def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3)
 
 def should_run_only_defaults_vm() -> bool:
     """Default rules to run only default VMs or all VMs"""
+    # Consuming repos can opt in, e.g. for merge queues
+    if os.getenv("SYSTEM_TESTS_RUN_ALL_VMS") == "true":
+        return False
     # Get gitlab variables from the environment
     ci_commit_tag = os.getenv("CI_COMMIT_TAG")
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
@@ -51,7 +54,7 @@ def should_run_only_defaults_vm() -> bool:
     if ci_pipeline_source == "schedule" or ci_commit_tag:
         return False
 
-    # if we run on system-tests repository and it's the main branch, we should run all the VMs
+    # If we run on system-tests repository and it's the main branch, we should run all the VMs
     return not (ci_project_name == "system-tests" and ci_commit_branch == "main")
 
 
@@ -66,6 +69,7 @@ def print_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_enviro
 
 def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_environment: str) -> None:
     result_pipeline = {}  # type: dict
+    result_pipeline["workflow"] = {"name": f"{language} SSI"}
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
     pipeline_file = ".gitlab/ssi_gitlab-ci.yml"
@@ -325,6 +329,9 @@ def print_docker_ssi_gitlab_pipeline(
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
                     (
+                        # Capture stdout+stderr so the after_script can re-print the
+                        # run summary (pipefail keeps run.sh's real exit code).
+                        "set -o pipefail\n"
                         'timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
                         '--ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" '
                         '--ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" '
@@ -332,6 +339,7 @@ def print_docker_ssi_gitlab_pipeline(
                         + custom_extra_params
                         + " --report-run-url ${CI_JOB_URL} --report-environment "
                         + ci_environment
+                        + ' 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"'
                     ),
                 ]
                 if os.getenv("CI_PROJECT_NAME") != "system-tests":

@@ -158,7 +158,8 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
+            "Budgets": {"java": [138], "dotnet": [136], "python": [142], "golang": [117]},
+            "LogProbe": {"nodejs": [20]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
@@ -285,8 +286,9 @@ class BaseDebuggerTest:
                         golang_line_to_method = {
                             "20": "main.(*DebuggerController).logProbe",
                             "71": "main.(*DebuggerController).expression",
+                            "117": "main.(*DebuggerController).budgetStep",
                         }
-                        line = probe["where"]["lines"][0]
+                        line = str(probe["where"]["lines"][0])
                         if line in golang_line_to_method:
                             probe["where"]["methodName"] = golang_line_to_method[line]
 

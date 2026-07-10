@@ -17,7 +17,6 @@ from .integrations import (
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
-from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
@@ -25,12 +24,11 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context.ports import ContainerPorts
+from utils._context.constants import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 from utils._context.containers import (
     CassandraContainer,
@@ -55,10 +53,6 @@ class _Scenarios:
 
     default = DefaultScenario("DEFAULT")
 
-    # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
-    performances = PerformanceScenario(
-        "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
-    )
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     dbm_dynamic_service = DbmDynamicServiceScenario()
@@ -100,6 +94,7 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
@@ -117,11 +112,110 @@ class _Scenarios:
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
         },
         client_drop_p0s=False,
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
             "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_future_obfuscation_version = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
+        # Same as trace_stats_computation but with the agent advertising an obfuscation_version
+        # higher than what any current SDK supports (99), to test that the SDK correctly falls
+        # back to no client-side obfuscation when it encounters an unknown/future version.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        obfuscation_version=99,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 99. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent advertises an obfuscation version higher than what the SDK supports."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_missing_obfuscation_version = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",
+        # Same as trace_stats_computation but with the agent not advertising obfuscation_version
+        # in /info, to test that the SDK correctly falls back to no client-side obfuscation.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        obfuscation_version="MISSING",
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent not advertising obfuscation_version. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent does not advertise any obfuscation version."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_obfuscation_version_zero = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO",
+        # Same as trace_stats_computation but with the agent advertising obfuscation_version=0,
+        # to test that the SDK treats version 0 as "not supported" and skips client-side obfuscation.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        obfuscation_version=0,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 0. "
+            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
+            "header when the agent advertises obfuscation_version=0."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_obfuscation_disabled = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
+        # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
+        # the SDK correctly reads the obfuscation config from agent's /info and respects it.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+        },
+        agent_env={
+            "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
+        },
+        doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_error_sampler = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
+        # Same as trace_stats_computation but with the trace sample rate set to 0, so that all traces
+        # are P0 and would normally be dropped by the tracer. Error traces must still be sent to the
+        # agent, because the agent error sampler keeps a portion of them.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "DD_TRACE_SAMPLE_RATE": "0",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. "
+            "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
         ),
         scenario_groups=[scenario_groups.appsec],
     )
@@ -251,7 +345,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_error_tracking = EndToEndScenario(
@@ -263,7 +357,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="GraphQL error tracking tests with OpenTelemetry semantics",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
@@ -788,14 +882,6 @@ class _Scenarios:
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
-    debugger_probes_status = DebuggerScenario(
-        "DEBUGGER_PROBES_STATUS",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
-    )
-
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         weblog_env={
@@ -1202,21 +1288,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    go_proxies_default = GoProxiesScenario(
-        name="GO_PROXIES_DEFAULT",
-        doc="Default tests for proxies using the security processor.",
-        rc_api_enabled=True,
-        scenario_groups=[],
-    )
-
-    go_proxies_appsec_blocking = GoProxiesScenario(
-        name="GO_PROXIES_APPSEC_BLOCKING",
-        doc="Default tests for proxies using the security processor with appsec blocking rule file",
-        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[],
-    )
-
     ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics_enabled = EndToEndScenario(
@@ -1238,6 +1309,7 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
             "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "GOMEMLIMIT": "500MiB",
         },
         runtime_metrics_enabled=True,
         include_opentelemetry=True,
@@ -1302,6 +1374,24 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_standalone = AIGuardScenario(
+        "AI_GUARD_STANDALONE",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+        },
+        doc="AI Guard standalone mode",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

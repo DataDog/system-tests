@@ -5,6 +5,7 @@ require 'json'
 require 'net/http'
 require 'datadog/lambda'
 require 'datadog/appsec'
+require 'datadog/kit/appsec/events'
 
 Datadog::Lambda.configure_apm do |c|
   c.tracing.instrument :http
@@ -68,12 +69,13 @@ def handle_tag_value(tag_value, status_code, method, query, body)
 
   Datadog::Kit::AppSec::Events.track(TRACK_CUSTOM_APPSEC_EVENT_NAME, span, value: tag_value)
 
-  response_headers = (query || {}).merge('Content-Type' => 'text/plain')
+  response_headers = query || {}
 
   if method == 'POST' && tag_value.start_with?('payload_in_response_body')
     form_data = URI.decode_www_form(body || '').to_h
     json_response(status_code, { payload: form_data }, **response_headers)
   else
+    response_headers.merge!('Content-Type' => 'text/plain')
     response(status_code, 'Value tagged', response_headers)
   end
 rescue StandardError
