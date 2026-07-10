@@ -23,7 +23,7 @@ variables:
     # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
     E2E_SUPPORTED_LANGUAGES: "python"
     # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
-    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/9d4911e4cf0e0fba6093854cb8bbfe0ae5fd9752/mirror_images.py"
+    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/385a670d8fafd57f8c3c9872823aa8dcd65b53cc/mirror_images.py"
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
