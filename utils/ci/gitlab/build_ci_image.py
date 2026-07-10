@@ -6,6 +6,10 @@ ci-runner), checks that $CI_IMAGE (utils/ci/gitlab/main.yml) matches the
 computed ci-runner tag, then builds and pushes via ``docker buildx bake``
 whichever of image-builder/ci-runner is missing from the registry, signing
 each newly built image with ddsign.
+
+Also used by the ``mirror_images`` job (with ``--check-only``) so both jobs
+share a single implementation of the $CI_IMAGE-vs-computed-tag check instead
+of each re-implementing the sha256sum/comparison logic.
 """
 
 from __future__ import annotations
@@ -38,7 +42,15 @@ def _image_exists(image: str) -> bool:
     return result.returncode == 0
 
 
-def _build_images(targets: list[str], image_builder_tag: str, ci_runner_tag: str):
+def _check_ci_image(expected_image: str, ci_image: str) -> None:
+    if expected_image != ci_image:
+        print(f"❌ CI_IMAGE mismatch: hardcoded '{ci_image}' does not match computed '{expected_image}'")  # noqa: T201
+        print("   Update CI_IMAGE in utils/ci/gitlab/main.yml:")  # noqa: T201
+        print("     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12")  # noqa: T201
+        sys.exit(1)
+
+
+def _build_images(targets: list[str], image_builder_tag: str, ci_runner_tag: str) -> None:
     # docker buildx bake writes --metadata-file atomically (write + rename), so an
     # already-open file descriptor to the path would still point at the old, empty
     # inode after the rename. Reserve the path, close our fd, let buildx create the
@@ -75,6 +87,11 @@ def parse_args() -> argparse.Namespace:
         choices=IMAGES,
         help="Only build this image instead of every image in %(choices)s",
     )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Only check that $CI_IMAGE matches the computed ci-runner tag, without building/pushing anything.",
+    )
     return parser.parse_args()
 
 
@@ -86,6 +103,11 @@ def main() -> None:
     ci_runner_tag = _sha256_tag(DOCKER_DIR / "system-tests.Dockerfile", REPO_ROOT / "requirements.txt")
 
     expected_image = f"{REGISTRY}/ci-runner:{ci_runner_tag}"
+
+    if args.check_only:
+        _check_ci_image(expected_image, ci_image)
+        return
+
     tags = {"image-builder": image_builder_tag, "ci-runner": ci_runner_tag}
 
     if args.image:
@@ -105,11 +127,7 @@ def main() -> None:
     else:
         print("All images already exist, nothing to build")  # noqa: T201
 
-    if expected_image != ci_image:
-        print(f"❌ CI_IMAGE mismatch: hardcoded '{ci_image}' does not match computed '{expected_image}'")  # noqa: T201
-        print("   Update CI_IMAGE in utils/ci/gitlab/main.yml:")  # noqa: T201
-        print("     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12")  # noqa: T201
-        sys.exit(1)
+    _check_ci_image(expected_image, ci_image)
 
 
 if __name__ == "__main__":

@@ -439,15 +439,8 @@ mirror_images:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | crane auth login index.docker.io --username "$DOCKER_LOGIN" --password-stdin
   script:
-    - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
-    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
-    - |
-      if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
-        echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
-        echo "   Update CI_IMAGE in utils/ci/gitlab/main.yml:"
-        echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
-        exit 1
-      fi
+    # Shares its CI_IMAGE-vs-computed-tag check with the build_ci_image job.
+    - python3 utils/ci/gitlab/build_ci_image.py --check-only
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - python -m pip install --quiet uv
