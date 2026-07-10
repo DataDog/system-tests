@@ -467,6 +467,6 @@ mirror_images:
       fi
     # Push any locked image missing from the mirror (already-present images are skipped),
     # then sign the images copied during this run with ddsign.
-    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror --sign-all
+    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror --sign
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
