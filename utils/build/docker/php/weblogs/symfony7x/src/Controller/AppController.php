@@ -593,6 +593,27 @@ class AppController extends AbstractController
         return new Response('Invalid status', 400, ['Content-Type' => 'text/plain']);
     }
 
+    #[Route('/otel_drop_in', name: 'otel_drop_in', methods: ['GET'])]
+    public function otelDropIn(): Response
+    {
+        if (!class_exists(\OpenTelemetry\API\Instrumentation\CachedInstrumentation::class)) {
+            return new Response('OTel CachedInstrumentation not available', 501, ['Content-Type' => 'text/plain']);
+        }
+
+        $instrumentation = new \OpenTelemetry\API\Instrumentation\CachedInstrumentation('otel.drop-in-test', '1.0.0');
+        $tracer = $instrumentation->tracer();
+
+        $span = $tracer->spanBuilder('otel-drop-in-span')
+            ->setSpanKind(\OpenTelemetry\API\Trace\SpanKind::KIND_INTERNAL)
+            ->startSpan();
+        $scope = $span->activate();
+        $span->setAttribute('test', 'otel-drop-in');
+        $span->end();
+        $scope->detach();
+
+        return new Response('OK', 200, ['Content-Type' => 'text/plain']);
+    }
+
     #[Route('/otel_drop_in_baggage_api_otel', name: 'otel_drop_in_baggage_api_otel', methods: ['GET'])]
     public function otelDropInBaggageApiOtel(Request $request): JsonResponse
     {
