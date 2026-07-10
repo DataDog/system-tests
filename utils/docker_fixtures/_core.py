@@ -2,12 +2,17 @@ import contextlib
 from collections.abc import Generator
 from pathlib import Path
 from typing import TextIO
+from urllib.parse import urlparse
 
 from docker.models.containers import Container
 import pytest
 
 from utils._logger import logger
 from utils._context.docker import get_docker_client
+
+
+HOST_DOCKER_INTERNAL = "host.docker.internal"
+HOST_GATEWAY_EXTRA_HOSTS = {HOST_DOCKER_INTERNAL: "host-gateway"}
 
 
 def get_host_port(worker_id: str, base_port: int) -> int:
@@ -39,6 +44,13 @@ def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
     return fixed_volumes
 
 
+def extra_hosts_for_environment(env: dict[str, str]) -> dict[str, str] | None:
+    for value in env.values():
+        if urlparse(str(value)).hostname == HOST_DOCKER_INTERNAL:
+            return dict(HOST_GATEWAY_EXTRA_HOSTS)
+    return None
+
+
 @contextlib.contextmanager
 def docker_run(
     image: str,
@@ -49,6 +61,7 @@ def docker_run(
     ports: dict[str, int],
     log_file: TextIO,
     command: list[str] | None = None,
+    extra_hosts: dict[str, str] | None = None,
     stop_timeout: int = 1,
 ) -> Generator[Container, None, None]:
     """Run a docker container in detached mode and stop it on teardown.
@@ -71,6 +84,7 @@ def docker_run(
             network=network,
             ports=ports,
             command=command,
+            extra_hosts=extra_hosts,
             detach=True,
         )
         logger.debug(f"Container {name} successfully started")
