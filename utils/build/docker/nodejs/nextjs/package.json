@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
     "axios": "^1.5.1",
     "next": "^14.0.4",
     "pg": "^8.12.0",

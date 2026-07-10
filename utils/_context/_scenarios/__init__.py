@@ -25,12 +25,11 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context.ports import ContainerPorts
+from utils._context.constants import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 from utils._context.containers import (
     CassandraContainer,
@@ -207,6 +206,25 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_error_sampler = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
+        # Same as trace_stats_computation but with the trace sample rate set to 0, so that all traces
+        # are P0 and would normally be dropped by the tracer. Error traces must still be sent to the
+        # agent, because the agent error sampler keeps a portion of them.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "DD_TRACE_SAMPLE_RATE": "0",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. "
+            "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
@@ -332,7 +350,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_error_tracking = EndToEndScenario(
@@ -344,7 +362,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="GraphQL error tracking tests with OpenTelemetry semantics",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
@@ -1283,21 +1301,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    go_proxies_default = GoProxiesScenario(
-        name="GO_PROXIES_DEFAULT",
-        doc="Default tests for proxies using the security processor.",
-        rc_api_enabled=True,
-        scenario_groups=[],
-    )
-
-    go_proxies_appsec_blocking = GoProxiesScenario(
-        name="GO_PROXIES_APPSEC_BLOCKING",
-        doc="Default tests for proxies using the security processor with appsec blocking rule file",
-        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[],
-    )
-
     ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics_enabled = EndToEndScenario(
@@ -1319,6 +1322,7 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
             "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "GOMEMLIMIT": "500MiB",
         },
         runtime_metrics_enabled=True,
         include_opentelemetry=True,

@@ -334,6 +334,41 @@ public class App {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
+    @GetMapping("/spawn_child")
+    ResponseEntity<String> spawnChild(
+            @RequestParam(required = false) Integer sleep,
+            @RequestParam(required = false) String crash,
+            @RequestParam(required = false) String fork) {
+        if (sleep == null || sleep < 0) {
+            return ResponseEntity.badRequest().body("sleep required");
+        }
+        if (crash == null || (!crash.equalsIgnoreCase("true") && !crash.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("crash required (boolean)");
+        }
+        if (fork == null || (!fork.equalsIgnoreCase("true") && !fork.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("fork required (boolean)");
+        }
+        if (fork.equalsIgnoreCase("true")) {
+            return ResponseEntity.badRequest().body("fork not supported");
+        }
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "java", "-Xmx128m",
+                    "-javaagent:/app/dd-java-agent.jar",
+                    "-jar", "/app/app.jar");
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_SLEEP", String.valueOf(sleep));
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_CRASH", crash.toLowerCase());
+            pb.inheritIO();
+            Process p = pb.start();
+            // Do not block on the child's full lifetime: a JVM child (agent init + sleep)
+            // can exceed the test client timeout. Return promptly; the child emits its own
+            // telemetry independently and the test validates it asynchronously.
+            return ResponseEntity.ok("Spawned child process " + p.pid());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed: " + e.getMessage());
+        }
+    }
+
     @RequestMapping("/stats-unique")
     ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));

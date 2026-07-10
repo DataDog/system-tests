@@ -70,6 +70,7 @@ class DockerSSIScenario(Scenario):
         self._arch = config.option.ssi_arch
 
         self._env = "prod" if config.option.ssi_env is None or config.option.ssi_env == "prod" else "dev"
+        self.configuration["env"] = self._env
         self._custom_library_version = config.option.ssi_library_version
         self._custom_injector_version = config.option.ssi_injector_version
 

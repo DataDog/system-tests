@@ -1,3 +1,4 @@
+from abc import ABC
 import os
 import platform
 import re
@@ -19,7 +20,8 @@ import requests
 
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
-from utils._context.ports import ContainerPorts
+from utils._context._image_mirror import mirror_image
+from utils._context.constants import ContainerPorts
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -526,7 +528,10 @@ class ImageInfo:
 
         self.env: dict[str, str] | None = None
         self.labels: dict[str, str] = {}
-        self.name = image_name
+        # When the image mirror is enabled (USE_IMAGE_MIRROR), pull from the
+        # mirror; keep the original ref for diagnostics if the mirror pull fails.
+        self.original_name = image_name
+        self.name = mirror_image(image_name)
         self.local_image_only = local_image_only
 
     def _pull_with_retries(self, max_retries: int = 4, delay: int = 4):
@@ -555,7 +560,20 @@ class ImageInfo:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
-            self._image = self._pull_with_retries()
+            try:
+                self._image = self._pull_with_retries()
+            except (docker.errors.APIError, requests.exceptions.ConnectionError):
+                if self.name != self.original_name:
+                    # The mirror rewrote this ref but the mirror copy could not be
+                    # pulled. Don't silently fall back to the original registry:
+                    # that would mask an incomplete mirror and could pull a
+                    # different digest than the one that was mirrored.
+                    logger.stdout(
+                        f"Could not pull mirrored image {self.name} (mirror of {self.original_name}). "
+                        "The mirror may be incomplete — regenerate it with "
+                        "utils/scripts/update_mirror_images.py and check the mirror_images CI job."
+                    )
+                raise
 
         self._init_from_attrs(self._image.attrs)
 
@@ -852,7 +870,6 @@ class BuddyContainer(TestedContainer):
 
 
 class WeblogContainer(TestedContainer):
-    appsec_rules_file: str | None
     stdout_interface: LibraryStdoutInterface
 
     def __init__(
@@ -973,6 +990,10 @@ class WeblogContainer(TestedContainer):
         if not library or not weblog:
             return result
 
+        if weblog in ("envoy", "haproxy"):
+            # Those are not based on a dockerfile. TODO : weblog abstraction
+            return result
+
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
@@ -1024,13 +1045,6 @@ class WeblogContainer(TestedContainer):
             header_tags += f",{','.join(self.additional_trace_header_tags)}"
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
-
-        if "DD_APPSEC_RULES" in self.environment:
-            self.appsec_rules_file = self.environment["DD_APPSEC_RULES"]
-        elif self.image.env is not None and "DD_APPSEC_RULES" in self.environment:
-            self.appsec_rules_file = self.image.env["DD_APPSEC_RULES"]
-        else:
-            self.appsec_rules_file = None
 
         # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
         # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
@@ -1125,9 +1139,6 @@ class WeblogContainer(TestedContainer):
             if exit_code == 0 and output:
                 logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
 
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
-
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
 
@@ -1145,12 +1156,12 @@ class WeblogContainer(TestedContainer):
         return self._library
 
     @property
-    def uds_socket(self):
+    def uds_socket(self) -> str | None:
         assert self.image.env is not None, "No env set"
         return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
-    def uds_mode(self):
+    def uds_mode(self) -> bool:
         return self.uds_socket is not None
 
     @property
@@ -1462,7 +1473,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, agent_port: int = 8126) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
             name="ddapm-test-agent",
             environment={
                 "SNAPSHOT_CI": "0",
@@ -1495,7 +1506,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),
@@ -1627,7 +1638,7 @@ class EnvoyContainer(TestedContainer):
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            volumes={"./utils/build/docker/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            volumes={"./utils/build/docker/golang/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
                 "test": "/bin/bash -c \"\
@@ -1639,13 +1650,26 @@ class EnvoyContainer(TestedContainer):
         )
 
 
-class ExternalProcessingContainer(TestedContainer):
+class GoProcessorContainer(TestedContainer, ABC):
     library: ComponentVersion
 
+    def post_start(self):
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("golang", lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Processor image: {self.image.name}")
+
+
+class ExternalProcessingContainer(GoProcessorContainer):
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
@@ -1679,16 +1703,6 @@ class ExternalProcessingContainer(TestedContainer):
             },
         )
 
-    def post_start(self):
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
-
-        assert lib["language"] == "golang"
-        self.library = ComponentVersion("envoy", lib["version"])
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")
-
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
@@ -1696,12 +1710,15 @@ class HAProxyContainer(TestedContainer):
             image_name="haproxy:3.2",
             name="haproxy",
             volumes={
-                "./utils/build/docker/haproxy/haproxy.cfg": {
+                "./utils/build/docker/golang/haproxy/haproxy.cfg": {
                     "bind": "/usr/local/etc/haproxy/haproxy.cfg",
                     "mode": "ro",
                 },
-                "./utils/build/docker/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
-                "./utils/build/docker/haproxy/datadog_aap_blocking_response.lua": {
+                "./utils/build/docker/golang/haproxy/spoe.cfg": {
+                    "bind": "/usr/local/etc/haproxy/spoe.cfg",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/golang/haproxy/datadog_aap_blocking_response.lua": {
                     "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
                     "mode": "ro",
                 },
@@ -1717,13 +1734,13 @@ class HAProxyContainer(TestedContainer):
         )
 
 
-class StreamProcessingOffloadContainer(TestedContainer):
+class StreamProcessingOffloadContainer(GoProcessorContainer):
     library: ComponentVersion
 
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
@@ -1754,14 +1771,3 @@ class StreamProcessingOffloadContainer(TestedContainer):
                 "retries": 10,
             },
         )
-
-    def post_start(self):
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
-
-        assert lib["language"] == "golang"
-        self.library = ComponentVersion("haproxy", lib["version"])
-
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")

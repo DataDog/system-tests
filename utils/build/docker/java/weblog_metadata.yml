@@ -1,0 +1,5 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+openai-java:
+  build_mode: none
+  framework_versions: ["4.29.0"]
