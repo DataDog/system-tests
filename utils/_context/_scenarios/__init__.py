@@ -882,14 +882,6 @@ class _Scenarios:
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
-    debugger_probes_status = DebuggerScenario(
-        "DEBUGGER_PROBES_STATUS",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
-    )
-
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         weblog_env={
