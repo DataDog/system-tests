@@ -39,7 +39,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 
     server = MockFFEAgentlessBackendServer(worker_id)
     try:
-        env = {"SYSTEM_TESTS_FFE_AGENTLESS_UFC_ENDPOINT": server.library_config_url}
+        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
     finally:
         server.close()

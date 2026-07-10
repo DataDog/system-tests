@@ -7,9 +7,8 @@ keeps the existing Agent RC path.
 Test strategy: drive SDKs through public configuration-source env vars and
 OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
 observable HTTP behavior: request path, auth, status transitions, ETag handling,
-retries, timeout, and poll overlap. The mock endpoint is passed through a
-system-tests-only harness hook so SDKs can wire their custom agentless UFC source
-without exposing a customer-facing base URL env var.
+retries, timeout, and poll overlap. The mock endpoint is passed through the
+agentless base URL option; it does not introduce a separate custom source mode.
 """
 
 from collections.abc import Callable
@@ -40,7 +39,7 @@ TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
 NO_MOCK_REQUEST_ATTEMPTS = 5
-SYSTEM_TESTS_AGENTLESS_UFC_ENDPOINT = "SYSTEM_TESTS_FFE_AGENTLESS_UFC_ENDPOINT"
+AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 
 BASE_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -107,7 +106,7 @@ def library_env(
                 params["request_timeout"]
             )
         env |= agentless_env
-        env[SYSTEM_TESTS_AGENTLESS_UFC_ENDPOINT] = mock_ffe_agentless_backend.library_config_url
+        env[AGENTLESS_BASE_URL] = mock_ffe_agentless_backend.library_config_url
 
     if api_key is not None:
         env["DD_API_KEY"] = str(api_key)
@@ -188,7 +187,7 @@ def _has_status_sequence(status_codes: list[int], expected_status_codes: list[in
 @scenarios.parametric
 @features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Selection:
-    """Validate source selection for Agent RC, agentless, and custom endpoint wiring."""
+    """Validate source selection for Agent RC and agentless endpoint choices."""
 
     @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
     def test_remote_config_positive_ignores_agentless_env(
