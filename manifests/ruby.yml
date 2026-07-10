@@ -1781,7 +1781,7 @@ manifest:
     - declaration: missing_feature (Hash length not implemented)
       component_version: <=2.22.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Guardrails: missing_feature (Debugger snapshot size and capture timeout guardrails not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Guardrails::test_snapshot_size_cap: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature

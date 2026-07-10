@@ -3054,7 +3054,7 @@ manifest:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Guardrails: missing_feature (Debugger snapshot size and capture timeout guardrails not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Guardrails::test_snapshot_size_cap: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
