@@ -790,6 +790,7 @@ manifest:
         envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.69.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.69.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.69.0
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
