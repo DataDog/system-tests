@@ -37,8 +37,9 @@ public class FeatureFlagEvaluatorController {
         @Bean
         public Client client() {
             final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
+            final String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
             final FeatureProvider provider;
-            if (featureFlagsEnabled()) {
+            if (Boolean.parseBoolean(envProperty)) {
                 provider = new Provider();
             } else {
                 provider = new NoOpProvider() {
@@ -50,11 +51,6 @@ public class FeatureFlagEvaluatorController {
             }
             api.setProviderAndWait(provider);
             return api.getClient();
-        }
-
-        private static boolean featureFlagsEnabled() {
-            String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
-            return Boolean.parseBoolean(envProperty) || "1".equals(envProperty);
         }
     }
 

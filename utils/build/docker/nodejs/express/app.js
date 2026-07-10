@@ -835,13 +835,8 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 
 let openFeatureClient = null
 
-function featureFlagsEnabled () {
-  const value = process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED
-  return value === 'true' || value === '1'
-}
-
 // Initialize OpenFeature provider if FFE is enabled
-if (featureFlagsEnabled()) {
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
   const { openfeature } = tracer
   OpenFeature.setProvider(openfeature)
   openFeatureClient = OpenFeature.getClient()
