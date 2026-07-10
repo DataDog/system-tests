@@ -5541,9 +5541,6 @@
   "tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types[library_env0]": [
     "PARAMETRIC"
   ],
-  "tests/perfs/test_performances.py::Test_Performances::test_main": [
-    "PERFORMANCES"
-  ],
   "tests/remote_config/test_remote_configuration.py::Test_NoError::test_no_error": [
     "DEFAULT"
   ],

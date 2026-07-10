@@ -547,9 +547,6 @@ def _is_supported(weblog: Weblog, scenario: Scenario, _ci_environment: str) -> b
         if (library, weblog_name) not in possible_values:
             return False
 
-    if scenario.name in ("PERFORMANCES",):
-        return False
-
     if scenario.name == "IPV6":
         if library == "ruby" or _is_uds_weblog(weblog_name):
             return False

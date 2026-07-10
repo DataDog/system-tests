@@ -17,7 +17,6 @@ from .integrations import (
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
-from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
@@ -54,10 +53,6 @@ class _Scenarios:
 
     default = DefaultScenario("DEFAULT")
 
-    # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
-    performances = PerformanceScenario(
-        "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
-    )
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     dbm_dynamic_service = DbmDynamicServiceScenario()
