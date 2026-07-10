@@ -60,7 +60,7 @@ check_single_opentelemetry_version() {
 
     if [[ $(echo "$versions" | grep -c .) -gt 1 ]]; then
         echo "ERROR: multiple incompatible versions of the 'opentelemetry' crate were resolved:" >&2
-        echo "$versions" | sed 's/^/  - opentelemetry /' >&2
+        echo "  - opentelemetry ${versions//$'\n'/$'\n  - opentelemetry '}" >&2
         echo >&2
         echo "opentelemetry::global::* keeps separate state per crate version, so any" >&2
         echo "dependency using the 'wrong' version's global tracer/propagator will be" >&2

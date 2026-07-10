@@ -1,9 +1,14 @@
 use std::{
     collections::HashMap,
+    net::SocketAddr,
     sync::{Arc, Mutex, OnceLock},
 };
 
-use axum::{extract::Request, middleware::Next, response::Response};
+use axum::{
+    extract::{connect_info::ConnectInfo, Request},
+    middleware::Next,
+    response::Response,
+};
 
 use http::Extensions;
 use opentelemetry::{
@@ -66,11 +71,16 @@ pub async fn enrich_span(request: Request, next: Next) -> Response {
             }
         }
     }
-    // http.client_ip / network.client.ip from the best IP header available
-    // (HTTPLayer doesn't set these)
+    // http.client_ip resolves forwarded headers. network.client.ip is the
+    // transport peer and therefore must not use a forwarded header value.
     if let Some(ip) = extract_client_ip(request.headers()) {
         span.set_attribute(KeyValue::new("http.client_ip", ip.clone()));
-        span.set_attribute(KeyValue::new("network.client.ip", ip));
+    }
+    if let Some(connect_info) = request.extensions().get::<ConnectInfo<SocketAddr>>() {
+        span.set_attribute(KeyValue::new(
+            "network.client.ip",
+            connect_info.0.ip().to_string(),
+        ));
     }
 
     next.run(request).await

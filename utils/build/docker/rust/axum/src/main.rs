@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, net::SocketAddr};
 
 use axum::{
     extract::Query,
@@ -44,7 +44,7 @@ async fn main() {
         .route("/make_distant_call", get(make_distant_call))
         .layer(middleware::from_fn(integration::enrich_span))
         .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
-        .into_make_service();
+        .into_make_service_with_connect_info::<SocketAddr>();
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:7777").await.unwrap();
     println!("Listening on port 7777");

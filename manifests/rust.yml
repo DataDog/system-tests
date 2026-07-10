@@ -359,19 +359,15 @@ manifest:
   tests/stats/test_stats.py: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence::test_ip_headers_precedence: missing_feature (http.client_ip tagging not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_400: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_500: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom::test_status_code_200: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom::test_status_code_202: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_400: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default::test_status_code_500: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom::test_status_code_200: missing_feature (/status endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom::test_status_code_202: missing_feature (/status endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (/kafka/produce endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_client: missing_feature (query string obfuscation not implemented)
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_server: missing_feature (query string obfuscation not implemented)
+  ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_client
+  : missing_feature (query string obfuscation not implemented)
+  ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_server
+  : missing_feature (query string obfuscation not implemented)
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: missing_feature (/read_file endpoint not implemented)
   tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature (datadog-meta-lang-interpreter not set)
+  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_identify.py::Test_Basic: missing_feature (/identify endpoint not implemented)
   tests/test_identify.py::Test_Propagate::test_identify_tags_incoming: missing_feature (/waf endpoint not implemented)
   tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
@@ -381,6 +377,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: ">=0.3.4-dev"
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: ">=0.3.4-dev"
+  tests/test_library_conf.py::Test_HeaderTags: missing_feature (DD_TRACE_HEADER_TAGS is not implemented in dd-trace-rs)
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers::test_trace_header_tags: missing_feature (/waf endpoint not implemented)
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers::test_trace_header_tags: missing_feature (wildcard header-tags config does not tag response headers)
@@ -393,14 +390,15 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (/waf/ endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_methods: missing_feature (/waf endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip_with_attack: missing_feature (/waf endpoint not implemented)
-  tests/test_standard_tags.py::Test_StandardTagsReferrerHostname::test_referrer_hostname: missing_feature (/status endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsRoute::test_route: missing_feature (/sample_rate_route endpoint not implemented)
-  tests/test_standard_tags.py::Test_StandardTagsStatusCode::test_status_code: missing_feature (/status endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsUrl: missing_feature (/waf endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent::test_useragent: missing_feature (/waf endpoint not implemented)
+  tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: missing_feature (/load_dependency endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (/enable_product endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (/spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (/spawn_child endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
+  tests/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_propagated: missing_feature (DD_APPSEC_SCA_ENABLED telemetry reporting is not implemented)
+  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product information missing in app-started telemetry payload)
   tests/test_v1_payloads.py: missing_feature
