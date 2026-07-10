@@ -185,12 +185,12 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
                 has_auth=_has_auth(request_headers),
             )
             self.server.state.record_response(status_code)
-            self.send_response(status_code)
-            for key, value in headers.items():
-                self.send_header(key, value)
-            self.end_headers()
-            if body:
-                with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+            with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+                self.send_response(status_code)
+                for key, value in headers.items():
+                    self.send_header(key, value)
+                self.end_headers()
+                if body:
                     self.wfile.write(body)
         finally:
             self.server.state.finish_request()
@@ -223,10 +223,11 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
         self._write_json(HTTPStatus.OK, self.server.state.status())
 
     def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFEAgentlessBackendStatus) -> None:
-        self.send_response(status_code)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        self.wfile.write(json.dumps(payload).encode("utf-8"))
+        with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+            self.send_response(status_code)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(payload).encode("utf-8"))
 
 
 def _has_auth(headers: Mapping[str, str]) -> bool:

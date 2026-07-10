@@ -70,9 +70,7 @@ log = logging.getLogger(__name__)
 
 
 def feature_flags_enabled():
-    value = os.environ.get("DD_FEATURE_FLAGS_ENABLED")
-    if value is None:
-        value = os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED")
+    value = os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED")
     return value in ("true", "True", "1")
 
 

@@ -58,10 +58,7 @@ public class FeatureFlagEvaluatorController {
         }
 
         private static boolean featureFlagsEnabled() {
-            String envProperty = System.getenv("DD_FEATURE_FLAGS_ENABLED");
-            if (envProperty == null) {
-                envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
-            }
+            String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
             return Boolean.parseBoolean(envProperty) || "1".equals(envProperty);
         }
     }

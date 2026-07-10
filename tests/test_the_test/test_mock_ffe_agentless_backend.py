@@ -39,7 +39,30 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 
     server = MockFFEAgentlessBackendServer(worker_id)
     try:
-        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
+        env = {"SYSTEM_TESTS_FFE_AGENTLESS_UFC_ENDPOINT": server.library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
+    server = MockFFEAgentlessBackendServer(worker_id)
+    try:
+        status = server.status()
+        assert set(status) == {
+            "requests_total",
+            "in_flight",
+            "max_in_flight",
+            "last_path",
+            "last_if_none_match",
+            "last_auth_present",
+            "last_status_code",
+            "status_codes",
+        }
+        assert "ufc" not in status
+        assert "payload" not in status
+        assert "body" not in status
     finally:
         server.close()

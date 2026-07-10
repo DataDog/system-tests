@@ -4,10 +4,12 @@ Feature under test: server SDKs can select where UFC flag definitions come from.
 The agentless path fetches from an HTTP backend, while explicit ``remote_config``
 keeps the existing Agent RC path.
 
-Test strategy: drive SDKs only through public env vars and OpenFeature evaluation
-endpoints, then use the mock FFE agentless backend for observable HTTP behavior:
-request path, auth, status transitions, ETag handling, retries, timeout, and
-poll overlap.
+Test strategy: drive SDKs through public configuration-source env vars and
+OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
+observable HTTP behavior: request path, auth, status transitions, ETag handling,
+retries, timeout, and poll overlap. The mock endpoint is passed through a
+system-tests-only harness hook so SDKs can wire their custom agentless UFC source
+without exposing a customer-facing base URL env var.
 """
 
 from collections.abc import Callable
@@ -38,9 +40,10 @@ TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
 NO_MOCK_REQUEST_ATTEMPTS = 5
+SYSTEM_TESTS_AGENTLESS_UFC_ENDPOINT = "SYSTEM_TESTS_FFE_AGENTLESS_UFC_ENDPOINT"
 
 BASE_ENVVARS = {
-    "DD_FEATURE_FLAGS_ENABLED": "true",
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
@@ -94,12 +97,6 @@ def library_env(
         env["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] = str(configuration_source)
 
     if params.get("agentless", True):
-        base_url_form = params.get("base_url_form", "root")
-        agentless_base_url = (
-            mock_ffe_agentless_backend.library_config_url
-            if base_url_form == "endpoint"
-            else mock_ffe_agentless_backend.library_base_url
-        )
         agentless_env = dict(AGENTLESS_ENVVARS)
         if "poll_interval" in params:
             agentless_env["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS"] = str(
@@ -110,7 +107,7 @@ def library_env(
                 params["request_timeout"]
             )
         env |= agentless_env
-        env["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"] = agentless_base_url
+        env[SYSTEM_TESTS_AGENTLESS_UFC_ENDPOINT] = mock_ffe_agentless_backend.library_config_url
 
     if api_key is not None:
         env["DD_API_KEY"] = str(api_key)
@@ -191,7 +188,7 @@ def _has_status_sequence(status_codes: list[int], expected_status_codes: list[in
 @scenarios.parametric
 @features.feature_flags_agentless
 class Test_Feature_Flag_Configuration_Source_Selection:
-    """Validate source selection for Agent RC, agentless, and customer endpoint overrides."""
+    """Validate source selection for Agent RC, agentless, and custom endpoint wiring."""
 
     @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
     def test_remote_config_positive_ignores_agentless_env(
@@ -200,7 +197,6 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        mock_ffe_agentless_backend.reset()
         apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
@@ -214,20 +210,11 @@ class Test_Feature_Flag_Configuration_Source_Selection:
     def test_remote_config_without_rc_does_not_fallback_to_agentless(
         self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
     ) -> None:
-        mock_ffe_agentless_backend.reset()
-
         _assert_cold_not_ready(test_library, started=test_library.ffe_start())
 
         _assert_no_mock_requests(mock_ffe_agentless_backend)
 
-    @parametrize(
-        "library_env",
-        [
-            {"configuration_source": "agentless", "response": "valid", "base_url_form": "root"},
-            {"configuration_source": "agentless", "response": "valid", "base_url_form": "endpoint"},
-        ],
-        indirect=True,
-    )
+    @parametrize("library_env", [{"configuration_source": "agentless", "response": "valid"}], indirect=True)
     def test_explicit_agentless_positive(
         self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
     ) -> None:
@@ -253,24 +240,6 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             mock_ffe_agentless_backend,
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "default agentless request",
-        )
-        assert status["last_path"] == CONFIG_PATH
-
-    @parametrize(
-        "library_env",
-        [{"configuration_source": None, "response": "valid", "base_url_form": "endpoint"}],
-        indirect=True,
-    )
-    def test_customer_http_endpoint_default_agentless_positive(
-        self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
-    ) -> None:
-        assert test_library.ffe_start(), "failed to start FFE provider with customer HTTP endpoint override"
-        _assert_expected_value(_evaluate(test_library))
-
-        status = _wait_for_status(
-            mock_ffe_agentless_backend,
-            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
-            "customer HTTP endpoint request",
         )
         assert status["last_path"] == CONFIG_PATH
 
@@ -509,27 +478,3 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         )
         assert status["max_in_flight"] == 1
         assert status["last_path"] == CONFIG_PATH
-
-
-@scenarios.parametric
-@features.feature_flags_agentless
-class Test_Feature_Flag_Configuration_Source_Mock_Fixture:
-    """Validate that the mock backend exposes only metadata needed by the tests."""
-
-    def test_mock_ffe_agentless_backend_status_is_metadata_only(
-        self, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
-    ) -> None:
-        status = mock_ffe_agentless_backend.status()
-        assert set(status) == {
-            "requests_total",
-            "in_flight",
-            "max_in_flight",
-            "last_path",
-            "last_if_none_match",
-            "last_auth_present",
-            "last_status_code",
-            "status_codes",
-        }
-        assert "ufc" not in status
-        assert "payload" not in status
-        assert "body" not in status

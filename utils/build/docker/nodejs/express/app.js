@@ -836,7 +836,7 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 let openFeatureClient = null
 
 function featureFlagsEnabled () {
-  const value = process.env.DD_FEATURE_FLAGS_ENABLED ?? process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED
+  const value = process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED
   return value === 'true' || value === '1'
 }
 
