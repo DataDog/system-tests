@@ -6,7 +6,10 @@ use std::{
 use axum::{extract::Request, middleware::Next, response::Response};
 
 use http::Extensions;
-use opentelemetry::{trace::Status, KeyValue};
+use opentelemetry::{
+    trace::{Status, TraceContextExt},
+    Context, KeyValue,
+};
 use reqwest_middleware::Middleware;
 use reqwest_tracing::reqwest_otel_span;
 use tracing::Span;
@@ -14,11 +17,21 @@ use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::url::{extract_client_ip, extract_hostname_from_referer, scrub_query_string};
 
-/// Adds Datadog-specific attributes on top of the generic OTel HTTP server
-/// span that `axum_tracing_opentelemetry::middleware::OtelAxumLayer` already
-/// created and made current for this request.
+/// Adds Datadog-specific attributes on top of the OTel HTTP server span that
+/// `opentelemetry_instrumentation_tower::HTTPLayer` created for this request.
+///
+/// `HTTPLayer` builds its span directly via `opentelemetry::Context`, not the
+/// `tracing` crate, so we read/write through `Context::current().span()`
+/// rather than `tracing::Span::current()` (which would be a no-op span here).
+/// Only attributes `HTTPLayer` doesn't already set are added, to avoid
+/// duplicating its behavior (see `opentelemetry-instrumentation-tower`'s
+/// `HTTPLayer::call`/`ResponseFuture::poll`, which set
+/// `http.request.method`/`url.scheme`/`url.path`/`url.full`/
+/// `user_agent.original`/`http.route` up front and `http.response.status_code`
+/// plus a 5xx error status on completion).
 pub async fn enrich_span(request: Request, next: Next) -> Response {
-    let span = Span::current();
+    let cx = Context::current();
+    let span = cx.span();
 
     let host = request
         .headers()
@@ -35,50 +48,32 @@ pub async fn enrich_span(request: Request, next: Next) -> Response {
         .map(|q| format!("?{q}"))
         .unwrap_or_default();
     let url = format!("http://{host}{path}{query_suffix}");
-    let method = request.method().to_string();
 
-    for attr in build_attributes(method, &url, server_address) {
-        span.set_attribute(attr.key, attr.value);
+    for attr in dd_tags() {
+        span.set_attribute(attr);
     }
+    span.set_attribute(KeyValue::new("http.url", url));
+    span.set_attribute(KeyValue::new("server.address", server_address));
     // _dd.top_level marks this as a root span so the library interface can
     // match traces to requests via the user-agent header.
-    span.set_attribute("_dd.top_level", 1i64);
-    span.set_attribute("url.path", path);
-    // Overrides the raw (unscrubbed) url.query the OTel HTTP-server span
-    // records by default.
-    span.record("url.query", query_scrubbed.unwrap_or_default().as_str());
+    span.set_attribute(KeyValue::new("_dd.top_level", 1i64));
 
     // http.referrer_hostname from the Referer header
     if let Some(referer) = request.headers().get(axum::http::header::REFERER) {
         if let Ok(referer_str) = referer.to_str() {
             if let Some(hostname) = extract_hostname_from_referer(referer_str) {
-                span.set_attribute("http.referrer_hostname", hostname);
+                span.set_attribute(KeyValue::new("http.referrer_hostname", hostname));
             }
         }
     }
-    // http.useragent from the User-Agent header
-    if let Some(ua) = request.headers().get(axum::http::header::USER_AGENT) {
-        if let Ok(ua_str) = ua.to_str() {
-            span.set_attribute("http.useragent", ua_str.to_owned());
-        }
-    }
     // http.client_ip / network.client.ip from the best IP header available
+    // (HTTPLayer doesn't set these)
     if let Some(ip) = extract_client_ip(request.headers()) {
-        span.set_attribute("http.client_ip", ip.clone());
-        span.set_attribute("network.client.ip", ip);
+        span.set_attribute(KeyValue::new("http.client_ip", ip.clone()));
+        span.set_attribute(KeyValue::new("network.client.ip", ip));
     }
 
-    let response = next.run(request).await;
-
-    let status = response.status();
-    span.set_attribute("http.response.status_code", status.as_u16() as i64);
-    // Mark 5xx server errors on the span
-    if status.is_server_error() {
-        span.set_status(Status::Error {
-            description: format!("HTTP {}", status.as_u16()).into(),
-        });
-    }
-    response
+    next.run(request).await
 }
 
 /// [`reqwest_tracing::ReqwestOtelSpanBackend`] that names outgoing spans
