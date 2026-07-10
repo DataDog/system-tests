@@ -9,15 +9,16 @@ from .conftest import APMLibrary
 # Parametric analog of tests/test_library_conf.py::Test_ExtractBehavior_*.
 # Kept in sync manually - if the e2e fixtures/assertions change, check both.
 
-DATADOG_TRACECONTEXT_BAGGAGE_HEADERS = [
+DATADOG_TRACECONTEXT_HEADERS = [
     ("x-datadog-trace-id", "1"),
     ("x-datadog-parent-id", "1"),
     ("x-datadog-sampling-priority", "2"),
     ("x-datadog-tags", "_dd.p.tid=1111111111111111,_dd.p.dm=-4"),
     ("traceparent", "00-11111111111111110000000000000001-0000000000000001-01"),
     ("tracestate", "dd=s:2;t.dm:-4,foo=1"),
-    ("baggage", "key1=value1"),
 ]
+
+DATADOG_TRACECONTEXT_BAGGAGE_HEADERS = [*DATADOG_TRACECONTEXT_HEADERS, ("baggage", "key1=value1")]
 
 CONFLICTING_TRACECONTEXT_HEADERS = [
     ("x-datadog-trace-id", "2"),
@@ -25,11 +26,10 @@ CONFLICTING_TRACECONTEXT_HEADERS = [
     ("x-datadog-sampling-priority", "2"),
     ("x-datadog-tags", "_dd.p.tid=1111111111111111,_dd.p.dm=-4"),
     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
-    ("baggage", "key1=value1"),
 ]
 
 # Same conflicting traceparent as above, but with the Datadog trace id matching
-# DATADOG_TRACECONTEXT_BAGGAGE_HEADERS (1) instead of 2. The e2e fixtures for
+# DATADOG_TRACECONTEXT_HEADERS (1) instead of 2. The e2e fixtures for
 # Restart/Restart_With_Extract_First::test_multiple_tracecontexts use trace id
 # 1 here (unlike Default/Ignore, which use trace id 2), since the resulting
 # span link is expected to carry trace id 1.
@@ -39,7 +39,6 @@ RESTARTED_CONFLICTING_TRACECONTEXT_HEADERS = [
     ("x-datadog-sampling-priority", "2"),
     ("x-datadog-tags", "_dd.p.tid=1111111111111111,_dd.p.dm=-4"),
     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
-    ("baggage", "key1=value1"),
 ]
 
 OVERRIDING_SPAN_ID_HEADERS = [
@@ -48,7 +47,6 @@ OVERRIDING_SPAN_ID_HEADERS = [
     ("x-datadog-sampling-priority", "2"),
     ("x-datadog-tags", "_dd.p.tid=1111111111111111,_dd.p.dm=-4"),
     ("traceparent", "00-11111111111111110000000000000001-1234567890123456-01"),
-    ("baggage", "key1=value1"),
 ]
 
 NONDEFAULT_EXTRACT_STYLE = "datadog,tracecontext,b3multi,baggage"
@@ -64,6 +62,19 @@ def injected_headers(test_library: APMLibrary, span_id: int) -> dict[str, str]:
     return {k.lower(): v for k, v in test_library.dd_inject_headers(span_id)}
 
 
+def assert_baggage_propagation(test_library: APMLibrary, *, expected: bool) -> None:
+    with (
+        test_library,
+        test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+    ):
+        headers = injected_headers(test_library, span.get_span_id())
+
+    if expected:
+        assert "key1=value1" in headers["baggage"]
+    else:
+        assert "baggage" not in headers
+
+
 @scenarios.parametric
 @features.context_propagation_extract_behavior
 class Test_ExtractBehavior_Default:
@@ -72,7 +83,7 @@ class Test_ExtractBehavior_Default:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
             test_library,
-            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_HEADERS) as span,
         ):
             headers = injected_headers(test_library, int(span.get_span_id()))
 
@@ -90,7 +101,9 @@ class Test_ExtractBehavior_Default:
 
         assert headers["x-datadog-trace-id"] == "1"
         assert "_dd.p.tid=1111111111111111" in headers["x-datadog-tags"]
-        assert "key1=value1" in headers["baggage"]
+
+    def test_baggage(self, test_library: APMLibrary):
+        assert_baggage_propagation(test_library, expected=True)
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
@@ -115,7 +128,6 @@ class Test_ExtractBehavior_Default:
 
         assert headers["x-datadog-trace-id"] == "2"
         assert "_dd.p.tid=1111111111111111" in headers["x-datadog-tags"]
-        assert "key1=value1" in headers["baggage"]
 
 
 @scenarios.parametric
@@ -133,7 +145,7 @@ class Test_ExtractBehavior_Restart:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
             test_library,
-            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_HEADERS) as span,
         ):
             headers = injected_headers(test_library, span.get_span_id())
 
@@ -154,7 +166,6 @@ class Test_ExtractBehavior_Restart:
 
         assert headers["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
@@ -183,7 +194,6 @@ class Test_ExtractBehavior_Restart:
 
         assert headers["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts_with_overrides(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
@@ -209,7 +219,9 @@ class Test_ExtractBehavior_Restart:
 
         assert headers["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "key1=value1" in headers["baggage"]
+
+    def test_baggage(self, test_library: APMLibrary):
+        assert_baggage_propagation(test_library, expected=True)
 
 
 @scenarios.parametric
@@ -227,7 +239,7 @@ class Test_ExtractBehavior_Ignore:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
             test_library,
-            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_HEADERS) as span,
         ):
             headers = injected_headers(test_library, span.get_span_id())
 
@@ -241,7 +253,6 @@ class Test_ExtractBehavior_Ignore:
 
         assert headers["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "baggage" not in headers
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
@@ -261,7 +272,9 @@ class Test_ExtractBehavior_Ignore:
 
         assert headers["x-datadog-trace-id"] != "2"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "baggage" not in headers
+
+    def test_baggage(self, test_library: APMLibrary):
+        assert_baggage_propagation(test_library, expected=False)
 
 
 @scenarios.parametric
@@ -280,7 +293,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
     def test_single_tracecontext(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
             test_library,
-            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_BAGGAGE_HEADERS) as span,
+            test_library.dd_extract_headers_and_make_child_span("root", DATADOG_TRACECONTEXT_HEADERS) as span,
         ):
             headers = injected_headers(test_library, span.get_span_id())
 
@@ -301,7 +314,6 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
 
         assert headers["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "key1=value1" in headers["baggage"]
 
     def test_multiple_tracecontexts(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with (
@@ -330,4 +342,6 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
 
         assert headers["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in headers.get("x-datadog-tags", "")
-        assert "key1=value1" in headers["baggage"]
+
+    def test_baggage(self, test_library: APMLibrary):
+        assert_baggage_propagation(test_library, expected=True)

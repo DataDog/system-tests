@@ -2141,7 +2141,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
-  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: missing_feature (conflicting trace contexts should generate span link)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v2.36.0-dev
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v2.36.0-dev
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.36.0-dev
