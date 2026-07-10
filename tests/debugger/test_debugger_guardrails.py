@@ -114,8 +114,8 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
 class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
     """RFC guardrails for completed snapshot size and capture-time budget."""
 
-    SNAPSHOT_SIZE_COLLECTION_ITEMS = 300000
-    CAPTURE_TIMEOUT_COLLECTION_ITEMS = 1000000
+    SNAPSHOT_SIZE_COLLECTION_ITEMS = 300_000
+    CAPTURE_TIMEOUT_COLLECTION_ITEMS = 1_000_000
 
     def _setup_snapshot_guardrail(self, probes_name: str, collection_size: int) -> None:
         self.initialize_weblog_remote_config()
@@ -158,16 +158,21 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
             f"got: {large_collection!r}"
         )
 
-    def setup_capture_timeout_reason(self) -> None:
+    def setup_capture_timeout_reports_reason(self) -> None:
         self._setup_snapshot_guardrail("probe_capture_timeout_reason", self.CAPTURE_TIMEOUT_COLLECTION_ITEMS)
 
-    def test_capture_timeout_reason(self) -> None:
+    def test_capture_timeout_reports_reason(self) -> None:
+        """A capture exceeding the tracer's time budget identifies the value it could not finish.
+
+        The probe allows twice as many collection items as the fixture contains, so the
+        collection-size limit cannot cause the truncation. Tracers use budgets between 50 and
+        250 ms, so we assert the reported reason instead of elapsed time.
+        """
         _, snapshot = self._get_single_snapshot()
-        reasons = set(self._iter_not_captured_reasons(snapshot))
-        assert "timeout" in reasons, f"Expected notCapturedReason='timeout', got reasons: {sorted(reasons)}"
-        unexpected_reasons = {"collectionSize", "stringLength", "fieldCount", "depth"} & reasons
-        assert not unexpected_reasons, (
-            f"Capture timeout fixture should avoid structural limit reasons, but found: {sorted(unexpected_reasons)}"
+        large_collection = self._get_captured_local(snapshot, "largeCollection")
+        assert large_collection.get("notCapturedReason") == "timeout", (
+            "largeCollection should have notCapturedReason='timeout' when capture exceeds the tracer's "
+            f"time budget, got: {large_collection!r}"
         )
 
     def _get_single_snapshot(self) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -212,21 +217,3 @@ class Test_Debugger_Snapshot_Guardrails(debugger.BaseDebuggerTest):
             return True
 
         return any(self._is_partially_captured(child, expected_items) for child in value.values())
-
-    def _iter_not_captured_reasons(self, value: object) -> list[str]:
-        if isinstance(value, dict):
-            reasons = []
-            reason = value.get("notCapturedReason")
-            if isinstance(reason, str):
-                reasons.append(reason)
-            for child in value.values():
-                reasons.extend(self._iter_not_captured_reasons(child))
-            return reasons
-
-        if isinstance(value, list):
-            reasons = []
-            for child in value:
-                reasons.extend(self._iter_not_captured_reasons(child))
-            return reasons
-
-        return []
