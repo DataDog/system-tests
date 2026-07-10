@@ -5,7 +5,7 @@ use axum::{
     http::StatusCode,
     middleware::{self},
     response::{IntoResponse, Response},
-    routing::{get, options, post},
+    routing::{any, get, options, post},
     Json, Router,
 };
 
@@ -40,7 +40,11 @@ async fn main() {
         .route("/", options(index))
         // Basic info endpoints
         .route("/healthcheck", get(healthcheck))
+        .route("/headers", get(headers))
         .route("/status", get(status))
+        .route("/spans", get(spans))
+        .route("/waf", any(waf))
+        .route("/waf/", any(waf))
         .route("/make_distant_call", get(make_distant_call))
         .layer(middleware::from_fn(integration::enrich_span))
         .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
@@ -83,6 +87,27 @@ async fn status(Query(query): Query<StatusQuery>) -> StatusCode {
     StatusCode::from_u16(query.code).unwrap_or(StatusCode::BAD_REQUEST)
 }
 
+async fn headers() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (axum::http::header::CONTENT_TYPE, "text"),
+            (axum::http::header::CONTENT_LANGUAGE, "en-US"),
+            (axum::http::header::CONTENT_LENGTH, "15"),
+        ],
+        "Hello headers!\n",
+    )
+        .into_response()
+}
+
+async fn spans() -> Response {
+    StatusCode::OK.into_response()
+}
+
+async fn waf() -> Response {
+    StatusCode::OK.into_response()
+}
+
 // ─── External request endpoints ─────────────────────────────────────────────
 
 async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
@@ -113,5 +138,35 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
             tracing::warn!("make_distant_call failed: {e}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::{
+        body::to_bytes,
+        http::{header, StatusCode},
+    };
+
+    use super::{headers, spans, waf};
+
+    #[tokio::test]
+    async fn headers_returns_the_documented_response() {
+        let response = headers().await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], "text");
+        assert_eq!(response.headers()[header::CONTENT_LANGUAGE], "en-US");
+        assert_eq!(response.headers()[header::CONTENT_LENGTH], "15");
+        assert_eq!(
+            to_bytes(response.into_body(), usize::MAX).await.unwrap(),
+            "Hello headers!\n"
+        );
+    }
+
+    #[tokio::test]
+    async fn xpass_endpoint_handlers_return_success() {
+        assert_eq!(waf().await.status(), StatusCode::OK);
+        assert_eq!(spans().await.status(), StatusCode::OK);
     }
 }
