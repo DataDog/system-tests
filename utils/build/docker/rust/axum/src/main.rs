@@ -12,6 +12,7 @@ use axum::{
 use opentelemetry::trace::TracerProvider;
 use reqwest_middleware::ClientBuilder;
 use reqwest_tracing::TracingMiddleware;
+use serde::Deserialize;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use integration::DatadogClientSpanBackend;
@@ -20,6 +21,11 @@ mod integration;
 mod url;
 
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
+
+#[derive(Deserialize)]
+struct StatusQuery {
+    code: u16,
+}
 
 #[tokio::main]
 async fn main() {
@@ -34,6 +40,7 @@ async fn main() {
         .route("/", options(index))
         // Basic info endpoints
         .route("/healthcheck", get(healthcheck))
+        .route("/status", get(status))
         .route("/make_distant_call", get(make_distant_call))
         .layer(middleware::from_fn(integration::enrich_span))
         .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
@@ -70,6 +77,10 @@ async fn index() -> Response {
         "Hello world!\n",
     )
         .into_response()
+}
+
+async fn status(Query(query): Query<StatusQuery>) -> StatusCode {
+    StatusCode::from_u16(query.code).unwrap_or(StatusCode::BAD_REQUEST)
 }
 
 // ─── External request endpoints ─────────────────────────────────────────────
