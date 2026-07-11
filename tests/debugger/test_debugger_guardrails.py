@@ -1,4 +1,4 @@
-# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# Unless explicitly stated otherwise all files in this repository are licensed under the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
@@ -10,6 +10,14 @@ from utils import context, features, rfc, scenarios, slow, weblog
 
 
 MAX_SNAPSHOT_BYTES = 1024 * 1024
+EVALUATION_TIMEOUT_MARKERS = (
+    "deadline",
+    "evaluation time limit",
+    "maximum allowed time",
+    "time budget",
+    "timed out",
+    "timeout",
+)
 # `^(a+)+$` against a non-matching input backtracks exponentially (~2^n), so a few dozen
 # characters already blow past any evaluation-time budget. Keep it small so the value fits
 # comfortably in the request URL.
@@ -17,11 +25,7 @@ REDOS_INPUT_LENGTH = 50
 GUARDRAILS_RFC = "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
 
 
-@rfc(GUARDRAILS_RFC)
-@features.debugger_expression_language
-@scenarios.debugger_probes_snapshot
-@slow
-class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
+class _DebuggerEvaluationTimeoutTest(debugger.BaseDebuggerTest):
     """RFC guardrail: expensive expression evaluation must stop before normal snapshot creation.
 
     A conforming tracer aborts the expensive ``when`` evaluation and surfaces the failure as an
@@ -29,15 +33,8 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
     exactly like a runtime condition error -- it must not produce a normal, fully-captured snapshot.
     """
 
-    def _convert_to_line_probe_if_needed(self, probe: dict[str, Any], method: str) -> None:
-        if context.library.name not in ("nodejs", "ruby"):
-            return
-
-        where = probe["where"]
-        where.pop("methodName", None)
-        where["typeName"] = None
-        where["sourceFile"] = "ACTUAL_SOURCE_FILE"
-        where["lines"] = self.method_and_language_to_line_number(method, context.library.name)
+    def _prepare_probe(self, _probe: dict[str, Any], _method: str) -> None:
+        pass
 
     def _setup_evaluation_timeout(self, probes_name: str, method: str, request_path: str) -> None:
         self.initialize_weblog_remote_config()
@@ -45,14 +42,14 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
         probes = debugger.read_probes(probes_name)
         for probe in probes:
             probe["id"] = debugger.generate_probe_id("log")
-            self._convert_to_line_probe_if_needed(probe, method)
+            self._prepare_probe(probe, method)
 
         self.set_probes(probes)
         self.send_rc_probes()
         if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=30):
             self.setup_failures.append("Probes did not reach INSTALLED status within 30s")
 
-        self.weblog_responses.append(weblog.get(request_path, timeout=15))
+        self.weblog_responses = [weblog.get(request_path, timeout=15)]
         # A conforming tracer emits an evaluation-error snapshot; wait for it to land before
         # collect(). Tracers that (wrongly) emit nothing just hit the timeout and fail the
         # snapshot-presence assertion in the test with a clear message.
@@ -86,9 +83,9 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
 
         for probe_id in self.probe_ids:
             snapshots = self.probe_snapshots.get(probe_id, [])
-            assert snapshots, (
-                "Probe emitted no snapshot; a conforming tracer must surface the aborted "
-                "expression evaluation via a probe result carrying evaluationErrors[]."
+            assert len(snapshots) == 1, (
+                f"Expected exactly one evaluation-timeout snapshot for {probe_id}, got {len(snapshots)}; "
+                "a conforming tracer must surface only the aborted evaluation result."
             )
 
             envelope = snapshots[0]
@@ -100,11 +97,40 @@ class Test_Debugger_Evaluation_Timeout(debugger.BaseDebuggerTest):
                 "report that expression evaluation was aborted."
             )
 
+            error_messages = [
+                str(error.get("message", "")).casefold() for error in evaluation_errors if isinstance(error, dict)
+            ]
+            assert any(marker in message for message in error_messages for marker in EVALUATION_TIMEOUT_MARKERS), (
+                "Evaluation error does not identify a timeout, deadline, or exhausted time budget; "
+                f"an unrelated evaluation failure must not satisfy this guardrail: {evaluation_errors!r}"
+            )
+
             captures = snapshot.get("captures")
             assert not debugger.captures_contain_data(captures), (
                 f"Evaluation-timeout snapshot leaked captured data ({captures!r}); a conforming "
                 "tracer must stop before normal snapshot creation."
             )
+
+
+@rfc(GUARDRAILS_RFC)
+@features.debugger_expression_language
+@scenarios.debugger_probes_snapshot
+@slow
+class Test_Debugger_Evaluation_Timeout_Method_Probe(_DebuggerEvaluationTimeoutTest):
+    pass
+
+
+@rfc(GUARDRAILS_RFC)
+@features.debugger_expression_language
+@scenarios.debugger_probes_snapshot
+@slow
+class Test_Debugger_Evaluation_Timeout_Line_Probe(_DebuggerEvaluationTimeoutTest):
+    def _prepare_probe(self, probe: dict[str, Any], method: str) -> None:
+        where = probe["where"]
+        where.pop("methodName", None)
+        where["typeName"] = None
+        where["sourceFile"] = "ACTUAL_SOURCE_FILE"
+        where["lines"] = self.method_and_language_to_line_number(method, context.library.name)
 
 
 class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
@@ -125,7 +151,7 @@ class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
         if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=30):
             self.setup_failures.append("Probes did not reach INSTALLED status within 30s")
 
-        self.weblog_responses.append(weblog.get(request_path, timeout=30))
+        self.weblog_responses = [weblog.get(request_path, timeout=30)]
         if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=10):
             self.setup_failures.append("Probes did not reach EMITTING status within 10s")
         if not self.wait_for_all_snapshots(timeout=30):
@@ -160,19 +186,6 @@ class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
         value = locals_data[variable_name]
         assert isinstance(value, dict), f"Expected {variable_name!r} to be a captured object, got: {value!r}"
         return value
-
-    def _is_partially_captured(self, value: object, expected_items: int) -> bool:
-        if not isinstance(value, dict):
-            return False
-
-        if value.get("notCapturedReason") == "payloadTooLarge" or value.get("pruned") is True:
-            return True
-
-        elements = value.get("elements") or value.get("entries")
-        if isinstance(elements, list) and len(elements) < expected_items:
-            return True
-
-        return any(self._is_partially_captured(child, expected_items) for child in value.values())
 
     def _contains_payload_pruning(self, value: object) -> bool:
         if isinstance(value, dict):
@@ -214,15 +227,17 @@ class Test_Debugger_Snapshot_Size_Guardrail(_DebuggerSnapshotGuardrailTest):
         )
 
     def test_snapshot_size_cap(self) -> None:
-        _, snapshot = self._get_single_snapshot()
-        serialized_size = len(json.dumps(snapshot, separators=(",", ":")).encode())
+        envelope, snapshot = self._get_single_snapshot()
+        # collect() adds query metadata for test filtering; it is not part of the tracer intake envelope.
+        intake_envelope = {key: value for key, value in envelope.items() if key != "query"}
+        serialized_size = len(json.dumps(intake_envelope, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
         assert serialized_size <= MAX_SNAPSHOT_BYTES, (
-            f"Snapshot should be trimmed to <= {MAX_SNAPSHOT_BYTES} bytes, got {serialized_size} bytes"
+            f"Snapshot intake envelope should be trimmed to <= {MAX_SNAPSHOT_BYTES} bytes, got {serialized_size} bytes"
         )
 
         large_collection = self._get_captured_local(snapshot, "largeCollection")
-        assert self._is_partially_captured(large_collection, self.SNAPSHOT_SIZE_COLLECTION_ITEMS), (
-            "Expected the oversized snapshot to contain only part of largeCollection after trimming, "
+        assert self._contains_payload_pruning(large_collection), (
+            "Expected the oversized snapshot to mark payload-size pruning within largeCollection, "
             f"got: {large_collection!r}"
         )
 
