@@ -3250,7 +3250,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: 1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_agentless_configuration.py: v1.65.0-SNAPSHOT
-  tests/ffe/test_agentless_exposures.py: missing_feature (agentless end-to-end scenario not enabled yet)
+  tests/ffe/test_agentless_exposures.py: v1.65.0-SNAPSHOT
   tests/ffe/test_agentless_flag_eval_evp.py: missing_feature (agentless end-to-end scenario not enabled yet)
   tests/ffe/test_agentless_flag_eval_metrics.py: v1.65.0-SNAPSHOT
   tests/ffe/test_dynamic_evaluation.py:
