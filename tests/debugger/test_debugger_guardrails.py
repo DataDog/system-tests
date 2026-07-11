@@ -268,7 +268,7 @@ class Test_Debugger_Capture_Timeout_Guardrail(_DebuggerSnapshotGuardrailTest):
     def test_capture_timeout_reports_reason(self) -> None:
         """A capture exceeding the tracer's time budget identifies the value it could not finish.
 
-        The dedicated scenario uses a deliberately tiny tracer budget (1 ms), and the fixture keeps
+        The dedicated scenario uses a deliberately small tracer budget (10 ms), and the fixture keeps
         only the target collection as a complex value. We do not compare elapsed time, and the
         assertion rejects completed-snapshot payload pruning as a different guardrail.
         """
