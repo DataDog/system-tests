@@ -1705,6 +1705,7 @@ manifest:
     - declaration: missing_feature (Not implemented yet)
       component_version: <5.66.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: *ref_5_83_0
+  tests/ffe/test_agentless_configuration.py: missing_feature (agentless end-to-end scenario not enabled yet)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": incomplete_test_app

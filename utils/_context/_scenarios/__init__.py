@@ -7,7 +7,7 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, EndToEndScenario
+from .endtoend import DockerScenario, EndToEndScenario, FeatureFlaggingAgentlessEndToEndScenario
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
@@ -721,6 +721,21 @@ class _Scenarios:
             "OTEL_METRIC_EXPORT_INTERVAL": "1000",
         },
         doc="",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+        weblog_env={
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+        },
+        doc="Validate default agentless UFC delivery and FFE side effects through the Agent telemetry conduit.",
         scenario_groups=[scenario_groups.ffe],
     )
 

@@ -21,6 +21,12 @@ from utils._context.containers import (
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
+from utils.docker_fixtures._core import extra_hosts_for_environment
+from utils.docker_fixtures._mock_ffe_agentless_backend import (
+    EXPECTED_API_KEY,
+    MockFFEAgentlessBackendServer,
+    MockFFEAgentlessBackendStatus,
+)
 
 from utils._logger import logger
 
@@ -517,3 +523,53 @@ class EndToEndScenario(DockerScenario):
     @property
     def appsec_rules_file(self) -> str | None:
         return self.weblog_infra.appsec_rules_file
+
+
+class FeatureFlaggingAgentlessEndToEndScenario(EndToEndScenario):
+    """FFE end-to-end scenario with UFC available before the weblog starts."""
+
+    _mock_backend: MockFFEAgentlessBackendServer | None = None
+    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
+
+    def configure(self, config: pytest.Config) -> None:
+        if not self.replay:
+            worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+            self._start_mock_backend(worker_id)
+
+        try:
+            super().configure(config)
+        except BaseException:
+            self._stop_mock_backend()
+            raise
+
+    def _start_mock_backend(self, worker_id: str) -> None:
+        assert self._mock_backend is None, "mock FFE agentless backend is already running"
+
+        self._mock_backend = MockFFEAgentlessBackendServer(worker_id)
+        self._mock_backend.reset()
+
+        environment = self.weblog_infra.library_container.environment
+        environment |= {
+            "DD_API_KEY": EXPECTED_API_KEY,
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
+        }
+        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
+
+    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
+        if self._mock_backend is not None:
+            return self._mock_backend.status()
+        return self._last_mock_backend_status
+
+    def _stop_mock_backend(self) -> None:
+        if self._mock_backend is None:
+            return
+
+        self._last_mock_backend_status = self._mock_backend.status()
+        self._mock_backend.close()
+        self._mock_backend = None
+
+    def close_targets(self) -> None:
+        try:
+            super().close_targets()
+        finally:
+            self._stop_mock_backend()

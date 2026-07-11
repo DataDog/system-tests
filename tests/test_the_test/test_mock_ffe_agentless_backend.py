@@ -10,6 +10,7 @@ from utils.docker_fixtures._mock_ffe_agentless_backend import (
     EXPECTED_API_KEY,
     MockFFEAgentlessBackendServer,
 )
+from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
 
 
 @scenarios.test_the_test
@@ -66,3 +67,25 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> N
         assert "body" not in status
     finally:
         server.close()
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_end_to_end_scenario_starts_backend_before_weblog(worker_id: str) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
+
+    try:
+        scenario._start_mock_backend(worker_id)  # noqa: SLF001 - focused lifecycle test
+
+        environment = scenario.weblog_infra.library_container.environment
+        assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
+        base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
+        assert isinstance(base_url, str)
+        assert base_url.endswith(CONFIG_PATH)
+        assert scenario.weblog_infra.library_container.extra_hosts == HOST_GATEWAY_EXTRA_HOSTS
+
+        status = scenario.mock_backend_status()
+        assert status is not None
+        assert status["requests_total"] == 0
+    finally:
+        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
