@@ -70,15 +70,12 @@ def test_debugger_capture_timeout_runs_only_on_weblogs_with_the_fixture():
         ("nodejs", "uds-express4"),
     }
     libraries = ("dotnet", "golang", "java", "nodejs", "php", "python", "ruby")
-    available_weblogs = {
-        (library, weblog_name) for library in libraries for weblog_name in get_weblogs(library)
-    }
+    available_weblogs = {(library, weblog_name) for library in libraries for weblog_name in get_weblogs(library)}
 
     assert expected_supported <= available_weblogs
     for library, weblog_name in available_weblogs:
-        assert (
-            _is_supported(get_weblog(library, weblog_name), scenarios.debugger_capture_timeout, "dev")
-            == ((library, weblog_name) in expected_supported)
+        assert _is_supported(get_weblog(library, weblog_name), scenarios.debugger_capture_timeout, "dev") == (
+            (library, weblog_name) in expected_supported
         )
 
 
