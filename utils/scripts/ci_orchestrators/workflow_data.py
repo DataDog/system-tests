@@ -489,6 +489,26 @@ def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog) -> list[Scenari
         [scenario for scenario in set(scenarios) if weblog.support_scenario(scenario.name, scenario.weblog_categories)],
         key=lambda scenario: scenario.name,
     )
+    if scenario.name == "DEBUGGER_CAPTURE_TIMEOUT":
+        possible_values: tuple[tuple[str, str], ...] = (
+            ("dotnet", "poc"),
+            ("dotnet", "uds"),
+            ("java", "spring-boot"),
+            ("java", "spring-boot-jetty"),
+            ("java", "spring-boot-openliberty"),
+            ("java", "spring-boot-payara"),
+            ("java", "spring-boot-undertow"),
+            ("java", "spring-boot-wildfly"),
+            ("java", "uds-spring-boot"),
+            ("nodejs", "express4"),
+            ("nodejs", "express4-typescript"),
+            ("nodejs", "express5"),
+            ("nodejs", "fastify"),
+            ("nodejs", "uds-express4"),
+        )
+        if (library, weblog_name) not in possible_values:
+            return False
+
 
 
 if __name__ == "__main__":

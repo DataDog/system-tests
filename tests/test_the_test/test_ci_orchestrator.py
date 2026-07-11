@@ -52,6 +52,37 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
+def test_debugger_capture_timeout_runs_only_on_weblogs_with_the_fixture():
+    expected_supported = {
+        ("dotnet", "poc"),
+        ("dotnet", "uds"),
+        ("java", "spring-boot"),
+        ("java", "spring-boot-jetty"),
+        ("java", "spring-boot-openliberty"),
+        ("java", "spring-boot-payara"),
+        ("java", "spring-boot-undertow"),
+        ("java", "spring-boot-wildfly"),
+        ("java", "uds-spring-boot"),
+        ("nodejs", "express4"),
+        ("nodejs", "express4-typescript"),
+        ("nodejs", "express5"),
+        ("nodejs", "fastify"),
+        ("nodejs", "uds-express4"),
+    }
+    libraries = ("dotnet", "golang", "java", "nodejs", "php", "python", "ruby")
+    available_weblogs = {
+        (library, weblog_name) for library in libraries for weblog_name in get_weblogs(library)
+    }
+
+    assert expected_supported <= available_weblogs
+    for library, weblog_name in available_weblogs:
+        assert (
+            _is_supported(get_weblog(library, weblog_name), scenarios.debugger_capture_timeout, "dev")
+            == ((library, weblog_name) in expected_supported)
+        )
+
+
+@scenarios.test_the_test
 def test_get_endtoend_definitions_empty_scenario_map():
     # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
     defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")

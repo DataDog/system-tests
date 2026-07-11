@@ -1614,8 +1614,16 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:
     - weblog_declaration:
         express4-typescript: bug (DEBUG-3715)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail:
+    - weblog_declaration:
+        "*": incomplete_test_app (No /debugger/snapshot/capture-timeout endpoint)
+        express4: *ref_5_85_0
+        express4-typescript: *ref_5_85_0
+        express5: *ref_5_85_0
+        fastify: *ref_5_85_0
+        uds-express4: *ref_5_85_0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Guardrails::test_snapshot_size_cap: missing_feature (Debugger snapshot size guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": *ref_5_83_0

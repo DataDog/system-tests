@@ -152,4 +152,23 @@ public class DebuggerController {
         String longString = (String) data.get("longString");
         return "Capture limits probe"; // Line probe is instrumented here.
     }
+
+    @GetMapping("/snapshot/capture-timeout")
+    public String captureTimeout(
+            @RequestParam(required = false, defaultValue = "0") int collectionSize,
+            @RequestParam(required = false, defaultValue = "0") int nestingDepth) {
+        return captureTimeoutFixture(collectionSize, nestingDepth);
+    }
+
+    private String captureTimeoutFixture(int collectionSize, int nestingDepth) {
+        List<NestedObject> largeCollection = new ArrayList<>();
+        for (int i = 0; i < collectionSize; i++) {
+            NestedObject nested = new NestedObject(i, null);
+            for (int level = nestingDepth; level > 0; level--) {
+                nested = new NestedObject(level, nested);
+            }
+            largeCollection.add(nested);
+        }
+        return "Capture timeout probe"; // Line probe is instrumented here (line 172).
+    }
 }

@@ -929,6 +929,12 @@ Additionally, the method supports the following query parameters to use the sdk 
 
 These endpoints are used for the `Dynamic Instrumentation` tests.
 
+#### GET /debugger/snapshot/capture-timeout
+
+Creates a collection containing `collectionSize` object chains. Each chain has a leaf wrapped by
+`nestingDepth` nested objects and is exposed through `largeCollection` at the probe line. It is used
+to test the snapshot capture time budget without exceeding tracer collection-size guardrails.
+
 ### GET /exceptionreplay/*
 
 These endpoints will be used for `Exception Replay` tests.

@@ -199,6 +199,7 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
+            "CaptureTimeout": {"java": [172], "nodejs": [155], "dotnet": [171]},
         }
 
         return definitions.get(method, {}).get(language, [])

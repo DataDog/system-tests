@@ -1,5 +1,7 @@
 FROM datadog/system-tests:express5.base-v3
 
+COPY utils/build/docker/nodejs/express/debugger debugger
+
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user

@@ -10,6 +10,8 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
+COPY utils/build/docker/nodejs/express4-typescript/debugger debugger
+
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 RUN bun run build

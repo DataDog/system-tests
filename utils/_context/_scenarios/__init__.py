@@ -893,6 +893,17 @@ class _Scenarios:
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
 
+    debugger_capture_timeout = DebuggerScenario(
+        "DEBUGGER_CAPTURE_TIMEOUT",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "50",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "50",
+            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "50",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+    )
+
     debugger_probes_snapshot_with_scm = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
         weblog_env={
