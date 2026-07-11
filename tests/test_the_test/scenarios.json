@@ -3234,10 +3234,16 @@
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail::test_capture_timeout_reports_reason": [
     "DEBUGGER_CAPTURE_TIMEOUT"
   ],
-  "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout::test_evaluation_timeout_regex": [
+  "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe::test_evaluation_timeout_collection_filter": [
     "DEBUGGER_PROBES_SNAPSHOT"
   ],
-  "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout::test_evaluation_timeout_collection_filter": [
+  "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe::test_evaluation_timeout_regex": [
+    "DEBUGGER_PROBES_SNAPSHOT"
+  ],
+  "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_collection_filter": [
+    "DEBUGGER_PROBES_SNAPSHOT"
+  ],
+  "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_regex": [
     "DEBUGGER_PROBES_SNAPSHOT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail::test_snapshot_size_cap": [
