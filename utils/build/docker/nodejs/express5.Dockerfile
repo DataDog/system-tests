@@ -4,6 +4,7 @@ FROM datadog/system-tests:express5.base-v3
 COPY utils/build/docker/nodejs/express/app.js app.js
 COPY utils/build/docker/nodejs/express5/package.json utils/build/docker/nodejs/express5/bun.lock ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+COPY utils/build/docker/nodejs/express/debugger debugger
 
 EXPOSE 7777
 
