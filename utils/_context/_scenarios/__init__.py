@@ -896,9 +896,9 @@ class _Scenarios:
     debugger_capture_timeout = DebuggerScenario(
         "DEBUGGER_CAPTURE_TIMEOUT",
         weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "50",
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "50",
-            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "50",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "1",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
         },
         doc="Test that debugger snapshot capture reports when its time budget is exceeded",
