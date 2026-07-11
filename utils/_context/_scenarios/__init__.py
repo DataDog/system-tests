@@ -704,6 +704,7 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
             # set_provider() in Python blocks until we receive RC
             # configuration for feature flags. But it is only sent
             # after weblog sucessfully boots and tests start
