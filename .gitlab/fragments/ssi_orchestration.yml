@@ -1,0 +1,156 @@
+# SSI orchestration — "run all six SSI languages" setup.
+#
+# This is the consumer-facing wiring for auto_inject (and any multi-language SSI
+# consumer). It includes the shared job definitions (ssi_jobs.yml) and wires
+# them: six languages in PARALLEL, with release-only (tag) staggering. Load THIS
+# file (e.g. the one-pipeline `system_tests` bridge triggers it directly).
+#
+# Reproduces the pre-migration behavior, but as static YAML instead of the
+# Python subtract path:
+#   - PR pipelines: all six fire immediately (delay jobs excluded by their rule,
+#     the triggers' optional need on them dropped).
+#   - tag pipelines: java..ruby wait 6..18 min so the full VM matrix doesn't all
+#     start at once.
+#
+# All the shared job bodies (incl. compute_pipeline's script) live in ssi_jobs.yml;
+# this file only sets up the wiring.
+
+include:
+  - local: /.gitlab/fragments/ssi_jobs.yml
+
+stages:
+  - configure
+  - nodejs
+  - java
+  - dotnet
+  - python
+  - php
+  - ruby
+  - pipeline-status
+
+variables:
+  SSI_LANGUAGES: "nodejs java dotnet python php ruby"
+  TEST: 1
+  # rollout-control allowlist for the system-tests-param LIBRARIES filter
+  E2E_SUPPORTED_LANGUAGES: "python"
+
+compute_pipeline:
+  extends: .compute_pipeline
+
+# ── per-language triggers: parallel; each (except nodejs, which is first) waits
+#    on its delay job ONLY on tag pipelines, via an optional need ────────────────
+nodejs_ssi_pipeline:
+  extends: .ssi_trigger
+  stage: nodejs
+  needs: ["compute_pipeline"]
+  trigger:
+    include:
+      - artifact: nodejs_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+
+java_ssi_pipeline:
+  extends: .ssi_trigger
+  stage: java
+  needs:
+    - "compute_pipeline"
+    - job: "delayed_java_trigger"
+      optional: true
+  trigger:
+    include:
+      - artifact: java_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+
+dotnet_ssi_pipeline:
+  extends: .ssi_trigger
+  stage: dotnet
+  needs:
+    - "compute_pipeline"
+    - job: "delayed_dotnet_trigger"
+      optional: true
+  trigger:
+    include:
+      - artifact: dotnet_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+
+python_ssi_pipeline:
+  extends: .ssi_trigger
+  stage: python
+  needs:
+    - "compute_pipeline"
+    - job: "delayed_python_trigger"
+      optional: true
+  trigger:
+    include:
+      - artifact: python_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+
+php_ssi_pipeline:
+  extends: .ssi_trigger
+  stage: php
+  needs:
+    - "compute_pipeline"
+    - job: "delayed_php_trigger"
+      optional: true
+  trigger:
+    include:
+      - artifact: php_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+
+ruby_ssi_pipeline:
+  extends: .ssi_trigger
+  stage: ruby
+  needs:
+    - "compute_pipeline"
+    - job: "delayed_ruby_trigger"
+      optional: true
+  trigger:
+    include:
+      - artifact: ruby_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+
+# ── staggering: release (tag) pipelines only. Excluded on PR runs, so the
+#    optional needs above are dropped and the triggers fire immediately ─────────
+delayed_java_trigger:
+  extends: .delayed_base_job
+  stage: java
+  needs: ["compute_pipeline"]
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: delayed
+      start_in: 6 minutes
+
+delayed_dotnet_trigger:
+  extends: .delayed_base_job
+  stage: dotnet
+  needs: ["compute_pipeline"]
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: delayed
+      start_in: 9 minutes
+
+delayed_python_trigger:
+  extends: .delayed_base_job
+  stage: python
+  needs: ["compute_pipeline"]
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: delayed
+      start_in: 12 minutes
+
+delayed_php_trigger:
+  extends: .delayed_base_job
+  stage: php
+  needs: ["compute_pipeline"]
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: delayed
+      start_in: 15 minutes
+
+delayed_ruby_trigger:
+  extends: .delayed_base_job
+  stage: ruby
+  needs: ["compute_pipeline"]
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: delayed
+      start_in: 18 minutes

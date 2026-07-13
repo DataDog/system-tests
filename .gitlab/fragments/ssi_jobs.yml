@@ -1,0 +1,107 @@
+# Shared SSI system-tests job definitions.
+#
+# This is the ONE definition of the SSI orchestration jobs. Consumers `include:`
+# this file and wire the jobs the way they want (ordering, staggering, which
+# languages) in their OWN YAML — nothing here runs on its own. Every job is a
+# hidden template (`.`-prefixed) that a consumer instantiates:
+#
+#   compute_pipeline:   { extends: .compute_pipeline }
+#   java_ssi_pipeline:  { extends: .ssi_trigger, stage: java, needs: [...],
+#                         trigger: { include: [{ artifact: java_ssi_gitlab_pipeline.yml, job: compute_pipeline }] } }
+#
+# Consumers set up wiring differently and it's fine:
+#   - ssi_orchestration.yml (auto_inject): all six languages, parallel, tag-staggered
+#   - system-tests own .gitlab-ci.yml:     all six, sequential
+#   - a single-language SDK:               just compute_pipeline + its one trigger
+#
+# There is no runtime Python writing these job descriptions. The only generation
+# is INSIDE compute_pipeline at runtime (compute-workflow-parameters.py building
+# the per-language child test matrix), which is genuinely data-driven.
+#
+# Parameters (set by the consumer as variables):
+#   SSI_LANGUAGES                  space-separated langs compute_pipeline generates,
+#                                  e.g. "nodejs java dotnet python php ruby" or "java"
+#   SYSTEM_TESTS_SCENARIOS_GROUPS  e.g. "onboarding,docker-ssi,lib-injection"
+#   SYSTEM_TESTS_REF               system-tests ref to check out (pin it)
+#   K8S_INJECTOR_IMG / DD_INSTALLER_INJECTOR_VERSION  artifact under test
+
+# The one runtime generator: emits a per-language child-pipeline YAML for each
+# language in $SSI_LANGUAGES. Language-agnostic — the caller picks the languages.
+.compute_pipeline:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
+  tags: ["arch:amd64"]
+  stage: configure
+  variables:
+    CI_ENVIRONMENT: "prod"
+  script:
+    - |
+      if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined.Computing changes..."
+        SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+        source venv/bin/activate
+        ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+        git clone https://github.com/DataDog/system-tests.git original
+        git fetch --all  # Ensure all branches are available
+        git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
+        git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
+        BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
+        echo "Branch was created from commit--> $BASE_COMMIT"
+        git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
+        cat modified_files.txt
+        python utils/scripts/compute_libraries_and_scenarios.py >> impacted_scenarios.txt
+        cat impacted_scenarios.txt
+        source impacted_scenarios.txt
+      else
+          echo "✅ SYSTEM_TESTS_SCENARIOS OR SYSTEM_TESTS_SCENARIOS_GROUPS are set."
+          export scenarios=$SYSTEM_TESTS_SCENARIOS
+          export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
+          cd /system-tests
+          git pull
+          if [ -n "$SYSTEM_TESTS_REF" ]; then
+            git checkout $SYSTEM_TESTS_REF
+          else
+            echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
+          fi
+           SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+          source venv/bin/activate
+      fi
+    - |
+      if [ -z "$SSI_LANGUAGES" ]; then
+        echo "❌ SSI_LANGUAGES is not set — nothing to generate."
+        exit 1
+      fi
+      for lang in $SSI_LANGUAGES; do
+        echo "▶ computing pipeline for $lang"
+        python utils/scripts/compute-workflow-parameters.py "$lang" -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+      done
+    - |
+      if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        cp *.yml "$CI_PROJECT_DIR"
+      fi
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  artifacts:
+    paths:
+      - "*_ssi_gitlab_pipeline.yml"
+
+# Base for a per-language trigger. Consumer supplies `stage`, `needs`, and the
+# `trigger.include` artifact for its language; `strategy: depend` and the
+# scheduled-job rules are shared here.
+.ssi_trigger:
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+# Base for a staggering "wait" job. Consumer supplies `stage`, `needs`, and the
+# rule that gates it (e.g. release-only) plus `start_in`.
+.delayed_base_job:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  tags: ["arch:amd64"]
+  script:
+    - echo "⏳ Waiting before triggering the child pipeline..."
