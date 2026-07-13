@@ -13,7 +13,6 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
-from pathlib import Path
 import threading
 import time
 from typing import TYPE_CHECKING, Any, TypedDict, cast
@@ -22,6 +21,7 @@ from urllib.parse import urlparse
 import pytest
 import requests
 
+from tests.parametric.test_ffe.configuration_source_utils import MALFORMED_UFC_BYTES, UFC_FIXTURE_PATH
 from utils.docker_fixtures._core import get_host_port
 
 if TYPE_CHECKING:
@@ -45,9 +45,6 @@ DELAYED_RESPONSE_SECONDS = 0.5
 TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
 CONFIG_PATH = "/api/v2/feature-flagging/config/server-distribution"
-REPO_ROOT = Path(__file__).parents[2]
-UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
-MALFORMED_UFC_BYTES = b'{"flags": ['
 
 
 class MockFFEAgentlessBackendStatus(TypedDict):
