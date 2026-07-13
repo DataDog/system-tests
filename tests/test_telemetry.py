@@ -9,7 +9,7 @@ from typing import Any
 
 from dateutil.parser import isoparse
 
-from tests._telemetry_heartbeat import heartbeat_delays_by_runtime
+from tests.test_telemetry_heartbeat_utils import heartbeat_delays_by_runtime
 from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
 from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json

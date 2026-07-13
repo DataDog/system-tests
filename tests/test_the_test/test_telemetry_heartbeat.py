@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from tests._telemetry_heartbeat import heartbeat_delays_by_runtime
+from tests.test_telemetry_heartbeat_utils import heartbeat_delays_by_runtime
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
