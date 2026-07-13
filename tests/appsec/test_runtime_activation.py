@@ -103,11 +103,14 @@ class Test_RuntimeActivationCapabilities:
         assert self.disabled_state == rc.ApplyState.ACKNOWLEDGED
         assert self.enabled_state == rc.ApplyState.ACKNOWLEDGED
 
+        required = BLOCKING_CAPABILITIES
+        if context.library.name == "cpp_nginx":
+            # nginx does not support the user blocking capability.
+            required = required - {Capabilities.ASM_USER_BLOCKING}
+
         # After one-click activation: all blocking capabilities must be advertised.
         caps_enabled = interfaces.library.get_rc_capabilities(self.version_enabled)
-        assert caps_enabled >= BLOCKING_CAPABILITIES, (
-            f"blocking capabilities missing after activation: {BLOCKING_CAPABILITIES - caps_enabled}"
-        )
+        assert caps_enabled >= required, f"blocking capabilities missing after activation: {required - caps_enabled}"
 
 
 @scenarios.appsec_runtime_activation
