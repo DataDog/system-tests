@@ -1814,6 +1814,7 @@ manifest:
       component_version: '>3.7.0'
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2699 tracks Python agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
+  tests/parametric/test_ffe/test_offline_configuration.py: missing_feature (offline startup UFC bytes are not implemented)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=4.9.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
