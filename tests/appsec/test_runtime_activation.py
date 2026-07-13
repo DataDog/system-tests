@@ -87,20 +87,44 @@ BLOCKING_CAPABILITIES = {
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
 class Test_RuntimeActivationCapabilities:
-    """The advertised RC capabilities must follow one-click (remote) activation/deactivation.
+    """The blocking RC capabilities must be advertised after one-click (remote) activation.
 
     Regression test for APPSEC-69019: when AppSec is enabled via remote activation instead of
     DD_APPSEC_ENABLED, the blocking RC capabilities (IP, user, in-app WAF, custom rules) were
-    never advertised, so the Threat Protection panel wrongly reported "UPDATE REQUIRED". The
-    blocking capabilities must be advertised only while AppSec is active: absent before
-    activation, present after activation, and dropped again after deactivation.
+    never advertised, so the Threat Protection panel wrongly reported "UPDATE REQUIRED".
+    """
+
+    def setup_capabilities(self):
+        self.disabled_state = _send_config(CONFIG_EMPTY)
+        self.enabled_state = _send_config(CONFIG_ENABLED)
+        self.version_enabled = rc.tracer_rc_state.version
+
+    def test_capabilities(self):
+        assert self.disabled_state == rc.ApplyState.ACKNOWLEDGED
+        assert self.enabled_state == rc.ApplyState.ACKNOWLEDGED
+
+        # After one-click activation: all blocking capabilities must be advertised.
+        caps_enabled = interfaces.library.get_rc_capabilities(self.version_enabled)
+        assert caps_enabled >= BLOCKING_CAPABILITIES, (
+            f"blocking capabilities missing after activation: {BLOCKING_CAPABILITIES - caps_enabled}"
+        )
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+class Test_RuntimeActivationCapabilitiesCleared:
+    """The blocking RC capabilities must track the live activation state.
+
+    Complements the APPSEC-69019 fix: tracers that advertise blocking capabilities only while
+    AppSec is active must not advertise them before one-click activation, and must drop them again
+    after deactivation. Tracers that advertise blocking capabilities unconditionally are
+    `missing_feature` (not yet gated on activation state).
     """
 
     def setup_capabilities(self):
         self.disabled_state = _send_config(CONFIG_EMPTY)
         self.version_disabled_before = rc.tracer_rc_state.version
         self.enabled_state = _send_config(CONFIG_ENABLED)
-        self.version_enabled = rc.tracer_rc_state.version
         self.deactivated_state = _send_config(CONFIG_EMPTY)
         self.version_disabled_after = rc.tracer_rc_state.version
 
@@ -114,12 +138,6 @@ class Test_RuntimeActivationCapabilities:
         assert Capabilities.ASM_ACTIVATION in caps_before
         assert not (BLOCKING_CAPABILITIES & caps_before), (
             f"blocking capabilities advertised before activation: {BLOCKING_CAPABILITIES & caps_before}"
-        )
-
-        # After one-click activation: all blocking capabilities must be advertised.
-        caps_enabled = interfaces.library.get_rc_capabilities(self.version_enabled)
-        assert caps_enabled >= BLOCKING_CAPABILITIES, (
-            f"blocking capabilities missing after activation: {BLOCKING_CAPABILITIES - caps_enabled}"
         )
 
         # After deactivation: blocking capabilities must be dropped, activation still advertised.

@@ -978,6 +978,7 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.10.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v4.10.8
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: v4.10.8
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.10.1
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call:
     - weblog_declaration:
