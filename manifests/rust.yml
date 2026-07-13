@@ -401,11 +401,11 @@ manifest:
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event: missing_feature (Rust AppSec is not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers: missing_feature (Rust AppSec is not implemented)
-  tests/test_standard_tags.py::Test_StandardTagsRoute::test_route: missing_feature (/sample_rate_route endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: missing_feature (Rust does not implement query string obfuscation)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy: missing_feature (Rust does not implement query string obfuscation)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (Rust does not implement query string obfuscation)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy: missing_feature (Rust does not implement query string obfuscation)
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature (Rust tracer does not emit telemetry log events)
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: missing_feature (/load_dependency endpoint not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (/enable_product endpoint not implemented)

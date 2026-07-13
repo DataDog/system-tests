@@ -85,6 +85,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"
 dependencies = [
  "axum-core",
+ "axum-macros",
  "bytes",
  "form_urlencoded",
  "futures-util",
@@ -128,6 +129,17 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
+]
+
+[[package]]
+name = "axum-macros"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7aa268c23bfbbd2c4363b9cd302a4f504fb2a9dfe7e3451d66f35dd392e20aca"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1454,6 +1466,7 @@ name = "opentelemetry-instrumentation-tower"
 version = "0.17.0"
 source = "git+https://github.com/open-telemetry/opentelemetry-rust-contrib?rev=66bfea4#66bfea4e84253996965c708c23a6eb38b0d848aa"
 dependencies = [
+ "axum",
  "http",
  "http-body",
  "opentelemetry",
@@ -2748,7 +2761,9 @@ dependencies = [
  "datadog-opentelemetry",
  "http",
  "opentelemetry",
+ "opentelemetry-http",
  "opentelemetry-instrumentation-tower",
+ "opentelemetry_sdk",
  "reqwest",
  "reqwest-middleware",
  "reqwest-tracing",

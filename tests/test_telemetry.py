@@ -492,6 +492,7 @@ class Test_Telemetry:
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
             "java": {"DD_TRACE_AGENT_PORT": trace_agent_port, "DD_TELEMETRY_HEARTBEAT_INTERVAL": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
+            "rust": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port},
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]
