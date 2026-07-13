@@ -64,7 +64,7 @@ def test_minimal_number_of_scenarios():
     endtoend_scenarios: list[EndToEndScenario] = [
         scenario
         for scenario in get_all_scenarios()
-        if isinstance(scenario, EndToEndScenario) and not isinstance(scenario, DebuggerScenario)
+        if isinstance(scenario, EndToEndScenario)
     ]
 
     # sort keys in SKIP_MERGE_SCENARIOS
