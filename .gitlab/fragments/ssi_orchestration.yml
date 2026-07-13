@@ -34,8 +34,7 @@ variables:
   # rollout-control allowlist for the system-tests-param LIBRARIES filter
   E2E_SUPPORTED_LANGUAGES: "python"
 
-compute_pipeline:
-  extends: .compute_pipeline
+# compute_pipeline is a concrete job from ssi_jobs.yml — no instantiation needed.
 
 # ── per-language triggers: parallel; each (except nodejs, which is first) waits
 #    on its delay job ONLY on tag pipelines, via an optional need ────────────────

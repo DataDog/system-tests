@@ -2,10 +2,15 @@
 #
 # This is the ONE definition of the SSI orchestration jobs. Consumers `include:`
 # this file and wire the jobs the way they want (ordering, staggering, which
-# languages) in their OWN YAML — nothing here runs on its own. Every job is a
-# hidden template (`.`-prefixed) that a consumer instantiates:
+# languages) in their OWN YAML.
 #
-#   compute_pipeline:   { extends: .compute_pipeline }
+# `compute_pipeline` is a concrete, shared job — identical for every consumer
+# (its only knob is the $SSI_LANGUAGES variable), so you get it just by
+# including this file; no instantiation needed.
+#
+# The per-language triggers and the staggering "wait" job DO vary per consumer,
+# so they are hidden templates you instantiate with your own wiring:
+#
 #   java_ssi_pipeline:  { extends: .ssi_trigger, stage: java, needs: [...],
 #                         trigger: { include: [{ artifact: java_ssi_gitlab_pipeline.yml, job: compute_pipeline }] } }
 #
@@ -27,7 +32,8 @@
 
 # The one runtime generator: emits a per-language child-pipeline YAML for each
 # language in $SSI_LANGUAGES. Language-agnostic — the caller picks the languages.
-.compute_pipeline:
+# Concrete (not a template): every consumer gets it as-is on include.
+compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags: ["arch:amd64"]
   stage: configure
