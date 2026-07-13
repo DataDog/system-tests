@@ -90,7 +90,7 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
                 ),
             )
 
-        guard_spans = _ai_guard_spans(test_agent.wait_for_num_traces(num=1))
+        guard_spans = _ai_guard_spans(test_agent.wait_for_num_traces(num=2)
         assert guard_spans, "expected an ai_guard span from the after-model (streamed) evaluation"
 
     def test_tool_call_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
