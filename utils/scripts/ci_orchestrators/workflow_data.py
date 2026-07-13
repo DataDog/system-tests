@@ -1,7 +1,8 @@
 from collections import defaultdict
 import json
 from utils._context._scenarios import Scenario
-from utils._context.weblog_metadata import WeblogMetaData as Weblog, BuildMode
+from utils._context.weblog_metadata import WeblogMetaData as Weblog
+from utils._context.constants import WeblogBuildMode as BuildMode
 
 
 def _load_json(file_path: str) -> dict:
@@ -321,7 +322,7 @@ def get_endtoend_definitions(
     *,
     build_base_images: bool = False,
 ) -> dict:
-    scenarios = scenario_map.get("endtoend", [])
+    scenarios: list[Scenario] = scenario_map.get("endtoend", [])
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
@@ -342,7 +343,7 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        supported_scenarios = _filter_scenarios(scenarios, weblog, ci_environment)
+        supported_scenarios = _filter_scenarios(scenarios, weblog)
 
         if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
             scenarios_times = {
@@ -483,112 +484,11 @@ def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dic
     return run_stats[scenario][library][weblog]
 
 
-def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog, ci_environment: str) -> list[Scenario]:
+def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog) -> list[Scenario]:
     return sorted(
-        [scenario for scenario in set(scenarios) if _is_supported(weblog, scenario, ci_environment)],
+        [scenario for scenario in set(scenarios) if weblog.support_scenario(scenario.name, scenario.weblog_categories)],
         key=lambda scenario: scenario.name,
     )
-
-
-def _is_uds_weblog(weblog: str) -> bool:
-    return weblog == "uds" or weblog.startswith("uds-")
-
-
-def _is_supported(weblog: Weblog, scenario: Scenario, _ci_environment: str) -> bool:
-    # this function will remove some couple scenarios/weblog that are not supported
-
-    library = weblog.library
-    weblog_name = weblog.name
-
-    # Only Allow Lambda scenarios for the lambda libraries
-    is_lambda_library = library in (
-        "python_lambda",
-        "java_lambda",
-        "nodejs_lambda",
-        "ruby_lambda",
-    )
-    is_lambda_scenario = scenario.name in (
-        "APPSEC_LAMBDA_DEFAULT",
-        "APPSEC_LAMBDA_BLOCKING",
-        "APPSEC_LAMBDA_API_SECURITY",
-        "APPSEC_LAMBDA_RASP",
-        "APPSEC_LAMBDA_INFERRED_SPANS",
-    )
-    if is_lambda_library != is_lambda_scenario:
-        return False
-
-    # open-telemetry-automatic
-    if scenario.name == "OTEL_INTEGRATIONS":
-        possible_values: tuple = (
-            ("java_otel", "spring-boot-otel"),
-            ("nodejs_otel", "express4-otel"),
-            ("python_otel", "flask-poc-otel"),
-        )
-        if (library, weblog_name) not in possible_values:
-            return False
-
-    # open-telemetry-manual
-    if scenario.name in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
-        if (library, weblog_name) != ("java_otel", "spring-boot-native"):
-            return False
-
-    if scenario.name in ("GRAPHQL_APPSEC", "GRAPHQL_ERROR_TRACKING"):
-        possible_values: tuple = (
-            ("golang", "gqlgen"),
-            ("golang", "graph-gophers"),
-            ("golang", "graphql-go"),
-            ("ruby", "graphql23"),
-            ("nodejs", "express4"),
-            ("nodejs", "uds-express4"),
-            ("nodejs", "express4-typescript"),
-            ("nodejs", "express5"),
-        )
-        if (library, weblog_name) not in possible_values:
-            return False
-
-    if scenario.name in ("PERFORMANCES",):
-        return False
-
-    if scenario.name == "IPV6":
-        if library == "ruby" or _is_uds_weblog(weblog_name):
-            return False
-
-    if scenario.name in ("CROSSED_TRACING_LIBRARIES",):
-        if weblog_name in ("python3.12", "django-py3.13", "spring-boot-payara"):
-            # python 3.13 issue : APMAPI-1096
-            return False
-
-    if scenario.name in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
-        # C++ 1.2.0 freeze when the rules file is missing
-        return False
-
-    if weblog_name in ["gqlgen", "graph-gophers", "graphql-go", "graphql23"]:
-        if scenario.name not in ("GRAPHQL_APPSEC",):
-            return False
-
-    # open-telemetry-manual
-    if weblog_name == "spring-boot-native":
-        if scenario.name not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
-            return False
-
-    # open-telemetry-automatic
-    if weblog_name in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
-        if scenario.name not in ("OTEL_INTEGRATIONS",):
-            return False
-
-    # Go proxies
-    if weblog.name in ("envoy", "haproxy"):
-        if scenario.name not in ("DEFAULT", "APPSEC_BLOCKING"):
-            return False
-
-    # otel collector
-    if weblog_name == "otel_collector" or scenario.name in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):
-        return weblog_name == "otel_collector" and scenario.name in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E")
-
-    if "@" in weblog_name or scenario.name == "INTEGRATION_FRAMEWORKS":
-        return "@" in weblog_name and scenario.name == "INTEGRATION_FRAMEWORKS"
-
-    return True
 
 
 if __name__ == "__main__":
@@ -630,17 +530,3 @@ if __name__ == "__main__":
         binaries_artifact="",
         unique_id="000",
     )
-
-# if __name__ == "__main__":
-#     from utils._context._scenarios import get_all_scenarios
-
-#     library = "python"
-#     for weblog in Weblog.load(library):
-#         for scenario in get_all_scenarios():
-#             if scenario.github_workflow != "endtoend":
-#                 continue
-#             groups = [group.name for group in scenario.scenario_groups]
-#             legacy = _is_supported(weblog, scenario, "")
-#             new_value = weblog.support_scenario(scenario.name, groups)
-#             if legacy is not new_value:
-#                 print((legacy, new_value, weblog.name, scenario.name, groups))

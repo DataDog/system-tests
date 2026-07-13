@@ -21,7 +21,7 @@ import requests
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
-from utils._context.ports import ContainerPorts
+from utils._context.constants import ContainerPorts
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (

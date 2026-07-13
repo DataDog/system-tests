@@ -581,6 +581,38 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 found = True
         assert found, f"Capability {capability.name} not found"
 
+    def get_rc_capabilities(self, targets_version: int | None = None) -> set[Capabilities]:
+        """Return the RC capabilities advertised by the library.
+
+        If ``targets_version`` is provided, return the capabilities reported in the most recent
+        config request that acknowledged that version (config requests are time-ordered), which
+        allows asserting how the advertised set changes across activation/deactivation. Otherwise,
+        aggregate every capability seen across all config requests.
+        """
+        result: set[Capabilities] = set()
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            client = data["request"]["content"]["client"]
+            if targets_version is not None and client["state"]["targets_version"] != targets_version:
+                continue
+            capabilities = client["capabilities"]
+            if isinstance(capabilities, list):
+                decoded_capabilities = bytes(capabilities)
+            # base64-encoded string:
+            else:
+                decoded_capabilities = base64.b64decode(capabilities)
+            int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+            current = {capability for capability in Capabilities if (int_capabilities >> capability & 1) == 1}
+            found = True
+            if targets_version is None:
+                result |= current
+            else:
+                # Data is sorted by log filename, so the last match is the most recent request.
+                result = current
+        if targets_version is not None:
+            assert found, f"No remote config request found for targets_version {targets_version}"
+        return result
+
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
         """Check that for a given targets_version, the config states is the one expected
         EXPERIMENTAL (is it the good testing API ?)
