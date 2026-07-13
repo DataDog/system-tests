@@ -17,7 +17,6 @@ from .integrations import (
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
-from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
@@ -25,12 +24,11 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context.ports import ContainerPorts
+from utils._context.constants import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 from utils._context.containers import (
     CassandraContainer,
@@ -55,10 +53,6 @@ class _Scenarios:
 
     default = DefaultScenario("DEFAULT")
 
-    # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
-    performances = PerformanceScenario(
-        "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
-    )
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     dbm_dynamic_service = DbmDynamicServiceScenario()
@@ -351,7 +345,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_error_tracking = EndToEndScenario(
@@ -363,7 +357,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="GraphQL error tracking tests with OpenTelemetry semantics",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
@@ -710,6 +704,7 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
             # set_provider() in Python blocks until we receive RC
             # configuration for feature flags. But it is only sent
             # after weblog sucessfully boots and tests start
@@ -887,14 +882,6 @@ class _Scenarios:
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
-
-    debugger_probes_status = DebuggerScenario(
-        "DEBUGGER_PROBES_STATUS",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
-    )
 
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
@@ -1300,21 +1287,6 @@ class _Scenarios:
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[scenario_groups.integrations],
-    )
-
-    go_proxies_default = GoProxiesScenario(
-        name="GO_PROXIES_DEFAULT",
-        doc="Default tests for proxies using the security processor.",
-        rc_api_enabled=True,
-        scenario_groups=[],
-    )
-
-    go_proxies_appsec_blocking = GoProxiesScenario(
-        name="GO_PROXIES_APPSEC_BLOCKING",
-        doc="Default tests for proxies using the security processor with appsec blocking rule file",
-        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")
