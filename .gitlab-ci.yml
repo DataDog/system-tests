@@ -310,14 +310,6 @@ generate_system_tests_lib_injection_images:
     - if: '$SCHEDULED_JOB == "generate_system_tests_lib_injection_images"'
     - when: manual
 
-.delayed_base_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
-    tags: ["arch:amd64"]
-    script:
-        - echo "⏳ Waiting before triggering the child pipeline..."
-    when: delayed
-    start_in: 5 minutes
-
 # ──────────────────────────────────────────────
 # End-to-end pipeline — only for the system-tests repo
 # ──────────────────────────────────────────────
