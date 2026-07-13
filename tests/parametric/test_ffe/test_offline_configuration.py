@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.configuration_source_utils import (
+from tests.parametric.test_ffe.utils import (
     ALL_TEST_CASE_FILES,
     MALFORMED_UFC_BYTES,
     UFC_FIXTURE_BYTES,

@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.configuration_source_utils import UFC_FIXTURE_DATA, evaluate_with_configuration_retry
+from tests.parametric.test_ffe.utils import UFC_FIXTURE_DATA, evaluate_with_configuration_retry
 from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState

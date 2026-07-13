@@ -4,7 +4,7 @@ import json
 import pytest
 from typing import Any
 
-from tests.parametric.test_ffe.configuration_source_utils import (
+from tests.parametric.test_ffe.utils import (
     ALL_TEST_CASE_FILES,
     UFC_FIXTURE_DATA,
     assert_evaluation_cases,

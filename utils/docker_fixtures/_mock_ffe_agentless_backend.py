@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 import pytest
 import requests
 
-from tests.parametric.test_ffe.configuration_source_utils import MALFORMED_UFC_BYTES, UFC_FIXTURE_PATH
+from tests.parametric.test_ffe.utils import MALFORMED_UFC_BYTES, UFC_FIXTURE_PATH
 from utils.docker_fixtures._core import get_host_port
 
 if TYPE_CHECKING:
