@@ -9,6 +9,7 @@ from typing import Any
 
 from dateutil.parser import isoparse
 
+from tests._telemetry_heartbeat import heartbeat_delays_by_runtime
 from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
 from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
@@ -312,59 +313,19 @@ class Test_Telemetry:
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @staticmethod
-    def _get_heartbeat_delays_by_runtime() -> dict:
+    def _get_heartbeat_delays_by_runtime() -> dict[str, list[float]]:
         """Returns a dict where :
         The key is the runtime id
         The value is a list of delay observed on this runtime id
         """
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        heartbeats_by_runtime = defaultdict(list)
-
-        for data in telemetry_data:
-            if data["request"]["content"].get("request_type") == "app-heartbeat":
-                heartbeats_by_runtime[data["request"]["content"]["runtime_id"]].append(data)
-
-        delays_by_runtime = {}
-
-        # Measure only long-lived application runtimes, not the short-lived children the session-id
-        # tests spawn via /spawn_child (a forked child can emit under its parent's runtime_id before
-        # regenerating its own -- a sub-interval "duplicate" that flakes the check). Select by lifespan,
-        # not heartbeat count, so a slow-drifting worker with fewer heartbeats still gets measured.
-        def lifespan(heartbeats: list[Any]) -> float:
-            times = [isoparse(d["request"]["timestamp_start"]) for d in heartbeats]
-            return (max(times) - min(times)).total_seconds()
-
-        heartbeat_counts = {rid: len(hbs) for rid, hbs in heartbeats_by_runtime.items()}
-        lifespans = {rid: lifespan(hbs) for rid, hbs in heartbeats_by_runtime.items()}
-        longest = max(lifespans.values(), default=0.0)
-        measurable_runtimes = {
-            rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2 and lifespans[rid] >= longest * 0.5
-        }
-        assert measurable_runtimes, (
+        delays_by_runtime, heartbeat_counts = heartbeat_delays_by_runtime(interfaces.library.get_telemetry_data())
+        assert delays_by_runtime, (
             f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
         )
 
-        for runtime_id, heartbeats in measurable_runtimes.items():
-            logger.debug(f"Heartbeats for runtime {runtime_id}:")
-
-            # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
-
-            prev_message_time = None
-            delays: list[float] = []
-            for data in heartbeats:
-                curr_message_time = isoparse(data["request"]["timestamp_start"])
-                if prev_message_time is None:
-                    logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
-                else:
-                    delay = (curr_message_time - prev_message_time).total_seconds()
-                    logger.debug(f"  * {data['log_filename']}: {curr_message_time} => {delay}s ellapsed")
-                    delays.append(delay)
-
-                prev_message_time = curr_message_time
-
-            delays_by_runtime[runtime_id] = delays
+        for runtime_id, delays in delays_by_runtime.items():
+            logger.debug(f"Heartbeat delays for runtime {runtime_id}: {delays}")
 
         return delays_by_runtime
 
