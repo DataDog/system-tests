@@ -247,9 +247,48 @@ manifest:
         sinatra41: '>=2.35.0'
         rack: '>=2.35.0'
         sinatra32: '>=2.35.0'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -2141,6 +2180,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0

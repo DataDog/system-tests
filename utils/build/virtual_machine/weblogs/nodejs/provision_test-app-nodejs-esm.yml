@@ -10,8 +10,8 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/docker-compose.yml
           - name: copy-nodejs-app
             local_path: lib-injection/build/docker/nodejs/sample-app
-          - name: copy-node20-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node20
+          - name: copy-node22-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node22
           - name: copy-nodejs-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node
           - name: copy-reverseproxy-dockerfile

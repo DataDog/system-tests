@@ -25,7 +25,7 @@ from .spec.trace import V06StatsPayload
 from .spec.trace import decode_v06_stats
 from .spec.trace import Trace
 
-from ._core import get_host_port, get_docker_client, docker_run
+from ._core import HOST_GATEWAY_EXTRA_HOSTS, get_host_port, get_docker_client, docker_run
 
 
 def _request_token(request: pytest.FixtureRequest) -> str:
@@ -124,6 +124,7 @@ class TestAgentFactory:
                 },
                 log_file=log_file,
                 network=docker_network,
+                extra_hosts=dict(HOST_GATEWAY_EXTRA_HOSTS),
             ),
         ):
             client = TestAgentAPI(
