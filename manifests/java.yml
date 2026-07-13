@@ -2450,6 +2450,18 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     - declaration: bug (APMRP-360)
       component_version: 1.6.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities:
+    - weblog_declaration:
+        "*": v0.115.0
+        akka-http: v1.22.0
+        play: v1.22.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared:
+    - weblog_declaration:
+        "*": v0.115.0
+        akka-http: v1.22.0
+        play: v1.22.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
     - weblog_declaration:
         "*": v0.115.0
