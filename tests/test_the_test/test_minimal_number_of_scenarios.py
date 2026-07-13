@@ -6,7 +6,6 @@ import pytest
 
 from utils._context._scenarios import get_all_scenarios, scenarios
 from utils._context._scenarios.endtoend import EndToEndScenario
-from utils._context._scenarios.debugger import DebuggerScenario
 from utils import logger
 
 # Map of scenario pairs that cannot be merged and their specific reasons
@@ -62,9 +61,7 @@ def test_minimal_number_of_scenarios():
 
     # Filter scenarios that are EndToEndScenario or one of its subclasses
     endtoend_scenarios: list[EndToEndScenario] = [
-        scenario
-        for scenario in get_all_scenarios()
-        if isinstance(scenario, EndToEndScenario)
+        scenario for scenario in get_all_scenarios() if isinstance(scenario, EndToEndScenario)
     ]
 
     # sort keys in SKIP_MERGE_SCENARIOS
