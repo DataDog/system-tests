@@ -20,6 +20,7 @@ stages:
 
 variables:
     TEST: 1
+    GIT_SUBMODULE_STRATEGY: recursive
     # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
     E2E_SUPPORTED_LANGUAGES: "python"
     # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
@@ -62,7 +63,8 @@ compute_pipeline:
           else
             echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
           fi
-           SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+          git submodule update --init --recursive
+          SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
           source venv/bin/activate
       fi
     - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab

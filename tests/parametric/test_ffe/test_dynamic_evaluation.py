@@ -6,11 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from utils import (
-    context,
-    features,
-    scenarios,
-)
+from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
@@ -22,12 +18,12 @@ FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 MISSING_FFE_FIXTURES_CASE = "__missing_ffe_fixtures__"
-KNOWN_FIXTURE_GAPS = {
-    "test-case-null-targeting-key.json": {
-        "python": "dd-trace-py main does not yet support explicit null targeting keys",
-        "ruby": "dd-trace-rb main does not yet support explicit null targeting keys",
-    },
-}
+DEDICATED_TEST_CASE_FILES = frozenset(
+    {
+        "test-case-null-targeting-key.json",
+        "test-case-numeric-flag.json",
+    }
+)
 
 parametrize = pytest.mark.parametrize
 
@@ -52,7 +48,11 @@ def _get_test_case_files() -> list[str]:
             f"Fixture directory not found: {FFE_EVALUATION_CASES_DIR}. Run `git submodule update --init --recursive`."
         )
 
-    test_case_files = sorted(f.name for f in FFE_EVALUATION_CASES_DIR.iterdir() if f.suffix == ".json")
+    test_case_files = sorted(
+        f.name
+        for f in FFE_EVALUATION_CASES_DIR.iterdir()
+        if f.suffix == ".json" and f.name not in DEDICATED_TEST_CASE_FILES
+    )
     if not test_case_files:
         raise AssertionError(f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}")
 
@@ -73,12 +73,6 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 @pytest.fixture
 def ufc_fixture_data() -> dict[str, Any]:
     return _load_ufc_fixture()
-
-
-def _xfail_known_fixture_gap(test_case_file: str) -> None:
-    reason = KNOWN_FIXTURE_GAPS.get(test_case_file, {}).get(context.library.name)
-    if reason:
-        pytest.xfail(reason)
 
 
 DEFAULT_ENVVARS = {
@@ -154,6 +148,55 @@ def _ffe_evaluate_with_rc_retry(
     return result
 
 
+def _assert_fixture_evaluation(
+    test_case_file: str,
+    ufc_fixture_data: dict[str, Any],
+    test_agent: TestAgentAPI,
+    test_library: APMLibrary,
+) -> None:
+    """Run every evaluation in one canonical fixture file."""
+    if test_case_file == MISSING_FFE_FIXTURES_CASE:
+        pytest.fail(
+            f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}. Run `git submodule update --init --recursive`."
+        )
+
+    test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
+    if not test_case_path.exists():
+        pytest.fail(
+            f"Canonical FFE fixture not found: {test_case_path}. Run `git submodule update --init --recursive`."
+        )
+
+    with test_case_path.open() as fixture:
+        test_cases: list[dict[str, Any]] = json.load(fixture)
+
+    _set_and_wait_ffe_rc(test_agent, ufc_fixture_data)
+
+    success = test_library.ffe_start(ufc_fixture_data)
+    assert success, "Failed to start FFE provider"
+
+    for index, test_case in enumerate(test_cases):
+        result = _ffe_evaluate_with_rc_retry(
+            test_library,
+            flag=test_case["flag"],
+            variation_type=test_case["variationType"],
+            default_value=test_case["defaultValue"],
+            targeting_key=test_case["targetingKey"],
+            attributes=test_case.get("attributes", {}),
+        )
+        assert not _is_ffe_waiting_for_rc(result), (
+            f"Test case {index} in {test_case_file} failed: FFE provider did not load RC data after "
+            f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
+        )
+
+        expected_value = test_case["result"]["value"]
+        actual_value = result.get("value")
+        assert actual_value == expected_value, (
+            f"Test case {index} in {test_case_file} failed: "
+            f"flag='{test_case['flag']}', targetingKey='{test_case['targetingKey']}', "
+            f"expected={expected_value}, actual={actual_value}"
+        )
+
+
 @scenarios.parametric
 @features.feature_flags_dynamic_evaluation
 class Test_Feature_Flag_Dynamic_Evaluation:
@@ -187,56 +230,18 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
-        if test_case_file == MISSING_FFE_FIXTURES_CASE:
-            pytest.fail(
-                f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}. "
-                "Run `git submodule update --init --recursive`."
-            )
+        _assert_fixture_evaluation(test_case_file, ufc_fixture_data, test_agent, test_library)
 
-        _xfail_known_fixture_gap(test_case_file)
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_ffe_null_targeting_key(
+        self, ufc_fixture_data: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Validate the canonical explicit null targeting-key cases."""
+        _assert_fixture_evaluation("test-case-null-targeting-key.json", ufc_fixture_data, test_agent, test_library)
 
-        # Load the test case file
-        test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
-
-        if not test_case_path.exists():
-            pytest.skip(f"Test case file not found: {test_case_path}")
-
-        with test_case_path.open() as f:
-            test_cases = json.load(f)
-
-        # Set up UFC Remote Config and wait for it to be applied
-        _set_and_wait_ffe_rc(test_agent, ufc_fixture_data)
-
-        # Initialize FFE provider
-        success = test_library.ffe_start(ufc_fixture_data)
-        assert success, "Failed to start FFE provider"
-
-        # Run each test case
-        for i, test_case in enumerate(test_cases):
-            flag = test_case["flag"]
-            variation_type = test_case["variationType"]
-            default_value = test_case["defaultValue"]
-            targeting_key = test_case["targetingKey"]
-            attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]["value"]
-
-            result = _ffe_evaluate_with_rc_retry(
-                test_library,
-                flag=flag,
-                variation_type=variation_type,
-                default_value=default_value,
-                targeting_key=targeting_key,
-                attributes=attributes,
-            )
-            assert not _is_ffe_waiting_for_rc(result), (
-                f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
-                f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
-            )
-            actual_value = result.get("value")
-
-            # Assert the evaluation result matches expected value
-            assert actual_value == expected_result, (
-                f"Test case {i} in {test_case_file} failed: "
-                f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={actual_value}"
-            )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_ffe_numeric_flag_with_integer_default(
+        self, ufc_fixture_data: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Validate canonical numeric evaluation with an integer-shaped default."""
+        _assert_fixture_evaluation("test-case-numeric-flag.json", ufc_fixture_data, test_agent, test_library)

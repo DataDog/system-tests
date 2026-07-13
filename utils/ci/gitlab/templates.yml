@@ -28,6 +28,7 @@ spec:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
     - cd system-tests
     - git checkout $[[ inputs.ref ]]
+    - git submodule update --init --recursive
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
