@@ -1,0 +1,127 @@
+// # More OpenTelemetry span-method tests
+
+// Ported from `tests/parametric/test_otel_span_methods.py`, restricted to the
+// behavior expressible with the existing Tracer OTel surface (otelStartSpan /
+// otelSetAttribute / otelEndSpan / otelIsRecording / otelSpanContext /
+// otelSetStatus). Env sets `DD_TRACE_OTEL_ENABLED`. Adapter-only
+// (`fakeSupported = false`): these assert real tracer remapping/semantics the
+// FakeTracer can't judge.
+
+// ## http.status_code passthrough (set as-is, kept as the DD tag)
+
+export let runOtelHttpStatusCodePassthrough(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "client");
+  t.otelSetAttribute(s.spanId, "http.status_code", "200");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("http.status_code", ""), "200", "http.status_code kept as the DD tag");
+  c.result()
+}
+
+// ## service.name attribute remaps onto the span's service
+
+export let runOtelSetServiceName(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("parent_span", "0", "internal");
+  t.otelSetAttribute(s.spanId, "service.name", "new_service");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.service, "new_service", "service.name attribute sets the span service");
+  c.eqStr(span.resource, "parent_span", "resource is the span name");
+  c.result()
+}
+
+// ## after end: set_attribute is a noop; a child can still be created from the
+// (ended) parent and is correctly parented.
+
+export let runOtelSpanEndNoop(t: Tracer): CheckResult {
+  let c = new Checker();
+  let p = t.otelStartSpan("parent", "0", "producer");
+  t.otelEndSpan(p.spanId);
+  t.otelSetAttribute(p.spanId, "after_finish", "true");
+  let ch = t.otelStartSpan("child", p.spanId, "consumer");
+  t.otelEndSpan(ch.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let par = findSpan(spans, p.spanId);
+  let cc = findSpan(spans, ch.spanId);
+  c.isTrue(!par.meta.has("after_finish"), "set_attribute after end is a noop");
+  c.eqStr(cc.parentId, p.spanId, "child parented to the ended parent");
+  c.eqStr(par.resource, "parent", "parent resource");
+  c.eqStr(cc.resource, "child", "child resource");
+  c.result()
+}
+
+// ## set_status: ERROR sets error.message; a subsequent UNSET is ignored.
+
+export let runOtelStatusErrorUnsetIgnored(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("error_span", "0", "internal");
+  t.otelSetStatus(s.spanId, "ERROR", "error_desc");
+  t.otelSetStatus(s.spanId, "UNSET", "unset_desc");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("error.message", ""), "error_desc", "UNSET does not clear the ERROR message");
+  c.eqStr(span.resource, "error_span", "resource");
+  c.result()
+}
+
+// ## set_status: OK is final; a subsequent ERROR is ignored.
+// (python-skip: dd-trace-py allows updating OK -> ERROR.)
+
+export let runOtelStatusOkFinal(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("ok_span", "0", "internal");
+  t.otelSetStatus(s.spanId, "OK", "ok_desc");
+  t.otelSetStatus(s.spanId, "ERROR", "error_desc");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(!span.meta.has("error.message"), "OK is final; a subsequent ERROR is ignored");
+  c.result()
+}
+
+// ## get_span_context: a child shares its parent's trace id; ids are well-formed.
+
+export let runOtelSpanContextSharedTrace(t: Tracer): CheckResult {
+  let c = new Checker();
+  let p = t.otelStartSpan("op1", "0", "internal");
+  t.otelEndSpan(p.spanId);
+  let s = t.otelStartSpan("op2", p.spanId, "internal");
+  let pc = t.otelSpanContext(p.spanId);
+  let sc = t.otelSpanContext(s.spanId);
+  t.otelEndSpan(s.spanId);
+  c.eqStr(pc.traceIdHex, sc.traceIdHex, "child shares the parent trace id");
+  c.eqInt(strLen(sc.spanIdHex), 16, "span id is 16 hex chars");
+  c.eqInt(strLen(sc.traceIdHex), 32, "trace id is 32 hex chars");
+  c.result()
+}
+
+// ## operation name from span kind (consumer / internal).
+// nodejs-skip: dd-trace-js does not implement the kind->operation-name mapping.
+
+export let runOtelOperationNameConsumer(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "consumer");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.name, "consumer", "consumer kind maps to the consumer operation name");
+  c.eqStr(span.resource, "operation", "resource is the span name");
+  c.result()
+}
+
+export let runOtelOperationNameInternal(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "internal");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.name, "internal", "internal kind maps to the internal operation name");
+  c.eqStr(span.resource, "operation", "resource is the span name");
+  c.result()
+}

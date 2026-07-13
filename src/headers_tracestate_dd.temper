@@ -1,0 +1,72 @@
+// # Datadog tracestate member tests
+
+// Ported from `tests/parametric/test_headers_tracestate_dd.py`. Under
+// `...STYLE=tracecontext,Datadog` the tracer injects both W3C and Datadog headers;
+// these inspect the `dd=` member of the injected `tracestate`. Adapter-only.
+
+let startsWith(s: String, prefix: String): Boolean {
+  let pl = strLen(prefix);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == prefix
+}
+
+// The injected `tracestate` is comma-separated members; the Datadog member is
+// `dd=<value>` whose value is `;`-separated items like `s:2`, `o:web`, `t.dm:-4`.
+
+let ddItems(tracestate: String): List<String> {
+  let members = tracestate.split(",");
+  for (var i = 0; i < members.length; i++) {
+    let m = members[i];
+    if (startsWith(m, "dd=")) {
+      return m.slice(m.step(String.begin, 3), m.end).split(";");
+    }
+  }
+  new ListBuilder<String>().toList()
+}
+let itemEq(items: Listed<String>, val: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (items[i] == val) { return true; } }
+  false
+}
+let anyStarts(items: Listed<String>, prefix: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (startsWith(items[i], prefix)) { return true; } }
+  false
+}
+let tpFlags(headers: Mapped<String, String>): String {
+  let parts = headers.getOr("traceparent", "").split("-");
+  if (parts.length >= 4) { parts[3] } else { "" }
+}
+let pair(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+// ## propagate sampling priority across 8 input variants
+
+export let runTracestateSamplingPriority(t: Tracer): CheckResult {
+  let c = new Checker();
+
+  checkVariant(c, t, [pair("x-datadog-trace-id", "7890123456789012"), pair("x-datadog-parent-id", "1234567890123456"), pair("x-datadog-sampling-priority", "2")], "2", "01", "s:2", true);
+  checkVariant(c, t, [pair("x-datadog-trace-id", "7890123456789012"), pair("x-datadog-parent-id", "1234567890123456"), pair("x-datadog-sampling-priority", "-1")], "-1", "00", "s:-1", true);
+  checkVariant(c, t, [pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")], "1", "01", "s:1", false);
+  checkVariant(c, t, [pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), pair("tracestate", "foo=1,dd=s:-1")], "1", "01", "s:1", false);
+  checkVariant(c, t, [pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), pair("tracestate", "foo=1,dd=s:2")], "2", "01", "s:2", true);
+  checkVariant(c, t, [pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-00")], "0", "00", "s:0", false);
+  checkVariant(c, t, [pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), pair("tracestate", "foo=1,dd=s:-1")], "-1", "00", "s:-1", true);
+  checkVariant(c, t, [pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), pair("tracestate", "foo=1,dd=s:1")], "0", "00", "s:0", false);
+
+  c.result()
+}
+
+let checkVariant(
+  c: Checker, t: Tracer, inPairs: Listed<Pair<String, String>>,
+  xdsp: String, flags: String, sval: String, requireS: Boolean,
+): Void {
+  let out = makeChildSpanAndGetHeaders(t, inPairs);
+  c.eqStr(out.getOr("x-datadog-sampling-priority", ""), xdsp, "${sval}: x-datadog-sampling-priority");
+  c.isTrue(out.has("traceparent"), "${sval}: traceparent present");
+  c.eqStr(tpFlags(out), flags, "${sval}: trace flags");
+  c.isTrue(out.has("tracestate"), "${sval}: tracestate present");
+  let items = ddItems(out.getOr("tracestate", ""));
+  if (requireS) {
+    c.isTrue(itemEq(items, sval), "${sval} present in dd items");
+  } else {
+    c.isTrue(itemEq(items, sval) || !anyStarts(items, "s:"), "${sval} or no s: item");
+  }
+}

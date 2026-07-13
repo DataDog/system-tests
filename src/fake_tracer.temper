@@ -1,0 +1,234 @@
+// # Fake tracer
+
+// A pure-Temper `Tracer` used only to validate the test logic in-repo. Real
+// `dd-trace-*` adapters replace this with native implementations. Not part of the
+// conformance surface.
+
+// It models just enough Datadog-header propagation to exercise the ported tests:
+// `x-datadog-trace-id`, `-parent-id`, `-sampling-priority`, `-origin`, `-tags`.
+
+class FakeSpan(
+  public traceId: String,
+  public spanId: String,
+  public parentId: String,
+  public name: String,
+  public service: String,
+  public resource: String,
+  public spanType: String,
+) {
+  public links: ListBuilder<CapturedLink> = new ListBuilder<CapturedLink>();
+  public meta: MapBuilder<String, String> = new MapBuilder<String, String>();
+  public metrics: MapBuilder<String, Float64> = new MapBuilder<String, Float64>();
+  public baggage: MapBuilder<String, String> = new MapBuilder<String, String>();
+  public var finished: Boolean = false;
+}
+
+class ExtractedContext(
+  public traceId: String,
+  public parentId: String,
+  public origin: String,
+  public dm: String,
+  public priority: Float64,
+  public valid: Boolean,
+) {}
+
+export class FakeTracer(
+  public env: Mapped<String, String> = new Map<String, String>([]),
+) extends Tracer {
+  private var nextId: Int = 1;
+  private order: ListBuilder<FakeSpan> = new ListBuilder<FakeSpan>();
+  private byId: MapBuilder<String, FakeSpan> = new MapBuilder<String, FakeSpan>();
+  private ctxById: MapBuilder<String, ExtractedContext> = new MapBuilder<String, ExtractedContext>();
+  private dummy: FakeSpan = new FakeSpan("0", "0", "0", "", "", "", "");
+
+  // A specific *_EXTRACT/_INJECT style overrides DD_TRACE_PROPAGATION_STYLE,
+  // which defaults to datadog.
+  private styleFor(key: String): String {
+    let specific = env.getOr(key, "");
+    if (specific != "") { return specific; }
+    env.getOr("DD_TRACE_PROPAGATION_STYLE", "datadog")
+  }
+  private hasDatadog(style: String): Boolean {
+    style.split("datadog").length > 1 || style.split("Datadog").length > 1
+  }
+  private extractDatadog(): Boolean { hasDatadog(styleFor("DD_TRACE_PROPAGATION_STYLE_EXTRACT")) }
+  private injectDatadog(): Boolean { hasDatadog(styleFor("DD_TRACE_PROPAGATION_STYLE_INJECT")) }
+
+  private genId(): String {
+    let id = nextId;
+    nextId = nextId + 1;
+    // offset to keep ids visibly distinct from any literal test ids
+    "${1000000 + id}"
+  }
+
+  public startSpan(
+    name: String, parentId: String,
+    service: String = "", resource: String = "", spanType: String = "",
+  ): CapturedSpan {
+    let id = genId();
+    var traceId = id;
+    // inherit from a parent span
+    if (byId.has(parentId)) {
+      traceId = byId.getOr(parentId, dummy).traceId;
+    }
+    // inherit from an extracted context
+    var inhValid = false;
+    var inhOrigin = "";
+    var inhDm = "";
+    var inhPrio = 1.0;
+    if (ctxById.has(parentId)) {
+      let ctx = ctxById.getOr(parentId, new ExtractedContext("0", "0", "", "", 0.0, false));
+      if (ctx.valid) {
+        traceId = ctx.traceId;
+        inhValid = true;
+        inhOrigin = ctx.origin;
+        inhDm = ctx.dm;
+        inhPrio = ctx.priority;
+      }
+    }
+    let s = new FakeSpan(traceId, id, parentId, name, service, resource, spanType);
+    // every span carries a sampling priority (auto-keep by default)
+    s.metrics.set("_sampling_priority_v1", inhPrio);
+    if (inhValid) {
+      if (inhOrigin != "") { s.meta.set("_dd.origin", inhOrigin); }
+      if (inhDm != "") { s.meta.set("_dd.p.dm", inhDm); }
+    }
+    order.add(s);
+    byId.set(id, s);
+    new CapturedSpan(
+      s.traceId, id, s.parentId, name, service, resource, spanType,
+      new Map<String, String>([]), new Map<String, Float64>([]), s.links.toList(),
+    )
+  }
+
+  public finishSpan(spanId: String): Void {}
+
+  public setMeta(spanId: String, key: String, value: String): Void {
+    byId.getOr(spanId, dummy).meta.set(key, value);
+  }
+  public setMetric(spanId: String, key: String, value: Float64): Void {
+    byId.getOr(spanId, dummy).metrics.set(key, value);
+  }
+  public setResource(spanId: String, value: String): Void {}
+  public removeMeta(spanId: String, key: String): Void {}
+  public removeMetric(spanId: String, key: String): Void {}
+  public otelSetAttributeNum(spanId: String, key: String, value: Float64): Void {}
+  public otelRemoveAttribute(spanId: String, key: String): Void {}
+  public setBaggage(spanId: String, key: String, value: String): Void {
+    byId.getOr(spanId, dummy).baggage.set(key, value);
+  }
+  public getBaggage(spanId: String, key: String): String {
+    byId.getOr(spanId, dummy).baggage.getOr(key, "")
+  }
+  public getAllBaggage(spanId: String): Mapped<String, String> {
+    byId.getOr(spanId, dummy).baggage
+  }
+  public removeBaggage(spanId: String, key: String): Void {
+    let b = byId.getOr(spanId, dummy).baggage;
+    (b.remove(key)) orelse "";
+  }
+  public removeAllBaggage(spanId: String): Void {
+    byId.getOr(spanId, dummy).baggage.clear();
+  }
+
+  public addLink(spanId: String, linkToSpanId: String, attributes: Mapped<String, String>): Void {
+    let target = byId.getOr(linkToSpanId, dummy);
+    let src = byId.getOr(spanId, dummy);
+    src.links.add(new CapturedLink(target.spanId, target.traceId, "0", attributes));
+  }
+
+  public extractHeaders(headers: Listed<Pair<String, String>>): String {
+    if (!extractDatadog()) { return "0"; }
+    let h = new MapBuilder<String, String>();
+    for (var i = 0; i < headers.length; i++) {
+      let p = headers[i];
+      h.set(p.key, p.value);
+    }
+    let tid = h.getOr("x-datadog-trace-id", "");
+    let pid = h.getOr("x-datadog-parent-id", "");
+    if (tid == "" || tid == "0" || pid == "0") { return "0"; }
+    var prio = 1.0;
+    let prioStr = h.getOr("x-datadog-sampling-priority", "");
+    if (prioStr == "2") { prio = 2.0; }
+    if (prioStr == "0") { prio = 0.0; }
+    if (prioStr == "-1") { prio = -1.0; }
+    let ctx = new ExtractedContext(
+      tid, pid, h.getOr("x-datadog-origin", ""), parseDm(h.getOr("x-datadog-tags", "")),
+      prio, true,
+    );
+    ctxById.set(pid, ctx);
+    pid
+  }
+
+  public injectHeaders(spanId: String): Mapped<String, String> {
+    let out = new MapBuilder<String, String>();
+    if (!injectDatadog()) { return out; }
+    let s = byId.getOr(spanId, dummy);
+    out.set("x-datadog-trace-id", s.traceId);
+    out.set("x-datadog-parent-id", s.spanId);
+    out.set("x-datadog-sampling-priority", floatToIntString(s.metrics.getOr("_sampling_priority_v1", 1.0)));
+    let origin = s.meta.getOr("_dd.origin", "");
+    if (origin != "") { out.set("x-datadog-origin", origin); }
+    let dm = s.meta.getOr("_dd.p.dm", "");
+    if (dm != "") { out.set("x-datadog-tags", "_dd.p.dm=${dm}"); }
+    out
+  }
+
+  public flush(): Void {}
+
+  // config-readback cases are adapter-only; the fake returns an empty config.
+  public config(): Mapped<String, String> { new Map<String, String>([]) }
+
+  public otelStartSpan(name: String, parentId: String, kind: String): CapturedSpan {
+    startSpan(name, parentId)
+  }
+  public otelSetAttribute(spanId: String, key: String, value: String): Void {
+    byId.getOr(spanId, dummy).meta.set(key, value);
+  }
+  public otelEndSpan(spanId: String): Void {
+    byId.getOr(spanId, dummy).finished = true;
+  }
+  public otelIsRecording(spanId: String): Boolean {
+    !byId.getOr(spanId, dummy).finished
+  }
+  public otelSpanContext(spanId: String): OtelSpanContextInfo {
+    new OtelSpanContextInfo("", spanId)
+  }
+  public otelSetStatus(spanId: String, code: String, description: String): Void {}
+  public otelRecordException(spanId: String, message: String, attributes: Mapped<String, String>): Void {
+    byId.getOr(spanId, dummy).meta.set("error.message", message);
+  }
+  public telemetryConfig(): Listed<TelemetryConfigItem> { new ListBuilder<TelemetryConfigItem>().toList() }
+  public otelAddEvent(spanId: String, name: String, timeMicros: Int, attrs: Listed<EventAttr>): Void {}
+  public wireSpanEventsJson(spanId: String): String { "" }
+  public wireSpanMetaEventsJson(spanId: String): String { "" }
+  public deliveredSpans(): Listed<CapturedSpan> { new ListBuilder<CapturedSpan>().toList() }
+  public computedStatsJson(): String { "" }
+  public rcCapabilitiesCsv(): String { "" }
+  public rcApplySamplingRate(rate: Float64): Boolean { false }
+
+  public capturedSpans(): Listed<CapturedSpan> {
+    let out = new ListBuilder<CapturedSpan>();
+    for (var i = 0; i < order.length; i++) {
+      let s = order[i];
+      out.add(new CapturedSpan(
+        s.traceId, s.spanId, s.parentId, s.name, s.service, s.resource, s.spanType,
+        s.meta, s.metrics, s.links.toList(),
+      ));
+    }
+    out.toList()
+  }
+}
+
+// `x-datadog-tags` carries comma-separated `k=v`; pull out `_dd.p.dm`.
+
+let parseDm(tags: String): String {
+  let parts = tags.split(",");
+  for (var i = 0; i < parts.length; i++) {
+    let kv = parts[i].split("=");
+    if (kv.length == 2 && kv[0] == "_dd.p.dm") { return kv[1]; }
+  }
+  ""
+}
+
+let floatToIntString(f: Float64): String { "${f.toInt32Unsafe()}" }

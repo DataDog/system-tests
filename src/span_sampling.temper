@@ -1,0 +1,108 @@
+// # Single-span sampling tests
+
+// Ported from `tests/parametric/test_span_sampling.py`. These read serialization-
+// time tags (`_dd.span_sampling.*`), so they require the adapter's formatted-span
+// capture and the real tracer's sampling decision — adapter-only
+// (`fakeSupported = false`). Env (`DD_SPAN_SAMPLING_RULES` etc.) is per-case.
+
+let SSS_RULE_RATE = "_dd.span_sampling.rule_rate";
+let SSS_MECHANISM = "_dd.span_sampling.mechanism";
+let SSS_MAX_PER_SEC = "_dd.span_sampling.max_per_second";
+let SSS_PRIORITY = "_sampling_priority_v1";
+
+let assertKept(c: Checker, s: CapturedSpan): Void {
+  c.eqFloat(s.metrics.getOr(SSS_RULE_RATE, 0.0), 1.0, "span_sampling.rule_rate == 1.0");
+  c.eqFloat(s.metrics.getOr(SSS_MECHANISM, 0.0), 8.0, "span_sampling.mechanism == 8");
+  c.isTrue(!s.metrics.has(SSS_MAX_PER_SEC), "max_per_second absent (no limiter)");
+}
+let assertNotSss(c: Checker, s: CapturedSpan): Void {
+  c.isTrue(!s.metrics.has(SSS_RULE_RATE), "span_sampling.rule_rate absent");
+  c.isTrue(!s.metrics.has(SSS_MECHANISM), "span_sampling.mechanism absent");
+  c.isTrue(!s.metrics.has(SSS_MAX_PER_SEC), "max_per_second absent");
+}
+
+// ## kept by a matching span-sampling rule (sss001/002/004/006)
+
+export let runSssKept(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertKept(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## not selected — no span-sampling tags (sss003/005/007)
+
+export let runSssDropped(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertNotSss(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## trace-sampling keep overrides span-drop rule (sss012)
+
+export let runSssTracerKeepNoSss(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.finishSpan(span.spanId);
+  t.flush();
+  let s = findOnlySpan(t.capturedSpans());
+  assertNotSss(c, s);
+  c.isTrue(s.metrics.getOr(SSS_PRIORITY, 0.0) > 0.0, "kept by trace sampling (priority > 0)");
+  c.result()
+}
+
+// ## manual.drop still kept by span sampling (sss011, first span)
+
+export let runSssManualDropKept(t: Tracer): CheckResult {
+  let c = new Checker();
+  let span = t.startSpan("web.request", "0", "webserver");
+  t.setMeta(span.spanId, "manual.drop", "1");
+  t.finishSpan(span.spanId);
+  t.flush();
+  assertKept(c, findOnlySpan(t.capturedSpans()));
+  c.result()
+}
+
+// ## root span selected, child not (sss014)
+
+export let runSssParentSelected(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parent = t.startSpan("parent", "0", "webserver");
+  let child = t.startSpan("child", parent.spanId, "webserver");
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let p = findSpan(spans, parent.spanId);
+  c.eqFloat(p.metrics.getOr(SSS_PRIORITY, 0.0), -1.0, "parent priority -1");
+  c.eqFloat(p.metrics.getOr(SSS_RULE_RATE, 0.0), 1.0, "parent rule_rate 1.0");
+  c.eqFloat(p.metrics.getOr(SSS_MECHANISM, 0.0), 8.0, "parent mechanism 8");
+  c.eqFloat(p.metrics.getOr(SSS_MAX_PER_SEC, 0.0), 50.0, "parent max_per_second 50");
+  let ch = findSpan(spans, child.spanId);
+  c.isTrue(!ch.metrics.has(SSS_MECHANISM), "child not span-sampled");
+  c.result()
+}
+
+// ## child span selected, root not (sss015)
+
+export let runSssChildSelected(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parent = t.startSpan("parent", "0", "webserver");
+  let child = t.startSpan("child", parent.spanId, "webserver");
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let ch = findSpan(spans, child.spanId);
+  c.eqFloat(ch.metrics.getOr(SSS_RULE_RATE, 0.0), 1.0, "child rule_rate 1.0");
+  c.eqFloat(ch.metrics.getOr(SSS_MECHANISM, 0.0), 8.0, "child mechanism 8");
+  c.eqFloat(ch.metrics.getOr(SSS_MAX_PER_SEC, 0.0), 50.0, "child max_per_second 50");
+  let p = findSpan(spans, parent.spanId);
+  c.isTrue(!p.metrics.has(SSS_MECHANISM), "parent not span-sampled");
+  c.result()
+}

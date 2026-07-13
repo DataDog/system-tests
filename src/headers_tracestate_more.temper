@@ -1,0 +1,132 @@
+// # Datadog tracestate member tests — origin & propagated tags
+
+// Ported from `tests/parametric/test_headers_tracestate_dd.py`
+// (`propagate_origin` and `propagate_propagatedtags`). Under
+// `...STYLE=tracecontext,Datadog` the tracer injects both W3C and Datadog headers;
+// these inspect the `dd=` member of the injected `tracestate` plus the injected
+// `x-datadog-*` headers. Adapter-only.
+
+// ## File-local helpers
+
+let tsmStartsWith(s: String, prefix: String): Boolean {
+  let pl = strLen(prefix);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == prefix
+}
+
+// The injected `tracestate` is comma-separated members; the Datadog member is
+// `dd=<value>` whose value is `;`-separated items like `s:2`, `o:web`, `t.dm:-4`.
+
+let tsmDdItems(tracestate: String): List<String> {
+  let members = tracestate.split(",");
+  for (var i = 0; i < members.length; i++) {
+    let m = members[i];
+    if (tsmStartsWith(m, "dd=")) {
+      return m.slice(m.step(String.begin, 3), m.end).split(";");
+    }
+  }
+  new ListBuilder<String>().toList()
+}
+let tsmItemEq(items: Listed<String>, val: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (items[i] == val) { return true; } }
+  false
+}
+let tsmAnyStarts(items: Listed<String>, prefix: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (tsmStartsWith(items[i], prefix)) { return true; } }
+  false
+}
+let tsmPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+let TSM_TP = "00-12345678901234567890123456789012-1234567890123456-01";
+
+// ## propagate origin (5 of 6 variants)
+
+// Note: the spec's `headers3` (`x-datadog-origin=synthetics~;=web,z`) exercises
+// invalid-character escaping (`~`/`=` round-tripping) whose exact result is
+// ambiguous to assert portably, so it is intentionally omitted; the other 5
+// variants are ported.
+
+let tsmCheckOriginPresent(c: Checker, t: Tracer, inPairs: Listed<Pair<String, String>>, expected: String, label: String): Void {
+  let out = makeChildSpanAndGetHeaders(t, inPairs);
+  c.eqStr(out.getOr("x-datadog-origin", ""), expected, "${label}: x-datadog-origin");
+  c.isTrue(out.has("traceparent"), "${label}: traceparent present");
+  c.isTrue(out.has("tracestate"), "${label}: tracestate present");
+  let items = tsmDdItems(out.getOr("tracestate", ""));
+  c.isTrue(tsmItemEq(items, "o:${expected}"), "${label}: o:${expected} in dd items");
+}
+
+export let runTracestateOrigin(t: Tracer): CheckResult {
+  let c = new Checker();
+
+  // headers1: origin via x-datadog-origin
+  tsmCheckOriginPresent(c, t,
+    [tsmPr("x-datadog-trace-id", "7890123456789012"), tsmPr("x-datadog-parent-id", "1234567890123456"), tsmPr("x-datadog-origin", "synthetics-browser")],
+    "synthetics-browser", "h1");
+  // headers2
+  tsmCheckOriginPresent(c, t,
+    [tsmPr("x-datadog-trace-id", "7890123456789012"), tsmPr("x-datadog-parent-id", "1234567890123456"), tsmPr("x-datadog-origin", "tracing2.0")],
+    "tracing2.0", "h2");
+  // headers3 (invalid-char escaping) intentionally skipped.
+
+  // headers4: no origin anywhere -> none injected
+  let out4 = makeChildSpanAndGetHeaders(t,
+    [tsmPr("traceparent", TSM_TP), tsmPr("tracestate", "foo=1,dd=s:-1")]);
+  c.isTrue(!out4.has("x-datadog-origin"), "h4: no x-datadog-origin");
+  c.isTrue(out4.has("traceparent"), "h4: traceparent present");
+  c.isTrue(out4.has("tracestate"), "h4: tracestate present");
+  c.isTrue(!tsmAnyStarts(tsmDdItems(out4.getOr("tracestate", "")), "o:"), "h4: no o: item");
+
+  // headers5: origin via tracestate dd member
+  tsmCheckOriginPresent(c, t,
+    [tsmPr("traceparent", TSM_TP), tsmPr("tracestate", "foo=1,dd=s:-1;o:synthetics-browser")],
+    "synthetics-browser", "h5");
+  // headers6
+  tsmCheckOriginPresent(c, t,
+    [tsmPr("traceparent", TSM_TP), tsmPr("tracestate", "foo=1,dd=s:-1;o:tracing2.0")],
+    "tracing2.0", "h6");
+
+  c.result()
+}
+
+// ## propagate propagated tags (4 variants)
+
+let tsmCheckTags(c: Checker, t: Tracer, inPairs: Listed<Pair<String, String>>, expectedTags: String, items: Listed<String>, label: String): Void {
+  let out = makeChildSpanAndGetHeaders(t, inPairs);
+  c.eqStr(out.getOr("x-datadog-tags", ""), expectedTags, "${label}: x-datadog-tags");
+  c.isTrue(out.has("traceparent"), "${label}: traceparent present");
+  c.isTrue(out.has("tracestate"), "${label}: tracestate present");
+  let ddi = tsmDdItems(out.getOr("tracestate", ""));
+  for (var i = 0; i < items.length; i++) {
+    c.isTrue(tsmItemEq(ddi, items[i]), "${label}: ${items[i]} in dd items");
+  }
+}
+
+export let runTracestatePropagatedTags(t: Tracer): CheckResult {
+  let c = new Checker();
+
+  // headers1
+  tsmCheckTags(c, t,
+    [tsmPr("x-datadog-trace-id", "7890123456789012"), tsmPr("x-datadog-parent-id", "1234567890123456"), tsmPr("x-datadog-tags", "_dd.p.dm=-4")],
+    "_dd.p.dm=-4", ["t.dm:-4"], "h1");
+  // headers2
+  tsmCheckTags(c, t,
+    [tsmPr("x-datadog-trace-id", "7890123456789012"), tsmPr("x-datadog-parent-id", "1234567890123456"), tsmPr("x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==")],
+    "_dd.p.dm=-4,_dd.p.usr.id=baz64==", ["t.dm:-4", "t.usr.id:baz64~~"], "h2");
+  // headers3
+  tsmCheckTags(c, t,
+    [tsmPr("x-datadog-trace-id", "7890123456789012"), tsmPr("x-datadog-parent-id", "1234567890123456"), tsmPr("x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost")],
+    "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost", ["t.dm:-4", "t.usr.id:baz64~~", "t.url:http://localhost"], "h3");
+
+  // headers4: no propagated tags in input -> conditional
+  let out4 = makeChildSpanAndGetHeaders(t,
+    [tsmPr("traceparent", TSM_TP), tsmPr("tracestate", "foo=1,dd=s:-1")]);
+  c.isTrue(out4.has("traceparent"), "h4: traceparent present");
+  if (out4.getOr("x-datadog-tags", "") == "") {
+    let ddi = tsmDdItems(out4.getOr("tracestate", ""));
+    c.isTrue(!tsmAnyStarts(ddi, "t:"), "h4: no t: item when no x-datadog-tags");
+  } else {
+    c.isTrue(out4.has("tracestate"), "h4: tracestate present");
+  }
+
+  c.result()
+}

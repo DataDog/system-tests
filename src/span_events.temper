@@ -1,0 +1,81 @@
+// # Span events (tests/parametric/test_span_events.py)
+// Add typed events to an OTel span and assert the agent-wire `span_events`
+// serialization (type tags 0=string,1=bool,2=int,3=double,4=array). The wire
+// JSON is captured via each adapter's encoder. Adapter-only.
+
+let sevContains(h: String, n: String): Boolean { h.split(n).length > 1 }
+
+let strAttr(key: String, kind: String, vals: Listed<String>): EventAttr {
+  new EventAttr(key, kind, vals)
+}
+
+// v0.4 / v0.7 native format: typed attribute representation on span_events.
+// (The native span_events encoding is version-invariant; the v04 and v07 cases
+// run the same run fn under each DD_TRACE_API_VERSION to assert init + encode
+// don't break under either.)
+export let runSpanEventNative(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("test", "0", "internal");
+  let a0 = new ListBuilder<EventAttr>();
+  a0.add(strAttr("string", "string", ["bar"]));
+  a0.add(strAttr("bool", "bool", ["true"]));
+  a0.add(strAttr("int", "int", ["1"]));
+  a0.add(strAttr("double", "double", ["2.3"]));
+  a0.add(strAttr("str_arr", "str_arr", ["a", "b", "c"]));
+  a0.add(strAttr("int_arr", "int_arr", ["5", "6"]));
+  t.otelAddEvent(s.spanId, "event_name", 123450, a0.toList());
+  let a1 = new ListBuilder<EventAttr>();
+  a1.add(strAttr("bool", "bool", ["false"]));
+  a1.add(strAttr("int", "int", ["0"]));
+  a1.add(strAttr("double", "double", ["0.0"]));
+  t.otelAddEvent(s.spanId, "other_event", 123451, a1.toList());
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let j = t.wireSpanEventsJson(s.spanId);
+  c.isTrue(sevContains(j, "\"name\":\"event_name\""), "first event name: ${j}");
+  c.isTrue(sevContains(j, "\"name\":\"other_event\""), "second event name");
+  c.isTrue(sevContains(j, "\"type\":0,\"string_value\":\"bar\""), "string typed");
+  c.isTrue(sevContains(j, "\"type\":1,\"bool_value\":true"), "bool typed true");
+  c.isTrue(sevContains(j, "\"type\":1,\"bool_value\":false"), "bool typed false");
+  c.isTrue(sevContains(j, "\"type\":2,\"int_value\":1"), "int typed");
+  c.isTrue(sevContains(j, "\"type\":2,\"int_value\":0"), "int typed zero");
+  c.isTrue(sevContains(j, "\"type\":3,\"double_value\":2.3"), "double typed");
+  c.isTrue(sevContains(j, "\"type\":4,\"array_value\""), "array typed");
+  c.result()
+}
+
+// v0.5 meta format: events serialized as a JSON string in meta.events, all
+// attribute values are strings.
+export let runSpanEventV05Meta(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("test", "0", "internal");
+  let a0 = new ListBuilder<EventAttr>();
+  a0.add(strAttr("string", "string", ["bar"]));
+  a0.add(strAttr("bool", "string", ["true"]));
+  a0.add(strAttr("int", "string", ["1"]));
+  a0.add(strAttr("double", "string", ["2.3"]));
+  a0.add(strAttr("str_arr", "str_arr", ["a", "b", "c"]));
+  a0.add(strAttr("bool_arr", "str_arr", ["true", "false"]));
+  a0.add(strAttr("int_arr", "str_arr", ["5", "6"]));
+  a0.add(strAttr("double_arr", "str_arr", ["1.1", "2.2"]));
+  t.otelAddEvent(s.spanId, "event_name", 123450, a0.toList());
+  let a1 = new ListBuilder<EventAttr>();
+  a1.add(strAttr("bool", "string", ["false"]));
+  a1.add(strAttr("int", "string", ["0"]));
+  a1.add(strAttr("double", "string", ["0.0"]));
+  t.otelAddEvent(s.spanId, "other_event", 123451, a1.toList());
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let j = t.wireSpanMetaEventsJson(s.spanId);
+  c.isTrue(sevContains(j, "\"name\":\"event_name\""), "first event name: ${j}");
+  c.isTrue(sevContains(j, "\"name\":\"other_event\""), "second event name");
+  c.isTrue(sevContains(j, "\"string\":\"bar\""), "string attr");
+  c.isTrue(sevContains(j, "\"bool\":\"true\""), "bool attr as string");
+  c.isTrue(sevContains(j, "\"int\":\"1\""), "int attr as string");
+  c.isTrue(sevContains(j, "\"double\":\"2.3\""), "double attr as string");
+  c.isTrue(sevContains(j, "\"str_arr\":[\"a\",\"b\",\"c\"]"), "string array");
+  c.isTrue(sevContains(j, "\"bool_arr\":[\"true\",\"false\"]"), "bool array as strings");
+  c.isTrue(sevContains(j, "\"int_arr\":[\"5\",\"6\"]"), "int array as strings");
+  c.isTrue(sevContains(j, "\"bool\":\"false\""), "second event bool false");
+  c.result()
+}

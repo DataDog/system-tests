@@ -1,0 +1,20 @@
+// # Client-computed trace stats (tests/parametric/test_library_tracestats.py)
+// The tracer computes stats and sends them to the agent's /v0.6/stats endpoint;
+// we assert on the stats payload the real ddapm-test-agent received.
+// Agent-backed (needsAgent) and python-only (nodejs doesn't compute stats).
+
+let ltsContains(h: String, n: String): Boolean { h.split(n).length > 1 }
+
+export let runStatsTS001(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("web.request", "0", "webserver", "/users");
+  t.finishSpan(s.spanId);
+  let j = t.computedStatsJson();
+  c.isTrue(ltsContains(j, "\"Name\":\"web.request\""), "stats Name web.request: ${j}");
+  c.isTrue(ltsContains(j, "\"Resource\":\"/users\""), "stats Resource /users");
+  c.isTrue(ltsContains(j, "\"Service\":\"webserver\""), "stats Service webserver");
+  c.isTrue(ltsContains(j, "\"Hits\":1"), "stats Hits == 1");
+  c.isTrue(ltsContains(j, "\"TopLevelHits\":1"), "stats TopLevelHits == 1");
+  c.isTrue(ltsContains(j, "OkSummary"), "stats OkSummary present");
+  c.result()
+}

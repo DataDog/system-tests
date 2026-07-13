@@ -1,0 +1,99 @@
+// # B3 multi-header propagation tests
+
+// Ported from `tests/parametric/test_headers_b3multi.py`. B3 is a tracer codec, so
+// these are adapter-only (`fakeSupported = false`); the env (`...STYLE=b3multi`)
+// is applied by the adapter.
+
+let SAMPLING_PRIORITY = "_sampling_priority_v1";
+
+let b3Headers(): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-b3-traceid", "000000000000000000000000075bcd15"));
+  h.add(new Pair("x-b3-spanid", "000000003ade68b1"));
+  h.add(new Pair("x-b3-sampled", "1"));
+  h.toList()
+}
+
+let b3InvalidHeaders(): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-b3-traceid", "0"));
+  h.add(new Pair("x-b3-spanid", "0"));
+  h.add(new Pair("x-b3-sampled", "1"));
+  h.toList()
+}
+
+let checkInjectedB3(c: Checker, headers: Mapped<String, String>, span: CapturedSpan): Void {
+  let tid = headers.getOr("x-b3-traceid", "");
+  let sid = headers.getOr("x-b3-spanid", "");
+  c.isTrue(strLen(tid) == 16 || strLen(tid) == 32, "b3 trace-id is 16 or 32 hex chars");
+  c.eqStr(hexLow64ToDecimal(tid), span.traceId, "b3 trace-id == span trace_id");
+  c.eqStr(hexToDecimal(sid), span.spanId, "b3 span-id == span span_id");
+  c.eqInt(strLen(sid), 16, "b3 span-id is 16 hex chars");
+  let expected = if (span.metrics.getOr(SAMPLING_PRIORITY, 0.0) > 0.0) { "1" } else { "0" };
+  c.eqStr(headers.getOr("x-b3-sampled", ""), expected, "b3 sampled reflects priority");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "no origin");
+}
+
+// ## extract valid
+
+export let runB3multiExtractValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, b3Headers());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "123456789", "trace_id extracted");
+  c.eqStr(span.parentId, "987654321", "parent_id extracted");
+  c.eqFloat(span.metrics.getOr(SAMPLING_PRIORITY, 0.0), 1.0, "sampling priority 1");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "no origin");
+  c.result()
+}
+
+// ## extract invalid
+
+export let runB3multiExtractInvalid(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, b3InvalidHeaders());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.traceId != "0", "trace_id not 0");
+  c.isTrue(spanHasNoParent(span), "no parent extracted");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "no origin");
+  c.result()
+}
+
+// ## inject valid
+
+export let runB3multiInjectValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let empty = new ListBuilder<Pair<String, String>>().toList();
+  let headers = makeChildSpanAndGetHeaders(t, empty);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  checkInjectedB3(c, headers, span);
+  c.result()
+}
+
+// ## propagate valid
+
+export let runB3multiPropagateValid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let headers = makeChildSpanAndGetHeaders(t, b3Headers());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  checkInjectedB3(c, headers, span);
+  c.eqStr(headers.getOr("x-b3-sampled", ""), "1", "sampled stays 1");
+  c.result()
+}
+
+// ## propagate invalid
+
+export let runB3multiPropagateInvalid(t: Tracer): CheckResult {
+  let c = new Checker();
+  let headers = makeChildSpanAndGetHeaders(t, b3InvalidHeaders());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.traceId != "0", "trace_id not 0");
+  c.isTrue(span.spanId != "0", "span_id not 0");
+  checkInjectedB3(c, headers, span);
+  c.result()
+}

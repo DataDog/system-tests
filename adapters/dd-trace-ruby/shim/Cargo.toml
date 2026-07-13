@@ -1,0 +1,21 @@
+[package]
+name = "str-ruby-shim"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+system-tests-redux = { path = "../../../temper.out/rust/system-tests-redux" }
+temper-core = { path = "../../../temper.out/rust/temper-core" }
+serde_json = "1"
+libc = "0.2"
+
+# catch_unwind across the C ABI requires unwinding panics (not abort); pin it so
+# a future release profile can't silently turn the FFI panic-guards into aborts.
+[profile.dev]
+panic = "unwind"
+
+[profile.release]
+panic = "unwind"

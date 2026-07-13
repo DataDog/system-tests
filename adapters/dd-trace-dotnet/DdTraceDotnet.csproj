@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>conformance</AssemblyName>
+    <RollForward>LatestMajor</RollForward>
+    <!-- Don't embed the harness repo's git commit/url into the assembly: the .NET
+         SDK auto-embeds it via SourceLink, and dd-trace-dotnet then reads it as
+         SCI metadata, overriding the DD_GIT_* env the tracer.sci_* cases set. -->
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <NoWarn>CS8632;CS8600;CS8602;CS8604;NU1701</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../temper.out/csharp/system-tests-redux/src/SystemTestsRedux.csproj"/>
+    <PackageReference Include="Datadog.Trace" Version="3.48.0"/>
+    <PackageReference Include="Datadog.Trace.Bundle" Version="3.48.0"/>
+  </ItemGroup>
+</Project>

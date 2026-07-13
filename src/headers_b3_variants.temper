@@ -1,0 +1,24 @@
+// # B3 propagation-style variants (single-key / case-insensitive)
+//
+// Ported from tests/parametric/test_headers_b3.py and test_headers_b3multi.py.
+// These upstream tests delegate to the already-ported extract/inject/propagate
+// run functions but with a different `library_env` (a single
+// DD_TRACE_PROPAGATION_STYLE key, or mixed casing). No new run functions are
+// needed — the variants are registered in cases.temper reusing the existing
+// exported functions. This file is documentation only.
+//
+// Variant -> reused run function:
+//   test_headers_b3_single_key_propagate_valid          -> runB3SinglePropagateValid
+//     env: DD_TRACE_PROPAGATION_STYLE = "B3 single header"
+//   test_headers_b3multi_single_key_propagate_valid     -> runB3multiPropagateValid
+//     env: DD_TRACE_PROPAGATION_STYLE = "b3multi"
+//   test_headers_b3multi_case_insensitive_propagate_valid (env1) -> runB3multiPropagateValid
+//     env: DD_TRACE_PROPAGATION_STYLE_EXTRACT = "B3MULTI", DD_TRACE_PROPAGATION_STYLE_INJECT = "b3multi"
+//   test_headers_b3multi_case_insensitive_propagate_valid (env2) -> runB3multiPropagateValid
+//     env: DD_TRACE_PROPAGATION_STYLE = "B3multi"
+//
+// NOT ported (intentionally): the `enable_migrated_b3` / `enable_migrated_b3_single_key`
+// group (DD_TRACE_PROPAGATION_STYLE* = "b3"). Upstream marks every one of these
+// @missing_feature for cpp/dotnet/golang/java/nodejs/php ("Need to remove the
+// b3=b3multi alias") — i.e. a transitional alias that is expected-broken across
+// libraries, so porting them would only produce universal skips.

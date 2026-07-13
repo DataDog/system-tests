@@ -1,0 +1,1508 @@
+{
+    "about": "Backend names selected by user via the temper CLI. This file should be committed.",
+    "toolchain-version": "temper-0.6.1-dev+137-g6cbfc29",
+    "library-name": "system-tests-redux",
+    "backend-id": "csharp",
+    "selections": [
+        {
+            "qualified-name": "system-tests-redux.type CheckResult",
+            "selected-name": "CheckResult"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CheckResult.get ok()",
+            "selected-name": "Ok"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CheckResult.summary()",
+            "selected-name": "Summary"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CheckResult.failures",
+            "selected-name": "Failures"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker",
+            "selected-name": "Checker"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker.isTrue()",
+            "selected-name": "IsTrue"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker.eqInt()",
+            "selected-name": "EqInt"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker.eqStr()",
+            "selected-name": "EqStr"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker.eqFloat()",
+            "selected-name": "EqFloat"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker.result()",
+            "selected-name": "Result"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Checker.fails",
+            "selected-name": "Fails"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase",
+            "selected-name": "ConformanceCase"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase.name",
+            "selected-name": "Name"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase.env",
+            "selected-name": "Env"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase.run",
+            "selected-name": "Run"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase.fakeSupported",
+            "selected-name": "FakeSupported"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase.unsupported",
+            "selected-name": "Unsupported"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ConformanceCase.needsAgent",
+            "selected-name": "NeedsAgent"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan",
+            "selected-name": "FakeSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.traceId",
+            "selected-name": "TraceId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.spanId",
+            "selected-name": "SpanId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.parentId",
+            "selected-name": "ParentId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.name",
+            "selected-name": "Name"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.service",
+            "selected-name": "Service"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.resource",
+            "selected-name": "Resource"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.spanType",
+            "selected-name": "SpanType"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.links",
+            "selected-name": "Links"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.meta",
+            "selected-name": "Meta"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.metrics",
+            "selected-name": "Metrics"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.baggage",
+            "selected-name": "Baggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeSpan.finished",
+            "selected-name": "Finished"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext",
+            "selected-name": "ExtractedContext"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext.traceId",
+            "selected-name": "TraceId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext.parentId",
+            "selected-name": "ParentId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext.origin",
+            "selected-name": "Origin"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext.dm",
+            "selected-name": "Dm"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext.priority",
+            "selected-name": "Priority"
+        },
+        {
+            "qualified-name": "system-tests-redux.type ExtractedContext.valid",
+            "selected-name": "Valid"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer",
+            "selected-name": "Tracer"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.startSpan()",
+            "selected-name": "StartSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.finishSpan()",
+            "selected-name": "FinishSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.setMeta()",
+            "selected-name": "SetMeta"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.setMetric()",
+            "selected-name": "SetMetric"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.setBaggage()",
+            "selected-name": "SetBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.getBaggage()",
+            "selected-name": "GetBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.getAllBaggage()",
+            "selected-name": "GetAllBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.removeBaggage()",
+            "selected-name": "RemoveBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.removeAllBaggage()",
+            "selected-name": "RemoveAllBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.addLink()",
+            "selected-name": "AddLink"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.setResource()",
+            "selected-name": "SetResource"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.removeMeta()",
+            "selected-name": "RemoveMeta"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.removeMetric()",
+            "selected-name": "RemoveMetric"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelSetAttributeNum()",
+            "selected-name": "OtelSetAttributeNum"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelRemoveAttribute()",
+            "selected-name": "OtelRemoveAttribute"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.extractHeaders()",
+            "selected-name": "ExtractHeaders"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.injectHeaders()",
+            "selected-name": "InjectHeaders"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.flush()",
+            "selected-name": "Flush"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.capturedSpans()",
+            "selected-name": "CapturedSpans"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.config()",
+            "selected-name": "Config"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelStartSpan()",
+            "selected-name": "OtelStartSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelSetAttribute()",
+            "selected-name": "OtelSetAttribute"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelEndSpan()",
+            "selected-name": "OtelEndSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelIsRecording()",
+            "selected-name": "OtelIsRecording"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelSpanContext()",
+            "selected-name": "OtelSpanContext"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelSetStatus()",
+            "selected-name": "OtelSetStatus"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelRecordException()",
+            "selected-name": "OtelRecordException"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.telemetryConfig()",
+            "selected-name": "TelemetryConfig"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.otelAddEvent()",
+            "selected-name": "OtelAddEvent"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.wireSpanEventsJson()",
+            "selected-name": "WireSpanEventsJson"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.wireSpanMetaEventsJson()",
+            "selected-name": "WireSpanMetaEventsJson"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.deliveredSpans()",
+            "selected-name": "DeliveredSpans"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.computedStatsJson()",
+            "selected-name": "ComputedStatsJson"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.rcCapabilitiesCsv()",
+            "selected-name": "RcCapabilitiesCsv"
+        },
+        {
+            "qualified-name": "system-tests-redux.type Tracer.rcApplySamplingRate()",
+            "selected-name": "RcApplySamplingRate"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer",
+            "selected-name": "FakeTracer"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.styleFor()",
+            "selected-name": "StyleFor"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.hasDatadog()",
+            "selected-name": "HasDatadog"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.extractDatadog()",
+            "selected-name": "ExtractDatadog"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.injectDatadog()",
+            "selected-name": "InjectDatadog"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.genId()",
+            "selected-name": "GenId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.startSpan()",
+            "selected-name": "StartSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.finishSpan()",
+            "selected-name": "FinishSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.setMeta()",
+            "selected-name": "SetMeta"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.setMetric()",
+            "selected-name": "SetMetric"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.setResource()",
+            "selected-name": "SetResource"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.removeMeta()",
+            "selected-name": "RemoveMeta"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.removeMetric()",
+            "selected-name": "RemoveMetric"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelSetAttributeNum()",
+            "selected-name": "OtelSetAttributeNum"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelRemoveAttribute()",
+            "selected-name": "OtelRemoveAttribute"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.setBaggage()",
+            "selected-name": "SetBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.getBaggage()",
+            "selected-name": "GetBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.getAllBaggage()",
+            "selected-name": "GetAllBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.removeBaggage()",
+            "selected-name": "RemoveBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.removeAllBaggage()",
+            "selected-name": "RemoveAllBaggage"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.addLink()",
+            "selected-name": "AddLink"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.extractHeaders()",
+            "selected-name": "ExtractHeaders"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.injectHeaders()",
+            "selected-name": "InjectHeaders"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.flush()",
+            "selected-name": "Flush"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.config()",
+            "selected-name": "Config"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelStartSpan()",
+            "selected-name": "OtelStartSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelSetAttribute()",
+            "selected-name": "OtelSetAttribute"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelEndSpan()",
+            "selected-name": "OtelEndSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelIsRecording()",
+            "selected-name": "OtelIsRecording"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelSpanContext()",
+            "selected-name": "OtelSpanContext"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelSetStatus()",
+            "selected-name": "OtelSetStatus"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelRecordException()",
+            "selected-name": "OtelRecordException"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.telemetryConfig()",
+            "selected-name": "TelemetryConfig"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.otelAddEvent()",
+            "selected-name": "OtelAddEvent"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.wireSpanEventsJson()",
+            "selected-name": "WireSpanEventsJson"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.wireSpanMetaEventsJson()",
+            "selected-name": "WireSpanMetaEventsJson"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.deliveredSpans()",
+            "selected-name": "DeliveredSpans"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.computedStatsJson()",
+            "selected-name": "ComputedStatsJson"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.rcCapabilitiesCsv()",
+            "selected-name": "RcCapabilitiesCsv"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.rcApplySamplingRate()",
+            "selected-name": "RcApplySamplingRate"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.capturedSpans()",
+            "selected-name": "CapturedSpans"
+        },
+        {
+            "qualified-name": "system-tests-redux.type FakeTracer.env",
+            "selected-name": "Env"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedLink",
+            "selected-name": "CapturedLink"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedLink.spanId",
+            "selected-name": "SpanId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedLink.traceId",
+            "selected-name": "TraceId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedLink.traceIdHigh",
+            "selected-name": "TraceIdHigh"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedLink.attributes",
+            "selected-name": "Attributes"
+        },
+        {
+            "qualified-name": "system-tests-redux.type OtelSpanContextInfo",
+            "selected-name": "OtelSpanContextInfo"
+        },
+        {
+            "qualified-name": "system-tests-redux.type OtelSpanContextInfo.traceIdHex",
+            "selected-name": "TraceIdHex"
+        },
+        {
+            "qualified-name": "system-tests-redux.type OtelSpanContextInfo.spanIdHex",
+            "selected-name": "SpanIdHex"
+        },
+        {
+            "qualified-name": "system-tests-redux.type EventAttr",
+            "selected-name": "EventAttr"
+        },
+        {
+            "qualified-name": "system-tests-redux.type EventAttr.key",
+            "selected-name": "Key"
+        },
+        {
+            "qualified-name": "system-tests-redux.type EventAttr.kind",
+            "selected-name": "Kind"
+        },
+        {
+            "qualified-name": "system-tests-redux.type EventAttr.values",
+            "selected-name": "Values"
+        },
+        {
+            "qualified-name": "system-tests-redux.type TelemetryConfigItem",
+            "selected-name": "TelemetryConfigItem"
+        },
+        {
+            "qualified-name": "system-tests-redux.type TelemetryConfigItem.name",
+            "selected-name": "Name"
+        },
+        {
+            "qualified-name": "system-tests-redux.type TelemetryConfigItem.value",
+            "selected-name": "Value"
+        },
+        {
+            "qualified-name": "system-tests-redux.type TelemetryConfigItem.origin",
+            "selected-name": "Origin"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan",
+            "selected-name": "CapturedSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.traceId",
+            "selected-name": "TraceId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.spanId",
+            "selected-name": "SpanId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.parentId",
+            "selected-name": "ParentId"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.name",
+            "selected-name": "Name"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.service",
+            "selected-name": "Service"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.resource",
+            "selected-name": "Resource"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.spanType",
+            "selected-name": "SpanType"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.meta",
+            "selected-name": "Meta"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.metrics",
+            "selected-name": "Metrics"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.links",
+            "selected-name": "Links"
+        },
+        {
+            "qualified-name": "system-tests-redux.type CapturedSpan.error",
+            "selected-name": "Error"
+        },
+        {
+            "qualified-name": "system-tests-redux.findSpan()",
+            "selected-name": "FindSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSpanWithAttachedLinks()",
+            "selected-name": "RunSpanWithAttachedLinks"
+        },
+        {
+            "qualified-name": "system-tests-redux.traceSpans()",
+            "selected-name": "TraceSpans"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracerTopLevelAttributes()",
+            "selected-name": "RunTracerTopLevelAttributes"
+        },
+        {
+            "qualified-name": "system-tests-redux.makeChildSpanAndGetHeaders()",
+            "selected-name": "MakeChildSpanAndGetHeaders"
+        },
+        {
+            "qualified-name": "system-tests-redux.findOnlySpan()",
+            "selected-name": "FindOnlySpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersExtractDatadogD001()",
+            "selected-name": "RunHeadersExtractDatadogD001"
+        },
+        {
+            "qualified-name": "system-tests-redux.spanHasNoParent()",
+            "selected-name": "SpanHasNoParent"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersExtractDatadogInvalidD002()",
+            "selected-name": "RunHeadersExtractDatadogInvalidD002"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersInjectDatadogD003()",
+            "selected-name": "RunHeadersInjectDatadogD003"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersPropagateDatadogD004()",
+            "selected-name": "RunHeadersPropagateDatadogD004"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersExtractInjectInvalidD005()",
+            "selected-name": "RunHeadersExtractInjectInvalidD005"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersNoneExtract()",
+            "selected-name": "RunHeadersNoneExtract"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersNoneExtractWithOtherPropagators()",
+            "selected-name": "RunHeadersNoneExtractWithOtherPropagators"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersNoneInject()",
+            "selected-name": "RunHeadersNoneInject"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersNoneInjectWithOtherPropagators()",
+            "selected-name": "RunHeadersNoneInjectWithOtherPropagators"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersNonePropagate()",
+            "selected-name": "RunHeadersNonePropagate"
+        },
+        {
+            "qualified-name": "system-tests-redux.runHeadersNoneSingleKeyPropagate()",
+            "selected-name": "RunHeadersNoneSingleKeyPropagate"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSamplingDelegationNeither()",
+            "selected-name": "RunSamplingDelegationNeither"
+        },
+        {
+            "qualified-name": "system-tests-redux.runStatsTS001()",
+            "selected-name": "RunStatsTs001"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPartialFlushOneSpan()",
+            "selected-name": "RunPartialFlushOneSpan"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcCapabilitySampleRate()",
+            "selected-name": "RunRcCapabilitySampleRate"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcCapabilityEnabled()",
+            "selected-name": "RunRcCapabilityEnabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcCapabilityLogsInjection()",
+            "selected-name": "RunRcCapabilityLogsInjection"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcCapabilityHttpHeaderTags()",
+            "selected-name": "RunRcCapabilityHttpHeaderTags"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcCapabilityCustomTags()",
+            "selected-name": "RunRcCapabilityCustomTags"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcCapabilitySampleRules()",
+            "selected-name": "RunRcCapabilitySampleRules"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRcSamplingOverride()",
+            "selected-name": "RunRcSamplingOverride"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSpanEventNative()",
+            "selected-name": "RunSpanEventNative"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSpanEventV05Meta()",
+            "selected-name": "RunSpanEventV05_Meta"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropUpdateResource()",
+            "selected-name": "RunOtelInteropUpdateResource"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropSpanLinksAdd()",
+            "selected-name": "RunOtelInteropSpanLinksAdd"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropMeta()",
+            "selected-name": "RunOtelInteropMeta"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropMetric()",
+            "selected-name": "RunOtelInteropMetric"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropDdAfterOtel()",
+            "selected-name": "RunOtelInteropDdAfterOtel"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropOtelAfterDd()",
+            "selected-name": "RunOtelInteropOtelAfterDd"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropConcurrent()",
+            "selected-name": "RunOtelInteropConcurrent"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropNestedOtelRoot()",
+            "selected-name": "RunOtelInteropNestedOtelRoot"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelInteropNestedDdRoot()",
+            "selected-name": "RunOtelInteropNestedDdRoot"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceSampledByRuleExactMatch()",
+            "selected-name": "RunTraceSampledByRuleExactMatch"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceDroppedByRule()",
+            "selected-name": "RunTraceDroppedByRule"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3multiExtractValid()",
+            "selected-name": "RunB3_MultiExtractValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3multiExtractInvalid()",
+            "selected-name": "RunB3_MultiExtractInvalid"
+        },
+        {
+            "qualified-name": "system-tests-redux.strLen()",
+            "selected-name": "StrLen"
+        },
+        {
+            "qualified-name": "system-tests-redux.hexLow64ToDecimal()",
+            "selected-name": "HexLow64_ToDecimal"
+        },
+        {
+            "qualified-name": "system-tests-redux.hexToDecimal()",
+            "selected-name": "HexToDecimal"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3multiInjectValid()",
+            "selected-name": "RunB3_MultiInjectValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3multiPropagateValid()",
+            "selected-name": "RunB3_MultiPropagateValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3multiPropagateInvalid()",
+            "selected-name": "RunB3_MultiPropagateInvalid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3SingleExtractValid()",
+            "selected-name": "RunB3_SingleExtractValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3SingleExtractInvalid()",
+            "selected-name": "RunB3_SingleExtractInvalid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3SingleInjectValid()",
+            "selected-name": "RunB3_SingleInjectValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3SinglePropagateValid()",
+            "selected-name": "RunB3_SinglePropagateValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3SinglePropagateInvalid()",
+            "selected-name": "RunB3_SinglePropagateInvalid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpValid()",
+            "selected-name": "RunTpValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsW3cPExtract()",
+            "selected-name": "RunTsW3_CPExtract"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsW3cPInject()",
+            "selected-name": "RunTsW3_CPInject"
+        },
+        {
+            "qualified-name": "system-tests-redux.runP3IdenticalTraceInfo()",
+            "selected-name": "RunP3_IdenticalTraceInfo"
+        },
+        {
+            "qualified-name": "system-tests-redux.runP3TraceIdsDoNotMatch()",
+            "selected-name": "RunP3_TraceIdsDoNotMatch"
+        },
+        {
+            "qualified-name": "system-tests-redux.runP3NonMatchingParentIds()",
+            "selected-name": "RunP3_NonMatchingParentIds"
+        },
+        {
+            "qualified-name": "system-tests-redux.runP3MissingPValue()",
+            "selected-name": "RunP3_MissingPValue"
+        },
+        {
+            "qualified-name": "system-tests-redux.runP3NonMatchingPValue()",
+            "selected-name": "RunP3_NonMatchingPValue"
+        },
+        {
+            "qualified-name": "system-tests-redux.runP3ExtractFirst()",
+            "selected-name": "RunP3_ExtractFirst"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsW3cContextLeak()",
+            "selected-name": "RunTsW3_CContextLeak"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpVersionTooShort()",
+            "selected-name": "RunTpVersionTooShort"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpTraceIdAllZero()",
+            "selected-name": "RunTpTraceIdAllZero"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpTraceIdTooLong()",
+            "selected-name": "RunTpTraceIdTooLong"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpTraceIdTooShort()",
+            "selected-name": "RunTpTraceIdTooShort"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpParentIdAllZero()",
+            "selected-name": "RunTpParentIdAllZero"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpTraceIdIllegalChars()",
+            "selected-name": "RunTpTraceIdIllegalChars"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSssKept()",
+            "selected-name": "RunSssKept"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSssDropped()",
+            "selected-name": "RunSssDropped"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSssManualDropKept()",
+            "selected-name": "RunSssManualDropKept"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSssTracerKeepNoSss()",
+            "selected-name": "RunSssTracerKeepNoSss"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSssParentSelected()",
+            "selected-name": "RunSssParentSelected"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSssChildSelected()",
+            "selected-name": "RunSssChildSelected"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestateSamplingPriority()",
+            "selected-name": "RunTracestateSamplingPriority"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecedenceDatadog()",
+            "selected-name": "RunPrecedenceDatadog"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecedenceTracecontext()",
+            "selected-name": "RunPrecedenceTracecontext"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecedenceTcDd()",
+            "selected-name": "RunPrecedenceTcDd"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecedenceDdTc()",
+            "selected-name": "RunPrecedenceDdTc"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecTcLastExtractFirstTrue()",
+            "selected-name": "RunPrecTcLastExtractFirstTrue"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecTcFirstExtractFirstFalse()",
+            "selected-name": "RunPrecTcFirstExtractFirstFalse"
+        },
+        {
+            "qualified-name": "system-tests-redux.runPrecTcFirstExtractFirstTrue()",
+            "selected-name": "RunPrecTcFirstExtractFirstTrue"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128Propagation()",
+            "selected-name": "RunDd128_Propagation"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128TidLong()",
+            "selected-name": "RunDd128_TidLong"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128TidShort()",
+            "selected-name": "RunDd128_TidShort"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128TidChars()",
+            "selected-name": "RunDd128_TidChars"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128PropAndGen()",
+            "selected-name": "RunDd128_PropAndGen"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128GenDisabled()",
+            "selected-name": "RunDd128_GenDisabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDd128GenEnabled()",
+            "selected-name": "RunDd128_GenEnabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBothMissing()",
+            "selected-name": "RunBothMissing"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSingleKeyTpValid()",
+            "selected-name": "RunSingleKeyTpValid"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpDuplicated()",
+            "selected-name": "RunTpDuplicated"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpHeaderName()",
+            "selected-name": "RunTpHeaderName"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpHeaderNameValidCasing()",
+            "selected-name": "RunTpHeaderNameValidCasing"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpVersion0x00()",
+            "selected-name": "RunTpVersion0_X00"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpVersion0xcc()",
+            "selected-name": "RunTpVersion0_Xcc"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpVersion0xff()",
+            "selected-name": "RunTpVersion0_Xff"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpVersionIllegalChars()",
+            "selected-name": "RunTpVersionIllegalChars"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpVersionTooLong()",
+            "selected-name": "RunTpVersionTooLong"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpParentIdIllegalChars()",
+            "selected-name": "RunTpParentIdIllegalChars"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpParentIdTooLong()",
+            "selected-name": "RunTpParentIdTooLong"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpParentIdTooShort()",
+            "selected-name": "RunTpParentIdTooShort"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpFlagsIllegalChars()",
+            "selected-name": "RunTpFlagsIllegalChars"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpFlagsTooLong()",
+            "selected-name": "RunTpFlagsTooLong"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpFlagsTooShort()",
+            "selected-name": "RunTpFlagsTooShort"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTpOwsHandling()",
+            "selected-name": "RunTpOwsHandling"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsIncludedTpMissing()",
+            "selected-name": "RunTsIncludedTpMissing"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsIncludedTpIncluded()",
+            "selected-name": "RunTsIncludedTpIncluded"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsHeaderName()",
+            "selected-name": "RunTsHeaderName"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsHeaderNameValidCasing()",
+            "selected-name": "RunTsHeaderNameValidCasing"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsEmptyHeader()",
+            "selected-name": "RunTsEmptyHeader"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsMultipleHeadersDifferentKeys()",
+            "selected-name": "RunTsMultipleHeadersDifferentKeys"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsDuplicatedKeys()",
+            "selected-name": "RunTsDuplicatedKeys"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsAllAllowedChars()",
+            "selected-name": "RunTsAllAllowedChars"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTsOwsHandling()",
+            "selected-name": "RunTsOwsHandling"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Single128Propagation()",
+            "selected-name": "RunB3_Single128_Propagation"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Single128PropagationAndGeneration()",
+            "selected-name": "RunB3_Single128_PropagationAndGeneration"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Single128GenerationDisabled()",
+            "selected-name": "RunB3_Single128_GenerationDisabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Single128GenerationEnabled()",
+            "selected-name": "RunB3_Single128_GenerationEnabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Multi128Propagation()",
+            "selected-name": "RunB3_Multi128_Propagation"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Multi128PropagationAndGeneration()",
+            "selected-name": "RunB3_Multi128_PropagationAndGeneration"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Multi128GenerationDisabled()",
+            "selected-name": "RunB3_Multi128_GenerationDisabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runB3Multi128GenerationEnabled()",
+            "selected-name": "RunB3_Multi128_GenerationEnabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128Propagation()",
+            "selected-name": "RunW3_C128_Propagation"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128PropagationTidConsistent()",
+            "selected-name": "RunW3_C128_PropagationTidConsistent"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128TidInChunkRoot()",
+            "selected-name": "RunW3_C128_TidInChunkRoot"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128TidInTraceChunk()",
+            "selected-name": "RunW3_C128_TidInTraceChunk"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128PropagationTidInconsistent()",
+            "selected-name": "RunW3_C128_PropagationTidInconsistent"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128PropagationTidMalformed()",
+            "selected-name": "RunW3_C128_PropagationTidMalformed"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128PropAndGen()",
+            "selected-name": "RunW3_C128_PropAndGen"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128GenDisabled()",
+            "selected-name": "RunW3_C128_GenDisabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runW3c128GenEnabled()",
+            "selected-name": "RunW3_C128_GenEnabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestateOrigin()",
+            "selected-name": "RunTracestateOrigin"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestatePropagatedTags()",
+            "selected-name": "RunTracestatePropagatedTags"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageSetGet()",
+            "selected-name": "RunBaggageSetGet"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageRemove()",
+            "selected-name": "RunBaggageRemove"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageRemoveAll()",
+            "selected-name": "RunBaggageRemoveAll"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageGetAfterExtract()",
+            "selected-name": "RunBaggageGetAfterExtract"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageInjectEncoding()",
+            "selected-name": "RunBaggageInjectEncoding"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageDefaultD001()",
+            "selected-name": "RunBaggageDefaultD001"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageOnlyD002()",
+            "selected-name": "RunBaggageOnlyD002"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageDisabledD003()",
+            "selected-name": "RunBaggageDisabledD003"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageExtractD005()",
+            "selected-name": "RunBaggageExtractD005"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageSetDisabledD007()",
+            "selected-name": "RunBaggageSetDisabledD007"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageGetAllD009()",
+            "selected-name": "RunBaggageGetAllD009"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageMaxItemsD016()",
+            "selected-name": "RunBaggageMaxItemsD016"
+        },
+        {
+            "qualified-name": "system-tests-redux.runBaggageMaxBytesD017()",
+            "selected-name": "RunBaggageMaxBytesD017"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSetAttributes()",
+            "selected-name": "RunOtelSetAttributes"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelIsRecording()",
+            "selected-name": "RunOtelIsRecording"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSpanContext()",
+            "selected-name": "RunOtelSpanContext"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelHttpStatusRemap()",
+            "selected-name": "RunOtelHttpStatusRemap"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelOperationName()",
+            "selected-name": "RunOtelOperationName"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSimpleTrace()",
+            "selected-name": "RunOtelSimpleTrace"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelRecordExceptionSetsErrorTags()",
+            "selected-name": "RunOtelRecordExceptionSetsErrorTags"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelRecordExceptionDoesNotSetError()",
+            "selected-name": "RunOtelRecordExceptionDoesNotSetError"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelHttpStatusCodePassthrough()",
+            "selected-name": "RunOtelHttpStatusCodePassthrough"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSetServiceName()",
+            "selected-name": "RunOtelSetServiceName"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSpanEndNoop()",
+            "selected-name": "RunOtelSpanEndNoop"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelStatusErrorUnsetIgnored()",
+            "selected-name": "RunOtelStatusErrorUnsetIgnored"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelStatusOkFinal()",
+            "selected-name": "RunOtelStatusOkFinal"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSpanContextSharedTrace()",
+            "selected-name": "RunOtelSpanContextSharedTrace"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelOperationNameConsumer()",
+            "selected-name": "RunOtelOperationNameConsumer"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelOperationNameInternal()",
+            "selected-name": "RunOtelOperationNameInternal"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSpanLinkFromDistributedDatadog()",
+            "selected-name": "RunSpanLinkFromDistributedDatadog"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSpanLinkFromDistributedW3C()",
+            "selected-name": "RunSpanLinkFromDistributedW3_C"
+        },
+        {
+            "qualified-name": "system-tests-redux.runSpanLinkTraceIdHigh()",
+            "selected-name": "RunSpanLinkTraceIdHigh"
+        },
+        {
+            "qualified-name": "system-tests-redux.telemetryValue()",
+            "selected-name": "TelemetryValue"
+        },
+        {
+            "qualified-name": "system-tests-redux.telemetryOrigin()",
+            "selected-name": "TelemetryOrigin"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTelemetryConfigEnv()",
+            "selected-name": "RunTelemetryConfigEnv"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTelemetryConfigTags()",
+            "selected-name": "RunTelemetryConfigTags"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigSpecificVersion()",
+            "selected-name": "RunConfigSpecificVersion"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigSpecificEnv()",
+            "selected-name": "RunConfigSpecificEnv"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigTags()",
+            "selected-name": "RunConfigTags"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigServiceOverride()",
+            "selected-name": "RunConfigServiceOverride"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigDefaultRateLimit()",
+            "selected-name": "RunConfigDefaultRateLimit"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigAgentHttpUrl()",
+            "selected-name": "RunConfigAgentHttpUrl"
+        },
+        {
+            "qualified-name": "system-tests-redux.runConfigAgentUnixUrl()",
+            "selected-name": "RunConfigAgentUnixUrl"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelDdPrecedence()",
+            "selected-name": "RunOtelDdPrecedence"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelDdLogPrecedence()",
+            "selected-name": "RunOtelDdLogPrecedence"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelEnvVarsSet()",
+            "selected-name": "RunOtelEnvVarsSet"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelAttributeMapping()",
+            "selected-name": "RunOtelAttributeMapping"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelLogLevelEnv()",
+            "selected-name": "RunOtelLogLevelEnv"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelTracesAlwaysOn()",
+            "selected-name": "RunOtelTracesAlwaysOn"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelTracesAlwaysOff()",
+            "selected-name": "RunOtelTracesAlwaysOff"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelTracesTraceIdRatio()",
+            "selected-name": "RunOtelTracesTraceIdRatio"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelTracesExporterNone()",
+            "selected-name": "RunOtelTracesExporterNone"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelLogLevelDebugMapping()",
+            "selected-name": "RunOtelLogLevelDebugMapping"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelEnabledTakesPrecedence()",
+            "selected-name": "RunOtelEnabledTakesPrecedence"
+        },
+        {
+            "qualified-name": "system-tests-redux.runOtelSdkDisabledSet()",
+            "selected-name": "RunOtelSdkDisabledSet"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracerRepositoryUrl()",
+            "selected-name": "RunTracerRepositoryUrl"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracerCommitSha()",
+            "selected-name": "RunTracerCommitSha"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripHttpsUserPass()",
+            "selected-name": "RunRepoStripHttpsUserPass"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripSshUserPass()",
+            "selected-name": "RunRepoStripSshUserPass"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripHttpsToken()",
+            "selected-name": "RunRepoStripHttpsToken"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripSshToken()",
+            "selected-name": "RunRepoStripSshToken"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripHttpsClean()",
+            "selected-name": "RunRepoStripHttpsClean"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripNoScheme()",
+            "selected-name": "RunRepoStripNoScheme"
+        },
+        {
+            "qualified-name": "system-tests-redux.runRepoStripScpStyle()",
+            "selected-name": "RunRepoStripScpStyle"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceSampledByResourceRule()",
+            "selected-name": "RunTraceSampledByResourceRule"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceDroppedByResourceRule()",
+            "selected-name": "RunTraceDroppedByResourceRule"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceSampledByTagsRule()",
+            "selected-name": "RunTraceSampledByTagsRule"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceDroppedByTagsRule()",
+            "selected-name": "RunTraceDroppedByTagsRule"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceTagMatchFoo()",
+            "selected-name": "RunTraceTagMatchFoo"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceTagMatchSet()",
+            "selected-name": "RunTraceTagMatchSet"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceTagMatchRange()",
+            "selected-name": "RunTraceTagMatchRange"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceTagMetricMatch20()",
+            "selected-name": "RunTraceTagMetricMatch20"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceTagMetricMismatchNonInteger()",
+            "selected-name": "RunTraceTagMetricMismatchNonInteger"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceSampledFieldCaseInsensitive()",
+            "selected-name": "RunTraceSampledFieldCaseInsensitive"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestateChangeSamplingSameDm()",
+            "selected-name": "RunTracestateChangeSamplingSameDm"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestateChangeSamplingResetDm()",
+            "selected-name": "RunTracestateChangeSamplingResetDm"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestateKeeps32()",
+            "selected-name": "RunTracestateKeeps32"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracestateEvicts32()",
+            "selected-name": "RunTracestateEvicts32"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracingEnabled()",
+            "selected-name": "RunTracingEnabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runDefaultConfig()",
+            "selected-name": "RunDefaultConfig"
+        },
+        {
+            "qualified-name": "system-tests-redux.runAgentHttpUrlIpv6()",
+            "selected-name": "RunAgentHttpUrlIpv6"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTagsCommaSimple()",
+            "selected-name": "RunTagsCommaSimple"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTracingDisabled()",
+            "selected-name": "RunTracingDisabled"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTagsColonValue()",
+            "selected-name": "RunTagsColonValue"
+        },
+        {
+            "qualified-name": "system-tests-redux.allCases()",
+            "selected-name": "AllCases"
+        },
+        {
+            "qualified-name": "system-tests-redux.runAgentHostIpv6()",
+            "selected-name": "RunAgentHostIpv6"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTagsSpaceSimple()",
+            "selected-name": "RunTagsSpaceSimple"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTagsCommaTrailingEmpty()",
+            "selected-name": "RunTagsCommaTrailingEmpty"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTagsKeysNoValues()",
+            "selected-name": "RunTagsKeysNoValues"
+        },
+        {
+            "qualified-name": "system-tests-redux.ORIGIN",
+            "selected-name": "Origin"
+        },
+        {
+            "qualified-name": "system-tests-redux.SAMPLING_PRIORITY_KEY",
+            "selected-name": "SamplingPriorityKey"
+        },
+        {
+            "qualified-name": "system-tests-redux.DM_KEY",
+            "selected-name": "DmKey"
+        },
+        {
+            "qualified-name": "system-tests-redux.TID_KEY",
+            "selected-name": "TidKey"
+        },
+        {
+            "qualified-name": "system-tests-redux.runTraceKeptManualPriority()",
+            "selected-name": "RunTraceKeptManualPriority"
+        },
+        {
+            "qualified-name": "system-tests-redux.headersToMap()",
+            "selected-name": "HeadersToMap"
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+// # Hex helpers
+
+// For header codecs that encode ids as hex (B3, tracecontext, 128-bit).
+
+export let strLen(s: String): Int { s.countBetween(String.begin, s.end) }
+
+let lastN(s: String, n: Int): String {
+  let len = strLen(s);
+  if (len <= n) { return s; }
+  s.slice(s.step(s.end, 0 - n), s.end)
+}
+
+// Hex digit value from a code point (`0-9`, `a-f`, `A-F`); other chars → 0.
+
+let cpHexVal(cp: Int): Int {
+  if (cp >= 48 && cp <= 57) { return cp - 48; }
+  if (cp >= 97 && cp <= 102) { return cp - 87; }
+  if (cp >= 65 && cp <= 70) { return cp - 55; }
+  0
+}
+
+// Unsigned hex → decimal string via digit-wise base-16 accumulation, so it is
+// correct for full 64-bit (and wider) values that overflow a signed `Int64`.
+
+let hexToUnsignedDecimal(hex: String): String {
+  let digits = new ListBuilder<Int>();
+  digits.add(0); // little-endian decimal digits
+  for (var i = String.begin; hex.hasIndex(i); i = hex.next(i)) {
+    var carry = cpHexVal(hex[i]);
+    for (var j = 0; j < digits.length; j++) {
+      let v = digits[j] * 16 + carry;
+      digits.set(j, v % 10);
+      carry = v / 10;
+    }
+    while (carry > 0) { digits.add(carry % 10); carry = carry / 10; }
+  }
+  var out = "";
+  for (var k = digits.length - 1; k >= 0; k--) { out = "${out}${digits[k]}"; }
+  out
+}
+
+// `hexLow64ToDecimal` parses the low 64 bits (last 16 hex chars) into a decimal
+// string — matching how a 64-bit Datadog id maps onto a 16/32-char B3 trace id.
+
+export let hexLow64ToDecimal(hex: String): String { hexToUnsignedDecimal(lastN(hex, 16)) }
+
+export let hexToDecimal(hex: String): String { hexToUnsignedDecimal(hex) }

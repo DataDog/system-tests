@@ -1,0 +1,6 @@
+{
+    "require": {
+        "open-telemetry/api": "^1.0",
+        "open-telemetry/sdk": "^1.0"
+    }
+}

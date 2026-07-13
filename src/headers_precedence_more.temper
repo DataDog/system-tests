@@ -1,0 +1,97 @@
+// # Propagation-style precedence: tracestate propagation with 3 styles + EXTRACT_FIRST
+//
+// Ported from `tests/parametric/test_headers_precedence.py`'s shared helper
+// `_test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate`,
+// which backs four upstream tests (prefer_tracecontext x extract_first). All
+// propagators run in the configured order; the first to extract a valid context
+// wins, EXCEPT the tracecontext tracestate is retained when its traceparent
+// trace-id matches the extracted trace-id. Adapter-only; env sets the 3-style
+// order + DD_TRACE_PROPAGATION_EXTRACT_FIRST.
+
+let mpPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+let mpTpField(out: Mapped<String, String>, i: Int): String {
+  let p = out.getOr("traceparent", "").split("-");
+  if (p.length > i) { p[i] } else { "" }
+}
+let mpTsMembers(out: Mapped<String, String>): List<String> { out.getOr("tracestate", "").split(",") }
+let mpStartsWith(s: String, prefix: String): Boolean {
+  let pl = strLen(prefix);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == prefix
+}
+let mpContains(haystack: String, needle: String): Boolean { haystack.split(needle).length > 1 }
+let mpHasMember(out: Mapped<String, String>, member: String): Boolean {
+  let m = mpTsMembers(out);
+  for (var i = 0; i < m.length; i++) { if (m[i] == member) { return true; } }
+  false
+}
+let mpDdMember(out: Mapped<String, String>): String {
+  let m = mpTsMembers(out);
+  for (var i = 0; i < m.length; i++) { if (mpStartsWith(m[i], "dd=")) { return m[i]; } }
+  ""
+}
+
+// inputs for the 5 documented scenarios
+let mpScn(tpTrace: String, tsMembers: String, ddTrace: String, ddParent: String): Listed<Pair<String, String>> {
+  [
+    mpPr("traceparent", "00-${tpTrace}-000000003ade68b1-01"),
+    mpPr("tracestate", tsMembers),
+    mpPr("x-datadog-trace-id", ddTrace),
+    mpPr("x-datadog-parent-id", ddParent),
+    mpPr("x-datadog-sampling-priority", "2"),
+    mpPr("x-datadog-tags", "_dd.p.tid=1111111111111111"),
+  ]
+}
+
+let mpRunTsProp(t: Tracer, preferTc: Boolean, extractFirst: Boolean): CheckResult {
+  let c = new Checker();
+  // foo is dropped only when EXTRACT_FIRST is true and tracecontext is NOT first
+  let fooDropped = extractFirst && !preferTc;
+
+  // 1) datadog + tracecontext, trace-id and span-id match, tracestate present
+  let h1 = makeChildSpanAndGetHeaders(t, mpScn(
+    "11111111111111110000000000000001", "dd=s:2;t.tid:1111111111111111,foo=1", "1", "987654321"));
+  c.eqStr(mpTpField(h1, 1), "11111111111111110000000000000001", "s1: trace id");
+  if (fooDropped) { c.isTrue(!mpHasMember(h1, "foo=1"), "s1: foo dropped"); } else { c.isTrue(mpHasMember(h1, "foo=1"), "s1: foo retained"); }
+
+  // 2) x-datadog-* don't match the tracestate dd member
+  let h2 = makeChildSpanAndGetHeaders(t, mpScn(
+    "11111111111111110000000000000002", "dd=s:1;t.tid:1111111111111111,foo=1", "2", "987654321"));
+  c.eqStr(mpTpField(h2, 1), "11111111111111110000000000000002", "s2: trace id");
+  if (fooDropped) { c.isTrue(!mpHasMember(h2, "foo=1"), "s2: foo dropped"); } else { c.isTrue(mpHasMember(h2, "foo=1"), "s2: foo retained"); }
+  if (preferTc) { c.isTrue(!mpContains(mpDdMember(h2), "s:2"), "s2: tracestate dd s value retained (no s:2)"); } else { c.isTrue(mpContains(mpDdMember(h2), "s:2"), "s2: datadog priority s:2 used"); }
+
+  // 3) no dd tracestate list-member
+  let h3 = makeChildSpanAndGetHeaders(t, mpScn(
+    "11111111111111110000000000000003", "foo=1", "3", "987654321"));
+  c.eqStr(mpTpField(h3, 1), "11111111111111110000000000000003", "s3: trace id");
+  if (fooDropped) { c.isTrue(!mpHasMember(h3, "foo=1"), "s3: foo dropped"); } else { c.isTrue(mpHasMember(h3, "foo=1"), "s3: foo retained"); }
+  if (preferTc) { c.isTrue(!mpContains(mpDdMember(h3), "s:2"), "s3: no s:2 (tracecontext first)"); } else { c.isTrue(mpContains(mpDdMember(h3), "s:2"), "s3: datadog priority s:2 used"); }
+
+  // 4) trace-id same, span-id different, tracestate present
+  let h4 = makeChildSpanAndGetHeaders(t, mpScn(
+    "11111111111111110000000000000004", "dd=s:2;t.tid:1111111111111111,foo=1", "4", "3540"));
+  c.eqStr(mpTpField(h4, 1), "11111111111111110000000000000004", "s4: trace id");
+  if (fooDropped) { c.isTrue(!mpHasMember(h4, "foo=1"), "s4: foo dropped"); } else { c.isTrue(mpHasMember(h4, "foo=1"), "s4: foo retained"); }
+
+  // 5) trace-id different between datadog and tracecontext
+  let h5 = makeChildSpanAndGetHeaders(t, mpScn(
+    "11111111111111110000000000000005", "foo=1", "3541", "987654321"));
+  if (preferTc) {
+    c.eqStr(mpTpField(h5, 1), "11111111111111110000000000000005", "s5: tracecontext trace id wins");
+    c.isTrue(mpHasMember(h5, "foo=1"), "s5: foo retained");
+  } else {
+    c.eqStr(mpTpField(h5, 1), "11111111111111110000000000000dd5", "s5: datadog trace id wins");
+    c.isTrue(!mpHasMember(h5, "foo=1"), "s5: foo dropped");
+  }
+  c.result()
+}
+
+// tracecontext LAST (Datadog,b3multi,tracecontext). The extract_first=false
+// variant is omitted (it matches the modern default propagation given no b3
+// inputs, so it isn't env-dependent).
+export let runPrecTcLastExtractFirstTrue(t: Tracer): CheckResult { mpRunTsProp(t, false, true) }
+// tracecontext FIRST (tracecontext,Datadog,b3multi)
+export let runPrecTcFirstExtractFirstFalse(t: Tracer): CheckResult { mpRunTsProp(t, true, false) }
+export let runPrecTcFirstExtractFirstTrue(t: Tracer): CheckResult { mpRunTsProp(t, true, true) }

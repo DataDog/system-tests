@@ -1,0 +1,482 @@
+// # Conformance case registry
+
+// The single source of truth for "what to run". Each case pairs a name, the env
+// the tracer must be built with, and the `run` function. The in-repo validation
+// and every native adapter iterate this list: build a tracer configured with
+// `case.env`, then call `case.run(tracer)`.
+
+// `fakeSupported` is false for behavior-heavy cases (e.g. sampling-rule
+// evaluation) that the in-repo `FakeTracer` cannot faithfully model without
+// reimplementing a tracer; those run only against real `dd-trace-*` adapters.
+
+// `unsupported` lists library ids (e.g. `"nodejs"`) that don't implement the
+// behavior; adapters skip those cases (mirrors upstream `@missing_feature`).
+
+export class ConformanceCase(
+  public name: String,
+  public env: Mapped<String, String>,
+  public run: fn (Tracer): CheckResult,
+  public fakeSupported: Boolean = true,
+  public unsupported: Listed<String> = new ListBuilder<String>().toList(),
+  // when true, the runner points the tracer at a real ddapm-test-agent and the
+  // case asserts on what was delivered over the wire (deliveredSpans/computedStatsJson)
+  public needsAgent: Boolean = false,
+) {}
+
+let noEnv(): Mapped<String, String> { new Map<String, String>([]) }
+
+let sssEnv(spanRules: String, traceRate: String, traceRules: String): Mapped<String, String> {
+  new Map<String, String>([
+    new Pair("DD_SPAN_SAMPLING_RULES", spanRules),
+    new Pair("DD_TRACE_SAMPLE_RATE", traceRate),
+    new Pair("DD_TRACE_SAMPLING_RULES", traceRules),
+  ])
+}
+
+export let allCases(): List<ConformanceCase> {
+  let cs = new ListBuilder<ConformanceCase>();
+
+  cs.add(new ConformanceCase("span_links.attached_links", noEnv(), runSpanWithAttachedLinks));
+  cs.add(new ConformanceCase("tracer.top_level_attributes", noEnv(), runTracerTopLevelAttributes));
+
+  cs.add(new ConformanceCase("headers_datadog.extract_D001", noEnv(), runHeadersExtractDatadogD001));
+  cs.add(new ConformanceCase("headers_datadog.extract_invalid_D002", noEnv(), runHeadersExtractDatadogInvalidD002));
+  cs.add(new ConformanceCase("headers_datadog.inject_D003", noEnv(), runHeadersInjectDatadogD003));
+  cs.add(new ConformanceCase("headers_datadog.propagate_D004", noEnv(), runHeadersPropagateDatadogD004));
+  cs.add(new ConformanceCase("headers_datadog.extract_inject_invalid_D005", noEnv(), runHeadersExtractInjectInvalidD005));
+
+  cs.add(new ConformanceCase(
+    "headers_none.extract",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "none"),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "none"),
+    ]),
+    runHeadersNoneExtract,
+  ));
+  cs.add(new ConformanceCase(
+    "headers_none.extract_with_other_propagators",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "none,Datadog"),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "none,Datadog"),
+    ]),
+    runHeadersNoneExtractWithOtherPropagators,
+  ));
+  cs.add(new ConformanceCase(
+    "headers_none.inject",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "none"),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "none"),
+    ]),
+    runHeadersNoneInject, false,
+  ));
+  cs.add(new ConformanceCase(
+    "headers_none.inject_with_other_propagators",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "none,Datadog"),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "none,Datadog"),
+    ]),
+    runHeadersNoneInjectWithOtherPropagators, false,
+  ));
+  cs.add(new ConformanceCase(
+    "headers_none.propagate",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "none"),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "none"),
+    ]),
+    runHeadersNonePropagate, false,
+  ));
+  cs.add(new ConformanceCase(
+    "headers_none.single_key_propagate",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE", "none"),
+    ]),
+    runHeadersNoneSingleKeyPropagate, false,
+  ));
+  cs.add(new ConformanceCase("sampling_delegation.extract_neither", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "1.0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"sample_rate\":1.0}]"), new Pair("DD_TRACE_PROPAGATION_STYLE", "Datadog")]), runSamplingDelegationNeither, false));
+  cs.add(new ConformanceCase("library_tracestats.TS001", new Map<String, String>([new Pair("DD_TRACE_STATS_COMPUTATION_ENABLED", "1"), new Pair("DD_TRACE_API_VERSION", "v0.4"), new Pair("_DD_TRACE_STATS_WRITER_INTERVAL", "1")]), runStatsTS001, false, ["nodejs"], true));
+  cs.add(new ConformanceCase("partial_flushing.one_span", new Map<String, String>([new Pair("DD_TRACE_PARTIAL_FLUSH_MIN_SPANS", "1"), new Pair("DD_TRACE_PARTIAL_FLUSH_ENABLED", "true")]), runPartialFlushOneSpan, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.capability_sample_rate", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcCapabilitySampleRate, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.capability_enabled", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcCapabilityEnabled, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.capability_logs_injection", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcCapabilityLogsInjection, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.capability_http_header_tags", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcCapabilityHttpHeaderTags, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.capability_custom_tags", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcCapabilityCustomTags, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.capability_sample_rules", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcCapabilitySampleRules, false, new ListBuilder<String>().toList(), true));
+  cs.add(new ConformanceCase("dynamic_configuration.sampling_rate_override", new Map<String, String>([new Pair("DD_REMOTE_CONFIGURATION_ENABLED", "true"), new Pair("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.5"), new Pair("DD_SERVICE", "test_service"), new Pair("DD_ENV", "test_env")]), runRcSamplingOverride, false, ["nodejs"], true));
+  let sevEnv(v: String): Mapped<String, String> { new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true"), new Pair("DD_TRACE_API_VERSION", v), new Pair("DD_TRACE_NATIVE_SPAN_EVENTS", "1")]) };
+  cs.add(new ConformanceCase("span_events.native_v04", sevEnv("v0.4"), runSpanEventNative, false));
+  cs.add(new ConformanceCase("span_events.native_v07", sevEnv("v0.7"), runSpanEventNative, false));
+  cs.add(new ConformanceCase("span_events.meta_v05", sevEnv("v0.5"), runSpanEventV05Meta, false));
+  cs.add(new ConformanceCase("otel_interop.update_resource", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropUpdateResource, false));
+  cs.add(new ConformanceCase("otel_interop.span_links_add", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropSpanLinksAdd, false));
+  cs.add(new ConformanceCase("otel_interop.set_update_remove_meta", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropMeta, false));
+  cs.add(new ConformanceCase("otel_interop.set_update_remove_metric", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropMetric, false));
+  cs.add(new ConformanceCase("otel_interop.dd_after_otel", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropDdAfterOtel, false));
+  cs.add(new ConformanceCase("otel_interop.otel_after_dd", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropOtelAfterDd, false));
+  cs.add(new ConformanceCase("otel_interop.concurrent_traces", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropConcurrent, false));
+  cs.add(new ConformanceCase("otel_interop.nested_otel_root", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropNestedOtelRoot, false));
+  cs.add(new ConformanceCase("otel_interop.nested_dd_root", new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelInteropNestedDdRoot, false));
+
+  cs.add(new ConformanceCase(
+    "trace_sampling.sampled_by_rule_exact_match",
+    new Map<String, String>([
+      new Pair("DD_TRACE_SAMPLE_RATE", "0"),
+      new Pair("DD_TRACE_SAMPLING_RULES",
+        "[{\"service\": \"webserver.non-matching\", \"sample_rate\": 0}, {\"service\": \"webserver\", \"sample_rate\": 1}]"),
+    ]),
+    runTraceSampledByRuleExactMatch, false,
+  ));
+  cs.add(new ConformanceCase(
+    "trace_sampling.dropped_by_rule",
+    new Map<String, String>([
+      new Pair("DD_TRACE_SAMPLE_RATE", "1"),
+      new Pair("DD_TRACE_SAMPLING_RULES",
+        "[{\"service\": \"webserver\", \"name\": \"web.request\", \"sample_rate\": 0}]"),
+    ]),
+    runTraceDroppedByRule, false,
+  ));
+
+  let b3multiEnv = new Map<String, String>([
+    new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "b3multi"),
+    new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "b3multi"),
+  ]);
+  cs.add(new ConformanceCase("headers_b3multi.extract_valid", b3multiEnv, runB3multiExtractValid, false));
+  cs.add(new ConformanceCase("headers_b3multi.extract_invalid", b3multiEnv, runB3multiExtractInvalid, false));
+  cs.add(new ConformanceCase("headers_b3multi.inject_valid", b3multiEnv, runB3multiInjectValid, false));
+  cs.add(new ConformanceCase("headers_b3multi.propagate_valid", b3multiEnv, runB3multiPropagateValid, false));
+  cs.add(new ConformanceCase("headers_b3multi.propagate_invalid", b3multiEnv, runB3multiPropagateInvalid, false));
+  cs.add(new ConformanceCase(
+    "headers_b3multi.extract_valid_case_insensitive",
+    new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "B3multi")]),
+    runB3multiExtractValid, false,
+  ));
+
+  let b3SingleEnv = new Map<String, String>([
+    new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "B3 single header"),
+    new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "B3 single header"),
+  ]);
+  cs.add(new ConformanceCase("headers_b3.extract_valid", b3SingleEnv, runB3SingleExtractValid, false));
+  cs.add(new ConformanceCase("headers_b3.extract_invalid", b3SingleEnv, runB3SingleExtractInvalid, false));
+  cs.add(new ConformanceCase("headers_b3.inject_valid", b3SingleEnv, runB3SingleInjectValid, false));
+  cs.add(new ConformanceCase("headers_b3.propagate_valid", b3SingleEnv, runB3SinglePropagateValid, false));
+  cs.add(new ConformanceCase("headers_b3.propagate_invalid", b3SingleEnv, runB3SinglePropagateInvalid, false));
+  // Migrated b3 (DD_TRACE_PROPAGATION_STYLE=b3): same behavior, new style name.
+  // Upstream marks nodejs @missing_feature (b3=b3multi alias not yet removed).
+  let b3MigEnv = new Map<String, String>([
+    new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "b3"),
+    new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "b3"),
+  ]);
+  cs.add(new ConformanceCase("headers_b3.migrated_extract_valid", b3MigEnv, runB3SingleExtractValid, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_b3.migrated_extract_invalid", b3MigEnv, runB3SingleExtractInvalid, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_b3.migrated_inject_valid", b3MigEnv, runB3SingleInjectValid, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_b3.migrated_propagate_valid", b3MigEnv, runB3SinglePropagateValid, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_b3.migrated_propagate_invalid", b3MigEnv, runB3SinglePropagateInvalid, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_b3.migrated_single_key_propagate_valid", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "b3")]), runB3SinglePropagateValid, false, ["nodejs"]));
+
+  let tcEnv = new Map<String, String>([
+    new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext"),
+    new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext"),
+  ]);
+  cs.add(new ConformanceCase("headers_tracecontext.valid", tcEnv, runTpValid, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_w3c_p_extract", tcEnv, runTsW3cPExtract, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_w3c_p_inject", tcEnv, runTsW3cPInject, false));
+  let p3Env = new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "datadog,tracecontext")]);
+  cs.add(new ConformanceCase("headers_tracecontext.p3_identical_trace_info", p3Env, runP3IdenticalTraceInfo, false));
+  cs.add(new ConformanceCase("headers_tracecontext.p3_trace_ids_differ", p3Env, runP3TraceIdsDoNotMatch, false));
+  cs.add(new ConformanceCase("headers_tracecontext.p3_non_matching_parent_ids", p3Env, runP3NonMatchingParentIds, false));
+  cs.add(new ConformanceCase("headers_tracecontext.p3_missing_p_value", p3Env, runP3MissingPValue, false));
+  cs.add(new ConformanceCase("headers_tracecontext.p3_non_matching_p_value", p3Env, runP3NonMatchingPValue, false));
+  cs.add(new ConformanceCase("headers_tracecontext.p3_extract_first", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "datadog,tracecontext"), new Pair("DD_TRACE_PROPAGATION_EXTRACT_FIRST", "true")]), runP3ExtractFirst, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_w3c_context_leak", p3Env, runTsW3cContextLeak, false));
+  cs.add(new ConformanceCase("headers_tracecontext.version_too_short", tcEnv, runTpVersionTooShort, false));
+  cs.add(new ConformanceCase("headers_tracecontext.trace_id_all_zero", tcEnv, runTpTraceIdAllZero, false));
+  cs.add(new ConformanceCase("headers_tracecontext.trace_id_too_long", tcEnv, runTpTraceIdTooLong, false));
+  cs.add(new ConformanceCase("headers_tracecontext.trace_id_too_short", tcEnv, runTpTraceIdTooShort, false));
+  cs.add(new ConformanceCase("headers_tracecontext.parent_id_all_zero", tcEnv, runTpParentIdAllZero, false));
+  cs.add(new ConformanceCase("headers_tracecontext.trace_id_illegal_chars", tcEnv, runTpTraceIdIllegalChars, false));
+
+  let dropTrace = "[{\"sample_rate\":0}]";
+  cs.add(new ConformanceCase("span_sampling.sss001_single_rule_match",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"web.request\"}]", "0", dropTrace), runSssKept, false));
+  cs.add(new ConformanceCase("span_sampling.sss002_glob_chars",
+    sssEnv("[{\"service\": \"webse*\", \"name\": \"web.re?uest\"}]", "0", dropTrace), runSssKept, false));
+  cs.add(new ConformanceCase("span_sampling.sss003_no_match",
+    sssEnv("[{\"service\": \"notmatching\", \"name\": \"notmatching\"}]", "0", dropTrace), runSssDropped, false));
+  cs.add(new ConformanceCase("span_sampling.sss004_service_only",
+    sssEnv("[{\"service\": \"webserver\"}]", "0", dropTrace), runSssKept, false));
+  cs.add(new ConformanceCase("span_sampling.sss005_name_no_match",
+    sssEnv("[{\"name\": \"no_match\"}]", "0", dropTrace), runSssDropped, false));
+  cs.add(new ConformanceCase("span_sampling.sss006_multi_keep_drop",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"web.request\"}, {\"service\": \"webserver\", \"name\": \"web.request\", \"sample_rate\": 0}]", "0", dropTrace), runSssKept, false));
+  cs.add(new ConformanceCase("span_sampling.sss007_multi_drop_keep",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"web.request\", \"sample_rate\": 0}, {\"service\": \"webserver\", \"name\": \"web.request\"}]", "0", dropTrace), runSssDropped, false));
+  cs.add(new ConformanceCase("span_sampling.sss011_manual_drop_kept",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"web.request\", \"sample_rate\": 1.0}]", "1.0", "[{\"sample_rate\":1.0}]"), runSssManualDropKept, false));
+  cs.add(new ConformanceCase("span_sampling.sss012_tracer_keep_overrides",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"web.request\", \"sample_rate\": 0}]", "1.0", "[{\"sample_rate\":1.0}]"), runSssTracerKeepNoSss, false));
+  cs.add(new ConformanceCase("span_sampling.sss014_root_selected",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"parent\", \"sample_rate\": 1.0, \"max_per_second\": 50}]", "0", dropTrace), runSssParentSelected, false));
+  cs.add(new ConformanceCase("span_sampling.sss015_child_selected",
+    sssEnv("[{\"service\": \"webserver\", \"name\": \"child\", \"sample_rate\": 1.0, \"max_per_second\": 50}]", "0", dropTrace), runSssChildSelected, false));
+
+  cs.add(new ConformanceCase(
+    "headers_tracestate_dd.propagate_sampling_priority",
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext,Datadog"),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext,Datadog"),
+    ]),
+    runTracestateSamplingPriority, false,
+  ));
+
+  let styleEnv(extract: String, inject: String): Mapped<String, String> {
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", extract),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", inject),
+    ])
+  };
+  cs.add(new ConformanceCase("headers_precedence.datadog", styleEnv("Datadog", "Datadog"), runPrecedenceDatadog, false));
+  cs.add(new ConformanceCase("headers_precedence.tracecontext", styleEnv("tracecontext", "tracecontext"), runPrecedenceTracecontext, false));
+  cs.add(new ConformanceCase("headers_precedence.tracecontext_datadog", styleEnv("tracecontext,Datadog", "tracecontext,Datadog"), runPrecedenceTcDd, false));
+  cs.add(new ConformanceCase("headers_precedence.datadog_tracecontext", styleEnv("Datadog,tracecontext", "Datadog,tracecontext"), runPrecedenceDdTc, false));
+  let styleEnvEf(style: String, extractFirst: String): Mapped<String, String> {
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", style),
+      new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", style),
+      new Pair("DD_TRACE_PROPAGATION_EXTRACT_FIRST", extractFirst),
+    ])
+  };
+  cs.add(new ConformanceCase("headers_precedence.tc_last_extract_first_true", styleEnvEf("Datadog,b3multi,tracecontext", "true"), runPrecTcLastExtractFirstTrue, false));
+  cs.add(new ConformanceCase("headers_precedence.tc_first_extract_first_false", styleEnvEf("tracecontext,Datadog,b3multi", "false"), runPrecTcFirstExtractFirstFalse, false));
+  cs.add(new ConformanceCase("headers_precedence.tc_first_extract_first_true", styleEnvEf("tracecontext,Datadog,b3multi", "true"), runPrecTcFirstExtractFirstTrue, false));
+
+  let dd128Env(gen: String): Mapped<String, String> {
+    new Map<String, String>([
+      new Pair("DD_TRACE_PROPAGATION_STYLE", "Datadog"),
+      new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", gen),
+    ])
+  };
+  cs.add(new ConformanceCase("traceids_128bit.datadog_propagation", dd128Env("false"), runDd128Propagation, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_tid_long", dd128Env("false"), runDd128TidLong, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_tid_short", dd128Env("false"), runDd128TidShort, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_tid_chars", dd128Env("false"), runDd128TidChars, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_prop_and_gen", dd128Env("true"), runDd128PropAndGen, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_gen_disabled", dd128Env("false"), runDd128GenDisabled, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_gen_enabled", dd128Env("true"), runDd128GenEnabled, false));
+  cs.add(new ConformanceCase("traceids_128bit.datadog_gen_enabled_default",
+    new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "Datadog")]), runDd128GenEnabled, false));
+
+  let tcStyle = new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext"), new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext")]);
+  let skipNode = ["nodejs"];
+  cs.add(new ConformanceCase("headers_tracecontext.both_missing", tcStyle, runBothMissing, false));
+  cs.add(new ConformanceCase("headers_tracecontext.single_key_valid", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext")]), runSingleKeyTpValid, false));
+  cs.add(new ConformanceCase("headers_tracecontext.duplicated", tcStyle, runTpDuplicated, false));
+  cs.add(new ConformanceCase("headers_tracecontext.header_name", tcStyle, runTpHeaderName, false));
+  cs.add(new ConformanceCase("headers_tracecontext.header_name_valid_casing", tcStyle, runTpHeaderNameValidCasing, false));
+  cs.add(new ConformanceCase("headers_tracecontext.version_0x00", tcStyle, runTpVersion0x00, false));
+  cs.add(new ConformanceCase("headers_tracecontext.version_0xcc", tcStyle, runTpVersion0xcc, false));
+  cs.add(new ConformanceCase("headers_tracecontext.version_0xff", tcStyle, runTpVersion0xff, false));
+  cs.add(new ConformanceCase("headers_tracecontext.version_illegal_chars", tcStyle, runTpVersionIllegalChars, false));
+  cs.add(new ConformanceCase("headers_tracecontext.version_too_long", tcStyle, runTpVersionTooLong, false));
+  cs.add(new ConformanceCase("headers_tracecontext.parent_id_illegal_chars", tcStyle, runTpParentIdIllegalChars, false));
+  cs.add(new ConformanceCase("headers_tracecontext.parent_id_too_long", tcStyle, runTpParentIdTooLong, false));
+  cs.add(new ConformanceCase("headers_tracecontext.parent_id_too_short", tcStyle, runTpParentIdTooShort, false));
+  cs.add(new ConformanceCase("headers_tracecontext.flags_illegal_chars", tcStyle, runTpFlagsIllegalChars, false));
+  cs.add(new ConformanceCase("headers_tracecontext.flags_too_long", tcStyle, runTpFlagsTooLong, false));
+  cs.add(new ConformanceCase("headers_tracecontext.flags_too_short", tcStyle, runTpFlagsTooShort, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ows_handling", tcStyle, runTpOwsHandling, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_included_tp_missing", tcStyle, runTsIncludedTpMissing, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_included_tp_included", tcStyle, runTsIncludedTpIncluded, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_header_name", tcStyle, runTsHeaderName, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_header_name_valid_casing", tcStyle, runTsHeaderNameValidCasing, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_empty_header", tcStyle, runTsEmptyHeader, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_multiple_headers_diff_keys", tcStyle, runTsMultipleHeadersDifferentKeys, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_duplicated_keys", tcStyle, runTsDuplicatedKeys, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_all_allowed_chars", tcStyle, runTsAllAllowedChars, false));
+  cs.add(new ConformanceCase("headers_tracecontext.ts_ows_handling", tcStyle, runTsOwsHandling, false));
+
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3single_propagation", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "B3 single header"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runB3Single128Propagation, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3single_prop_and_gen", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "B3 single header"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runB3Single128PropagationAndGeneration, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3single_gen_disabled", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "B3 single header"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runB3Single128GenerationDisabled, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3single_gen_enabled", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "B3 single header"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runB3Single128GenerationEnabled, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3multi_propagation", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "b3multi"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runB3Multi128Propagation, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3multi_prop_and_gen", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "b3multi"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runB3Multi128PropagationAndGeneration, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3multi_gen_disabled", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "b3multi"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runB3Multi128GenerationDisabled, false));
+  cs.add(new ConformanceCase("traceids_128bit_b3.b3multi_gen_enabled", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "b3multi"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runB3Multi128GenerationEnabled, false));
+
+  cs.add(new ConformanceCase("traceids_128bit_tc.propagation", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runW3c128Propagation, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.tid_consistent", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runW3c128PropagationTidConsistent, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.tid_in_chunk_root", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runW3c128TidInChunkRoot, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.tid_in_trace_chunk", new Map<String, String>([]), runW3c128TidInTraceChunk, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.tid_inconsistent", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runW3c128PropagationTidInconsistent, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.tid_malformed", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runW3c128PropagationTidMalformed, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.prop_and_gen", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runW3c128PropAndGen, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.gen_disabled", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "false")]), runW3c128GenDisabled, false));
+  cs.add(new ConformanceCase("traceids_128bit_tc.gen_enabled", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "tracecontext"), new Pair("DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED", "true")]), runW3c128GenEnabled, false));
+
+  cs.add(new ConformanceCase("headers_tracestate_dd.propagate_origin", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext,Datadog"), new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext,Datadog")]), runTracestateOrigin, false));
+  cs.add(new ConformanceCase("headers_tracestate_dd.propagate_propagatedtags", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext,Datadog"), new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext,Datadog")]), runTracestatePropagatedTags, false));
+
+  cs.add(new ConformanceCase("headers_baggage.set_get_D006", noEnv(), runBaggageSetGet, true));
+  cs.add(new ConformanceCase("headers_baggage.remove_D010", noEnv(), runBaggageRemove, true));
+  cs.add(new ConformanceCase("headers_baggage.remove_all_D011", noEnv(), runBaggageRemoveAll, true));
+  cs.add(new ConformanceCase("headers_baggage.get_after_extract_D008", noEnv(), runBaggageGetAfterExtract, false, ["nodejs", "python"]));
+  cs.add(new ConformanceCase("headers_baggage.inject_encoding_D004", noEnv(), runBaggageInjectEncoding, false, skipNode));
+  let bgDisableEnv = new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "datadog,tracecontext")]);
+  let bgOnlyEnv = new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "baggage")]);
+  cs.add(new ConformanceCase("headers_baggage.default_D001", noEnv(), runBaggageDefaultD001, false));
+  cs.add(new ConformanceCase("headers_baggage.only_D002", bgOnlyEnv, runBaggageOnlyD002, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_baggage.disabled_D003", bgDisableEnv, runBaggageDisabledD003, false));
+  cs.add(new ConformanceCase("headers_baggage.extract_D005", noEnv(), runBaggageExtractD005, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_baggage.set_disabled_D007", bgDisableEnv, runBaggageSetDisabledD007, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_baggage.get_all_D009", noEnv(), runBaggageGetAllD009, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_baggage.max_items_D016", noEnv(), runBaggageMaxItemsD016, false, ["nodejs"]));
+  cs.add(new ConformanceCase("headers_baggage.max_bytes_D017", noEnv(), runBaggageMaxBytesD017, false, ["nodejs"]));
+
+  let otelEnv = new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true")]);
+  cs.add(new ConformanceCase("otel_span.set_attributes", otelEnv, runOtelSetAttributes, true));
+  cs.add(new ConformanceCase("otel_span.is_recording", otelEnv, runOtelIsRecording, true));
+  cs.add(new ConformanceCase("otel_span.span_context", otelEnv, runOtelSpanContext, false));
+  cs.add(new ConformanceCase("otel_span.http_status_remap", otelEnv, runOtelHttpStatusRemap, false));
+  cs.add(new ConformanceCase("otel_span.operation_name_mapping", otelEnv, runOtelOperationName, false, ["nodejs"]));
+  cs.add(new ConformanceCase("otel_tracer.simple_trace", otelEnv, runOtelSimpleTrace, false));
+  cs.add(new ConformanceCase("otel_span.record_exception_error_tags", otelEnv, runOtelRecordExceptionSetsErrorTags, false));
+  cs.add(new ConformanceCase("otel_span.record_exception_no_error", otelEnv, runOtelRecordExceptionDoesNotSetError, false));
+  cs.add(new ConformanceCase("otel_span.http_status_code_passthrough", otelEnv, runOtelHttpStatusCodePassthrough, false));
+  cs.add(new ConformanceCase("otel_span.set_service_name", otelEnv, runOtelSetServiceName, false));
+  cs.add(new ConformanceCase("otel_span.span_end_noop", otelEnv, runOtelSpanEndNoop, false));
+  cs.add(new ConformanceCase("otel_span.status_error_unset_ignored", otelEnv, runOtelStatusErrorUnsetIgnored, false));
+  cs.add(new ConformanceCase("otel_span.status_ok_final", otelEnv, runOtelStatusOkFinal, false, ["python"]));
+  cs.add(new ConformanceCase("otel_span.span_context_shared_trace", otelEnv, runOtelSpanContextSharedTrace, false));
+  cs.add(new ConformanceCase("otel_span.operation_name_consumer", otelEnv, runOtelOperationNameConsumer, false, ["nodejs"]));
+  cs.add(new ConformanceCase("otel_span.operation_name_internal", otelEnv, runOtelOperationNameInternal, false, ["nodejs"]));
+  cs.add(new ConformanceCase("span_links.from_distributed_datadog", noEnv(), runSpanLinkFromDistributedDatadog, false));
+  cs.add(new ConformanceCase("span_links.from_distributed_w3c", noEnv(), runSpanLinkFromDistributedW3C, false));
+  cs.add(new ConformanceCase("span_links.trace_id_high", noEnv(), runSpanLinkTraceIdHigh, false));
+  cs.add(new ConformanceCase("telemetry.config_env", new Map<String, String>([new Pair("DD_SERVICE", "service_test"), new Pair("DD_ENV", "dev"), new Pair("DD_VERSION", "5.2.0")]), runTelemetryConfigEnv, false));
+  cs.add(new ConformanceCase("telemetry.config_tags", new Map<String, String>([new Pair("DD_TAGS", "foo:bar,baz:qux"), new Pair("DD_TRACE_HEADER_TAGS", "header:tag")]), runTelemetryConfigTags, false));
+
+  cs.add(new ConformanceCase("config_consistency.specific_version",
+    new Map<String, String>([new Pair("DD_SERVICE", "version_test"), new Pair("DD_VERSION", "5.2.0")]), runConfigSpecificVersion, false));
+  cs.add(new ConformanceCase("config_consistency.specific_env",
+    new Map<String, String>([new Pair("DD_ENV", "dev")]), runConfigSpecificEnv, false));
+  cs.add(new ConformanceCase("config_consistency.tags",
+    new Map<String, String>([new Pair("DD_TAGS", "key1:value1,key2:value2")]), runConfigTags, false));
+  cs.add(new ConformanceCase("config_consistency.service_override",
+    new Map<String, String>([new Pair("DD_SERVICE", "random-service"), new Pair("DD_ENV", "dev")]), runConfigServiceOverride, false));
+  cs.add(new ConformanceCase("config_consistency.default_rate_limit",
+    new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "1")]), runConfigDefaultRateLimit, false));
+  cs.add(new ConformanceCase("config_consistency.agent_http_url",
+    new Map<String, String>([new Pair("DD_TRACE_AGENT_URL", "http://random-host:9999")]), runConfigAgentHttpUrl, false));
+  cs.add(new ConformanceCase("config_consistency.agent_unix_url",
+    new Map<String, String>([new Pair("DD_TRACE_AGENT_URL", "unix:///var/run/datadog/apm.socket")]), runConfigAgentUnixUrl, false));
+
+  let otelPrecEnv = new Map<String, String>([
+    new Pair("DD_SERVICE", "service"), new Pair("OTEL_SERVICE_NAME", "otel_service"),
+    new Pair("DD_LOG_LEVEL", "error"), new Pair("DD_TRACE_LOG_LEVEL", "error"),
+    new Pair("DD_TRACE_DEBUG", "false"), new Pair("OTEL_LOG_LEVEL", "debug"),
+    new Pair("DD_TRACE_SAMPLE_RATE", "0.5"), new Pair("OTEL_TRACES_SAMPLER", "traceidratio"), new Pair("OTEL_TRACES_SAMPLER_ARG", "0.1"),
+    new Pair("DD_TRACE_ENABLED", "true"), new Pair("OTEL_TRACES_EXPORTER", "none"),
+    new Pair("DD_RUNTIME_METRICS_ENABLED", "true"), new Pair("OTEL_METRICS_EXPORTER", "none"),
+    new Pair("DD_TAGS", "foo:bar,baz:qux"), new Pair("OTEL_RESOURCE_ATTRIBUTES", "foo=otel_bar,baz=otel_qux"),
+    new Pair("DD_TRACE_PROPAGATION_STYLE", "b3,tracecontext"), new Pair("OTEL_PROPAGATORS", "datadog,tracecontext"),
+  ]);
+  cs.add(new ConformanceCase("otel_env_vars.dd_precedence", otelPrecEnv, runOtelDdPrecedence, false, ["python"]));
+  cs.add(new ConformanceCase("otel_env_vars.dd_log_precedence", otelPrecEnv, runOtelDdLogPrecedence, false));
+  cs.add(new ConformanceCase("otel_env_vars.otel_only",
+    new Map<String, String>([
+      new Pair("OTEL_SERVICE_NAME", "otel_service"), new Pair("OTEL_TRACES_SAMPLER", "traceidratio"), new Pair("OTEL_TRACES_SAMPLER_ARG", "0.1"),
+      new Pair("OTEL_METRICS_EXPORTER", "none"), new Pair("OTEL_RESOURCE_ATTRIBUTES", "foo=bar1,baz=qux1"),
+      new Pair("OTEL_PROPAGATORS", "b3,tracecontext"), new Pair("DD_TRACE_OTEL_ENABLED", "true"),
+    ]), runOtelEnvVarsSet, false));
+  cs.add(new ConformanceCase("otel_env_vars.attribute_mapping",
+    new Map<String, String>([
+      new Pair("OTEL_RESOURCE_ATTRIBUTES", "deployment.environment=test1,service.name=test2,service.version=5,foo=bar1,baz=qux1"),
+      new Pair("DD_TRACE_OTEL_ENABLED", "true"),
+    ]), runOtelAttributeMapping, false));
+  cs.add(new ConformanceCase("otel_env_vars.log_level",
+    new Map<String, String>([new Pair("OTEL_LOG_LEVEL", "error")]), runOtelLogLevelEnv, false, ["python"]));
+  cs.add(new ConformanceCase("otel_env_vars.always_on",
+    new Map<String, String>([new Pair("OTEL_TRACES_SAMPLER", "always_on"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesAlwaysOn, false));
+  cs.add(new ConformanceCase("otel_env_vars.always_off",
+    new Map<String, String>([new Pair("OTEL_TRACES_SAMPLER", "always_off"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesAlwaysOff, false));
+  cs.add(new ConformanceCase("otel_env_vars.traceidratio",
+    new Map<String, String>([new Pair("OTEL_TRACES_SAMPLER", "traceidratio"), new Pair("OTEL_TRACES_SAMPLER_ARG", "0.1"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesTraceIdRatio, false));
+  cs.add(new ConformanceCase("otel_env_vars.parentbased_on",
+    new Map<String, String>([new Pair("OTEL_TRACES_SAMPLER", "parentbased_always_on"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesAlwaysOn, false));
+  cs.add(new ConformanceCase("otel_env_vars.parentbased_off",
+    new Map<String, String>([new Pair("OTEL_TRACES_SAMPLER", "parentbased_always_off"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesAlwaysOff, false));
+  cs.add(new ConformanceCase("otel_env_vars.parentbased_ratio",
+    new Map<String, String>([new Pair("OTEL_TRACES_SAMPLER", "parentbased_traceidratio"), new Pair("OTEL_TRACES_SAMPLER_ARG", "0.1"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesTraceIdRatio, false));
+  cs.add(new ConformanceCase("otel_env_vars.exporter_none",
+    new Map<String, String>([new Pair("OTEL_TRACES_EXPORTER", "none"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelTracesExporterNone, false, ["nodejs"]));
+  cs.add(new ConformanceCase("otel_env_vars.log_level_debug",
+    new Map<String, String>([new Pair("OTEL_LOG_LEVEL", "debug"), new Pair("DD_TRACE_OTEL_ENABLED", "true")]), runOtelLogLevelDebugMapping, false));
+  cs.add(new ConformanceCase("otel_env_vars.otel_enabled_precedence",
+    new Map<String, String>([new Pair("DD_TRACE_OTEL_ENABLED", "true"), new Pair("OTEL_SDK_DISABLED", "true")]), runOtelEnabledTakesPrecedence, false, ["nodejs"]));
+  cs.add(new ConformanceCase("otel_env_vars.sdk_disabled",
+    new Map<String, String>([new Pair("OTEL_SDK_DISABLED", "true")]), runOtelSdkDisabledSet, false, ["nodejs"]));
+
+  let gitRepoEnv(url: String): Mapped<String, String> {
+    new Map<String, String>([new Pair("DD_GIT_REPOSITORY_URL", url)])
+  };
+  cs.add(new ConformanceCase("tracer.sci_repository_url", gitRepoEnv("https://github.com/DataDog/dd-trace-go"), runTracerRepositoryUrl, false));
+  cs.add(new ConformanceCase("tracer.sci_commit_sha",
+    new Map<String, String>([new Pair("DD_GIT_COMMIT_SHA", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]), runTracerCommitSha, false));
+  cs.add(new ConformanceCase("tracer.sci_strip_https_userpass", gitRepoEnv("https://gitlab-ci-token:AAA_bbb@gitlab.com/DataDog/systems-test.git"), runRepoStripHttpsUserPass, false));
+  cs.add(new ConformanceCase("tracer.sci_strip_ssh_userpass", gitRepoEnv("ssh://gitlab-ci-token:AAA_bbb@gitlab.com/DataDog/systems-test.git"), runRepoStripSshUserPass, false, ["nodejs"]));
+  cs.add(new ConformanceCase("tracer.sci_strip_https_token", gitRepoEnv("https://token@gitlab.com/user/project.git"), runRepoStripHttpsToken, false));
+  cs.add(new ConformanceCase("tracer.sci_strip_ssh_token", gitRepoEnv("ssh://token@gitlab.com/user/project.git"), runRepoStripSshToken, false, ["nodejs"]));
+  cs.add(new ConformanceCase("tracer.sci_strip_https_clean", gitRepoEnv("https://gitlab.com/DataDog/systems-test.git"), runRepoStripHttpsClean, false));
+  cs.add(new ConformanceCase("tracer.sci_strip_no_scheme", gitRepoEnv("gitlab.com/DataDog/systems-test.git"), runRepoStripNoScheme, false));
+  cs.add(new ConformanceCase("tracer.sci_strip_scp_style", gitRepoEnv("git@github.com:user/project.git"), runRepoStripScpStyle, false));
+
+  // ---- trace_sampling (more) ----
+  let tagSampleEnv(pattern: String): Mapped<String, String> {
+    new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"),
+      new Pair("DD_TRACE_SAMPLING_RULES", "[{\"tags\": {\"tag\": \"${pattern}\"}, \"sample_rate\": 1.0}, {\"sample_rate\": 0}]")])
+  };
+  cs.add(new ConformanceCase("trace_sampling.exact_match_name", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"name\": \"web.request.non-matching\", \"sample_rate\": 0}, {\"name\": \"web.request\", \"sample_rate\": 1}]")]), runTraceSampledByRuleExactMatch, false));
+  cs.add(new ConformanceCase("trace_sampling.exact_match_service_name", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"service\": \"webserver.non-matching\", \"name\": \"web.request\", \"sample_rate\": 0}, {\"service\": \"webserver\", \"name\": \"web.request.non-matching\", \"sample_rate\": 0}, {\"service\": \"webserver\", \"name\": \"web.request\", \"sample_rate\": 1}]")]), runTraceSampledByRuleExactMatch, false));
+  cs.add(new ConformanceCase("trace_sampling.glob_service", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"service\": \"web.non-matching*\", \"sample_rate\": 0}, {\"service\": \"web*\", \"sample_rate\": 1}]")]), runTraceSampledByRuleExactMatch, false));
+  cs.add(new ConformanceCase("trace_sampling.glob_name", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"name\": \"web.non-matching*\", \"sample_rate\": 0}, {\"name\": \"web.*\", \"sample_rate\": 1}]")]), runTraceSampledByRuleExactMatch, false));
+  cs.add(new ConformanceCase("trace_sampling.glob_dropped", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "1"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"service\": \"w?bs?rv?r\", \"name\": \"web.*\", \"sample_rate\": 0}]")]), runTraceDroppedByRule, false));
+  cs.add(new ConformanceCase("trace_sampling.resource_glob", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"resource\": \"/bar.non-matching\", \"sample_rate\": 0}, {\"resource\": \"/?ar\", \"sample_rate\": 1}]")]), runTraceSampledByResourceRule, false));
+  cs.add(new ConformanceCase("trace_sampling.resource_dropped", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "1"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"service\": \"webserver\", \"name\": \"web.request\", \"resource\": \"/bar\", \"sample_rate\": 0}]")]), runTraceDroppedByResourceRule, false));
+  cs.add(new ConformanceCase("trace_sampling.tags_single", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"tags\": {\"tag1\": \"non-matching\"}, \"sample_rate\": 0}, {\"tags\": {\"tag1\": \"val1\"}, \"sample_rate\": 1}]")]), runTraceSampledByTagsRule, false));
+  cs.add(new ConformanceCase("trace_sampling.tags_dropped", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "1"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"tags\": {\"tag1\": \"val1\", \"tag2\": \"non-matching\"}, \"sample_rate\": 1}, {\"tags\": {\"tag1\": \"val1\", \"tag2\": \"val2\"}, \"sample_rate\": 0}]")]), runTraceDroppedByTagsRule, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_foo_exact", tagSampleEnv("foo"), runTraceTagMatchFoo, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_foo_star", tagSampleEnv("fo*"), runTraceTagMatchFoo, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_foo_any", tagSampleEnv("*"), runTraceTagMatchFoo, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_set_literal", tagSampleEnv("[abc]"), runTraceTagMatchSet, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_range_literal", tagSampleEnv("[a-c]"), runTraceTagMatchRange, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_metric_20", tagSampleEnv("20"), runTraceTagMetricMatch20, false));
+  cs.add(new ConformanceCase("trace_sampling.tag_metric_mismatch", tagSampleEnv("20"), runTraceTagMetricMismatchNonInteger, false));
+  cs.add(new ConformanceCase("trace_sampling.case_insensitive_name", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"name\": \"wEb.rEquEst\", \"sample_rate\": 1}]")]), runTraceSampledFieldCaseInsensitive, false));
+  cs.add(new ConformanceCase("trace_sampling.case_insensitive_service", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"service\": \"wEbSerVer\", \"sample_rate\": 1}]")]), runTraceSampledFieldCaseInsensitive, false));
+  cs.add(new ConformanceCase("trace_sampling.case_insensitive_resource", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"resource\": \"/rAnDom\", \"sample_rate\": 1}]")]), runTraceSampledFieldCaseInsensitive, false));
+  cs.add(new ConformanceCase("trace_sampling.case_insensitive_tag", new Map<String, String>([new Pair("DD_TRACE_SAMPLE_RATE", "0"), new Pair("DD_TRACE_SAMPLING_RULES", "[{\"tags\": {\"key\": \"vAlUe\"}, \"sample_rate\": 1}]")]), runTraceSampledFieldCaseInsensitive, false));
+
+  // ---- headers_tracestate_dd (change-sampling / list-member limits) ----
+  let tscDdEnv = new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "tracecontext,Datadog"), new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "tracecontext,Datadog")]);
+  cs.add(new ConformanceCase("headers_tracestate_dd.change_sampling_same_dm", tscDdEnv, runTracestateChangeSamplingSameDm, false, ["nodejs", "python"]));
+  cs.add(new ConformanceCase("headers_tracestate_dd.change_sampling_reset_dm", tscDdEnv, runTracestateChangeSamplingResetDm, false, ["nodejs", "python"]));
+  cs.add(new ConformanceCase("headers_tracestate_dd.keeps_32", tscDdEnv, runTracestateKeeps32, false));
+  cs.add(new ConformanceCase("headers_tracestate_dd.evicts_32", tscDdEnv, runTracestateEvicts32, false, ["nodejs", "python"]));
+
+  // ---- config_consistency (more) ----
+  cs.add(new ConformanceCase("config_consistency.tracing_enabled_default", new Map<String, String>([]), runTracingEnabled, false));
+  cs.add(new ConformanceCase("config_consistency.tracing_enabled_explicit", new Map<String, String>([new Pair("DD_TRACE_ENABLED", "true")]), runTracingEnabled, false));
+  cs.add(new ConformanceCase("config_consistency.default_config", new Map<String, String>([]), runDefaultConfig, false));
+  cs.add(new ConformanceCase("config_consistency.agent_http_url_ipv6", new Map<String, String>([new Pair("DD_TRACE_AGENT_URL", "http://[::1]:5000")]), runAgentHttpUrlIpv6, false));
+  cs.add(new ConformanceCase("config_consistency.tags_comma_simple", new Map<String, String>([new Pair("DD_TAGS", "key1:value1,key2:value2")]), runTagsCommaSimple, false));
+  cs.add(new ConformanceCase("config_consistency.tags_space", new Map<String, String>([new Pair("DD_TAGS", "key1:value1 key2:value2"), new Pair("DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED", "all")]), runTagsCommaSimple, false));
+  cs.add(new ConformanceCase("config_consistency.tracing_disabled", new Map<String, String>([new Pair("DD_TRACE_ENABLED", "false")]), runTracingDisabled, false));
+  cs.add(new ConformanceCase("config_consistency.agent_host_ipv6", new Map<String, String>([new Pair("DD_AGENT_HOST", "::1"), new Pair("DD_TRACE_AGENT_PORT", "5000")]), runAgentHttpUrlIpv6, false));
+  cs.add(new ConformanceCase("config_consistency.tags_colon_value", new Map<String, String>([new Pair("DD_TAGS", "a:b:c:d")]), runTagsColonValue, false));
+
+  // ---- B3 single-key / case-insensitive style variants (reuse existing run fns) ----
+  cs.add(new ConformanceCase("headers_b3.single_key_propagate_valid", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "B3 single header")]), runB3SinglePropagateValid, false));
+  cs.add(new ConformanceCase("headers_b3multi.single_key_propagate_valid", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE", "b3multi")]), runB3multiPropagateValid, false));
+  cs.add(new ConformanceCase("headers_b3multi.case_insensitive_extract", new Map<String, String>([new Pair("DD_TRACE_PROPAGATION_STYLE_EXTRACT", "B3MULTI"), new Pair("DD_TRACE_PROPAGATION_STYLE_INJECT", "b3multi")]), runB3multiPropagateValid, false));
+
+  cs.toList()
+}

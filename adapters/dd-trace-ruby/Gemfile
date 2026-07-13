@@ -1,0 +1,15 @@
+# dd-trace-ruby conformance adapter. Ruby 3.4 (system 2.7.5 is EOL).
+# Pinned to the dd-trace-rb version this adapter was verified against.
+source "https://rubygems.org"
+
+ruby ">= 3.4.0"
+
+gem "datadog", "~> 2.37"
+
+# `datadog` pulls in ffi/msgpack/libddwaf/libdatadog as native deps; no extra
+# gems are needed for the adapter itself (JSON, Fiddle, Net::HTTP are stdlib).
+#
+# The OpenTelemetry bridge (otel_* Tracer ops) additionally requires the
+# `opentelemetry-sdk` gem; it is intentionally omitted here (those ops report
+# {"__unsupported__":true} -> SKIP). Add `gem "opentelemetry-sdk"` and wire
+# `require "datadog/opentelemetry"` to enable it.

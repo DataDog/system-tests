@@ -1,0 +1,171 @@
+// # Span links tests
+
+// Ported from `tests/parametric/test_span_links.py`. Each test is an exported
+// function taking the adapter's `Tracer` and returning a `CheckResult`, so the
+// in-repo Temper validation and every native `dd-trace-*` adapter run identical
+// logic — the adapter is injected as a plain parameter.
+
+
+// ## test_span_with_attached_links
+
+// Adds links from a third span to two earlier spans; asserts link ids and
+// flattened attributes round-trip through the tracer.
+
+export let runSpanWithAttachedLinks(t: Tracer): CheckResult {
+  let c = new Checker();
+
+  let s1 = t.startSpan("first", "0");
+  let s2 = t.startSpan("second", s1.spanId);
+  t.finishSpan(s2.spanId);
+  t.finishSpan(s1.spanId);
+
+  let s3 = t.startSpan("third", "0");
+  t.addLink(s3.spanId, s1.spanId, new Map<String, String>([]));
+  let attrs = new Map<String, String>([
+    new Pair("bools.0", "true"), new Pair("bools.1", "false"),
+    new Pair("nested.0", "1"), new Pair("nested.1", "2"),
+  ]);
+  t.addLink(s3.spanId, s2.spanId, attrs);
+  t.finishSpan(s3.spanId);
+
+  t.flush();
+  let spans = t.capturedSpans();
+
+  let first = findSpan(spans, s1.spanId);
+  let second = findSpan(spans, s2.spanId);
+  let third = findSpan(spans, s3.spanId);
+
+  c.eqStr(second.parentId, first.spanId, "second.parentId == first.spanId");
+  c.isTrue(third.parentId != first.spanId, "third.parentId != first.spanId");
+
+  let links = third.links;
+  c.eqInt(links.length, 2, "third has 2 links");
+  if (links.length == 2) {
+    let l0 = links[0];
+    c.eqStr(l0.spanId, first.spanId, "link0.spanId");
+    c.eqStr(l0.traceId, first.traceId, "link0.traceId");
+    c.eqInt(l0.attributes.length, 0, "link0 has no attributes");
+
+    let l1 = links[1];
+    c.eqStr(l1.spanId, second.spanId, "link1.spanId");
+    c.eqStr(l1.traceId, second.traceId, "link1.traceId");
+    c.eqInt(l1.attributes.length, 4, "link1 has 4 attributes");
+    c.eqStr(l1.attributes.getOr("bools.0", ""), "true", "link1 bools.0");
+    c.eqStr(l1.attributes.getOr("bools.1", ""), "false", "link1 bools.1");
+    c.eqStr(l1.attributes.getOr("nested.0", ""), "1", "link1 nested.0");
+    c.eqStr(l1.attributes.getOr("nested.1", ""), "2", "link1 nested.1");
+  }
+
+  c.result()
+}
+
+// ## span link from distributed Datadog headers (link to an extracted context)
+
+export let runSpanLinkFromDistributedDatadog(t: Tracer): CheckResult {
+  let c = new Checker();
+  let rs = t.startSpan("root", "0");
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("x-datadog-trace-id", "1234567890"));
+  h.add(new Pair("x-datadog-parent-id", "9876543210"));
+  h.add(new Pair("x-datadog-sampling-priority", "2"));
+  h.add(new Pair("x-datadog-origin", "synthetics"));
+  h.add(new Pair("x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"));
+  let pid = t.extractHeaders(h.toList());
+  t.addLink(rs.spanId, pid, new Map<String, String>([new Pair("foo", "bar")]));
+  t.finishSpan(rs.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(spanHasNoParent(span), "linking span has no parent");
+  c.isTrue(span.traceId != "1234567890", "linking span got a new trace id");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "origin not applied to linking span");
+  c.eqInt(span.links.length, 1, "one span link");
+  if (span.links.length == 1) {
+    let l = span.links[0];
+    c.eqStr(l.spanId, "9876543210", "link span_id from headers");
+    c.eqStr(l.traceId, "1234567890", "link trace_id from headers");
+    c.eqStr(l.traceIdHigh, "16", "link trace_id_high from _dd.p.tid");
+    c.eqStr(l.attributes.getOr("foo", ""), "bar", "link attribute foo");
+  }
+  c.result()
+}
+
+// ## span link from distributed W3C headers (128-bit trace id)
+
+// The W3C `traceparent` carries a full 128-bit trace id, so the link's
+// `traceIdHigh` (its high 64 bits) is a value that overflows a 32-bit `Int` —
+// hence the `CapturedLink.traceIdHigh` **decimal-string** representation. The
+// literals below are the decimals of the traceparent's hex fields:
+//   trace id  0x12345678901234567890123456789012
+//     low 64  0x7890123456789012 = 8687463697196027922
+//     high 64 0x1234567890123456 = 1311768467284833366
+//   span id   0x1234567890123456 = 1311768467284833366
+
+export let runSpanLinkFromDistributedW3C(t: Tracer): CheckResult {
+  let c = new Checker();
+  let rs = t.startSpan("root", "0");
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"));
+  h.add(new Pair("tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"));
+  let pid = t.extractHeaders(h.toList());
+  t.addLink(rs.spanId, pid, new Map<String, String>([]));
+  t.finishSpan(rs.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(spanHasNoParent(span), "linking span has no parent");
+  c.isTrue(span.traceId != "8687463697196027922", "linking span got a new trace id");
+  c.eqInt(span.links.length, 1, "one span link");
+  if (span.links.length == 1) {
+    let l = span.links[0];
+    c.eqStr(l.spanId, "1311768467284833366", "link span_id from traceparent");
+    c.eqStr(l.traceId, "8687463697196027922", "link trace_id (low 64) from traceparent");
+    c.eqStr(l.traceIdHigh, "1311768467284833366", "link trace_id_high (high 64) from traceparent");
+    c.eqInt(l.attributes.length, 0, "no link attributes");
+  }
+  c.result()
+}
+
+// ## span link `traceIdHigh` for a runtime-generated 128-bit trace id
+
+// Derived from `test_span_started_with_link_v04` (a strict v0.4 port needs the
+// v0.4 span_links **wire** encoding, which this harness doesn't expose and which
+// nodejs doesn't support — see the deferred list). What this case does verify,
+// on both js+py, is the `CapturedLink.traceIdHigh` decimal-string representation
+// against a *runtime-generated* 128-bit tid: the linked span's own `_dd.p.tid`
+// (a full 64-bit hex value that overflows a 32-bit `Int`) converted hex→decimal
+// via the `hex` module must equal the link's `traceIdHigh`. Also checks link ids
+// round-trip and flattened array-attribute encoding (`array.0/1/2`).
+
+export let runSpanLinkTraceIdHigh(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s1 = t.startSpan("first", "0");
+  t.finishSpan(s1.spanId);
+  let s2 = t.startSpan("second", "0");
+  let attrs = new Map<String, String>([
+    new Pair("foo", "bar"),
+    new Pair("array.0", "a"), new Pair("array.1", "b"), new Pair("array.2", "c"),
+  ]);
+  t.addLink(s2.spanId, s1.spanId, attrs);
+  t.finishSpan(s2.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let first = findSpan(spans, s1.spanId);
+  let second = findSpan(spans, s2.spanId);
+  c.isTrue(first.traceId != second.traceId, "two independent traces");
+  let links = second.links;
+  c.eqInt(links.length, 1, "second has 1 link");
+  if (links.length == 1) {
+    let l = links[0];
+    c.eqStr(l.spanId, first.spanId, "link span_id == first");
+    c.eqStr(l.traceId, first.traceId, "link trace_id (low 64) == first");
+    c.eqStr(
+      l.traceIdHigh, hexToDecimal(first.meta.getOr("_dd.p.tid", "0")),
+      "link trace_id_high == first _dd.p.tid",
+    );
+    c.eqInt(l.attributes.length, 4, "link has 4 attributes");
+    c.eqStr(l.attributes.getOr("foo", ""), "bar", "foo");
+    c.eqStr(l.attributes.getOr("array.0", ""), "a", "array.0");
+    c.eqStr(l.attributes.getOr("array.1", ""), "b", "array.1");
+    c.eqStr(l.attributes.getOr("array.2", ""), "c", "array.2");
+  }
+  c.result()
+}

@@ -1,0 +1,19 @@
+[package]
+name = "dd-trace-rust-conformance"
+version = "0.0.1"
+edition = "2021"
+
+[[bin]]
+name = "run_one"
+path = "src/main.rs"
+
+[dependencies]
+system-tests-redux = { path = "../../temper.out/rust/system-tests-redux" }
+temper-core = { path = "../../temper.out/rust/temper-core" }
+datadog-opentelemetry = { git = "https://github.com/DataDog/dd-trace-rs" }
+opentelemetry = "0.32"
+opentelemetry_sdk = "0.32"
+opentelemetry-http = "0.32"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+ureq = "2"
+serde_json = "1"

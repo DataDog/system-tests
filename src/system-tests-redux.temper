@@ -1,0 +1,18 @@
+// # Validation
+
+// In-repo validation that ported test logic is sound, run against `FakeTracer`.
+// Iterates the same `ConformanceCase` registry the native adapters use: build a
+// fake tracer configured with each case's env, then run it. Native adapters do the
+// same against the real tracer.
+
+test("conformance cases (fake tracer)") {
+  let cases = allCases();
+  for (var i = 0; i < cases.length; i++) {
+    let cse = cases[i];
+    if (cse.fakeSupported) {
+      let runFn = cse.run;
+      let r = runFn(new FakeTracer(cse.env));
+      assert(r.ok) { "${cse.name}: ${r.summary()}" };
+    }
+  }
+}

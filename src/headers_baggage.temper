@@ -1,0 +1,95 @@
+// # Baggage API tests
+
+// Ported from `tests/parametric/test_headers_baggage.py`. The set/get/remove API
+// cases run against both the fake and the real tracer. The baggage *header*
+// inject/extract cases are marked nodejs-unsupported (the local dd-trace-js
+// checkout hasn't wired baggage propagation — matches upstream "pausing on this
+// feature").
+
+let bagPr(k: String, v: String): Pair<String, String> { new Pair(k, v) }
+
+// ## D006 — set then get
+
+export let runBaggageSetGet(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("test_baggage_set_D006", "0");
+  t.setBaggage(s.spanId, "foo", "bar");
+  t.setBaggage(s.spanId, "baz", "qux");
+  t.setBaggage(s.spanId, "userId", "Amélie");
+  t.setBaggage(s.spanId, "serverNode", "DF 28");
+  c.eqStr(t.getBaggage(s.spanId, "foo"), "bar", "foo");
+  c.eqStr(t.getBaggage(s.spanId, "baz"), "qux", "baz");
+  c.eqStr(t.getBaggage(s.spanId, "userId"), "Amélie", "userId");
+  c.eqStr(t.getBaggage(s.spanId, "serverNode"), "DF 28", "serverNode");
+  t.finishSpan(s.spanId);
+  c.result()
+}
+
+// ## D010 — remove
+
+export let runBaggageRemove(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("test_baggage_remove_D010", "0");
+  t.setBaggage(s.spanId, "baz", "qux");
+  t.setBaggage(s.spanId, "userId", "Amélie");
+  t.setBaggage(s.spanId, "serverNode", "DF 28");
+  t.removeBaggage(s.spanId, "baz");
+  t.removeBaggage(s.spanId, "userId");
+  let after = t.getAllBaggage(s.spanId);
+  c.eqInt(after.length, 1, "one entry remains");
+  c.eqStr(t.getBaggage(s.spanId, "serverNode"), "DF 28", "serverNode remains");
+  t.removeBaggage(s.spanId, "serverNode");
+  c.eqInt(t.getAllBaggage(s.spanId).length, 0, "empty after removing all keys");
+  t.finishSpan(s.spanId);
+  c.result()
+}
+
+// ## D011 — remove all
+
+export let runBaggageRemoveAll(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("test_baggage_remove_all_D011", "0");
+  t.setBaggage(s.spanId, "foo", "bar");
+  t.setBaggage(s.spanId, "baz", "qux");
+  t.removeAllBaggage(s.spanId);
+  c.eqInt(t.getAllBaggage(s.spanId).length, 0, "empty after remove_all");
+  t.finishSpan(s.spanId);
+  c.result()
+}
+
+// ## D008 — get after baggage extract (nodejs-unsupported here)
+
+export let runBaggageGetAfterExtract(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parentId = t.extractHeaders([bagPr("baggage", "userId=Am%C3%A9lie,serverNode=DF%2028")]);
+  let s = t.startSpan("test_baggage_get_D008", parentId);
+  t.setBaggage(s.spanId, "foo", "bar");
+  t.setBaggage(s.spanId, "baz", "qux");
+  c.eqStr(t.getBaggage(s.spanId, "foo"), "bar", "foo");
+  c.eqStr(t.getBaggage(s.spanId, "baz"), "qux", "baz");
+  c.eqStr(t.getBaggage(s.spanId, "userId"), "Amélie", "userId from header");
+  c.eqStr(t.getBaggage(s.spanId, "serverNode"), "DF 28", "serverNode from header");
+  t.finishSpan(s.spanId);
+  c.result()
+}
+
+// ## D004 — inject encodes baggage header (nodejs-unsupported here)
+
+export let runBaggageInjectEncoding(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.startSpan("test_baggage_inject_D004", "0");
+  t.setBaggage(s.spanId, "foo", "bar");
+  t.setBaggage(s.spanId, "userId", "Amélie");
+  let headers = t.injectHeaders(s.spanId);
+  t.finishSpan(s.spanId);
+  let bag = headers.getOr("baggage", "");
+  let items = bag.split(",");
+  c.isTrue(bagHas(items, "foo=bar"), "foo=bar present");
+  c.isTrue(bagHas(items, "userId=Am%C3%A9lie"), "userId url-encoded");
+  c.result()
+}
+
+let bagHas(items: Listed<String>, needle: String): Boolean {
+  for (var i = 0; i < items.length; i++) { if (items[i] == needle) { return true; } }
+  false
+}

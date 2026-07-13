@@ -1,0 +1,50 @@
+// # "none" propagation tests
+
+// Ported from `tests/parametric/test_headers_none.py`. These rely on the tracer
+// being configured with a propagation style; the env is carried on the
+// `ConformanceCase` (see `cases`) and applied by the adapter when it builds the
+// tracer.
+
+// ## extract with style=none → nothing extracted
+
+export let runHeadersNoneExtract(t: Tracer): CheckResult {
+  let c = new Checker();
+  let inHeaders = new ListBuilder<Pair<String, String>>();
+  inHeaders.add(new Pair("x-datadog-trace-id", "123456789"));
+  inHeaders.add(new Pair("x-datadog-parent-id", "987654321"));
+  inHeaders.add(new Pair("x-datadog-sampling-priority", "2"));
+  inHeaders.add(new Pair("x-datadog-origin", "synthetics"));
+  inHeaders.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  makeChildSpanAndGetHeaders(t, inHeaders.toList());
+
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(span.traceId != "123456789", "trace_id not extracted");
+  c.isTrue(span.parentId != "987654321", "parent_id not extracted");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "", "origin absent");
+  c.isTrue(span.meta.getOr("_dd.p.dm", "") != "-4", "_dd.p.dm not extracted");
+  c.isTrue(span.metrics.getOr("_sampling_priority_v1", 1.0) != 2.0, "priority not extracted");
+  c.result()
+}
+
+// ## extract with style=none,Datadog → Datadog wins
+
+export let runHeadersNoneExtractWithOtherPropagators(t: Tracer): CheckResult {
+  let c = new Checker();
+  let inHeaders = new ListBuilder<Pair<String, String>>();
+  inHeaders.add(new Pair("x-datadog-trace-id", "123456789"));
+  inHeaders.add(new Pair("x-datadog-parent-id", "987654321"));
+  inHeaders.add(new Pair("x-datadog-sampling-priority", "2"));
+  inHeaders.add(new Pair("x-datadog-origin", "synthetics"));
+  inHeaders.add(new Pair("x-datadog-tags", "_dd.p.dm=-4"));
+  makeChildSpanAndGetHeaders(t, inHeaders.toList());
+
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, "123456789", "trace_id extracted");
+  c.eqStr(span.parentId, "987654321", "parent_id extracted");
+  c.eqStr(span.meta.getOr("_dd.origin", ""), "synthetics", "origin");
+  c.eqStr(span.meta.getOr("_dd.p.dm", ""), "-4", "_dd.p.dm");
+  c.eqFloat(span.metrics.getOr("_sampling_priority_v1", 0.0), 2.0, "priority");
+  c.result()
+}

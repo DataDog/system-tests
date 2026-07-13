@@ -1,0 +1,39 @@
+# Temper build output
+/temper.out/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+
+# Python adapter venv
+.venv*/
+__pycache__/
+*.pyc
+
+# dd-trace-go native adapter build artifacts
+adapters/dd-trace-go/libddtracego.dylib
+adapters/dd-trace-go/libddtracego.h
+adapters/dd-trace-go/rust-adapter/target/
+
+# dd-trace-dotnet adapter build artifacts
+adapters/dd-trace-dotnet/bin/
+adapters/dd-trace-dotnet/obj/
+
+# dd-trace-java adapter build artifacts + downloaded javaagent
+adapters/dd-trace-java/target/
+adapters/dd-trace-java/dd-java-agent.jar
+
+adapters/dd-trace-java/dependency-reduced-pom.xml
+
+# dd-trace-ruby shim build artifacts
+adapters/dd-trace-ruby/shim/target/
+adapters/dd-trace-ruby/shim/Cargo.lock
+
+# dd-trace-php composer deps
+adapters/dd-trace-php/vendor/
+
+# dd-trace-rust build output
+adapters/dd-trace-rust/target/
+adapters/dd-trace-rust/Cargo.lock

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ddtracejava</groupId>
+  <artifactId>dd-trace-java-conformance</artifactId>
+  <version>0.0.1</version>
+  <packaging>jar</packaging>
+
+  <!--
+    Native Java backend for the Temper conformance suite, against the real
+    dd-trace-java library. The suite compiles to Java (temper build -b java);
+    this adapter implements the generated system_tests_redux.Tracer interface
+    via the OpenTelemetry API, which dd-trace-java's javaagent bridges to real
+    DD spans (the manual API is a no-op without -javaagent:dd-java-agent.jar,
+    exactly like Datadog.Trace v3 needing the CLR profiler).
+  -->
+  <properties>
+    <maven.compiler.release>8</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>system_tests_redux</groupId>
+      <artifactId>system-tests-redux</artifactId>
+      <version>0.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+      <version>1.40.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20240303</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>conformance</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals><goal>shade</goal></goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>ddtracejava.Main</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

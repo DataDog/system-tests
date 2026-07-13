@@ -1,0 +1,126 @@
+// # OpenTelemetry span API tests
+
+// Ported from `tests/parametric/test_otel_span_methods.py` (subset). The OTel span
+// API maps onto the same captured agent spans. Env sets `DD_TRACE_OTEL_ENABLED`.
+
+// ## set attributes → span meta
+
+export let runOtelSetAttributes(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "producer");
+  t.otelSetAttribute(s.spanId, "start_attr_key", "start_attr_val");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  // (span name depends on kind->operation-name mapping, tested separately;
+  // here we only assert the attribute is mapped onto span meta)
+  c.eqStr(span.meta.getOr("start_attr_key", ""), "start_attr_val", "otel attribute mapped to meta");
+  c.result()
+}
+
+// ## is_recording before/after end
+
+export let runOtelIsRecording(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("op", "0", "internal");
+  c.isTrue(t.otelIsRecording(s.spanId), "recording before end");
+  t.otelEndSpan(s.spanId);
+  c.isTrue(!t.otelIsRecording(s.spanId), "not recording after end");
+  c.result()
+}
+
+// ## span context shape (adapter-only: needs real hex ids)
+
+export let runOtelSpanContext(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("op", "0", "client");
+  let ctx = t.otelSpanContext(s.spanId);
+  c.eqInt(strLen(ctx.traceIdHex), 32, "trace id is 32 hex chars");
+  c.eqInt(strLen(ctx.spanIdHex), 16, "span id is 16 hex chars");
+  t.otelEndSpan(s.spanId);
+  c.result()
+}
+
+// ## http.response.status_code remaps to http.status_code (adapter-only)
+
+export let runOtelHttpStatusRemap(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("op", "0", "client");
+  t.otelSetAttribute(s.spanId, "http.response.status_code", "200");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.meta.getOr("http.status_code", ""), "200", "http.response.status_code remapped to http.status_code");
+  c.result()
+}
+
+// ## operation-name mapping from span kind (nodejs-unsupported here)
+
+export let runOtelOperationName(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "producer");
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.name, "producer", "span kind maps to operation name");
+  c.eqStr(span.resource, "operation", "resource is the span name");
+  c.result()
+}
+
+// ## otel_simple_trace — two traces, each otel parent+child, resource == span name
+
+export let runOtelSimpleTrace(t: Tracer): CheckResult {
+  let c = new Checker();
+  let p1 = t.otelStartSpan("root_one", "0", "internal");
+  t.otelSetAttribute(p1.spanId, "parent_k1", "parent_v1");
+  let c1 = t.otelStartSpan("child1", p1.spanId, "internal");
+  c.eqStr(p1.traceId, c1.traceId, "child1 shares trace with root_one");
+  t.otelEndSpan(c1.spanId);
+  t.otelEndSpan(p1.spanId);
+
+  let p2 = t.otelStartSpan("root_two", "0", "internal");
+  let c2 = t.otelStartSpan("child2", p2.spanId, "internal");
+  c.eqStr(p2.traceId, c2.traceId, "child2 shares trace with root_two");
+  t.otelEndSpan(c2.spanId);
+  t.otelEndSpan(p2.spanId);
+
+  t.flush();
+  let spans = t.capturedSpans();
+  let trace1 = traceSpans(spans, p1.traceId);
+  c.eqInt(trace1.length, 2, "trace one has 2 spans");
+  c.eqStr(findSpan(spans, p1.spanId).resource, "root_one", "root_one resource");
+  c.eqStr(findSpan(spans, p1.spanId).meta.getOr("parent_k1", ""), "parent_v1", "parent_k1 attribute");
+  c.eqStr(findSpan(spans, c1.spanId).resource, "child1", "child1 resource");
+  let trace2 = traceSpans(spans, p2.traceId);
+  c.eqInt(trace2.length, 2, "trace two has 2 spans");
+  c.eqStr(findSpan(spans, p2.spanId).resource, "root_two", "root_two resource");
+  c.eqStr(findSpan(spans, c2.spanId).resource, "child2", "child2 resource");
+  c.result()
+}
+
+// ## record_exception — error tracking tags
+
+export let runOtelRecordExceptionSetsErrorTags(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "internal");
+  t.otelSetStatus(s.spanId, "ERROR", "error_desc");
+  t.otelRecordException(s.spanId, "woof1", new Map<String, String>([new Pair("exception.stacktrace", "stacktrace1")]));
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqInt(span.error, 1, "span error flag set");
+  c.isTrue(span.meta.has("error.stack"), "error.stack present");
+  c.isTrue(span.meta.has("error.message"), "error.message present");
+  c.result()
+}
+
+export let runOtelRecordExceptionDoesNotSetError(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("operation", "0", "internal");
+  t.otelRecordException(s.spanId, "woof", new Map<String, String>([new Pair("exception.stacktrace", "stacktrace string")]));
+  t.otelEndSpan(s.spanId);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqInt(span.error, 0, "record_exception alone does not set error");
+  c.result()
+}

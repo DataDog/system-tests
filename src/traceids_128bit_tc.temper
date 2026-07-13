@@ -1,0 +1,205 @@
+// # 128-bit trace id tests (W3C tracecontext style)
+
+// Ported from `tests/parametric/test_128_bit_traceids.py` (the `w3c` /
+// `tracecontext` sections). These extract a W3C `traceparent` (and sometimes a
+// `dd=t.tid:` tracestate) and inspect the upper-64 `_dd.p.tid` tag plus the
+// injected traceparent trace id. Adapter-only.
+
+// The incoming low-64 id `abcdefab12345678` has its high bit set, so it exceeds a
+// signed `Int64`; rather than convert hex→decimal we compare the injected hex
+// directly and assert the known decimal (`0xabcdefab12345678`).
+
+let tcTidTag = "_dd.p.tid";
+let tcPropErr = "_dd.propagation_error";
+let LOW_HEX = "abcdefab12345678";
+let LOW_DEC = "12379814468735227512";
+
+let tcStartsWith(s: String, p: String): Boolean {
+  let pl = strLen(p);
+  if (strLen(s) < pl) { return false; }
+  s.slice(String.begin, s.step(String.begin, pl)) == p
+}
+let tcFirst16(s: String): String { s.slice(String.begin, s.step(String.begin, 16)) }
+let tcLow16(s: String): String {
+  if (strLen(s) <= 16) { return s; }
+  s.slice(s.step(s.end, 0 - 16), s.end)
+}
+
+// `fields[1]` of the injected `traceparent` is the injected trace id (16 or 32 hex).
+
+let tcInjectedTid(out: Mapped<String, String>): String {
+  let parts = out.getOr("traceparent", "").split("-");
+  if (parts.length >= 2) { parts[1] } else { "" }
+}
+
+// `validate_dd_p_tid`: 16 hex chars, non-zero, lower 8 zero, upper 8 a timestamp
+// greater than `0x640CFD8C` (= 1678459788).
+
+let tcValidateDdPTid(c: Checker, tid: String): Void {
+  c.eqInt(strLen(tid), 16, "_dd.p.tid is 16 hex chars");
+  c.isTrue(tid != "0000000000000000", "_dd.p.tid is non-zero");
+  if (strLen(tid) == 16) {
+    let upper = tid.slice(String.begin, tid.step(String.begin, 8));
+    let lower = tid.slice(tid.step(String.begin, 8), tid.end);
+    c.eqStr(lower, "00000000", "_dd.p.tid lower 8 hex are zero");
+    let v: Int64 = (upper.toInt64(16)) orelse (0).toInt64();
+    c.isTrue(v > (1678459788).toInt64(), "_dd.p.tid timestamp > 0x640CFD8C");
+  }
+}
+
+let tcTpHeaders(tp: String): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("traceparent", tp));
+  h.toList()
+}
+let tcTpTsHeaders(tp: String, ts: String): Listed<Pair<String, String>> {
+  let h = new ListBuilder<Pair<String, String>>();
+  h.add(new Pair("traceparent", tp));
+  h.add(new Pair("tracestate", ts));
+  h.toList()
+}
+let tcEmptyHeaders(): Listed<Pair<String, String>> {
+  new ListBuilder<Pair<String, String>>().toList()
+}
+
+// ## valid 128-bit propagation
+
+export let runW3c128Propagation(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, tcTpHeaders("00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, LOW_DEC, "span trace_id == low 64 of incoming");
+  let tid = span.meta.getOr(tcTidTag, "");
+  c.eqStr(tid, "640cfd8d00000000", "_dd.p.tid from traceparent high bits");
+  let inj = tcInjectedTid(out);
+  c.eqInt(strLen(inj), 32, "injected trace id is 128-bit (32 hex)");
+  c.eqStr(tcLow16(inj), LOW_HEX, "injected low 64 preserved");
+  tcValidateDdPTid(c, tid);
+  c.isTrue(tcStartsWith(inj, tid), "injected trace id starts with _dd.p.tid");
+  c.result()
+}
+
+// ## tracestate tid consistent with traceparent high bits
+
+export let runW3c128PropagationTidConsistent(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, tcTpTsHeaders("00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01", "dd=t.tid:640cfd8d00000000"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, LOW_DEC, "span trace_id == low 64");
+  c.eqStr(span.meta.getOr(tcTidTag, ""), "640cfd8d00000000", "_dd.p.tid preserved");
+  c.isTrue(!span.meta.has(tcPropErr), "no _dd.propagation_error");
+  c.result()
+}
+
+// ## tid present on the chunk root (local generation)
+
+export let runW3c128TidInChunkRoot(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parent = t.startSpan("parent", "0", "service", "resource");
+  let child = t.startSpan("child", parent.spanId, "service");
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let trace = traceSpans(spans, parent.traceId);
+  c.eqInt(trace.length, 2, "trace has 2 spans");
+  let root = findSpan(spans, parent.spanId);
+  c.isTrue(root.meta.has(tcTidTag), "chunk root carries _dd.p.tid");
+  c.result()
+}
+
+// ## tid present somewhere in the trace chunk
+
+export let runW3c128TidInTraceChunk(t: Tracer): CheckResult {
+  let c = new Checker();
+  let parent = t.startSpan("parent", "0", "service", "resource");
+  let child = t.startSpan("child", parent.spanId, "service");
+  t.finishSpan(child.spanId);
+  t.finishSpan(parent.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  let trace = traceSpans(spans, parent.traceId);
+  c.eqInt(trace.length, 2, "trace has 2 spans");
+  var count = 0;
+  for (var i = 0; i < trace.length; i++) {
+    if (trace[i].meta.has(tcTidTag)) { count = count + 1; }
+  }
+  c.isTrue(count >= 1, "at least one span in the chunk carries _dd.p.tid");
+  c.result()
+}
+
+// ## tracestate tid inconsistent → traceparent high bits win
+
+export let runW3c128PropagationTidInconsistent(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, tcTpTsHeaders("00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01", "dd=t.tid:640cfd8d0000ffff"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, LOW_DEC, "span trace_id == low 64");
+  c.eqStr(span.meta.getOr(tcTidTag, ""), "640cfd8d00000000", "_dd.p.tid from traceparent, not tracestate");
+  c.result()
+}
+
+// ## tracestate tid malformed → traceparent high bits win
+
+export let runW3c128PropagationTidMalformed(t: Tracer): CheckResult {
+  let c = new Checker();
+  makeChildSpanAndGetHeaders(t, tcTpTsHeaders("00-640cfd8d00000000abcdefab12345678-000000003ade68b1-01", "dd=t.tid:XXXX"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, LOW_DEC, "span trace_id == low 64");
+  c.eqStr(span.meta.getOr(tcTidTag, ""), "640cfd8d00000000", "_dd.p.tid from traceparent");
+  c.result()
+}
+
+// ## 64-bit incoming (zero high bits) + generation enabled → no tid
+
+export let runW3c128PropAndGen(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, tcTpHeaders("00-0000000000000000abcdefab12345678-000000003ade68b1-01"));
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.traceId, LOW_DEC, "span trace_id == low 64");
+  c.isTrue(!span.meta.has(tcTidTag), "no _dd.p.tid for 64-bit incoming context");
+  let inj = tcInjectedTid(out);
+  let len = strLen(inj);
+  c.isTrue(len == 16 || (len == 32 && tcFirst16(inj) == "0000000000000000"), "injected trace id is 64-bit form");
+  c.eqStr(tcLow16(inj), LOW_HEX, "injected low 64 preserved");
+  c.result()
+}
+
+// ## local generation disabled → 64-bit injected trace id, no tid
+
+export let runW3c128GenDisabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, tcEmptyHeaders());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  let inj = tcInjectedTid(out);
+  let len = strLen(inj);
+  c.isTrue(len == 16 || (len == 32 && tcFirst16(inj) == "0000000000000000"), "injected trace id is 64-bit form");
+  c.isTrue(!span.meta.has(tcTidTag), "no _dd.p.tid when generation disabled");
+  c.result()
+}
+
+// ## local generation enabled → 128-bit injected trace id with valid tid
+
+// NOTE: the injected low-64 == span.trace_id cross-check is omitted here because the
+// generated id is random and `abcdefab…`-style high-bit ids overflow a signed
+// `Int64`; the structural checks (32-hex length, valid `_dd.p.tid`, and the
+// injected trace id starting with that tid) still validate 128-bit generation.
+
+export let runW3c128GenEnabled(t: Tracer): CheckResult {
+  let c = new Checker();
+  let out = makeChildSpanAndGetHeaders(t, tcEmptyHeaders());
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  let inj = tcInjectedTid(out);
+  c.eqInt(strLen(inj), 32, "injected trace id is 128-bit (32 hex)");
+  let tid = span.meta.getOr(tcTidTag, "");
+  tcValidateDdPTid(c, tid);
+  c.isTrue(tcStartsWith(inj, tid), "injected trace id starts with _dd.p.tid");
+  c.result()
+}

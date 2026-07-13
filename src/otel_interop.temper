@@ -1,0 +1,199 @@
+// # OTel <-> Datadog API interoperability (tests/parametric/test_otel_api_interoperability.py)
+// A span created with the OTel API is manipulated through the Datadog API on the
+// same underlying span. Adapter-only (cross-API bridge).
+
+// update_resource: set the resource via the DD API on an OTel-created span.
+export let runOtelInteropUpdateResource(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("my_resource", "0", "internal");
+  t.setResource(s.spanId, "my_new_resource");
+  t.otelEndSpan(s.spanId);
+  c.isTrue(!t.otelIsRecording(s.spanId), "span not recording after end");
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.eqStr(span.resource, "my_new_resource", "resource updated via DD API");
+  c.result()
+}
+
+// span_links_add: add a link with the DD API to an OTel-created span.
+export let runOtelInteropSpanLinksAdd(t: Tracer): CheckResult {
+  let c = new Checker();
+  let dd = t.startSpan("dd_root", "0");
+  t.finishSpan(dd.spanId);
+  let otelRoot = t.otelStartSpan("otel_root", "0", "internal");
+  t.addLink(otelRoot.spanId, dd.spanId, new Map<String, String>([new Pair("foo", "bar")]));
+  t.otelEndSpan(otelRoot.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  var found = false;
+  var linkCount = 0;
+  for (var i = 0; i < spans.length; i++) {
+    if (spans[i].spanId == otelRoot.spanId) { found = true; linkCount = spans[i].links.length; }
+  }
+  c.isTrue(found, "otel_root span captured");
+  c.eqInt(linkCount, 1, "one link added via DD API");
+  c.result()
+}
+
+// set/update/remove meta across the DD and OTel APIs on one span.
+export let runOtelInteropMeta(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("dd_span", "0", "internal");
+  t.setMeta(s.spanId, "arg1", "val1");
+  t.setMeta(s.spanId, "arg2", "val2");
+  t.otelSetAttribute(s.spanId, "arg3", "val3");
+  t.otelSetAttribute(s.spanId, "arg4", "val4");
+  t.removeMeta(s.spanId, "arg3");
+  t.otelRemoveAttribute(s.spanId, "arg1");
+  t.otelSetAttribute(s.spanId, "arg2", "val3");
+  t.setMeta(s.spanId, "arg4", "val5");
+  t.otelEndSpan(s.spanId);
+  t.otelSetAttribute(s.spanId, "arg5", "val5");
+  t.otelSetAttribute(s.spanId, "arg2", "val4");
+  t.otelRemoveAttribute(s.spanId, "arg2");
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(!span.meta.has("arg1"), "arg1 removed via OTel API");
+  c.eqStr(span.meta.getOr("arg2", ""), "val3", "arg2 updated via OTel API");
+  c.isTrue(!span.meta.has("arg3"), "arg3 removed via DD API");
+  c.eqStr(span.meta.getOr("arg4", ""), "val5", "arg4 updated via DD API");
+  c.isTrue(!span.meta.has("arg5"), "arg5 (afterlife) has no effect");
+  c.result()
+}
+
+// set/update/remove metrics across the DD and OTel APIs on one span.
+export let runOtelInteropMetric(t: Tracer): CheckResult {
+  let c = new Checker();
+  let s = t.otelStartSpan("dd_span", "0", "internal");
+  t.setMetric(s.spanId, "m1", 1.0);
+  t.setMetric(s.spanId, "m2", 2.0);
+  t.otelSetAttributeNum(s.spanId, "m3", 3.0);
+  t.otelSetAttributeNum(s.spanId, "m4", 4.0);
+  t.removeMetric(s.spanId, "m3");
+  t.otelRemoveAttribute(s.spanId, "m1");
+  t.otelSetAttributeNum(s.spanId, "m2", 3.0);
+  t.setMetric(s.spanId, "m4", 5.0);
+  t.otelEndSpan(s.spanId);
+  t.otelSetAttributeNum(s.spanId, "m5", 5.0);
+  t.flush();
+  let span = findOnlySpan(t.capturedSpans());
+  c.isTrue(!span.metrics.has("m1"), "m1 removed via OTel API");
+  c.eqFloat(span.metrics.getOr("m2", 0.0), 3.0, "m2 updated via OTel API");
+  c.isTrue(!span.metrics.has("m3"), "m3 removed via DD API");
+  c.eqFloat(span.metrics.getOr("m4", 0.0), 5.0, "m4 updated via DD API");
+  c.isTrue(!span.metrics.has("m5"), "m5 (afterlife) has no effect");
+  c.result()
+}
+
+// datadog_start_after_otel_span (structural): a DD-API child of an OTel-API
+// parent shares the trace and is parented correctly.
+export let runOtelInteropDdAfterOtel(t: Tracer): CheckResult {
+  let c = new Checker();
+  let otelP = t.otelStartSpan("otel_span", "0", "internal");
+  let ddC = t.startSpan("dd_span", otelP.spanId);
+  t.finishSpan(ddC.spanId);
+  t.otelEndSpan(otelP.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  c.eqInt(spans.length, 2, "two spans in the trace");
+  var childParent = "";
+  var rootTrace = "";
+  var childTrace = "";
+  for (var i = 0; i < spans.length; i++) {
+    if (spans[i].spanId == ddC.spanId) { childParent = spans[i].parentId; childTrace = spans[i].traceId; }
+    if (spans[i].spanId == otelP.spanId) { rootTrace = spans[i].traceId; }
+  }
+  c.eqStr(childParent, otelP.spanId, "dd child parented on otel span");
+  c.eqStr(childTrace, rootTrace, "child shares the otel root's trace");
+  c.result()
+}
+
+let interopFind(spans: Listed<CapturedSpan>, id: String): CapturedSpan {
+  for (var i = 0; i < spans.length; i++) { if (spans[i].spanId == id) { return spans[i]; } }
+  spans[0]
+}
+
+// otel_start_after_datadog_span (structural): an OTel-API child of a DD-API parent.
+export let runOtelInteropOtelAfterDd(t: Tracer): CheckResult {
+  let c = new Checker();
+  let ddP = t.startSpan("dd_span", "0");
+  let otelC = t.otelStartSpan("otel_span", ddP.spanId, "internal");
+  t.otelEndSpan(otelC.spanId);
+  t.finishSpan(ddP.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  c.eqInt(spans.length, 2, "two spans in the trace");
+  let child = interopFind(spans, otelC.spanId);
+  let root = interopFind(spans, ddP.spanId);
+  c.eqStr(child.parentId, ddP.spanId, "otel child parented on dd span");
+  c.eqStr(child.traceId, root.traceId, "otel child shares the dd root trace");
+  c.eqStr(root.parentId, "0", "dd span is the root");
+  c.result()
+}
+
+// concurrent_traces_in_order: two independent traces mixing both APIs.
+export let runOtelInteropConcurrent(t: Tracer): CheckResult {
+  let c = new Checker();
+  let otelRoot = t.otelStartSpan("otel_root", "0", "server");
+  let ddChild = t.startSpan("dd_child", otelRoot.spanId);
+  let ddRoot = t.startSpan("dd_root", "0");
+  let otelChild = t.otelStartSpan("otel_child", ddRoot.spanId, "internal");
+  t.otelEndSpan(otelChild.spanId);
+  t.finishSpan(ddRoot.spanId);
+  t.finishSpan(ddChild.spanId);
+  t.otelEndSpan(otelRoot.spanId);
+  t.flush();
+  let spans = t.capturedSpans();
+  c.eqInt(spans.length, 4, "four spans across two traces");
+  let or = interopFind(spans, otelRoot.spanId);
+  let dc = interopFind(spans, ddChild.spanId);
+  let dr = interopFind(spans, ddRoot.spanId);
+  let oc = interopFind(spans, otelChild.spanId);
+  c.eqStr(dc.parentId, otelRoot.spanId, "dd_child parented on otel_root");
+  c.eqStr(dc.traceId, or.traceId, "dd_child shares otel_root trace");
+  c.eqStr(oc.parentId, ddRoot.spanId, "otel_child parented on dd_root");
+  c.eqStr(oc.traceId, dr.traceId, "otel_child shares dd_root trace");
+  c.isTrue(or.traceId != dr.traceId, "the two roots are in different traces");
+  c.result()
+}
+
+let checkNestedConcurrent(
+  t: Tracer, otelRootId: String, ddRootId: String, otelChildId: String, ddChildId: String,
+): CheckResult {
+  let c = new Checker();
+  t.otelEndSpan(otelChildId);
+  t.finishSpan(ddChildId);
+  t.finishSpan(ddRootId);
+  t.otelEndSpan(otelRootId);
+  t.flush();
+  let spans = t.capturedSpans();
+  c.eqInt(spans.length, 4, "four spans across two traces");
+  let or = interopFind(spans, otelRootId);
+  let oc = interopFind(spans, otelChildId);
+  let dr = interopFind(spans, ddRootId);
+  let dc = interopFind(spans, ddChildId);
+  c.eqStr(oc.parentId, otelRootId, "otel_child parented on otel_root");
+  c.eqStr(oc.traceId, or.traceId, "otel_child shares otel_root trace");
+  c.eqStr(dc.parentId, ddRootId, "dd_child parented on dd_root");
+  c.eqStr(dc.traceId, dr.traceId, "dd_child shares dd_root trace");
+  c.isTrue(or.traceId != dr.traceId, "the two roots are in different traces");
+  c.result()
+}
+
+// nested concurrent traces, OTel root opened first.
+export let runOtelInteropNestedOtelRoot(t: Tracer): CheckResult {
+  let otelRoot = t.otelStartSpan("otel_root", "0", "server");
+  let ddRoot = t.startSpan("dd_root", "0");
+  let otelChild = t.otelStartSpan("otel_child", otelRoot.spanId, "internal");
+  let ddChild = t.startSpan("dd_child", ddRoot.spanId);
+  checkNestedConcurrent(t, otelRoot.spanId, ddRoot.spanId, otelChild.spanId, ddChild.spanId)
+}
+
+// nested concurrent traces, Datadog root opened first.
+export let runOtelInteropNestedDdRoot(t: Tracer): CheckResult {
+  let ddRoot = t.startSpan("dd_root", "0");
+  let otelRoot = t.otelStartSpan("otel_root", "0", "server");
+  let otelChild = t.otelStartSpan("otel_child", otelRoot.spanId, "internal");
+  let ddChild = t.startSpan("dd_child", ddRoot.spanId);
+  checkNestedConcurrent(t, otelRoot.spanId, ddRoot.spanId, otelChild.spanId, ddChild.spanId)
+}
