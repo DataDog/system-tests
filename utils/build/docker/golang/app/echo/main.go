@@ -377,6 +377,7 @@ func main() {
 	r.Any("/rasp/multiple", echoHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+	r.Any("/rasp/cmdi", echoHandleFunc(rasp.CMDI))
 
 	r.Any("/external_request", echoHandleFunc(rasp.ExternalRequest))
 	r.GET("/external_request/redirect", echoHandleFunc(rasp.ExternalRedirectRequest))

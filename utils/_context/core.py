@@ -64,8 +64,8 @@ class _Context:
         return self._get_scenario_property("telemetry_heartbeat_interval", None)
 
     @property
-    def appsec_rules_file(self):
-        return self._get_scenario_property("appsec_rules_file", "")
+    def appsec_rules_file(self) -> str | None:
+        return self._get_scenario_property("appsec_rules_file", None)
 
     @property
     def dd_apm_inject_version(self):
