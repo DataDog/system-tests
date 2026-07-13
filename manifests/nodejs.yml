@@ -1338,6 +1338,8 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: missing_feature (can not block by query param in nextjs yet)
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: *ref_3_9_0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: *ref_3_9_0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: *ref_3_9_0
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature

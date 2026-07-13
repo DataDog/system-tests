@@ -507,6 +507,8 @@ manifest:
   tests/appsec/test_reports.py::Test_StatusCode: v1.28.6
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v2.26.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.16.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v2.16.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature (blocking capabilities are advertised unconditionally, not yet gated on activation state)
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.16.0
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -608,9 +610,9 @@ manifest:
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL::test_invalid_condition_dsl_probe_rejected: missing_feature (Dotnet compiles probe conditions lazily on first evaluation, so there is no install-time validation step to reject the probe.)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error: v2.53.0
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
-  : bug (DEBUG-5699)
+  : v3.46.0
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
-  : bug (DEBUG-5703)
+  : v3.46.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": v2.50.0

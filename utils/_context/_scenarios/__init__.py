@@ -7,7 +7,12 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, EndToEndScenario, FeatureFlaggingAgentlessEndToEndScenario
+from .endtoend import (
+    DockerScenario,
+    DdTraceEndToEndScenario,
+    FeatureFlaggingAgentlessEndToEndScenario,
+    GraphQlEndToEndScenario,
+)
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
@@ -86,7 +91,7 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
-    trace_stats_computation = EndToEndScenario(
+    trace_stats_computation = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION",
         # feature consistency is poorly respected here ...
         weblog_env={
@@ -103,7 +108,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    trace_stats_computation_client_drop_p0s_false = EndToEndScenario(
+    trace_stats_computation_client_drop_p0s_false = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE",
         # Same as trace_stats_computation but with client_drop_p0s set to false
         # to test tracer behavior when agent doesn't support client-side P0 dropping
@@ -122,7 +127,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    trace_stats_computation_future_obfuscation_version = EndToEndScenario(
+    trace_stats_computation_future_obfuscation_version = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
         # Same as trace_stats_computation but with the agent advertising an obfuscation_version
         # higher than what any current SDK supports (99), to test that the SDK correctly falls
@@ -143,7 +148,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    trace_stats_computation_missing_obfuscation_version = EndToEndScenario(
+    trace_stats_computation_missing_obfuscation_version = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",
         # Same as trace_stats_computation but with the agent not advertising obfuscation_version
         # in /info, to test that the SDK correctly falls back to no client-side obfuscation.
@@ -163,7 +168,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    trace_stats_computation_obfuscation_version_zero = EndToEndScenario(
+    trace_stats_computation_obfuscation_version_zero = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO",
         # Same as trace_stats_computation but with the agent advertising obfuscation_version=0,
         # to test that the SDK treats version 0 as "not supported" and skips client-side obfuscation.
@@ -183,7 +188,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    trace_stats_computation_obfuscation_disabled = EndToEndScenario(
+    trace_stats_computation_obfuscation_disabled = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
         # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
         # the SDK correctly reads the obfuscation config from agent's /info and respects it.
@@ -201,7 +206,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    trace_stats_computation_error_sampler = EndToEndScenario(
+    trace_stats_computation_error_sampler = DdTraceEndToEndScenario(
         name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
         # Same as trace_stats_computation but with the trace sample rate set to 0, so that all traces
         # are P0 and would normally be dropped by the tracer. Error traces must still be sent to the
@@ -220,7 +225,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    sampling = EndToEndScenario(
+    sampling = DdTraceEndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
@@ -228,14 +233,14 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
-    sampling_rate_capping = EndToEndScenario(
+    sampling_rate_capping = DdTraceEndToEndScenario(
         "SAMPLING_RATE_CAPPING",
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test that tracers cap sampling rate increases to 2x per interval when agent restarts",
         scenario_groups=[scenario_groups.sampling],
     )
 
-    trace_propagation_style_w3c = EndToEndScenario(
+    trace_propagation_style_w3c = DdTraceEndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={
             "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
@@ -245,14 +250,14 @@ class _Scenarios:
     )
 
     # Telemetry scenarios
-    telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
+    telemetry_dependency_loaded_test_for_dependency_collection_disabled = DdTraceEndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
         doc="Test DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=false effect on tracers",
         scenario_groups=[scenario_groups.telemetry],
     )
 
-    telemetry_app_started_products_disabled = EndToEndScenario(
+    telemetry_app_started_products_disabled = DdTraceEndToEndScenario(
         "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
@@ -264,7 +269,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.telemetry],
     )
 
-    telemetry_enhanced_config_reporting = EndToEndScenario(
+    telemetry_enhanced_config_reporting = DdTraceEndToEndScenario(
         "TELEMETRY_ENHANCED_CONFIG_REPORTING",
         weblog_env={
             "DD_LOGS_INJECTION": "false",
@@ -275,19 +280,19 @@ class _Scenarios:
         scenario_groups=[scenario_groups.telemetry],
     )
 
-    telemetry_log_generation_disabled = EndToEndScenario(
+    telemetry_log_generation_disabled = DdTraceEndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_LOG_COLLECTION_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
-    telemetry_metric_generation_disabled = EndToEndScenario(
+    telemetry_metric_generation_disabled = DdTraceEndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
-    telemetry_extended_heartbeat = EndToEndScenario(
+    telemetry_extended_heartbeat = DdTraceEndToEndScenario(
         "TELEMETRY_EXTENDED_HEARTBEAT",
         weblog_env={
             "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
@@ -299,13 +304,13 @@ class _Scenarios:
     )
 
     # ASM scenarios
-    appsec_missing_rules = EndToEndScenario(
+    appsec_missing_rules = DdTraceEndToEndScenario(
         "APPSEC_MISSING_RULES",
         weblog_env={"DD_APPSEC_RULES": "/donotexists"},
         doc="Test missing appsec rules file",
         scenario_groups=[scenario_groups.appsec],
     )
-    appsec_corrupted_rules = EndToEndScenario(
+    appsec_corrupted_rules = DdTraceEndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
         weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
         weblog_volumes={
@@ -314,14 +319,14 @@ class _Scenarios:
         doc="Test corrupted appsec rules file",
         scenario_groups=[scenario_groups.appsec],
     )
-    appsec_custom_rules = EndToEndScenario(
+    appsec_custom_rules = DdTraceEndToEndScenario(
         "APPSEC_CUSTOM_RULES",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
         weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
         doc="Test custom appsec rules file",
         scenario_groups=[scenario_groups.appsec],
     )
-    appsec_blocking = EndToEndScenario(
+    appsec_blocking = DdTraceEndToEndScenario(
         "APPSEC_BLOCKING",
         weblog_env={
             "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
@@ -336,7 +341,7 @@ class _Scenarios:
     )
 
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
-    graphql_appsec = EndToEndScenario(
+    graphql_appsec = GraphQlEndToEndScenario(
         "GRAPHQL_APPSEC",
         weblog_env={
             "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
@@ -344,11 +349,10 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
-        github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
-    graphql_error_tracking = EndToEndScenario(
+    graphql_error_tracking = GraphQlEndToEndScenario(
         "GRAPHQL_ERROR_TRACKING",
         weblog_env={
             "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
@@ -356,10 +360,9 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="GraphQL error tracking tests with OpenTelemetry semantics",
-        github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
     )
-    appsec_rules_monitoring_with_errors = EndToEndScenario(
+    appsec_rules_monitoring_with_errors = DdTraceEndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
         weblog_volumes={
@@ -371,7 +374,7 @@ class _Scenarios:
         doc="Appsec rule file with some errors",
         scenario_groups=[scenario_groups.appsec],
     )
-    everything_disabled = EndToEndScenario(
+    everything_disabled = DdTraceEndToEndScenario(
         "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
@@ -382,7 +385,7 @@ class _Scenarios:
 
     appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
 
-    appsec_custom_obfuscation = EndToEndScenario(
+    appsec_custom_obfuscation = DdTraceEndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
             "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
@@ -391,13 +394,13 @@ class _Scenarios:
         doc="Test custom appsec obfuscation parameters",
         scenario_groups=[scenario_groups.appsec],
     )
-    appsec_rate_limiter = EndToEndScenario(
+    appsec_rate_limiter = DdTraceEndToEndScenario(
         "APPSEC_RATE_LIMITER",
         weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
         doc="Tests with a low rate trace limit for Appsec",
         scenario_groups=[scenario_groups.appsec],
     )
-    appsec_waf_telemetry = EndToEndScenario(
+    appsec_waf_telemetry = DdTraceEndToEndScenario(
         "APPSEC_WAF_TELEMETRY",
         weblog_env={
             "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
@@ -408,7 +411,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_blocking_full_denylist = EndToEndScenario(
+    appsec_blocking_full_denylist = DdTraceEndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
@@ -423,7 +426,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_runtime_activation = EndToEndScenario(
+    appsec_runtime_activation = DdTraceEndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
@@ -433,7 +436,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
     )
 
-    appsec_api_security = EndToEndScenario(
+    appsec_api_security = DdTraceEndToEndScenario(
         "APPSEC_API_SECURITY",
         appsec_enabled=True,
         weblog_env={
@@ -452,7 +455,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_api_security_rc = EndToEndScenario(
+    appsec_api_security_rc = DdTraceEndToEndScenario(
         "APPSEC_API_SECURITY_RC",
         weblog_env={
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
@@ -469,7 +472,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
-    appsec_api_security_no_response_body = EndToEndScenario(
+    appsec_api_security_no_response_body = DdTraceEndToEndScenario(
         "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
         appsec_enabled=True,
         weblog_env={
@@ -486,7 +489,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_api_security_with_sampling = EndToEndScenario(
+    appsec_api_security_with_sampling = DdTraceEndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
         weblog_env={
@@ -501,7 +504,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_auto_events_extended = EndToEndScenario(
+    appsec_auto_events_extended = DdTraceEndToEndScenario(
         "APPSEC_AUTO_EVENTS_EXTENDED",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
@@ -513,7 +516,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_auto_events_rc = EndToEndScenario(
+    appsec_auto_events_rc = DdTraceEndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         rc_api_enabled=True,
@@ -524,7 +527,7 @@ class _Scenarios:
         other_weblog_containers=(InternalServerContainer,),
     )
 
-    runtime_sca_reachability = EndToEndScenario(
+    runtime_sca_reachability = DdTraceEndToEndScenario(
         "RUNTIME_SCA_REACHABILITY",
         weblog_env={
             "DD_APPSEC_SCA_ENABLED": "true",
@@ -535,7 +538,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_standalone = EndToEndScenario(
+    appsec_standalone = DdTraceEndToEndScenario(
         "APPSEC_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
@@ -551,7 +554,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_apm_standalone = EndToEndScenario(
+    appsec_apm_standalone = DdTraceEndToEndScenario(
         "APPSEC_APM_STANDALONE",
         rc_api_enabled=True,
         weblog_env={
@@ -568,7 +571,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_standalone_apm_standalone = EndToEndScenario(
+    appsec_standalone_apm_standalone = DdTraceEndToEndScenario(
         "APPSEC_STANDALONE_APM_STANDALONE",
         rc_api_enabled=True,
         weblog_env={
@@ -586,7 +589,7 @@ class _Scenarios:
     )
 
     # Combined scenario for API Security in standalone mode
-    appsec_standalone_api_security = EndToEndScenario(
+    appsec_standalone_api_security = DdTraceEndToEndScenario(
         "APPSEC_STANDALONE_API_SECURITY",
         appsec_enabled=True,
         weblog_env={
@@ -601,7 +604,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    iast_standalone = EndToEndScenario(
+    iast_standalone = DdTraceEndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
@@ -617,7 +620,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    sca_standalone = EndToEndScenario(
+    sca_standalone = DdTraceEndToEndScenario(
         "SCA_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
@@ -631,7 +634,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    iast_deduplication = EndToEndScenario(
+    iast_deduplication = DdTraceEndToEndScenario(
         "IAST_DEDUPLICATION",
         weblog_env={
             "DD_IAST_ENABLED": "true",
@@ -644,7 +647,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_meta_struct_disabled = EndToEndScenario(
+    appsec_meta_struct_disabled = DdTraceEndToEndScenario(
         "APPSEC_META_STRUCT_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
         meta_structs_disabled=True,
@@ -652,7 +655,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    remote_config_mocked_backend_asm_features = EndToEndScenario(
+    remote_config_mocked_backend_asm_features = DdTraceEndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
@@ -666,7 +669,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
-    remote_config_mocked_backend_live_debugging = EndToEndScenario(
+    remote_config_mocked_backend_live_debugging = DdTraceEndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
         rc_api_enabled=True,
         weblog_env={
@@ -679,7 +682,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
     )
 
-    remote_config_mocked_backend_asm_dd = EndToEndScenario(
+    remote_config_mocked_backend_asm_dd = DdTraceEndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
@@ -699,7 +702,7 @@ class _Scenarios:
         ],
     )
 
-    feature_flagging_and_experimentation = EndToEndScenario(
+    feature_flagging_and_experimentation = DdTraceEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
         weblog_env={
@@ -739,7 +742,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.ffe],
     )
 
-    remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
+    remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
@@ -748,14 +751,14 @@ class _Scenarios:
     )
 
     # APM tracing end-to-end scenarios
-    apm_tracing_e2e_otel = EndToEndScenario(
+    apm_tracing_e2e_otel = DdTraceEndToEndScenario(
         "APM_TRACING_E2E_OTEL",
         weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
         backend_interface_timeout=5,
         require_api_key=True,
         doc="",
     )
-    apm_tracing_e2e_single_span = EndToEndScenario(
+    apm_tracing_e2e_single_span = DdTraceEndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
             "DD_SPAN_SAMPLING_RULES": json.dumps(
@@ -767,7 +770,7 @@ class _Scenarios:
         require_api_key=True,
         doc="",
     )
-    apm_tracing_otlp = EndToEndScenario(
+    apm_tracing_otlp = DdTraceEndToEndScenario(
         "APM_TRACING_OTLP",
         weblog_env={
             "OTEL_TRACES_EXPORTER": "otlp",
@@ -780,7 +783,7 @@ class _Scenarios:
         doc="",
     )
 
-    apm_tracing_efficient_payload = EndToEndScenario(
+    apm_tracing_efficient_payload = DdTraceEndToEndScenario(
         "APM_TRACING_EFFICIENT_PAYLOAD",
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
@@ -797,19 +800,19 @@ class _Scenarios:
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
-    library_conf_custom_header_tags = EndToEndScenario(
+    library_conf_custom_header_tags = DdTraceEndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
         rc_api_enabled=True,
         doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
     )
-    library_conf_custom_header_tags_invalid = EndToEndScenario(
+    library_conf_custom_header_tags_invalid = DdTraceEndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
         additional_trace_header_tags=(INVALID_CONFIGS),
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    tracing_config_empty = EndToEndScenario(
+    tracing_config_empty = DdTraceEndToEndScenario(
         "TRACING_CONFIG_EMPTY",
         weblog_env={
             # This scenario should be empty but enabling logs injection allows us to reuse this scenario for the
@@ -819,7 +822,7 @@ class _Scenarios:
         doc="",
     )
 
-    tracing_config_nondefault = EndToEndScenario(
+    tracing_config_nondefault = DdTraceEndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
         additional_trace_header_tags=tuple(CONFIG_WILDCARD),
         weblog_env={
@@ -843,7 +846,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
 
-    tracing_config_nondefault_2 = EndToEndScenario(
+    tracing_config_nondefault_2 = DdTraceEndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
         weblog_env={
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
@@ -859,7 +862,7 @@ class _Scenarios:
         doc="Test tracer configuration when a collection of non-default settings are applied",
         scenario_groups=[scenario_groups.tracing_config],
     )
-    tracing_config_nondefault_3 = EndToEndScenario(
+    tracing_config_nondefault_3 = DdTraceEndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3",
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
@@ -878,7 +881,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.tracing_config],
     )
 
-    tracing_config_nondefault_4 = EndToEndScenario(
+    tracing_config_nondefault_4 = DdTraceEndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_4",
         weblog_env={
             # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
@@ -960,7 +963,7 @@ class _Scenarios:
         doc="Test scenario for checking symdb.",
     )
 
-    debugger_inproduct_enablement = EndToEndScenario(
+    debugger_inproduct_enablement = DdTraceEndToEndScenario(
         "DEBUGGER_INPRODUCT_ENABLEMENT",
         rc_api_enabled=True,
         rc_backend_enabled=False,
@@ -973,7 +976,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger],
     )
 
-    debugger_telemetry = EndToEndScenario(
+    debugger_telemetry = DdTraceEndToEndScenario(
         "DEBUGGER_TELEMETRY",
         rc_api_enabled=True,
         rc_backend_enabled=True,
@@ -1274,7 +1277,7 @@ class _Scenarios:
         },
     )
 
-    appsec_ato_sdk = EndToEndScenario(
+    appsec_ato_sdk = DdTraceEndToEndScenario(
         "APPSEC_ATO_SDK",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"},
         weblog_volumes={
@@ -1284,11 +1287,10 @@ class _Scenarios:
             }
         },
         doc="Rules file with unsafe login and user id",
-        github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec],
     )
 
-    agent_supporting_span_events = EndToEndScenario(
+    agent_supporting_span_events = DdTraceEndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
@@ -1296,7 +1298,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
     )
 
-    agent_not_supporting_span_events = EndToEndScenario(
+    agent_not_supporting_span_events = DdTraceEndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
         span_events=False,
@@ -1306,7 +1308,7 @@ class _Scenarios:
 
     ipv6 = IPV6Scenario("IPV6")
 
-    runtime_metrics_enabled = EndToEndScenario(
+    runtime_metrics_enabled = DdTraceEndToEndScenario(
         "RUNTIME_METRICS_ENABLED",
         # Add environment variable DD_DOGSTATSD_START_DELAY=0 to avoid the default 30s startup delay in the Java tracer.
         # That delay is used in production to reduce the impact on startup and other side-effects on various application
@@ -1317,7 +1319,7 @@ class _Scenarios:
         doc="Test runtime metrics",
     )
 
-    otlp_runtime_metrics = EndToEndScenario(
+    otlp_runtime_metrics = DdTraceEndToEndScenario(
         "OTLP_RUNTIME_METRICS",
         weblog_env={
             "DD_METRICS_OTEL_ENABLED": "true",
@@ -1330,7 +1332,7 @@ class _Scenarios:
         runtime_metrics_enabled=True,
         include_opentelemetry=True,
         library_interface_timeout=20,
-        doc="Test runtime metrics exported via OTLP with OTel semantic convention names",
+        doc="Test ddtrace runtime metrics exported via OTLP with OTel semantic convention names",
     )
 
     # Appsec Lambda Scenarios

@@ -1,0 +1,54 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+apache-mod-7.0:
+  categories: [dd_trace]
+apache-mod-7.1:
+  categories: [dd_trace]
+apache-mod-7.2:
+  categories: [dd_trace]
+apache-mod-7.3:
+  categories: [dd_trace]
+apache-mod-7.4:
+  categories: [dd_trace]
+apache-mod-8.0:
+  categories: [dd_trace]
+apache-mod-8.1:
+  categories: [dd_trace]
+apache-mod-8.2:
+  categories: [dd_trace]
+apache-mod-7.0-zts:
+  categories: [dd_trace]
+apache-mod-7.1-zts:
+  categories: [dd_trace]
+apache-mod-7.2-zts:
+  categories: [dd_trace]
+apache-mod-7.3-zts:
+  categories: [dd_trace]
+apache-mod-7.4-zts:
+  categories: [dd_trace]
+apache-mod-8.0-zts:
+  categories: [dd_trace]
+apache-mod-8.1-zts:
+  categories: [dd_trace]
+apache-mod-8.2-zts:
+  categories: [dd_trace]
+php-fpm-7.0:
+  categories: [dd_trace]
+php-fpm-7.1:
+  categories: [dd_trace]
+php-fpm-7.2:
+  categories: [dd_trace]
+php-fpm-7.3:
+  categories: [dd_trace]
+php-fpm-7.4:
+  categories: [dd_trace]
+php-fpm-8.0:
+  categories: [dd_trace]
+php-fpm-8.1:
+  categories: [dd_trace]
+php-fpm-8.2:
+  categories: [dd_trace]
+php-fpm-8.5:
+  categories: [dd_trace]
+laravel11x:
+  categories: [dd_trace]
