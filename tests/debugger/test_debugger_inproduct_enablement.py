@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, logger, scenarios, slow
+from utils import context, features, interfaces, logger, scenarios, slow
 import json
 import time
 
@@ -220,8 +220,15 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
 class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
     def setup_code_origin_enabled_by_default(self):
         self.initialize_weblog_remote_config()
+        self.send_rc_apm_tracing(reset=True)
+        threshold = self._get_max_trace_file_number()
+        self._span_found = False
         self.send_weblog_request("/")
-        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(TIMEOUT)
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
+            timeout=TIMEOUT,
+        )
+        self.code_origin_enabled_by_default = self._span_found
 
     def test_code_origin_enabled_by_default(self):
         self.assert_setup_ok()
