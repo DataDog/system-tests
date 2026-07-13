@@ -1335,6 +1335,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.59.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
@@ -1551,7 +1552,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)

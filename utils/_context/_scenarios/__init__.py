@@ -702,6 +702,7 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
             # set_provider() in Python blocks until we receive RC
             # configuration for feature flags. But it is only sent
             # after weblog sucessfully boots and tests start
@@ -879,14 +880,6 @@ class _Scenarios:
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
-
-    debugger_probes_status = DebuggerScenario(
-        "DEBUGGER_PROBES_STATUS",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
-    )
 
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",

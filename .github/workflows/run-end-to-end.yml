@@ -427,9 +427,6 @@ jobs:
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
-    - name: Run DEBUGGER_PROBES_STATUS scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
-      run: ./run.sh DEBUGGER_PROBES_STATUS
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
