@@ -1345,7 +1345,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-603)
       component_version: '>=3.0.0-dev'
-  tests/ffe/test_agentless_configuration.py: missing_feature (agentless end-to-end scenario not enabled yet)
+  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2699 tracks Python agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_exposures.py: v4.2.0-dev
