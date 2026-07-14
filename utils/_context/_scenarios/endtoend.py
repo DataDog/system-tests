@@ -223,15 +223,21 @@ class EndToEndScenario(DockerScenario):
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
+        include_default_scenario_groups: bool = True,
         include_opentelemetry: bool = False,
         require_api_key: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
-        scenario_groups = [
-            all_scenario_groups.all,
-            all_scenario_groups.end_to_end,
-            all_scenario_groups.tracer_release,
-        ] + (scenario_groups or [])
+        default_scenario_groups = (
+            [
+                all_scenario_groups.all,
+                all_scenario_groups.end_to_end,
+                all_scenario_groups.tracer_release,
+            ]
+            if include_default_scenario_groups
+            else []
+        )
+        scenario_groups = default_scenario_groups + (scenario_groups or [])
 
         super().__init__(
             name,
@@ -548,6 +554,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         backend_interface_timeout: int = 0,
         client_drop_p0s: bool | None = None,
         iast_enabled: bool = True,
+        include_default_scenario_groups: bool = True,
         include_opentelemetry: bool = False,
         library_interface_timeout: int | None = None,
         meta_structs_disabled: bool = False,
@@ -572,6 +579,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             client_drop_p0s=client_drop_p0s,
             doc=doc,
             iast_enabled=iast_enabled,
+            include_default_scenario_groups=include_default_scenario_groups,
             include_opentelemetry=include_opentelemetry,
             library_interface_timeout=library_interface_timeout,
             meta_structs_disabled=meta_structs_disabled,

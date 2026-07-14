@@ -739,6 +739,7 @@ class _Scenarios:
             "OTEL_METRIC_EXPORT_INTERVAL": "1000",
         },
         doc="Validate default agentless UFC delivery and FFE side effects through the Agent telemetry conduit.",
+        include_default_scenario_groups=False,
         scenario_groups=[scenario_groups.ffe],
     )
 
