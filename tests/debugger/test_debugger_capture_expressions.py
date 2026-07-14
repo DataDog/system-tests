@@ -147,11 +147,26 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
 class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTest):
     """Tests for method-level probe capture expressions"""
 
-    ### log probe with capture expressions ###
-    def setup_log_method_capture_expressions(self):
-        self._setup("probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None)
+    ### method probe: capture expressions over method arguments ###
+    def setup_method_argument_capture_expressions(self):
+        # `inputValue` is a method parameter in the Java/.NET/PHP weblogs, so a
+        # method probe captures it directly. Ruby method probes capture method
+        # arguments but not method-body locals (where `inputValue` is a local),
+        # so target a helper method that receives `inputValue` as an argument.
+        language = self.get_tracer()["language"]
+        if language == "ruby":
+            self._setup(
+                "probe_capture_expressions_method_args",
+                "/debugger/expression/args?inputValue=testValue",
+                "log",
+                lines=None,
+            )
+        else:
+            self._setup(
+                "probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None
+            )
 
-    def test_log_method_capture_expressions(self):
+    def test_method_argument_capture_expressions(self):
         self._assert()
 
         # Build expected captures with validation functions
@@ -159,6 +174,21 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
         for probe_id in self.probe_ids:
             expected_captures[probe_id] = {
                 "inputValue": lambda v: isinstance(v, dict) and "type" in v and "value" in v,
+            }
+
+        self._validate_capture_expressions(expected_captures)
+
+    ### method probe: capture expressions over method-body locals ###
+    def setup_method_local_capture_expressions(self):
+        self._setup("probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None)
+
+    def test_method_local_capture_expressions(self):
+        self._assert()
+
+        # Build expected captures with validation functions
+        expected_captures = {}
+        for probe_id in self.probe_ids:
+            expected_captures[probe_id] = {
                 "localValue": lambda v: isinstance(v, dict) and "type" in v and "value" in v,
                 "testStruct": lambda v: isinstance(v, dict) and "type" in v,
             }
