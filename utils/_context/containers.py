@@ -838,6 +838,29 @@ class AgentContainer(TestedContainer):
         return os.environ.get("DD_SITE", "datad0g.com")
 
 
+class ServerlessSidecarContainer(TestedContainer):
+    """Serverless-init used only as a local Feature Flags telemetry conduit."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            name="ffe-serverless-sidecar",
+            image_name="datadog/serverless-init:1.9.13",
+            environment={
+                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_SITE": "datad0g.com",
+                "DD_SERVICE": "ffe-system-tests-sidecar",
+                "DD_ENV": "system-tests",
+                "DD_APM_ENABLED": "true",
+                "DD_APM_NON_LOCAL_TRAFFIC": "true",
+                "DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT": "0.0.0.0:4318",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.ffe_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            },
+        )
+
+
 class BuddyContainer(TestedContainer):
     def __init__(
         self,

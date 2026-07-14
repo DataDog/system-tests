@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 import os
 import pytest
 
@@ -10,6 +10,7 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.interfaces._feature_flag_telemetry import FeatureFlagTelemetryInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
 from utils._context.component_version import Version
@@ -18,6 +19,7 @@ from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
+    ServerlessSidecarContainer,
     BuddyContainer,
     TestedContainer,
 )
@@ -215,6 +217,7 @@ class EndToEndScenario(DockerScenario):
         agent_interface_timeout: int = 5,
         use_proxy_for_weblog: bool = True,
         use_proxy_for_agent: bool = True,
+        use_proxy_for_telemetry: bool = False,
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
         meta_structs_disabled: bool = False,
@@ -249,7 +252,7 @@ class EndToEndScenario(DockerScenario):
             scenario_groups=scenario_groups,
             weblog_categories=weblog_categories,
             enable_ipv6=enable_ipv6,
-            use_proxy=(include_agent and use_proxy_for_agent) or use_proxy_for_weblog,
+            use_proxy=(include_agent and use_proxy_for_agent) or use_proxy_for_weblog or use_proxy_for_telemetry,
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
             meta_structs_disabled=meta_structs_disabled,
@@ -265,6 +268,7 @@ class EndToEndScenario(DockerScenario):
         self._use_proxy_for_agent = include_agent and use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
         self._flush_weblog_on_stop = flush_weblog_on_stop
+        self._use_proxy_for_telemetry = use_proxy_for_telemetry
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
@@ -589,6 +593,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         span_events: bool = True,
         tracer_sampling_rate: float | None = None,
         use_proxy_for_agent: bool = True,
+        use_proxy_for_telemetry: bool = False,
         use_proxy_for_weblog: bool = True,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
@@ -618,6 +623,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             span_events=span_events,
             tracer_sampling_rate=tracer_sampling_rate,
             use_proxy_for_agent=use_proxy_for_agent,
+            use_proxy_for_telemetry=use_proxy_for_telemetry,
             use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_categories=[WeblogCategory.dd_trace],
             weblog_env=weblog_env,
@@ -631,16 +637,116 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _mock_backend: MockFFEAgentlessBackendServer | None = None
     _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
 
+    def __init__(
+        self,
+        name: str,
+        *,
+        telemetry_route: Literal["none", "sidecar", "direct"] = "none",
+        weblog_env: dict[str, str | None] | None = None,
+        other_weblog_containers: tuple[type[TestedContainer], ...] = (),
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
+        self.telemetry_route = telemetry_route
+        environment = dict(weblog_env or {})
+
+        if telemetry_route != "none":
+            environment |= {
+                "DD_FEATURE_FLAGS_TELEMETRY_TRANSPORT": "auto",
+                "DD_FLAGGING_EVALUATION_COUNTS_ENABLED": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+                "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_direct}",
+            }
+
+        if telemetry_route == "sidecar":
+            environment |= {
+                "DD_AGENT_HOST": "ffe-serverless-sidecar",
+                "DD_TRACE_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_URL": "http://ffe-serverless-sidecar:8126",
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://ffe-serverless-sidecar:4318/v1/metrics",
+            }
+            other_weblog_containers += (ServerlessSidecarContainer,)
+        elif telemetry_route == "direct":
+            environment |= {
+                "DD_API_KEY": EXPECTED_API_KEY,
+                "DD_SITE": "datad0g.com",
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.ffe_direct}/v1/metrics",
+                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": (f"dd-api-key={EXPECTED_API_KEY},dd-protocol=otlp"),
+            }
+
+        super().__init__(
+            name,
+            weblog_env=environment,
+            other_weblog_containers=other_weblog_containers,
+            use_proxy_for_telemetry=telemetry_route != "none",
+            **kwargs,
+        )
+
+    @property
+    def telemetry_interface(self) -> FeatureFlagTelemetryInterfaceValidator:
+        if self.telemetry_route == "sidecar":
+            return interfaces.ffe_sidecar
+        if self.telemetry_route == "direct":
+            return interfaces.ffe_direct
+        raise ValueError("This scenario does not capture Feature Flags telemetry")
+
+    @property
+    def unexpected_telemetry_interface(self) -> FeatureFlagTelemetryInterfaceValidator:
+        if self.telemetry_route == "sidecar":
+            return interfaces.ffe_direct
+        if self.telemetry_route == "direct":
+            return interfaces.ffe_sidecar
+        raise ValueError("This scenario does not capture Feature Flags telemetry")
+
     def configure(self, config: pytest.Config) -> None:
         try:
             if not self.replay:
                 worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
                 self._start_mock_backend(worker_id)
 
+            if self.telemetry_route != "none":
+                interfaces.ffe_sidecar.configure(self.host_log_folder, replay=self.replay)
+                interfaces.ffe_direct.configure(self.host_log_folder, replay=self.replay)
             super().configure(config)
         except BaseException:
             self._stop_mock_backend()
             raise
+
+    def _set_containers_dependancies(self) -> None:
+        super()._set_containers_dependancies()
+        if not self._use_proxy_for_telemetry:
+            return
+
+        self.weblog_infra.library_container.depends_on.append(self.proxy_container)
+        for container in self._containers:
+            if isinstance(container, ServerlessSidecarContainer):
+                container.depends_on.append(self.proxy_container)
+
+    def _start_interfaces_watchdog(self) -> None:
+        super()._start_interfaces_watchdog()
+        if self.telemetry_route != "none":
+            self.start_interfaces_watchdog([interfaces.ffe_sidecar, interfaces.ffe_direct])
+
+    def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool) -> None:
+        super()._wait_and_stop_containers(force_interface_timout_to_zero=force_interface_timout_to_zero)
+        if self.telemetry_route == "none":
+            return
+
+        if self.replay:
+            interfaces.ffe_sidecar.load_data_from_logs()
+            interfaces.ffe_direct.load_data_from_logs()
+        else:
+            for container in self._containers:
+                if isinstance(container, ServerlessSidecarContainer):
+                    container.stop()
+            self._wait_interface(
+                self.telemetry_interface,
+                0 if force_interface_timout_to_zero else 5,
+            )
+
+        interfaces.ffe_sidecar.check_deserialization_errors()
+        interfaces.ffe_direct.check_deserialization_errors()
 
     def _start_mock_backend(self, worker_id: str) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"

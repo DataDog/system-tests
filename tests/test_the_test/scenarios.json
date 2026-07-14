@@ -3351,6 +3351,18 @@
   "tests/ffe/test_agentless_configuration.py::Test_FFE_Agentless_Configuration::test_default_agentless_source": [
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
   ],
+  "tests/ffe/test_agentless_exposures.py::Test_FFE_Agentless_Exposure::test_agentless_exposure": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
+  ],
+  "tests/ffe/test_agentless_flag_eval_evp.py::Test_FFE_Agentless_EVP_Flagevaluation::test_agentless_evp_flagevaluation": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
+  ],
+  "tests/ffe/test_agentless_flag_eval_metrics.py::Test_FFE_Agentless_Eval_Metric::test_agentless_eval_metric": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
+  ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
   ],
