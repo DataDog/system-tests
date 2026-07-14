@@ -1744,15 +1744,15 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
-        rails72: v2.38.0
-        rails80: v2.38.0
-        uds-rails: v2.38.0
+        rails72: v2.38.0-dev
+        rails80: v2.38.0-dev
+        uds-rails: v2.38.0-dev
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
-        rails72: v2.38.0
-        rails80: v2.38.0
-        uds-rails: v2.38.0
+        rails72: v2.38.0-dev
+        rails80: v2.38.0-dev
+        uds-rails: v2.38.0-dev
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": irrelevant
