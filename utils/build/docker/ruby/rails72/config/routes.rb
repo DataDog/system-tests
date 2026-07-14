@@ -73,6 +73,7 @@ Rails.application.routes.draw do
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
   get '/debugger/snapshot/limits' => 'debugger#snapshot_limits'
   get '/debugger/expression' => 'debugger#expression'
+  get '/debugger/expression/args' => 'debugger#expression_args'
   %w(operators strings collections null exception).each do |sub|
     get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
   end

@@ -81,6 +81,17 @@ class DebuggerController < ActionController::Base
     render inline: "Great success number #{localValue}"
   end # must be line 82
 
+  # Method probes in dd-trace-rb capture method arguments, not method-body
+  # locals. This helper receives inputValue as a keyword argument so a method
+  # probe on it can capture the argument via a capture expression.
+  def expression_args
+    expression_args_target(inputValue: params[:inputValue])
+  end
+
+  def expression_args_target(inputValue:)
+    render inline: "Args probe #{inputValue}"
+  end
+
   # Padding
   # Padding
   # Padding
