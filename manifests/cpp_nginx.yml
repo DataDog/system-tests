@@ -172,6 +172,8 @@ manifest:
   tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.3.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.3.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.3.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature (blocking capabilities are advertised unconditionally, not yet gated on activation state)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
@@ -267,6 +269,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/ffe/test_agentless_configuration.py: missing_feature (agentless end-to-end scenario is not enabled for C++)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)

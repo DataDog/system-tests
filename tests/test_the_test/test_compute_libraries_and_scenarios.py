@@ -456,6 +456,18 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agentless_ffe_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_agentless_configuration.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "",
+        )
+
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 

@@ -133,13 +133,14 @@ class EndToEndWeblogInfra(WeblogInfra):
         self._proxy_runtime_container.depends_on = [self._processor_container, self._dummy_server_container]
 
     def set_weblog_dependencies(
-        self, agent_container: TestedContainer, proxy_container: TestedContainer | None
+        self, agent_container: TestedContainer | None, proxy_container: TestedContainer | None
     ) -> None:
         """Wire container start-order dependencies for all weblog containers.
 
         Handles both the standard weblog topology and the go-proxies one transparently.
         """
-        self.library_container.depends_on.append(agent_container)
+        if agent_container is not None:
+            self.library_container.depends_on.append(agent_container)
         if proxy_container is not None:
             self.library_container.depends_on.append(proxy_container)
 

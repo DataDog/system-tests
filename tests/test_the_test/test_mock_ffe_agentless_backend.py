@@ -72,13 +72,21 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> N
 @scenarios.test_the_test
 @features.not_reported
 def test_agentless_end_to_end_scenario_starts_backend_before_weblog(worker_id: str) -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_E2E",
+        doc="test",
+        include_agent=False,
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
 
     try:
+        assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
         scenario._start_mock_backend(worker_id)  # noqa: SLF001 - focused lifecycle test
 
         environment = scenario.weblog_infra.library_container.environment
         assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
+        assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
         assert isinstance(base_url, str)
         assert base_url.endswith(CONFIG_PATH)

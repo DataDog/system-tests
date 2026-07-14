@@ -2,3 +2,4 @@
 
 otel_collector:
   build_mode: none
+  supported_scenarios: [OTEL_COLLECTOR, OTEL_COLLECTOR_E2E]
