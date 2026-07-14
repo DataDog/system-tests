@@ -1,9 +1,12 @@
 """Unit coverage for the mock FFE agentless backend test fixture."""
 
+from unittest.mock import MagicMock
+
 import requests
 import pytest
 
 from utils import features, interfaces, scenarios
+from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
 from utils.docker_fixtures._mock_ffe_agentless_backend import (
     CONFIG_PATH,
@@ -130,3 +133,51 @@ def test_agentless_end_to_end_scenario_stops_without_tracer_flush(monkeypatch: p
 
     assert stopped is True
     assert flushed is False
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_STARTUP_FAILURE",
+        doc="test",
+        include_agent=False,
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
+    backend.reset.side_effect = RuntimeError("reset failed")
+
+    def create_backend(_worker_id: str) -> MagicMock:
+        return backend
+
+    monkeypatch.setattr(endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
+
+    with pytest.raises(RuntimeError, match="reset failed"):
+        scenario.configure(MagicMock(spec=pytest.Config))
+
+    backend.close.assert_called_once_with()
+    assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_STATUS_FAILURE",
+        doc="test",
+        include_agent=False,
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
+    backend.status.side_effect = RuntimeError("status failed")
+    scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
+
+    with pytest.raises(RuntimeError, match="status failed"):
+        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+    backend.close.assert_called_once_with()
+    assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test

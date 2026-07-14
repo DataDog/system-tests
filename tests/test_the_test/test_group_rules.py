@@ -18,6 +18,7 @@ def test_tracer_release():
     # make an exclusion list
 
     dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
+    assert dormant_agentless_scenario.github_workflow is None
     assert dormant_agentless_scenario.include_agent is False
     assert dormant_agentless_scenario._flush_weblog_on_stop is False  # noqa: SLF001 - no-Agent teardown contract
     assert dormant_agentless_scenario.use_proxy is False

@@ -739,6 +739,7 @@ class _Scenarios:
         include_agent=False,
         include_default_scenario_groups=False,
         flush_weblog_on_stop=False,
+        github_workflow=None,
         library_interface_timeout=0,
         scenario_groups=[scenario_groups.ffe],
         use_proxy_for_agent=False,

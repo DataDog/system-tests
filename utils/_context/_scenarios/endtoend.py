@@ -200,7 +200,7 @@ class EndToEndScenario(DockerScenario):
         name: str,
         *,
         doc: str,
-        github_workflow: str = "endtoend",
+        github_workflow: str | None = "endtoend",
         weblog_categories: list[WeblogCategory],
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
@@ -567,6 +567,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         name: str,
         *,
         doc: str,
+        github_workflow: str | None = "endtoend",
         additional_trace_header_tags: tuple[str, ...] = (),
         agent_env: dict[str, str | None] | None = None,
         appsec_enabled: bool = True,
@@ -613,6 +614,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             rc_backend_enabled=rc_backend_enabled,
             require_api_key=require_api_key,
             flush_weblog_on_stop=flush_weblog_on_stop,
+            github_workflow=github_workflow,
             runtime_metrics_enabled=runtime_metrics_enabled,
             scenario_groups=scenario_groups,
             span_events=span_events,
@@ -632,11 +634,11 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
 
     def configure(self, config: pytest.Config) -> None:
-        if not self.replay:
-            worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
-            self._start_mock_backend(worker_id)
-
         try:
+            if not self.replay:
+                worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
+                self._start_mock_backend(worker_id)
+
             super().configure(config)
         except BaseException:
             self._stop_mock_backend()
@@ -661,12 +663,15 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         return self._last_mock_backend_status
 
     def _stop_mock_backend(self) -> None:
-        if self._mock_backend is None:
+        backend = self._mock_backend
+        if backend is None:
             return
 
-        self._last_mock_backend_status = self._mock_backend.status()
-        self._mock_backend.close()
         self._mock_backend = None
+        try:
+            self._last_mock_backend_status = backend.status()
+        finally:
+            backend.close()
 
     def close_targets(self) -> None:
         try:
