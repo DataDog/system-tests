@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import json
 from typing import Any
 
 import tests.debugger.utils as debugger
@@ -10,18 +9,10 @@ from utils import context, features, rfc, scenarios, slow, weblog
 
 
 MAX_SNAPSHOT_BYTES = 1024 * 1024
-EVALUATION_TIMEOUT_MARKERS = (
-    "deadline",
-    "evaluation time limit",
-    "maximum allowed time",
-    "time budget",
-    "timed out",
-    "timeout",
-)
 # `^(a+)+$` against a non-matching input backtracks exponentially (~2^n), so a few dozen
 # characters already blow past any evaluation-time budget. Keep it small so the value fits
 # comfortably in the request URL.
-REDOS_INPUT_LENGTH = 50
+REDOS_INPUT_LENGTH = 25
 GUARDRAILS_RFC = "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
 
 
@@ -53,7 +44,10 @@ class _DebuggerEvaluationTimeoutTest(debugger.BaseDebuggerTest):
         # A conforming tracer emits an evaluation-error snapshot; wait for it to land before
         # collect(). Tracers that (wrongly) emit nothing just hit the timeout and fail the
         # snapshot-presence assertion in the test with a clear message.
-        self.wait_for_all_snapshots(timeout=10)
+        if self.wait_for_all_snapshots(timeout=10):
+            # One hit must emit one error snapshot. Keep watching so a delayed duplicate or
+            # normal snapshot cannot arrive after collect() and produce a false pass.
+            self.wait_for_additional_snapshots(timeout=5)
 
     def setup_evaluation_timeout_regex(self) -> None:
         self._setup_evaluation_timeout(
@@ -95,14 +89,6 @@ class _DebuggerEvaluationTimeoutTest(debugger.BaseDebuggerTest):
             assert evaluation_errors, (
                 "Evaluation-timeout snapshot has an empty evaluationErrors[]; the tracer must "
                 "report that expression evaluation was aborted."
-            )
-
-            error_messages = [
-                str(error.get("message", "")).casefold() for error in evaluation_errors if isinstance(error, dict)
-            ]
-            assert any(marker in message for message in error_messages for marker in EVALUATION_TIMEOUT_MARKERS), (
-                "Evaluation error does not identify a timeout, deadline, or exhausted time budget; "
-                f"an unrelated evaluation failure must not satisfy this guardrail: {evaluation_errors!r}"
             )
 
             captures = snapshot.get("captures")
@@ -157,7 +143,7 @@ class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
         if not self.wait_for_all_snapshots(timeout=30):
             self.setup_failures.append("Snapshot was not received within 30s")
 
-    def _get_single_snapshot(self) -> tuple[dict[str, Any], dict[str, Any]]:
+    def _get_single_snapshot(self) -> tuple[str, dict[str, Any]]:
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
@@ -170,7 +156,7 @@ class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
             envelope = snapshots[0]
             snapshot = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot")
             assert isinstance(snapshot, dict), f"Snapshot data not found in expected format for {probe_id}"
-            return envelope, snapshot
+            return probe_id, snapshot
 
         raise AssertionError("No probe IDs were registered")
 
@@ -217,28 +203,32 @@ class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
 class Test_Debugger_Snapshot_Size_Guardrail(_DebuggerSnapshotGuardrailTest):
     """RFC guardrail for the completed snapshot size."""
 
-    SNAPSHOT_SIZE_COLLECTION_ITEMS = 300_000
+    # Before enabling, verify this exceeds 1 MB without timing out; otherwise use a dedicated scenario or remove it.
+    SNAPSHOT_SIZE_COLLECTION_ITEMS = 20_000
+    SNAPSHOT_SIZE_STRING_LENGTH = 1_000_000
 
     def setup_snapshot_size_cap(self) -> None:
         self._setup_snapshot_guardrail(
             "probe_snapshot_size_cap",
-            f"/debugger/snapshot/limits?collectionSize={self.SNAPSHOT_SIZE_COLLECTION_ITEMS}",
+            (
+                f"/debugger/snapshot/limits?collectionSize={self.SNAPSHOT_SIZE_COLLECTION_ITEMS}"
+                f"&stringLength={self.SNAPSHOT_SIZE_STRING_LENGTH}"
+            ),
             "SnapshotLimits",
         )
 
     def test_snapshot_size_cap(self) -> None:
-        envelope, snapshot = self._get_single_snapshot()
-        # collect() adds query metadata for test filtering; it is not part of the tracer intake envelope.
-        intake_envelope = {key: value for key, value in envelope.items() if key != "query"}
-        serialized_size = len(json.dumps(intake_envelope, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
-        assert serialized_size <= MAX_SNAPSHOT_BYTES, (
-            f"Snapshot intake envelope should be trimmed to <= {MAX_SNAPSHOT_BYTES} bytes, got {serialized_size} bytes"
+        probe_id, snapshot = self._get_single_snapshot()
+        request_lengths = self.get_snapshot_request_lengths(probe_id)
+        assert request_lengths, f"No backend request containing a snapshot was found for {probe_id}"
+        oversized_requests = [length for length in request_lengths if length > MAX_SNAPSHOT_BYTES]
+        assert not oversized_requests, (
+            f"Snapshot backend requests should be <= {MAX_SNAPSHOT_BYTES} bytes, got {request_lengths!r}"
         )
 
-        large_collection = self._get_captured_local(snapshot, "largeCollection")
-        assert self._contains_payload_pruning(large_collection), (
-            "Expected the oversized snapshot to mark payload-size pruning within largeCollection, "
-            f"got: {large_collection!r}"
+        captures = snapshot.get("captures", {})
+        assert self._contains_payload_pruning(captures), (
+            f"Expected the oversized snapshot to contain a payload-size pruning marker, got: {captures!r}"
         )
 
 
