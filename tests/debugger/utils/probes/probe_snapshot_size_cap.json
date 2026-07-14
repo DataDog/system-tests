@@ -11,10 +11,9 @@
             "sourceFile": null
         },
         "capture": {
-            "maxReferenceDepth": 20,
-            "maxCollectionSize": 1000000,
-            "maxLength": 1000000,
-            "maxFieldCount": 1000
+            "maxCollectionSize": 20001,
+            "maxLength": 1000001,
+            "maxFieldCount": 100
         }
     }
 ]
