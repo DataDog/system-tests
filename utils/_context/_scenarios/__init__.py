@@ -738,6 +738,7 @@ class _Scenarios:
         doc="Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
         include_agent=False,
         include_default_scenario_groups=False,
+        flush_weblog_on_stop=False,
         library_interface_timeout=0,
         scenario_groups=[scenario_groups.ffe],
         use_proxy_for_agent=False,

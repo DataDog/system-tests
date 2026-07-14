@@ -3,7 +3,7 @@
 import requests
 import pytest
 
-from utils import features, scenarios
+from utils import features, interfaces, scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
 from utils.docker_fixtures._mock_ffe_agentless_backend import (
     CONFIG_PATH,
@@ -97,3 +97,36 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog(worker_id: s
         assert status["requests_total"] == 0
     finally:
         scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_end_to_end_scenario_stops_without_tracer_flush(monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_NO_FLUSH",
+        doc="test",
+        flush_weblog_on_stop=False,
+        include_agent=False,
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+    flushed = False
+    stopped = False
+
+    def flush() -> None:
+        nonlocal flushed
+        flushed = True
+
+    def stop() -> None:
+        nonlocal stopped
+        stopped = True
+
+    monkeypatch.setattr(scenario, "_wait_interface", lambda *_: None)
+    monkeypatch.setattr(scenario.weblog_infra.http_container, "flush", flush)
+    monkeypatch.setattr(scenario.weblog_infra.http_container, "stop", stop)
+    monkeypatch.setattr(interfaces.library, "check_deserialization_errors", lambda: None)
+
+    scenario._wait_and_stop_containers(force_interface_timout_to_zero=True)  # noqa: SLF001
+
+    assert stopped is True
+    assert flushed is False

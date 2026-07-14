@@ -320,9 +320,6 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION
-    - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
-      run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS

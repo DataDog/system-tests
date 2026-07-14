@@ -228,6 +228,7 @@ class EndToEndScenario(DockerScenario):
         include_default_scenario_groups: bool = True,
         include_opentelemetry: bool = False,
         require_api_key: bool = False,
+        flush_weblog_on_stop: bool = True,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         default_scenario_groups = (
@@ -263,6 +264,7 @@ class EndToEndScenario(DockerScenario):
         self.include_agent = include_agent
         self._use_proxy_for_agent = include_agent and use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
+        self._flush_weblog_on_stop = flush_weblog_on_stop
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
@@ -472,7 +474,7 @@ class EndToEndScenario(DockerScenario):
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
             )
 
-            self.weblog_infra.stop()
+            self.weblog_infra.stop(flush=self._flush_weblog_on_stop)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -581,6 +583,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
         require_api_key: bool = False,
+        flush_weblog_on_stop: bool = True,
         runtime_metrics_enabled: bool = False,
         scenario_groups: list[ScenarioGroup] | None = None,
         span_events: bool = True,
@@ -609,6 +612,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
             require_api_key=require_api_key,
+            flush_weblog_on_stop=flush_weblog_on_stop,
             runtime_metrics_enabled=runtime_metrics_enabled,
             scenario_groups=scenario_groups,
             span_events=span_events,

@@ -19,6 +19,7 @@ def test_tracer_release():
 
     dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
     assert dormant_agentless_scenario.include_agent is False
+    assert dormant_agentless_scenario._flush_weblog_on_stop is False  # noqa: SLF001 - no-Agent teardown contract
     assert dormant_agentless_scenario.use_proxy is False
     assert scenario_groups.ffe in dormant_agentless_scenario.scenario_groups
     assert scenario_groups.all not in dormant_agentless_scenario.scenario_groups
