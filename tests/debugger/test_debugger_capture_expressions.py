@@ -147,26 +147,11 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
 class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTest):
     """Tests for method-level probe capture expressions"""
 
-    ### method probe: capture expressions over method arguments ###
-    def setup_method_argument_capture_expressions(self):
-        # `inputValue` is a method parameter in the Java/.NET/PHP weblogs, so a
-        # method probe captures it directly. Ruby method probes capture method
-        # arguments but not method-body locals (where `inputValue` is a local),
-        # so target a helper method that receives `inputValue` as an argument.
-        language = self.get_tracer()["language"]
-        if language == "ruby":
-            self._setup(
-                "probe_capture_expressions_method_args",
-                "/debugger/expression/args?inputValue=testValue",
-                "log",
-                lines=None,
-            )
-        else:
-            self._setup(
-                "probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None
-            )
+    ### method probe: capture expressions over method parameters ###
+    def setup_method_parameter_capture_expressions(self):
+        self._setup("probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None)
 
-    def test_method_argument_capture_expressions(self):
+    def test_method_parameter_capture_expressions(self):
         self._assert()
 
         # Build expected captures with validation functions
