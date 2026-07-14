@@ -17,18 +17,26 @@ def test_appsec():
 def test_tracer_release():
     # make an exclusion list
 
-    dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
-    assert dormant_agentless_scenario.include_agent is False
-    assert dormant_agentless_scenario.use_proxy is False
-    assert scenario_groups.ffe in dormant_agentless_scenario.scenario_groups
-    assert scenario_groups.all not in dormant_agentless_scenario.scenario_groups
-    assert scenario_groups.end_to_end not in dormant_agentless_scenario.scenario_groups
-    assert scenario_groups.tracer_release not in dormant_agentless_scenario.scenario_groups
+    dormant_agentless_scenarios = [
+        scenarios.feature_flagging_and_experimentation_agentless,
+        scenarios.feature_flagging_and_experimentation_agentless_sidecar,
+        scenarios.feature_flagging_and_experimentation_agentless_direct_fallback,
+    ]
+    for dormant_agentless_scenario in dormant_agentless_scenarios:
+        assert dormant_agentless_scenario.include_agent is False
+        assert scenario_groups.ffe in dormant_agentless_scenario.scenario_groups
+        assert scenario_groups.all not in dormant_agentless_scenario.scenario_groups
+        assert scenario_groups.end_to_end not in dormant_agentless_scenario.scenario_groups
+        assert scenario_groups.tracer_release not in dormant_agentless_scenario.scenario_groups
+
+    assert scenarios.feature_flagging_and_experimentation_agentless.use_proxy is False
+    assert scenarios.feature_flagging_and_experimentation_agentless_sidecar.use_proxy is True
+    assert scenarios.feature_flagging_and_experimentation_agentless_direct_fallback.use_proxy is True
 
     not_in_tracer_release_group = [
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
-        dormant_agentless_scenario,
+        *dormant_agentless_scenarios,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,

@@ -11,6 +11,8 @@ from utils.docker_fixtures._mock_ffe_agentless_backend import (
     MockFFEAgentlessBackendServer,
 )
 from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from utils._context.containers import ServerlessSidecarContainer
+from utils.proxy.ports import ProxyPorts
 
 
 @scenarios.test_the_test
@@ -97,3 +99,50 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog(worker_id: s
         assert status["requests_total"] == 0
     finally:
         scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_sidecar_scenario_prefers_serverless_sidecar() -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_SIDECAR",
+        doc="test",
+        include_agent=False,
+        telemetry_route="sidecar",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    environment = scenario.weblog_infra.library_container.environment
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    other_containers = scenario.weblog_infra._other_containers  # noqa: SLF001 - focused topology test
+    assert any(isinstance(container, ServerlessSidecarContainer) for container in other_containers)
+    assert environment["DD_FEATURE_FLAGS_TELEMETRY_TRANSPORT"] == "auto"
+    assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-sidecar:8126"
+    assert environment["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] == "http://ffe-serverless-sidecar:4318/v1/metrics"
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_direct_scenario_uses_authenticated_fallback() -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_DIRECT",
+        doc="test",
+        include_agent=False,
+        telemetry_route="direct",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    environment = scenario.weblog_infra.library_container.environment
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    assert not scenario.weblog_infra._other_containers  # noqa: SLF001 - focused topology test
+    assert environment["DD_FEATURE_FLAGS_TELEMETRY_TRANSPORT"] == "auto"
+    assert "DD_TRACE_AGENT_URL" not in environment
+    assert environment["DD_API_KEY"] == EXPECTED_API_KEY
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+    assert environment["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] == f"http://proxy:{ProxyPorts.ffe_direct}/v1/metrics"
+    assert environment["OTEL_EXPORTER_OTLP_METRICS_HEADERS"] == (f"dd-api-key={EXPECTED_API_KEY},dd-protocol=otlp")
