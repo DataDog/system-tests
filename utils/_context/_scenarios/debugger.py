@@ -8,7 +8,13 @@ from .endtoend import EndToEndScenario
 
 
 class DebuggerScenario(EndToEndScenario):
-    def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
+    def __init__(
+        self,
+        name: str,
+        doc: str,
+        weblog_env: dict[str, str | None],
+        weblog_categories: list[WeblogCategory] | None = None,
+    ) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
@@ -26,7 +32,7 @@ class DebuggerScenario(EndToEndScenario):
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
-            weblog_categories=[WeblogCategory.dd_trace],
+            weblog_categories=weblog_categories if weblog_categories is not None else [WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

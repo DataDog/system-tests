@@ -74,9 +74,12 @@ def test_debugger_capture_timeout_runs_only_on_weblogs_with_the_fixture():
 
     assert expected_supported <= available_weblogs
     for library, weblog_name in available_weblogs:
-        assert _is_supported(get_weblog(library, weblog_name), scenarios.debugger_capture_timeout, "dev") == (
-            (library, weblog_name) in expected_supported
+        weblog = get_weblog(library, weblog_name)
+        supported = weblog.support_scenario(
+            scenarios.debugger_capture_timeout.name,
+            scenarios.debugger_capture_timeout.weblog_categories,
         )
+        assert supported == ((library, weblog_name) in expected_supported)
 
 
 @scenarios.test_the_test

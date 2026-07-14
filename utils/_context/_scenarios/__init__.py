@@ -902,6 +902,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
         },
         doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+        weblog_categories=[],
     )
 
     debugger_probes_snapshot_with_scm = DebuggerScenario(
