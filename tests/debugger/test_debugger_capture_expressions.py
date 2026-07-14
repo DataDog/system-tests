@@ -192,7 +192,12 @@ class Test_Debugger_Line_Capture_Expressions(BaseDebuggerCaptureExpressionsTest)
 
     ### log probe with capture expressions ###
     def setup_log_line_capture_expressions(self):
-        self._setup("probe_capture_expressions_line", "/debugger/expression?inputValue=testValue", "log", lines=None)
+        # Ruby's weblog lays out the `expression` method so the in-scope line for a
+        # line probe is 82, not the cross-language default (71) baked into
+        # probe_capture_expressions_line.json. See method_and_language_to_line_number.
+        language = self.get_tracer()["language"]
+        lines = self.method_and_language_to_line_number("Expression", language) if language == "ruby" else None
+        self._setup("probe_capture_expressions_line", "/debugger/expression?inputValue=testValue", "log", lines=lines)
 
     def test_log_line_capture_expressions(self):
         self._assert()
