@@ -218,6 +218,27 @@ select_optional_params(){
             echo "✅ No custom injector OCI image version set."
         fi
 }
+select_image_publication(){
+    spacer
+    echo -e "${YELLOW}📌 Step: Publish reusable Docker SSI images${NC}"
+    read -p "Do you want to publish reusable base images? (y/n) [default: n]: " publish_choice
+    publish_choice=${publish_choice:-n}
+    PUBLISH_BASE_IMAGES="false"
+    if [[ "$publish_choice" == "y" ]]; then
+        if [[ -z "${PRIVATE_DOCKER_REGISTRY:-}" ]]; then
+            echo -e "${RED}❌ Publishing requires a private registry. Configure one first.${NC}"
+            configure_private_registry
+        fi
+        if [[ -z "${PRIVATE_DOCKER_REGISTRY:-}" ]]; then
+            echo -e "${RED}❌ No private registry was configured; reusable images cannot be published.${NC}"
+            exit 1
+        fi
+        PUBLISH_BASE_IMAGES="true"
+        echo -e "${GREEN}✅ Reusable Docker SSI images will be published.${NC}"
+    else
+        echo -e "${CYAN}ℹ️  Reusable images will only be built or read from cache locally.${NC}"
+    fi
+}
 run_the_tests(){
     # 🔹 Construct the command
     CMD=("./run.sh" "$SCENARIO" "--ssi-weblog" "$WEBLOG" "--ssi-library" "$TEST_LIBRARY" "--ssi-base-image" "$BASE_IMAGE" "--ssi-arch" "$ARCH" "--ssi-env" "$CI_ENVIRONMENT")
@@ -232,6 +253,10 @@ run_the_tests(){
 
     if [[ -n "$SSI_INJECTOR_VERSION" ]]; then
         CMD+=("--ssi-injector-version" "$SSI_INJECTOR_VERSION")
+    fi
+
+    if [[ "$PUBLISH_BASE_IMAGES" == "true" ]]; then
+        CMD+=("-P")
     fi
     spacer
     # 📌 Step 10: Confirm and execute
@@ -248,6 +273,7 @@ run_the_tests(){
         echo "   🔹 Language runtime: $INSTALLABLE_RUNTIME"
         echo "   🔹 Environment:      $CI_ENVIRONMENT"
         echo "   🔹 Test Library:     $TEST_LIBRARY"
+        echo "   🔹 Publish images:   $PUBLISH_BASE_IMAGES"
         echo ""
 
         if [[ -n "$SSI_LIBRARY_VERSION" ]]; then
@@ -345,4 +371,5 @@ select_base_image_and_arch
 select_runtime_version
 select_environment
 select_optional_params
+select_image_publication
 run_the_tests
