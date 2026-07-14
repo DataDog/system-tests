@@ -7,4 +7,3 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Kernel.php'
-            - '../src/Security/User.php'

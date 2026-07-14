@@ -160,16 +160,15 @@ class AppController extends AbstractController
         return new Response('', 200);
     }
 
-    #[Route('/waf', name: 'waf', methods: ['GET', 'POST'])]
+    #[Route(
+        '/waf{path}',
+        name: 'waf',
+        defaults: ['path' => ''],
+        requirements: ['path' => '(?:/.*)?'],
+    )]
     public function waf(): Response
     {
-        return new Response('Hello, WAF!', 200, ['Content-Type' => 'text/plain']);
-    }
-
-    #[Route('/waf/{path}', name: 'waf_path', requirements: ['path' => '.*'], methods: ['GET', 'POST'])]
-    public function wafPath(): Response
-    {
-        return new Response('Hello, WAF!', 200, ['Content-Type' => 'text/plain']);
+        return new Response("Hello world!\n", 200, ['Content-Type' => 'text/plain']);
     }
 
     #[Route('/headers', name: 'headers', methods: ['GET'])]
@@ -270,25 +269,34 @@ class AppController extends AbstractController
         if (!is_numeric($responseCodeStr)) {
             return new Response('Error parsing uri', 400);
         }
+
         $responseCode = (int) $responseCodeStr;
+
         \datadog\appsec\track_custom_event('system_tests_appsec_event', [
             'value' => $tag_value,
         ]);
-        foreach ($request->query->all() as $key => $value) {
-            header(ucwords($key) . ': ' . $value);
-        }
-        $body          = 'Value tagged';
+
+        $body = 'Value tagged';
         $payloadPrefix = 'payload_in_response_body';
+
         if (str_starts_with($tag_value, $payloadPrefix) && $request->isMethod('POST')) {
-            $parsed = $request->request->all() ?: (json_decode($request->getContent(), true) ?? []);
-
-            return new JsonResponse(['payload' => $parsed], $responseCode === 200 ? 200 : $responseCode);
+            $parsed = $request->getPayload()->all();
+            $response = new JsonResponse(['payload' => $parsed], $responseCode);
+        } else {
+            $response = new Response(
+                $body,
+                $responseCode,
+                ['Content-Type' => 'text/plain'],
+            );
         }
-        if ($responseCode !== 200) {
-            return new Response($body, $responseCode, ['Content-Type' => 'text/plain']);
+
+        foreach ($request->query->all() as $name => $value) {
+            if (is_scalar($value)) {
+                $response->headers->set(ucwords($name), (string) $value);
+            }
         }
 
-        return new Response($body, 200, ['Content-Type' => 'text/plain']);
+        return $response;
     }
 
     #[Route('/params/{param}', name: 'params', methods: ['GET'])]
