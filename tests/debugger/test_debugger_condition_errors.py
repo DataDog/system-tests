@@ -7,7 +7,6 @@
 import time
 
 import tests.debugger.utils as debugger
-from tests.debugger.utils import captures_contain_data
 from utils import context, features, scenarios
 
 
@@ -184,7 +183,7 @@ class Test_Debugger_Runtime_Condition_Error(_ConditionTestBase):
             )
 
             captures = snap.get("captures")
-            assert not captures_contain_data(captures), (
+            assert not debugger.captures_contain_data(captures), (
                 f"The probe emitted a snapshot whose ``captures`` field contains captured "
                 f"data ({captures!r}); an eval-error snapshot must have empty captures "
                 f"because the condition was not successfully evaluated."

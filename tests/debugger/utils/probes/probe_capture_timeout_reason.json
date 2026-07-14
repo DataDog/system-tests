@@ -12,9 +12,7 @@
         },
         "capture": {
             "maxReferenceDepth": 20,
-            "maxCollectionSize": 500,
-            "maxLength": 1000000,
-            "maxFieldCount": 1000
+            "maxCollectionSize": 500
         }
     }
 ]
