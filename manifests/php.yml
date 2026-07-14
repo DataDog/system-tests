@@ -719,7 +719,6 @@ manifest:
     - weblog_declaration:
         "*": v1.21.0-dev
         laravel11x: missing_feature (pending to be implemented on this weblog)
-  tests/ffe/test_exposures.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
