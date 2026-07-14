@@ -733,14 +733,15 @@ class _Scenarios:
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
-            "DD_METRICS_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
-            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
         },
-        doc="Validate default agentless UFC delivery and FFE side effects through the Agent telemetry conduit.",
+        doc="Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
+        include_agent=False,
         include_default_scenario_groups=False,
+        library_interface_timeout=0,
         scenario_groups=[scenario_groups.ffe],
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
