@@ -40,6 +40,8 @@ messages_counts: dict[str, int] = defaultdict(int)
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
+_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.ffe_sidecar, ProxyPorts.ffe_direct)
+
 
 class _UDPForwarder(asyncio.DatagramProtocol):
     def __init__(self, target_host: str, target_port: int) -> None:
@@ -188,7 +190,7 @@ class _RequestLogger:
     def http_connect(self, flow: HTTPFlow) -> None:
         proxy_port = flow.client_conn.sockname[1]
         logger.info(f"Flow {flow.id}: CONNECT {flow.request.host}:{flow.request.port} using proxy port {proxy_port}")
-        if proxy_port == ProxyPorts.agent and self.mocked_backend:
+        if proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
             # Redirect to local stub TLS server so mitmproxy can always complete tunnel setup.
             # Without this, CONNECT handshake is performed to the backend, and if ever it fails,
             # request() never fires.
@@ -269,7 +271,7 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
-        elif proxy_port == ProxyPorts.agent and self.mocked_backend:
+        elif proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
             # Since we are faking the backend (generating responses from
             # scratch), the logic is that the first mock satisfying the
             # condition wins. Consequently, we check runtime mocks (controlled
@@ -290,6 +292,9 @@ class _RequestLogger:
                 flow.response = http.Response.make(
                     200, b'{"valid": true}', headers={"content-type": "application/json"}
                 )
+            elif flow.request.path == "/v1/metrics":
+                logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 200 status")
+                flow.response = http.Response.make(200, b"")
             else:
                 logger.info(f"Flow {flow.id}: {flow.request.path}: forcing 202 status")
                 flow.response = http.Response.make(202, b"Ok")
@@ -328,6 +333,10 @@ class _RequestLogger:
             interface = "golang_buddy"
         elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
             interface = "agent"
+        elif proxy_port == ProxyPorts.ffe_sidecar:
+            interface = "ffe_sidecar"
+        elif proxy_port == ProxyPorts.ffe_direct:
+            interface = "ffe_direct"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -416,6 +425,8 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.ffe_sidecar}",  # Feature Flags sidecar to backend
+        f"regular@{ProxyPorts.ffe_direct}",  # Feature Flags SDK direct to backend
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 

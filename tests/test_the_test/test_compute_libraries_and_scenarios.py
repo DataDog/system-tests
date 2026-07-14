@@ -468,6 +468,21 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agentless_ffe_side_effect_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_agentless_exposures.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            (
+                "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK,"
+                "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
+            ),
+            "",
+        )
+
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 

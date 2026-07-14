@@ -16,6 +16,7 @@ from ._logs import (
 )
 from ._open_telemetry import OpenTelemetryInterfaceValidator
 from ._test_agent import _TestAgentInterfaceValidator
+from ._feature_flag_telemetry import FeatureFlagTelemetryInterfaceValidator
 
 # singletons
 agent = AgentInterfaceValidator()
@@ -28,6 +29,8 @@ open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
 postgres = _PostgresStdout()
 test_agent = _TestAgentInterfaceValidator()
+ffe_sidecar = FeatureFlagTelemetryInterfaceValidator("ffe_sidecar")
+ffe_direct = FeatureFlagTelemetryInterfaceValidator("ffe_direct")
 
 python_buddy = LibraryInterfaceValidator("python_buddy")
 nodejs_buddy = LibraryInterfaceValidator("nodejs_buddy")
@@ -41,6 +44,8 @@ __all__ = [
     "agent",
     "agent_stdout",
     "backend",
+    "ffe_direct",
+    "ffe_sidecar",
     "golang_buddy",
     "java_buddy",
     "library",

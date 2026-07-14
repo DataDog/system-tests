@@ -721,6 +721,9 @@ manifest:
       component_version: <3.22.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
+  tests/ffe/test_agentless_exposures.py: missing_feature (agentless end-to-end scenario not enabled yet)
+  tests/ffe/test_agentless_flag_eval_evp.py: missing_feature (agentless end-to-end scenario not enabled yet)
+  tests/ffe/test_agentless_flag_eval_metrics.py: missing_feature (agentless end-to-end scenario not enabled yet)
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)

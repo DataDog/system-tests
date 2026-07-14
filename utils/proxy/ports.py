@@ -17,6 +17,12 @@ class ProxyPorts(IntEnum):
 
     agent = 8200
 
+    ffe_sidecar = 8201
+    """Feature Flags telemetry emitted by the serverless sidecar to Datadog intake."""
+
+    ffe_direct = 8202
+    """Feature Flags telemetry emitted directly by the SDK to Datadog intake."""
+
     python_buddy = 9001
     nodejs_buddy = 9002
     java_buddy = 9003
