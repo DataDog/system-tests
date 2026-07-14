@@ -5,7 +5,7 @@ from unittest.mock import Mock
 from urllib.error import URLError
 
 import pytest
-from rebuildr import ImageHandle, Project
+from rebuildr import ImageHandle
 from rebuildr.project import CacheLocation
 
 import utils.docker_ssi.image_builder as image_builder_module
@@ -84,29 +84,16 @@ def _snapshot_graphs(
     base_digest: str = _BASE_DIGEST,
     installer_contents: bytes = b"#!/bin/sh\necho downloaded installer\n",
 ):
-    builder._resolved_base_image = f"ubuntu@{base_digest}"  # noqa: SLF001
-    builder._installer_script_contents = installer_contents  # noqa: SLF001
-    installer_input, temporary_path = builder._temporary_installer_script_input()  # noqa: SLF001
-    try:
-        cached_build = builder._create_cached_build(installer_input)  # noqa: SLF001
-        cached_root = Project(cached_build, builder._root_dir).default  # noqa: SLF001
-        builder._cached_build = cached_build  # noqa: SLF001
-        builder._cached_root = cached_root  # noqa: SLF001
-        movable_build = builder._create_movable_build(installer_input)  # noqa: SLF001
-        movable_root = Project(movable_build, builder._root_dir).default  # noqa: SLF001
-        builder._movable_build = movable_build  # noqa: SLF001
-        builder._movable_root = movable_root  # noqa: SLF001
-    finally:
-        temporary_path.unlink()
-    return cached_build, cached_root, movable_build, movable_root
+    builder._load_rebuildr_projects(f"ubuntu@{base_digest}", installer_contents)  # noqa: SLF001
+    return builder.cached_root, builder.movable_root
 
 
 def test_cached_and_movable_graphs_use_image_references_and_propagate_source_digest(tmp_path: Path) -> None:
     _write_build_fixture(tmp_path)
-    cached_build, cached_root, movable_build, movable_root = _snapshot_graphs(_builder(tmp_path))
+    cached_root, movable_root = _snapshot_graphs(_builder(tmp_path))
 
-    cached_definition = cached_build.images["ssi-installer"]
-    assert cached_definition.image_refs == {"cached-base": cached_build.images["base"]}
+    cached_definition = cached_root.definition
+    assert cached_definition.image_refs == {"cached-base": cached_root.image_refs["cached-base"].definition}
     assert cached_definition.content_tag is True
     assert cached_definition.tag == "latest"
     assert cached_root.metadata["manifest"]["image_references"] == [
@@ -116,9 +103,9 @@ def test_cached_and_movable_graphs_use_image_references_and_propagate_source_dig
         }
     ]
 
-    movable_definition = movable_build.images["weblog"]
-    assert movable_definition.image_refs == {"ssi-image": movable_build.images["ssi"]}
-    assert movable_build.images["ssi"].content_tag is False
+    movable_definition = movable_root.definition
+    assert movable_definition.image_refs == {"ssi-image": movable_root.image_refs["ssi-image"].definition}
+    assert movable_root.image_refs["ssi-image"].definition.content_tag is False
     assert movable_definition.content_tag is False
     assert movable_definition.repository == "weblog-injection"
     assert movable_definition.tag == "latest"
@@ -133,22 +120,22 @@ def test_cached_and_movable_graphs_use_image_references_and_propagate_source_dig
 def test_reusable_identity_tracks_base_platform_runtime_and_source_files(tmp_path: Path) -> None:
     _write_build_fixture(tmp_path)
     baseline_builder = _builder(tmp_path)
-    _, baseline, _, _ = _snapshot_graphs(baseline_builder)
+    baseline, _ = _snapshot_graphs(baseline_builder)
 
-    _, changed_digest, _, _ = _snapshot_graphs(_builder(tmp_path), base_digest=_OTHER_BASE_DIGEST)
-    _, changed_platform, _, _ = _snapshot_graphs(_builder(tmp_path, arch="linux/arm64"))
-    _, changed_runtime, _, _ = _snapshot_graphs(_builder(tmp_path, runtime="3.11.10"))
-    _, changed_installer, _, _ = _snapshot_graphs(_builder(tmp_path), installer_contents=b"changed installer")
+    changed_digest, _ = _snapshot_graphs(_builder(tmp_path), base_digest=_OTHER_BASE_DIGEST)
+    changed_platform, _ = _snapshot_graphs(_builder(tmp_path, arch="linux/arm64"))
+    changed_runtime, _ = _snapshot_graphs(_builder(tmp_path, runtime="3.11.10"))
+    changed_installer, _ = _snapshot_graphs(_builder(tmp_path), installer_contents=b"changed installer")
 
     _write_file(
         tmp_path,
         "utils/build/ssi/base/base_lang.Dockerfile",
         "ARG BASE_IMAGE\nFROM ${BASE_IMAGE}\nRUN echo changed\n",
     )
-    _, changed_dockerfile, _, _ = _snapshot_graphs(_builder(tmp_path))
+    changed_dockerfile, _ = _snapshot_graphs(_builder(tmp_path))
     _write_build_fixture(tmp_path)
     _write_file(tmp_path, "utils/build/ssi/base/python_install_runtimes.sh", "#!/bin/sh\necho changed\n")
-    _, changed_runtime_script, _, _ = _snapshot_graphs(_builder(tmp_path))
+    changed_runtime_script, _ = _snapshot_graphs(_builder(tmp_path))
 
     changed = {
         changed_digest.source_digest,
@@ -168,8 +155,8 @@ def test_tracer_and_injector_versions_change_only_the_movable_graph(
     _write_build_fixture(tmp_path)
     monkeypatch.setattr(image_builder_module.uuid, "uuid4", lambda: SimpleNamespace(hex="fixed-nonce"))
 
-    _, first_cached, _, first_movable = _snapshot_graphs(_builder(tmp_path))
-    _, second_cached, _, second_movable = _snapshot_graphs(
+    first_cached, first_movable = _snapshot_graphs(_builder(tmp_path))
+    second_cached, second_movable = _snapshot_graphs(
         _builder(tmp_path, library_version="pipeline-123", injector_version="pipeline-456")
     )
 
@@ -248,7 +235,7 @@ def test_warm_remote_cache_skips_cached_dag_but_runs_movable_dag(
 ) -> None:
     _write_build_fixture(tmp_path)
     builder = _builder(tmp_path)
-    _, _, _, _ = _snapshot_graphs(builder)
+    _snapshot_graphs(builder)
     bake_calls: list[tuple[dict[str, object], dict[str, object]]] = []
 
     def cache_location(image: ImageHandle) -> CacheLocation:
