@@ -1,0 +1,36 @@
+parameters:
+    default_sqlite_path: '/tmp/symfony.db'
+
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                driver: pdo_sqlite
+                path: '%env(default:default_sqlite_path:SYMFONY_DB_PATH)%'
+                server_version: '3.39'
+            mysql:
+                driver: pdo_mysql
+                host: mysqldb
+                dbname: mysql_dbname
+                user: mysqldb
+                password: mysqldb
+                server_version: '8.0'
+            postgres:
+                driver: pdo_pgsql
+                host: postgres
+                port: 5433
+                dbname: system_tests_dbname
+                user: system_tests_user
+                password: system_tests
+                server_version: '14.0'
+    orm:
+        auto_generate_proxy_classes: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        mappings:
+            App:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                alias: App

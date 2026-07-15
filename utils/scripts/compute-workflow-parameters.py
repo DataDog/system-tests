@@ -192,13 +192,13 @@ class CiData:
     @staticmethod
     def _get_workflow_map(
         *, scenario_names: list[str], excluded_scenario_names: list[str], scenario_group_names: list[str]
-    ) -> dict:
+    ) -> dict[str, list[Scenario]]:
         """Returns a dict where:
         * the key is the workflow identifier
         * the value is a list of scenarios to run, associated to the workflow
         """
 
-        result: dict[str, list[str]] = {}
+        result: dict[str, list[Scenario]] = {}
 
         # clean inputs
         scenario_names = [scenario.strip() for scenario in scenario_names if scenario.strip()]
@@ -227,11 +227,11 @@ class CiData:
                 continue
 
             if scenario.name in scenario_names:
-                result[scenario.github_workflow].append(scenario.name)
+                result[scenario.github_workflow].append(scenario)
             else:
                 for group in scenario_group_names:
                     if all_scenarios_groups[group] in scenario.scenario_groups:
-                        result[scenario.github_workflow].append(scenario.name)
+                        result[scenario.github_workflow].append(scenario)
                         break
 
         return result

@@ -753,6 +753,7 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
 		span, ok := tracer.SpanFromContext(r.Context())

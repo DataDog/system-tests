@@ -70,8 +70,7 @@ def main(language: str | None = None) -> None:
     # Ensure 'variables' section exists and update with new values
     data.setdefault("variables", {}).update(new_variables)
 
-    if language and language in LANG_STAGES:
-        data = filter_yaml(data, language)
+    data = filter_yaml(data, language)
 
     handle_parallelism(data)
 
@@ -79,19 +78,27 @@ def main(language: str | None = None) -> None:
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
-def is_allowed_stage(stage: str | None, language: str) -> bool:
+def is_allowed_stage(stage: str | None, language: str | None) -> bool:
     """Check if a stage is allowed based on the language."""
+    if not language or language not in LANG_STAGES:
+        return stage in LANG_STAGES or stage in {"configure", "pipeline-status"}
     return stage in {language, "configure", "pipeline-status"}
 
 
-def filter_yaml(yaml_data: dict, language: str) -> dict:
+def filter_yaml(yaml_data: dict, language: str | None) -> dict:
     """Filter the pipeline to run only the jobs for the specified language"""
 
-    # Find all jobs where stage == language
+    # Find all jobs where stage == language.
+    # Hidden jobs (`.`-prefixed templates, e.g. `.delayed_base_job`) have no
+    # stage and are never run on their own — they only exist to be pulled in via
+    # `extends`. Keep them regardless of stage; dropping them leaves any job that
+    # extends them dangling (`unknown keys in extends`), which fails compilation
+    # of the generated child pipeline.
     allowed_jobs = {
         job_name: job_data
         for job_name, job_data in yaml_data.items()
-        if isinstance(job_data, dict) and is_allowed_stage(job_data.get("stage"), language)
+        if isinstance(job_data, dict)
+        and (job_name.startswith(".") or is_allowed_stage(job_data.get("stage"), language))
     }
 
     # Keep only relevant sections

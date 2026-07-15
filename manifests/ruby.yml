@@ -1548,6 +1548,8 @@ manifest:
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.15.0
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.11.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -2180,6 +2182,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
