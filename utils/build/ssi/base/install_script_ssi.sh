@@ -40,18 +40,13 @@ if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 
+# shellcheck source=utils/build/ssi/base/download_with_retry.sh
+source ./download_with_retry.sh
+
 if [ -f "install_script_agent7.sh" ]; then
     echo "[TRACE] install_script_agent7.sh exists"
 else
-    for attempt in 1 2 3 4 5; do
-        echo "[TRACE] downloading install_script_agent7.sh (attempt ${attempt})"
-        if curl --fail --retry 3 --retry-delay 2 -sSL -o install_script_agent7.sh https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh && [ -s install_script_agent7.sh ]; then
-            break
-        fi
-        echo "[TRACE] download failed or produced an empty file; retrying"
-        rm -f install_script_agent7.sh
-        sleep 2
-    done
+    download_with_retry https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh
 fi
 
 if [ ! -s "install_script_agent7.sh" ]; then
