@@ -4,7 +4,10 @@ refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py: incomplete_test_app (/ai_guard endpoints are not implemented)
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: missing_feature (Datadog OTel API for Rust does not support overriding the span ID, so the parent cannot be forced to 10000)
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (process tags not implemented)
+  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (single-span sampling is not implemented)
   tests/appsec/: irrelevant (AppSec/IAST/RASP is not implemented in dd-trace-rs)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
@@ -439,6 +442,7 @@ manifest:
   tests/test_resource_renaming.py: incomplete_test_app (resource-renaming endpoints are not implemented)
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature (sampling-rate capping is not implemented)
+  tests/test_scrubbing.py::Test_UrlQuery: missing_feature (Rust does not implement query string obfuscation)
   tests/test_span_events.py: missing_feature (Span Events are not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event: missing_feature (Rust AppSec is not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers: missing_feature (Rust AppSec is not implemented)

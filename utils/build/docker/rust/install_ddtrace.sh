@@ -60,6 +60,35 @@ align_opentelemetry() {
         || ! cargo add "opentelemetry-semantic-conventions@~${otel_minor}" >/dev/null 2>&1; then
         fail "could not align Axum's OpenTelemetry dependencies to ~${otel_minor}. Update the Axum compatibility pins and retry."
     fi
+
+    # Contrib crates that must track the same OpenTelemetry minor, but are not in
+    # OTEL_DEPS because they don't expose the `opentelemetry` version directly:
+    #   * reqwest-tracing picks the OTel version through a feature flag
+    #     `opentelemetry_0_<minor>` (version itself stays unbounded/latest).
+    #   * tracing-opentelemetry encodes the OTel minor in its own version:
+    #     tracing-opentelemetry 0.N depends on opentelemetry 0.(N-1), so to reach
+    #     opentelemetry 0.M we pin ~0.(M+1).
+    # Both are derived from ${otel_minor} so nothing here is hard-coded to a
+    # specific OpenTelemetry release.
+    local otel_minor_num reqwest_feature tracing_otel_minor
+    otel_minor_num="${otel_minor#*.}"               # "0.32" -> "32"
+    reqwest_feature="opentelemetry_0_${otel_minor_num}"
+    tracing_otel_minor="0.$((otel_minor_num + 1))"  # otel 0.M -> tracing-opentelemetry 0.(M+1)
+
+    echo "aligning contrib crates: reqwest-tracing feature ${reqwest_feature}, tracing-opentelemetry ~${tracing_otel_minor}"
+
+    # reqwest-tracing: latest version, OTel minor selected purely by feature flag.
+    # `cargo add --features` merges into the existing feature list, so remove
+    # first to drop any previously-selected opentelemetry_0_* feature.
+    cargo remove reqwest-tracing >/dev/null 2>&1 || true
+    if ! cargo add reqwest-tracing --features "${reqwest_feature}" >/dev/null 2>&1; then
+        fail "reqwest-tracing has no '${reqwest_feature}' feature for OpenTelemetry ${otel_minor}. Bump reqwest-tracing to a release that supports opentelemetry ${otel_minor}, or pin datadog-opentelemetry to a compatible OTel minor."
+    fi
+
+    cargo remove tracing-opentelemetry >/dev/null 2>&1 || true
+    if ! cargo add "tracing-opentelemetry@~${tracing_otel_minor}" >/dev/null 2>&1; then
+        fail "no tracing-opentelemetry ~${tracing_otel_minor} on crates.io (needed for OpenTelemetry ${otel_minor}). Wait for that release or pin datadog-opentelemetry to a compatible OTel minor."
+    fi
 }
 
 # Fails the build if more than one (semver-incompatible) version of the
@@ -84,7 +113,7 @@ check_single_opentelemetry_version() {
     fi
 
     if [[ $(echo "$versions" | grep -c .) -gt 1 ]]; then
-        fail "incompatible OpenTelemetry versions resolved: ${versions//$'\n'/, }. Axum and datadog-opentelemetry must use one version. Use a compatible dd-trace-rs revision, or update the Axum pins for opentelemetry-instrumentation-tower, tracing-opentelemetry, and reqwest-tracing together."
+        fail "incompatible OpenTelemetry versions resolved: ${versions//$'\n'/, }. align_opentelemetry() already tracks the published crates (opentelemetry*, reqwest-tracing, tracing-opentelemetry) to whatever datadog-opentelemetry resolves, so the usual culprit is opentelemetry-instrumentation-tower: it is git-only (not on crates.io) and its OpenTelemetry minor is fixed by the pinned rev in axum/Cargo.toml. Bump that git rev to one depending on the same opentelemetry minor as datadog-opentelemetry (or use a compatible dd-trace-rs revision)."
     fi
 }
 
