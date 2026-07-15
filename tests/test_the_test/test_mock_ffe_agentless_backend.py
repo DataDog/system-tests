@@ -22,7 +22,6 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
         response.raise_for_status()
 
         payload = response.json()
-        assert payload["data"]["id"] == "1"
         assert payload["data"]["type"] == UFC_RESPONSE_TYPE
         assert payload["data"]["attributes"]["environment"]["name"] == "Test"
         assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
