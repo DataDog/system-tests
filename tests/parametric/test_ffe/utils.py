@@ -14,11 +14,12 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-from pathlib import Path
 import time
 from typing import TYPE_CHECKING, Any
 
 import pytest
+
+from utils.docker_fixtures._mock_ffe_agentless_backend import UFC_FIXTURE_PATH
 
 if TYPE_CHECKING:
     from tests.parametric.conftest import APMLibrary
@@ -141,9 +142,7 @@ def hash_targeting_key(targeting_key: str) -> str:
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 
-FIXTURE_DIRECTORY = Path(__file__).parent
-UFC_FIXTURE_PATH = FIXTURE_DIRECTORY / "flags-v1.json"
-MALFORMED_UFC_BYTES = b'{"flags": ['
+FIXTURE_DIRECTORY = UFC_FIXTURE_PATH.parent
 
 
 def load_ufc_fixture() -> dict[str, Any]:
@@ -210,7 +209,12 @@ def evaluate_with_configuration_retry(
     return result
 
 
-def assert_evaluation_cases(test_library: APMLibrary, test_case_file: str) -> None:
+def assert_evaluation_cases(
+    test_library: APMLibrary,
+    test_case_file: str,
+    *,
+    allow_configuration_retry: bool = True,
+) -> None:
     """Run one canonical evaluation fixture against an initialized provider."""
     test_case_path = FIXTURE_DIRECTORY / test_case_file
     if not test_case_path.exists():
@@ -220,17 +224,29 @@ def assert_evaluation_cases(test_library: APMLibrary, test_case_file: str) -> No
         test_cases: list[dict[str, Any]] = json.load(fixture)
 
     for index, test_case in enumerate(test_cases):
-        result = evaluate_with_configuration_retry(
-            test_library,
-            flag=test_case["flag"],
-            variation_type=test_case["variationType"],
-            default_value=test_case["defaultValue"],
-            targeting_key=test_case["targetingKey"],
-            attributes=test_case.get("attributes", {}),
-        )
+        if allow_configuration_retry:
+            result = evaluate_with_configuration_retry(
+                test_library,
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+        else:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+        if allow_configuration_retry:
+            not_ready_message = f"FFE provider did not load UFC data after {FFE_READY_RETRY_ATTEMPTS} attempts"
+        else:
+            not_ready_message = "FFE provider was not ready immediately after startup"
         assert not is_ffe_waiting_for_configuration(result), (
-            f"Test case {index} in {test_case_file} failed: FFE provider did not load UFC data after "
-            f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
+            f"Test case {index} in {test_case_file} failed: {not_ready_message}; result={result}"
         )
 
         expected_value = test_case["result"]["value"]
