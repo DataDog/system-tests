@@ -130,6 +130,11 @@ func main() {
 	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
 	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
 
+	// llm-observability endpoints:
+	http.HandleFunc("/llm_observability/trace", s.llmObsTraceHandler)
+	http.HandleFunc("/llm_observability/dataset/create", s.llmObsDatasetCreateHandler)
+	http.HandleFunc("/llm_observability/dataset/delete", s.llmObsDatasetDeleteHandler)
+
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
