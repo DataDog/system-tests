@@ -21,7 +21,7 @@ def test_start_agent_then_stop(request: pytest.FixtureRequest):
 
     client = get_docker_client().networks.create(name="reuse_smoke_net", driver="bridge")
     try:
-        api, stop = factory.start_agent(
+        with factory.start_agent(
             request=request,
             worker_id="gw0",
             container_name="ddapm-test-agent-reuse-smoke",
@@ -29,10 +29,7 @@ def test_start_agent_then_stop(request: pytest.FixtureRequest):
             agent_env={},
             container_otlp_http_port=DEFAULT_OTLP_HTTP_PORT,
             container_otlp_grpc_port=DEFAULT_OTLP_GRPC_PORT,
-        )
-        try:
+        ) as api:
             assert api.info()["version"] == "test"  # agent answered → it is ready
-        finally:
-            stop()
     finally:
         client.remove()
