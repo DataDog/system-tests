@@ -13,10 +13,11 @@ ssi_context = [
 ]
 binary_dir = os.path.join(root_dir, "utils/build/ssi/base/binaries")
 if os.path.isdir(binary_dir):
-    for name in sorted(os.listdir(binary_dir)):
-        if name != "install_script_agent7.sh":
-            source = os.path.relpath(os.path.join(binary_dir, name), root_dir)
-            ssi_context.append(File(source, f"base/binaries/{name}"))
+    ssi_context += [
+        File(os.path.relpath(os.path.join(binary_dir, name), root_dir), f"base/binaries/{name}")
+        for name in sorted(os.listdir(binary_dir))
+        if name != "install_script_agent7.sh"
+    ]
 
 build = Build(default="weblog", platform=os.environ["DOCKER_SSI_PLATFORM"], content_tag=False)
 ssi = build.image(
@@ -28,19 +29,16 @@ ssi = build.image(
         BuildArg("BASE_IMAGE", os.environ["DOCKER_SSI_CACHED_BASE_IMAGE"]),
         BuildArg("DD_LANG", dd_lang),
         BuildArg("SSI_ENV", os.environ["DOCKER_SSI_ENV"]),
-        BuildArg("DD_INSTALLER_LIBRARY_VERSION", os.environ.get("DOCKER_SSI_LIBRARY_VERSION")),
-        BuildArg("DD_INSTALLER_INJECTOR_VERSION", os.environ.get("DOCKER_SSI_INJECTOR_VERSION")),
-        BuildArg("DD_APPSEC_ENABLED", os.environ.get("DOCKER_SSI_APPSEC_ENABLED")),
+        BuildArg("DD_INSTALLER_LIBRARY_VERSION", os.environ.get("DOCKER_SSI_LIBRARY_VERSION") or None),
+        BuildArg("DD_INSTALLER_INJECTOR_VERSION", os.environ.get("DOCKER_SSI_INJECTOR_VERSION") or None),
+        BuildArg("DD_APPSEC_ENABLED", os.environ.get("DOCKER_SSI_APPSEC_ENABLED") or None),
         BuildArg("SSI_BUILD_NONCE", os.environ["DOCKER_SSI_BUILD_NONCE"]),
     ],
 )
 build.image(
     "weblog",
     repository="weblog-injection",
-    context=[
-        f"lib-injection/build/docker/{library}",
-        f"utils/build/ssi/{library}",
-    ],
+    context=[f"lib-injection/build/docker/{library}", f"utils/build/ssi/{library}"],
     dockerfile=f"utils/build/ssi/{library}/{os.environ['DOCKER_SSI_WEBLOG']}.Dockerfile",
     image_refs={"ssi-image": ssi},
     build_args=[BuildArg("BASE_IMAGE", "ssi-image")],

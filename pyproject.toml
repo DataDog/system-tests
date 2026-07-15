@@ -225,12 +225,7 @@ ignore = [
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
-
-"utils/docker_ssi/*.rebuildr.py" = [
-    "N999",    # invalid-module-name: Rebuildr files intentionally use the documented *.rebuildr.py convention
-    "PTH112",  # os-path-isdir: the pinned Rebuildr loader rejects pathlib in build files
-    "PTH208",  # os-listdir: the pinned Rebuildr loader rejects pathlib in build files
-]
+"utils/docker_ssi/*.rebuildr.py" = ["N999", "PTH112", "PTH208"]  # executable Rebuildr files
 
 "utils/onboarding/*" = [
     "ANN201",  # missing-return-type-undocumented-public-function: TODO

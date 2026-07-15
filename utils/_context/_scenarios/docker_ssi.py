@@ -96,7 +96,6 @@ class DockerSSIScenario(Scenario):
         #        the step 2)
         #    3.2 Build the weblog image using the ssi image built in the step 3.1
         self.ssi_image_builder = DockerSSIImageBuilder(
-            self.name,
             self.host_log_folder,
             self._base_weblog,
             self._base_image,

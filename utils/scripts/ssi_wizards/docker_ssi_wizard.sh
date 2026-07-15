@@ -220,23 +220,11 @@ select_optional_params(){
 }
 select_image_publication(){
     spacer
-    echo -e "${YELLOW}📌 Step: Publish reusable Docker SSI images${NC}"
     read -p "Do you want to publish reusable base images? (y/n) [default: n]: " publish_choice
-    publish_choice=${publish_choice:-n}
-    PUBLISH_BASE_IMAGES="false"
-    if [[ "$publish_choice" == "y" ]]; then
-        if [[ -z "${PRIVATE_DOCKER_REGISTRY:-}" ]]; then
-            echo -e "${RED}❌ Publishing requires a private registry. Configure one first.${NC}"
-            configure_private_registry
-        fi
-        if [[ -z "${PRIVATE_DOCKER_REGISTRY:-}" ]]; then
-            echo -e "${RED}❌ No private registry was configured; reusable images cannot be published.${NC}"
-            exit 1
-        fi
-        PUBLISH_BASE_IMAGES="true"
-        echo -e "${GREEN}✅ Reusable Docker SSI images will be published.${NC}"
-    else
-        echo -e "${CYAN}ℹ️  Reusable images will only be built or read from cache locally.${NC}"
+    if [[ "${publish_choice:-n}" == "y" ]]; then
+        [[ -n "${PRIVATE_DOCKER_REGISTRY:-}" ]] || configure_private_registry
+        [[ -n "${PRIVATE_DOCKER_REGISTRY:-}" ]] || { echo "Publishing requires PRIVATE_DOCKER_REGISTRY"; exit 1; }
+        SSI_PUBLISH_OPTION="-P"
     fi
 }
 run_the_tests(){
@@ -255,9 +243,7 @@ run_the_tests(){
         CMD+=("--ssi-injector-version" "$SSI_INJECTOR_VERSION")
     fi
 
-    if [[ "$PUBLISH_BASE_IMAGES" == "true" ]]; then
-        CMD+=("-P")
-    fi
+    [[ -n "${SSI_PUBLISH_OPTION:-}" ]] && CMD+=("$SSI_PUBLISH_OPTION")
     spacer
     # 📌 Step 10: Confirm and execute
         echo ""
@@ -273,7 +259,6 @@ run_the_tests(){
         echo "   🔹 Language runtime: $INSTALLABLE_RUNTIME"
         echo "   🔹 Environment:      $CI_ENVIRONMENT"
         echo "   🔹 Test Library:     $TEST_LIBRARY"
-        echo "   🔹 Publish images:   $PUBLISH_BASE_IMAGES"
         echo ""
 
         if [[ -n "$SSI_LIBRARY_VERSION" ]]; then

@@ -110,12 +110,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             """Empty if we don't want to install any runtime"""
         ),
     )
-    parser.addoption(
-        "--ssi-push-base-images",
-        "-P",
-        action="store_true",
-        help="Publish reusable Docker SSI images (local opt-in; GitLab CI always publishes)",
-    )
+    parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Publish reusable Docker SSI images")
 
     # Parametric scenario options
     parser.addoption(
