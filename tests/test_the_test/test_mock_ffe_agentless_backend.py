@@ -5,10 +5,10 @@ from unittest.mock import MagicMock
 import requests
 import pytest
 
-from utils import features, interfaces, scenarios
+from utils import scenarios
 from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
-from utils.docker_fixtures._mock_ffe_agentless_backend import (
+from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     EXPECTED_API_KEY,
     MockFFEAgentlessBackendServer,
@@ -17,7 +17,6 @@ from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndS
 
 
 @scenarios.test_the_test
-@features.not_reported
 def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id: str) -> None:
     server = MockFFEAgentlessBackendServer(worker_id)
     try:
@@ -34,7 +33,6 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
 
 
 @scenarios.test_the_test
-@features.not_reported
 def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch, worker_id: str) -> None:
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL", raising=False)
@@ -50,7 +48,6 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 
 
 @scenarios.test_the_test
-@features.not_reported
 def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
     server = MockFFEAgentlessBackendServer(worker_id)
     try:
@@ -73,19 +70,12 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> N
 
 
 @scenarios.test_the_test
-@features.not_reported
-def test_agentless_end_to_end_scenario_starts_backend_before_weblog(worker_id: str) -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario(
-        "MOCK_FFE_AGENTLESS_E2E",
-        doc="test",
-        include_agent=False,
-        use_proxy_for_agent=False,
-        use_proxy_for_weblog=False,
-    )
+def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
 
     try:
         assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
-        scenario._start_mock_backend(worker_id)  # noqa: SLF001 - focused lifecycle test
+        scenario._start_mock_backend()  # noqa: SLF001 - focused lifecycle test
 
         environment = scenario.weblog_infra.library_container.environment
         assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
@@ -103,54 +93,14 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog(worker_id: s
 
 
 @scenarios.test_the_test
-@features.not_reported
-def test_agentless_end_to_end_scenario_stops_without_tracer_flush(monkeypatch: pytest.MonkeyPatch) -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario(
-        "MOCK_FFE_AGENTLESS_NO_FLUSH",
-        doc="test",
-        flush_weblog_on_stop=False,
-        include_agent=False,
-        use_proxy_for_agent=False,
-        use_proxy_for_weblog=False,
-    )
-    flushed = False
-    stopped = False
-
-    def flush() -> None:
-        nonlocal flushed
-        flushed = True
-
-    def stop() -> None:
-        nonlocal stopped
-        stopped = True
-
-    monkeypatch.setattr(scenario, "_wait_interface", lambda *_: None)
-    monkeypatch.setattr(scenario.weblog_infra.http_container, "flush", flush)
-    monkeypatch.setattr(scenario.weblog_infra.http_container, "stop", stop)
-    monkeypatch.setattr(interfaces.library, "check_deserialization_errors", lambda: None)
-
-    scenario._wait_and_stop_containers(force_interface_timout_to_zero=True)  # noqa: SLF001
-
-    assert stopped is True
-    assert flushed is False
-
-
-@scenarios.test_the_test
-@features.not_reported
 def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario(
-        "MOCK_FFE_AGENTLESS_STARTUP_FAILURE",
-        doc="test",
-        include_agent=False,
-        use_proxy_for_agent=False,
-        use_proxy_for_weblog=False,
-    )
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STARTUP_FAILURE", doc="test")
     backend = MagicMock(spec=MockFFEAgentlessBackendServer)
     backend.reset.side_effect = RuntimeError("reset failed")
 
-    def create_backend(_worker_id: str) -> MagicMock:
+    def create_backend() -> MagicMock:
         return backend
 
     monkeypatch.setattr(endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
@@ -163,15 +113,8 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
 
 
 @scenarios.test_the_test
-@features.not_reported
 def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario(
-        "MOCK_FFE_AGENTLESS_STATUS_FAILURE",
-        doc="test",
-        include_agent=False,
-        use_proxy_for_agent=False,
-        use_proxy_for_weblog=False,
-    )
+    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE", doc="test")
     backend = MagicMock(spec=MockFFEAgentlessBackendServer)
     backend.status.side_effect = RuntimeError("status failed")
     scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test

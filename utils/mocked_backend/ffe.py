@@ -273,7 +273,7 @@ def _strip_config_path(url: str) -> str:
 
 
 class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str) -> None:
+    def __init__(self, worker_id: str = "master") -> None:
         self.port = get_host_port(worker_id, 4900)
         self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
         self._thread = threading.Thread(

@@ -24,14 +24,14 @@ from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._mock_ffe_agentless_backend import (
+from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     MockFFEAgentlessBackendServer,
     MockFFEAgentlessBackendStatus,
 )
 
 parametrize = pytest.mark.parametrize
-pytest_plugins = ["utils.docker_fixtures._mock_ffe_agentless_backend"]
+pytest_plugins = ["utils.mocked_backend.ffe"]
 
 UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
 RC_PRODUCT = "FFE_FLAGS"

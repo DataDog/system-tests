@@ -23,7 +23,7 @@ from utils._context.containers import (
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils.docker_fixtures._core import extra_hosts_for_environment
-from utils.docker_fixtures._mock_ffe_agentless_backend import (
+from utils.mocked_backend.ffe import (
     EXPECTED_API_KEY,
     MockFFEAgentlessBackendServer,
     MockFFEAgentlessBackendStatus,
@@ -195,6 +195,12 @@ class DockerScenario(Scenario):
 class EndToEndScenario(DockerScenario):
     """Scenario with an instrumented HTTP application and an optional Datadog Agent."""
 
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = (
+        all_scenario_groups.all,
+        all_scenario_groups.end_to_end,
+        all_scenario_groups.tracer_release,
+    )
+
     def __init__(
         self,
         name: str,
@@ -225,22 +231,11 @@ class EndToEndScenario(DockerScenario):
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
         include_agent: bool = True,
-        include_default_scenario_groups: bool = True,
         include_opentelemetry: bool = False,
         require_api_key: bool = False,
-        flush_weblog_on_stop: bool = True,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
-        default_scenario_groups = (
-            [
-                all_scenario_groups.all,
-                all_scenario_groups.end_to_end,
-                all_scenario_groups.tracer_release,
-            ]
-            if include_default_scenario_groups
-            else []
-        )
-        scenario_groups = default_scenario_groups + (scenario_groups or [])
+        scenario_groups = [*self._default_scenario_groups, *(scenario_groups or [])]
 
         super().__init__(
             name,
@@ -264,7 +259,6 @@ class EndToEndScenario(DockerScenario):
         self.include_agent = include_agent
         self._use_proxy_for_agent = include_agent and use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
-        self._flush_weblog_on_stop = flush_weblog_on_stop
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
@@ -398,7 +392,7 @@ class EndToEndScenario(DockerScenario):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
-        agent_interfaces = [interfaces.agent] if self.include_agent else []
+        agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.include_agent else []
         super().start_interfaces_watchdog(
             [interfaces.library]
             + agent_interfaces
@@ -474,7 +468,7 @@ class EndToEndScenario(DockerScenario):
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
             )
 
-            self.weblog_infra.stop(flush=self._flush_weblog_on_stop)
+            self.weblog_infra.stop()
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -574,7 +568,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         client_drop_p0s: bool | None = None,
         iast_enabled: bool = True,
         include_agent: bool = True,
-        include_default_scenario_groups: bool = True,
         include_opentelemetry: bool = False,
         library_interface_timeout: int | None = None,
         meta_structs_disabled: bool = False,
@@ -583,7 +576,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
         require_api_key: bool = False,
-        flush_weblog_on_stop: bool = True,
         runtime_metrics_enabled: bool = False,
         scenario_groups: list[ScenarioGroup] | None = None,
         span_events: bool = True,
@@ -603,7 +595,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             doc=doc,
             iast_enabled=iast_enabled,
             include_agent=include_agent,
-            include_default_scenario_groups=include_default_scenario_groups,
             include_opentelemetry=include_opentelemetry,
             library_interface_timeout=library_interface_timeout,
             meta_structs_disabled=meta_structs_disabled,
@@ -612,7 +603,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
             require_api_key=require_api_key,
-            flush_weblog_on_stop=flush_weblog_on_stop,
             runtime_metrics_enabled=runtime_metrics_enabled,
             scenario_groups=scenario_groups,
             span_events=span_events,
@@ -628,24 +618,51 @@ class DdTraceEndToEndScenario(EndToEndScenario):
 class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     """FFE end-to-end scenario with UFC available before the weblog starts."""
 
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
+
     _mock_backend: MockFFEAgentlessBackendServer | None = None
     _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
+
+    def __init__(
+        self,
+        name: str,
+        *,
+        doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
+        weblog_env: dict[str, str | None] | None = None,
+    ) -> None:
+        environment: dict[str, str | None] = {
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        }
+        environment.update(weblog_env or {})
+
+        super().__init__(
+            name,
+            doc=doc,
+            include_agent=False,
+            library_interface_timeout=0,
+            scenario_groups=[all_scenario_groups.ffe],
+            use_proxy_for_agent=False,
+            use_proxy_for_weblog=False,
+            weblog_env=environment,
+        )
 
     def configure(self, config: pytest.Config) -> None:
         try:
             if not self.replay:
-                worker_id = os.environ.get("PYTEST_XDIST_WORKER", "master")
-                self._start_mock_backend(worker_id)
+                self._start_mock_backend()
 
             super().configure(config)
         except BaseException:
             self._stop_mock_backend()
             raise
 
-    def _start_mock_backend(self, worker_id: str) -> None:
+    def _start_mock_backend(self) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer(worker_id)
+        self._mock_backend = MockFFEAgentlessBackendServer()
         self._mock_backend.reset()
 
         environment = self.weblog_infra.library_container.environment
