@@ -2,5 +2,29 @@
 
 haproxy:
   build_mode: none
+  supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
 envoy:
   build_mode: none
+  supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
+graphql-go:
+  categories: [dd_trace_graphql]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
+gqlgen:
+  categories: [dd_trace_graphql]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
+graph-gophers:
+  categories: [dd_trace_graphql]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
+echo:
+  categories: [dd_trace]
+gin:
+  categories: [dd_trace]
+uds-echo:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+net-http:
+  categories: [dd_trace]
+chi:
+  categories: [dd_trace]
+net-http-orchestrion:
+  categories: [dd_trace]

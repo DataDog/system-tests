@@ -1,0 +1,12 @@
+{
+    "name": "weblog/acme",
+    "description": "Just a package to test the composer libraries are sent",
+    "type": "library",
+    "require": {},
+    "version": "1.0.0",
+    "autoload": {
+        "psr-4": {
+            "Acme\\": "src/"
+        }
+    }
+}

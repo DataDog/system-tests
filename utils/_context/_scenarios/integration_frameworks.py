@@ -12,6 +12,7 @@ from utils.docker_fixtures import (
 )
 from utils._logger import logger
 from utils._context.component_version import ComponentVersion
+from utils._context.constants import WeblogCategory
 from utils._context.docker import get_docker_client
 from ._docker_fixtures import DockerFixturesScenario
 from .core import scenario_groups as groups
@@ -32,6 +33,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             github_workflow="endtoend",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
             scenario_groups=(groups.integration_frameworks,),
+            weblog_categories=[WeblogCategory.dd_trace_frameworks],
         )
 
         self.environment: dict[str, str] = {}
