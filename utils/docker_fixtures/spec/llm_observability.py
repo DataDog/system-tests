@@ -1,7 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal, TypedDict
+
+
+LlmObsExportKind = Literal["llm", "agent", "workflow", "task", "step", "tool", "embedding", "retrieval"]
+LlmObsExportMetricType = Literal["categorical", "score", "boolean", "json"]
 
 
 @dataclass
@@ -55,6 +59,89 @@ class LlmObsAnnotationContextRequest:
 
     children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
     type: Literal["annotation_context"] = "annotation_context"
+
+
+@dataclass
+class LlmObsExportSpanLinkRequest:
+    trace_id: str
+    span_id: str
+    trace_id_high: int = 0
+    attributes: dict[str, str] | None = None
+    tracestate: str = ""
+    flags: int = 0
+
+
+@dataclass
+class LlmObsExportErrorRequest:
+    type: str
+    message: str
+    stack: str
+
+
+@dataclass
+class LlmObsExportSpanRequest:
+    trace_id: str
+    span_id: str
+    kind: LlmObsExportKind
+    start_ns: int
+    duration_ns: int
+    parent_id: str = ""
+    session_id: str = ""
+    name: str = ""
+    service: str = ""
+    model_name: str = ""
+    model_provider: str = ""
+    input: str = ""
+    output: str = ""
+    metadata: dict[str, Any] | None = None
+    metrics: dict[str, float] | None = None
+    tags: list[str] | None = None
+    span_links: list[LlmObsExportSpanLinkRequest] | None = None
+    apm_trace_id: str = ""
+    error: LlmObsExportErrorRequest | None = None
+
+
+@dataclass
+class LlmObsExportEvaluationRequest:
+    label: str
+    span_id: str = ""
+    trace_id: str = ""
+    tag_key: str = ""
+    tag_value: str = ""
+    metric_type: LlmObsExportMetricType | None = None
+    categorical_value: str | None = None
+    score_value: float | None = None
+    boolean_value: bool | None = None
+    json_value: dict[str, Any] | None = None
+    tags: list[str] | None = None
+    ml_app: str = ""
+    timestamp_ms: int = 0
+    assessment: str = ""
+    reasoning: str = ""
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass
+class LlmObsExportRequest:
+    ml_app: str
+    service: str = ""
+    env: str = ""
+    version: str = ""
+    call_service: str = ""
+    call_ml_app: str = ""
+    spans: list[LlmObsExportSpanRequest] = field(default_factory=list)
+    evaluations: list[LlmObsExportEvaluationRequest] = field(default_factory=list)
+
+
+class LlmObsExportSubmissionResult(TypedDict):
+    sent: int
+    dropped: int
+    failed: int
+
+
+class LlmObsExportResponse(TypedDict):
+    spans: LlmObsExportSubmissionResult
+    evaluations: LlmObsExportSubmissionResult
 
 
 class DatasetRecordRequest(TypedDict, total=False):
