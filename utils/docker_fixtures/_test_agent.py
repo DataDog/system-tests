@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Generator, Callable
+from collections.abc import Generator
 import contextlib
 import datetime
 import gzip
@@ -18,13 +18,14 @@ import requests
 from retry import retry
 
 from utils._logger import logger
+from utils._context._image_mirror import mirror_image
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from .spec import remoteconfig
 from .spec.trace import V06StatsPayload
 from .spec.trace import decode_v06_stats
 from .spec.trace import Trace
 
-from ._core import get_host_port, get_docker_client, docker_run
+from ._core import HOST_GATEWAY_EXTRA_HOSTS, get_host_port, get_docker_client, docker_run
 
 # Default container-internal OTLP ports for the test-agent. The pooled parametric agent
 # (DockerFixturesScenario.get_agent_pool) is created with these, and the poolable check
@@ -67,7 +68,8 @@ class TestAgentFactory:
     """
 
     def __init__(self, image: str):
-        self.image = image
+        # Pull/run from the mirror when USE_IMAGE_MIRROR is enabled (no-op otherwise).
+        self.image = mirror_image(image)
         self.host_log_folder = ""
 
     def configure(self, host_log_folder: str):
@@ -82,6 +84,7 @@ class TestAgentFactory:
             logger.stdout(f"Pull test agent image {self.image}...")
             get_docker_client().images.pull(self.image)
 
+    @contextlib.contextmanager
     def start_agent(
         self,
         *,
@@ -95,7 +98,14 @@ class TestAgentFactory:
         agent_port_base: int = 4600,
         otlp_http_port_base: int = 4701,
         otlp_grpc_port_base: int = 4802,
-    ) -> "tuple[TestAgentAPI, Callable[[], None]]":
+    ) -> Generator["TestAgentAPI", None, None]:
+        """Start a test-agent container and yield its API, tearing it down on exit.
+
+        A context manager so the container + log file are released cleanly on any error
+        during setup or teardown. The fresh-per-test path uses it directly with `with`;
+        the pooled path (WorkerAgentPool) keeps it open across tests via an ExitStack and
+        closes it at pool shutdown.
+        """
         env = {
             "ENABLED_CHECKS": "trace_count_header",
             "OTLP_HTTP_PORT": str(container_otlp_http_port),
@@ -112,70 +122,57 @@ class TestAgentFactory:
 
         log_path = _agent_log_path(self.host_log_folder, request)
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
-        log_file = open(log_path, "w+", encoding="utf-8")  # noqa: SIM115
         logger.stdout(f"REUSE-POC agent container created: {container_name}")
 
-        cm = docker_run(
-            image=self.image,
-            name=container_name,
-            env=env,
-            volumes={
-                "./snapshots": "/snapshots",
-                "./tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
-            },
-            ports={
-                "8126/tcp": host_port,
-                f"{container_otlp_http_port}/tcp": otlp_http_host_port,
-                f"{container_otlp_grpc_port}/tcp": otlp_grpc_host_port,
-            },
-            log_file=log_file,
-            network=docker_network,
-        )
-        try:
-            cm.__enter__()
-        except BaseException:
-            log_file.close()
-            raise
-
-        client = TestAgentAPI(
-            container_name,
-            8126,
-            self.host_log_folder,
-            pytest_request=request,
-            otlp_http_host_port=otlp_http_host_port,
-            host_port=host_port,
-            network=docker_network,
-        )
-        time.sleep(0.2)  # the trace agent takes ~200ms to start
-        expected_version = agent_env.get("TEST_AGENT_VERSION", "test")
-        for _ in range(100):
-            try:
-                resp = client.info()
-            except Exception as e:
-                logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
-                time.sleep(0.1)
+        with (
+            open(log_path, "w+", encoding="utf-8") as log_file,
+            docker_run(
+                image=self.image,
+                name=container_name,
+                env=env,
+                volumes={
+                    "./snapshots": "/snapshots",
+                    "./tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
+                },
+                ports={
+                    "8126/tcp": host_port,
+                    f"{container_otlp_http_port}/tcp": otlp_http_host_port,
+                    f"{container_otlp_grpc_port}/tcp": otlp_grpc_host_port,
+                },
+                log_file=log_file,
+                network=docker_network,
+                extra_hosts=dict(HOST_GATEWAY_EXTRA_HOSTS),
+            ),
+        ):
+            client = TestAgentAPI(
+                container_name,
+                8126,
+                self.host_log_folder,
+                pytest_request=request,
+                otlp_http_host_port=otlp_http_host_port,
+                host_port=host_port,
+                network=docker_network,
+            )
+            time.sleep(0.2)  # the trace agent takes ~200ms to start
+            expected_version = agent_env.get("TEST_AGENT_VERSION", "test")
+            for _ in range(100):
+                try:
+                    resp = client.info()
+                except Exception as e:
+                    logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
+                    time.sleep(0.1)
+                else:
+                    if resp["version"] != expected_version:
+                        pytest.fail(
+                            f"Agent version {resp['version']} is running instead of the test agent.",
+                            pytrace=False,
+                        )
+                    logger.info("Test agent is ready")
+                    break
             else:
-                if resp["version"] != expected_version:
-                    pytest.fail(
-                        f"Agent version {resp['version']} is running instead of the test agent.",
-                        pytrace=False,
-                    )
-                logger.info("Test agent is ready")
-                break
-        else:
-            try:
-                cm.__exit__(None, None, None)
-            finally:
-                log_file.close()
-            pytest.fail(f"Could not connect to test agent, check the log file {log_path}.", pytrace=False)
+                pytest.fail(f"Could not connect to test agent, check the log file {log_file.name}.", pytrace=False)
 
-        def _stop() -> None:
-            try:
-                cm.__exit__(None, None, None)
-            finally:
-                log_file.close()
-
-        return client, _stop
+            yield client
 
     @contextlib.contextmanager
     def get_test_agent_api(
@@ -188,32 +185,31 @@ class TestAgentFactory:
         container_otlp_http_port: int,
         container_otlp_grpc_port: int,
     ) -> Generator["TestAgentAPI", None, None]:
-        client, stop = self.start_agent(
-            request=request,
-            worker_id=worker_id,
-            container_name=container_name,
-            docker_network=docker_network,
-            agent_env=agent_env,
-            container_otlp_http_port=container_otlp_http_port,
-            container_otlp_grpc_port=container_otlp_grpc_port,
-        )
         try:
-            # If the snapshot mark is on the test case then do a snapshot test
-            marks = list(request.node.iter_markers(name="snapshot"))
-            assert len(marks) <= 1, "Multiple snapshot marks detected"
-            if marks:
-                snap = marks[0]
-                assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
-                if "token" not in snap.kwargs:
-                    snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-                with client.snapshot_context(**snap.kwargs):
+            with self.start_agent(
+                request=request,
+                worker_id=worker_id,
+                container_name=container_name,
+                docker_network=docker_network,
+                agent_env=agent_env,
+                container_otlp_http_port=container_otlp_http_port,
+                container_otlp_grpc_port=container_otlp_grpc_port,
+            ) as client:
+                # If the snapshot mark is on the test case then do a snapshot test
+                marks = list(request.node.iter_markers(name="snapshot"))
+                assert len(marks) <= 1, "Multiple snapshot marks detected"
+                if marks:
+                    snap = marks[0]
+                    assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+                    if "token" not in snap.kwargs:
+                        snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+                    with client.snapshot_context(**snap.kwargs):
+                        yield client
+                else:
                     yield client
-            else:
-                yield client
         finally:
             log_path = _agent_log_path(self.host_log_folder, request)
             request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
-            stop()
 
 
 class TestAgentAPI:

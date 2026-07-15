@@ -13,8 +13,9 @@ from utils.docker_fixtures._test_agent import (
     DEFAULT_OTLP_HTTP_PORT,
     DEFAULT_OTLP_GRPC_PORT,
 )
-from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, AgentLease, agent_env_key
+from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, agent_env_key
 from utils._context.docker import get_docker_client
+from utils._context.constants import WeblogCategory
 from utils._logger import logger
 from .core import Scenario, ScenarioGroup, scenario_groups as groups
 
@@ -29,6 +30,7 @@ class DockerFixturesScenario(Scenario):
         github_workflow: str,
         doc: str,
         agent_image: str,
+        weblog_categories: list[WeblogCategory],
         scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
@@ -36,6 +38,7 @@ class DockerFixturesScenario(Scenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=[*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures],
+            weblog_categories=weblog_categories,
         )
 
         self._test_agent_factory = TestAgentFactory(agent_image)
@@ -89,7 +92,8 @@ class DockerFixturesScenario(Scenario):
         # allocation and is out of scope for this POC.
         if self._agent_pool is None:
 
-            def _creator(request: pytest.FixtureRequest, agent_env: dict[str, str]) -> AgentLease:
+            @contextlib.contextmanager
+            def _creator(request: pytest.FixtureRequest, agent_env: dict[str, str]) -> Generator[TestAgentAPI]:
                 key = agent_env_key(agent_env)
                 network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
                 network = get_docker_client().networks.create(name=network_name, driver="bridge")
@@ -100,7 +104,7 @@ class DockerFixturesScenario(Scenario):
                 # concurrent xdist workers (well above any real run): fresh OTLP-gRPC base 4802
                 # + 98 == pooled base 4900 + 0.
                 try:
-                    api, stop_agent = self._test_agent_factory.start_agent(
+                    with self._test_agent_factory.start_agent(
                         request=request,
                         worker_id=worker_id,
                         container_name=container_name,
@@ -114,24 +118,13 @@ class DockerFixturesScenario(Scenario):
                         agent_port_base=4900,
                         otlp_http_port_base=5000,
                         otlp_grpc_port_base=5100,
-                    )
-                except BaseException:
+                    ) as api:
+                        yield api
+                finally:
                     try:
                         network.remove()
                     except Exception as e:
-                        logger.info(f"Failed to remove network after start_agent failure, ignoring: {e}")
-                    raise
-
-                def _stop() -> None:
-                    try:
-                        stop_agent()
-                    finally:
-                        try:
-                            network.remove()
-                        except Exception as e:
-                            logger.info(f"Failed to remove worker network, ignoring: {e}")
-
-                return AgentLease(api=api, stop=_stop)
+                        logger.info(f"Failed to remove worker network, ignoring: {e}")
 
             self._agent_pool = WorkerAgentPool(_creator)
         return self._agent_pool

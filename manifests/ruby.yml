@@ -247,9 +247,48 @@ manifest:
         sinatra41: '>=2.35.0'
         rack: '>=2.35.0'
         sinatra32: '>=2.35.0'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1509,6 +1548,8 @@ manifest:
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.15.0
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.11.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -2141,6 +2182,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
@@ -2420,7 +2462,10 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging:
+    - weblog_declaration:
+        "*": v1.13.0
+        rails42: irrelevant (DI requires MRI Ruby 2.6+; rails42 runs on Ruby 2.5)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
@@ -2482,6 +2527,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler: missing_feature (no client-side stats computed when sampling drops all traces)
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:
@@ -3144,6 +3190,14 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: missing_feature (app-started not sent)
       component_version: <1.22.0
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.34.0'  # added in 2.31.0 (dd-trace-rb#5464), spawn fixed in 2.34.0 (dd-trace-rb#5634)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.34.0'  # added in 2.31.0 (dd-trace-rb#5464), spawn fixed in 2.34.0 (dd-trace-rb#5634)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature (Temporarily disabled, will be re-enabled once dd-trace-rb#5483 is merged)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature

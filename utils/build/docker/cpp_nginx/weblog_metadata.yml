@@ -1,0 +1,5 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+nginx:
+  categories: [dd_trace]
+  excluded_scenarios: [APPSEC_MISSING_RULES, APPSEC_CORRUPTED_RULES] # C++ 1.2.0 freeze when the rules file is missing

@@ -1,5 +1,6 @@
 from collections.abc import Callable
-from dataclasses import dataclass
+import contextlib
+from contextlib import AbstractContextManager
 from typing import Any
 
 from utils._logger import logger
@@ -10,53 +11,51 @@ def agent_env_key(agent_env: dict[str, str]) -> tuple:
     return tuple(sorted(agent_env.items()))
 
 
-@dataclass
-class AgentLease:
-    """One running test-agent (+ its network) owned by the pool.
-
-    `api` is a TestAgentAPI (duck-typed here so this module stays Docker-free).
-    `stop` tears the lease down (container + network); it must be idempotent-safe
-    to call exactly once at shutdown.
-    """
-
-    api: Any
-    stop: Callable[[], None]
-
-
-class WorkerAgentPool:
+class WorkerAgentPool(contextlib.AbstractContextManager):
     """Per-worker cache of test-agents keyed by agent_env.
 
-    First request for a given env creates a lease via `creator`; later requests
-    for the same env reuse it after `api.clear()` (reset state) and
-    `api.rebind_request()` (re-point per-test logging at the current test).
+    First request for a given env opens an agent via `creator` (a context manager
+    yielding a TestAgentAPI) and keeps it open for the whole worker session; later
+    requests for the same env reuse it after clear()/reset_remote_config() (reset state)
+    and rebind_request() (re-point per-test logging at the current test).
+
+    Use as a context manager so every pooled agent is torn down exactly once at exit --
+    consumers never call a shutdown method directly:
+
+        with WorkerAgentPool(creator) as pool:
+            api = pool.acquire(request, agent_env)
     """
 
-    def __init__(self, creator: Callable[[Any, dict[str, str]], AgentLease]) -> None:
+    # creator(request, agent_env) -> context manager yielding a TestAgentAPI. Duck-typed
+    # (a real FixtureRequest + TestAgentAPI in prod, fakes in tests); Any keeps this
+    # module Docker-free.
+    def __init__(self, creator: Callable[[Any, dict[str, str]], AbstractContextManager[Any]]) -> None:
         self._creator = creator
-        self._leases: dict[tuple, AgentLease] = {}
+        self._stack = contextlib.ExitStack()
+        self._apis: dict[tuple, Any] = {}
 
-    # request/return are duck-typed (a real FixtureRequest + TestAgentAPI in prod, fakes in
-    # tests); Any keeps this module Docker-free.
     def acquire(self, request: Any, agent_env: dict[str, str]) -> Any:  # noqa: ANN401
         key = agent_env_key(agent_env)
-        lease = self._leases.get(key)
-        if lease is None:
-            lease = self._creator(request, agent_env)
-            self._leases[key] = lease
+        api = self._apis.get(key)
+        if api is None:
+            # Keep the agent open for the whole session; the ExitStack tears it (and its
+            # network) down when the pool's context exits.
+            api = self._stack.enter_context(self._creator(request, agent_env))
+            self._apis[key] = api
         else:
-            lease.api.rebind_request(request)
+            api.rebind_request(request)
         # Always hand back a fully reset agent (covers the first acquire too): drop
         # recorded requests, then restore the served remote-config to a fresh-agent
-        # state. The RC reset is done here, not in clear(), so mid-test clear=True
-        # helpers don't wipe a test's active config.
-        lease.api.clear()
-        lease.api.reset_remote_config()
-        return lease.api
+        # state. The RC reset is separate from clear() so mid-test clear=True helpers
+        # don't wipe a test's active config.
+        api.clear()
+        api.reset_remote_config()
+        return api
 
-    def shutdown(self) -> None:
-        for lease in self._leases.values():
-            try:
-                lease.stop()
-            except Exception as e:
-                logger.info(f"Error stopping pooled agent lease, ignoring: {e}")
-        self._leases.clear()
+    def __exit__(self, *exc_info: object) -> None:
+        try:
+            self._stack.close()
+        except Exception as e:
+            logger.info(f"Error tearing down pooled agents, ignoring: {e}")
+        finally:
+            self._apis.clear()

@@ -507,6 +507,8 @@ manifest:
   tests/appsec/test_reports.py::Test_StatusCode: v1.28.6
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v2.26.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.16.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v2.16.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature (blocking capabilities are advertised unconditionally, not yet gated on activation state)
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.16.0
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -608,9 +610,9 @@ manifest:
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL::test_invalid_condition_dsl_probe_rejected: missing_feature (Dotnet compiles probe conditions lazily on first evaluation, so there is no install-time validation step to reject the probe.)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error: v2.53.0
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
-  : bug (DEBUG-5699)
+  : v3.46.0
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
-  : bug (DEBUG-5703)
+  : v3.46.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": v2.50.0
@@ -644,7 +646,9 @@ manifest:
       component_version: <3.10.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: bug (DEBUG-3999)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: v2.50.0
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value: missing_feature (DEBUG-3374)
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DEBUG-3374)
+      component_version: '<3.45.0'
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: bug (DEBUG-2602)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of: bug (DEBUG-2530)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_logical_operators
@@ -653,7 +657,9 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_false: bug (DEBUG-2618)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: bug (DEBUG-2618)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
-  : bug (DEBUG-2560)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-2560)
+      component_version: '<3.45.0'
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: missing_feature (Temporarily disabled; enable from v3.42.0 later)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: bug (DEBUG-4637)
@@ -684,7 +690,9 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: v2.53.0
   ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_different_casing
-  : bug (DEBUG-5104)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-5104)
+      component_version: '<3.45.0'
   ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_unknown_path_prefix
   : bug (DEBUG-5101)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5108)
@@ -826,6 +834,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.44.0
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
@@ -883,10 +892,19 @@ manifest:
       component_version: <2.51.0
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : bug (APMAPI-914)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: missing_feature
       component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finish_TS010:
     - declaration: missing_feature
       component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009:
@@ -898,6 +916,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014:
     - declaration: missing_feature (CSS v1.2.0 - .NET does not exclude spans with _dd.partial_version from stats aggregation)
       component_version: '<3.46.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
     - declaration: missing_feature
@@ -984,6 +1005,8 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: missing_feature (host.name is not yet reported on the OTLP trace metrics resource)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process tags are not yet emitted on the OTLP trace metrics resource)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link parametric endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource parametric endpoint is not implemented)
@@ -1086,11 +1109,27 @@ manifest:
     - weblog_declaration:
         uds: '>=3.43.0'
         poc: '>=3.43.0'
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler:
+    - weblog_declaration:
+        uds: '>=3.43.0'
+        poc: '>=3.43.0'
   tests/stats/test_stats.py::Test_Peer_Tags:
     - weblog_declaration:
         uds: '>=3.43.0'
@@ -1253,6 +1292,8 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Easy win for poc, uds and version 3.36.0
     - declaration: bug (APMAPI-728)
       component_version: '>=3.4.0'
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: irrelevant (.NET does not support fork)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: v3.41.0
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: v3.25.0
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature

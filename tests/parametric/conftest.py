@@ -78,10 +78,10 @@ def test_agent_otlp_grpc_port() -> int:
 
 @pytest.fixture(scope="session")
 def test_agent_pool(worker_id: str) -> Generator[WorkerAgentPool, None, None]:
-    # scope="session" under pytest-xdist == once per worker.
-    pool = scenarios.parametric.get_agent_pool(worker_id)
-    yield pool
-    pool.shutdown()
+    # scope="session" under pytest-xdist == once per worker. The pool is a context
+    # manager: exiting it tears down every pooled agent this worker created.
+    with scenarios.parametric.get_agent_pool(worker_id) as pool:
+        yield pool
 
 
 @pytest.fixture
@@ -107,7 +107,9 @@ def test_agent(
         and test_agent_otlp_grpc_port == DEFAULT_OTLP_GRPC_PORT
     )
     if poolable:
-        api = test_agent_pool.acquire(request=request, agent_env=agent_env)
+        # agent_env is empty here (poolable requires `not agent_env`); pass the default
+        # explicitly rather than the always-falsy variable.
+        api = test_agent_pool.acquire(request=request, agent_env={})
         yield api
         return  # REQUIRED: do not fall through into the fresh-path agent below
 

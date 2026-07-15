@@ -1,5 +1,11 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/0b4d88122bb64a87131eeb9446a3671598790917ec30fc31851ccb6ee8375b8a/single-step-instrumentation-tests.yml
+  - local: /utils/ci/gitlab/main.yml
+    inputs:
+      stage: "e2e"
+      ref: "$CI_COMMIT_SHA"
+      push_to_test_optimization: true
+      split_pipeline: true
 stages:
   - configure
   - nodejs
@@ -9,10 +15,17 @@ stages:
   - php
   - ruby
   - pipeline-status
+  - e2e
   - system-tests-utils
 
 variables:
     TEST: 1
+    # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
+    E2E_SUPPORTED_LANGUAGES: "python"
+    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
+    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/d6c8f8ec4b1fb69b36e96dc204e5f79bed6bf067/mirror_images.py"
+    # Destination registry for mirrored CI images.
+    MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
@@ -304,3 +317,160 @@ generate_system_tests_lib_injection_images:
         - echo "⏳ Waiting before triggering the child pipeline..."
     when: delayed
     start_in: 5 minutes
+
+# ──────────────────────────────────────────────
+# End-to-end pipeline — only for the system-tests repo
+# ──────────────────────────────────────────────
+
+system_tests_param:
+  extends: .system_tests_param_base
+  stage: e2e
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+  before_script:
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+    - export PYTHONPATH=$(pwd)
+    - git fetch origin main
+    - mkdir -p original && git archive origin/main -- manifests/ | tar -xC original/
+    - git diff origin/main...HEAD --name-only > modified_files.txt
+    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+    - python3 utils/scripts/compute_libraries_and_scenarios.py --output raw_params.txt
+    - |
+      python3 -c "
+      import json, shlex
+      with open('raw_params.txt') as f:
+          for line in f:
+              line = line.strip()
+              if '=' not in line: continue
+              key, val = line.split('=', 1)
+              val = json.loads(val)
+              if key == 'libraries': print('export LIBRARIES=' + shlex.quote(str(val)))
+              elif key == 'scenarios': print('export SCENARIOS=' + shlex.quote(str(val)))
+              elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
+      " > set_vars.sh
+      source set_vars.sh
+    - |
+      if [ "$CI_COMMIT_BRANCH" != "main" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
+        export LIBRARIES=""
+      fi
+    # TEMPORARY: filter LIBRARIES via E2E_SUPPORTED_LANGUAGES (space-separated allowlist)
+    # used to control rollout, to be removed once rollout is complete.
+    - |
+      if [ -n "${E2E_SUPPORTED_LANGUAGES:-}" ]; then
+        echo "Filtering LIBRARIES with E2E_SUPPORTED_LANGUAGES='$E2E_SUPPORTED_LANGUAGES'"
+        filtered=""
+        for lib in $LIBRARIES; do
+          for allowed in $E2E_SUPPORTED_LANGUAGES; do
+            if [ "$lib" = "$allowed" ]; then
+              filtered="${filtered:+$filtered }$lib"
+              break
+            fi
+          done
+        done
+        export LIBRARIES="$filtered"
+      fi
+    - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E'
+    - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
+
+build_ci_image:
+  image: registry.ddbuild.io/images/docker:20.10.13-jammy
+  interruptible: false
+  tags:
+    - docker-in-docker:amd64
+  stage: e2e
+  script:
+    - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
+    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
+    - |
+      if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
+        echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
+        echo "   Update CI_IMAGE in utils/ci/gitlab/main.yml:"
+        echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
+        exit 1
+      fi
+    - >
+      if docker manifest inspect $EXPECTED_IMAGE > /dev/null 2>&1; then
+        echo "Image already exists, skipping build";
+      else
+        docker build -f utils/ci/gitlab/docker/system-tests.Dockerfile -t $EXPECTED_IMAGE . &&
+        docker push $EXPECTED_IMAGE;
+      fi
+  rules:
+    - changes:
+        - utils/ci/gitlab/docker/system-tests.Dockerfile
+        - requirements.txt
+        - utils/ci/gitlab/main.yml
+
+# ──────────────────────────────────────────────
+# Mirror CI scenario images into registry.ddbuild.io/system-tests/mirror
+#
+# A single job that, on every push:
+#   * regenerates the image list from the scenarios and fails if the committed
+#     mirror_images.yaml is out of date (regenerate + commit it with
+#     utils/scripts/update_mirror_images.py whenever scenarios or weblog
+#     Dockerfiles change);
+#   * pushes any image from the committed mirror_images.lock.yaml that is not yet
+#     present in MIRROR_DEST_REGISTRY. `mirror` checks the destination first and
+#     only copies what is missing, so re-running it is cheap and idempotent.
+#
+# It never updates the lock file: mirror_images.lock.yaml is the committed
+# contract, regenerated by developers via update_mirror_images.py.
+#
+# crane copies registry-to-registry over HTTPS (no Docker daemon needed), so this
+# runs on the framework runner image used for the scenario enumeration.
+# ──────────────────────────────────────────────
+
+mirror_images:
+  image: $CI_IMAGE
+  # Runs in e2e (not the last stage) so the build/run jobs can depend on it and
+  # only start once the mirror is populated.
+  stage: e2e
+  tags:
+    - arch:amd64
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+  before_script:
+    # crane handles multi-arch manifest lists cleanly; mirror_images.py picks it up on PATH.
+    - CRANE_VERSION=v0.20.2
+    - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane
+    # This is the only job that pulls from Docker Hub (the mirror sources), so it
+    # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | crane auth login index.docker.io --username "$DOCKER_LOGIN" --password-stdin
+  script:
+    - IMAGE_TAG=$(cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12)
+    - EXPECTED_IMAGE="registry.ddbuild.io/system-tests/ci-runner:$IMAGE_TAG"
+    - |
+      if [ "$EXPECTED_IMAGE" != "$CI_IMAGE" ]; then
+        echo "❌ CI_IMAGE mismatch: hardcoded '$CI_IMAGE' does not match computed '$EXPECTED_IMAGE'"
+        echo "   Update CI_IMAGE in utils/ci/gitlab/main.yml:"
+        echo "     cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12"
+        exit 1
+      fi
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+    - python -m pip install --quiet uv
+    # Fail if the committed image list is stale vs the scenarios (does not touch the lock).
+    - python utils/scripts/update_mirror_images.py --skip-lock
+    - |
+      if ! git diff --exit-code -- mirror_images.yaml; then
+        echo "❌ mirror_images.yaml is out of date. Regenerate and commit it:"
+        echo "   python utils/scripts/update_mirror_images.py"
+        exit 1
+      fi
+    - |
+      if ! git diff --exit-code -- utils/build/docker/buildkitd.toml; then
+        echo "❌ utils/build/docker/buildkitd.toml is out of date. Regenerate and commit it:"
+        echo "   python utils/scripts/update_mirror_images.py"
+        exit 1
+      fi
+    # Push any locked image missing from the mirror (already-present images are skipped).
+    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror
+  rules:
+    - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'

@@ -1,0 +1,196 @@
+---
+spec:
+  inputs:
+    stage:
+      description: "CI stage for all jobs in this component and the generated child pipeline"
+    libraries:
+      default: ""
+    scenarios:
+      description: "Comma-separated list of scenarios to run"
+      default: ""
+    scenarios_groups:
+      description: "Comma-separated list of scenario groups to run"
+      default: ""
+    excluded_scenarios:
+      description: "Comma-separated list of scenarios not to run"
+      default: "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
+    weblogs:
+      description: "Comma-separated list of weblogs to run (all weblogs if empty)"
+      default: ""
+    binaries_artifacts:
+      description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
+      default: ""
+    binaries_artifact_path:
+      description: "Path (relative to CI_PROJECT_DIR) of the binaries_artifact contents, copied into binaries/ before building/running"
+      default: ""
+    force_execute:
+      description: "Comma-separated test node IDs to force-execute"
+      default: ""
+    skip_empty_scenarios:
+      description: "Skip scenarios that contain only xfail or irrelevant tests"
+      type: boolean
+      default: false
+    parametric_job_count:
+      description: "Number of parallel jobs for the PARAMETRIC scenario"
+      type: number
+      default: 1
+    push_to_test_optimization:
+      description: "Push test results to Datadog Test Optimization"
+      type: boolean
+      default: false
+    auto_cancel_on_new_commit:
+      description: "Auto-cancel strategy when a new commit is pushed (interruptible, conservative, disabled)"
+      default: "interruptible"
+    ref:
+      description: "system-tests ref to use when called from another repository (branch, tag or SHA)"
+      default: "main"
+    condition:
+      description: "GitLab CI rule expression controlling whether system-tests jobs run (e.g. '$NIGHTLY_BUILD == \"true\"'). Defaults to always-run."
+      default: "null == null"
+    docker_auth:
+      description: "Whether to authenticate calls to docker hub"
+      default: "false"
+    split_pipeline:
+      description: "Split jobs across multiple child pipelines"
+      type: boolean
+      default: false
+
+---
+
+include:
+  - project: 'DataDog/system-tests'
+    ref: $[[ inputs.ref ]]
+    file: 'utils/ci/gitlab/templates.yml'
+    inputs:
+      stage: $[[ inputs.stage ]]
+      ref: $[[ inputs.ref ]]
+
+workflow:
+  rules:
+    - when: always
+      auto_cancel:
+        on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
+
+variables:
+  # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
+  # Update this when either file changes:
+  #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:6ac2184fe943"
+  SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
+
+.system_tests_param_base:
+  image: $CI_IMAGE
+  tags:
+    - arch:amd64
+  script:
+    - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
+  artifacts:
+    reports:
+      dotenv: param.env
+
+system_tests_build_pipeline:
+  extends: .system_tests_base
+  tags:
+    - arch:amd64
+  rules:
+    - if: $[[ inputs.condition ]]
+    - when: never
+  needs:
+    - job: build_ci_image
+      optional: true
+      artifacts: false
+    - job: system_tests_param
+      optional: true
+      artifacts: true
+  script:
+    - |
+      libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
+      touch build_params.env
+      scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      excluded_scenarios=$(echo "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" | tr ',' '\n' | sed '/^$/d' | sort -u | tr '\n' ',' | sed 's/,$//')
+      force_execute=$(echo "$[[ inputs.force_execute ]],$FORCE_EXECUTE" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+      parametric_job_count="${SYSTEM_TESTS_PARAMETRIC_JOB_COUNT:-$[[ inputs.parametric_job_count ]]}"
+      push_to_test_optimization="${SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION:-$[[ inputs.push_to_test_optimization ]]}"
+      docker_auth="${SYSTEM_TESTS_DOCKER_AUTH:-$[[ inputs.docker_auth ]]}"
+      skip_empty_scenario="${SYSTEM_TESTS_SKIP_EMPTY_SCENARIO:-$[[ inputs.skip_empty_scenarios ]]}"
+      echo "libraries:              $libraries"
+      echo "scenarios:              $scenarios"
+      echo "scenario_groups:        $scenario_groups"
+      echo "weblogs:                $weblogs"
+      echo "excluded_scenarios:     $excluded_scenarios"
+      echo "force_execute:          $force_execute"
+      echo "parametric_job_count:   $parametric_job_count"
+      echo "push_to_test_opt:       $push_to_test_optimization"
+      echo "skip_empty_scenario:    $skip_empty_scenario"
+      printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
+      binaries_artifacts="${BINARIES_ARTIFACTS:-$[[ inputs.binaries_artifacts ]]}"
+      binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
+      for library in $libraries; do
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --output params_${library}.json
+      done
+      chunks=1
+      if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts"
+  artifacts:
+    paths:
+      - system-tests/generated-pipeline-chunk-*.yml
+    reports:
+      dotenv: system-tests/build_params.env
+
+.run_test_pipeline_base:
+  interruptible: true
+  stage: $[[ inputs.stage ]]
+  rules:
+    - if: $[[ inputs.condition ]]
+    - when: never
+  needs:
+    - job: system_tests_build_pipeline
+      optional: true
+      artifacts: true
+    - job: system_tests_param
+      optional: true
+      artifacts: true
+    - job: mirror_images
+      optional: true
+      artifacts: false
+  variables:
+    SYSTEM_TESTS_FORCE_EXECUTE: "$SYSTEM_TESTS_FORCE_EXECUTE"
+    SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$SYSTEM_TESTS_SKIP_EMPTY_SCENARIO"
+    LIBRARIES: $LIBRARIES
+    UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
+
+system_tests_run_pipeline_0:
+  extends: .run_test_pipeline_base
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-chunk-0.yml
+        job: system_tests_build_pipeline
+    strategy: depend
+
+system_tests_run_pipeline_1:
+  extends: .run_test_pipeline_base
+  rules:
+    - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
+      when: never
+    - if: $[[ inputs.condition ]]
+    - when: never
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-chunk-1.yml
+        job: system_tests_build_pipeline
+    strategy: depend
+
+system_tests_run_pipeline_2:
+  extends: .run_test_pipeline_base
+  rules:
+    - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
+      when: never
+    - if: $[[ inputs.condition ]]
+    - when: never
+  trigger:
+    include:
+      - artifact: system-tests/generated-pipeline-chunk-2.yml
+        job: system_tests_build_pipeline
+    strategy: depend
