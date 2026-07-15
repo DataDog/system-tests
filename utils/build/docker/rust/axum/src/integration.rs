@@ -15,8 +15,6 @@ use reqwest_tracing::reqwest_otel_span;
 use tracing::Span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use crate::url::scrub_query_string;
-
 /// Adds Datadog-specific attributes on top of the OTel HTTP server span that
 /// `opentelemetry_instrumentation_tower::HTTPLayer` created for this request.
 ///
@@ -41,10 +39,11 @@ pub async fn enrich_span(request: Request, next: Next) -> Response {
         .to_owned();
     let server_address = host.split(':').next().unwrap_or(&host).to_owned();
     let path = request.uri().path().to_owned();
-    // http.url from the request URI + host header (with sensitive params scrubbed)
-    let query_scrubbed = request.uri().query().map(scrub_query_string);
-    let query_suffix = query_scrubbed
-        .as_deref()
+    // http.url from the request URI + host header. Query-string obfuscation is
+    // a tracer responsibility, so the weblog reports the URL verbatim.
+    let query_suffix = request
+        .uri()
+        .query()
         .map(|q| format!("?{q}"))
         .unwrap_or_default();
     let url = format!("http://{host}{path}{query_suffix}");
@@ -71,8 +70,7 @@ impl reqwest_tracing::ReqwestOtelSpanBackend for DatadogClientSpanBackend {
         let span = reqwest_otel_span!(name = "http.client.request", req);
 
         let host = req.url().host_str().unwrap_or_default().to_owned();
-        let query_scrubbed = req.url().query().map(scrub_query_string);
-        let query_suffix = query_scrubbed.map(|q| format!("?{q}")).unwrap_or_default();
+        let query_suffix = req.url().query().map(|q| format!("?{q}")).unwrap_or_default();
         let host_port = match req.url().port() {
             Some(p) => format!("{host}:{p}"),
             None => host.clone(),
