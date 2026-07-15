@@ -2060,10 +2060,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: bug (APMAPI-865)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: *ref_4_23_0
-  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: *ref_5_46_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: *ref_5_47_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2697 tracks Node.js agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_span_enrichment.py: "missing_feature (dd-trace-js#8343)"
