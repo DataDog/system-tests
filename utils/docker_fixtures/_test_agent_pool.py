@@ -24,38 +24,65 @@ class WorkerAgentPool(contextlib.AbstractContextManager):
 
         with WorkerAgentPool(creator) as pool:
             api = pool.acquire(request, agent_env)
+
+    Resilience: an agent is cached only after its reset succeeds, and a reset failure on
+    a reused agent evicts and recreates it. That stops one dead/blipped agent from
+    cascading into setup failures for every later poolable test on the worker.
     """
 
     # creator(request, agent_env) -> context manager yielding a TestAgentAPI. Duck-typed
     # (a real FixtureRequest + TestAgentAPI in prod, fakes in tests); Any keeps this
-    # module Docker-free.
+    # module Docker-free. Each entry keeps its own ExitStack so it can be torn down
+    # individually (eviction) or in bulk (pool exit).
     def __init__(self, creator: Callable[[Any, dict[str, str]], AbstractContextManager[Any]]) -> None:
         self._creator = creator
-        self._stack = contextlib.ExitStack()
-        self._apis: dict[tuple, Any] = {}
+        self._entries: dict[tuple, tuple[Any, contextlib.ExitStack]] = {}
 
     def acquire(self, request: Any, agent_env: dict[str, str]) -> Any:  # noqa: ANN401
         key = agent_env_key(agent_env)
-        api = self._apis.get(key)
-        if api is None:
-            # Keep the agent open for the whole session; the ExitStack tears it (and its
-            # network) down when the pool's context exits.
-            api = self._stack.enter_context(self._creator(request, agent_env))
-            self._apis[key] = api
-        else:
+        entry = self._entries.get(key)
+        if entry is not None:
+            api = entry[0]
             api.rebind_request(request)
-        # Always hand back a fully reset agent (covers the first acquire too): drop
-        # recorded requests, then restore the served remote-config to a fresh-agent
+            try:
+                self._reset(api)
+            except Exception as e:
+                # Any reset failure means a dirty/dead agent. Don't let it cascade: drop
+                # it and recreate below.
+                logger.info(f"Pooled agent reset failed, recreating it: {e}")
+                self._close_entry(key)
+            else:
+                return api
+        return self._open_entry(key, request, agent_env)
+
+    def _open_entry(self, key: tuple, request: Any, agent_env: dict[str, str]) -> Any:  # noqa: ANN401
+        # Reset before caching so a create whose reset fails doesn't leave a broken entry.
+        stack = contextlib.ExitStack()
+        try:
+            api = stack.enter_context(self._creator(request, agent_env))
+            self._reset(api)
+        except BaseException:
+            stack.close()
+            raise
+        self._entries[key] = (api, stack)
+        return api
+
+    @staticmethod
+    def _reset(api: Any) -> None:  # noqa: ANN401
+        # Drop recorded requests, then restore the served remote-config to a fresh-agent
         # state. The RC reset is separate from clear() so mid-test clear=True helpers
         # don't wipe a test's active config.
         api.clear()
         api.reset_remote_config()
-        return api
+
+    def _close_entry(self, key: tuple) -> None:
+        entry = self._entries.pop(key, None)
+        if entry is not None:
+            try:
+                entry[1].close()
+            except Exception as e:
+                logger.info(f"Error tearing down pooled agent, ignoring: {e}")
 
     def __exit__(self, *exc_info: object) -> None:
-        try:
-            self._stack.close()
-        except Exception as e:
-            logger.info(f"Error tearing down pooled agents, ignoring: {e}")
-        finally:
-            self._apis.clear()
+        for key in list(self._entries):
+            self._close_entry(key)

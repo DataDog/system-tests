@@ -93,16 +93,18 @@ class DockerFixturesScenario(Scenario):
         if self._agent_pool is None:
 
             @contextlib.contextmanager
-            def _creator(request: pytest.FixtureRequest, agent_env: dict[str, str]) -> Generator[TestAgentAPI]:
+            def _creator(
+                request: pytest.FixtureRequest, agent_env: dict[str, str]
+            ) -> Generator[TestAgentAPI, None, None]:
                 key = agent_env_key(agent_env)
                 network_name = f"{_NETWORK_PREFIX}_worker_{worker_id}_{abs(hash(key))}"
                 network = get_docker_client().networks.create(name=network_name, driver="bridge")
                 container_name = f"ddapm-test-agent-worker-{worker_id}-{abs(hash(key))}"
-                # Pooled agents use a separate host-port band (4900/5000/5100 + worker offset)
-                # so a worker's persistent pooled agent never collides with a fresh-path agent
-                # (4600/4701/4802) on that worker. The bands are non-overlapping for up to ~97
-                # concurrent xdist workers (well above any real run): fresh OTLP-gRPC base 4802
-                # + 98 == pooled base 4900 + 0.
+                # Pooled agents use a separate host-port band (5000/5100/5200 + worker offset)
+                # so a worker's persistent pooled agent never collides, on that worker, with the
+                # fresh-path agent (4600/4701/4802) or the FFE mock backend (4900, added on main
+                # in MockFFEAgentlessBackendServer). Bands stay non-overlapping for up to ~97
+                # concurrent xdist workers, well above any real run.
                 try:
                     with self._test_agent_factory.start_agent(
                         request=request,
@@ -115,9 +117,9 @@ class DockerFixturesScenario(Scenario):
                         # since a parametrized custom OTLP port needs an agent listening on it.
                         container_otlp_http_port=DEFAULT_OTLP_HTTP_PORT,
                         container_otlp_grpc_port=DEFAULT_OTLP_GRPC_PORT,
-                        agent_port_base=4900,
-                        otlp_http_port_base=5000,
-                        otlp_grpc_port_base=5100,
+                        agent_port_base=5000,
+                        otlp_http_port_base=5100,
+                        otlp_grpc_port_base=5200,
                     ) as api:
                         yield api
                 finally:
