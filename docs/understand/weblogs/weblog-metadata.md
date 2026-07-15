@@ -48,23 +48,36 @@ produces `openai-js@6.0.0` and `openai-js@7.0.0`.
 
 ## Base image dependencies
 
-A `weblog_metadata.yml` may also declare a top-level `base_image_dependencies` section, unrelated
-to the per-weblog entries above, used by the `build_base_images` CI job
-(`utils/scripts/build_base_images.py`) to know when a weblog base image needs to be rebuilt:
+Base images (built by the `build_base_images` CI job, `utils/scripts/build_base_images.py`) are
+declared in each library's `utils/build/docker/<library>/docker-bake.hcl`, one target per base
+image. There is no separate dependency list to maintain: for each target, the job parses the
+target's own `<name>.base.Dockerfile` and treats every `COPY` source as a dependency. This works
+because base Dockerfiles are required to follow a few rules that make that derivation
+unambiguous:
 
-```yaml
-base_image_dependencies:
-  <docker-bake.hcl target name>:
-    - <path to a file or directory the base image depends on>
-    - ...
-```
+- No `ADD` — use `COPY` for everything (no glob sources, no whole-directory copies, no remote
+  URLs).
+- Every `COPY` has exactly one source: `COPY [flags] <source> <dest>`.
+- The bake target's `context` is always the Dockerfile's own directory, so every `COPY` source
+  is a plain path relative to that directory.
+- No `RUN --mount` — a bind/cache/secret mount reads from a path the script can't see, so it
+  would silently escape the derived dependency list.
 
-For each target listed there, the job computes a content hash from the resolved
-`docker-bake.hcl` target config, the target's Dockerfile, and every git-tracked file under the
-listed paths, then pushes the base image to Docker Hub tagged `<base-tag>-<hash12>` if that tag
-doesn't already exist. It never overwrites an existing tag, so weblog Dockerfiles that `FROM` a
-base image must have their tag updated by hand after a new one is pushed (run the script with
-`--dry-run` to find the current tag for each target).
+(`COPY --from=<stage-or-image>` is unaffected: it isn't a local repository path, so it's skipped.)
+
+The job computes a content hash from the resolved `docker-bake.hcl` target config, the target's
+Dockerfile, and every git-tracked file under each derived dependency path, then pushes the base
+image to Docker Hub tagged `<base-tag>-<hash12>` if that tag doesn't already exist. It never
+overwrites an existing tag, so weblog Dockerfiles that `FROM` a base image must have their tag
+updated by hand after a new one is pushed (run the script with `--dry-run` to find the current
+tag for each target).
+
+As a safety net, before building, every derived dependency is hardlinked (or copied, if
+hardlinking isn't possible) into an isolated build context under `.base_image_build/`, and the
+image is built from that directory instead of the real one. This way, if the Dockerfile
+references a file the parser failed to recognize as a dependency, the build fails loudly
+("file not found") instead of silently succeeding against the full checkout — which would leave
+the tag's content hash stale without anyone noticing.
 
 GitHub Actions never builds these base images itself: `utils/scripts/wait_for_base_image.py`
 polls Docker Hub for the tag currently referenced in the weblog's `FROM` line (with a timeout)

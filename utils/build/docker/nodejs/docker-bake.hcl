@@ -1,4 +1,8 @@
 # Docker Buildx bake file for Node.js base images
+#
+# `context` is always this directory: base image Dockerfiles only COPY files from
+# here, so paths in the Dockerfile are relative to it (see build_base_images.py,
+# which derives base_image_dependencies from these COPY instructions).
 
 group "default" {
   targets = [
@@ -11,40 +15,36 @@ group "default" {
 }
 
 target "_common" {
+  context    = "."
   provenance = false
 }
 
 target "express4" {
   inherits   = ["_common"]
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/express4.base.Dockerfile"
+  dockerfile = "express4.base.Dockerfile"
   tags       = ["datadog/system-tests:express4.base"]
 }
 
 target "express5" {
   inherits   = ["_common"]
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/express5.base.Dockerfile"
+  dockerfile = "express5.base.Dockerfile"
   tags       = ["datadog/system-tests:express5.base"]
 }
 
 target "fastify" {
   inherits   = ["_common"]
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/fastify.base.Dockerfile"
+  dockerfile = "fastify.base.Dockerfile"
   tags       = ["datadog/system-tests:fastify.base"]
 }
 
 target "express4-typescript" {
   inherits   = ["_common"]
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/express4-typescript.base.Dockerfile"
+  dockerfile = "express4-typescript.base.Dockerfile"
   tags       = ["datadog/system-tests:express4-typescript.base"]
 }
 
 target "nextjs" {
   inherits   = ["_common"]
-  context    = "."
-  dockerfile = "utils/build/docker/nodejs/nextjs.base.Dockerfile"
+  dockerfile = "nextjs.base.Dockerfile"
   tags       = ["datadog/system-tests:nextjs.base"]
 }

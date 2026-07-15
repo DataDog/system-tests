@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y curl
 RUN python --version && curl --version
 # install python deps
 ENV PIP_ROOT_USER_ACTION=ignore
-COPY utils/build/docker/python/django/requirements-django-py3.13.txt /tmp/django-requirements.txt
+COPY django/requirements-django-py3.13.txt /tmp/django-requirements.txt
 RUN pip install --upgrade pip && pip install -r /tmp/django-requirements.txt
 
-# docker build --progress=plain -f utils/build/docker/python/django-py3.13.base.Dockerfile -t datadog/system-tests:django-py3.13.base-v10 .
+# docker build --progress=plain -f utils/build/docker/python/django-py3.13.base.Dockerfile -t datadog/system-tests:django-py3.13.base-v10 utils/build/docker/python
 # docker push datadog/system-tests:django-py3.13.base-v10

@@ -18,8 +18,8 @@ RUN apt-get update \
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
 
 # install python deps (flask is pinned below because tracer does not support >=2.3.0)
-COPY utils/build/docker/python/flask/requirements-flask-poc.txt /tmp/flask-requirements.txt
+COPY flask/requirements-flask-poc.txt /tmp/flask-requirements.txt
 RUN pip install --upgrade pip && pip install -r /tmp/flask-requirements.txt
 
-# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v14 .
+# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v14 utils/build/docker/python
 # docker push datadog/system-tests:flask-poc.base-v14

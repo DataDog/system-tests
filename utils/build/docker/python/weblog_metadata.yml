@@ -9,21 +9,3 @@ anthropic-py:
 google_genai-py:
   build_mode: none
   framework_versions: ["1.55.0"]
-
-# Dependencies for base images built by utils/scripts/build_base_images.py, keyed by
-# docker-bake.hcl target name. See docs/understand/weblogs/weblog-metadata.md.
-base_image_dependencies:
-  django-poc:
-    - utils/build/docker/python/django/requirements-django-poc.txt
-  django-py3_13:
-    - utils/build/docker/python/django/requirements-django-py3.13.txt
-  python3_12:
-    - utils/build/docker/python/django/requirements-python3.12.txt
-  fastapi:
-    - utils/build/docker/python/fastapi/requirements-fastapi.txt
-  flask-poc:
-    - utils/build/docker/python/flask/requirements-flask-poc.txt
-  uwsgi-poc:
-    - utils/build/docker/python/flask/requirements-uwsgi-poc.txt
-  tornado:
-    - utils/build/docker/python/tornado/requirements-tornado.txt
