@@ -1,14 +1,9 @@
 use std::{
     collections::HashMap,
-    net::SocketAddr,
     sync::{Arc, Mutex, OnceLock},
 };
 
-use axum::{
-    extract::{connect_info::ConnectInfo, Request},
-    middleware::Next,
-    response::Response,
-};
+use axum::{extract::Request, middleware::Next, response::Response};
 
 use http::Extensions;
 use opentelemetry::{
@@ -20,7 +15,7 @@ use reqwest_tracing::reqwest_otel_span;
 use tracing::Span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
-use crate::url::{extract_client_ip, extract_hostname_from_referer, scrub_query_string};
+use crate::url::scrub_query_string;
 
 /// Adds Datadog-specific attributes on top of the OTel HTTP server span that
 /// `opentelemetry_instrumentation_tower::HTTPLayer` created for this request.
@@ -62,26 +57,6 @@ pub async fn enrich_span(request: Request, next: Next) -> Response {
     // _dd.top_level marks this as a root span so the library interface can
     // match traces to requests via the user-agent header.
     span.set_attribute(KeyValue::new("_dd.top_level", 1i64));
-
-    // http.referrer_hostname from the Referer header
-    if let Some(referer) = request.headers().get(axum::http::header::REFERER) {
-        if let Ok(referer_str) = referer.to_str() {
-            if let Some(hostname) = extract_hostname_from_referer(referer_str) {
-                span.set_attribute(KeyValue::new("http.referrer_hostname", hostname));
-            }
-        }
-    }
-    // http.client_ip resolves forwarded headers. network.client.ip is the
-    // transport peer and therefore must not use a forwarded header value.
-    if let Some(ip) = extract_client_ip(request.headers()) {
-        span.set_attribute(KeyValue::new("http.client_ip", ip.clone()));
-    }
-    if let Some(connect_info) = request.extensions().get::<ConnectInfo<SocketAddr>>() {
-        span.set_attribute(KeyValue::new(
-            "network.client.ip",
-            connect_info.0.ip().to_string(),
-        ));
-    }
 
     next.run(request).await
 }
