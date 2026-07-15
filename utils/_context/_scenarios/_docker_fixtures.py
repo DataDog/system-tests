@@ -8,6 +8,7 @@ import pytest
 from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
 from docker.errors import DockerException
 from utils._context.docker import get_docker_client
+from utils._context.constants import WeblogCategory
 from utils._logger import logger
 from .core import Scenario, ScenarioGroup, scenario_groups as groups
 
@@ -22,6 +23,7 @@ class DockerFixturesScenario(Scenario):
         github_workflow: str,
         doc: str,
         agent_image: str,
+        weblog_categories: list[WeblogCategory],
         scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
@@ -29,6 +31,7 @@ class DockerFixturesScenario(Scenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=[*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures],
+            weblog_categories=weblog_categories,
         )
 
         self._test_agent_factory = TestAgentFactory(agent_image)
