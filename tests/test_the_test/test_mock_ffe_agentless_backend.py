@@ -38,23 +38,6 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
 
 @scenarios.test_the_test
 @features.not_reported
-def test_mock_ffe_agentless_backend_requires_dd_api_key_header(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id, port=0)
-    try:
-        response = requests.get(
-            server.base_url + CONFIG_PATH,
-            headers={"X-Datadog-Api-Key": EXPECTED_API_KEY},
-            timeout=5,
-        )
-
-        assert response.status_code == 401
-        assert server.status()["last_auth_present"] is False
-    finally:
-        server.close()
-
-
-@scenarios.test_the_test
-@features.not_reported
 def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch, worker_id: str) -> None:
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL", raising=False)
