@@ -1404,11 +1404,8 @@ manifest:
     - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
       component_version: '<=2.10.0-dev'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
-  tests/parametric/test_llm_observability/: v2.11.0-dev
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost tags need llmobs.WithAnnotatedCostTagKeys, not in a released dd-trace-go yet)
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement::test_ml_app: missing_feature (only the unset/default params fail; Go llmobs emits no span when ml_app is unset, vs dd-trace-py defaulting to the service; per-param gating is unsupported and the configured-ml_app path is covered elsewhere)
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: missing_feature (prompt annotation needs llmobs.WithAnnotatedPrompt, not in a released dd-trace-go yet)
-  tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset::test_dataset_create_delete: missing_feature (no public delete-dataset-by-id API in dd-trace-go; delete is stubbed)
+  tests/parametric/test_llm_observability/: incomplete_test_app
+  tests/parametric/test_llm_observability/test_llm_observability_gen_ai_otlp.py: v2.11.0-dev
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: irrelevant (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
