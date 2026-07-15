@@ -44,10 +44,11 @@ EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 0.5
 TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
-CONFIG_PATH = "/api/v2/feature-flagging/config/server-distribution"
+CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
 REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
+UFC_RESPONSE_TYPE = "universal-flag-configuration"
 
 
 class MockFFEAgentlessBackendStatus(TypedDict):
@@ -143,7 +144,7 @@ class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
 
 class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
     # Endpoint contract:
-    # - GET /api/v2/feature-flagging/config/server-distribution
+    # - GET /api/v2/feature-flagging/config/rules-based/server
     # - GET /status
     # - POST /control/responses
     # - POST /control/reset
@@ -232,11 +233,20 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
 
 def _has_auth(headers: Mapping[str, str]) -> bool:
     normalized = {key.lower(): value for key, value in headers.items()}
-    return any(normalized.get(header) == EXPECTED_API_KEY for header in ("dd-api-key", "x-datadog-api-key"))
+    return normalized.get("dd-api-key") == EXPECTED_API_KEY
 
 
 def _valid_ufc_bytes() -> bytes:
-    return UFC_FIXTURE_PATH.read_bytes()
+    attributes = json.loads(UFC_FIXTURE_PATH.read_text())
+    return json.dumps(
+        {
+            "data": {
+                "id": "1",
+                "type": UFC_RESPONSE_TYPE,
+                "attributes": attributes,
+            }
+        }
+    ).encode("utf-8")
 
 
 def validate_responses(responses: object) -> list[str]:
@@ -273,9 +283,10 @@ def _strip_config_path(url: str) -> str:
 
 
 class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str) -> None:
-        self.port = get_host_port(worker_id, 4900)
+    def __init__(self, worker_id: str, *, port: int | None = None) -> None:
+        self.port = get_host_port(worker_id, 4900) if port is None else port
         self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
+        self.port = self._server.server_port
         self._thread = threading.Thread(
             target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
         )

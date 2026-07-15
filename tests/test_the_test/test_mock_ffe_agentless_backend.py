@@ -9,16 +9,23 @@ from utils.docker_fixtures._mock_ffe_agentless_backend import (
     CONFIG_PATH,
     EXPECTED_API_KEY,
     MockFFEAgentlessBackendServer,
+    UFC_RESPONSE_TYPE,
 )
 
 
 @scenarios.test_the_test
 @features.not_reported
 def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
-        response = requests.get(server.base_url + CONFIG_PATH, headers={"dd-api-key": EXPECTED_API_KEY}, timeout=5)
+        response = requests.get(server.base_url + CONFIG_PATH, headers={"DD-API-KEY": EXPECTED_API_KEY}, timeout=5)
         response.raise_for_status()
+
+        payload = response.json()
+        assert payload["data"]["id"] == "1"
+        assert payload["data"]["type"] == UFC_RESPONSE_TYPE
+        assert payload["data"]["attributes"]["environment"]["name"] == "Test"
+        assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
         status = server.status()
         assert status["requests_total"] == 1
@@ -31,13 +38,30 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
 
 @scenarios.test_the_test
 @features.not_reported
+def test_mock_ffe_agentless_backend_requires_dd_api_key_header(worker_id: str) -> None:
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
+    try:
+        response = requests.get(
+            server.base_url + CONFIG_PATH,
+            headers={"X-Datadog-Api-Key": EXPECTED_API_KEY},
+            timeout=5,
+        )
+
+        assert response.status_code == 401
+        assert server.status()["last_auth_present"] is False
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+@features.not_reported
 def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch, worker_id: str) -> None:
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", raising=False)
 
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
         env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
@@ -48,7 +72,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 @scenarios.test_the_test
 @features.not_reported
 def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
         status = server.status()
         assert set(status) == {
