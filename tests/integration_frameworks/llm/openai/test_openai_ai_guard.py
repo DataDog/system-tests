@@ -21,8 +21,10 @@ already covered by the ``AI_GUARD`` scenario and is intentionally not re-asserte
 """
 
 import os
+import time
 
 import pytest
+import requests
 
 from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
@@ -53,6 +55,35 @@ def _ai_guard_spans(traces: list[list[dict]]) -> list[dict]:
     return [span for trace in traces for span in trace if span.get("resource") == "ai_guard"]
 
 
+def _wait_for_ai_guard_spans(
+    test_agent: TestAgentAPI, *, target: str | None = None, wait_loops: int = 30
+) -> list[dict]:
+    """Poll the test agent until at least one matching ``ai_guard`` span is received.
+
+    We assert on the presence of the ``ai_guard`` span rather than on a fixed number of
+    traces: the tracer does not deterministically group the ``ai_guard`` span with the
+    OpenAI span. In particular the streamed after-model evaluation may emit the
+    ``ai_guard`` span either nested in the OpenAI trace (1 trace) or as its own trace
+    (2 traces), so ``wait_for_num_traces`` with a hard-coded count is inherently racy.
+    When ``target`` is given, only spans whose ``ai_guard.target`` matches are considered
+    (so we keep polling until the specific evaluation point we care about has arrived).
+    """
+    spans: list[dict] = []
+    for _ in range(wait_loops):
+        try:
+            traces = test_agent.traces(clear=False)
+        except requests.exceptions.RequestException:
+            pass
+        else:
+            spans = _ai_guard_spans(traces)
+            if target is not None:
+                spans = [span for span in spans if span["meta"].get("ai_guard.target") == target]
+            if spans:
+                return spans
+        time.sleep(0.1)
+    return spans
+
+
 @features.ai_guard
 @scenarios.integration_frameworks
 class TestOpenAiAiGuard(BaseOpenaiTest):
@@ -71,11 +102,8 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
                 ),
             )
 
-        guard_spans = _ai_guard_spans(test_agent.wait_for_num_traces(num=1))
-        assert guard_spans, "expected an ai_guard span from the before-model evaluation"
-        assert any(span["meta"].get("ai_guard.target") == "prompt" for span in guard_spans), (
-            "expected a before-model ai_guard span with target 'prompt'"
-        )
+        guard_spans = _wait_for_ai_guard_spans(test_agent, target="prompt")
+        assert guard_spans, "expected a before-model ai_guard span with target 'prompt'"
 
     def test_after_model_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         """The streamed model response is evaluated by AI Guard after the model returns."""
@@ -90,7 +118,7 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
                 ),
             )
 
-        guard_spans = _ai_guard_spans(test_agent.wait_for_num_traces(num=1))
+        guard_spans = _wait_for_ai_guard_spans(test_agent)
         assert guard_spans, "expected an ai_guard span from the after-model (streamed) evaluation"
 
     def test_tool_call_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -111,8 +139,5 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
                 ),
             )
 
-        guard_spans = _ai_guard_spans(test_agent.wait_for_num_traces(num=1))
-        assert guard_spans, "expected an ai_guard span from the tool-call evaluation"
-        assert any(span["meta"].get("ai_guard.target") == "tool" for span in guard_spans), (
-            "expected a tool-call ai_guard span with target 'tool'"
-        )
+        guard_spans = _wait_for_ai_guard_spans(test_agent, target="tool")
+        assert guard_spans, "expected a tool-call ai_guard span with target 'tool'"
