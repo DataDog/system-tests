@@ -75,7 +75,7 @@ class Test_Crashtracking:
     def get_go_crash_reports(self, test_agent: TestAgentAPI, *, clear: bool = False) -> list[dict]:
         reports = []
         for req in test_agent.requests():
-            if req["url"].endswith("/evp_proxy/v2/api/v2/errors"):
+            if req["url"].endswith("/evp_proxy/v4/api/v2/errorsintake"):
                 try:
                     reports.append(json.loads(base64.b64decode(req["body"])))
                 except (TypeError, ValueError) as e:
