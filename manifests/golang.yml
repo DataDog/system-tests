@@ -1323,7 +1323,9 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v2.1.0-dev.2
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_extended_configs: missing_feature (extended configs are not supported)
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
-  tests/parametric/test_crashtracking.py: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash: v2.5.0-dev
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking: v2.5.0-dev
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_telemetry_timeout: irrelevant (Go crashtracking reports through Error Tracking EVP, not telemetry logs)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.64.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.61.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant
@@ -1471,7 +1473,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: v2.5.0-dev
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: missing_feature (spans are stored in a local context, there is no global current span in the go tracer)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v2.5.0-dev
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events::test_record_exception: irrelevant (OTEL does not expose an API for recording exceptions)
