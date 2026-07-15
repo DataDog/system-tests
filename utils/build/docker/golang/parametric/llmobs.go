@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
@@ -169,20 +170,24 @@ func (s *apmClientServer) createLLMObsTrace(ctx context.Context, node *llmObsSpa
 
 	// APM (plain tracer) span branch.
 	if node.SDK == "tracer" {
-		span := tracer.StartSpan(node.Name)
-		// Bridge the APM span into the context so nested LLM Obs children parent
-		// off it.
-		ctx = tracer.ContextWithSpan(ctx, span)
+		// Start from the incoming ctx so a tracer span nested under an LLMObs span
+		// keeps the intended parentage (e.g. llmobs -> tracer -> llmobs) from the
+		// shared request model; StartSpanFromContext also returns the child-bearing
+		// context to place descendants under this span.
+		span, childCtx := tracer.StartSpanFromContext(ctx, node.Name)
 
 		// TODO(draft): dd-trace-py applies annotations to tracer-sdk spans via
 		// LLMObs.annotate(span=...). The public Go llmobs annotation API only
 		// operates on llmobs span types, so annotations on tracer-sdk spans are
 		// not applied here.
+		var exported map[string]any
 		for _, child := range node.Children {
-			s.createLLMObsTrace(ctx, child)
+			if e := s.createLLMObsTrace(childCtx, child); e != nil && exported == nil {
+				exported = e
+			}
 		}
 		span.Finish()
-		return nil
+		return exported
 	}
 
 	// LLM Obs span branch.
@@ -203,11 +208,14 @@ func (s *apmClientServer) createLLMObsTrace(ctx context.Context, node *llmObsSpa
 	span, childCtx := startLLMObsSpan(ctx, node.Kind, node.Name, opts...)
 	if span == nil {
 		// Unknown kind: recurse without a span so the rest of the tree still
-		// builds.
+		// builds, still bubbling up any exported child context.
+		var exported map[string]any
 		for _, child := range node.Children {
-			s.createLLMObsTrace(ctx, child)
+			if e := s.createLLMObsTrace(ctx, child); e != nil && exported == nil {
+				exported = e
+			}
 		}
-		return nil
+		return exported
 	}
 
 	// Apply annotations before export/children (unless annotate_after).
@@ -224,8 +232,13 @@ func (s *apmClientServer) createLLMObsTrace(ctx context.Context, node *llmObsSpa
 		exported = exportedSpanContext(span, node.MLApp)
 	}
 
+	// Recurse into children, bubbling up the first exported context found. This
+	// span's own export (if any) takes precedence; otherwise the first child's,
+	// matching the shared Python/Node handlers.
 	for _, child := range node.Children {
-		s.createLLMObsTrace(childCtx, child)
+		if e := s.createLLMObsTrace(childCtx, child); e != nil && exported == nil {
+			exported = e
+		}
 	}
 
 	span.Finish()
@@ -364,12 +377,21 @@ func (s *apmClientServer) llmObsDatasetCreateHandler(w http.ResponseWriter, r *h
 		})
 	}
 
+	// The dataset tests configure DD_LLMOBS_PROJECT_NAME (via the
+	// llmobs_project_name fixture) and assert the response project name matches,
+	// even when the request omits project_name. Fall back to that env so the
+	// create-response reflects the configured project rather than null.
+	projectName := req.ProjectName
+	if projectName == "" {
+		projectName = os.Getenv("DD_LLMOBS_PROJECT_NAME")
+	}
+
 	var opts []dataset.CreateOption
 	if req.Description != "" {
 		opts = append(opts, dataset.WithDescription(req.Description))
 	}
-	if req.ProjectName != "" {
-		opts = append(opts, dataset.WithProjectName(req.ProjectName))
+	if projectName != "" {
+		opts = append(opts, dataset.WithProjectName(projectName))
 	}
 
 	// dataset.Create creates and (when records are present) pushes the dataset.
@@ -381,13 +403,13 @@ func (s *apmClientServer) llmObsDatasetCreateHandler(w http.ResponseWriter, r *h
 
 	// TODO(draft): the public *dataset.Dataset exposes ID/Name/Version/Len/URL
 	// but NOT Description/ProjectName/ProjectID/latest_version. We echo the
-	// request values for description/project_name and reuse Version() for
-	// latest_version. ProjectID is unavailable and returned as null.
+	// request/configured values for description/project_name and reuse Version()
+	// for latest_version. ProjectID is unavailable and returned as null.
 	resp := datasetResponse{
 		DatasetID:     ds.ID(),
 		Name:          ds.Name(),
 		Description:   req.Description,
-		ProjectName:   optStr(req.ProjectName),
+		ProjectName:   optStr(projectName),
 		ProjectID:     nil,
 		Version:       ds.Version(),
 		LatestVersion: ds.Version(),
