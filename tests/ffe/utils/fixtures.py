@@ -23,13 +23,18 @@ def make_ufc_fixture(
     enabled: bool = True,
     allocation_key: str = "default-allocation",
     variation_values: dict[str, VariationValue] | None = None,
+    observe_full_evaluation_data: bool | None = None,
 ) -> JSON:
     values = variation_values or DEFAULT_VARIATION_VALUES[variation_type]
+
+    environment: JSON = {"name": "Test"}
+    if observe_full_evaluation_data is not None:
+        environment["observeFullEvaluationData"] = observe_full_evaluation_data
 
     return {
         "createdAt": "2024-04-17T19:40:53.716Z",
         "format": "SERVER",
-        "environment": {"name": "Test"},
+        "environment": environment,
         "flags": {
             flag_key: {
                 "key": flag_key,

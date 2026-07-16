@@ -489,3 +489,158 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             assert "targeting_key" not in event, f"degraded event must omit targeting_key: {event}"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+
+
+# Canonical PII hash vector shared across SDKs (FFL-2783).
+# Every SDK's L1 unit test must produce byte-identical output for the same input.
+CANONICAL_TARGETING_KEY = "jane.doe@datadoghq.com"
+CANONICAL_TARGETING_KEY_HASHED = "sha256_b4698f9b6d186781fa8dc59e533578fa2d8379a46b1cf6db85cda6aa9c99e51b"
+CANONICAL_ATTRIBUTES: JSON = {
+    "org_id": 1234,
+    "user_email": "jane.doe@datadoghq.com",
+    "plan": "enterprise",
+    "region": "us-east-1",
+    "account.tier": "gold",
+}
+
+
+def _find_pii_event(flag_key: str) -> tuple[JSON, JSON]:
+    wait_for_evp_flagevaluation_event(flag_key)
+    events = find_evp_flagevaluation_events(flag_key)
+    assert events, f"Expected EVP flagevaluation event for flag {flag_key}"
+    return events[0]
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
+class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
+    """Test that when observeFullEvaluationData is absent from UFC, targeting_key is hashed and context.evaluation is omitted (default PII-protection)."""
+
+    def setup_ffe_evp_flagevaluation_observe_full_data_absent(self) -> None:
+        config_id = "ffe-evp-observe-absent"
+        self.flag_key = "evp-observe-absent-flag"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key),
+        ).apply()
+
+        self.r = evaluate_flag(
+            self.flag_key,
+            targeting_key=CANONICAL_TARGETING_KEY,
+            attributes=CANONICAL_ATTRIBUTES,
+        )
+
+    def test_ffe_evp_flagevaluation_observe_full_data_absent(self) -> None:
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        batch, event = _find_pii_event(self.flag_key)
+        assert_batch_context(batch)
+        assert_event_contract(event, self.flag_key)
+
+        targeting_key = event.get("targeting_key")
+        assert targeting_key == CANONICAL_TARGETING_KEY_HASHED, (
+            f"Expected hashed targeting_key {CANONICAL_TARGETING_KEY_HASHED}, got {targeting_key!r}"
+        )
+        assert isinstance(targeting_key, str)
+        assert targeting_key.startswith("sha256_"), f"hashed targeting_key must start with 'sha256_': {targeting_key!r}"
+        assert len(targeting_key) == 71, f"hashed targeting_key must be 71 chars, got {len(targeting_key)}"
+        hex_suffix = targeting_key[len("sha256_") :]
+        assert len(hex_suffix) == 64, f"hashed targeting_key suffix must be 64 chars: {targeting_key!r}"
+        assert all(c in "0123456789abcdef" for c in hex_suffix), (
+            f"hashed targeting_key suffix must be lowercase hex: {targeting_key!r}"
+        )
+
+        context = event.get("context")
+        if isinstance(context, dict):
+            assert "evaluation" not in context, (
+                f"context.evaluation must be omitted when observeFullEvaluationData is absent: {context}"
+            )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
+class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
+    """Test that when observeFullEvaluationData=false in UFC, targeting_key is hashed and context.evaluation is omitted."""
+
+    def setup_ffe_evp_flagevaluation_observe_full_data_false(self) -> None:
+        config_id = "ffe-evp-observe-false"
+        self.flag_key = "evp-observe-false-flag"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, observe_full_evaluation_data=False),
+        ).apply()
+
+        self.r = evaluate_flag(
+            self.flag_key,
+            targeting_key=CANONICAL_TARGETING_KEY,
+            attributes=CANONICAL_ATTRIBUTES,
+        )
+
+    def test_ffe_evp_flagevaluation_observe_full_data_false(self) -> None:
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        batch, event = _find_pii_event(self.flag_key)
+        assert_batch_context(batch)
+        assert_event_contract(event, self.flag_key)
+
+        targeting_key = event.get("targeting_key")
+        assert targeting_key == CANONICAL_TARGETING_KEY_HASHED, (
+            f"Expected hashed targeting_key {CANONICAL_TARGETING_KEY_HASHED}, got {targeting_key!r}"
+        )
+
+        context = event.get("context")
+        if isinstance(context, dict):
+            assert "evaluation" not in context, (
+                f"context.evaluation must be omitted when observeFullEvaluationData=false: {context}"
+            )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+@pytest.mark.skip_if_xfail
+class Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
+    """Test that when observeFullEvaluationData=true in UFC, targeting_key is raw and context.evaluation is populated."""
+
+    def setup_ffe_evp_flagevaluation_observe_full_data_true(self) -> None:
+        config_id = "ffe-evp-observe-true"
+        self.flag_key = "evp-observe-true-flag"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, observe_full_evaluation_data=True),
+        ).apply()
+
+        self.r = evaluate_flag(
+            self.flag_key,
+            targeting_key=CANONICAL_TARGETING_KEY,
+            attributes=CANONICAL_ATTRIBUTES,
+        )
+
+    def test_ffe_evp_flagevaluation_observe_full_data_true(self) -> None:
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        batch, event = _find_pii_event(self.flag_key)
+        assert_batch_context(batch)
+        assert_event_contract(event, self.flag_key)
+
+        targeting_key = event.get("targeting_key")
+        assert targeting_key == CANONICAL_TARGETING_KEY, (
+            f"Expected raw targeting_key {CANONICAL_TARGETING_KEY!r}, got {targeting_key!r}"
+        )
+        assert isinstance(targeting_key, str)
+        assert not targeting_key.startswith("sha256_"), (
+            f"unhashed targeting_key must not start with 'sha256_': {targeting_key!r}"
+        )
+
+        context = event.get("context")
+        assert isinstance(context, dict), f"context must be an object when observeFullEvaluationData=true: {event}"
+        evaluation_context = context.get("evaluation")
+        assert isinstance(evaluation_context, dict), (
+            f"context.evaluation must be an object when observeFullEvaluationData=true: {context}"
+        )
+        for key, expected_value in CANONICAL_ATTRIBUTES.items():
+            assert key in evaluation_context, f"context.evaluation missing attribute {key!r}: {evaluation_context}"
+            assert evaluation_context[key] == expected_value, (
+                f"context.evaluation[{key!r}] expected {expected_value!r}, got {evaluation_context[key]!r}"
+            )
