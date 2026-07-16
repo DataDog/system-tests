@@ -69,8 +69,11 @@ def test_debugger_capture_timeout_runs_only_on_weblogs_with_the_fixture():
         ("nodejs", "fastify"),
         ("nodejs", "uds-express4"),
     }
-    libraries = ("dotnet", "golang", "java", "nodejs", "php", "python", "ruby")
-    available_weblogs = {(library, weblog_name) for library in libraries for weblog_name in get_weblogs(library)}
+    available_weblogs = {
+        (library, weblog_name)
+        for library in COMPONENT_GROUPS.all
+        for weblog_name in get_weblogs(library)
+    }
 
     assert expected_supported <= available_weblogs
     for library, weblog_name in available_weblogs:
