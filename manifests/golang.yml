@@ -190,10 +190,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         net-http-orchestrion: v2.11.0-dev
-  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace:
-    - weblog_declaration:
-        "*": missing_feature
-        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace: missing_feature
   tests/appsec/iast/sink/test_weak_hash.py:
     - weblog_declaration:
         "*": missing_feature
