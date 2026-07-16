@@ -448,6 +448,7 @@ manifest:
   tests/test_scrubbing.py::Test_UrlQuery: missing_feature (Rust does not implement query string obfuscation)
   tests/test_span_events.py: missing_feature (Span Events are not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (client IP resolution from forwarded headers is a tracer feature, not implemented in dd-trace-rs)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: missing_feature (client IP resolution is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature (referer hostname extraction is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: missing_feature (Rust does not implement query string obfuscation)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy: missing_feature (Rust does not implement query string obfuscation)
