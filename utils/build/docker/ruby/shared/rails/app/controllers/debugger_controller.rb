@@ -232,4 +232,31 @@ class DebuggerController < ActionController::Base
     longString = data[:longString]
     render inline: 'Capture limits probe' # must be line 233
   end
+
+  def correlation
+    result = correlation_middle
+    sleep 0.4 # space the probed call sites in time
+    render inline: "Correlation #{result}"
+  end
+
+  def correlation_middle
+    result = correlation_leaf
+    sleep 0.4 # space the probed call sites in time
+    result
+  end
+
+  def correlation_leaf
+    3
+  end
+
+  def correlation_loop
+    loops = params[:loops].to_i
+    total = 0
+    loops.times do |i|
+      total += i
+      sleep 1
+    end
+    after_loop = total
+    render inline: "Loop #{after_loop}"
+  end
 end
