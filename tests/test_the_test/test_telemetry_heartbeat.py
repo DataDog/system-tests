@@ -57,10 +57,9 @@ def test_distinct_fast_heartbeats_remain_measurable() -> None:
 
 
 def test_short_lived_runtime_excluded_by_min_lifespan() -> None:
-    """A forked child that exits shortly after starting can emit a shutdown-triggered
-    heartbeat with a distinct seq_id (not a retry/clone, so dedup can't catch it), which
-    skews the average for a runtime with only a couple of samples. With too few real
-    heartbeat intervals elapsed, the runtime shouldn't be measured at all.
+    """A short-lived runtime with too few samples shouldn't be measured at all: a shutdown
+    heartbeat right before exit isn't a duplicate, so dedup can't drop it, and with only
+    2-3 samples it would skew the average.
     """
     messages = [
         _heartbeat("parent", 1, 0),
@@ -81,9 +80,8 @@ def test_short_lived_runtime_excluded_by_min_lifespan() -> None:
 
 
 def test_long_lived_runtime_anomaly_still_measured() -> None:
-    """The min_lifespan floor only excludes runtimes too short-lived to measure at all --
-    a long-lived runtime with the same kind of anomalous fast heartbeat is still measured
-    (and can still fail the caller's assertion), since that's a real signal worth catching.
+    """min_lifespan only excludes runtimes too short-lived to measure. A long-lived runtime
+    with the same anomalous fast heartbeat is still measured, and can still fail.
     """
     messages = [
         _heartbeat("parent", 1, 0),

@@ -321,12 +321,9 @@ class Test_Telemetry:
 
         delays_by_runtime, heartbeat_counts = heartbeat_delays_by_runtime(
             interfaces.library.get_telemetry_data(flatten_message_batches=False),
-            # A runtime needs to have been alive for a couple of heartbeat intervals before
-            # its cadence is trustworthy: with only 2-3 samples, a single heartbeat sent near
-            # process shutdown (e.g. a final flush) can single-handedly skew the average.
-            # This is comfortably above the ~1 interval lifespan of the short-lived children
-            # spawned by the session-id tests, without requiring more real time to elapse
-            # than a normal long-lived runtime accumulates in a single test session.
+            # Require 2 intervals of lifespan so a short-lived process (e.g. a forked child
+            # from the session-id tests) can't skew the average with just a couple of
+            # samples. A normal long-lived runtime clears this easily.
             min_lifespan=context.telemetry_heartbeat_interval * 2,
         )
         assert delays_by_runtime, (
