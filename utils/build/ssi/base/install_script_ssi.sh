@@ -40,12 +40,21 @@ if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 
+# shellcheck source=utils/build/ssi/base/download_with_retry.sh
+source ./download_with_retry.sh
+
 if [ -f "install_script_agent7.sh" ]; then
     echo "[TRACE] install_script_agent7.sh exists"
-    DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(cat install_script_agent7.sh)"
 else
-    DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
+    download_with_retry https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh
 fi
+
+if [ ! -s "install_script_agent7.sh" ]; then
+    echo "[ERROR] install_script_agent7.sh is missing or empty; aborting SSI install" >&2
+    exit 1
+fi
+
+DD_REPO_URL=${DD_injection_repo_url} DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host bash ./install_script_agent7.sh
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
     OS="Debian"

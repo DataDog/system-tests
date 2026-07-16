@@ -7,18 +7,38 @@ from utils import features, scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
 from utils.docker_fixtures._mock_ffe_agentless_backend import (
     CONFIG_PATH,
+    CONFIG_QUERY,
     EXPECTED_API_KEY,
+    EXPECTED_DD_ENV,
     MockFFEAgentlessBackendServer,
+    UFC_RESPONSE_TYPE,
 )
 
 
 @scenarios.test_the_test
 @features.not_reported
 def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
-        response = requests.get(server.base_url + CONFIG_PATH, headers={"dd-api-key": EXPECTED_API_KEY}, timeout=5)
+        for invalid_query in ("", "?dd_env=", "?dd_env=wrong", f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong"):
+            response = requests.get(
+                server.base_url + CONFIG_PATH + invalid_query,
+                headers={"DD-API-KEY": EXPECTED_API_KEY},
+                timeout=5,
+            )
+            assert response.status_code == 404
+
+        response = requests.get(
+            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
+            headers={"DD-API-KEY": EXPECTED_API_KEY},
+            timeout=5,
+        )
         response.raise_for_status()
+
+        payload = response.json()
+        assert payload["data"]["type"] == UFC_RESPONSE_TYPE
+        assert payload["data"]["attributes"]["environment"]["name"] == "Test"
+        assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
         status = server.status()
         assert status["requests_total"] == 1
@@ -37,8 +57,9 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", raising=False)
 
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
+        assert server.library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
         env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
     finally:
@@ -48,7 +69,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 @scenarios.test_the_test
 @features.not_reported
 def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
         status = server.status()
         assert set(status) == {
