@@ -319,7 +319,9 @@ class Test_Telemetry:
         The value is a list of delay observed on this runtime id
         """
 
-        delays_by_runtime, heartbeat_counts = heartbeat_delays_by_runtime(interfaces.library.get_telemetry_data())
+        delays_by_runtime, heartbeat_counts = heartbeat_delays_by_runtime(
+            interfaces.library.get_telemetry_data(flatten_message_batches=False)
+        )
         assert delays_by_runtime, (
             f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
         )
