@@ -2510,9 +2510,6 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:
-    - weblog_declaration:
-        uwsgi-poc: flaky (APMAPI-2167)
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:
     - declaration: flaky (APMAPI-1858)
