@@ -1126,9 +1126,9 @@ manifest:
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
   tests/ffe/test_flag_eval_evp.py: v2.10.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation::test_ffe_evp_flagevaluation_degradation: flaky (FFL-2676)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFL-2783)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFL-2783)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFL-2783)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFL-2784)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFL-2784)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFL-2784)
   tests/ffe/test_flag_eval_metrics.py: v2.8.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex: irrelevant (Go validates regex at config load time)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
