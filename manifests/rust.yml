@@ -409,6 +409,8 @@ manifest:
   : missing_feature (query string obfuscation not implemented)
   ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default::test_query_string_obfuscation_configured_client
   : missing_feature (query string obfuscation is not implemented)
+  ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default::test_query_string_obfuscation_configured_server
+  : missing_feature (query string obfuscation is not implemented)
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server: missing_feature (query string obfuscation is not implemented)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature (runtime metrics are not implemented)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature (runtime metrics are not implemented)
