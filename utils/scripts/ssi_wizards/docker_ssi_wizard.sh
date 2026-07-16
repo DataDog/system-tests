@@ -218,6 +218,15 @@ select_optional_params(){
             echo "✅ No custom injector OCI image version set."
         fi
 }
+select_image_publication(){
+    spacer
+    read -p "Do you want to publish reusable base images? (y/n) [default: n]: " publish_choice
+    if [[ "${publish_choice:-n}" == "y" ]]; then
+        [[ -n "${PRIVATE_DOCKER_REGISTRY:-}" ]] || configure_private_registry
+        [[ -n "${PRIVATE_DOCKER_REGISTRY:-}" ]] || { echo "Publishing requires PRIVATE_DOCKER_REGISTRY"; exit 1; }
+        SSI_PUBLISH_OPTION="-P"
+    fi
+}
 run_the_tests(){
     # 🔹 Construct the command
     CMD=("./run.sh" "$SCENARIO" "--ssi-weblog" "$WEBLOG" "--ssi-library" "$TEST_LIBRARY" "--ssi-base-image" "$BASE_IMAGE" "--ssi-arch" "$ARCH" "--ssi-env" "$CI_ENVIRONMENT")
@@ -233,6 +242,8 @@ run_the_tests(){
     if [[ -n "$SSI_INJECTOR_VERSION" ]]; then
         CMD+=("--ssi-injector-version" "$SSI_INJECTOR_VERSION")
     fi
+
+    [[ -n "${SSI_PUBLISH_OPTION:-}" ]] && CMD+=("$SSI_PUBLISH_OPTION")
     spacer
     # 📌 Step 10: Confirm and execute
         echo ""
@@ -345,4 +356,5 @@ select_base_image_and_arch
 select_runtime_version
 select_environment
 select_optional_params
+select_image_publication
 run_the_tests

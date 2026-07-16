@@ -110,8 +110,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             """Empty if we don't want to install any runtime"""
         ),
     )
-    parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
-    parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
+    parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Publish reusable Docker SSI images")
 
     # Parametric scenario options
     parser.addoption(

@@ -3,8 +3,6 @@ import os
 import random
 import socket
 import time
-from collections.abc import Iterator
-from docker.errors import BuildError
 from docker.models.networks import Network
 import pytest
 
@@ -16,20 +14,10 @@ from utils._context.containers import (
     APMTestAgentContainer,
     TestedContainer,
 )
-from utils._context.docker import get_docker_client
-from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
+from utils.docker_ssi.image_builder import DockerSSIImageBuilder
 from utils._logger import logger
-from utils.virtual_machine.vm_logger import vm_logger
 
 from .core import Scenario, ScenarioGroup
-
-
-class ContainerRemovalError(Exception):
-    """Exception raised when a container fails to be removed."""
-
-
-class ImagePushError(Exception):
-    """Exception raised when a docker image push operation fails."""
 
 
 class DockerSSIScenario(Scenario):
@@ -81,7 +69,6 @@ class DockerSSIScenario(Scenario):
             else None
         )
         self._push_base_images = config.option.ssi_push_base_images
-        self._force_build = config.option.ssi_force_build
         self._libray_version = ComponentVersion(self._library, "v9.99.99")
         self._datadog_apm_inject_version = "v9.99.99"
         # The runtime that is installed on the base image (because we installed automatically or because the weblog
@@ -109,7 +96,6 @@ class DockerSSIScenario(Scenario):
         #        the step 2)
         #    3.2 Build the weblog image using the ssi image built in the step 3.1
         self.ssi_image_builder = DockerSSIImageBuilder(
-            self.name,
             self.host_log_folder,
             self._base_weblog,
             self._base_image,
@@ -117,7 +103,6 @@ class DockerSSIScenario(Scenario):
             self._arch,
             self._installable_runtime,
             self._push_base_images,
-            self._force_build,
             self._env,
             self._custom_library_version,
             self._custom_injector_version,
@@ -169,11 +154,6 @@ class DockerSSIScenario(Scenario):
     def close_targets(self):
         for container in reversed(self._required_containers):
             container.remove()
-        # TODO push images only if all tests pass
-        # TODO At this point, tests are not yet executed. There is not official hook in the Scenario class to do that,
-        # TODO we can add one : pytest_sessionstart, it will contains the test result.
-        # TODO The best way is to push the images from pipeline instead of from test runtime
-        self.ssi_image_builder.push_base_image()
 
     def find_image_name(self, image: str, architecture: str) -> str | None:
         """Search for the image name given its image URL and architecture.
@@ -312,280 +292,6 @@ class DockerSSIScenario(Scenario):
         result["dd_tags[systest.suite.context.arch]"] = self.configuration["arch"]
 
         return result
-
-
-class DockerSSIImageBuilder:
-    """Manages the docker image building for the SSI scenario"""
-
-    def __init__(
-        self,
-        scenario_name: str,
-        host_log_folder: str,
-        base_weblog: str,
-        base_image: str,
-        library: str,
-        arch: str,
-        installable_runtime: str | None,
-        push_base_images: bool,  # noqa: FBT001
-        force_build: bool,  # noqa: FBT001
-        env: str,
-        custom_library_version: str | None,
-        custom_injector_version: str | None,
-        *,
-        appsec_enabled: bool | None = None,
-    ) -> None:
-        self.scenario_name = scenario_name
-        self.host_log_folder = host_log_folder
-        self._base_weblog = base_weblog
-        self._base_image = base_image
-        self._library = library
-        self._arch = arch
-        self._installable_runtime = installable_runtime
-        self._push_base_images = push_base_images
-        self._force_build = force_build
-        # When do we need to push the base images to the docker registry?
-        # Option 1: When we added the run parameter --push-base-images
-        # Option 2: When the base image is not found on the registry
-        self.should_push_base_images = False
-        self._weblog_docker_image = None
-        self._env = env
-        self._custom_library_version = custom_library_version
-        self._custom_injector_version = custom_injector_version
-        self._appsec_enabled = appsec_enabled
-
-    @property
-    def dd_lang(self) -> str:
-        return "js" if self._library == "nodejs" else self._library
-
-    def configure(self):
-        self.docker_tag = self.get_base_docker_tag()
-        docker_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
-        self._docker_registry_tag = f"{docker_registry_base_url}/system-tests/ssi_installer_{self.docker_tag}:latest"
-        self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
-        self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
-
-    def build_weblog(self):
-        """Manages the build process of the weblog image"""
-        if not self.exist_base_image() or self._push_base_images or self._force_build:
-            # Build the base image
-            self.build_lang_deps_image()
-            self.build_ssi_installer_image()
-            self.should_push_base_images = not self.exist_base_image() or self._push_base_images
-        self.build_weblog_image(
-            self.ssi_installer_docker_tag
-            if self._force_build or self.should_push_base_images
-            else self._docker_registry_tag
-        )
-
-    def exist_base_image(self):
-        """Check if the base image is available in the docker registry"""
-        try:
-            get_docker_client().images.pull(self._docker_registry_tag)
-            logger.info("Base image found on the registry")
-            return True
-        except Exception:
-            logger.info(f"Base image not found on the registry: ssi_{self.docker_tag}")
-            return False
-
-    def push_base_image(self):
-        """Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer
-        (only with the installer, without ssi autoinject )
-        """
-        if not os.getenv("PRIVATE_DOCKER_REGISTRY", ""):
-            logger.stdout("Skipping push of base image to the registry because PRIVATE_DOCKER_REGISTRY is not set")
-            return
-        if self.should_push_base_images:
-            logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
-            try:
-                logger.stdout(f"Tagging image [{self.ssi_installer_docker_tag}] as [{self._docker_registry_tag}]")
-                get_docker_client().api.tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
-                logger.stdout(f"Pushing image: [{self._docker_registry_tag}]")
-                push_logs = get_docker_client().images.push(self._docker_registry_tag)
-                self.print_docker_push_logs(self._docker_registry_tag, push_logs)
-
-                # Check if push was successful by verifying the image exists in registry
-                try:
-                    get_docker_client().images.pull(self._docker_registry_tag)
-                    logger.stdout("Push done")
-                except Exception as e:
-                    logger.stdout("ERROR: Image was not found in registry after push")
-                    logger.exception(f"Failed to verify pushed image: {e}")
-                    raise ImagePushError("Image push failed - image not found in registry after push") from e
-
-            except Exception as e:
-                logger.stdout("ERROR pushing docker image. check log file for more details")
-                logger.exception(f"Failed to push docker image: {e}")
-                raise ImagePushError("Failed to push docker image") from e
-
-    def get_base_docker_tag(self):
-        """Resolves and format the docker tag for the base image"""
-        runtime = (
-            resolve_runtime_version(self._library, self._installable_runtime) + "_" if self._installable_runtime else ""
-        )
-        return (
-            f"{self._base_image}_{runtime}{self._arch}".replace(".", "_")
-            .replace("-", "-")
-            .replace(":", "-")
-            .replace("/", "-")
-            .lower()
-        )
-
-    def build_lang_deps_image(self):
-        """Build the lang image. Install the language runtime on the base image.
-        We also install some linux deps for the ssi installer
-        If there is not runtime installation requirement, we install only the linux deps
-        Base lang contains the scrit to install the runtime and the script to install dependencies
-        """
-        dockerfile_template = None
-        try:
-            if self._installable_runtime:
-                dockerfile_template = "base/base_lang.Dockerfile"
-                logger.stdout(
-                    f"[tag: {self.docker_tag}] Installing language runtime [{self._installable_runtime}] and common "
-                    f"dependencies on base image [{self._base_image}]."
-                )
-            else:
-                dockerfile_template = "base/base_deps.Dockerfile"
-                logger.stdout(
-                    f"[tag: {self.docker_tag}] Installing common dependencies on base image [{self._base_image}]. "
-                    f"No language runtime installation required."
-                )
-
-            _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile=dockerfile_template,
-                tag=self.docker_tag,
-                platform=self._arch,
-                nocache=self._force_build or self.should_push_base_images,
-                buildargs={
-                    "ARCH": self._arch,
-                    "DD_LANG": self.dd_lang,
-                    "RUNTIME_VERSIONS": self._installable_runtime,
-                    "BASE_IMAGE": self._base_image,
-                },
-            )
-            self.print_docker_build_logs(self.docker_tag, build_logs)
-
-        except BuildError as e:
-            logger.stdout("ERROR building docker file. check log file for more details")
-            logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise BuildError("Failed to build docker image", e.build_log) from e
-
-    def build_ssi_installer_image(self):
-        """Build the ssi installer image. Install only the ssi installer on the image"""
-        try:
-            logger.stdout(
-                f"[tag:{self.ssi_installer_docker_tag}]Installing DD installer on base image [{self.docker_tag}]."
-            )
-
-            _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile="base/base_ssi_installer.Dockerfile",
-                nocache=self._force_build or self.should_push_base_images,
-                platform=self._arch,
-                tag=self.ssi_installer_docker_tag,
-                buildargs={"BASE_IMAGE": self.docker_tag},
-            )
-            self.print_docker_build_logs(self.ssi_installer_docker_tag, build_logs)
-
-        except BuildError as e:
-            logger.stdout("ERROR building docker file. check log file for more details")
-            logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise BuildError("Failed to build installer docker image", e.build_log) from e
-
-    def build_weblog_image(self, ssi_installer_docker_tag: str):
-        """Build the final weblog image. Uses base ssi installer image, install
-        the full ssi (to perform the auto inject) and build the weblog image
-        """
-
-        weblog_docker_tag = "weblog-injection:latest"
-        logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
-
-        logger.stdout(
-            f"[tag:{self.ssi_all_docker_tag}]Installing dd ssi for autoinjection on base image "
-            f"[{ssi_installer_docker_tag}]."
-        )
-        try:
-            # Install the ssi to run the auto instrumentation
-            _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile="base/base_ssi.Dockerfile",
-                platform=self._arch,
-                nocache=self._force_build or self.should_push_base_images,
-                tag=self.ssi_all_docker_tag,
-                buildargs={
-                    "DD_LANG": self.dd_lang,
-                    "BASE_IMAGE": ssi_installer_docker_tag,
-                    "SSI_ENV": self._env,
-                    "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
-                    "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
-                    "DD_APPSEC_ENABLED": str(self._appsec_enabled).lower()
-                    if isinstance(self._appsec_enabled, bool)
-                    else None,
-                },
-            )
-            self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
-            logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
-            # Build the weblog image
-            self._weblog_docker_image, build_logs = get_docker_client().images.build(
-                path=".",
-                dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
-                platform=self._arch,
-                tag=weblog_docker_tag,
-                nocache=self._force_build or self.should_push_base_images,
-                buildargs={"BASE_IMAGE": self.ssi_all_docker_tag},
-            )
-            self.print_docker_build_logs(weblog_docker_tag, build_logs)
-            logger.info("Weblog build done!")
-        except BuildError as e:
-            logger.stdout("ERROR building docker file. check log file for more details")
-            logger.exception(f"Failed to build docker image: {e}")
-            self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise BuildError("Failed to build weblog docker image", e.build_log) from e
-
-    def tested_components(self):
-        """Extract weblog versions of lang runtime, agent, installer, tracer.
-        Also extracts the weblog url env variable
-        Return json with the data
-        """
-        logger.info("Weblog extract tested components")
-        result = get_docker_client().containers.run(
-            image=self._weblog_docker_image, command=f"/tested_components.sh {self.dd_lang}", remove=True
-        )
-        logger.info(f"Testes components: {result.decode('utf-8')}")
-        return json.loads(result.decode("utf-8").replace("'", '"'))
-
-    def print_docker_build_logs(self, image_tag: str, build_logs: Iterator[dict[str, str]]):
-        """Print the docker build logs to docker_build.log file"""
-        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
-            "***************************************************************"
-        )
-        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
-            f"    Building docker image with tag: {image_tag}   "
-        )
-        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
-            "***************************************************************"
-        )
-
-        for chunk in build_logs:
-            if "stream" in chunk:
-                for line in chunk["stream"].splitlines():
-                    vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(line)
-
-    def print_docker_push_logs(self, image_tag: str, push_logs: str):
-        """Print the docker push logs to docker_push.log file"""
-        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
-            "***************************************************************"
-        )
-        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
-            f"    Push docker image with tag: {image_tag}   "
-        )
-        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
-            "***************************************************************"
-        )
-        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(push_logs)
 
 
 def _get_free_port():
