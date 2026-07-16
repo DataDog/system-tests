@@ -43,7 +43,7 @@ pub fn install_datadog_tracing() -> SdkTracerProvider {
 
 /// Helper returning datadog semantic-convention tags every span needs to satisfy
 /// Used in both reqwest and axum middleware
-/// (necesary for test `validate_all_spans`)
+/// (necessary for test `validate_all_spans`)
 fn dd_tags() -> Vec<KeyValue> {
     /// Single runtime-id for the lifetime of this process.
     static RUNTIME_ID: OnceLock<String> = OnceLock::new();

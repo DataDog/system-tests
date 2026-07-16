@@ -55,7 +55,7 @@ if [ -e /binaries/dd-trace-rs ]; then
 else
     echo "install from crates.io with metrics-http and metrics-grpc features"
 
-    # remove previous depedency on datadog-opentelemetry and add the new one from crates.io
+    # remove previous dependency on datadog-opentelemetry and add the new one from crates.io
     cargo remove datadog-opentelemetry >/dev/null 2>&1 || true
     if ! cargo add datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc >/dev/null 2>&1; then
         fail "could not install datadog-opentelemetry from crates.io. Check network access and the selected package version."
@@ -77,7 +77,7 @@ align_opentelemetry() {
         cargo remove "$dep" >/dev/null 2>&1 || true
     done
 
-    # Read the OpenTelemetry version that datadog-opentelemetry actually resolved to (looking at the first opentelemetry package in the graph is ambiguous if a conflicting version is êpresent).ê
+    # Read the OpenTelemetry version that datadog-opentelemetry actually resolved to (looking at the first opentelemetry package in the graph is ambiguous if a conflicting version is present).
     if ! metadata=$(cargo metadata --format-version 1 2>/dev/null); then
         fail "could not resolve dependencies after installing datadog-opentelemetry. Use a tracer revision compatible with Axum's OpenTelemetry dependencies."
     fi

@@ -5,7 +5,7 @@ description  = "Dockerized Rust/Axum based HTTP server for System tests"
 edition      = "2021"
 publish      = false
 
-rust-version = "1.91" # should match Dockerfile rustc version
+rust-version = "1.94" # should match Dockerfile rustc version
 
 [[bin]]
 name  = "weblog"
