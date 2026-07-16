@@ -1,83 +1,59 @@
 """Rebuild and push weblog base images whose content-hash tag is missing from Docker Hub.
 
-Run from a system-tests checkout, with the runner venv active:
+Usage (from a system-tests checkout, runner venv active):
 
     python utils/scripts/build_base_images.py
 
-For every library with a `utils/build/docker/<library>/docker-bake.hcl` file, and for every
-target in that file's "default" group:
+For every library with a `utils/build/docker/<library>/docker-bake.hcl` file, and every target
+in that file's "default" group:
 
-  1. Resolve the target's bake config (context/dockerfile/args) via `docker buildx bake --print`.
-  2. Parse the target's Dockerfile for its `COPY` instructions to determine which local,
-     non-gitignored files (relative to the Dockerfile's own directory, which is required to be
-     the bake target's context — see "Base Dockerfile constraints" below) the image depends on.
-  3. Materialize those files, plus the Dockerfile itself, into an isolated build context (see
-     "Safety net" below) — hardlinking is essentially free, so this always happens next, before
-     even computing the hash.
-  4. Compute a content hash from the resolved bake config (tags excluded) and the path and
-     content of every file in that materialized build context.
-  5. Take the base tag declared in the bake file (e.g. "datadog/system-tests:express4.base") and
-     append "-<hash12>" to get the final tag.
-  6. Skip the build if that tag already exists on Docker Hub (`docker manifest inspect`);
-     otherwise build and push the already-materialized build context with that tag.
+  1. Resolve the target's bake config via `docker buildx bake --print`.
+  2. Parse the Dockerfile's `COPY` instructions for local, non-gitignored dependencies.
+  3. Materialize those files, plus the Dockerfile, into an isolated build context (see "Safety
+     net" below).
+  4. Hash the bake config (tags excluded) plus that materialized context.
+  5. Append "-<hash12>" to the bake file's base tag (e.g. "datadog/system-tests:express4.base").
+  6. Skip if that tag already exists on Docker Hub (`docker manifest inspect`); otherwise build
+     and push.
 
-This is idempotent and safe to run on every push: it never overwrites an existing tag, it only
-creates new ones when the relevant files change.
+Idempotent: never overwrites an existing tag, only creates new ones when dependencies change.
 
-Pass --dry-run to only print the computed tag and whether it already exists, without ever
-building or pushing (useful to find the tag to put in a weblog Dockerfile's FROM clause after
-dependencies change).
+Pass --dry-run to only print the computed tag and whether it already exists, without building
+or pushing (useful to find the tag for a weblog Dockerfile's FROM clause after deps change).
 
 Base Dockerfile constraints
 ----------------------------
-So that the dependency list above can be derived mechanically and unambiguously from the
-Dockerfile alone, every `<target>.base.Dockerfile` built by this script must follow these rules:
+So the dependency list above can be derived mechanically from the Dockerfile alone, every
+`<target>.base.Dockerfile` built by this script must follow these rules:
 
-  - No `ADD`. Use `COPY` for everything (no whole-context-directory copies, no remote URLs).
-    `COPY` sources may contain glob wildcards (see "Wildcard sources" below).
-  - Every `COPY` instruction has exactly one source: `COPY [flags] <source> <dest>`. Split
-    multi-source `COPY` instructions into one `COPY` per source.
-  - The bake target's `context` is always the Dockerfile's own directory, so every `COPY`
-    source is a plain path relative to that directory (`COPY app.js .`, not
-    `COPY utils/build/docker/nodejs/fastify/app.js .`).
-  - No `RUN --mount`. Bind/cache/secret mounts read from paths this script cannot see, so they
-    would silently escape the derived dependency list.
+  - No `ADD`. Use `COPY` only (no whole-context copies, no remote URLs); wildcards are allowed
+    (see "Wildcard sources" below).
+  - Every `COPY` has exactly one source: `COPY [flags] <source> <dest>`.
+  - The bake target's `context` is always the Dockerfile's own directory, so `COPY` sources are
+    plain paths relative to it (`COPY app.js .`, not `COPY utils/build/docker/nodejs/fastify/app.js .`).
+  - No `RUN --mount`: those mounts read paths this script cannot see, so they'd silently escape
+    the derived dependency list.
 
-`COPY --from=<stage-or-image>` is unaffected by these rules: multi-stage copies and copies from
-an external image aren't local repository paths, so they're skipped when deriving dependencies
-(buildx/buildkit resolves them independently).
+`COPY --from=<stage-or-image>` is exempt from these rules and skipped when deriving dependencies
+(not a local repository path).
 
 Wildcard sources
 -----------------
-A `COPY` source is resolved with `Path.glob()` against the Dockerfile's own directory, so a
-plain path (no wildcard) and a glob pattern are handled the same way: a plain path simply
-matches itself, a pattern is expanded to every file/directory it matches. A pattern matching
-zero files raises (almost certainly a typo), but that is the only completeness check available:
-a pattern matching *fewer* files than intended does not raise, because Docker's own wildcard
-expansion, run again at build time against the materialized build context (see below), only
-ever sees the files that same pattern already matched when we computed dependencies — it can't
-disagree with a match we already computed by construction. So an incomplete wildcard match
-doesn't fail the build the way a missing literal dependency does; it just silently ships an
-incomplete image. The materialized build context's file list is printed before every build
-specifically to make that failure mode easy to catch by eye.
+A `COPY` source is resolved with `Path.glob()` against the Dockerfile's own directory (a plain
+path just matches itself). A pattern matching zero files raises (likely a typo); a pattern
+matching *fewer* files than intended cannot be detected and silently ships an incomplete image.
+The materialized build context's file list is printed before every build to make that case easy
+to catch by eye.
 
 Safety net: isolated build context
 -----------------------------------
-Every detected dependency is hardlinked (falling back to a plain copy if hardlinking isn't
-possible, e.g. across filesystems) into `.base_image_build/<library>/<target>/`, and the image
-is built from *that* directory instead of the real one, after printing that directory's file
-list. Hardlinking is only a directory-entry operation (no data is duplicated), so this is
-essentially free. Its purpose is correctness, not performance: if the Dockerfile references a
-file that the parser failed to detect as a dependency, the build fails loudly ("file not found")
-instead of silently succeeding against the full repository checkout — which would let an
-incomplete dependency list (and thus an under-hashed, stale-looking tag) go unnoticed. (This
-guarantee does not extend to an incomplete wildcard match, see above — the printed file list is
-the mitigation for that case.)
-
-The content hash is computed directly from this materialized directory (see `compute_hash`),
-not from a second, independent read of the dependency paths: this way "the files the hash was
-computed from" and "the files the build can actually see" are the same files by construction,
-not two separate computations that are merely supposed to produce the same result.
+Every detected dependency is hardlinked (falling back to a copy, e.g. across filesystems) into
+`.base_image_build/<library>/<target>/`, and the image is built from that directory instead of
+the real one. This way, a Dockerfile reference the parser failed to detect as a dependency makes
+the build fail loudly ("file not found") instead of silently succeeding against the full
+repository checkout. The content hash is computed from this same materialized directory (see
+`compute_hash`), not a separate read of the dependency paths, so the hashed files and the built
+files are identical by construction.
 """
 
 import argparse
@@ -89,8 +65,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Make `utils` importable and resolve paths regardless of the caller's cwd, so a
-# plain `python utils/scripts/build_base_images.py` works.
+# So `python utils/scripts/build_base_images.py` works regardless of the caller's cwd.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
@@ -98,8 +73,6 @@ from utils.const import COMPONENT_GROUPS  # noqa: E402
 
 BUILD_CONTEXT_ROOT = REPO_ROOT / ".base_image_build"
 
-# A `COPY [flags] <source> <dest>` line has exactly one source and one destination path
-# (see this module's docstring, "Base Dockerfile constraints").
 _SOURCE_AND_DEST_TOKEN_COUNT = 2
 
 
@@ -129,21 +102,14 @@ def _all_bake_configs(bake_file: Path) -> dict[str, dict]:
 
 
 def _files_under(context_root: Path, path: Path) -> list[Path]:
-    """Every non-gitignored file under `path` (a file or a directory, relative to
-    `context_root`), itself relative to `context_root`, sorted.
+    """Every non-gitignored file under `path` (a file or directory, relative to `context_root`),
+    itself relative to `context_root`, sorted.
 
-    This deliberately filters on `.gitignore` rules alone, not on whether a file is committed
-    or even staged (`--cached --others --exclude-standard` includes both tracked files and
-    untracked-but-not-ignored ones): this script always runs against a real checkout, tracked
-    or not, so there is nothing to gain from requiring content to be in the git index, only
-    the risk of silently skipping a real, intended, not-yet-committed dependency. What must
-    still be filtered out is gitignored content that happens to sit on disk under a dependency
-    path (e.g. a locally installed, never-committed `node_modules/`), since that is never meant
-    to be part of the image's tracked dependency set.
+    Filters on `.gitignore` alone, not on git-tracked status, since this script runs against a
+    real checkout where untracked-but-not-ignored files are still valid dependencies.
 
-    Raises if `path` exists on disk (so `_dependency_paths` already accepted it as a match) but
-    every file under it turns out to be gitignored, since that would otherwise silently produce
-    an empty dependency with no explanation.
+    Raises if `path` exists on disk but every file under it is gitignored, rather than silently
+    producing an empty dependency.
     """
     result = _run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "--", str(path)], cwd=context_root)
     files = sorted(Path(line) for line in result.stdout.splitlines() if line)
@@ -179,10 +145,8 @@ def _dockerfile_logical_lines(dockerfile: Path) -> list[str]:
 
 def parse_copy_dependencies(dockerfile: Path) -> list[str]:
     """Local `COPY` source paths (relative to `dockerfile`'s own directory) that a base
-    Dockerfile depends on. Enforces the constraints listed in this module's docstring:
-    no `ADD`, no `RUN --mount`, and every `COPY` has exactly one source.
-
-    `COPY --from=<stage-or-image>` lines are recognized and skipped (not a local repo path).
+    Dockerfile depends on. Enforces this module's Dockerfile constraints: no `ADD`, no
+    `RUN --mount`, and every `COPY` has exactly one source.
     """
     dependencies: list[str] = []
     for line in _dockerfile_logical_lines(dockerfile):
@@ -219,27 +183,15 @@ def parse_copy_dependencies(dockerfile: Path) -> list[str]:
 
 def _dependency_paths(context_root: Path, dockerfile: Path) -> list[Path]:
     """Every non-gitignored file (relative to `context_root`) that `dockerfile` depends on,
-    sorted and deduplicated. `context_root` is `dockerfile`'s own directory, per this module's
-    Dockerfile constraints. This is the single place dependencies are resolved: both
-    `compute_hash` and `materialize_build_context` operate on exactly this list, so "the files
-    the hash was computed from" and "the files that get hardlinked" are the same set by
-    construction, not by two independent computations happening to agree.
+    sorted and deduplicated. `context_root` is `dockerfile`'s own directory.
 
-    Each COPY source is resolved with `Path.glob()`, so a plain path and a glob pattern are
-    handled uniformly (a plain path just matches itself). A source matching zero files raises,
-    since that's almost certainly a typo; see this module's docstring ("Wildcard sources") for
-    why a pattern matching *fewer* files than intended is not, and cannot be, detected here.
+    Each COPY source is resolved with `Path.glob()` (a plain path just matches itself). A source
+    matching zero files raises (likely a typo); see this module's docstring ("Wildcard sources")
+    for why a pattern matching fewer files than intended can't be detected here.
 
-    Every match must resolve to a path under `context_root` itself: per this module's Dockerfile
-    constraints, a base Dockerfile's `COPY` sources are only ever meant to reach within its own
-    directory (e.g. a `nodejs` base image has no business depending on a file under
-    `utils/build/docker/python/`), so a source escaping `context_root` is rejected even if it
-    stays inside the repository.
-
-    Each match is then flattened to its constituent files via `_files_under`, which also filters
-    out gitignored content (e.g. a locally installed, never-committed `node_modules/` sitting
-    under a dependency directory): two COPY sources can overlap (a directory and one of its own
-    files listed separately), so the final list is deduplicated.
+    Every match must resolve to a path under `context_root` itself, per this module's Dockerfile
+    constraints (e.g. a `nodejs` base image can't depend on a file under
+    `utils/build/docker/python/`).
     """
     files: set[Path] = set()
     for source in parse_copy_dependencies(dockerfile):
@@ -262,13 +214,7 @@ def _dependency_paths(context_root: Path, dockerfile: Path) -> list[Path]:
 def compute_hash(build_dir: Path, bake_config: dict) -> str:
     """Content hash for a base image target: bake config (minus tags) + path and content of
     every file in `build_dir` (the isolated build context already materialized by
-    `materialize_build_context`, which includes the Dockerfile itself alongside its
-    dependencies).
-
-    Hashing the materialized directory directly, rather than separately re-reading dependencies
-    from `context_root`, guarantees "the files the hash was computed from" and "the files the
-    build can actually see" are the exact same files by construction (same inodes, even), not
-    two independent reads that are merely supposed to agree.
+    `materialize_build_context`, including the Dockerfile itself).
     """
     digest = hashlib.sha256()
 
@@ -297,16 +243,8 @@ def materialize_build_context(
     """Hardlink (falling back to a copy) every file in `dependencies` (relative to
     `context_root`, already flattened and deduplicated by `_dependency_paths`), plus `dockerfile`
     itself, into a fresh `.base_image_build/<library>/<target>/` directory, mirroring each
-    file's path relative to `context_root`.
-
-    Building from this directory instead of the real one is a safety net: it makes "the files
-    the hash was computed from" and "the files the build can actually see" the same set by
-    construction, so a dependency the parser failed to detect causes a build failure (missing
-    file) instead of silently succeeding against the full repository checkout.
-
-    That guarantee doesn't extend to a wildcard COPY source matching fewer files than intended
-    (see this module's docstring, "Wildcard sources"): the build can't detect that on its own,
-    so the resulting file tree is printed here to make it easy to catch by eye instead.
+    file's path relative to `context_root`. Building from this directory instead of the real one
+    is the safety net described in this module's docstring.
     """
     build_dir = BUILD_CONTEXT_ROOT / library / target
     shutil.rmtree(build_dir, ignore_errors=True)
@@ -326,9 +264,9 @@ def materialize_build_context(
 
 
 def image_exists(tag: str) -> bool:
-    """Whether `tag` exists on the registry. `docker manifest inspect` exits non-zero both
-    when the tag genuinely doesn't exist and on unrelated failures (auth, network); print
-    the error either way so a real failure isn't silently mistaken for a missing tag.
+    """Whether `tag` exists on the registry. `docker manifest inspect` exits non-zero both for
+    a genuinely missing tag and for unrelated failures (auth, network); print stderr either way
+    so a real failure isn't mistaken for a missing tag.
     """
     result = subprocess.run(
         ["docker", "manifest", "inspect", tag],
@@ -370,18 +308,14 @@ def process_library(library: str, *, dry_run: bool) -> None:
         return
 
     for target, bake_config in _all_bake_configs(bake_file).items():
-        # REPO_ROOT is only ever used here, to locate the bake target's own context directory
-        # (`docker buildx bake --print` may report it as either absolute or relative). Every
-        # dependency-resolution/hash/materialize step downstream operates purely in terms of
-        # context_root, never REPO_ROOT again.
+        # `docker buildx bake --print` may report `context` as absolute or relative.
         context_root = (REPO_ROOT / bake_config["context"]).resolve()
         dockerfile = context_root / bake_config["dockerfile"]
 
         dependencies = _dependency_paths(context_root, dockerfile)
 
-        # Materialize before hashing (hardlinking is essentially free, see this module's
-        # docstring), so the hash is always computed from the exact files the build will see,
-        # never from a separate read of context_root that is merely supposed to match.
+        # Materialize before hashing, so the hash is computed from the exact files the build
+        # will see.
         build_dir = materialize_build_context(library, target, context_root, dockerfile, dependencies)
 
         base_tag = bake_config["tags"][0]
