@@ -183,6 +183,11 @@ def test_legacy_scenario_matrix():
     for library in sorted(COMPONENT_GROUPS.all):
         for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
             for scenario in get_all_scenarios():
+                # This scenario postdates the legacy matrix and intentionally supports only
+                # weblogs that implement its dedicated capture-timeout fixture.
+                if scenario.name == "DEBUGGER_CAPTURE_TIMEOUT":
+                    continue
+
                 legacy = _is_supported_legacy(weblog, scenario, "")
                 new_value = weblog.support_scenario(scenario.name, scenario.weblog_categories)
                 if legacy is not new_value:
