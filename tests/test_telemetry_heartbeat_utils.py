@@ -8,6 +8,8 @@ from dateutil.parser import isoparse
 
 def heartbeat_delays_by_runtime(
     telemetry_data: Iterable[dict[str, Any]],
+    *,
+    min_lifespan: float = 0.0,
 ) -> tuple[dict[str, list[float]], dict[str, int]]:
     """Return heartbeat delays and logical heartbeat counts grouped by runtime ID.
 
@@ -15,6 +17,16 @@ def heartbeat_delays_by_runtime(
     so that heartbeats packed inside a message-batch keep their position in the batch: a
     flattened message-batch entry inherits the outer batch's seq_id, so two distinct
     heartbeats sent in the same batch would otherwise collide on (runtime_id, seq_id) alone.
+
+    `min_lifespan` excludes runtimes whose heartbeats span less than that many seconds
+    (e.g. `telemetry_heartbeat_interval * 3`). A process that lived only a fraction of the
+    heartbeat interval before exiting (e.g. a forked child spawned by the session-id tests)
+    doesn't provide a reliable cadence sample: some tracers emit an extra, out-of-cadence
+    heartbeat as part of their shutdown flush, and with only 2-3 total samples that single
+    anomalous gap dominates the average delay. This is a real, distinct message (its own
+    seq_id, not a retry/clone) so deduping can't catch it -- only requiring enough elapsed
+    time to average it out can. A long-lived runtime with the same anomaly is still measured
+    and can still fail: this only excludes runtimes too short-lived to measure at all.
     """
     heartbeats_by_runtime: dict[str, dict[tuple[int, int], dict[str, Any]]] = defaultdict(dict)
 
@@ -58,6 +70,10 @@ def heartbeat_delays_by_runtime(
             key=lambda data: isoparse(data["request"]["timestamp_start"]),
         )
         times = [isoparse(data["request"]["timestamp_start"]) for data in heartbeats]
+        lifespan = (times[-1] - times[0]).total_seconds()
+        if lifespan < min_lifespan:
+            continue
+
         delays_by_runtime[runtime_id] = [
             (current - previous).total_seconds() for previous, current in itertools.pairwise(times)
         ]
