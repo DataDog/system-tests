@@ -82,7 +82,12 @@ variables:
   image: $CI_IMAGE
   tags:
     - arch:amd64
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
+    - export SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests:setup"
     - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
   artifacts:
     reports:
@@ -92,6 +97,9 @@ system_tests_build_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   rules:
     - if: $[[ inputs.condition ]]
     - when: never
@@ -103,6 +111,7 @@ system_tests_build_pipeline:
       optional: true
       artifacts: true
   script:
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests:generate-pipeline"
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
       touch build_params.env
@@ -160,6 +169,7 @@ system_tests_build_pipeline:
     SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$SYSTEM_TESTS_SKIP_EMPTY_SCENARIO"
     LIBRARIES: $LIBRARIES
     UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
+    SYSTEM_TESTS_PIPELINE_START_TIME: "$SYSTEM_TESTS_PIPELINE_START_TIME"
 
 system_tests_run_pipeline_0:
   extends: .run_test_pipeline_base

@@ -18,6 +18,22 @@
     - ls -la binaries/
     - section_end "copy_binaries"
 {% endmacro %}
+{% macro metric_cmd() -%}
+if [ -n "$SYSTEM_TESTS_PIPELINE_START_TIME" ]; then elapsed=$(( $(date +%s) - SYSTEM_TESTS_PIPELINE_START_TIME )); datadog-ci measure --level job --measures system_tests.pipeline.execution_time:$elapsed; else echo "SYSTEM_TESTS_PIPELINE_START_TIME not set, skipping metric emission"; fi
+{%- endmacro %}
+{% macro trace_cmd(name, command, library, weblog=none, scenario=none) -%}
+datadog-ci trace --name "{{name}}" --tags library:{{library}}{% if weblog %} --tags weblog:{{weblog}}{% endif %}{% if scenario %} --tags scenario:{{scenario}}{% endif %} -- {{command}}
+{%- endmacro %}
+{% macro ddci_batch(job_tag, lines) %}
+    - |
+      dd-sts exchange --policy system-tests-gitlab -- bash -c '
+      set -e
+      datadog-ci tag --level job --tags "{{job_tag}}"
+      {% for line in lines %}
+      {{ line }}
+      {% endfor %}
+      '
+{% endmacro %}
 {% if not skip_header %}
 workflow:
   name: "System-tests end to end"
@@ -62,6 +78,9 @@ setup:
 {% for variant in weblog_variants %}
 system_tests_build_{{library}}_{{variant}}:
   extends: .system_tests_base
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   {% if binaries_artifacts_list %}
   needs:
     {% for artifact_job in binaries_artifacts_list %}
@@ -77,8 +96,9 @@ system_tests_build_{{library}}_{{variant}}:
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
-    - section_start "build" "Building weblog"
-    - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
+    - section_start "build" "Building weblog" false
+    {% set build_cmd = "./build.sh " ~ library ~ " -i weblog --save-to-binaries --weblog-variant " ~ variant %}
+    {{ ddci_batch("system-tests:build", [trace_cmd("build " ~ library ~ " " ~ variant, build_cmd, library, weblog=variant)]) }}
     - mv binaries ..
     - section_end "build"
   artifacts:
@@ -93,6 +113,9 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   needs:
   {% if build_required %}
     - job: system_tests_build_{{library}}_{{variant}}
@@ -111,19 +134,26 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     - section_start "weblog_setup" "Setting up the weblog"
     {% if build_required %}
     - mv ../binaries/* binaries/
-    - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
     {% elif binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - section_end "weblog_setup"
-    - section_start "scenario_run" "Running scenario"
+    - section_start "scenario_run" "Running scenario" false
     {% if scenario == "INTEGRATION_FRAMEWORKS" %}
-    - ./run.sh {{scenario}} -L {{library}} --weblog {{variant}}
+    {% set run_cmd = "./run.sh " ~ scenario ~ " -L " ~ library ~ " --weblog " ~ variant %}
     {% elif scenario in ("GO_PROXIES_DEFAULT", "GO_PROXIES_APPSEC_BLOCKING") %}
-    - ./run.sh {{scenario}} --weblog {{variant}}
+    {% set run_cmd = "./run.sh " ~ scenario ~ " --weblog " ~ variant %}
     {% else %}
-    - ./run.sh {{scenario}}
+    {% set run_cmd = "./run.sh " ~ scenario %}
     {% endif %}
+    {% set ddci_lines = [] %}
+    {% if build_required %}
+    {% set build_cmd = "./build.sh " ~ library ~ " -i weblog --weblog-variant " ~ variant %}
+    {% set _ = ddci_lines.append(trace_cmd("build " ~ library ~ " " ~ variant, build_cmd, library, weblog=variant)) %}
+    {% endif %}
+    {% set _ = ddci_lines.append(trace_cmd("run " ~ library ~ " " ~ scenario ~ " " ~ variant, run_cmd, library, weblog=variant, scenario=scenario)) %}
+    {% set _ = ddci_lines.append(metric_cmd()) %}
+    {{ ddci_batch("system-tests:run", ddci_lines) }}
     - section_end "scenario_run"
   artifacts:
     when: always
@@ -139,6 +169,9 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   {% if binaries_artifacts_list %}
   needs:
     {% for artifact_job in binaries_artifacts_list %}
@@ -148,12 +181,13 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
     {% endfor %}
   {% endif %}
   script:
-    - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
+    - section_start "run" "Running PARAMETRIC (group {{job_index}}/{{parametric.job_count}})" false
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
-    - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
-    - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
+    {% set run_cmd = "./run.sh PARAMETRIC -L " ~ library ~ " --splits=" ~ parametric.job_count ~ " --group=" ~ job_index %}
+    {{ ddci_batch("system-tests:run", [trace_cmd("run " ~ library ~ " PARAMETRIC " ~ job_index, run_cmd, library, scenario="PARAMETRIC"), metric_cmd()]) }}
+    - section_end "run"
   artifacts:
     when: always
     paths:
