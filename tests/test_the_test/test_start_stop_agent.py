@@ -7,6 +7,7 @@ from utils.docker_fixtures._core import get_docker_client
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 
 
+@scenarios.test_the_test
 def test_start_agent_then_stop(request: pytest.FixtureRequest):
     # Docker-backed smoke test. Gate at runtime rather than with a module-level
     # pytest.mark.skipif: the root conftest's _item_must_pass iterates skipif

@@ -1,6 +1,7 @@
 import contextlib
 from collections.abc import Iterator
 
+from utils import scenarios
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, agent_env_key
 
 
@@ -36,10 +37,12 @@ class _FakeCreator:
             self.stopped += 1
 
 
+@scenarios.test_the_test
 def test_env_key_is_order_independent():
     assert agent_env_key({"A": "1", "B": "2"}) == agent_env_key({"B": "2", "A": "1"})
 
 
+@scenarios.test_the_test
 def test_same_env_reuses_and_clears():
     creator = _FakeCreator()
     with WorkerAgentPool(creator) as pool:
@@ -53,6 +56,7 @@ def test_same_env_reuses_and_clears():
         assert api1.rebind_calls == ["req2"]  # rebound only on reuse, not on first acquire
 
 
+@scenarios.test_the_test
 def test_distinct_env_creates_separate_agents():
     creator = _FakeCreator()
     with WorkerAgentPool(creator) as pool:
@@ -63,6 +67,7 @@ def test_distinct_env_creates_separate_agents():
         assert len(creator.created_envs) == 2
 
 
+@scenarios.test_the_test
 def test_exit_tears_down_every_agent():
     creator = _FakeCreator()
     with WorkerAgentPool(creator) as pool:
