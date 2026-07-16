@@ -55,6 +55,25 @@ def _ai_guard_spans(traces: list[list[dict]]) -> list[dict]:
     return [span for trace in traces for span in trace if span.get("resource") == "ai_guard"]
 
 
+def _ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
+    """Local root (service-entry) spans tagged ``ai_guard.event:true``.
+
+    When AI Guard evaluates a call it tags the trace's local root span with
+    ``ai_guard.event:true`` (dd-trace-py ``appsec/ai_guard/_api_client.py``). This is a
+    tracer-emitted marker that AI Guard ran on the trace, and is what we assert on here.
+
+    Note: the ``_dd.ai_guard.enabled:1`` facet that is searchable in the Datadog UI is NOT
+    present in the raw payloads captured by the test agent (it is not emitted by the tracer;
+    it is produced somewhere in intake), so it cannot be asserted on directly.
+    """
+    return [
+        span
+        for trace in traces
+        for span in trace
+        if span.get("parent_id") in (0, None) and span.get("meta", {}).get("ai_guard.event", False) in (True, "true")
+    ]
+
+
 def _wait_for_ai_guard_spans(
     test_agent: TestAgentAPI, *, target: str | None = None, wait_loops: int = 30
 ) -> list[dict]:
@@ -84,6 +103,26 @@ def _wait_for_ai_guard_spans(
     return spans
 
 
+def _wait_for_ai_guard_event_root_spans(test_agent: TestAgentAPI, *, wait_loops: int = 30) -> list[dict]:
+    """Poll the test agent until at least one root span tagged ``ai_guard.event:true`` arrives.
+
+    Like the ``ai_guard`` span itself, the tagged local root span may land in a later trace
+    chunk than the evaluation span, so we poll rather than reading a single snapshot.
+    """
+    spans: list[dict] = []
+    for _ in range(wait_loops):
+        try:
+            traces = test_agent.traces(clear=False)
+        except requests.exceptions.RequestException:
+            pass
+        else:
+            spans = _ai_guard_event_root_spans(traces)
+            if spans:
+                return spans
+        time.sleep(0.1)
+    return spans
+
+
 @features.ai_guard
 @scenarios.integration_frameworks
 class TestOpenAiAiGuard(BaseOpenaiTest):
@@ -105,6 +144,9 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
         guard_spans = _wait_for_ai_guard_spans(test_agent, target="prompt")
         assert guard_spans, "expected a before-model ai_guard span with target 'prompt'"
 
+        event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
+        assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
+
     def test_after_model_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         """The streamed model response is evaluated by AI Guard after the model returns."""
         with test_agent.vcr_context(stream=True):
@@ -120,6 +162,9 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
 
         guard_spans = _wait_for_ai_guard_spans(test_agent)
         assert guard_spans, "expected an ai_guard span from the after-model (streamed) evaluation"
+
+        event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
+        assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
 
     def test_tool_call_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         """Tool calls produced by the model are evaluated by AI Guard."""
@@ -141,3 +186,6 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
 
         guard_spans = _wait_for_ai_guard_spans(test_agent, target="tool")
         assert guard_spans, "expected a tool-call ai_guard span with target 'tool'"
+
+        event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
+        assert event_root_spans, "expected a local root span tagged ai_guard.event:true"

@@ -652,6 +652,11 @@ class Test_AIGuardStandalone:
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
                 "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism in standalone mode"
             )
+            # ai_guard.event:true is the tracer-emitted root-span marker that AI Guard ran on this
+            # trace. (The _dd.ai_guard.enabled facet seen in the UI is not present in raw payloads.)
+            assert root_span.get("meta", {}).get("ai_guard.event", False) in (True, "true"), (
+                "Root span must be tagged ai_guard.event:true for AI Guard traces in standalone mode"
+            )
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/x/54JqiQE")
