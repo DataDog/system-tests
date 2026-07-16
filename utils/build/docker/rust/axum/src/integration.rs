@@ -167,7 +167,9 @@ pub fn header_map_to_string_map(headers: &reqwest::header::HeaderMap) -> HashMap
 /// are shared via `Arc` internally, so all clones see the same captured
 /// headers), then read them back afterwards with `take_headers`.
 #[derive(Clone, Default)]
-pub struct CaptureRequestHeaders(Arc<Mutex<Option<HashMap<String, String>>>>);
+pub struct CaptureRequestHeaders{
+    headers: Arc<Mutex<Option<HashMap<String, String>>>>
+}
 
 impl CaptureRequestHeaders {
     pub fn new() -> Self {
@@ -176,7 +178,7 @@ impl CaptureRequestHeaders {
 
     /// Returns the headers captured for the most recent request, if any.
     pub fn take_headers(&self) -> HashMap<String, String> {
-        self.0.lock().unwrap().take().unwrap_or_default()
+        self.headers.lock().unwrap().take().unwrap_or_default()
     }
 }
 
@@ -188,7 +190,7 @@ impl Middleware for CaptureRequestHeaders {
         extensions: &mut Extensions,
         next: reqwest_middleware::Next<'_>,
     ) -> reqwest_middleware::Result<reqwest::Response> {
-        *self.0.lock().unwrap() = Some(header_map_to_string_map(req.headers()));
+        *self.headers.lock().unwrap() = Some(header_map_to_string_map(req.headers()));
         next.run(req, extensions).await
     }
 }
