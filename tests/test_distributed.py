@@ -56,7 +56,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, trace, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if get_span_links(span) is not None
+            if len(get_span_links(span)) != 0
             and trace.trace_id_equals(2)
             and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
@@ -90,7 +90,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if get_span_links(span) is not None
+            if len(get_span_links(span)) != 0
             and span["trace_id"] == 1
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
@@ -117,7 +117,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if get_span_links(span) is not None
+            if len(get_span_links(span)) != 0
             and span["trace_id"] == 5
             and span["parent_id"] == 987654324  # Only fetch the trace that is related to the header extractions
         ]
@@ -147,7 +147,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if get_span_links(span) is not None
+            if len(get_span_links(span)) != 0
             and span["trace_id"] == 2
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
@@ -183,7 +183,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if get_span_links(span) is not None
+            if len(get_span_links(span)) != 0
             and span["trace_id"] == 2
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
