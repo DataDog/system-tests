@@ -15,9 +15,7 @@ default_libs_with_prod = [
     "cpp_kong",
     "cpp_nginx",
     "dotnet",
-    "envoy",
     "golang",
-    "haproxy",
     "java",
     "java_lambda",
     "nodejs",
@@ -36,9 +34,7 @@ default_libs_with_dev = [
     "cpp_kong",
     "cpp_nginx",
     "dotnet",
-    "envoy",
     "golang",
-    "haproxy",
     "java",
     "java_lambda",
     "nodejs",
@@ -469,7 +465,7 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
+            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
             "",
         )
 

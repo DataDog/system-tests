@@ -55,4 +55,8 @@ COPY --from=registry.ddbuild.io/dd-sts:v0.1.4@sha256:1f4bc8861cca86b0c977ae70843
 COPY --from=builder /system-tests/venv /system-tests/venv
 COPY --from=builder /system-tests/utils/ci/gitlab/validate_param_env.py /system-tests/utils/ci/gitlab/validate_param_env.py
 
+# Install ddsign for image signing
+# https://datadoghq.atlassian.net/wiki/spaces/SECENG/pages/2744681107/Image+Integrity+User+Guide
+COPY --from=registry.ddbuild.io/ddsign:v1.11.10@sha256:55784668a612ab22129bb15a665a847819bfa64b9a595c59a03a3a725534ce22 /usr/local/bin/ddsign /usr/local/bin/ddsign
+
 WORKDIR /

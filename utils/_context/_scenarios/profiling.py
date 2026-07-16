@@ -1,5 +1,6 @@
 import pytest
 
+from utils._context.constants import WeblogCategory
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
@@ -21,6 +22,7 @@ class ProfilingScenario(EndToEndScenario):
             },
             doc="Test profiling feature. Not included in default scenario because is quite slow",
             scenario_groups=[scenario_groups.profiling],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

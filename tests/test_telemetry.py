@@ -327,11 +327,20 @@ class Test_Telemetry:
 
         delays_by_runtime = {}
 
-        # Short-lived processes (e.g. children spawned by the session-id tests) can emit
-        # only a couple of heartbeats before exiting, which is not enough samples to measure
-        # interval drift. Only long-lived runtimes are measured here.
-        measurable_runtimes = {rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2}
+        # Measure only long-lived application runtimes, not the short-lived children the session-id
+        # tests spawn via /spawn_child (a forked child can emit under its parent's runtime_id before
+        # regenerating its own -- a sub-interval "duplicate" that flakes the check). Select by lifespan,
+        # not heartbeat count, so a slow-drifting worker with fewer heartbeats still gets measured.
+        def lifespan(heartbeats: list[Any]) -> float:
+            times = [isoparse(d["request"]["timestamp_start"]) for d in heartbeats]
+            return (max(times) - min(times)).total_seconds()
+
         heartbeat_counts = {rid: len(hbs) for rid, hbs in heartbeats_by_runtime.items()}
+        lifespans = {rid: lifespan(hbs) for rid, hbs in heartbeats_by_runtime.items()}
+        longest = max(lifespans.values(), default=0.0)
+        measurable_runtimes = {
+            rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2 and lifespans[rid] >= longest * 0.5
+        }
         assert measurable_runtimes, (
             f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
         )

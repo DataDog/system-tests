@@ -445,8 +445,11 @@ def retrieve_span_links(span: DataDogAgentSpan) -> list[dict] | None:
     if span_meta.get("_dd.span_links") is None:
         return None
 
-    # Convert span_links tags into msgpack v0.4 format
-    json_links = json.loads(span_meta["_dd.span_links"])
+    # Convert span_links tags into msgpack v0.4 format. The v1 trace proxy
+    # normalizes JSON meta values while v0.4 payloads retain the serialized
+    # string, so accept both representations here.
+    raw_links = span_meta["_dd.span_links"]
+    json_links = json.loads(raw_links) if isinstance(raw_links, (str, bytes, bytearray)) else raw_links
     links = []
     for json_link in json_links:
         link = {}
