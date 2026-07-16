@@ -441,8 +441,8 @@ class SpanLink:
         self.trace_state: str | None = data.get("tracestate", data.get("trace_state"))
         self.flags: int = (data["flags"] | TRACECONTEXT_FLAGS_SET) if "flags" in data else 0
 
-        if "span_id" in self.data:  # span_id is a string on base 16
-            self.span_id = int(data["span_id"], base=16)
+        if "span_id" in self.data:
+            self.span_id = data["span_id"] if isinstance(data["span_id"], int) else int(data["span_id"], base=16)
         elif "spanID" in self.data:  # spanID is a string on base 10
             self.span_id = int(data["spanID"])
         else:
