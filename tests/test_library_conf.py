@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import pytest
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features, logger
 from utils.dd_types import DataDogAgentSpan, AgentTraceFormat
 from utils._context.header_tag_vars import (
     CONFIG_COLON_LEADING,
@@ -431,78 +431,72 @@ TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
 class SpanLink:
-    def __init__(self, data: dict, trace_format: AgentTraceFormat):
+    def __init__(self, data: dict, trace_id: str, trace_id_low: int, trace_id_high: int):
         self._data = data
-        self._trace_format = trace_format
+        self.trace_id = trace_id
+        self.trace_id_low = trace_id_low
+        self.trace_id_high = trace_id_high
 
-    @property
-    def trace_id(self) -> str:
-        if "traceID" in self._data:
-            return self._data["traceID"]
+        self.attributes: dict[str, str] | None = data.get("attributes")
+        self.trace_state: str | None = data.get("tracestate", data.get("trace_state"))
+        self.flags: int = data.get("flags", 0) | TRACECONTEXT_FLAGS_SET
 
-        if "trace_id" in self._data:
-            return self._data["trace_id"]
+        if "span_id" in self._data:  # span_id is a string on base 16
+            self.span_id = int(data["span_id"], base=16)
+        elif "spanID" in self._data:  # spanID is a string on base 10
+            self.span_id = int(data["spanID"])
+        else:
+            raise ValueError(f"No span id exists in span link: {data}")
 
-        raise ValueError(f"No trace id exists in span link: {self._data}")
+    @staticmethod
+    def from_span_links(data: dict) -> "SpanLink":
+        return SpanLink(
+            data, trace_id=data["traceID"], trace_id_high=int(data["traceIDHigh"]), trace_id_low=int(data["traceID"])
+        )
 
-    @property
-    def trace_id_high(self):
-        if self._trace_format == AgentTraceFormat.efficient_trace_payload_format:
-            return (int(self.trace_id, 16) >> 64) & 0xFFFFFFFFFFFFFFFF
+    @staticmethod
+    def from_efficient_trace_payload_format(data: dict) -> "SpanLink":
+        trace_id = data["traceID"]
 
-        if "traceIDHigh" in self._data:
-            return int(self._data["traceIDHigh"])
+        return SpanLink(
+            data,
+            trace_id=trace_id,
+            trace_id_high=(int(trace_id, 16) >> 64) & 0xFFFFFFFFFFFFFFFF,
+            trace_id_low=int(trace_id, 16) & 0xFFFFFFFFFFFFFFFF,
+        )
 
-        return int(self.trace_id[:16], base=16)
+    @staticmethod
+    def from_legacy_format(data: dict) -> "SpanLink":
+        trace_id = data["trace_id"]
 
-    @property
-    def trace_id_low(self):
-        if self._trace_format == AgentTraceFormat.efficient_trace_payload_format:
-            return int(self.trace_id, 16) & 0xFFFFFFFFFFFFFFFF
-
-        return int(self.trace_id[-16:], base=16)
-
-    @property
-    def span_id(self) -> int:
-        if "span_id" in self._data:
-            return int(self._data["span_id"], base=16)
-        if "spanID" in self._data:
-            return int(self._data["spanID"], base=16)
-
-        raise ValueError(f"No span id exists in span link: {self._data}")
-
-    @property
-    def attributes(self) -> dict[str, str] | None:
-        return self._data.get("attributes", None)
-
-    @property
-    def trace_state(self) -> str | None:
-        return self._data.get("tracestate", self._data.get("trace_state", None))
-
-    @property
-    def flags(self) -> int:
-        if "flags" in self._data:
-            return self._data["flags"] | TRACECONTEXT_FLAGS_SET
-
-        return 0
+        return SpanLink(
+            data,
+            trace_id=trace_id,
+            trace_id_high=int(trace_id[:16], base=16),
+            trace_id_low=int(trace_id[-16:], base=16),
+        )
 
     def __str__(self) -> str:
         return str(self._data)
 
+    def __repr__(self) -> str:
+        return repr(self._data)
+
 
 def get_span_links(span: DataDogAgentSpan) -> list[SpanLink]:
     if span.get("spanLinks") is not None:
-        raw = span["spanLinks"]
+        logger.info("Span links are stored inside span.spanLinks")
+        return [SpanLink.from_span_links(data) for data in span.get("spanLinks")]
 
-    elif span.trace.format == AgentTraceFormat.efficient_trace_payload_format and span.get("links") is not None:
-        raw = span["links"]
+    if span.trace.format == AgentTraceFormat.efficient_trace_payload_format and span.get("links") is not None:
+        logger.info("Span links are stored inside span.links and trace format is v1")
+        return [SpanLink.from_efficient_trace_payload_format(data) for data in span.get("links")]
 
-    else:
-        raw = span.meta.get("_dd.span_links", [])
-
+    logger.info("Span links are stored inside span.meta['_dd.span_links'] and trace format is legacy")
+    raw = span.meta.get("_dd.span_links", [])
     raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
 
-    return [SpanLink(data, span.trace.format) for data in raw_deserilialized]
+    return [SpanLink.from_legacy_format(data) for data in raw_deserilialized]
 
 
 @scenarios.default
@@ -578,11 +572,10 @@ class Test_ExtractBehavior_Default:
         assert len(span_links) == 1, "Expected span links to be present"
 
         link = span_links[0]
-        trace_id_high, trace_id_low = link.trace_id_high, link.trace_id_low
         # Assert the W3C Trace Context (conflicting trace context) span link according to the format
-        assert trace_id_low == 8687463697196027922  # int(0x7890123456789012)
-        assert trace_id_high == 1311768467284833366  # int(0x1234567890123456)
-        assert link.span_id == 1311768467284833366  # int (0x1234567890123456)
+        assert link.trace_id_low == 8687463697196027922, link  # int(0x7890123456789012)
+        assert link.trace_id_high == 1311768467284833366, link  # int(0x1234567890123456)
+        assert link.span_id == 1311768467284833366, link  # int (0x1234567890123456)
         assert link.attributes == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Test the next outbound span context
