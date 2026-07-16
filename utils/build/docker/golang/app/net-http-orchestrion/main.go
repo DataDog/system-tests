@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/aes"
 	"crypto/md5"
+	"crypto/rc4"
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/json"
@@ -123,6 +125,29 @@ func main() {
 	mux.HandleFunc("GET /iast/insecure_hashing/test_md5_algorithm", func(w http.ResponseWriter, _ *http.Request) {
 		digest := md5.Sum([]byte("insecure"))
 		fmt.Fprintf(w, "%x", digest)
+	})
+
+	mux.HandleFunc("GET /iast/insecure_cipher/test_insecure_algorithm", func(w http.ResponseWriter, _ *http.Request) {
+		stream, err := rc4.NewCipher([]byte("insecure key"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		plaintext := []byte("insecure plaintext")
+		ciphertext := make([]byte, len(plaintext))
+		stream.XORKeyStream(ciphertext, plaintext)
+		fmt.Fprintf(w, "%x", ciphertext)
+	})
+
+	mux.HandleFunc("GET /iast/insecure_cipher/test_secure_algorithm", func(w http.ResponseWriter, _ *http.Request) {
+		block, err := aes.NewCipher([]byte("securecipherkey1"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		ciphertext := make([]byte, aes.BlockSize)
+		block.Encrypt(ciphertext, []byte("secure plaintext"))
+		fmt.Fprintf(w, "%x", ciphertext)
 	})
 
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
