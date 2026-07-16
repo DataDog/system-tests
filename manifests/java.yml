@@ -2981,15 +2981,15 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
-    - declaration: bug (DEBUG-3285)
-      component_version: <1.46.0
-      # Added by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner: bug (DEBUG-5838)
+  #  - declaration: bug (DEBUG-3285)
+  #    component_version: <1.46.0
+  # Added by easy win activation script
+  #  - weblog_declaration:
+  #      spring-boot-undertow: missing_feature
+  #      spring-boot-openliberty: missing_feature
+  #      spring-boot-jetty: missing_feature
+  #      spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
