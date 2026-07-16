@@ -7,16 +7,15 @@ use std::{
 use axum::{
     extract::{Path, Query, State},
     http::{HeaderMap, Method, StatusCode},
-    middleware,
     response::{IntoResponse, Response},
-    routing::{any, get, options, post},
+    routing::{get, options, post},
     Json, Router,
 };
 use opentelemetry::{
     baggage::BaggageExt,
     global,
     propagation::TextMapPropagator,
-    trace::{Span, SpanKind, Status, TraceContextExt, Tracer, TracerProvider},
+    trace::{Span, SpanKind, Status, TraceContextExt, Tracer},
     Context, KeyValue,
 };
 use opentelemetry_http::{HeaderExtractor, HeaderInjector};
@@ -25,7 +24,6 @@ use reqwest_middleware::ClientBuilder;
 use reqwest_tracing::TracingMiddleware;
 use serde::Deserialize;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use integration::DatadogClientSpanBackend;
 
@@ -68,10 +66,7 @@ struct E2eSpanQuery {
 
 #[tokio::main]
 async fn main() {
-    let tracer_provider = datadog_opentelemetry::tracing().init();
-    tracing_subscriber::registry()
-        .with(tracing_opentelemetry::layer().with_tracer(tracer_provider.tracer("weblog")))
-        .init();
+    let tracer_provider = integration::install_datadog_tracing();
 
     let app = app(AppState {
         tracer_provider: tracer_provider.clone(),
@@ -87,13 +82,7 @@ async fn main() {
 }
 
 fn app(state: AppState) -> Router {
-    router(state)
-        .layer(middleware::from_fn(integration::enrich_span))
-        .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
-}
-
-fn router(state: AppState) -> Router {
-    Router::new()
+    let router = Router::new()
         .route("/", get(index))
         .route("/", post(index))
         .route("/", options(index))
@@ -123,7 +112,8 @@ fn router(state: AppState) -> Router {
             get(requestdownstream).post(requestdownstream),
         )
         .route("/make_distant_call", get(make_distant_call))
-        .with_state(state)
+        .with_state(state);
+    integration::install_middleware(router)
 }
 
 // ─── Basic endpoints ─────────────────────────────────────────────────────────

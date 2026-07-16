@@ -1,33 +1,82 @@
+//! Tracing and span-enrichment utilities for Datadog compatibility.
+//!
+//! This module adds Datadog-specific semantic-convention attributes to both
+//! inbound (server) and outgoing (client) HTTP spans so they satisfy the
+//! system-tests' `validate_all_spans` checks.
+//!
+//! Future work: If a proper datadog integration for axum gets implemented,
+//! refactor to use it instead
+
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex, OnceLock},
 };
 
-use axum::{extract::Request, middleware::Next, response::Response};
+use axum::{
+    extract::Request,
+    middleware::{self, Next},
+    response::Response,
+    Router,
+};
 
 use http::Extensions;
 use opentelemetry::{
-    trace::{Status, TraceContextExt},
+    trace::{Status, TraceContextExt, TracerProvider},
     Context, KeyValue,
 };
+use opentelemetry_sdk::trace::SdkTracerProvider;
 use reqwest_middleware::Middleware;
-use reqwest_tracing::reqwest_otel_span;
+use reqwest_tracing::{reqwest_otel_span, ReqwestOtelSpanBackend};
 use tracing::Span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+/// Initializes the Datadog tracer provider and installs it as the global
+/// `tracing` subscriber, so `tracing::info_span!` etc. produce Datadog-backed spans.
+pub fn install_datadog_tracing() -> SdkTracerProvider {
+    let tracer_provider = datadog_opentelemetry::tracing().init();
+    tracing_subscriber::registry()
+        .with(tracing_opentelemetry::layer().with_tracer(tracer_provider.tracer("weblog")))
+        .init();
+    tracer_provider
+}
+
+/// Helper returning datadog semantic-convention tags every span needs to satisfy
+/// Used in both reqwest and axum middleware
+/// (necesary for test `validate_all_spans`)
+fn dd_tags() -> Vec<KeyValue> {
+    /// Single runtime-id for the lifetime of this process.
+    static RUNTIME_ID: OnceLock<String> = OnceLock::new();
+
+    vec![
+        KeyValue::new("language", "rust"),
+        KeyValue::new("component", "axum"),
+        KeyValue::new(
+            "runtime-id",
+            RUNTIME_ID
+                .get_or_init(|| uuid::Uuid::new_v4().to_string())
+                .as_str(),
+        ),
+        // process_id goes to the metrics map (numeric value).
+        KeyValue::new("process_id", std::process::id() as i64),
+    ]
+}
+
+/// Installs the Datadog-specific span-enrichment layer and the OTel HTTP
+/// instrumentation layer onto the given router.
+pub fn install_middleware(router: Router) -> Router {
+    router
+        .layer(middleware::from_fn(datadog_specific_axum_layer))
+        .layer(opentelemetry_instrumentation_tower::HTTPLayer::default())
+}
 
 /// Adds Datadog-specific attributes on top of the OTel HTTP server span that
 /// `opentelemetry_instrumentation_tower::HTTPLayer` created for this request.
 ///
-/// `HTTPLayer` builds its span directly via `opentelemetry::Context`, not the
-/// `tracing` crate, so we read/write through `Context::current().span()`
-/// rather than `tracing::Span::current()` (which would be a no-op span here).
-/// Only attributes `HTTPLayer` doesn't already set are added, to avoid
-/// duplicating its behavior (see `opentelemetry-instrumentation-tower`'s
-/// `HTTPLayer::call`/`ResponseFuture::poll`, which set
-/// `http.request.method`/`url.scheme`/`url.path`/`url.full`/
-/// `user_agent.original`/`http.route` up front and `http.response.status_code`
-/// plus a 5xx error status on completion).
-pub async fn enrich_span(request: Request, next: Next) -> Response {
+/// `HTTPLayer` builds its span via `opentelemetry::Context`, not `tracing`,
+/// so we use `Context::current().span()` instead of `tracing::Span::current()`.
+/// Only attributes not already set by `HTTPLayer` are added here.
+async fn datadog_specific_axum_layer(request: Request, next: Next) -> Response {
     let cx = Context::current();
     let span = cx.span();
 
@@ -65,12 +114,16 @@ pub async fn enrich_span(request: Request, next: Next) -> Response {
 /// semantic-convention attributes used for inbound server spans.
 pub struct DatadogClientSpanBackend;
 
-impl reqwest_tracing::ReqwestOtelSpanBackend for DatadogClientSpanBackend {
+impl ReqwestOtelSpanBackend for DatadogClientSpanBackend {
     fn on_request_start(req: &reqwest::Request, _ext: &mut http::Extensions) -> Span {
         let span = reqwest_otel_span!(name = "http.client.request", req);
 
         let host = req.url().host_str().unwrap_or_default().to_owned();
-        let query_suffix = req.url().query().map(|q| format!("?{q}")).unwrap_or_default();
+        let query_suffix = req
+            .url()
+            .query()
+            .map(|q| format!("?{q}"))
+            .unwrap_or_default();
         let host_port = match req.url().port() {
             Some(p) => format!("{host}:{p}"),
             None => host.clone(),
@@ -83,9 +136,12 @@ impl reqwest_tracing::ReqwestOtelSpanBackend for DatadogClientSpanBackend {
             query_suffix
         );
 
-        for attr in build_attributes(req.method().to_string(), scrubbed_url, host.clone()) {
+        for attr in dd_tags() {
             span.set_attribute(attr.key, attr.value);
         }
+        span.set_attribute("http.request.method", req.method().to_string());
+        span.set_attribute("http.url", scrubbed_url);
+        span.set_attribute("server.address", host.clone());
         span.set_attribute("out.host", host);
         span.set_attribute("network.protocol.name", "http");
         span
@@ -110,65 +166,11 @@ impl reqwest_tracing::ReqwestOtelSpanBackend for DatadogClientSpanBackend {
     }
 }
 
-/// Datadog semantic-convention tags every span needs to satisfy
-/// `validate_all_spans` in system-tests.
-pub fn dd_tags() -> Vec<KeyValue> {
-    /// Single runtime-id for the lifetime of this process.
-    static RUNTIME_ID: OnceLock<String> = OnceLock::new();
-
-    vec![
-        KeyValue::new("language", "rust"),
-        KeyValue::new("component", "axum"),
-        KeyValue::new(
-            "runtime-id",
-            RUNTIME_ID
-                .get_or_init(|| uuid::Uuid::new_v4().to_string())
-                .as_str(),
-        ),
-        // process_id goes to the metrics map (numeric value).
-        KeyValue::new("process_id", std::process::id() as i64),
-    ]
-}
-
-pub fn build_attributes(
-    request_method: impl ToString,
-    url: impl ToString,
-    server_address: impl ToString,
-) -> Vec<KeyValue> {
-    let mut attrs = dd_tags();
-    attrs.push(KeyValue::new(
-        "http.request.method",
-        request_method.to_string(),
-    ));
-    attrs.push(KeyValue::new("http.url", url.to_string()));
-    attrs.push(KeyValue::new("server.address", server_address.to_string()));
-    attrs
-}
-
-// Middleware to capture headers
-
-pub fn header_map_to_string_map(headers: &reqwest::header::HeaderMap) -> HashMap<String, String> {
-    headers
-        .iter()
-        .filter_map(|(name, value)| {
-            value
-                .to_str()
-                .ok()
-                .map(|v| (name.as_str().to_owned(), v.to_owned()))
-        })
-        .collect()
-}
-
-/// Records the headers of the outgoing request as they are right before
-/// it's sent, i.e. after every earlier middleware (in particular
-/// `TracingMiddleware`'s automatic OTel context injection) has run.
-///
-/// Construct it, hand a clone to `ClientBuilder::with` (`Middleware` impls
-/// are shared via `Arc` internally, so all clones see the same captured
-/// headers), then read them back afterwards with `take_headers`.
+/// Records the outgoing request's headers. Construct it, hand a clone to `ClientBuilder::with`, then read the
+/// headers back afterwards with `take_headers`. Useful for make_distant_call
 #[derive(Clone, Default)]
-pub struct CaptureRequestHeaders{
-    headers: Arc<Mutex<Option<HashMap<String, String>>>>
+pub struct CaptureRequestHeaders {
+    headers: Arc<Mutex<Option<HashMap<String, String>>>>,
 }
 
 impl CaptureRequestHeaders {
@@ -193,4 +195,17 @@ impl Middleware for CaptureRequestHeaders {
         *self.headers.lock().unwrap() = Some(header_map_to_string_map(req.headers()));
         next.run(req, extensions).await
     }
+}
+
+/// Converts a `reqwest::header::HeaderMap` into a `HashMap<String, String>`, dropping invalid UTF-8 values
+pub fn header_map_to_string_map(headers: &reqwest::header::HeaderMap) -> HashMap<String, String> {
+    headers
+        .iter()
+        .filter_map(|(name, value)| {
+            value
+                .to_str()
+                .ok()
+                .map(|v| (name.as_str().to_owned(), v.to_owned()))
+        })
+        .collect()
 }
