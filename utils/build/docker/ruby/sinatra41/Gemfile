@@ -13,4 +13,5 @@ end
 
 gem 'dogstatsd-ruby'
 gem 'pg'
+gem 'openfeature-sdk', '~> 0.5.1'
 gem 'datadog', '~> 2.0', require: 'datadog/auto_instrument'

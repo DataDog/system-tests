@@ -6,6 +6,8 @@ require 'faraday'
 require 'faraday/follow_redirects'
 require 'sinatra/json'
 require 'pg'
+require 'open_feature/sdk'
+require 'datadog/open_feature/provider'
 
 begin
   require 'datadog/auto_instrument'
@@ -18,6 +20,10 @@ Datadog.configure do |c|
   c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
 
   c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
+end
+
+OpenFeature::SDK.configure do |config|
+  config.set_provider(Datadog::OpenFeature::Provider.new)
 end
 
 require 'rack/contrib/json_body_parser'
@@ -56,6 +62,63 @@ end
 
 post '/' do
   'Hello, world!'
+end
+
+post '/ffe/start' do
+  OpenFeature::SDK.set_provider(Datadog::OpenFeature::Provider.new)
+
+  loop do
+    break unless Datadog::OpenFeature.evaluator.ufc_json.nil?
+    sleep 0.1
+  end
+
+  content_type :json
+  {}.to_json
+end
+
+post '/ffe' do
+  client = OpenFeature::SDK.build_client
+  payload = JSON.parse(request.body.read)
+
+  targeting_keys =
+    if payload['targetingKeys'].is_a?(Array) && !payload['targetingKeys'].empty?
+      payload['targetingKeys']
+    else
+      [payload['targetingKey']]
+    end
+
+  value = nil
+  targeting_keys.each do |targeting_key|
+    context = OpenFeature::SDK::EvaluationContext.new(
+      targeting_key: targeting_key,
+      **(payload['attributes'] || {})
+    )
+    options = {
+      flag_key: payload['flag'],
+      default_value: payload['defaultValue'],
+      evaluation_context: context
+    }
+
+    value =
+      case payload['variationType']
+      when 'BOOLEAN' then client.fetch_boolean_value(**options)
+      when 'STRING' then client.fetch_string_value(**options)
+      when 'INTEGER' then client.fetch_integer_value(**options)
+      when 'NUMERIC' then client.fetch_float_value(**options)
+      when 'JSON' then client.fetch_object_value(**options)
+      else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+      end
+  end
+
+  content_type :json
+  {value: value, reason: 'DEFAULT', count: targeting_keys.length}.to_json
+rescue
+  content_type :json
+  {value: payload && payload['defaultValue'], reason: 'ERROR'}.to_json
+end
+
+post '/ffe/evaluate' do
+  call env.merge('PATH_INFO' => '/ffe')
 end
 
 get '/waf' do

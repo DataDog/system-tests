@@ -1942,7 +1942,9 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
+        uds-sinatra: v2.24.0
         rails72: v2.23.0-dev
+        sinatra41: v2.24.0
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": irrelevant
