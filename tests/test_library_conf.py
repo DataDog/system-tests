@@ -431,8 +431,9 @@ TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
 class SpanLink:
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, trace_format: AgentTraceFormat):
         self._data = data
+        self._trace_format = trace_format
 
     @property
     def trace_id(self) -> str:
@@ -442,19 +443,33 @@ class SpanLink:
         if "trace_id" in self._data:
             return self._data["trace_id"]
 
-        raise ValueError("No trace id exists in span link")
+        raise ValueError(f"No trace id exists in span link: {self._data}")
 
     @property
     def trace_id_high(self):
+        if self._trace_format == AgentTraceFormat.efficient_trace_payload_format:
+            return (int(self.trace_id, 16) >> 64) & 0xFFFFFFFFFFFFFFFF
+
+        if "traceIDHigh" in self._data:
+            return int(self._data["traceIDHigh"])
+
         return int(self.trace_id[:16], base=16)
 
     @property
     def trace_id_low(self):
+        if self._trace_format == AgentTraceFormat.efficient_trace_payload_format:
+            return int(self.trace_id, 16) & 0xFFFFFFFFFFFFFFFF
+
         return int(self.trace_id[-16:], base=16)
 
     @property
     def span_id(self) -> int:
-        return int(self._data["span_id"], base=16)
+        if "span_id" in self._data:
+            return int(self._data["span_id"], base=16)
+        if "spanID" in self._data:
+            return int(self._data["spanID"], base=16)
+
+        raise ValueError(f"No span id exists in span link: {self._data}")
 
     @property
     def attributes(self) -> dict[str, str] | None:
@@ -471,6 +486,9 @@ class SpanLink:
 
         return 0
 
+    def __str__(self) -> str:
+        return str(self._data)
+
 
 def get_span_links(span: DataDogAgentSpan) -> list[SpanLink]:
     if span.get("spanLinks") is not None:
@@ -484,7 +502,7 @@ def get_span_links(span: DataDogAgentSpan) -> list[SpanLink]:
 
     raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
 
-    return [SpanLink(data) for data in raw_deserilialized]
+    return [SpanLink(data, span.trace.format) for data in raw_deserilialized]
 
 
 @scenarios.default
@@ -983,8 +1001,8 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # Assert the Datadog (restarted) span link
         link = span_links[0]
         assert link.trace_id_low == 1
+        assert link.trace_id_high == 1229782938247303441, f"link: {link}"
         assert link.span_id == 1
-        assert link.trace_id_high == 1229782938247303441
         assert link.attributes == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
