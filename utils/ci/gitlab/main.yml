@@ -86,9 +86,9 @@ variables:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   script:
-    - export SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)
     - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests:setup"
     - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
+    - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
   artifacts:
     reports:
       dotenv: param.env
