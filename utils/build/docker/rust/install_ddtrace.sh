@@ -6,115 +6,9 @@ cd /usr/app
 
 REPO_URL=https://github.com/DataDog/dd-trace-rs
 
-OTEL_DEPS=(
-    opentelemetry
-    opentelemetry_sdk
-    opentelemetry-http
-    opentelemetry-stdout
-    opentelemetry-semantic-conventions
-)
-
 fail() {
     echo "error: $*" >&2
     exit 1
-}
-
-align_opentelemetry() {
-    local metadata ddtrace_package_id otel_package_id otel_version otel_minor
-
-    for dep in "${OTEL_DEPS[@]}"; do
-        cargo remove "$dep" >/dev/null 2>&1 || true
-    done
-
-    # Read the OpenTelemetry version that datadog-opentelemetry actually resolved
-    # to. Looking at the first opentelemetry package in the graph is ambiguous when
-    # a conflicting version is already present.
-    if ! metadata=$(cargo metadata --format-version 1 2>/dev/null); then
-        fail "could not resolve dependencies after installing datadog-opentelemetry. Use a tracer revision compatible with Axum's OpenTelemetry dependencies."
-    fi
-
-    ddtrace_package_id=$(jq -r '[.packages[] | select(.name == "datadog-opentelemetry") | .id] | if length == 1 then .[0] else empty end' <<<"$metadata")
-    if [[ -z "$ddtrace_package_id" ]]; then
-        fail "could not identify the selected datadog-opentelemetry package in the dependency graph."
-    fi
-
-    otel_package_id=$(jq -r --arg package_id "$ddtrace_package_id" '[.resolve.nodes[] | select(.id == $package_id) | .deps[] | select(.name == "opentelemetry") | .pkg] | unique | if length == 1 then .[0] else empty end' <<<"$metadata")
-    if [[ -z "$otel_package_id" ]]; then
-        fail "could not identify the OpenTelemetry version required by datadog-opentelemetry."
-    fi
-
-    otel_version=$(jq -r --arg package_id "$otel_package_id" '[.packages[] | select(.id == $package_id) | .version] | if length == 1 then .[0] else empty end' <<<"$metadata")
-
-    if [[ ! "$otel_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        fail "could not determine a valid OpenTelemetry version from datadog-opentelemetry."
-    fi
-
-    # pin to the matching minor and let cargo pick each crate's patch version
-    otel_minor="${otel_version%.*}"
-    echo "aligning OpenTelemetry dependencies to ~${otel_minor} (datadog-opentelemetry uses ${otel_version})"
-
-    if ! cargo add "opentelemetry@~${otel_minor}" --features logs >/dev/null 2>&1 \
-        || ! cargo add "opentelemetry_sdk@~${otel_minor}" --features logs >/dev/null 2>&1 \
-        || ! cargo add "opentelemetry-http@~${otel_minor}" >/dev/null 2>&1 \
-        || ! cargo add "opentelemetry-stdout@~${otel_minor}" --features trace,logs >/dev/null 2>&1 \
-        || ! cargo add "opentelemetry-semantic-conventions@~${otel_minor}" >/dev/null 2>&1; then
-        fail "could not align Axum's OpenTelemetry dependencies to ~${otel_minor}. Update the Axum compatibility pins and retry."
-    fi
-
-    # Contrib crates that must track the same OpenTelemetry minor, but are not in
-    # OTEL_DEPS because they don't expose the `opentelemetry` version directly:
-    #   * reqwest-tracing picks the OTel version through a feature flag
-    #     `opentelemetry_0_<minor>` (version itself stays unbounded/latest).
-    #   * tracing-opentelemetry encodes the OTel minor in its own version:
-    #     tracing-opentelemetry 0.N depends on opentelemetry 0.(N-1), so to reach
-    #     opentelemetry 0.M we pin ~0.(M+1).
-    # Both are derived from ${otel_minor} so nothing here is hard-coded to a
-    # specific OpenTelemetry release.
-    local otel_minor_num reqwest_feature tracing_otel_minor
-    otel_minor_num="${otel_minor#*.}"               # "0.32" -> "32"
-    reqwest_feature="opentelemetry_0_${otel_minor_num}"
-    tracing_otel_minor="0.$((otel_minor_num + 1))"  # otel 0.M -> tracing-opentelemetry 0.(M+1)
-
-    echo "aligning contrib crates: reqwest-tracing feature ${reqwest_feature}, tracing-opentelemetry ~${tracing_otel_minor}"
-
-    # reqwest-tracing: latest version, OTel minor selected purely by feature flag.
-    # `cargo add --features` merges into the existing feature list, so remove
-    # first to drop any previously-selected opentelemetry_0_* feature.
-    cargo remove reqwest-tracing >/dev/null 2>&1 || true
-    if ! cargo add reqwest-tracing --features "${reqwest_feature}" >/dev/null 2>&1; then
-        fail "reqwest-tracing has no '${reqwest_feature}' feature for OpenTelemetry ${otel_minor}. Bump reqwest-tracing to a release that supports opentelemetry ${otel_minor}, or pin datadog-opentelemetry to a compatible OTel minor."
-    fi
-
-    cargo remove tracing-opentelemetry >/dev/null 2>&1 || true
-    if ! cargo add "tracing-opentelemetry@~${tracing_otel_minor}" >/dev/null 2>&1; then
-        fail "no tracing-opentelemetry ~${tracing_otel_minor} on crates.io (needed for OpenTelemetry ${otel_minor}). Wait for that release or pin datadog-opentelemetry to a compatible OTel minor."
-    fi
-}
-
-# Fails the build if more than one (semver-incompatible) version of the
-# `opentelemetry` crate ends up in the dependency graph.
-#
-# `opentelemetry::global::*` (the tracer provider and text map propagator set
-# up once in main.rs) is keyed on the exact crate version compiled into the
-# binary. If some other dependency (e.g. a git-pinned crate like
-# opentelemetry-instrumentation-tower) resolves a different major/minor of
-# `opentelemetry` than the one datadog-opentelemetry/tracing-opentelemetry use,
-# Rust links both versions side by side as distinct types with separate global
-# state. Anything using the *other* version's `global::tracer()` /
-# `global::get_text_map_propagator()` silently gets a no-op tracer/propagator:
-# no server spans, no inbound trace-context extraction, no errors anywhere.
-# This exact bug is what made every incoming-request test fail while
-# outgoing http.client spans kept working fine.
-check_single_opentelemetry_version() {
-    local versions
-    if ! versions=$(cargo metadata --format-version 1 2>/dev/null \
-        | jq -r '[.packages[] | select(.name == "opentelemetry") | .version] | unique | .[]'); then
-        fail "could not inspect the resolved OpenTelemetry dependency graph."
-    fi
-
-    if [[ $(echo "$versions" | grep -c .) -gt 1 ]]; then
-        fail "incompatible OpenTelemetry versions resolved: ${versions//$'\n'/, }. align_opentelemetry() already tracks the published crates (opentelemetry*, reqwest-tracing, tracing-opentelemetry) to whatever datadog-opentelemetry resolves, so the usual culprit is opentelemetry-instrumentation-tower: it is git-only (not on crates.io) and its OpenTelemetry minor is fixed by the pinned rev in axum/Cargo.toml. Bump that git rev to one depending on the same opentelemetry minor as datadog-opentelemetry (or use a compatible dd-trace-rs revision)."
-    fi
 }
 
 if [ -e /binaries/rust-load-from-git ]; then
@@ -168,6 +62,93 @@ else
     fi
 fi
 
+OTEL_DEPS=(
+    opentelemetry
+    opentelemetry_sdk
+    opentelemetry-http
+    opentelemetry-stdout
+    opentelemetry-semantic-conventions
+)
 # align the opentelemetry deps with whatever datadog-opentelemetry resolved to
+align_opentelemetry() {
+    local metadata ddtrace_package_id otel_package_id otel_version otel_minor
+
+    for dep in "${OTEL_DEPS[@]}"; do
+        cargo remove "$dep" >/dev/null 2>&1 || true
+    done
+
+    # Read the OpenTelemetry version that datadog-opentelemetry actually resolved to (looking at the first opentelemetry package in the graph is ambiguous if a conflicting version is êpresent).ê
+    if ! metadata=$(cargo metadata --format-version 1 2>/dev/null); then
+        fail "could not resolve dependencies after installing datadog-opentelemetry. Use a tracer revision compatible with Axum's OpenTelemetry dependencies."
+    fi
+
+    ddtrace_package_id=$(jq -r '[.packages[] | select(.name == "datadog-opentelemetry") | .id] | if length == 1 then .[0] else empty end' <<<"$metadata")
+    if [[ -z "$ddtrace_package_id" ]]; then
+        fail "could not identify the selected datadog-opentelemetry package in the dependency graph."
+    fi
+
+    otel_package_id=$(jq -r --arg package_id "$ddtrace_package_id" '[.resolve.nodes[] | select(.id == $package_id) | .deps[] | select(.name == "opentelemetry") | .pkg] | unique | if length == 1 then .[0] else empty end' <<<"$metadata")
+    if [[ -z "$otel_package_id" ]]; then
+        fail "could not identify the OpenTelemetry version required by datadog-opentelemetry."
+    fi
+
+    otel_version=$(jq -r --arg package_id "$otel_package_id" '[.packages[] | select(.id == $package_id) | .version] | if length == 1 then .[0] else empty end' <<<"$metadata")
+
+    if [[ ! "$otel_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        fail "could not determine a valid OpenTelemetry version from datadog-opentelemetry."
+    fi
+
+    # pin to the matching minor and let cargo pick each crate's patch version
+    otel_minor="${otel_version%.*}"
+    echo "aligning OpenTelemetry dependencies to ~${otel_minor} (datadog-opentelemetry uses ${otel_version})"
+
+    if ! cargo add "opentelemetry@~${otel_minor}" --features logs >/dev/null 2>&1 \
+        || ! cargo add "opentelemetry_sdk@~${otel_minor}" --features logs >/dev/null 2>&1 \
+        || ! cargo add "opentelemetry-http@~${otel_minor}" >/dev/null 2>&1 \
+        || ! cargo add "opentelemetry-stdout@~${otel_minor}" --features trace,logs >/dev/null 2>&1 \
+        || ! cargo add "opentelemetry-semantic-conventions@~${otel_minor}" >/dev/null 2>&1; then
+        fail "could not align Axum's OpenTelemetry dependencies to ~${otel_minor}. Update the Axum compatibility pins and retry."
+    fi
+
+    # Contrib crates that must track the same OpenTelemetry minor, derived from
+    # ${otel_minor} via reqwest-tracing's feature flag and tracing-opentelemetry's
+    # version offset.
+    local otel_minor_num reqwest_feature tracing_otel_minor
+    otel_minor_num="${otel_minor#*.}"               # "0.32" -> "32"
+
+    # reqwest-tracing: latest version, OTel minor selected purely by feature flag.
+    reqwest_feature="opentelemetry_0_${otel_minor_num}"
+
+    # otel 0.M -> tracing-opentelemetry 0.(M+1)
+    tracing_otel_minor="0.$((otel_minor_num + 1))"
+
+    echo "aligning contrib crates: reqwest-tracing feature ${reqwest_feature}, tracing-opentelemetry ~${tracing_otel_minor}"
+
+    # remove first to drop any previously-selected opentelemetry_0_* feature.
+    cargo remove reqwest-tracing >/dev/null 2>&1 || true
+    if ! cargo add reqwest-tracing --features "${reqwest_feature}" >/dev/null 2>&1; then
+        fail "reqwest-tracing has no '${reqwest_feature}' feature for OpenTelemetry ${otel_minor}. Bump reqwest-tracing to a release that supports opentelemetry ${otel_minor}, or pin datadog-opentelemetry to a compatible OTel minor."
+    fi
+
+    cargo remove tracing-opentelemetry >/dev/null 2>&1 || true
+    if ! cargo add "tracing-opentelemetry@~${tracing_otel_minor}" >/dev/null 2>&1; then
+        fail "no tracing-opentelemetry ~${tracing_otel_minor} on crates.io (needed for OpenTelemetry ${otel_minor}). Wait for that release or pin datadog-opentelemetry to a compatible OTel minor."
+    fi
+}
 align_opentelemetry
+
+# Fails the build if more than one version of `opentelemetry` resolves in the
+# dependency graph, since duplicate versions link as distinct types with
+# separate `global::*` state, silently producing no-op tracers/propagators.
+check_single_opentelemetry_version() {
+    local versions
+    if ! versions=$(cargo metadata --format-version 1 2>/dev/null \
+        | jq -r '[.packages[] | select(.name == "opentelemetry") | .version] | unique | .[]'); then
+        fail "could not inspect the resolved OpenTelemetry dependency graph."
+    fi
+
+    if [[ $(echo "$versions" | grep -c .) -gt 1 ]]; then
+        fail "incompatible OpenTelemetry versions resolved: ${versions//$'\n'/, }. align_opentelemetry() already tracks the published crates (opentelemetry*, reqwest-tracing, tracing-opentelemetry) to whatever datadog-opentelemetry resolves, so the usual culprit is opentelemetry-instrumentation-tower: it is git-only (not on crates.io) and its OpenTelemetry minor is fixed by the pinned rev in axum/Cargo.toml. Bump that git rev to one depending on the same opentelemetry minor as datadog-opentelemetry (or use a compatible dd-trace-rs revision)."
+    fi
+}
 check_single_opentelemetry_version
