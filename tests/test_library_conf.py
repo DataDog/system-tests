@@ -430,6 +430,63 @@ class Test_HeaderTags_Wildcard_Response_Headers:
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
+class SpanLink:
+    def __init__(self, data: dict):
+        self._data = data
+
+    @property
+    def trace_id(self) -> str:
+        if "traceID" in self._data:
+            return self._data["traceID"]
+
+        if "trace_id" in self._data:
+            return self._data["trace_id"]
+
+        raise ValueError("No trace id exists in span link")
+
+    @property
+    def trace_id_high(self):
+        return int(self.trace_id[:16], base=16)
+
+    @property
+    def trace_id_low(self):
+        return int(self.trace_id[-16:], base=16)
+
+    @property
+    def span_id(self) -> int:
+        return int(self._data["span_id"], base=16)
+
+    @property
+    def attributes(self) -> dict[str, str] | None:
+        return self._data.get("attributes", None)
+
+    @property
+    def trace_state(self) -> str | None:
+        return self._data.get("tracestate", self._data.get("trace_state", None))
+
+    @property
+    def flags(self) -> int:
+        if "flags" in self._data:
+            return self._data["flags"] | TRACECONTEXT_FLAGS_SET
+
+        return 0
+
+
+def get_span_links(span: DataDogAgentSpan) -> list[SpanLink]:
+    if span.get("spanLinks") is not None:
+        raw = span["spanLinks"]
+
+    elif span.trace.format == AgentTraceFormat.efficient_trace_payload_format and span.get("links") is not None:
+        raw = span["links"]
+
+    else:
+        raw = span.meta.get("_dd.span_links", [])
+
+    raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
+
+    return [SpanLink(data) for data in raw_deserilialized]
+
+
 def retrieve_span_links(span: DataDogAgentSpan) -> list[dict] | None:
     """Retrieves span links from a span.
     Returns the format of the span links as it may differ from the trace format emitted by the agent
@@ -540,17 +597,16 @@ class Test_ExtractBehavior_Default:
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context
-        span_links = retrieve_span_links(span)
-        assert span_links is not None, "Expected span links to be present"
+        span_links = get_span_links(span)
         assert len(span_links) == 1
 
         link = span_links[0]
-        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span.trace.format)
+        trace_id_high, trace_id_low = link.trace_id_high, link.trace_id_low
         # Assert the W3C Trace Context (conflicting trace context) span link according to the format
         assert trace_id_low == 8687463697196027922  # int(0x7890123456789012)
         assert trace_id_high == 1311768467284833366  # int(0x1234567890123456)
-        assert int(link["spanID"]) == 1311768467284833366  # int (0x1234567890123456)
-        assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
+        assert link.span_id == 1311768467284833366  # int (0x1234567890123456)
+        assert link.attributes == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
