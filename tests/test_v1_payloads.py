@@ -1,6 +1,29 @@
-from utils import weblog, interfaces, scenarios, features
+import json
+from utils import weblog, interfaces, scenarios, features, logger
 from utils.dd_constants import SamplingPriority, SamplingMechanism, SpanKind
-from utils.dd_types import AgentTraceFormat, LibraryTraceFormat
+from utils.dd_types import AgentTraceFormat, LibraryTraceFormat, DataDogLibrarySpan
+from tests.test_library_conf import SpanLink  # TODO : move this inside utils/dd_type
+
+
+def get_span_links(span: DataDogLibrarySpan) -> list[SpanLink]:
+    if span.trace.format == LibraryTraceFormat.v10:
+        # v1.0: span_links can be at top level or in attributes
+        if "span_links" in span.raw_span:
+            return [SpanLink.from_library_v1_span_links(data) for data in span.raw_span["span_links"]]
+
+        if "_dd.span_links" in span.raw_span.get("attributes", {}):
+            return [SpanLink.from_library_v1_attributes(data) for data in span.raw_span["attributes"]["_dd.span_links"]]
+
+        return []
+
+    if "span_links" in span.raw_span:
+        return [SpanLink.from_library_v1_span_links(data) for data in span.raw_span["span_links"]]
+
+    logger.info("Span links are stored inside span.meta['_dd.span_links'] and trace format is legacy")
+    raw = span.meta.get("_dd.span_links", [])
+    raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
+
+    return [SpanLink.from_library_legacy_format(data) for data in raw_deserilialized]
 
 
 @features.efficient_trace_payload
@@ -67,21 +90,20 @@ class Test_V1SpanLinks:
     def test_span_links_present(self):
         """V1 spans carrying span links expose them at the top level or in attributes"""
         spans_with_links = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)
-            if span.raw_span.get("span_links") or span.raw_span.get("attributes", {}).get("_dd.span_links")
+            span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True) if get_span_links(span)
         ]
         assert len(spans_with_links) >= 1, "Expected at least one span with span links"
 
         link_carrier = spans_with_links[0]
-        links = link_carrier.raw_span.get("span_links") or []
+        assert link_carrier.trace.format == AgentTraceFormat.efficient_trace_payload_format
+        links = get_span_links(link_carrier)
 
         assert len(links) >= 1
         link = links[0]
 
-        assert isinstance(link["trace_id"], str)
-        assert link["trace_id"].startswith("0x")
-        assert isinstance(link["span_id"], int)
+        assert isinstance(link.data["trace_id"], str)
+        assert link.data["trace_id"].startswith("0x")
+        assert isinstance(link.data["span_id"], int)
 
 
 @scenarios.apm_tracing_efficient_payload

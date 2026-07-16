@@ -432,7 +432,7 @@ TRACECONTEXT_FLAGS_SET = 1 << 31
 
 class SpanLink:
     def __init__(self, data: dict, trace_id: str, trace_id_low: int, trace_id_high: int):
-        self._data = data
+        self.data = data
         self.trace_id = trace_id
         self.trace_id_low = trace_id_low
         self.trace_id_high = trace_id_high
@@ -441,9 +441,9 @@ class SpanLink:
         self.trace_state: str | None = data.get("tracestate", data.get("trace_state"))
         self.flags: int = (data["flags"] | TRACECONTEXT_FLAGS_SET) if "flags" in data else 0
 
-        if "span_id" in self._data:  # span_id is a string on base 16
+        if "span_id" in self.data:  # span_id is a string on base 16
             self.span_id = int(data["span_id"], base=16)
-        elif "spanID" in self._data:  # spanID is a string on base 10
+        elif "spanID" in self.data:  # spanID is a string on base 10
             self.span_id = int(data["spanID"])
         else:
             raise ValueError(f"No span id exists in span link: {data}")
@@ -466,6 +466,44 @@ class SpanLink:
         )
 
     @staticmethod
+    def from_library_v1_span_links(data: dict) -> "SpanLink":
+        trace_id = data["trace_id"]
+        assert isinstance(trace_id, str)
+
+        if "trace_id_high" not in data:
+            assert trace_id.startswith("0x")
+            assert len(trace_id) > 18
+            trace_id_high = int(trace_id[2:18], 16)  # 128-bit: high 64 bits (first 16 hex chars after 0x)
+        else:
+            trace_id_high = data["trace_id_high"]
+
+        return SpanLink(
+            data,
+            trace_id=trace_id,
+            trace_id_high=trace_id_high,
+            trace_id_low=int(trace_id, 16) & 0xFFFFFFFFFFFFFFFF,
+        )
+
+    @staticmethod
+    def from_library_v1_attributes(data: dict) -> "SpanLink":
+        trace_id = data["trace_id"]
+        assert isinstance(trace_id, str)
+
+        if "trace_id_high" not in data:
+            assert trace_id.startswith("0x")
+            assert len(trace_id) > 18
+            trace_id_high = int(trace_id[2:18], 16)  # 128-bit: high 64 bits (first 16 hex chars after 0x)
+        else:
+            trace_id_high = data["trace_id_high"]
+
+        return SpanLink(
+            data,
+            trace_id=trace_id,
+            trace_id_high=trace_id_high,
+            trace_id_low=int(trace_id, 16) & 0xFFFFFFFFFFFFFFFF,
+        )
+
+    @staticmethod
     def from_legacy_format(data: dict) -> "SpanLink":
         trace_id = data["trace_id"]
 
@@ -476,11 +514,23 @@ class SpanLink:
             trace_id_low=int(trace_id[-16:], base=16),
         )
 
+    @staticmethod
+    def from_library_legacy_format(data: dict) -> "SpanLink":
+        # trace Id can be Go-style (int) and Java-style (hex string e.g. '0x...'). Encode int into java style
+        trace_id: str = hex(data["trace_id"]) if isinstance(data["trace_id"], int) else data["trace_id"]
+
+        return SpanLink(
+            data,
+            trace_id=trace_id,
+            trace_id_high=int(trace_id[:16], base=16) if len(trace_id) > 16 else 0,
+            trace_id_low=int(trace_id[-16:], base=16),
+        )
+
     def __str__(self) -> str:
-        return str(self._data)
+        return str(self.data)
 
     def __repr__(self) -> str:
-        return repr(self._data)
+        return repr(self.data)
 
 
 def get_span_links(span: DataDogAgentSpan) -> list[SpanLink]:
