@@ -1,8 +1,8 @@
 import pytest
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
-from utils._context.containers import InternalServerContainer
-from utils._context.containers import PostgresContainer
+from utils._context.containers import InternalServerContainer, PostgresContainer
+from utils._context.constants import WeblogCategory
 
 
 # When Security Controls configuration is set, tracers must instrument all the designated methods in the
@@ -77,6 +77,7 @@ class DefaultScenario(EndToEndScenario):
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             other_weblog_containers=(PostgresContainer,),
             scenario_groups=[scenario_groups.essentials, scenario_groups.telemetry],
+            weblog_categories=[WeblogCategory.dd_trace],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
 

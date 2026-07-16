@@ -1548,6 +1548,8 @@ manifest:
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.15.0
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.11.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -1892,6 +1894,9 @@ manifest:
         ruby-app-deployment-mode: v2.24.0
         rails6-app-vendored-mode: v2.29.0-dev
         ruby-app-vendored-mode: v2.29.0-dev
+        rails8-app: v2.38.0-dev
+        rails8-app-deployment-mode: v2.38.0-dev
+        rails8-app-vendored-mode: v2.38.0-dev
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <2.19.0
@@ -1920,6 +1925,11 @@ manifest:
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
+  tests/docker_ssi/test_docker_ssi_appsec.py:
+    - weblog_declaration:
+        rails8-app: v2.38.0-dev
+        rails8-app-deployment-mode: v2.38.0-dev
+        rails8-app-vendored-mode: v2.38.0-dev
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
     - declaration: bug (APPSEC-60983)
       component_version: '<2.29.0-dev'

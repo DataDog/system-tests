@@ -17,7 +17,7 @@ from pathlib import Path
 import threading
 import time
 from typing import TYPE_CHECKING, Any, TypedDict, cast
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
 import requests
@@ -44,10 +44,13 @@ EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 0.5
 TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
-CONFIG_PATH = "/api/v2/feature-flagging/config/server-distribution"
+CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
+EXPECTED_DD_ENV = "test"
+CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
+UFC_RESPONSE_TYPE = "universal-flag-configuration"
 
 
 class MockFFEAgentlessBackendStatus(TypedDict):
@@ -143,18 +146,20 @@ class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
 
 class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
     # Endpoint contract:
-    # - GET /api/v2/feature-flagging/config/server-distribution
+    # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
     # - GET /status
     # - POST /control/responses
     # - POST /control/reset
     server: MockFFEAgentlessBackendHTTPServer
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path
-        if path == CONFIG_PATH:
+        parsed = urlparse(self.path)
+        if parsed.path == CONFIG_PATH and parse_qs(parsed.query, keep_blank_values=True) == {
+            "dd_env": [EXPECTED_DD_ENV]
+        }:
             self._handle_config()
             return
-        if path == "/status":
+        if parsed.path == "/status":
             self._write_json(HTTPStatus.OK, self.server.state.status())
             return
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
@@ -232,11 +237,20 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
 
 def _has_auth(headers: Mapping[str, str]) -> bool:
     normalized = {key.lower(): value for key, value in headers.items()}
-    return any(normalized.get(header) == EXPECTED_API_KEY for header in ("dd-api-key", "x-datadog-api-key"))
+    return normalized.get("dd-api-key") == EXPECTED_API_KEY
 
 
 def _valid_ufc_bytes() -> bytes:
-    return UFC_FIXTURE_PATH.read_bytes()
+    attributes = json.loads(UFC_FIXTURE_PATH.read_text())
+    return json.dumps(
+        {
+            "data": {
+                "id": "1",
+                "type": UFC_RESPONSE_TYPE,
+                "attributes": attributes,
+            }
+        }
+    ).encode("utf-8")
 
 
 def validate_responses(responses: object) -> list[str]:
@@ -269,13 +283,19 @@ def _response_for_response(response: str, *, has_auth: bool) -> tuple[int, bytes
 
 
 def _strip_config_path(url: str) -> str:
-    return url.removesuffix(CONFIG_PATH)
+    parsed = urlparse(url)
+    if not parsed.path.endswith(CONFIG_PATH):
+        return url
+
+    base_path = parsed.path.removesuffix(CONFIG_PATH).rstrip("/")
+    return parsed._replace(path=base_path, params="", query="", fragment="").geturl().rstrip("/")
 
 
 class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str) -> None:
-        self.port = get_host_port(worker_id, 4900)
+    def __init__(self, worker_id: str, *, port: int | None = None) -> None:
+        self.port = get_host_port(worker_id, 4900) if port is None else port
         self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
+        self.port = self._server.server_port
         self._thread = threading.Thread(
             target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
         )
@@ -300,7 +320,7 @@ class MockFFEAgentlessBackendServer:
 
     @property
     def library_config_url(self) -> str:
-        return f"{self.library_base_url}{CONFIG_PATH}"
+        return f"{self.library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
 
     def reset(self) -> None:
         response = requests.post(f"{self.base_url}/control/reset", timeout=5)
