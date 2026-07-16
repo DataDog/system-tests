@@ -122,8 +122,6 @@ fn router(state: AppState) -> Router {
             "/requestdownstream",
             get(requestdownstream).post(requestdownstream),
         )
-        .route("/waf", any(waf))
-        .route("/waf/", any(waf))
         .route("/make_distant_call", get(make_distant_call))
         .with_state(state)
 }
@@ -477,10 +475,6 @@ async fn requestdownstream(State(state): State<AppState>, method: Method) -> Res
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
-}
-
-async fn waf() -> Response {
-    StatusCode::OK.into_response()
 }
 
 // ─── External request endpoints ─────────────────────────────────────────────
