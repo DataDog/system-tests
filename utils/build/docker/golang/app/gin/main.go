@@ -381,6 +381,11 @@ func main() {
 		loops, _ := strconv.Atoi(ctx.Param("count"))
 		d.budgets(ctx.Writer, ctx.Request, loops)
 	})
+	r.Any("/debugger/correlation", ginHandleFunc(d.correlation))
+	r.Any("/debugger/correlation/loop/:count", func(ctx *gin.Context) {
+		loops, _ := strconv.Atoi(ctx.Param("count"))
+		d.correlationLoop(ctx.Writer, ctx.Request, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

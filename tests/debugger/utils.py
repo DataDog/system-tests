@@ -168,8 +168,22 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
-            "CorrelationLoopBody": {"python": [197], "java": [177], "dotnet": [181], "nodejs": [148], "ruby": [256]},
-            "CorrelationLoopSibling": {"python": [199], "java": [180], "dotnet": [184], "nodejs": [151], "ruby": [259]},
+            "CorrelationLoopBody": {
+                "python": [197],
+                "java": [177],
+                "dotnet": [181],
+                "nodejs": [148],
+                "ruby": [256],
+                "golang": [144],
+            },
+            "CorrelationLoopSibling": {
+                "python": [199],
+                "java": [180],
+                "dotnet": [184],
+                "nodejs": [151],
+                "ruby": [259],
+                "golang": [147],
+            },
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -298,6 +312,8 @@ class BaseDebuggerTest:
                             "20": "main.(*DebuggerController).logProbe",
                             "71": "main.(*DebuggerController).expression",
                             "117": "main.(*DebuggerController).budgetStep",
+                            "144": "main.(*DebuggerController).correlationLoop",
+                            "147": "main.(*DebuggerController).correlationLoop",
                         }
                         line = str(probe["where"]["lines"][0])
                         if line in golang_line_to_method:
