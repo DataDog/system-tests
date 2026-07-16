@@ -467,8 +467,8 @@ class SpanLink:
 
     @staticmethod
     def from_library_v1_span_links(data: dict) -> "SpanLink":
-        trace_id = data["trace_id"]
-        assert isinstance(trace_id, str)
+        # trace Id can be Go-style (int) and Java-style (hex string e.g. '0x...'). Encode int into java style
+        trace_id: str = hex(data["trace_id"]) if isinstance(data["trace_id"], int) else data["trace_id"]
 
         if "trace_id_high" not in data:
             assert trace_id.startswith("0x")
