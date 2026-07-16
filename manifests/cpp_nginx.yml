@@ -76,6 +76,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: '>=1.12.0'  # Modified by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection: missing_feature  # Created by easy win activation script
