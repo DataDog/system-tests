@@ -19,7 +19,7 @@
     - section_end "copy_binaries"
 {% endmacro %}
 {% macro metric_cmd() -%}
-if [ -n "$SYSTEM_TESTS_PIPELINE_START_TIME" ]; then elapsed=$(( $(date +%s) - SYSTEM_TESTS_PIPELINE_START_TIME )); datadog-ci measure --level job --measures system_tests.pipeline.execution_time:$elapsed; else echo "SYSTEM_TESTS_PIPELINE_START_TIME not set, skipping metric emission"; fi
+if [[ "$SYSTEM_TESTS_PIPELINE_START_TIME" =~ ^[0-9]+$ ]]; then elapsed=$(( $(date +%s) - SYSTEM_TESTS_PIPELINE_START_TIME )); datadog-ci measure --level job --measures system_tests.pipeline.execution_time:$elapsed; else echo "SYSTEM_TESTS_PIPELINE_START_TIME not set or not numeric, skipping metric emission"; fi
 {%- endmacro %}
 {% macro trace_cmd(name, command, library, weblog=none, scenario=none) -%}
 datadog-ci trace --name "{{name}}" --tags library:{{library}}{% if weblog %} --tags weblog:{{weblog}}{% endif %}{% if scenario %} --tags scenario:{{scenario}}{% endif %} -- {{command}}
@@ -51,6 +51,10 @@ stages:
 
 variables:
   CI_IMAGE: {{ci_image}}
+  # Baked in at generation time (see build_pipeline.py) instead of forwarded through trigger-job
+  # `variables:` from the parent pipeline, since GitLab does not reliably resolve dotenv-backed
+  # self-referencing variables (VAR: "$VAR") on trigger jobs.
+  SYSTEM_TESTS_PIPELINE_START_TIME: "{{pipeline_start_time}}"
 
 .push_to_test_optimization:
   id_tokens:
