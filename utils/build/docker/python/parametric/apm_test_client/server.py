@@ -1460,8 +1460,23 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         default_value = body.get("defaultValue")
         targeting_key = body.get("targetingKey")
         attributes = body.get("attributes", {})
+        # span_id is sent by the test client as a STRING (see _test_client_parametric.py:814-815);
+        # re-activate the caller-supplied root span around the eval so the ffe_* tags (Phase 2) land
+        # on the test's span. Unknown/missing/unparsable id -> skip activation, never throw (T-01-DOS).
+        span_id = body.get("span_id")
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+
+        # Look up the registered span and re-activate it for the duration of the eval, reusing the
+        # same context-activation primitive that /trace/span/start's start_span(activate=True) relies on.
+        target_span = None
+        if span_id is not None:
+            try:
+                target_span = spans.get(int(span_id))
+            except (TypeError, ValueError):
+                target_span = None
+        if target_span is not None:
+            ddtrace.tracer.context_provider.activate(target_span)
 
         # Evaluate based on variation type
         value = default_value
