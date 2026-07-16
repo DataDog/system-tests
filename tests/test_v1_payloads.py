@@ -95,7 +95,7 @@ class Test_V1SpanLinks:
         assert len(spans_with_links) >= 1, "Expected at least one span with span links"
 
         link_carrier = spans_with_links[0]
-        assert link_carrier.trace.format == AgentTraceFormat.efficient_trace_payload_format
+        assert link_carrier.trace.format == LibraryTraceFormat.v10
         links = get_span_links(link_carrier)
 
         assert len(links) >= 1
