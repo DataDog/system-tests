@@ -439,7 +439,7 @@ class SpanLink:
 
         self.attributes: dict[str, str] | None = data.get("attributes")
         self.trace_state: str | None = data.get("tracestate", data.get("trace_state"))
-        self.flags: int = data.get("flags", 0) | TRACECONTEXT_FLAGS_SET
+        self.flags: int = (data["flags"] | TRACECONTEXT_FLAGS_SET) if "flags" in data else 0
 
         if "span_id" in self._data:  # span_id is a string on base 16
             self.span_id = int(data["span_id"], base=16)
