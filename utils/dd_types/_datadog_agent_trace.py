@@ -168,15 +168,15 @@ class DataDogAgentSpan(ABC):
 
     def get_span_links(self) -> list[DataDogSpanLink]:
         if self.get("spanLinks") is not None:
-            return [DataDogSpanLink.from_span_links(data) for data in self.get("spanLinks")]
+            return [DataDogSpanLink.from_agent_span_links(data) for data in self.get("spanLinks")]
 
         if self.trace.format == AgentTraceFormat.efficient_trace_payload_format and self.get("links") is not None:
-            return [DataDogSpanLink.from_efficient_trace_payload_format(data) for data in self.get("links")]
+            return [DataDogSpanLink.from_agent_efficient_trace_payload_format(data) for data in self.get("links")]
 
         raw = self.meta.get("_dd.span_links", [])
         raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
 
-        return [DataDogSpanLink.from_legacy_format(data) for data in raw_deserilialized]
+        return [DataDogSpanLink.from_agent_legacy_format(data) for data in raw_deserilialized]
 
 
 class DataDogAgentSpanLegacy(DataDogAgentSpan):

@@ -23,13 +23,13 @@ class DataDogSpanLink:
             raise ValueError(f"No span id exists in span link: {data}")
 
     @staticmethod
-    def from_span_links(data: dict) -> "DataDogSpanLink":
+    def from_agent_span_links(data: dict) -> "DataDogSpanLink":
         return DataDogSpanLink(
             data, trace_id=data["traceID"], trace_id_high=int(data["traceIDHigh"]), trace_id_low=int(data["traceID"])
         )
 
     @staticmethod
-    def from_efficient_trace_payload_format(data: dict) -> "DataDogSpanLink":
+    def from_agent_efficient_trace_payload_format(data: dict) -> "DataDogSpanLink":
         trace_id = data["traceID"]
 
         return DataDogSpanLink(
@@ -79,7 +79,7 @@ class DataDogSpanLink:
         )
 
     @staticmethod
-    def from_legacy_format(data: dict) -> "DataDogSpanLink":
+    def from_agent_legacy_format(data: dict) -> "DataDogSpanLink":
         trace_id = data["trace_id"]
 
         return DataDogSpanLink(
