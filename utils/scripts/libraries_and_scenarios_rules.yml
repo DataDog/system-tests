@@ -551,6 +551,12 @@ patterns:
         scenario_groups: null
         libraries: null
 
+    # This helper has no test items of its own, so it's invisible to the scenario map that
+    # drives dynamic selection below. List its consumers' scenarios explicitly.
+    tests/test_telemetry_heartbeat_utils.py:
+        scenario_groups: null
+        scenarios: [DEFAULT, TEST_THE_TEST]
+
     tests/fuzzer/*:
         scenario_groups: exotics
         libraries: null

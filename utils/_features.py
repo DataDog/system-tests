@@ -1015,6 +1015,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=154, owner=_Owner.asm)
 
     @staticmethod
+    def appsec_agentic_onboarding(test_object):
+        """Agentic Onboarding Runtime Detection
+
+        https://feature-parity.us1.prod.dog/#/?feature=563
+        """
+        return _mark_test_object(test_object, feature_id=563, owner=_Owner.asm)
+
+    @staticmethod
     def changing_rules_using_rc(test_object):
         """Changing rules using RC
 
