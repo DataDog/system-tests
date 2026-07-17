@@ -172,9 +172,9 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
         # AI-Guard-enabled call emits, masking a regression in the after-model hook. Require a
         # span whose evaluated messages include the assistant response to prove it actually ran.
         guard_spans = _wait_for_ai_guard_spans(test_agent)
-        assert any(
-            msg.get("role") == "assistant" for span in guard_spans for msg in _guard_messages(span)
-        ), "expected an after-model ai_guard span whose messages include the assistant response"
+        assert any(msg.get("role") == "assistant" for span in guard_spans for msg in _guard_messages(span)), (
+            "expected an after-model ai_guard span whose messages include the assistant response"
+        )
 
         event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
         assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
