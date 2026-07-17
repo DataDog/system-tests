@@ -204,8 +204,12 @@ fn format_global_tags(config: &Config) -> String {
 }
 
 fn format_trace_propagation_extract(config: &Config) -> String {
+    // Mirror the library's effective-extractor resolution: use the extract-specific styles when
+    // set, otherwise fall back to the global propagation style (which is what OTEL_PROPAGATORS and
+    // a bare DD_TRACE_PROPAGATION_STYLE feed). See dd-trace-rs propagation/config.rs::get_extractors.
     config
         .trace_propagation_style_extract()
+        .or_else(|| config.trace_propagation_style())
         .map(|styles| {
             styles
                 .iter()
