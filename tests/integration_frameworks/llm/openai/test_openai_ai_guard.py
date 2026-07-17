@@ -15,12 +15,16 @@ Guard evaluates the call at three points with no manual ``evaluate()`` call:
   the response before running the evaluation);
 - **tool-call**: tool calls produced by the model are evaluated.
 
-We assert only that the integration wires each evaluation point and emits an ``ai_guard``
-span attached to the OpenAI trace. The evaluation *outcome* (ALLOW / DENY / ABORT) is
-already covered by the ``AI_GUARD`` scenario and is intentionally not re-asserted here.
+We assert that the integration wires each evaluation point: that it emits an ``ai_guard``
+span for the specific evaluation being exercised (identified by ``ai_guard.target`` and by
+the messages captured in ``meta_struct.ai_guard``) and tags the local root span with
+``ai_guard.event:true``. We do not assert trace *linkage* to the ``openai.request`` span:
+the tracer does not deterministically nest the ``ai_guard`` span in the OpenAI trace (it
+may be emitted as its own trace), so a shared ``trace_id`` is not guaranteed. The
+evaluation *outcome* (ALLOW / DENY / ABORT) is already covered by the ``AI_GUARD`` scenario
+and is intentionally not re-asserted here.
 """
 
-import os
 import time
 
 import pytest
@@ -33,26 +37,25 @@ from .utils import TOOLS, BaseOpenaiTest
 
 
 @pytest.fixture
-def library_env(request: pytest.FixtureRequest) -> dict[str, str]:
-    env = {
+def library_env() -> dict[str, str]:
+    # The AI Guard client also needs DD_API_KEY / DD_APP_KEY, but those are injected via the
+    # scenario environment (see IntegrationFrameworksScenario._required_cassette_generation_api_keys)
+    # rather than here: library_env is copied into the JSON report metadata, so keeping secrets
+    # out of it prevents real keys from leaking into logs/artifacts during cassette generation.
+    return {
         "DD_AI_GUARD_ENABLED": "true",
         # after-model evaluation of streamed responses is opt-in
         "DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED": "true",
     }
-    # The AI Guard client needs an API key + app key. Real keys are required when recording
-    # cassettes (the client calls the real AI Guard API); mock keys are fine on replay since
-    # the VCR proxy matches on the request, not on auth.
-    if request.config.option.generate_cassettes:
-        env["DD_API_KEY"] = os.environ["DD_API_KEY"]
-        env["DD_APP_KEY"] = os.environ["DD_APP_KEY"]
-    else:
-        env["DD_API_KEY"] = "mock_api_key"
-        env["DD_APP_KEY"] = "mock_app_key"
-    return env
 
 
 def _ai_guard_spans(traces: list[list[dict]]) -> list[dict]:
     return [span for trace in traces for span in trace if span.get("resource") == "ai_guard"]
+
+
+def _guard_messages(span: dict) -> list[dict]:
+    """The messages AI Guard evaluated, as captured in ``meta_struct.ai_guard.messages``."""
+    return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
 
 
 def _ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
@@ -147,6 +150,11 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
         event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
         assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
 
+    @pytest.mark.skip(
+        reason="After-model streamed cassette records only the prompt eval - the reconstructed "
+        "assistant response was never recorded, so the after-model path cannot be replayed yet. "
+        "Regenerate the aiguard cassette with an assistant message before enabling (APPSEC-68977)."
+    )
     def test_after_model_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         """The streamed model response is evaluated by AI Guard after the model returns."""
         with test_agent.vcr_context(stream=True):
@@ -160,8 +168,13 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
                 ),
             )
 
+        # An unfiltered wait would be satisfied by the before-model ``prompt`` span that every
+        # AI-Guard-enabled call emits, masking a regression in the after-model hook. Require a
+        # span whose evaluated messages include the assistant response to prove it actually ran.
         guard_spans = _wait_for_ai_guard_spans(test_agent)
-        assert guard_spans, "expected an ai_guard span from the after-model (streamed) evaluation"
+        assert any(
+            msg.get("role") == "assistant" for span in guard_spans for msg in _guard_messages(span)
+        ), "expected an after-model ai_guard span whose messages include the assistant response"
 
         event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
         assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
@@ -186,6 +199,14 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
 
         guard_spans = _wait_for_ai_guard_spans(test_agent, target="tool")
         assert guard_spans, "expected a tool-call ai_guard span with target 'tool'"
+        # ``target == "tool"`` alone can also come from an ordinary after-model eval of an
+        # assistant response, so require the assistant tool_calls entry to actually be in the
+        # payload sent to AI Guard - that is what proves the tool-call path was forwarded.
+        assert any(
+            msg.get("role") == "assistant" and msg.get("tool_calls")
+            for span in guard_spans
+            for msg in _guard_messages(span)
+        ), "expected the assistant tool_calls entry in the ai_guard evaluation payload"
 
         event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
         assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
