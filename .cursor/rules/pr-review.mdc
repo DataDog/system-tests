@@ -58,7 +58,13 @@ When adding a new weblog, verify the name is unique across all languages. Search
 
 - Ref: [build.md](mdc:docs/execute/build.md)
 
-## 10. Manifest YAML Syntax
+## 10. No Cross-Test-File Imports
+
+A `test_*.py` file must never import from another `test_*.py` file (absolute like `from tests.xxx.test_yyy import ...` or relative like `from .test_yyy import ...`). If logic is shared between test files, it must be moved to a local `utils.py` file in the same folder instead. Flag any PR that adds such an import.
+
+- Ref: [repository-structure.mdc](mdc:.cursor/rules/repository-structure.mdc), enforced by `tests/test_the_test/test_conventions.py::test_no_cross_test_file_imports`
+
+## 11. Manifest YAML Syntax
 
 - `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`)
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted
