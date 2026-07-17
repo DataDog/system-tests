@@ -45,6 +45,13 @@ include:
       stage: {{stage}}
       ref: {{ref}}
 
+default:
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - scheduler_failure
+
 stages:
   - {{stage}}
 
