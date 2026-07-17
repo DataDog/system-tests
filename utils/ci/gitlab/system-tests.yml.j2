@@ -57,11 +57,6 @@ stages:
 
 variables:
   CI_IMAGE: {{ci_image}}
-  # Baked in at generation time (see build_pipeline.py) under a name that cannot collide with any
-  # variable inherited from the parent pipeline/trigger job (e.g. dotenv artifacts from
-  # system_tests_param), since GitLab gives inherited/trigger variables precedence over a plain
-  # `variables:` declaration in the included YAML, and does not reliably resolve dotenv-backed
-  # self-referencing variables (VAR: "$VAR") on trigger jobs.
   SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME: "{{pipeline_start_time}}"
 
 .push_to_test_optimization:
