@@ -4,7 +4,6 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 from typing import cast
 
-import pytest
 
 from tests.ffe.utils.fixtures import JSON, make_ufc_fixture
 from utils import HttpResponse
