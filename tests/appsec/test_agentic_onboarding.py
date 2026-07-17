@@ -38,11 +38,15 @@ class Test_AppsecAgenticOnboarding:
         """Flag set + AppSec enabled -> appsec.agentic_onboarding=true, origin=env_var."""
         entries = _find_config(CONFIG_KEY)
         assert entries, f"{CONFIG_KEY} missing from telemetry"
-        entry = entries[-1]
-        assert entry.get("origin") == "env_var", f"Expected origin env_var, got: {entry}"
-        # native bool preferred; string fallback for cross-tracer compat. `is True`
-        # rejects numeric 1 (1 == True in Python).
-        assert entry["value"] is True or entry["value"] == "true", f"Expected boolean true, got: {entry}"
+        # Assert every reported entry is consistent rather than counting them: prefork /
+        # multiprocess weblogs (uwsgi, php-fpm) and the app-client-configuration-change
+        # carrier can legitimately emit more than one, so a count check would be flaky;
+        # this still catches a contradictory or wrongly-sourced report.
+        for entry in entries:
+            assert entry.get("origin") == "env_var", f"Expected origin env_var, got: {entry}"
+            # native bool preferred; string fallback for cross-tracer compat. `is True`
+            # rejects numeric 1 (1 == True in Python).
+            assert entry["value"] is True or entry["value"] == "true", f"Expected boolean true, got: {entry}"
         # presence-only: only the derived boolean is sent, never the raw flag
         assert not _find_config(RAW_ENV_VAR), f"{RAW_ENV_VAR} must not be reported in telemetry"
 
