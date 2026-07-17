@@ -19,19 +19,19 @@
     - section_end "copy_binaries"
 {% endmacro %}
 {% macro job_tag(tag) %}
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "{{tag}}"
+    - datadog-ci tag --level job --tags "{{tag}}"
 {% endmacro %}
 {% macro emit_execution_time_metric() %}
     - |
       if [[ "$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME" =~ ^[0-9]+$ ]]; then
         elapsed=$(( $(date +%s) - SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME ))
-        dd-sts exchange --policy system-tests-gitlab -- datadog-ci measure --level job --measures system_tests.pipeline.execution_time:$elapsed
+        datadog-ci measure --level job --measures system_tests.pipeline.execution_time:$elapsed
       else
         echo "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME not set or not numeric ('$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME'), skipping metric emission"
       fi
 {% endmacro %}
 {% macro trace(name, command, library, weblog=none, scenario=none) -%}
-dd-sts exchange --policy system-tests-gitlab -- datadog-ci trace --name "{{name}}" --tags library:{{library}}{% if weblog %} --tags weblog:{{weblog}}{% endif %}{% if scenario %} --tags scenario:{{scenario}}{% endif %} -- {{command}}
+datadog-ci trace --name "{{name}}" --tags library:{{library}}{% if weblog %} --tags weblog:{{weblog}}{% endif %}{% if scenario %} --tags scenario:{{scenario}}{% endif %} -- {{command}}
 {%- endmacro %}
 {% if not skip_header %}
 workflow:
@@ -63,9 +63,10 @@ variables:
       aud: dd-sts
   after_script:
     - echo -e "section_start:$(date +%s):test_optim[collapsed=true]\r\e[0KPush to tests optimization"
+    - source "dd_api_key.env"
     - dd-sts debug
     - >
-      dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
+      datadog-ci junit upload system-tests/logs*/reportJunit.xml
       --service system-tests
       --env ci
       --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
@@ -77,7 +78,7 @@ setup:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   script:
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level pipeline --tags "system-tests:true"
+    - datadog-ci tag --level pipeline --tags "system-tests:true"
 {% endif %}
 
 {% for variant in weblog_variants %}

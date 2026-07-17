@@ -33,3 +33,7 @@ spec:
     - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
     - source utils/ci/gitlab/section.sh
     - echo -e "section_end:`date +%s`:setup\r\e[0K"
+    # - dd-sts exchange --policy system-tests-gitlab -- echo "export DD_API_KEY=${DD_API_KEY} > dd_api_key.env"
+    # - source dd_api_key.env
+    - export DD_API_KEY=$(dd-sts exchange --policy system-tests-gitlab -- env | sed -n 's/^DD_API_KEY=//p')
+    - echo "export DD_API_KEY=${DD_API_KEY}" > "$CI_PROJECT_DIR/dd_api_key.env"
