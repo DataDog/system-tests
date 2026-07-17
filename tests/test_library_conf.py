@@ -865,8 +865,10 @@ class Test_ExtractBehavior_Restart_Otel:
 def _get_span_link_trace_id(link: dict, span_format: AgentTraceFormat) -> tuple[int, int]:
     """Returns the trace ID of a span link according to its format split into high and low 64 bits"""
     if span_format == AgentTraceFormat.efficient_trace_payload_format:
-        trace_id_low = int(link["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
-        trace_id_high = (int(link["traceID"], 16) >> 64) & 0xFFFFFFFFFFFFFFFF
+        raw_trace_id = link["traceID"]
+        trace_id = raw_trace_id if isinstance(raw_trace_id, int) else int(raw_trace_id, 16)
+        trace_id_low = trace_id & 0xFFFFFFFFFFFFFFFF
+        trace_id_high = (trace_id >> 64) & 0xFFFFFFFFFFFFFFFF
     else:
         trace_id_low = int(link["traceID"])
         trace_id_high = int(link["traceIDHigh"])
