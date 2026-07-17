@@ -214,24 +214,11 @@ ignore = [
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
 ]
-"tests/perfs/*" = [
-    "ANN001",   # missing-type-function-argument: TODO   
-    "T201",     # print: perfs use prints...
-]
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
 "utils/_context/_scenarios/auto_injection.py" = [
     "PLC0415",  # import-outside-top-level TODO
-]
-"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
-    "E501",     # line-too-long: TODO
-    "T201",     # print: TODO
-    "RET504",   # unnecessary-assign: TODO
-    "RET505",   # superfluous-else-return: TODO
-    "SIM108",   # if-else-block-instead-of-if-exp: TODO
-    "SIM210",   # if-expr-with-true-false: TODO
-    "PLR2004",  # magic-value-comparison: TODO
 ]
 "utils/_features.py" = [
     "ANN001", # missing-type-function-argument: obvious decorators

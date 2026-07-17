@@ -26,6 +26,7 @@ import (
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
@@ -174,6 +175,11 @@ func main() {
 
 		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after client.Do (the wrapped client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(c.Request().Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := client.Do(req)
 		if err != nil {
 			logrus.Fatalln(err)
@@ -183,7 +189,7 @@ func main() {
 
 		requestHeaders := make(map[string]string, len(req.Header))
 		for key, values := range req.Header {
-			requestHeaders[key] = strings.Join(values, ",")
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
 		}
 
 		responseHeaders := make(map[string]string, len(res.Header))
@@ -371,6 +377,7 @@ func main() {
 	r.Any("/rasp/multiple", echoHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+	r.Any("/rasp/cmdi", echoHandleFunc(rasp.CMDI))
 
 	r.Any("/external_request", echoHandleFunc(rasp.ExternalRequest))
 	r.GET("/external_request/redirect", echoHandleFunc(rasp.ExternalRedirectRequest))
@@ -384,6 +391,11 @@ func main() {
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
 	r.Any("/debugger/expression", echoHandleFunc(d.expression))
+	r.Any("/debugger/budgets/:count", func(c echo.Context) error {
+		loops, _ := strconv.Atoi(c.Param("count"))
+		d.budgets(c.Response().Writer, c.Request(), loops)
+		return nil
+	})
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

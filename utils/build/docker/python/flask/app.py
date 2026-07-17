@@ -14,6 +14,8 @@ import http.client
 import json
 import logging
 import os
+import signal
+import time
 import random
 import shlex
 import subprocess
@@ -321,6 +323,43 @@ def healthcheck():
             "version": ddtrace.__version__,
         },
     }
+
+
+@app.route("/spawn_child")
+def spawn_child():
+    """Spawn child via fork or exec. Params: sleep, crash, fork. Used for telemetry session ID header tests."""
+    sleep_arg = request.args.get("sleep", type=int)
+    crash_arg = request.args.get("crash", "").lower()
+    fork_arg = (request.args.get("fork") or "").lower()
+    if sleep_arg is None:
+        return "sleep required", 400
+    if crash_arg not in ("true", "false"):
+        return "crash required (boolean)", 400
+    if fork_arg not in ("true", "false"):
+        return "fork required (boolean)", 400
+    crash = crash_arg == "true"
+    use_fork = fork_arg == "true"
+
+    if use_fork:
+        pid = os.fork()
+        if pid > 0:
+            _, status = os.waitpid(pid, 0)
+            return f"Child process {pid} exited with status {status}"
+        time.sleep(sleep_arg)
+        if crash:
+            os.kill(os.getpid(), signal.SIGSEGV)
+        sys.exit(0)
+
+    # exec path: spawn subprocess
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"import time, sys, os, signal; time.sleep({sleep_arg}); os.kill(os.getpid(), signal.SIGSEGV) if {crash} else sys.exit(0)",
+        ],
+        timeout=sleep_arg + 5,
+    )
+    return f"Child process exited with status {proc.returncode}"
 
 
 @app.route("/sample_rate_route/<i>")
@@ -2117,23 +2156,27 @@ def ffe():
     variation_type = body.get("variationType")
     default_value = body.get("defaultValue")
     targeting_key = body.get("targetingKey")
+    targeting_keys = body.get("targetingKeys")
     attributes = body.get("attributes", {})
 
-    # Build context
-    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
-    # Evaluate based on variation type
-    if variation_type == "BOOLEAN":
-        value = openfeature_client.get_boolean_value(flag, default_value, context)
-    elif variation_type == "STRING":
-        value = openfeature_client.get_string_value(flag, default_value, context)
-    elif variation_type in ["INTEGER", "NUMERIC"]:
-        value = openfeature_client.get_integer_value(flag, default_value, context)
-    elif variation_type == "JSON":
-        value = openfeature_client.get_object_value(flag, default_value, context)
-    else:
-        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+    if not isinstance(targeting_keys, list) or not targeting_keys:
+        targeting_keys = [targeting_key]
 
-    return jsonify({"value": value}), 200
+    value = None
+    for key in targeting_keys:
+        context = EvaluationContext(targeting_key=key, attributes=attributes)
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return jsonify({"value": value, "count": len(targeting_keys)}), 200
 
 
 @app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
@@ -2188,13 +2231,22 @@ def external_request_redirect():
 @app.route("/ai_guard/evaluate", methods=["POST"])
 def ai_guard_evaluate():
     """AI Guard evaluation endpoint."""
-    from ddtrace.internal.settings.asm import ai_guard_config
+    # AI Guard was moved from `ddtrace.appsec.ai_guard` to the top-level `ddtrace.aiguard`
+    # package (dd-trace-py#18754, #19110). Import the new location first and fall back to
+    # the old one to stay compatible with every tracer version under test.
+    try:
+        from ddtrace.internal.settings.aiguard import aiguard_config
+    except ImportError:
+        from ddtrace.internal.settings.asm import ai_guard_config as aiguard_config
 
-    if not ai_guard_config._ai_guard_enabled:
+    if not aiguard_config._ai_guard_enabled:
         return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
 
     try:
-        from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+        try:
+            from ddtrace.aiguard import new_ai_guard_client, Options, AIGuardAbortError
+        except ImportError:
+            from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
         from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
