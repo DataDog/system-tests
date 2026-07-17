@@ -19,19 +19,19 @@
     - section_end "copy_binaries"
 {% endmacro %}
 {% macro job_tag(tag) %}
-    - datadog-ci tag --level job --tags "{{tag}}"
+    - datadog-ci tag --level job --tags "system-tests.job_type:{{tag}}"
 {% endmacro %}
 {% macro emit_execution_time_metric() %}
     - |
       if [[ "$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME" =~ ^[0-9]+$ ]]; then
         elapsed=$(( $(date +%s) - SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME ))
-        datadog-ci measure --level job --measures system_tests.pipeline.execution_time:$elapsed
+        datadog-ci measure --level job --measures system-tests.total_duration:$elapsed
       else
         echo "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME not set or not numeric ('$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME'), skipping metric emission"
       fi
 {% endmacro %}
 {% macro trace(name, command, library, weblog=none, scenario=none) -%}
-datadog-ci trace --name "{{name}}" --tags library:{{library}}{% if weblog %} --tags weblog:{{weblog}}{% endif %}{% if scenario %} --tags scenario:{{scenario}}{% endif %} -- {{command}}
+datadog-ci trace --name "{{name}}" --tags system-tests.library:{{library}}{% if weblog %} --tags system-tests.weblog:{{weblog}}{% endif %}{% if scenario %} --tags system-tests.scenario:{{scenario}}{% endif %} -- {{command}}
 {%- endmacro %}
 {% if not skip_header %}
 workflow:
@@ -74,6 +74,7 @@ variables:
 
 setup:
   extends: .system_tests_base
+  tags: ["arch:amd64"]
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
@@ -103,7 +104,7 @@ system_tests_build_{{library}}_{{variant}}:
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - section_start "build" "Building weblog" false
-    {{ job_tag("system-tests:build") }}
+    {{ job_tag("build") }}
     - {{ trace("build " ~ library ~ " " ~ variant, "./build.sh " ~ library ~ " -i weblog --save-to-binaries --weblog-variant " ~ variant, library, weblog=variant) }}
     - mv binaries ..
     - section_end "build"
@@ -145,7 +146,7 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     {% endif %}
     - section_end "weblog_setup"
     - section_start "scenario_run" "Running scenario" false
-    {{ job_tag("system-tests:run") }}
+    {{ job_tag("run") }}
     {% if build_required %}
     - {{ trace("build " ~ library ~ " " ~ variant, "./build.sh " ~ library ~ " -i weblog --weblog-variant " ~ variant, library, weblog=variant) }}
     {% endif %}
@@ -185,7 +186,7 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
   {% endif %}
   script:
     - section_start "run" "Running PARAMETRIC (group {{job_index}}/{{parametric.job_count}})" false
-    {{ job_tag("system-tests:run") }}
+    {{ job_tag("run") }}
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
