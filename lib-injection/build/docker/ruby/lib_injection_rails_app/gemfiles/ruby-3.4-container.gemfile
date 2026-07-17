@@ -1,9 +1,7 @@
 eval_gemfile File.expand_path("common.gemfile", __dir__)
 
-gem "bigdecimal", "~> 1.2", ">= 1.2.7"
-
-# i18n 1.15.0 advertises Ruby >= 3.1 but uses Fiber.[], which needs Ruby 3.2+.
-gem "i18n", "< 1.15"
+gem "bigdecimal", ">= 3.1.0"
+gem "nio4r", ">= 2.5.9"
 group :development, :test do
   gem "debug", platforms: %i[mri mingw x64_mingw]
 end

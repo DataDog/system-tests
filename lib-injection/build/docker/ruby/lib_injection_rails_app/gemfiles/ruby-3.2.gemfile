@@ -1,1 +1,6 @@
 eval_gemfile File.expand_path("common.gemfile", __dir__)
+
+gem "bigdecimal", "~> 1.2", ">= 1.2.7"
+group :development, :test do
+  gem "debug", platforms: %i[mri mingw x64_mingw]
+end
