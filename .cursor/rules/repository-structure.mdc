@@ -120,3 +120,8 @@ system-tests/
       ...
   ```
 - Never define a setup method without a matching test method.
+
+## 6. No Cross-Test-File Imports
+- A test file (`test_*.py`) must never import anything from another test file, whether via an absolute (`from tests.xxx.test_yyy import ...`) or relative (`from .test_yyy import ...`) import.
+- If logic needs to be shared between test files, move it into a local `utils.py` file in the same folder and have both test files import from there.
+- This is enforced by `tests/test_the_test/test_conventions.py::test_no_cross_test_file_imports`.
