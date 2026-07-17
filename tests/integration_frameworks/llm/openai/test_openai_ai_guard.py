@@ -10,10 +10,12 @@ directly through the existing weblog endpoints (``/chat/completions``). When
 Guard evaluates the call at three points with no manual ``evaluate()`` call:
 
 - **before-model**: the request/prompt is evaluated before the model is called;
-- **after-model**: the model response is evaluated (streamed responses require
-  ``DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED=true``, which buffers and reconstructs
-  the response before running the evaluation);
 - **tool-call**: tool calls produced by the model are evaluated.
+
+The after-model evaluation is intentionally not covered here: exercising it end-to-end needs
+the streamed-response path (``DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED``), which is not
+implemented across the other tracer libraries yet, so we keep this suite at cross-language
+parity.
 
 We assert that the integration wires each evaluation point: that it emits an ``ai_guard``
 span for the specific evaluation being exercised (identified by ``ai_guard.target`` and by
@@ -44,8 +46,6 @@ def library_env() -> dict[str, str]:
     # out of it prevents real keys from leaking into logs/artifacts during cassette generation.
     return {
         "DD_AI_GUARD_ENABLED": "true",
-        # after-model evaluation of streamed responses is opt-in
-        "DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED": "true",
     }
 
 
@@ -84,11 +84,11 @@ def _wait_for_ai_guard_spans(
 
     We assert on the presence of the ``ai_guard`` span rather than on a fixed number of
     traces: the tracer does not deterministically group the ``ai_guard`` span with the
-    OpenAI span. In particular the streamed after-model evaluation may emit the
-    ``ai_guard`` span either nested in the OpenAI trace (1 trace) or as its own trace
-    (2 traces), so ``wait_for_num_traces`` with a hard-coded count is inherently racy.
-    When ``target`` is given, only spans whose ``ai_guard.target`` matches are considered
-    (so we keep polling until the specific evaluation point we care about has arrived).
+    OpenAI span. The ``ai_guard`` span may be emitted either nested in the OpenAI trace
+    (1 trace) or as its own trace (2 traces), so ``wait_for_num_traces`` with a hard-coded
+    count is inherently racy. When ``target`` is given, only spans whose ``ai_guard.target``
+    matches are considered (so we keep polling until the specific evaluation point we care
+    about has arrived).
     """
     spans: list[dict] = []
     for _ in range(wait_loops):
@@ -146,35 +146,6 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
 
         guard_spans = _wait_for_ai_guard_spans(test_agent, target="prompt")
         assert guard_spans, "expected a before-model ai_guard span with target 'prompt'"
-
-        event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
-        assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
-
-    @pytest.mark.skip(
-        reason="After-model streamed cassette records only the prompt eval - the reconstructed "
-        "assistant response was never recorded, so the after-model path cannot be replayed yet. "
-        "Regenerate the aiguard cassette with an assistant message before enabling (APPSEC-68977)."
-    )
-    def test_after_model_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        """The streamed model response is evaluated by AI Guard after the model returns."""
-        with test_agent.vcr_context(stream=True):
-            test_client.request(
-                "POST",
-                "/chat/completions",
-                dict(
-                    model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": "Tell me a short story about a robot."}],
-                    parameters=dict(max_tokens=35, stream=True),
-                ),
-            )
-
-        # An unfiltered wait would be satisfied by the before-model ``prompt`` span that every
-        # AI-Guard-enabled call emits, masking a regression in the after-model hook. Require a
-        # span whose evaluated messages include the assistant response to prove it actually ran.
-        guard_spans = _wait_for_ai_guard_spans(test_agent)
-        assert any(msg.get("role") == "assistant" for span in guard_spans for msg in _guard_messages(span)), (
-            "expected an after-model ai_guard span whose messages include the assistant response"
-        )
 
         event_root_spans = _wait_for_ai_guard_event_root_spans(test_agent)
         assert event_root_spans, "expected a local root span tagged ai_guard.event:true"
