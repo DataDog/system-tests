@@ -80,6 +80,8 @@ class HttpResponse:
         self.headers: CaseInsensitiveDict = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
         self.cookies = data["cookies"]
+        # set when the request failed (connection refused/reset/timeout); status_code is None in that case
+        self.error: str | None = data.get("error")
 
     def to_json(self) -> dict:
         return self._data
@@ -89,7 +91,8 @@ class HttpResponse:
         return HttpResponse(data)
 
     def __repr__(self) -> str:
-        return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
+        error = f", error:{self.error}" if self.error else ""
+        return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text}{error})"
 
     def get_rid(self) -> str:
         user_agent = next(v for k, v in self.request.headers.items() if k.lower() == "user-agent")
@@ -228,6 +231,7 @@ class _Weblog:
         status_code = None
         response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
         text = None
+        error: str | None = None
 
         for retry in range(self._default_retries):
             try:
@@ -250,7 +254,9 @@ class _Weblog:
                 status_code = response.status_code
                 response_headers = response.headers
                 text = response.text
+                error = None
             except requests.exceptions.ConnectionError as e:
+                error = f"{type(e).__name__}: {e}"
                 logger.error(f"Request {rid} raise an error: {e}")
                 if (
                     isinstance(e.args[0], urllib3.exceptions.ProtocolError)
@@ -261,6 +267,7 @@ class _Weblog:
                     time.sleep(0.25)  # wait before retrying
                     continue
             except Exception as e:
+                error = f"{type(e).__name__}: {e}"
                 logger.error(f"Request {rid} raise an error: {e}")
             else:
                 logger.debug(f"Request {rid}: {response.status_code}")
@@ -278,6 +285,7 @@ class _Weblog:
                 "headers": response_headers,
                 "text": text,
                 "cookies": requests.utils.dict_from_cookiejar(s.cookies),
+                "error": error,
             }
         )
 
