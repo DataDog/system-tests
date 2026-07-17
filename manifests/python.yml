@@ -698,6 +698,7 @@ manifest:
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0-rc1
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.1.0-rc2
