@@ -15,6 +15,7 @@ from utils._decorators import (
     incomplete_test_app,
     slow,
     scenario_crash,
+    not_yet_implemented,
     auxiliary_test,
 )
 from utils._logger import logger
@@ -37,6 +38,7 @@ __all__ = [
     "missing_feature",
     "remote_config",
     "rfc",
+    "not_yet_implemented",
     "scenario_crash",
     "scenario_groups",
     "scenarios",
