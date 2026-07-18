@@ -435,13 +435,13 @@ class EndToEndScenario(DockerScenario):
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
 
         try:
-            self._wait_and_stop_containers(force_interface_timout_to_zero=is_empty_test_run)
+            self._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
         finally:
             self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
+    def _wait_and_stop_containers(self, *, is_empty_test_run: bool):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
@@ -464,11 +464,11 @@ class EndToEndScenario(DockerScenario):
                 interfaces.open_telemetry.check_deserialization_errors()
 
         else:
-            self._wait_interface(
-                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
-            )
+            self._wait_interface(interfaces.library, 0 if is_empty_test_run else self.library_interface_timeout)
 
-            self.weblog_infra.stop()
+            # An empty selection has no test-generated data to flush. This also avoids waiting on
+            # Agent-backed writers in scenarios that intentionally do not start an Agent.
+            self.weblog_infra.stop(flush=not is_empty_test_run)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -478,19 +478,15 @@ class EndToEndScenario(DockerScenario):
                 container.interface.check_deserialization_errors()
 
             if self.include_agent:
-                self._wait_interface(
-                    interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout
-                )
+                self._wait_interface(interfaces.agent, 0 if is_empty_test_run else self.agent_interface_timeout)
                 self.agent_container.stop()
                 interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(
-                interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
-            )
+            self._wait_interface(interfaces.backend, 0 if is_empty_test_run else self.backend_interface_timeout)
 
             if self.include_opentelemetry:
                 self._wait_interface(
-                    interfaces.open_telemetry, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+                    interfaces.open_telemetry, 0 if is_empty_test_run else self.backend_interface_timeout
                 )
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
