@@ -494,6 +494,21 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         _assert_no_mock_requests(mock_ffe_agentless_backend)
         _assert_no_ffe_remote_config_activation(test_agent)
 
+    @parametrize("library_env", [{"configuration_source": "offline", "response": "valid"}], indirect=True)
+    def test_reserved_offline_configuration_source_fails_closed(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        # The reserved offline value is intentionally unsupported today, but it may eventually take
+        # a distinct startup-bytes path from an arbitrary invalid source. Valid agentless inputs make
+        # a network fallback available, while provider access exercises source resolution. Zero CDN
+        # requests and no FFE RC capability/product prove the reserved value fails closed for now.
+        test_library.ffe_start()
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
+
 
 @scenarios.parametric
 @features.feature_flags_agentless
