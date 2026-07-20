@@ -12,6 +12,9 @@ from tests.appsec.iast.utils import (
 
 
 def _expected_location() -> str | None:
+    if context.library.name == "golang":
+        return f"/app/{context.weblog_variant}/main.go"
+
     if context.library.name == "java":
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
@@ -33,7 +36,7 @@ def _expected_location() -> str | None:
 
 
 def _expected_evidence() -> str:
-    if context.library.name == "dotnet" or context.library.name == "golang":
+    if context.library.name in {"dotnet", "golang"}:
         return "MD5"
     else:
         return "md5"
