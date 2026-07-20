@@ -1,16 +1,12 @@
 module systemtests.weblog.orchestrion
 
-go 1.26.0
+go 1.25.0
 
-replace (
-	github.com/DataDog/dd-iast-go => ../../../../../../binaries/dd-iast-go
-	systemtests.weblog => ..
-)
+replace systemtests.weblog => ..
 
 require (
-	github.com/DataDog/dd-iast-go v0.0.0-00010101000000-000000000000
 	github.com/DataDog/dd-trace-go/orchestrion/all/v2 v2.11.0-dev.0.20260716150025-e5eee9dcba15
-	github.com/DataDog/dd-trace-go/v2 v2.11.0-dev.0.20260716150025-e5eee9dcba15
+	github.com/DataDog/dd-trace-go/v2 v2.11.0-dev.0.20260720101628-182f2890fe43
 	github.com/DataDog/orchestrion v1.11.0
 	github.com/Shopify/sarama v1.38.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0
@@ -38,6 +34,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/trace/stats v0.81.1 // indirect
 	github.com/DataDog/datadog-agent/pkg/trace/traceutil v0.81.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.9.0 // indirect
+	github.com/DataDog/dd-iast-go v0.0.0-20260720102417-174e3d2189c2 // indirect
 	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.11.0-dev.0.20260716150025-e5eee9dcba15 // indirect
 	github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2 v2.11.0-dev.0.20260716150025-e5eee9dcba15 // indirect
 	github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2 v2.11.0-dev // indirect
@@ -201,7 +198,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.19.0 // indirect
+	github.com/klauspost/compress v1.19.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/labstack/echo/v4 v4.13.3 // indirect
 	github.com/labstack/echo/v5 v5.1.0 // indirect
@@ -230,7 +227,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/outcaste-io/ristretto v0.2.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	github.com/petermattis/goid v0.0.0-20260701081913-4f67fd55d3b4 // indirect
+	github.com/petermattis/goid v0.0.0-20260716134002-a9b348f0a2b9 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.26 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -299,7 +296,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
-	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
+	golang.org/x/exp v0.0.0-20260718201538-764159d718ef // indirect
 	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
@@ -313,7 +310,7 @@ require (
 	google.golang.org/api v0.273.1 // indirect
 	google.golang.org/genproto v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260715232425-e75dac1f907d // indirect
 	google.golang.org/grpc v1.82.0 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260116114154-8c4c4ae446ca // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
