@@ -3348,6 +3348,9 @@
   "tests/external_processing/test_apm.py::Test_ExternalProcessing_Tracing::test_correct_span_structure": [
     "EXTERNAL_PROCESSING"
   ],
+  "tests/ffe/test_agentless_configuration.py::Test_FFE_Agentless_Configuration::test_default_agentless_source": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
+  ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
   ],

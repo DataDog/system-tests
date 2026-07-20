@@ -224,6 +224,7 @@ patterns:
         scenario_groups: appsec_rasp_scenario
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
+        scenarios: FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
     utils/_context/_scenarios/integration_frameworks.py:
         scenarios: INTEGRATION_FRAMEWORKS
     utils/_context/_scenarios/integrations.py:
@@ -288,6 +289,9 @@ patterns:
 
     utils/interfaces/_library/*:
         scenario_groups: [end_to_end, open_telemetry]
+
+    utils/mocked_backend/ffe.py:
+        scenarios: [FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS, PARAMETRIC]
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding

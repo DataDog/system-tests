@@ -22,6 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -86,6 +87,7 @@ class TestedContainer:
         cap_add: list[str] | None = None,
         command: str | list[str] | None = None,
         environment: dict[str, str | None] | None = None,
+        extra_hosts: dict[str, str] | None = None,
         healthcheck: dict | None = None,
         local_image_only: bool = False,
         ports: dict | None = None,
@@ -115,6 +117,7 @@ class TestedContainer:
         self.healthy: bool | None = None
 
         self.environment = environment or {}
+        self.extra_hosts = extra_hosts
         self.volumes = volumes or {}
         self.ports = ports or {}
         self.depends_on: list[TestedContainer] = []
@@ -229,6 +232,7 @@ class TestedContainer:
             name=self.container_name,
             hostname=self.name,
             environment=self.environment,
+            extra_hosts=self.extra_hosts,
             # auto_remove=True,
             detach=True,
             network=network.name,
@@ -949,6 +953,7 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             environment=environment,
+            extra_hosts=extra_hosts_for_environment(environment),
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally

@@ -7,7 +7,12 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, DdTraceEndToEndScenario, GraphQlEndToEndScenario
+from .endtoend import (
+    DockerScenario,
+    DdTraceEndToEndScenario,
+    FeatureFlaggingAgentlessEndToEndScenario,
+    GraphQlEndToEndScenario,
+)
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
@@ -725,6 +730,10 @@ class _Scenarios:
         },
         doc="",
         scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
