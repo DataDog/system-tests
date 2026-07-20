@@ -39,7 +39,7 @@ RC_PRODUCT = "FFE_FLAGS"
 TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
-NO_MOCK_REQUEST_ATTEMPTS = 5
+NO_MOCK_REQUEST_ATTEMPTS = 7
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 
 BASE_ENVVARS = {
@@ -144,6 +144,8 @@ def _wait_for_status(
 
 def _assert_no_mock_requests(mock_ffe_agentless_backend: MockFFEAgentlessBackendServer) -> None:
     status: MockFFEAgentlessBackendStatus | None = None
+    # Seven samples span more than the configured one-second polling interval, so an
+    # incorrect eager poll cannot occur just after this assertion and before provider access.
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
         status = mock_ffe_agentless_backend.status()
         assert status["requests_total"] == 0, f"unexpected mock FFE agentless backend request: status={status}"
