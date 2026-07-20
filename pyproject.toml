@@ -323,17 +323,7 @@ ignore = [
     "UP031",   # printf-string-formatting: TODO
 ]
 "utils/virtual_machine/virtual_machine_provider.py" = [
-    "A002",    # builtin-argument-shadowing: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ARG002",  # unused-method-argument: TODO
-    "E501",    # line-too-long: TODO
-    "E731",    # lambda-assignment: TODO
-    "F541",    # f-string-missing-placeholders: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-    "PLC0415", # import-outside-top-level TODO
-    "PTH112",  # os-path-isdir: TODO
-    "PTH119",  # os-path-basename: TODO
-    "RET505",  # superfluous-else-return: TODO
+    "PLC0415", # import-outside-top-level: lazy imports avoid circular dependencies between providers
 ]
 "utils/virtual_machine/virtual_machine_provisioner.py" = [
     "S506",    # unsafe-yaml-load: TODO
