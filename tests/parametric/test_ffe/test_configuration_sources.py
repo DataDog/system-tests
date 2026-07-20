@@ -41,6 +41,7 @@ MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
 NO_MOCK_REQUEST_ATTEMPTS = 7
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
+SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
 
 BASE_ENVVARS = {
     "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
@@ -284,17 +285,22 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         _assert_no_mock_requests(mock_ffe_agentless_backend)
         _assert_cold_not_ready(test_library, started=started)
 
-    @parametrize("library_env", [{"configuration_source": None, "response": "valid"}], indirect=True)
+    @parametrize(
+        "library_env",
+        [{"configuration_source": source, "response": "valid"} for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES],
+        indirect=True,
+        ids=["source-absent", "source-empty", "source-whitespace"],
+    )
     def test_default_agentless_positive(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        # Omitting the source and both legacy/stable enablement variables models a new customer;
-        # the base URL, API key, and polling inputs make the controlled agentless backend usable.
-        # Zero startup traffic proves default agentless is lazy; the post-access value, authenticated
-        # CONFIG_PATH request, and absent RC capability prove provider access activates only CDN.
+        # An absent, empty, or whitespace-only source with no legacy/stable enablement variable
+        # models a new customer whose source is semantically unset; the usable CDN inputs ensure
+        # default source selection can complete. Zero startup traffic proves agentless is lazy;
+        # evaluation, authenticated CONFIG_PATH traffic, and no RC capability prove CDN activation.
         _assert_no_mock_requests(mock_ffe_agentless_backend)
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -342,8 +348,12 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": None, "legacy_provider_enabled": True, "response": "valid"}],
+        [
+            {"configuration_source": source, "legacy_provider_enabled": True, "response": "valid"}
+            for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES
+        ],
         indirect=True,
+        ids=["source-absent", "source-empty", "source-whitespace"],
     )
     def test_legacy_true_preserves_remote_config(
         self,
@@ -351,10 +361,10 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        # With no explicit source, DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED=true represents an
-        # existing customer whose historical opt-in selected Remote Configuration; the valid CDN
-        # inputs ensure agentless would otherwise be available. RC ACK/capability and the expected
-        # evaluation prove grandfathering, while zero mock requests proves there was no migration.
+        # An absent, empty, or whitespace-only source is semantically unset, while legacy true
+        # represents an existing customer whose historical opt-in selected Remote Configuration;
+        # valid CDN inputs make accidental migration observable. RC ACK/capability and evaluation
+        # prove grandfathering, while zero mock requests proves CDN was never selected.
         apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
@@ -392,8 +402,12 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": None, "legacy_provider_enabled": False, "response": "valid"}],
+        [
+            {"configuration_source": source, "legacy_provider_enabled": False, "response": "valid"}
+            for source in SEMANTICALLY_UNSET_CONFIGURATION_SOURCES
+        ],
         indirect=True,
+        ids=["source-absent", "source-empty", "source-whitespace"],
     )
     def test_legacy_false_keeps_provider_disabled(
         self,
@@ -401,8 +415,8 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        # With no explicit source, DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED=false models a customer
-        # who explicitly disabled the legacy provider even though a valid CDN endpoint is configured.
+        # An absent, empty, or whitespace-only source is semantically unset, while legacy false
+        # models a customer who explicitly disabled the provider despite a usable CDN endpoint.
         # Zero agentless requests and no FFE RC capability/product after provider access prove the
         # legacy false value remains disabled instead of adopting the new default.
         test_library.ffe_start()
