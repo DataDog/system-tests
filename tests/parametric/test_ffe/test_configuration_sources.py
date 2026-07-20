@@ -91,6 +91,10 @@ def library_env(
         env["DD_FEATURE_FLAGS_ENABLED"] = str(params["provider_enabled"]).lower()
     if "legacy_provider_enabled" in params:
         env["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] = str(params["legacy_provider_enabled"]).lower()
+    if "provider_initialization_timeout_ms" in params:
+        env["DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS"] = str(
+            params["provider_initialization_timeout_ms"]
+        )
 
     if responses is not None:
         mock_ffe_agentless_backend.set_responses(responses)
@@ -255,7 +259,11 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         _assert_no_ffe_remote_config_activation(test_agent)
         _assert_no_mock_requests(mock_ffe_agentless_backend)
 
-    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "remote_config", "provider_initialization_timeout_ms": 100, "response": "valid"}],
+        indirect=True,
+    )
     def test_remote_config_without_rc_does_not_fallback_to_agentless(
         self,
         test_agent: TestAgentAPI,
@@ -264,12 +272,15 @@ class Test_Feature_Flag_Configuration_Source_Selection:
     ) -> None:
         # Explicit remote_config is tested with usable agentless inputs but without delivering an
         # RC payload, making a tempting fallback destination available when RC has no configuration.
+        # A short provider timeout bounds this no-payload test without changing source selection;
+        # provider access then crosses the lazy agentless activation boundary without delivering RC.
         # The advertised FFE RC capability proves RC stayed selected, while zero mock requests
         # proves payload absence never changes the configured source to agentless.
-        del test_library  # fixture starts the tracer; no RC payload is delivered
+        started = test_library.ffe_start()
 
         _assert_ffe_remote_config_activation(test_agent)
         _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_cold_not_ready(test_library, started=started)
 
     @parametrize("library_env", [{"configuration_source": None, "response": "valid"}], indirect=True)
     def test_default_agentless_positive(

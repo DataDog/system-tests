@@ -518,7 +518,13 @@ app.post('/ffe/start', async (req, res) => {
 
   if (hasFeatureFlaggingConfiguration) {
     const { openfeature } = tracer
-    await OpenFeature.setProviderAndWait(openfeature)
+    try {
+      await OpenFeature.setProviderAndWait(openfeature)
+    } catch {
+      openFeatureClient = OpenFeature.getClient()
+      res.status(500).json({})
+      return
+    }
   }
   openFeatureClient = OpenFeature.getClient()
   res.json({})
