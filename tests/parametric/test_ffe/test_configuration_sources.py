@@ -299,6 +299,36 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
+        [{"configuration_source": None, "provider_enabled": True, "response": "valid"}],
+        indirect=True,
+    )
+    def test_stable_true_preserves_default_agentless(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        # DD_FEATURE_FLAGS_ENABLED=true is explicit while source and legacy inputs are absent,
+        # proving the stable enable switch does not implicitly select the historical RC source.
+        # Startup silence proves agentless remains lazy; the expected value and CDN request after
+        # provider access, plus the absent RC capability, prove default agentless remains selected.
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
+
+        assert test_library.ffe_start(), "failed to start stable-enabled default agentless provider"
+        _assert_expected_value(_evaluate(test_library))
+
+        status = _wait_for_status(
+            mock_ffe_agentless_backend,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "stable-enabled default agentless response request",
+        )
+        assert status["last_auth_present"] is True
+        assert status["last_path"] == CONFIG_PATH
+        _assert_no_ffe_remote_config_activation(test_agent)
+
+    @parametrize(
+        "library_env",
         [{"configuration_source": None, "legacy_provider_enabled": True, "response": "valid"}],
         indirect=True,
     )
