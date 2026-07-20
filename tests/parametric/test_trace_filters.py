@@ -2,7 +2,7 @@ import json
 import pytest
 
 from .conftest import APMLibrary
-from .test_library_tracestats import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
+from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
 from utils.docker_fixtures import TestAgentAPI
 from utils import scenarios, features
 
