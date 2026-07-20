@@ -737,26 +737,39 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
 class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
     """Validate that agentless polling does not overlap requests under slow responses."""
 
-    @parametrize("library_env", [{"configuration_source": "agentless", "response": "delayed_valid"}], indirect=True)
+    @parametrize(
+        "library_env",
+        [
+            {
+                "configuration_source": "agentless",
+                "response": "valid",
+                "poll_interval": "1",
+                "request_timeout": "3",
+            }
+        ],
+        indirect=True,
+    )
     def test_delayed_no_overlap(
         self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
     ) -> None:
-        # Explicit agentless with response=delayed_valid makes a poll outlast the configured one-second
-        # interval, creating the condition in which a timer-driven implementation might overlap calls.
-        # A successful evaluation and CONFIG_PATH prove polling completed, while max_in_flight == 1
-        # proves the poller serialized requests instead of starting a concurrent fetch.
+        # An initial valid response makes the provider ready before subsequent responses take 1.5
+        # seconds, longer than the one-second poll interval but below the three-second timeout.
+        # Two new request starts and one completion prove repeated slow polling exercised an overlap
+        # opportunity; max_in_flight == 1 proves the poller serialized those configuration fetches.
         assert test_library.ffe_start(), "failed to start FFE provider for delayed_no_overlap"
         _assert_expected_value(_evaluate(test_library))
 
+        mock_ffe_agentless_backend.set_response("delayed_valid")
+        requests_before = mock_ffe_agentless_backend.status()["requests_total"]
         status = _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: (
-                current["requests_total"] > 0
-                and current["last_status_code"] == 200
-                and current["in_flight"] == 0
+                current["requests_total"] >= requests_before + 2
+                and len(current["status_codes"]) >= 1
                 and current["max_in_flight"] >= 1
             ),
-            "delayed_no_overlap completion",
+            "at least two delayed_no_overlap request starts and one completion",
         )
+        assert status["requests_total"] >= requests_before + 2
         assert status["max_in_flight"] == 1
         assert status["last_path"] == CONFIG_PATH
