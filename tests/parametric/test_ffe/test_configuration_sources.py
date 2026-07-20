@@ -1,8 +1,9 @@
 """Parametric FFE configuration-source coverage for a mocked FFE agentless backend.
 
-Feature under test: server SDKs can select where UFC flag definitions come from.
-The agentless path fetches from an HTTP backend, while explicit ``remote_config``
-keeps the existing Agent RC path.
+Feature under test: server SDKs preserve legacy Remote Configuration adopters,
+load UFC flag definitions from the agentless HTTP backend by default only after
+application provider access, and honor explicit source selection and the stable
+provider kill switch.
 
 Test strategy: drive SDKs through public configuration-source env vars and
 OpenFeature evaluation endpoints, then use the mock FFE agentless backend for
@@ -22,7 +23,7 @@ import pytest
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc, _ffe_evaluate_with_rc_retry
 from utils import features, scenarios
-from utils.dd_constants import RemoteConfigApplyState
+from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures._mock_ffe_agentless_backend import (
     CONFIG_PATH,
@@ -42,13 +43,12 @@ NO_MOCK_REQUEST_ATTEMPTS = 5
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 
 BASE_ENVVARS = {
-    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
+    "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
 
 AGENTLESS_ENVVARS = {
-    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "1",
     "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "1",
 }
 
@@ -86,6 +86,11 @@ def library_env(
     response = params.get("response", "valid")
     responses = params.get("responses")
     api_key = params.get("api_key", TEST_API_KEY)
+
+    if "provider_enabled" in params:
+        env["DD_FEATURE_FLAGS_ENABLED"] = str(params["provider_enabled"]).lower()
+    if "legacy_provider_enabled" in params:
+        env["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] = str(params["legacy_provider_enabled"]).lower()
 
     if responses is not None:
         mock_ffe_agentless_backend.set_responses(responses)
@@ -138,6 +143,27 @@ def _assert_no_mock_requests(mock_ffe_agentless_backend: MockFFEAgentlessBackend
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
         status = mock_ffe_agentless_backend.status()
         assert status["requests_total"] == 0, f"unexpected mock FFE agentless backend request: status={status}"
+        time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
+
+
+def _remote_config_products(test_agent: TestAgentAPI) -> set[str]:
+    products: set[str] = set()
+    for request in test_agent.rc_requests(post_only=True):
+        client = request["body"].get("client", {})
+        products.update(client.get("products", []))
+    return products
+
+
+def _assert_ffe_remote_config_activation(test_agent: TestAgentAPI) -> None:
+    test_agent.assert_rc_capabilities({Capabilities.FFE_FLAG_CONFIGURATION_RULES})
+    assert RC_PRODUCT in _remote_config_products(test_agent)
+
+
+def _assert_no_ffe_remote_config_activation(test_agent: TestAgentAPI) -> None:
+    for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
+        capabilities = test_agent.wait_for_rc_capabilities()
+        assert Capabilities.FFE_FLAG_CONFIGURATION_RULES not in capabilities
+        assert RC_PRODUCT not in _remote_config_products(test_agent)
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
 
 
@@ -199,25 +225,51 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
+        _assert_ffe_remote_config_activation(test_agent)
 
         assert test_library.ffe_start(), "failed to start FFE provider in remote_config mode"
         _assert_expected_value(_evaluate(test_library))
 
         _assert_no_mock_requests(mock_ffe_agentless_backend)
 
-    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
-    def test_remote_config_without_rc_does_not_fallback_to_agentless(
-        self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "remote_config", "provider_enabled": False, "response": "valid"}],
+        indirect=True,
+    )
+    def test_provider_kill_switch_stops_remote_config_subscription(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        _assert_cold_not_ready(test_library, started=test_library.ffe_start())
-
+        test_library.ffe_start()
+        _assert_no_ffe_remote_config_activation(test_agent)
         _assert_no_mock_requests(mock_ffe_agentless_backend)
 
-    @parametrize("library_env", [{"configuration_source": "agentless", "response": "valid"}], indirect=True)
-    def test_explicit_agentless_positive(
-        self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
+    @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
+    def test_remote_config_without_rc_does_not_fallback_to_agentless(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        assert test_library.ffe_start(), "failed to start FFE provider in explicit agentless mode"
+        del test_library  # fixture starts the tracer; no RC payload is delivered
+
+        _assert_ffe_remote_config_activation(test_agent)
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+
+    @parametrize("library_env", [{"configuration_source": None, "response": "valid"}], indirect=True)
+    def test_default_agentless_positive(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
+
+        assert test_library.ffe_start(), "failed to start FFE provider in default agentless mode"
         _assert_expected_value(_evaluate(test_library))
 
         status = _wait_for_status(
@@ -227,29 +279,111 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         )
         assert status["last_auth_present"] is True
         assert status["last_path"] == CONFIG_PATH
+        _assert_no_ffe_remote_config_activation(test_agent)
 
-    @parametrize("library_env", [{"configuration_source": None, "response": "valid"}], indirect=True)
-    def test_default_agentless_positive(
-        self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
+    @parametrize(
+        "library_env",
+        [{"configuration_source": None, "legacy_provider_enabled": True, "response": "valid"}],
+        indirect=True,
+    )
+    def test_legacy_true_preserves_remote_config(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        assert test_library.ffe_start(), "failed to start FFE provider in default agentless mode"
-        _assert_expected_value(_evaluate(test_library))
+        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+        assert apply_state["product"] == RC_PRODUCT
+        _assert_ffe_remote_config_activation(test_agent)
 
-        status = _wait_for_status(
+        assert test_library.ffe_start(), "failed to start grandfathered Remote Config provider"
+        _assert_expected_value(_evaluate(test_library))
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": None, "legacy_provider_enabled": False, "response": "valid"}],
+        indirect=True,
+    )
+    def test_legacy_false_keeps_provider_disabled(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        test_library.ffe_start()
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "agentless", "legacy_provider_enabled": True, "response": "valid"}],
+        indirect=True,
+    )
+    def test_explicit_agentless_wins_over_legacy_true(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
+
+        assert test_library.ffe_start(), "failed to start explicit agentless provider"
+        _assert_expected_value(_evaluate(test_library))
+        _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
-            "default agentless request",
+            "explicit agentless response request",
         )
-        assert status["last_path"] == CONFIG_PATH
+        _assert_no_ffe_remote_config_activation(test_agent)
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "remote_config", "legacy_provider_enabled": False, "response": "valid"}],
+        indirect=True,
+    )
+    def test_explicit_remote_config_wins_over_legacy_false(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+        assert apply_state["product"] == RC_PRODUCT
+        _assert_ffe_remote_config_activation(test_agent)
+
+        assert test_library.ffe_start(), "failed to start explicit Remote Config provider"
+        _assert_expected_value(_evaluate(test_library))
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": None, "provider_enabled": False, "response": "valid"}],
+        indirect=True,
+    )
+    def test_provider_kill_switch_stops_agentless_polling(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        test_library.ffe_start()
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
 
     @parametrize("library_env", [{"configuration_source": "invalid", "response": "valid"}], indirect=True)
     def test_invalid_configuration_source_fails_closed(
-        self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        started = test_library.ffe_start()
-        if started:
-            _assert_default_or_not_ready(_evaluate(test_library))
+        test_library.ffe_start()
         _assert_no_mock_requests(mock_ffe_agentless_backend)
+        _assert_no_ffe_remote_config_activation(test_agent)
 
 
 @scenarios.parametric

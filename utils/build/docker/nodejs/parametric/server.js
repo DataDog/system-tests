@@ -509,8 +509,17 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 
 // Feature Flag & Experimentation endpoints
 app.post('/ffe/start', async (req, res) => {
-  const { openfeature } = tracer
-  await OpenFeature.setProviderAndWait(openfeature)
+  const hasFeatureFlaggingConfiguration = [
+    'DD_FEATURE_FLAGS_ENABLED',
+    'DD_FEATURE_FLAGS_CONFIGURATION_SOURCE',
+    'DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL',
+    'DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED'
+  ].some(name => process.env[name] !== undefined)
+
+  if (hasFeatureFlaggingConfiguration) {
+    const { openfeature } = tracer
+    await OpenFeature.setProviderAndWait(openfeature)
+  }
   openFeatureClient = OpenFeature.getClient()
   res.json({})
 })
