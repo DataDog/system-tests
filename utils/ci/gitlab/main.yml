@@ -82,8 +82,13 @@ variables:
   image: $CI_IMAGE
   tags:
     - arch:amd64
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup"
     - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
+    - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
   artifacts:
     reports:
       dotenv: param.env
@@ -92,6 +97,9 @@ system_tests_build_pipeline:
   extends: .system_tests_base
   tags:
     - arch:amd64
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   rules:
     - if: $[[ inputs.condition ]]
     - when: never
@@ -103,6 +111,7 @@ system_tests_build_pipeline:
       optional: true
       artifacts: true
   script:
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline"
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
       touch build_params.env
@@ -132,7 +141,7 @@ system_tests_build_pipeline:
       done
       chunks=1
       if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts"
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts" --pipeline-start-time "$SYSTEM_TESTS_PIPELINE_START_TIME"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
