@@ -43,7 +43,11 @@ WORKDIR /app
 COPY lib_injection_rails_app /app
 
 # Replace with other gemfile and configure bundler to use it
-RUN mv Gemfile TestGemfile && mv Gemfile.lock TestGemfile.lock
+RUN set -eu; \
+  ruby_minor="$(ruby -e 'print RUBY_VERSION.split(".").take(2).join(".")')"; \
+  cp "gemfiles/ruby-${ruby_minor}.gemfile.lock" Gemfile.lock; \
+  mv Gemfile TestGemfile; \
+  mv Gemfile.lock TestGemfile.lock
 ENV BUNDLE_GEMFILE TestGemfile
 
 # Install gems
@@ -53,4 +57,3 @@ RUN bundle install
 ENTRYPOINT ["/bin/bash", "-c"]
 
 CMD ["bundle exec rails server -b 0.0.0.0 -p 18080"]
-

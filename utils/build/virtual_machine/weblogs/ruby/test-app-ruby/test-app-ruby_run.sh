@@ -5,7 +5,10 @@ echo "START ruby APP"
 sudo chmod -R 755 *
 export PATH=~/.rbenv/bin/:~/.rbenv/shims:$PATH
 rbenv local 3.0.2
+ruby_minor="$(ruby -e 'print RUBY_VERSION.split(".").take(2).join(".")')"
+cp "gemfiles/ruby-${ruby_minor}.gemfile.lock" Gemfile.lock
 bundle install
+rbenv rehash
 current_user=$(whoami)
 sed -i "s/SSI_USER/$current_user/g" test-app.service
 ./create_and_run_app_service.sh "/home/$current_user/.rbenv/shims/rails server -b 0.0.0.0 -p 5985"
