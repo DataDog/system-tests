@@ -60,6 +60,7 @@ SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
 SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
 
 NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE = 2
+NATIVE_SPAN_ATTRIBUTE_ARRAY_TYPE = 4  # protocol v1 array value type
 
 
 # Note that class attributes are golang style to match the payload.
@@ -291,18 +292,34 @@ def span_link_trace_ids_equal(a: int | str | None, b: int | str | None) -> bool:
     return _span_link_trace_id_to_low64(a) == _span_link_trace_id_to_low64(b)
 
 
+def _flatten_native_span_event_attribute(value: dict) -> object:
+    """Flatten a native span event attribute value into a plain Python value.
+
+    Native span event attributes are typed dicts of the form:
+     ``{"type": <int>, "<kind>_value": <value>}``.
+    Protocol v1 also supports array attributes, which are nested as:
+    ``{"type": 4, "array_value": {"values": [<typed value>, ...]}}``
+    and must be flattened recursively into a plain list.
+    """
+    assert len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE, (
+        f"native span event attribute has unexpected number of values: {value}"
+    )
+    is_array = value.get("type") == NATIVE_SPAN_ATTRIBUTE_ARRAY_TYPE
+    value.pop("type")
+    inner = next(iter(value.values()))
+    if is_array:
+        # `inner` is {"values": [<typed value>, ...]}; flatten each element recursively.
+        return [_flatten_native_span_event_attribute(item) for item in inner["values"]]
+    return inner
+
+
 def retrieve_span_events(span: Span) -> list | None:
     if span.get("span_events") is not None:
         for event in span["span_events"]:
             for key, value in event.get("attributes", {}).items():
                 if isinstance(value, dict):
-                    # Flatten attributes dict into a single key-value pair
-                    # This is for native span events
-                    assert len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE, (
-                        f"native span event has unexpected number of values: {event}"
-                    )
-                    value.pop("type")
-                    event["attributes"][key] = next(iter(value.values()))
+                    # Flatten typed attribute dicts into plain values (native span events).
+                    event["attributes"][key] = _flatten_native_span_event_attribute(value)
                 else:
                     continue
         return span["span_events"]

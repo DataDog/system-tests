@@ -5617,6 +5617,15 @@
   "tests/test_the_test/test_decorators.py::test_version_range": [
     "TEST_THE_TEST"
   ],
+  "tests/test_the_test/test_dd_types.py::Test_DDTypes::test_is_same_boolean_accepts_native_and_string_booleans": [
+    "TEST_THE_TEST"
+  ],
+  "tests/test_the_test/test_dd_types.py::Test_DDTypes::test_is_same_boolean_rejects_numeric_booleans_by_default": [
+    "TEST_THE_TEST"
+  ],
+  "tests/test_the_test/test_dd_types.py::Test_DDTypes::test_is_same_boolean_accepts_numeric_booleans_in_otel_mode": [
+    "TEST_THE_TEST"
+  ],
   "tests/test_the_test/test_deserializer.py::test_deserialize_http_message": [
     "TEST_THE_TEST"
   ],
