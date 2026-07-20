@@ -323,6 +323,32 @@ class Test_Feature_Flag_Configuration_Source_Selection:
 
     @parametrize(
         "library_env",
+        [
+            {
+                "configuration_source": None,
+                "provider_enabled": False,
+                "legacy_provider_enabled": True,
+                "response": "valid",
+            }
+        ],
+        indirect=True,
+    )
+    def test_provider_kill_switch_overrides_legacy_true(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        # Legacy true would grandfather the customer onto RC, while DD_FEATURE_FLAGS_ENABLED=false
+        # supplies the conflicting stable global kill switch and a valid CDN remains available.
+        # No FFE RC capability/product and zero CDN requests after provider access prove the stable
+        # switch wins before legacy source resolution and disables both billed delivery paths.
+        test_library.ffe_start()
+        _assert_no_ffe_remote_config_activation(test_agent)
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+
+    @parametrize(
+        "library_env",
         [{"configuration_source": None, "legacy_provider_enabled": False, "response": "valid"}],
         indirect=True,
     )
