@@ -12,15 +12,14 @@ agentless base URL option; it does not introduce a separate custom source mode.
 """
 
 from collections.abc import Callable
-import json
-from pathlib import Path
 import time
 from typing import Any
 
 import pytest
 
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc, _ffe_evaluate_with_rc_retry
+from tests.parametric.test_ffe.utils import UFC_FIXTURE_DATA, evaluate_with_configuration_retry
+from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
@@ -33,7 +32,6 @@ from utils.docker_fixtures._mock_ffe_agentless_backend import (
 parametrize = pytest.mark.parametrize
 pytest_plugins = ["utils.docker_fixtures._mock_ffe_agentless_backend"]
 
-UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
 RC_PRODUCT = "FFE_FLAGS"
 TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
@@ -63,14 +61,6 @@ EVALUATION_CASE: dict[str, Any] = {
     },
     "expected_value": "green",
 }
-
-
-def _load_valid_ufc_fixture() -> dict[str, Any]:
-    with UFC_VALID_FIXTURE.open() as f:
-        return json.load(f)
-
-
-UFC_VALID_DATA = _load_valid_ufc_fixture()
 
 
 @pytest.fixture
@@ -142,7 +132,7 @@ def _assert_no_mock_requests(mock_ffe_agentless_backend: MockFFEAgentlessBackend
 
 
 def _evaluate(test_library: APMLibrary) -> dict[str, Any]:
-    return _ffe_evaluate_with_rc_retry(
+    return evaluate_with_configuration_retry(
         test_library,
         flag=EVALUATION_CASE["flag"],
         variation_type=EVALUATION_CASE["variation_type"],
@@ -196,7 +186,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
     ) -> None:
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
@@ -428,8 +418,10 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
 
         status = _wait_for_status(
             mock_ffe_agentless_backend,
-            lambda current: _has_status_sequence(current["status_codes"], [200, 304])
-            and current["last_if_none_match"] == '"ufc-v1"',
+            lambda current: (
+                _has_status_sequence(current["status_codes"], [200, 304])
+                and current["last_if_none_match"] == '"ufc-v1"'
+            ),
             "good_to_unchanged 200 to 304 ETag sequence",
         )
         _assert_expected_value(_evaluate(test_library))
@@ -446,7 +438,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         mock_ffe_agentless_backend.set_response("malformed")
         _wait_for_status(
             mock_ffe_agentless_backend,
-            lambda current: (current["requests_total"] > requests_before and current["last_status_code"] == 200),
+            lambda current: current["requests_total"] > requests_before and current["last_status_code"] == 200,
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))

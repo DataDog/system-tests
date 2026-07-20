@@ -1,7 +1,9 @@
+import base64
 from collections.abc import Generator, Iterable
 import contextlib
 from dataclasses import asdict
 from http import HTTPStatus
+import json
 from types import TracebackType
 from typing import TypedDict, cast
 
@@ -770,16 +772,32 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
-    def ffe_start(self, configuration: dict | None = None) -> bool:
+    def ffe_start(
+        self,
+        configuration: dict | None = None,
+        *,
+        offline_configuration: bytes | dict | None = None,
+    ) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
+
+        Args:
+            configuration: Source-independent configuration retained for existing test clients.
+            offline_configuration: UFC JSON bytes supplied directly at provider startup.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
 
         """
-        payload = {}
+        payload: dict[str, object] = {}
         if configuration is not None:
             payload["configuration"] = configuration
+        if offline_configuration is not None:
+            offline_bytes = (
+                json.dumps(offline_configuration).encode("utf-8")
+                if isinstance(offline_configuration, dict)
+                else offline_configuration
+            )
+            payload["offlineConfiguration"] = base64.b64encode(offline_bytes).decode("ascii")
 
         resp = self._session.post(self._url("/ffe/start"), json=payload)
         return HTTPStatus(resp.status_code).is_success
@@ -1217,9 +1235,14 @@ class APMLibrary:
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
 
-    def ffe_start(self, configuration: dict | None = None) -> bool:
+    def ffe_start(
+        self,
+        configuration: dict | None = None,
+        *,
+        offline_configuration: bytes | dict | None = None,
+    ) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
-        return self._client.ffe_start(configuration)
+        return self._client.ffe_start(configuration, offline_configuration=offline_configuration)
 
     def ffe_evaluate(
         self,

@@ -78,11 +78,21 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 ./gradlew :dd-java-agent:shadowJar :dd-trace-api:jar
 ```
 
+When testing changes to the Feature Flagging OpenFeature provider, also build its public API:
+
+```
+./gradlew :products:feature-flagging:feature-flagging-api:jar
+```
+
 3. Copy both artifacts into the `system-tests/binaries/` folder:
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
-  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
+  * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/`
 
-Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+For Feature Flagging provider changes, also copy `dd-openfeature-*.jar` from
+`products/feature-flagging/feature-flagging-api/build/libs/`.
+
+Normally, you should have only two jar files in `system-tests/binaries`. Feature Flagging provider changes
+require the third `dd-openfeature-*.jar`. Do not copy sources or javadoc jars.
 
 4. Build your selected weblog:
 
@@ -100,7 +110,7 @@ To run a custom tracer version from a remote branch:
 
 1. Find your remote branch on Github and navigate to the `ci/circleci: build_lib` test.
 2. Open the details of the test in CircleCi and click on the `Artifacts` tab.
-3. Download the `libs/dd-java-agent-*-SNAPSHOT.jar` and `libs/dd-trace-api-*-SNAPSHOT.jar` and move them into the `system-tests/binaries/` folder.
+3. Download the `libs/dd-java-agent-*-SNAPSHOT.jar` and `libs/dd-trace-api-*-SNAPSHOT.jar` and move them into the `system-tests/binaries/` folder. For Feature Flagging provider changes, also download the `libs/dd-openfeature-*-SNAPSHOT.jar` artifact.
 4. Follow Step 4 from above to run the Parametric tests.
 
 Follow these steps to run the OpenTelemetry drop-in test with a custom drop-in version:

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,12 +65,39 @@ public class FeatureFlagEvaluatorController {
     private Client client;
 
     @PostMapping(value = "/start")
-    public ResponseEntity<Boolean> start() {
+    public ResponseEntity<Boolean> start(@RequestBody(required = false) final StartRequest request) {
+        if (request != null && request.getOfflineConfiguration() != null) {
+            try {
+                final Provider.Options options = new Provider.Options();
+                final Method offlineConfiguration = Provider.Options.class.getMethod("offlineConfiguration", byte[].class);
+                offlineConfiguration.invoke(options, (Object) request.getOfflineConfiguration());
+
+                final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
+                api.setProviderAndWait(new Provider(options));
+                client = api.getClient();
+            } catch (ReflectiveOperationException | RuntimeException error) {
+                LOGGER.error("Failed to initialize the FFE provider with offline configuration", error);
+                return ResponseEntity.internalServerError().body(false);
+            }
+        }
+
         final ProviderState state = client.getProviderState();
         if (state == ProviderState.READY) {
             return ResponseEntity.ok(true);
         } else {
             return ResponseEntity.internalServerError().body(false);
+        }
+    }
+
+    public static class StartRequest {
+        private byte[] offlineConfiguration;
+
+        public byte[] getOfflineConfiguration() {
+            return offlineConfiguration;
+        }
+
+        public void setOfflineConfiguration(byte[] offlineConfiguration) {
+            this.offlineConfiguration = offlineConfiguration;
         }
     }
 
