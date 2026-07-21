@@ -184,6 +184,9 @@ jobs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' && needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs != '[]'}}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       matrix:
         weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
@@ -213,26 +216,48 @@ jobs:
       - name: Log binaries contents
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         run: ls -la binaries/
-      - name: Export github token to a file
-        run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Build weblog base images
         if: matrix.weblog.build_base_image
         run: |
           source venv/bin/activate
           ./utils/script/build_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
+      # TODO: Remove this token exchange after dd-iast-go becomes public.
+      - name: Get temporary dd-iast-go read token
+        id: dd_iast_go_token
+        if: >-
+          github.event_name == 'pull_request'
+          && github.event.pull_request.number == 7342
+          && inputs.library == 'golang'
+          && matrix.weblog.name == 'net-http-orchestrion'
+        uses: DataDog/dd-octo-sts-action@96a25462dbcb10ebf0bfd6e2ccc917d2ab235b9a # v1.0.4
+        with:
+          scope: DataDog/dd-iast-go
+          policy: system-tests.github.read-contents.pr-7342
       - name: Build weblog
         id: build
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
-      - name: Remove secrets
-        if: always()
+        env:
+          GITHUB_TOKEN: ${{ steps.dd_iast_go_token.outputs.token || secrets.GITHUB_TOKEN }}
         run: |
           TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
-          if [ -f "$TOKEN_FILE" ]; then
-            echo "Removing token file at $TOKEN_FILE"
-            rm -f "$TOKEN_FILE"
-          else
-            echo "Token file not found — nothing to clean up"
-          fi
+
+          cleanup() {
+            rm -f -- "$TOKEN_FILE"
+          }
+
+          trap cleanup EXIT
+          trap 'exit 129' HUP
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+
+          umask 077
+          printf '%s' "$GITHUB_TOKEN" > "$TOKEN_FILE"
+
+          SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh \
+            ${{ inputs.library }} \
+            -i weblog \
+            -w ${{ matrix.weblog.name }} \
+            -s \
+            --github-token-file "$TOKEN_FILE"
       - name: Upload artifact
         uses: ./.github/actions/upload_artifact
         with:
