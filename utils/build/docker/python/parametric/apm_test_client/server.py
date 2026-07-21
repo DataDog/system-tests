@@ -504,10 +504,10 @@ def trace_remote_config_apply(
     # Detect which Remote Config client API is in use. The libdatadog rewrite
     # replaced the pure-Python fetch/apply path (client.request() plus a
     # Python-side client._applied_configs cache) with a native client
-    # (client._ensure_native().poll()) that owns the file set, so on the new
+    # (client.ensure_native().poll()) that owns the file set, so on the new
     # API we reconstruct the applied set ourselves. Support both so this server
     # works against tracer versions from before and after the rewrite.
-    uses_native_rc = hasattr(client, "_ensure_native")
+    uses_native_rc = hasattr(client, "ensure_native")
 
     lock_ownership_transferred = False
     try:
@@ -516,7 +516,7 @@ def trace_remote_config_apply(
         def _drain() -> None:
             try:
                 if uses_native_rc:
-                    native = client._ensure_native()
+                    native = client.ensure_native()
                     changes = native.poll(
                         list(client._enabled_products),
                         list(ddtrace.config._get_extra_services()),
