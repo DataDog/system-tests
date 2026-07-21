@@ -1204,7 +1204,8 @@ class Test_FR08_AdditionalTags:
                 **DEFAULT_ENVVARS,
                 "DD_TAGS": (
                     "team:apm,tier:backend,"
-                    "service:ignored-svc,env:ignored-env,version:ignored-ver,runtime_id:ignored-rid"
+                    "service:ignored-svc,env:ignored-env,version:ignored-ver,"
+                    "runtime_id:ignored-rid,runtime-id:ignored-rid2"
                 ),
             }
         ],
@@ -1216,7 +1217,7 @@ class Test_FR08_AdditionalTags:
         test_library: APMLibrary,
     ):
         """Global DD_TAGS surface as the tracer_dd_tags resource-attribute container (repeated key:value
-        strings) in default mode; reserved service/env/version/runtime_id keys are ignored.
+        strings) in default mode; reserved service/env/version/runtime_id/runtime-id keys are ignored.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
