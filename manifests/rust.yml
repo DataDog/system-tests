@@ -369,6 +369,8 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject::test_main: missing_feature (/mock_s3/put_object endpoint not implemented)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject::test_non_ascii: missing_feature (/mock_s3/put_object endpoint not implemented)
   tests/stats/test_stats.py: '>=0.4.0'
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (weblog does not implement grpc endpoint)
+  tests/stats/test_stats.py::Test_Stats_Service_Source::test_srv_src: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: missing_feature (baggage maximum size is not configurable)
