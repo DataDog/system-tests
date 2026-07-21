@@ -226,21 +226,8 @@ ignore = [
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 
-"utils/onboarding/*" = [
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "DTZ005",  # call-datetime-now-without-tzinfo: TODO
-    "DTZ006",  # call-datetime-fromtimestamp: TODO
-    "E501",    # line-too-long: TODO
-    "FBT001",  # boolean-type-hint-positional-argument: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-    "N803",    # invalid-argument-name: TODO
-    "N806",    # non-lowercase-variable-in-function: TODO
-    "PLR2004", # magic-value-comparison: TODO
-    "PLR2044", # empty-comment: TODO
-    "PTH102",  # os-mkdir: TODO
-    "RET505",  # superfluous-else-return: TODO
-    "S507",    # ssh-no-host-key-verification: TODO
-    "UP017",   # datetime-timezone-utc: TODO
+"utils/onboarding/weblog_interface.py" = [
+    "E501",    # line-too-long: the curl command is embedded in an inline bash script and cannot be safely wrapped
 ]
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
     "PLR2004",  # magic-value-comparison: TODO
