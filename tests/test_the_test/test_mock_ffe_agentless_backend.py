@@ -34,6 +34,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
             timeout=5,
         )
         response.raise_for_status()
+        assert response.headers["Content-Length"] == str(len(response.content))
 
         payload = response.json()
         assert payload["data"]["type"] == UFC_RESPONSE_TYPE
