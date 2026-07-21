@@ -122,10 +122,8 @@ system_tests_build_{{library}}_{{variant}}:
 system_tests_run_{{library}}_{{scenario}}_{{variant}}:
   timeout: 10 minutes
   variables:
-    KUBERNETES_CPU_REQUEST: 2
-  {% if scenario != "INTEGRATIONS" %}
-    KUBERNETES_MEMORY_REQUEST: 6Gi
-  {% endif %}
+    KUBERNETES_CPU_REQUEST: 0.5
+    KUBERNETES_MEMORY_REQUEST: 1.3Gi
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}
