@@ -72,7 +72,7 @@ capabilities:
       - ASM_ACTIVATION
       - ASM_AUTO_USER_INSTRUM_MODE
 
-    '>=5.72.0':
+    '>=5.72.0 <6.5.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
     '>=5.83.0':
