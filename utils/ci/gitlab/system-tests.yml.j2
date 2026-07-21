@@ -51,6 +51,8 @@ default:
     when:
       - runner_system_failure
       - scheduler_failure
+    exit_codes:
+      - 255
 
 stages:
   - {{stage}}
@@ -117,6 +119,12 @@ system_tests_build_{{library}}_{{variant}}:
 {% endfor %}
 {% for variant, scenario, build_required in scenario_pairs %}
 system_tests_run_{{library}}_{{scenario}}_{{variant}}:
+  timeout: 10 minutes
+  variables:
+    KUBERNETES_CPU_REQUEST: 2
+  {% if scenario != "INTEGRATIONS" %}
+    KUBERNETES_MEMORY_REQUEST: 20Gi
+  {% endif %}
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}
