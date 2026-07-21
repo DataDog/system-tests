@@ -252,34 +252,6 @@ ignore = [
     "PTH208",   # os-listdir: TODO
     "T201",     # print: allow print statements in scripts folder
 ]
-"utils/virtual_machine/virtual_machines.py" = [
-    "ANN003",   # missing-type-kwargs: TODO
-    "ANN201",   # missing-return-type-undocumented-public-function: TODO
-    "ARG002",   # unused-method-argument: TODO
-    "FBT002",   # boolean-default-value-positional-argument: TODO
-    "PLC0415",  # import-outside-top-level TODO
-    "PLR2004",  # magic-value-comparison: TODO
-    "TRY002",   # raise-vanilla-class: TODO
-]
-"utils/virtual_machine/aws_provider.py" = [
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "E501",    # line-too-long: TODO
-    "F541",    # f-string-missing-placeholders: TODO
-    "RET504",  # unnecessary-assign: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-    "PTH119",  # os-path-basename: TODO
-    "N806",    # non-lowercase-variable-in-function: TODO
-    "S113",    # request-without-timeout: TODO
-    "A002",    # builtin-argument-shadowing: TODO
-    "SIM115",  # open-file-with-context-handler: TODO
-    "ARG002",  # unused-method-argument: TODO
-    "PTH113",  # os-path-isfile: TODO
-    "PTH208",  # os-listdir: TODO
-    "N802",    # invalid-function-name: TODO
-    "F841",    # unused-variable: TODO
-    "TRY002",  # raise-vanilla-class: TODO
-    "PLR2004", # magic-value-comparison: TODO
-]
 "utils/virtual_machine/krunvm_provider.py" = [
     "A002",    # builtin-argument-shadowing: TODO
     "ANN002",  # missing-type-args: TODO
