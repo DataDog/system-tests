@@ -517,8 +517,8 @@ app.post('/ffe/start', async (req, res) => {
   ].some(name => process.env[name] !== undefined)
 
   if (hasFeatureFlaggingConfiguration) {
-    const { openfeature } = tracer
     try {
+      const { openfeature } = tracer
       await OpenFeature.setProviderAndWait(openfeature)
     } catch {
       openFeatureClient = OpenFeature.getClient()
