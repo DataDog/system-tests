@@ -112,7 +112,6 @@ fn app(state: AppState) -> Router {
             get(requestdownstream).post(requestdownstream),
         )
         .route("/rasp/sqli", get(rasp_sqli))
-        .route("/rasp/sqli", post(rasp_sqli))
         .route("/make_distant_call", get(make_distant_call))
         .with_state(state);
     integration::install_middleware(router)
