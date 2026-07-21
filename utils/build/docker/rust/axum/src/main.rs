@@ -121,7 +121,6 @@ fn app(state: AppState) -> Router {
             get(request_downstream).post(request_downstream),
         )
         .route("/rasp/sqli", get(rasp_sqli))
-        .route("/rasp/sqli", post(rasp_sqli))
         .route("/make_distant_call", get(make_distant_call))
         .route("/trace/manual_keep_drop", get(trace_manual_keep_drop))
         .with_state(state);
