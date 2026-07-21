@@ -2,7 +2,7 @@ import json
 import math
 
 from utils import context, interfaces, scenarios, weblog, features, rfc
-from utils.dd_constants import SamplingMechanism, SamplingPriority
+from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SamplingMechanism, SamplingPriority, TraceSource
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
@@ -651,6 +651,10 @@ class Test_AIGuardStandalone:
             )
             assert root_span.get("meta", {}).get("_dd.p.dm") == "-" + str(SamplingMechanism.AI_GUARD), (
                 "Decision maker (_dd.p.dm) must match AI_GUARD sampling mechanism in standalone mode"
+            )
+            assert root_span.get("meta", {}).get(TRACE_SOURCE_PROPAGATION_KEY) == TraceSource.AI_GUARD.as_tag_value(), (
+                f"Trace source tag ({TRACE_SOURCE_PROPAGATION_KEY}) must be "
+                f"'{TraceSource.AI_GUARD.as_tag_value()}' (AI Guard) when AI Guard originates the trace"
             )
 
 
