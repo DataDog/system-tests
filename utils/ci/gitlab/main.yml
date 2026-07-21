@@ -11,6 +11,14 @@ spec:
     scenarios_groups:
       description: "Comma-separated list of scenario groups to run"
       default: ""
+    matrix:
+      description: >-
+        Per-library overrides for scenarios/scenario_groups/weblogs/excluded_scenarios, as a YAML flow-mapping
+        string, e.g. '{python: {scenarios: [DEFAULT, FOO]}, python_lambda: {scenario_groups: tracer_release}}'.
+        Multi-valued fields must use '[...]' list syntax. Overrides the corresponding global input/variable
+        (scenarios, scenarios_groups, weblogs, excluded_scenarios) for the libraries it lists; unlisted
+        libraries/fields keep using the global values.
+      default: ""
     excluded_scenarios:
       description: "Comma-separated list of scenarios not to run"
       default: "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
@@ -124,6 +132,7 @@ system_tests_build_pipeline:
       push_to_test_optimization="${SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION:-$[[ inputs.push_to_test_optimization ]]}"
       docker_auth="${SYSTEM_TESTS_DOCKER_AUTH:-$[[ inputs.docker_auth ]]}"
       skip_empty_scenario="${SYSTEM_TESTS_SKIP_EMPTY_SCENARIO:-$[[ inputs.skip_empty_scenarios ]]}"
+      matrix="${MATRIX:-$[[ inputs.matrix ]]}"
       echo "libraries:              $libraries"
       echo "scenarios:              $scenarios"
       echo "scenario_groups:        $scenario_groups"
@@ -133,11 +142,12 @@ system_tests_build_pipeline:
       echo "parametric_job_count:   $parametric_job_count"
       echo "push_to_test_opt:       $push_to_test_optimization"
       echo "skip_empty_scenario:    $skip_empty_scenario"
+      echo "matrix:                 $matrix"
       printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
       binaries_artifacts="${BINARIES_ARTIFACTS:-$[[ inputs.binaries_artifacts ]]}"
       binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
       for library in $libraries; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --output params_${library}.json
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --matrix "$matrix" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --output params_${library}.json
       done
       chunks=1
       if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi

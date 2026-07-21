@@ -5,6 +5,7 @@ import sys
 
 from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
+from utils.ci.gitlab.matrix import parse_matrix
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
     get_endtoend_definitions,
@@ -38,6 +39,7 @@ class CiData:
         groups: str,
         excluded_scenarios: str,
         weblogs: str,
+        matrix: str,
         parametric_job_count: int,
         desired_execution_time: int,
         explicit_binaries_artifact: str,
@@ -72,6 +74,17 @@ class CiData:
         groups = _clean_input_value(groups)
         excluded_scenarios = _clean_input_value(excluded_scenarios)
         weblogs = _clean_input_value(weblogs)
+
+        # apply per-library overrides from the configuration matrix, if any
+        library_overrides = parse_matrix(matrix).get(library, {})
+        if "scenarios" in library_overrides:
+            scenarios = _clean_input_value(library_overrides["scenarios"])
+        if "scenario_groups" in library_overrides:
+            groups = _clean_input_value(library_overrides["scenario_groups"])
+        if "excluded_scenarios" in library_overrides:
+            excluded_scenarios = _clean_input_value(library_overrides["excluded_scenarios"])
+        if "weblogs" in library_overrides:
+            weblogs = _clean_input_value(library_overrides["weblogs"])
 
         scenario_map = self._get_workflow_map(
             scenario_names=scenarios.split(","),
@@ -259,6 +272,13 @@ if __name__ == "__main__":
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
     parser.add_argument("--excluded-scenarios", type=str, help="Scenarios to excluded", default="")
     parser.add_argument("--weblogs", type=str, help="Subset of weblog to run", default="")
+    parser.add_argument(
+        "--matrix",
+        type=str,
+        help="Per-library overrides for scenarios/groups/weblogs/excluded-scenarios "
+        "(YAML flow-mapping string, e.g. '{python: {scenarios: [DEFAULT, FOO]}}')",
+        default="",
+    )
 
     # how long the workflow is expected to run
     parser.add_argument(
@@ -308,6 +328,7 @@ if __name__ == "__main__":
         groups=args.groups,
         excluded_scenarios=args.excluded_scenarios,
         weblogs=args.weblogs,
+        matrix=args.matrix,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
         explicit_binaries_artifact=args.explicit_binaries_artifact,
