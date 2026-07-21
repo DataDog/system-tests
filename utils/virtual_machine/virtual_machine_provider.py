@@ -1,5 +1,6 @@
 from collections.abc import Callable
 import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pulumi_aws
@@ -24,16 +25,15 @@ class VmProviderFactory:
             from utils.virtual_machine.aws_provider import AWSPulumiProvider
 
             return AWSPulumiProvider()
-        elif provider_id == "vagrant":
+        if provider_id == "vagrant":
             from utils.virtual_machine.vagrant_provider import VagrantProvider
 
             return VagrantProvider()
-        elif provider_id == "krunvm":
+        if provider_id == "krunvm":
             from utils.virtual_machine.krunvm_provider import KrunVmProvider
 
             return KrunVmProvider()
-        else:
-            raise ValueError("Not supported provided", provider_id)
+        raise ValueError("Not supported provided", provider_id)
 
 
 class VmProvider:
@@ -47,16 +47,16 @@ class VmProvider:
         # Responsibility of the commander to execute commands on the VM
         self.commander: AWSCommander | None = None
 
-    def configure(self, virtual_machine: _VirtualMachine):
+    def configure(self, virtual_machine: _VirtualMachine) -> None:
         self.vm = virtual_machine
 
-    def stack_up(self):
+    def stack_up(self) -> None:
         """Each provider should implement the method that start up all the machines.
         After each machine is up, you will call the install_provision method for each machine.
         """
         raise NotImplementedError
 
-    def stack_destroy(self):
+    def stack_destroy(self) -> None:
         """Stop and destroy machines"""
         raise NotImplementedError
 
@@ -65,7 +65,7 @@ class VmProvider:
         vm: _VirtualMachine,
         server: pulumi_aws.ec2.Instance,
         server_connection: pulumi_command.remote.ConnectionArgs,
-    ):
+    ) -> None:
         """Orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
@@ -100,7 +100,9 @@ class VmProvider:
         logger.stdout(f"[{vm.name}] Extracting {provision.tested_components_installation.id}")
 
         # We don't get the last_task. This task can be executed in parallel with the next one
-        output_callback = lambda args: args[0].set_tested_components(args[1])
+        def output_callback(args: list[object]) -> None:
+            args[0].set_tested_components(args[1])
+
         self._remote_install(
             server_connection,
             vm,
@@ -114,7 +116,8 @@ class VmProvider:
         # We commit the branch reference of the CI_COMMIT_BRANCH env variable only if the gitlab project is system-tests
         # Proabably we need to change this in the future, and translate this logic to the pipelines or another class
         # Not for windows, because we don't have git installed on windows
-        # Only applied for ruby provisions (other languages don't need this checkout step, because they are handling less number of files)
+        # Only applied for ruby provisions (other languages don't need this checkout step,
+        # because they are handling less number of files)
         if vm.os_type != "windows" and context.library.name == "ruby":
             ci_commit_branch = os.getenv("GITLAB_CI")
             if ci_commit_branch:
@@ -127,7 +130,8 @@ class VmProvider:
                 last_task = self.commander.remote_command(
                     vm,
                     "checkout_branch",
-                    f"cd system-tests && git reset --hard HEAD && git stash && git pull && git stash && git checkout {ci_commit_branch}",
+                    "cd system-tests && git reset --hard HEAD && git stash && git pull && git stash "
+                    f"&& git checkout {ci_commit_branch}",
                     vm.get_command_environment(),
                     server_connection,
                     last_task,
@@ -191,12 +195,12 @@ class VmProvider:
                 elif file_to_copy.git_path:
                     remote_path = "."
                 else:
-                    remote_path = os.path.basename(file_to_copy.local_path)
+                    remote_path = Path(file_to_copy.local_path).name
 
                 if file_to_copy.git_path:
                     logger.debug("Copy file from git path")
 
-                    if os.path.isdir(file_to_copy.git_path):
+                    if Path(file_to_copy.git_path).is_dir():
                         file_to_copy.git_path = file_to_copy.git_path + "/*"
 
                     # system-tests is cloned into home folder
@@ -212,7 +216,7 @@ class VmProvider:
                         output_callback=output_callback,
                         populate_env=installation.populate_env,
                     )
-                elif not os.path.isdir(file_to_copy.local_path):
+                elif not Path(file_to_copy.local_path).is_dir():
                     # If the local path contains a variable, we need to replace it
                     for key, value in command_environment.items():
                         file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
@@ -262,8 +266,8 @@ class Commander:
     """Run commands on the VMs. Each provider should implement this class."""
 
     def create_cache(
-        self, vm: _VirtualMachine, server: pulumi_aws.ec2.Instance, last_task: pulumi_command.remote.Command
-    ):
+        self, _vm: _VirtualMachine, _server: pulumi_aws.ec2.Instance, last_task: pulumi_command.remote.Command
+    ) -> pulumi_command.remote.Command:
         """Create a cache from existing server.
         Use vm.get_cache_name() to get the cache name.
         Server is the started server to create the cache from.
@@ -279,7 +283,7 @@ class Commander:
         env: dict[str, str],
         last_task: pulumi_command.remote.Command,
         logger_name: str,
-    ):
+    ) -> pulumi_command.remote.Command:
         """Execute a local command in the current machine.
         Env contain environment variables to be used in the command.
         logger_name is the name of the logger to use to store the output of the command.
@@ -290,13 +294,13 @@ class Commander:
 
     def copy_file(
         self,
-        id: str,
+        copy_id: str,
         local_path: str,
         remote_path: str,
         connection: pulumi_command.remote.ConnectionArgs,
         last_task: pulumi_command.remote.Command,
         vm: _VirtualMachine | None = None,
-    ):
+    ) -> pulumi_command.remote.Command:
         """Copy a file from local to remote.
         Use last_task to depend on the last executed task.
         Return the current task executed.
@@ -315,7 +319,7 @@ class Commander:
         output_callback: Callable | None = None,
         *,
         populate_env: bool = True,
-    ):
+    ) -> pulumi_command.remote.Command:
         """Execute a command in the remote server.
         Use last_task to depend on the last executed task.
         logger_name is the name of the logger to use to store the output of the command.
@@ -334,10 +338,10 @@ class Commander:
         *,
         relative_path: bool = False,
         vm: _VirtualMachine | None = None,
-    ):
+    ) -> pulumi_command.remote.Command:
         """The best option would be zip folder on local system and copy to remote machine
         There is a weird behaviour synchronizing local command and remote command
         Uggly workaround: Copy files and folder one by one :-( )
         """
 
-        raise NotImplementedError(f"Copy folders not implemented")
+        raise NotImplementedError("Copy folders not implemented")

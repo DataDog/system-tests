@@ -18,6 +18,21 @@
     - ls -la binaries/
     - section_end "copy_binaries"
 {% endmacro %}
+{% macro job_tag(tag) %}
+    - datadog-ci tag --level job --tags "system-tests.job_type:{{tag}}"
+{% endmacro %}
+{% macro emit_execution_time_metric() %}
+    - |
+      if [[ "$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME" =~ ^[0-9]+$ ]]; then
+        elapsed=$(( $(date +%s) - SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME ))
+        datadog-ci measure --level job --measures system-tests.total_duration:$elapsed
+      else
+        echo "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME not set or not numeric ('$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME'), skipping metric emission"
+      fi
+{% endmacro %}
+{% macro trace(name, command, library, weblog=none, scenario=none) -%}
+datadog-ci trace --name "{{name}}" --tags system-tests.library:{{library}}{% if weblog %} --tags system-tests.weblog:{{weblog}}{% endif %}{% if scenario %} --tags system-tests.scenario:{{scenario}}{% endif %} -- {{command}}
+{%- endmacro %}
 {% if not skip_header %}
 workflow:
   name: "System-tests end to end"
@@ -30,11 +45,19 @@ include:
       stage: {{stage}}
       ref: {{ref}}
 
+default:
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - scheduler_failure
+
 stages:
   - {{stage}}
 
 variables:
   CI_IMAGE: {{ci_image}}
+  SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME: "{{pipeline_start_time}}"
 
 .push_to_test_optimization:
   id_tokens:
@@ -42,9 +65,10 @@ variables:
       aud: dd-sts
   after_script:
     - echo -e "section_start:$(date +%s):test_optim[collapsed=true]\r\e[0KPush to tests optimization"
+    - source "dd_api_key.env"
     - dd-sts debug
     - >
-      dd-sts exchange --policy system-tests-gitlab -- datadog-ci junit upload system-tests/logs*/reportJunit.xml
+      datadog-ci junit upload system-tests/logs*/reportJunit.xml
       --service system-tests
       --env ci
       --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
@@ -52,16 +76,20 @@ variables:
 
 setup:
   extends: .system_tests_base
+  tags: ["arch:amd64"]
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   script:
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level pipeline --tags "system-tests:true"
+    - datadog-ci tag --level pipeline --tags "system-tests:true"
 {% endif %}
 
 {% for variant in weblog_variants %}
 system_tests_build_{{library}}_{{variant}}:
   extends: .system_tests_base
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   {% if binaries_artifacts_list %}
   needs:
     {% for artifact_job in binaries_artifacts_list %}
@@ -77,8 +105,9 @@ system_tests_build_{{library}}_{{variant}}:
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
-    - section_start "build" "Building weblog"
-    - ./build.sh {{library}} -i weblog --save-to-binaries --weblog-variant {{variant}}
+    - section_start "build" "Building weblog" false
+    {{ job_tag("build") }}
+    - {{ trace("build " ~ library ~ " " ~ variant, "./build.sh " ~ library ~ " -i weblog --save-to-binaries --weblog-variant " ~ variant, library, weblog=variant) }}
     - mv binaries ..
     - section_end "build"
   artifacts:
@@ -93,6 +122,9 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   needs:
   {% if build_required %}
     - job: system_tests_build_{{library}}_{{variant}}
@@ -111,20 +143,24 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     - section_start "weblog_setup" "Setting up the weblog"
     {% if build_required %}
     - mv ../binaries/* binaries/
-    - ./build.sh {{library}} -i weblog --weblog-variant {{variant}}
     {% elif binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
     - section_end "weblog_setup"
-    - section_start "scenario_run" "Running scenario"
+    - section_start "scenario_run" "Running scenario" false
+    {{ job_tag("run") }}
+    {% if build_required %}
+    - {{ trace("build " ~ library ~ " " ~ variant, "./build.sh " ~ library ~ " -i weblog --weblog-variant " ~ variant, library, weblog=variant) }}
+    {% endif %}
     {% if scenario == "INTEGRATION_FRAMEWORKS" %}
-    - ./run.sh {{scenario}} -L {{library}} --weblog {{variant}}
+    - {{ trace("run " ~ library ~ " " ~ scenario ~ " " ~ variant, "./run.sh " ~ scenario ~ " -L " ~ library ~ " --weblog " ~ variant, library, weblog=variant, scenario=scenario) }}
     {% elif scenario in ("GO_PROXIES_DEFAULT", "GO_PROXIES_APPSEC_BLOCKING") %}
-    - ./run.sh {{scenario}} --weblog {{variant}}
+    - {{ trace("run " ~ library ~ " " ~ scenario ~ " " ~ variant, "./run.sh " ~ scenario ~ " --weblog " ~ variant, library, weblog=variant, scenario=scenario) }}
     {% else %}
-    - ./run.sh {{scenario}}
+    - {{ trace("run " ~ library ~ " " ~ scenario ~ " " ~ variant, "./run.sh " ~ scenario, library, weblog=variant, scenario=scenario) }}
     {% endif %}
     - section_end "scenario_run"
+    {{ emit_execution_time_metric() }}
   artifacts:
     when: always
     paths:
@@ -139,6 +175,9 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   {% if binaries_artifacts_list %}
   needs:
     {% for artifact_job in binaries_artifacts_list %}
@@ -148,12 +187,14 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
     {% endfor %}
   {% endif %}
   script:
-    - echo -e "\e[0Ksection_start:$(date +%s):run\r\e[0KRunning PARAMETRIC (group {{job_index}}/{{parametric.job_count}})"
+    - section_start "run" "Running PARAMETRIC (group {{job_index}}/{{parametric.job_count}})" false
+    {{ job_tag("run") }}
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
-    - ./run.sh PARAMETRIC -L {{library}} --splits={{parametric.job_count}} --group={{job_index}}
-    - echo -e "\e[0Ksection_end:$(date +%s):run\r\e[0K"
+    - {{ trace("run " ~ library ~ " PARAMETRIC " ~ job_index, "./run.sh PARAMETRIC -L " ~ library ~ " --splits=" ~ parametric.job_count ~ " --group=" ~ job_index, library, scenario="PARAMETRIC") }}
+    - section_end "run"
+    {{ emit_execution_time_metric() }}
   artifacts:
     when: always
     paths:
