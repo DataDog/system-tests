@@ -14,7 +14,8 @@ FR -> test-class mapping:
   FR06  OTel semantic-convention attributes wherever applicable          Test_FR06_Otel_Span_Attributes,
                                                                          Test_FR06_Otel_Resource_Attributes
   FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
-  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes
+  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes,
+        DD_TAGS / OTEL_RESOURCE_ATTRIBUTES / DD_TRACE_STATS_ADDITIONAL_TAGS    Test_FR08_AdditionalTags
   FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
@@ -157,6 +158,8 @@ def _attr_value(item: dict) -> Any:  # noqa: ANN401
         return int(value["intValue"])
     if "doubleValue" in value:
         return value["doubleValue"]
+    if "arrayValue" in value:
+        return [_attr_value({"value": element}) for element in value["arrayValue"].get("values", [])]
     return None
 
 
@@ -1162,11 +1165,8 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A top-level and a non-top-level span with identical dimensions bucket separately.
-
-        The measured child (selected per FR04) shares every aggregation dimension with its top-level root,
-        yet the two must yield separate data points -- one datadog.span.top_level=true, one false -- rather
-        than being merged into a single bucket mislabeled false.
+        """A top-level and a non-top-level (measured) span with identical dimensions must bucket separately,
+        each keeping its own datadog.span.top_level flag rather than merging into one bucket mislabeled false.
         """
         with test_library as t:
             with (
@@ -1187,6 +1187,108 @@ class Test_FR08_Datadog_Attributes:
             "Top-level and non-top-level measured spans sharing the same aggregation dimensions must bucket "
             "separately, each keeping its datadog.span.top_level flag; expected both a true and a false data "
             f"point, got: {[_data_point_attrs(dp) for dp in points]}"
+        )
+
+
+@scenarios.parametric
+@features.client_side_stats_supported
+class Test_FR08_AdditionalTags:
+    """FR08: DD_TAGS (tracer_dd_tags) / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
+    DD_TRACE_STATS_ADDITIONAL_TAGS (additional_metric_tags) as data-point attributes (support pending in some SDKs).
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TAGS": (
+                    "team:apm,tier:backend,"
+                    "service:ignored-svc,env:ignored-env,version:ignored-ver,"
+                    "runtime_id:ignored-rid,runtime-id:ignored-rid2"
+                ),
+            }
+        ],
+    )
+    def test_fr08_10_dd_tags_resource_attributes(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Global DD_TAGS surface as the tracer_dd_tags resource-attribute container (repeated key:value
+        strings) in default mode; reserved service/env/version/runtime_id/runtime-id keys are ignored.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource_attrs = _resource_attributes(metrics)
+        tracer_dd_tags = resource_attrs.get("tracer_dd_tags") or []
+        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {resource_attrs}"
+        assert "tier:backend" in tracer_dd_tags, f"Expected tier:backend in tracer_dd_tags, got: {resource_attrs}"
+        for reserved in ("service", "env", "version", "runtime_id", "runtime-id"):
+            assert not any(str(entry).startswith(f"{reserved}:") for entry in tracer_dd_tags), (
+                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {tracer_dd_tags}"
+            )
+        assert resource_attrs.get("service.name") == SERVICE, (
+            f"DD_TAGS service must not override configured service.name={SERVICE}, got: {resource_attrs}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "OTEL_RESOURCE_ATTRIBUTES": "team=apm,deployment.region=us-east-1"}],
+    )
+    def test_fr08_11_otel_resource_attributes_env(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """OTEL_RESOURCE_ATTRIBUTES is an alias for DD_TAGS, so its entries also surface in the
+        tracer_dd_tags resource-attribute container.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        tracer_dd_tags = _resource_attributes(metrics).get("tracer_dd_tags") or []
+        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {tracer_dd_tags}"
+        assert "deployment.region:us-east-1" in tracer_dd_tags, (
+            f"Expected deployment.region:us-east-1 in tracer_dd_tags, got: {tracer_dd_tags}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "DD_TRACE_STATS_ADDITIONAL_TAGS": "customer.tier,region"}],
+    )
+    def test_fr08_12_stats_additional_tags(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS surface as the additional_metric_tags
+        data-point container (repeated key:value strings), since their values vary per span.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
+                span.set_meta("customer.tier", "gold")
+                span.set_meta("region", "us-east-1")
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        attrs = _data_point_attrs(_duration_data_points(metrics)[0])
+        additional_metric_tags = attrs.get("additional_metric_tags") or []
+        assert "customer.tier:gold" in additional_metric_tags, (
+            f"Expected customer.tier:gold in additional_metric_tags, got: {attrs}"
+        )
+        assert "region:us-east-1" in additional_metric_tags, (
+            f"Expected region:us-east-1 in additional_metric_tags, got: {attrs}"
         )
 
 

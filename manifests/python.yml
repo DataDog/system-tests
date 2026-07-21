@@ -2001,6 +2001,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otlp_trace_metrics.py: v4.13.0-dev
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_7_rpc_status_code: missing_feature (Requires libdatadog v38, will be added in future release)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v4.0.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: v2.16.0

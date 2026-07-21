@@ -1468,6 +1468,7 @@ manifest:
   : "irrelevant (\"Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
