@@ -75,7 +75,7 @@ variables:
   # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
   # Update this when either file changes:
   #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:d6028981e0ea"
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:d790f391d1b5"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
