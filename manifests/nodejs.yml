@@ -986,6 +986,7 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:
     - weblog_declaration:
@@ -1751,6 +1752,7 @@ manifest:
   : bug (MLOB-5070)
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : missing_feature (Node.js LLM Observability Google GenAI integration does not submit tool definitions)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0

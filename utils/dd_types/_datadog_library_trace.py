@@ -1,9 +1,11 @@
+import json
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import StrEnum
 from typing import Any
 
 from ._utils import get_rid_from_span_data
+from ._datadog_span_link import DataDogSpanLink
 
 
 class LibraryTraceFormat(StrEnum):
@@ -160,6 +162,10 @@ class DataDogLibrarySpan(ABC):
     def get_sampling_priority(self) -> int | None:
         pass
 
+    @abstractmethod
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        pass
+
 
 class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -179,6 +185,15 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
 
     def get_sampling_priority(self) -> int | None:
         return self["metrics"].get("_sampling_priority_v1")
+
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        if "span_links" in self.raw_span:
+            return [DataDogSpanLink.from_library_v1_span_links(data) for data in self.raw_span["span_links"]]
+
+        raw = self.meta.get("_dd.span_links", [])
+        raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
+
+        return [DataDogSpanLink.from_library_legacy_format(data) for data in raw_deserilialized]
 
 
 class DataDogLibrarySpanV1(DataDogLibrarySpan):
@@ -258,3 +273,16 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
 
     def get_sampling_priority(self) -> int | None:
         return self.trace.raw_trace.get("priority")
+
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        # v1.0: span_links can be at top level or in attributes
+        if "span_links" in self.raw_span:
+            return [DataDogSpanLink.from_library_v1_span_links(data) for data in self.raw_span["span_links"]]
+
+        if "_dd.span_links" in self.raw_span.get("attributes", {}):
+            return [
+                DataDogSpanLink.from_library_v1_attributes(data)
+                for data in self.raw_span["attributes"]["_dd.span_links"]
+            ]
+
+        return []

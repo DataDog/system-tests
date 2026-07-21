@@ -438,7 +438,7 @@ manifest:
         "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
     - weblog_declaration:
-        "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
+        "*": flaky (APPSEC-61861)  # v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -698,6 +698,7 @@ manifest:
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0rc1
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.1.0-rc2
@@ -1365,6 +1366,7 @@ manifest:
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: v3.13.0
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : bug (MLOB-5071)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: v4.10.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: v3.13.0
