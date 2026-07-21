@@ -124,7 +124,7 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
   variables:
     KUBERNETES_CPU_REQUEST: 2
   {% if scenario != "INTEGRATIONS" %}
-    KUBERNETES_MEMORY_REQUEST: 20Gi
+    KUBERNETES_MEMORY_REQUEST: 6Gi
   {% endif %}
   extends:
     - .system_tests_base
