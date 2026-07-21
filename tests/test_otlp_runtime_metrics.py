@@ -6,19 +6,28 @@ jvm.*, go.*, v8js.*, etc.) instead of DD-proprietary naming (runtime.dotnet.*,
 runtime.go.*, runtime.node.*, etc.).
 """
 
+from __future__ import annotations
+
+from typing import TypedDict
+
 from utils import context, features, interfaces, scenarios, weblog
 
 
-# Maps each expected metric to its attribute constraints:
-#   "all"  — attribute keys that must appear on every emitted data point.
-#   "some" — attribute keys that must appear on at least one data point.
-#
-# Use "some" when a metric emits both per-dimension points (which carry the attribute)
-# and aggregate rollup points (which don't). For example, jvm.memory.used emits one
-# point per memory pool (with jvm.memory.pool.name) as well as heap/non-heap totals
-# (without it), so pool.name goes in "some" while jvm.memory.type, which is present
-# on every point, goes in "all".
-EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
+class MetricConstraints(TypedDict, total=False):
+    """Attribute constraints for an expected metric.
+
+    all: keys required on every data point.
+    some: keys required on at least one data point.
+    present_values: attribute -> values that must each appear on at least one data point.
+    """
+
+    all: list[str]
+    some: list[str]
+    present_values: dict[str, list[str]]
+
+
+# Maps each expected metric to its attribute constraints (see MetricConstraints).
+EXPECTED_METRICS: dict[str, dict[str, MetricConstraints]] = {
     "dotnet": {
         "dotnet.assembly.count": {"all": []},
         "dotnet.exceptions": {"all": []},
@@ -47,7 +56,7 @@ EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
         "go.memory.allocations": {"all": []},
         "go.memory.gc.goal": {"all": []},
         "go.memory.limit": {"all": []},
-        "go.memory.used": {"all": []},
+        "go.memory.used": {"all": [], "present_values": {"go.memory.type": ["other", "stack"]}},
         "go.processor.limit": {"all": []},
     },
     "nodejs": {
@@ -72,7 +81,12 @@ EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
         "v8js.memory.heap.space.physical_size": {"all": ["v8js.heap.space.name"]},
         "v8js.memory.heap.space.size": {"all": ["v8js.heap.space.name"]},
         "v8js.memory.heap.used": {"all": ["v8js.heap.space.name"]},
-        "v8js.resource.active": {"all": ["v8js.resource.type"]},
+        # v8js.resource.type is open-ended, so assert a known value is present instead of using a
+        # closed allow-list: the weblog's listening HTTP server always emits TCPServerWrap.
+        "v8js.resource.active": {
+            "all": ["v8js.resource.type"],
+            "present_values": {"v8js.resource.type": ["TCPServerWrap"]},
+        },
     },
     "java": {
         "jvm.buffer.count": {"all": ["jvm.buffer.pool.name"]},
@@ -108,9 +122,8 @@ EXPECTED_METRICS: dict[str, dict[str, dict[str, list[str]]]] = {
 
 # Valid value domains for attributes. For closed enums (jvm.memory.type, jvm.thread.*,
 # nodejs.eventloop.state, v8js.gc.type) these are exhaustive. For open-ended attributes
-# (pool names, GC names, V8 heap space names, libuv resource types) these are supersets
-# covering all known implementations — the assertion is that observed values fall within
-# the known universe.
+# (pool names, GC names, V8 heap space names) these are supersets covering all known
+# implementations — the assertion is that observed values fall within the known universe.
 EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
     "nodejs": {
         # Closed enum: performance.eventLoopUtilization() exposes idle and active only.
@@ -138,28 +151,7 @@ EXPECTED_METRIC_ATTRIBUTE_VALUES: dict[str, dict[str, frozenset[str]]] = {
                 "shared_trusted_large_object_space",
             }
         ),
-        # libuv handle types reported by process.getActiveResourcesInfo(); superset across Node 18+.
-        "v8js.resource.type": frozenset(
-            {
-                "Immediate",
-                "Timeout",
-                "TCPServerWrap",
-                "TCPWrap",
-                "TTYWrap",
-                "PipeWrap",
-                "UDPWrap",
-                "TLSWrap",
-                "FSReqCallback",
-                "MessagePort",
-                "DNSChannel",
-                "FSEvent",
-                "SignalWrap",
-                "StatWatcher",
-                "HTTPClientRequest",
-                "HTTPParser",
-                "Microtask",
-            }
-        ),
+        # v8js.resource.type is open-ended (validated via present_values in EXPECTED_METRICS, not here).
     },
     "java": {
         "jvm.memory.type": frozenset({"heap", "non_heap"}),
@@ -261,6 +253,22 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     return result
 
 
+RUNTIME_METRICS_WAIT_TIMEOUT = 60
+
+
+def wait_for_runtime_metrics(library: str) -> None:
+    # OTLP metrics are exported on an interval, so wait (while the weblog is still up) until every expected
+    # metric for this library reaches the agent instead of relying on the fixed collection window.
+    expected = EXPECTED_METRICS.get(library)
+    if not expected:
+        return
+
+    interfaces.agent.wait_for(
+        lambda _: expected.keys() <= get_runtime_metrics_by_name().keys(),
+        timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
+    )
+
+
 @scenarios.otlp_runtime_metrics
 @features.runtime_metrics
 class Test_OtlpRuntimeMetrics:
@@ -268,6 +276,7 @@ class Test_OtlpRuntimeMetrics:
 
     def setup_otel_metrics_are_present_and_attributed(self) -> None:
         self.req = weblog.get("/")
+        wait_for_runtime_metrics(context.library.name)
 
     def test_otel_metrics_are_present_and_attributed(self) -> None:
         assert self.req.status_code == 200
@@ -313,6 +322,15 @@ class Test_OtlpRuntimeMetrics:
                             f"'{point_tags[key]}' for {library}. "
                             f"Expected one of: {sorted(attribute_values[key])}"
                         )
+
+            for attr_key, required_values in constraints.get("present_values", {}).items():
+                observed_values = {pt[attr_key] for pt in points if attr_key in pt}
+                for required_value in required_values:
+                    assert required_value in observed_values, (
+                        f"Metric '{metric_name}' expected at least one data point with "
+                        f"{attr_key}='{required_value}' for {library}. "
+                        f"Observed {attr_key} values: {sorted(observed_values)}"
+                    )
 
     def setup_dd_metrics_are_absent(self) -> None:
         self.req = weblog.get("/")

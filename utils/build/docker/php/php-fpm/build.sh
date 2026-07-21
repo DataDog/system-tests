@@ -31,7 +31,7 @@ nala update
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d
 chmod +x /usr/sbin/policy-rc.d
 
-nala install -y --no-install-recommends tzdata publicsuffix curl apache2 libapache2-mod-fcgid jq ca-certificates git php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-mongodb
+nala install -y --no-install-recommends tzdata publicsuffix curl apache2 libapache2-mod-fcgid jq ca-certificates git unzip php$PHP_VERSION-fpm php$PHP_VERSION-curl apache2 php$PHP_VERSION-mysql php$PHP_VERSION-pgsql php$PHP_VERSION-xml php$PHP_VERSION-mongodb
 
 rm -rf /usr/sbin/policy-rc.d
 rm -rf /var/lib/apt/lists/*
@@ -39,7 +39,7 @@ rm -rf /var/lib/apt/lists/*
 find /var/www/html -mindepth 1 -delete
 
 mkdir -p /var/www/html/rasp
-cp -rf /tmp/php/common/* /var/www/html/
+cp -rf /tmp/php/weblogs/plain/* /var/www/html/
 cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 cp /tmp/php/php-fpm/entrypoint.sh /

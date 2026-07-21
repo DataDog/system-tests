@@ -10,6 +10,7 @@
 # use `>1.0.0` to indicate that requirement.
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -49,8 +50,11 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature (APPSEC_API_SECURITY_NO_RESPONSE_BODY not supported)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.8.0
+  tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: irrelevant (not applicable to proxies)
   tests/appsec/iast/sink/: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/source/: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
@@ -72,6 +76,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: '>=1.12.0'  # Modified by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection: missing_feature  # Created by easy win activation script
@@ -168,6 +173,8 @@ manifest:
   tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.3.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.3.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.3.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature (blocking capabilities are advertised unconditionally, not yet gated on activation state)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
@@ -265,6 +272,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
@@ -354,11 +362,18 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: '>=1.12.0'  # Modified by easy win activation script
   tests/stats/test_stats.py::Test_Agent_Info_Endpoint: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler: missing_feature
   tests/stats/test_stats.py::Test_Peer_Tags: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats: missing_feature  # Created by easy win activation script
@@ -426,7 +441,9 @@ manifest:
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py: '>=1.20.0'  # TODO: a lower version might be supported
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_edge_cases: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
@@ -460,6 +477,8 @@ manifest:
       component_version: <1.12.0
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (nginx master/worker model - only the worker emits telemetry, with DD-Root-Session-ID pointing at the non-emitting master, so root/runtime can't be validated)
+  tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: missing_feature (nginx master/worker model - only the worker emits telemetry, with DD-Root-Session-ID pointing at the non-emitting master, so root/runtime can't be validated)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: '>=1.12.0'  # Modified by easy win activation script

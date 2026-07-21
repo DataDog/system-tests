@@ -1,3 +1,4 @@
+from typing import Literal
 import os
 import pytest
 
@@ -20,7 +21,7 @@ from utils._context.containers import (
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
-
+from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
@@ -37,6 +38,7 @@ class DockerScenario(Scenario):
         *,
         github_workflow: str | None,
         doc: str,
+        weblog_categories: list[WeblogCategory] | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
@@ -46,9 +48,16 @@ class DockerScenario(Scenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+        super().__init__(
+            name,
+            doc=doc,
+            github_workflow=github_workflow,
+            scenario_groups=scenario_groups,
+            weblog_categories=weblog_categories,
+        )
 
         self.use_proxy = use_proxy
         self.enable_ipv6 = enable_ipv6
@@ -57,6 +66,7 @@ class DockerScenario(Scenario):
         self.meta_structs_disabled = False
         self.span_events = span_events
         self.client_drop_p0s = client_drop_p0s
+        self.obfuscation_version = obfuscation_version
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -74,6 +84,7 @@ class DockerScenario(Scenario):
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 client_drop_p0s=client_drop_p0s,
+                obfuscation_version=obfuscation_version,
                 enable_ipv6=enable_ipv6,
                 mocked_backend=mocked_backend,
             )
@@ -183,6 +194,7 @@ class EndToEndScenario(DockerScenario):
         *,
         doc: str,
         github_workflow: str = "endtoend",
+        weblog_categories: list[WeblogCategory],
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
@@ -201,6 +213,7 @@ class EndToEndScenario(DockerScenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
@@ -219,6 +232,7 @@ class EndToEndScenario(DockerScenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
+            weblog_categories=weblog_categories,
             enable_ipv6=enable_ipv6,
             use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
@@ -226,6 +240,7 @@ class EndToEndScenario(DockerScenario):
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
             client_drop_p0s=client_drop_p0s,
+            obfuscation_version=obfuscation_version,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
@@ -249,7 +264,6 @@ class EndToEndScenario(DockerScenario):
             volumes=weblog_volumes,
             other_containers=other_weblog_containers,
         )
-        self._containers += self.weblog_infra.get_containers()
 
         # buddies are a set of weblog app that are not directly the test target
         # but are used only to test feature that invlove another app with a datadog tracer
@@ -286,11 +300,18 @@ class EndToEndScenario(DockerScenario):
         self._library_interface_timeout = library_interface_timeout
         self.include_opentelemetry = include_opentelemetry
 
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        return [
+            image_name for container in self._containers for image_name in container.get_image_list(library, weblog)
+        ] + self.weblog_infra.get_image_list(library, weblog)
+
     def configure(self, config: pytest.Config):
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         self.weblog_infra.configure(config)
+        self._containers += list(self.weblog_infra.get_containers())
+
         self._set_containers_dependancies()
 
         super().configure(config)
@@ -313,7 +334,7 @@ class EndToEndScenario(DockerScenario):
             # Node.js starts the poll interval only after receiving the previous response, so faster
             # polling is safe. Some other languages use a fixed interval regardless of response
             # timing, or have bugs that cause race conditions when the interval is too short.
-            self.weblog_container.environment.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
+            self.weblog_infra.library_container.environment.setdefault("DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS", "0.2")
 
         if self._library_interface_timeout is None:
             if library == "java":
@@ -334,7 +355,7 @@ class EndToEndScenario(DockerScenario):
 
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
-            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self.weblog_infra.get_weblog_system_info)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
@@ -343,31 +364,11 @@ class EndToEndScenario(DockerScenario):
         if self._use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
 
-        for container in self.weblog_infra.get_containers():
-            container.depends_on.append(self.agent_container)
-
-            if self._use_proxy_for_weblog:
-                container.depends_on.append(self.proxy_container)
+        proxy_container = self.proxy_container if self._use_proxy_for_weblog else None
+        self.weblog_infra.set_weblog_dependencies(self.agent_container, proxy_container)
 
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
-
-    def _get_weblog_system_info(self):
-        try:
-            code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
-            if code or stdout is None:
-                message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
-            else:
-                message = stdout.decode()
-        except BaseException:
-            logger.exception("can't get weblog system info")
-        else:
-            logger.stdout(f"Weblog system: {message.strip()}")
-
-        if self.weblog_container.environment.get("DD_TRACE_DEBUG") == "true":
-            logger.stdout("\t/!\\ Debug logs are activated in weblog")
-
-        logger.stdout("")
 
     def _start_interfaces_watchdog(self):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
@@ -485,31 +486,27 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def library(self):
-        return self.weblog_container.library
+        return self.weblog_infra.library
 
     @property
     def agent_version(self):
         return self.agent_container.agent_version
 
     @property
-    def weblog_variant(self):
-        return self.weblog_container.weblog_variant
+    def weblog_variant(self) -> str:
+        return self.weblog_infra.weblog_variant
 
     @property
     def tracer_sampling_rate(self):
         return self.weblog_container.tracer_sampling_rate
 
     @property
-    def appsec_rules_file(self):
-        return self.weblog_container.appsec_rules_file
+    def uds_socket(self) -> str | None:
+        return self.weblog_infra.uds_socket
 
     @property
-    def uds_socket(self):
-        return self.weblog_container.uds_socket
-
-    @property
-    def uds_mode(self):
-        return self.weblog_container.uds_mode
+    def uds_mode(self) -> bool:
+        return self.weblog_infra.uds_mode
 
     @property
     def telemetry_heartbeat_interval(self):
@@ -522,6 +519,90 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.appsec_rules_file or ""
 
         return result
+
+    @property
+    def appsec_rules_file(self) -> str | None:
+        return self.weblog_infra.appsec_rules_file
+
+
+class DdTraceEndToEndScenario(EndToEndScenario):
+    """Scenario targeting basic feature of a dd-trace library (not SSI or lambda)"""
+
+    def __init__(
+        self,
+        name: str,
+        *,
+        doc: str,
+        additional_trace_header_tags: tuple[str, ...] = (),
+        agent_env: dict[str, str | None] | None = None,
+        appsec_enabled: bool = True,
+        backend_interface_timeout: int = 0,
+        client_drop_p0s: bool | None = None,
+        iast_enabled: bool = True,
+        include_opentelemetry: bool = False,
+        library_interface_timeout: int | None = None,
+        meta_structs_disabled: bool = False,
+        obfuscation_version: int | None | Literal["MISSING"] = None,
+        other_weblog_containers: tuple[type[TestedContainer], ...] = (),
+        rc_api_enabled: bool = False,
+        rc_backend_enabled: bool = False,
+        require_api_key: bool = False,
+        runtime_metrics_enabled: bool = False,
+        scenario_groups: list[ScenarioGroup] | None = None,
+        span_events: bool = True,
+        tracer_sampling_rate: float | None = None,
+        weblog_env: dict[str, str | None] | None = None,
+        weblog_volumes: dict | None = None,
+    ) -> None:
+        super().__init__(
+            name,
+            additional_trace_header_tags=additional_trace_header_tags,
+            agent_env=agent_env,
+            appsec_enabled=appsec_enabled,
+            backend_interface_timeout=backend_interface_timeout,
+            client_drop_p0s=client_drop_p0s,
+            doc=doc,
+            iast_enabled=iast_enabled,
+            include_opentelemetry=include_opentelemetry,
+            library_interface_timeout=library_interface_timeout,
+            meta_structs_disabled=meta_structs_disabled,
+            obfuscation_version=obfuscation_version,
+            other_weblog_containers=other_weblog_containers,
+            rc_api_enabled=rc_api_enabled,
+            rc_backend_enabled=rc_backend_enabled,
+            require_api_key=require_api_key,
+            runtime_metrics_enabled=runtime_metrics_enabled,
+            scenario_groups=scenario_groups,
+            span_events=span_events,
+            tracer_sampling_rate=tracer_sampling_rate,
+            weblog_categories=[WeblogCategory.dd_trace],
+            weblog_env=weblog_env,
+            weblog_volumes=weblog_volumes,
+        )
+
+
+class GraphQlEndToEndScenario(EndToEndScenario):
+    """Scenario targeting GraphQl feature of a dd-trace library"""
+
+    def __init__(
+        self,
+        name: str,
+        *,
+        doc: str,
+        agent_env: dict[str, str | None] | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
+        weblog_env: dict[str, str | None] | None = None,
+        weblog_volumes: dict | None = None,
+    ) -> None:
+        super().__init__(
+            name,
+            agent_env=agent_env,
+            doc=doc,
+            scenario_groups=scenario_groups,
+            weblog_categories=[WeblogCategory.dd_trace_graphql],
+            weblog_env=weblog_env,
+            weblog_volumes=weblog_volumes,
+        )

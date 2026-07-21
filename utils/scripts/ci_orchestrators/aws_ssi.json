@@ -125,8 +125,7 @@
                     "java": [
                         "test-app-java",
                         "test-app-java-container",
-                        "test-app-java-alpine",
-                        "test-app-java-buildpack"
+                        "test-app-java-alpine"
                     ],
                     "python": [
                         "test-app-python",
@@ -223,8 +222,7 @@
                     "java": [
                         "test-app-java",
                         "test-app-java-container",
-                        "test-app-java-alpine",
-                        "test-app-java-buildpack"
+                        "test-app-java-alpine"
                     ],
                     "python": [
                         "test-app-python",
@@ -409,41 +407,6 @@
                     "Debian_11_arm64",
                     "Debian_12_amd64",
                     "Debian_12_arm64"
-                ]
-            },
-            {
-                "name": "test-app-java-buildpack",
-                "excluded_os_branches": [
-                    "amazon_linux2",
-                    "ubuntu22_arm64",
-                    "amazon_linux2023_arm64",
-                    "windows"
-                ],
-                "excluded_os_names": [
-                    "AlmaLinux_9_amd64",
-                    "AlmaLinux_9_arm64",
-                    "Debian_11_amd64",
-                    "Debian_11_arm64",
-                    "Debian_12_amd64",
-                    "Debian_12_arm64",
-                    "OracleLinux_9_2_amd64",
-                    "OracleLinux_9_2_arm64",
-                    "OracleLinux_9_3_amd64",
-                    "OracleLinux_9_3_arm64",
-                    "RedHat_8_6_amd64",
-                    "RedHat_8_6_arm64",
-                    "RedHat_9_0_amd64",
-                    "RedHat_9_0_arm64",
-                    "Rocky_Linux_8_amd64",
-                    "Rocky_Linux_8_arm64",
-                    "Rocky_Linux_9_arm64",
-                    "Ubuntu_22_amd64",
-                    "Ubuntu_24_amd64",
-                    "Ubuntu_24_arm64",
-                    "Ubuntu_25_04_amd64",
-                    "Ubuntu_25_04_arm64",
-                    "Rocky_Linux_9_amd64",
-                    "Fedora_41_arm64"
                 ]
             },
             {

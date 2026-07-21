@@ -169,11 +169,19 @@ class TestClientApi:
             try:
                 if self._is_alive():
                     break
-            except Exception:
-                if self.container.status != "running":
-                    self._print_logs()
-                    message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
-                    _fail(message)
+            except Exception as e:
+                logger.debug(f"Error while checking if {self.container.name} is alive: {e}")
+
+            # _is_alive() swallows a non-running container status and returns False instead of
+            # raising, so the check must be repeated here on every iteration (not only in the
+            # except branch above) or a container that exits early (e.g. crash, port collision)
+            # silently gets retried for the full timeout instead of failing fast with its logs.
+            self.container.reload()
+            if self.container.status not in ("running", "created"):
+                self._print_logs()
+                message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
+                _fail(message)
+
             time.sleep(delay)
         else:
             self._print_logs()

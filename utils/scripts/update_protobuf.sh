@@ -69,4 +69,10 @@ protoc \
     --descriptor_set_out="$ROOT_DIR/utils/proxy/_decoders/remoteconfig.descriptor" \
     "$ROOT_DIR/utils/proxy/_decoders/remoteconfig.proto"
 
+protoc \
+    --include_imports \
+    -I "$ROOT_DIR" \
+    --descriptor_set_out="$ROOT_DIR/utils/proxy/_decoders/metrics_v3.descriptor" \
+    "$ROOT_DIR/utils/proxy/_decoders/metrics_v3.proto"
+
 echo "Success"

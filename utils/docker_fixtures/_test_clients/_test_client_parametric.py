@@ -10,7 +10,7 @@ from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
 import pytest
 
-from utils.docker_fixtures._core import get_host_port, docker_run
+from utils.docker_fixtures._core import extra_hosts_for_environment, get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
 from utils.docker_fixtures.spec.llm_observability import (
     SpanRequest,
@@ -88,6 +88,7 @@ class ParametricTestClientFactory(TestClientFactory):
                 volumes=self.container_volumes,
                 log_file=log_file,
                 network=test_agent.network,
+                extra_hosts=extra_hosts_for_environment(env),
                 # Give ddtrace/OTLP/gRPC background threads time to drain on SIGTERM before
                 # the next test on this xdist worker reuses the same host port. SIGKILLing
                 # mid-shutdown was the most likely cause of rare container-exit flakes.
@@ -281,6 +282,9 @@ class ParametricTestClientApi(TestClientApi):
             self._session.get(self._url("/trace/crash"))
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
+
+    def get_logs(self) -> str:
+        return self.container.logs().decode("utf-8")
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:
@@ -1033,6 +1037,9 @@ class APMLibrary:
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run_raw(command)
+
+    def get_logs(self) -> str:
+        return self._client.get_logs()
 
     @contextlib.contextmanager
     def dd_start_span(

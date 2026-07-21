@@ -22,6 +22,15 @@ from utils.interfaces._library.telemetry import (
 from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
+LIFECYCLE_EVENTS = [
+    "app-started",
+    "app-closing",
+    "app-integrations-change",
+    "app-dependencies-loaded",
+    "app-client-configuration-change",
+    "app-product-change",
+]
+
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
@@ -216,6 +225,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                         yield copied
                 else:
                     yield data
+
+    def get_lifecycle_events(self):
+        for data in self.get_telemetry_data(flatten_message_batches=True):
+            content = data["request"]["content"]
+            if content.get("request_type") not in LIFECYCLE_EVENTS:
+                continue
+            yield data
 
     def get_telemetry_configurations(self) -> list[dict]:
         """Extract and sort configuration entries from telemetry events."""
@@ -564,6 +580,38 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if (int_capabilities >> capability & 1) == 1:
                 found = True
         assert found, f"Capability {capability.name} not found"
+
+    def get_rc_capabilities(self, targets_version: int | None = None) -> set[Capabilities]:
+        """Return the RC capabilities advertised by the library.
+
+        If ``targets_version`` is provided, return the capabilities reported in the most recent
+        config request that acknowledged that version (config requests are time-ordered), which
+        allows asserting how the advertised set changes across activation/deactivation. Otherwise,
+        aggregate every capability seen across all config requests.
+        """
+        result: set[Capabilities] = set()
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            client = data["request"]["content"]["client"]
+            if targets_version is not None and client["state"]["targets_version"] != targets_version:
+                continue
+            capabilities = client["capabilities"]
+            if isinstance(capabilities, list):
+                decoded_capabilities = bytes(capabilities)
+            # base64-encoded string:
+            else:
+                decoded_capabilities = base64.b64decode(capabilities)
+            int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+            current = {capability for capability in Capabilities if (int_capabilities >> capability & 1) == 1}
+            found = True
+            if targets_version is None:
+                result |= current
+            else:
+                # Data is sorted by log filename, so the last match is the most recent request.
+                result = current
+        if targets_version is not None:
+            assert found, f"No remote config request found for targets_version {targets_version}"
+        return result
 
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
         """Check that for a given targets_version, the config states is the one expected

@@ -10,8 +10,12 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
+COPY utils/build/docker/nodejs/express /usr/app
 COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/bun.lock ./
-RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+COPY utils/build/docker/nodejs/nft-prune.mjs ./
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
+ && node nft-prune.mjs app.js \
+ && rm -rf /root/.bun
 
-# docker build --progress=plain -f utils/build/docker/nodejs/express4.base.Dockerfile -t datadog/system-tests:express4.base-v1 .
-# docker push datadog/system-tests:express4.base-v1
+# docker build --progress=plain -f utils/build/docker/nodejs/express4.base.Dockerfile -t datadog/system-tests:express4.base-v3 .
+# docker push datadog/system-tests:express4.base-v3

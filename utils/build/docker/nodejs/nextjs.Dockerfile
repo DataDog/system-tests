@@ -1,12 +1,9 @@
-FROM datadog/system-tests:nextjs.base-v1
-
-COPY utils/build/docker/nodejs/nextjs /usr/app
+FROM datadog/system-tests:nextjs.base-v3
 
 EXPOSE 7777
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-RUN bun run build
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker startup
@@ -16,4 +13,5 @@ ENV HOSTNAME=0.0.0.0
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf './node_modules/.bin/next start' >> app.sh
 ENV NODE_OPTIONS="--import dd-trace/initialize.mjs"
+ENV DD_INJECT_FORCE=true
 CMD ./app.sh
