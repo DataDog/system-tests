@@ -352,10 +352,10 @@ system_tests_param:
               elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
       " > set_vars.sh
       source set_vars.sh
-    - |
-      if [ "$CI_COMMIT_BRANCH" != "main" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
-        export LIBRARIES=""
-      fi
+    # - |
+    #   if [ "$CI_COMMIT_BRANCH" != "main" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
+    #     export LIBRARIES=""
+    #   fi
     # TEMPORARY: filter LIBRARIES via E2E_SUPPORTED_LANGUAGES (space-separated allowlist)
     # used to control rollout, to be removed once rollout is complete.
     - |
