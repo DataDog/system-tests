@@ -1783,7 +1783,12 @@ manifest:
       component_version: <=2.22.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+    - weblog_declaration:
+        "*": missing_feature
+        rails72: v2.39.0-dev
+        rails80: v2.39.0-dev
+        uds-rails: v2.39.0-dev
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
@@ -2381,6 +2386,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: missing_feature

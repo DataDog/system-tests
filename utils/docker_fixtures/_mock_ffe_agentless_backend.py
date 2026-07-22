@@ -41,7 +41,7 @@ VALID_RESPONSE_IDS = frozenset(
 DEFAULT_RESPONSE = "valid"
 UFC_ETAG = '"ufc-v1"'
 EXPECTED_API_KEY = "system-tests-mock-api-key"
-DELAYED_RESPONSE_SECONDS = 0.5
+DELAYED_RESPONSE_SECONDS = 1.5
 TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
 CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
@@ -194,6 +194,7 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(status_code)
                 for key, value in headers.items():
                     self.send_header(key, value)
+                self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 if body:
                     self.wfile.write(body)
@@ -228,11 +229,13 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
         self._write_json(HTTPStatus.OK, self.server.state.status())
 
     def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFEAgentlessBackendStatus) -> None:
+        body = json.dumps(payload).encode("utf-8")
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_response(status_code)
             self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(json.dumps(payload).encode("utf-8"))
+            self.wfile.write(body)
 
 
 def _has_auth(headers: Mapping[str, str]) -> bool:

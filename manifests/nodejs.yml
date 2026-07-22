@@ -1752,6 +1752,7 @@ manifest:
   : bug (MLOB-5070)
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : missing_feature (Node.js LLM Observability Google GenAI integration does not submit tool definitions)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0
@@ -2207,6 +2208,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py: *ref_5_111_0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence::test_fr05_1_metrics_computed_before_sampling: missing_feature (nodejs does not drop sampled-out traces when client-side stats are computed)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (nodejs does not tag child spans with a different service than their parent as top-level)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)

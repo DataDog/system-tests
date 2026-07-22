@@ -84,6 +84,7 @@ class Capabilities(IntEnum):
     FFE_FLAG_CONFIGURATION_RULES = 46
     DATA_STREAMS_TRANSACTION_EXTRACTORS = 47
     APM_TRACING_LLMOBS = 48
+    SDK_CONFIGURATION = 49
 
 
 class SamplingPriority(IntEnum):
