@@ -11,12 +11,12 @@ permissions:
 
 env:
   DD_FAST_BUILD: "1"
-  JOB_COUNT: "100"
+  JOB_COUNT: "20"
   LIBRARY: python
   RUNS_PER_JOB: "10"
   SCENARIO: DEFAULT
   WEBLOG: uwsgi-poc
-  DDPY_BRANCH: 25fcbb28d95c35d9ab07cd4a78fef6ae63b368f6
+  DDPY_BRANCH: main
 
 jobs:
   generate-matrix:
