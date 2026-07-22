@@ -23,12 +23,14 @@ class TestParameterName(BaseSourceTest):
 
     def test_source_post_reported(self):
         """For use case where only one is reported, we want to keep a test on the one reported"""
+        assert self.requests["POST"].status_code == 200
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
     def test_source_get_reported(self):
         """For use case where only one is reported, we want to keep a test on the one reported"""
+        assert self.requests["GET"].status_code == 200
         self.validate_request_reported(self.requests["GET"])
 
     def test_source_reported(self):

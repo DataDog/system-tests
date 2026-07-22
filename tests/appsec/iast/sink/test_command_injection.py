@@ -47,6 +47,7 @@ class TestCommandInjection_StackTrace:
         self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "ls"})
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -61,4 +62,5 @@ class TestCommandInjection_ExtendedLocation:
         self.r = weblog.post("/iast/cmdi/test_insecure", data={"cmd": "ls"})
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
