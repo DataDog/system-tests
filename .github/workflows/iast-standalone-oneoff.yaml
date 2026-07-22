@@ -11,12 +11,12 @@ permissions:
 
 env:
   DD_FAST_BUILD: "1"
-  JOB_COUNT: "20"
+  JOB_COUNT: "10"
   LIBRARY: python
   RUNS_PER_JOB: "10"
   SCENARIO: DEFAULT
   WEBLOG: uwsgi-poc
-  DDPY_BRANCH: 4d2084ab0fc78410e0a1fd235e64cad01d5c14fa
+  DDPY_BRANCH: main
 
 jobs:
   generate-matrix:
@@ -106,7 +106,7 @@ jobs:
       - name: Load weblog image from binaries
         run: ./build.sh "${{ env.LIBRARY }}" -i weblog -w "${{ env.WEBLOG }}"
 
-      - name: Run IAST_STANDALONE up to ${{ env.RUNS_PER_JOB }} times
+      - name: Run DEFAULT up to ${{ env.RUNS_PER_JOB }} times
         id: run_iast
         run: |
           mkdir -p workflow-artifacts
@@ -115,7 +115,7 @@ jobs:
             echo "::group::Runner ${{ matrix.n }} attempt ${attempt}"
             rm -rf logs
 
-            if ./run.sh "${{ env.SCENARIO }}" tests/appsec/iast; then
+            if ./run.sh "${{ env.SCENARIO }}"; then
               echo "Attempt ${attempt} passed"
             else
               DEST="workflow-artifacts/logs_iast_standalone_job_${{ matrix.n }}_attempt_${attempt}"
