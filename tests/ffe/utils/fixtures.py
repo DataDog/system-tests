@@ -27,14 +27,10 @@ def make_ufc_fixture(
 ) -> JSON:
     values = variation_values or DEFAULT_VARIATION_VALUES[variation_type]
 
-    environment: JSON = {"name": "Test"}
-    if observe_full_evaluation_data is not None:
-        environment["observeFullEvaluationData"] = observe_full_evaluation_data
-
-    return {
+    ufc: JSON = {
         "createdAt": "2024-04-17T19:40:53.716Z",
         "format": "SERVER",
-        "environment": environment,
+        "environment": {"name": "Test"},
         "flags": {
             flag_key: {
                 "key": flag_key,
@@ -52,6 +48,9 @@ def make_ufc_fixture(
             }
         },
     }
+    if observe_full_evaluation_data is not None:
+        ufc["observeFullEvaluationData"] = observe_full_evaluation_data
+    return ufc
 
 
 def make_exposure_ufc_fixture(
