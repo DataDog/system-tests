@@ -67,13 +67,13 @@ class DebuggerController < ActionController::Base
   # Padding
   # run_expression passes inputValue so a method probe can capture it as an argument
   def run_expression
-    expression(inputValue: params[:inputValue])
+    expression(params[:inputValue])
   end
   # Padding
   # Padding
   # Padding
 
-  def expression(inputValue:)
+  def expression(inputValue)
     testStruct = ExpressionTestStruct.new
     localValue = inputValue.length
 

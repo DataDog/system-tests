@@ -149,8 +149,13 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
 
     ### method probe: capture expressions over method parameters ###
     def setup_method_parameter_capture_expressions(self):
+        probes_name = "probe_capture_expressions_method_parameter"
+        if self.get_tracer()["language"] == "ruby":
+            # Ruby method probes expose positional arguments as arg1, arg2, ... in capture expressions.
+            probes_name = "probe_capture_expressions_method_parameter_ruby"
+
         self._setup(
-            "probe_capture_expressions_method_parameter",
+            probes_name,
             "/debugger/expression?inputValue=testValue",
             "log",
             lines=None,
