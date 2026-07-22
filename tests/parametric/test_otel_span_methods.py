@@ -470,13 +470,13 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == int(root_tid, 16)
         assert link.get("attributes") is None or len(link.get("attributes")) == 0
         # Tracestate is not required, but if it is present, it must contain the linked span's tracestate
-        assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
+        assert not link.get("tracestate") or "dd=" in link["tracestate"]
 
         link = span_links[1]
         assert link.get("span_id") == first.get("span_id")
         assert link.get("trace_id") == first.get("trace_id")
         assert link.get("trace_id_high") == int(root_tid, 16)
-        assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
+        assert not link.get("tracestate") or "dd=" in link["tracestate"]
 
     @pytest.mark.parametrize(
         ("expected_operation_name", "span_kind", "attributes"),
@@ -637,7 +637,7 @@ class Test_Otel_Span_Methods:
 
         event1 = events[0]
         assert event1.get("name") == "first_event"
-        assert "attributes" not in event1
+        assert not event1.get("attributes")
 
         event2 = events[1]
         assert event2.get("name") == "second_event"

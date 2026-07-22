@@ -2376,6 +2376,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: missing_feature
