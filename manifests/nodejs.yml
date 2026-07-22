@@ -2200,18 +2200,17 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (nodejs does not tag child spans with a different service than their parent as top-level)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_all_baggage: incomplete_test_app (baggage endpoint is not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_baggage: incomplete_test_app (baggage endpoint is not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_set_baggage: incomplete_test_app (baggage endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: *ref_5_75_0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events::test_record_exception: bug (APMAPI-778)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current_span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: *ref_5_72_0
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: bug (APMLP-270)
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_disabled: bug (APMLP-270)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v5.93.0
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # Manual keep did not override the upstream drop decision
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=5.93.0'

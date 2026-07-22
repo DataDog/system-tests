@@ -1,5 +1,9 @@
 'use strict'
 
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === undefined) {
+  process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED = 'true'
+}
+
 const tracer = require('dd-trace').init()
 const { trace, ROOT_CONTEXT, SpanKind, propagation, metrics } = require('@opentelemetry/api')
 tracer.use('express', false)
@@ -524,9 +528,9 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
-app.post('/ffe/start', async (req, res) => {
+app.post('/ffe/start', (req, res) => {
   const { openfeature } = tracer
-  await OpenFeature.setProviderAndWait(openfeature)
+  OpenFeature.setProvider(openfeature)
   openFeatureClient = OpenFeature.getClient()
   res.json({})
 })
