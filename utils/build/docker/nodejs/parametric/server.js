@@ -212,6 +212,22 @@ app.post('/trace/span/manual_drop', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
+  // Native (WASM) span pipeline: /v0.6 client stats are computed by a Rust
+  // concentrator inside the exporter, not the JS SpanStatsProcessor. Force-flush
+  // it and wait. The client calls /trace/span/flush first, so the just-exported
+  // spans are already in the concentrator. Falls through to the JS path below
+  // for the classic pipeline (where `_exporter.flushStats` does not exist).
+  const exporter = tracer?._tracer?._exporter
+  if (exporter && typeof exporter.flushStats === 'function') {
+    // Promise.resolve + try/catch so a synchronous throw or a non-thenable
+    // return can't hang the request; always respond 200 like the JS path below.
+    try {
+      Promise.resolve(exporter.flushStats()).then(() => res.json({}), () => res.json({}))
+    } catch {
+      res.json({})
+    }
+    return
+  }
   // dd-trace-js implements CSS via SpanStatsProcessor on the SpanProcessor.
   // There is no public flush API, so reach into internals and wait for the
   // span-stats writer's HTTP send to complete before responding.
