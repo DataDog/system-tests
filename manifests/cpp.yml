@@ -11,6 +11,7 @@
 manifest:
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
@@ -99,6 +100,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: irrelevant (The CPP tracer doesn't support http header tags)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_ffe/test_configuration_sources.py: irrelevant (cpp is not in scope for v1 agentless server SDK configuration-source coverage)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)
@@ -318,6 +320,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Default::test_single_tracecontext: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)

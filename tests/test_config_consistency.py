@@ -380,7 +380,6 @@ def _get_span_by_tags(spans: list, tags: dict):
 
 
 @features.unified_service_tagging
-@scenarios.go_proxies_default
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
@@ -662,6 +661,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
     def setup_main(self):
         self.req = weblog.get("/")
+        wait_for_runtime_metrics()
 
     def test_main(self):
         assert self.req.status_code == 200
@@ -696,6 +696,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
 
     def setup_main(self):
         self.req = weblog.get("/")
+        wait_for_runtime_metrics()
 
     def test_main(self):
         assert self.req.status_code == 200
@@ -744,6 +745,18 @@ def get_runtime_metrics():
     ]
 
     return runtime_metrics_gauges, runtime_metrics_sketches
+
+
+RUNTIME_METRICS_WAIT_TIMEOUT = 60
+
+
+def wait_for_runtime_metrics() -> None:
+    # Runtime metrics are emitted on an interval, so wait (while the weblog is still up) until at least one
+    # reaches the agent instead of relying on the fixed collection window, which is racy.
+    interfaces.agent.wait_for(
+        lambda _: any(len(metrics) > 0 for metrics in get_runtime_metrics()),
+        timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
+    )
 
 
 def parse_log_injection_message(log_message: str) -> dict:

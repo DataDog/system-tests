@@ -52,6 +52,13 @@ assert_target_branch_is_not_set() {
   exit 1
 }
 
+ghcr_login_if_token_set() {
+  if [ -n "$GITHUB_TOKEN" ]; then
+    echo "Log to GHCR with token"
+    echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
+  fi
+}
+
 get_github_action_artifact() {
     rm -rf artifacts artifacts.zip
 
@@ -137,10 +144,7 @@ elif [ "$TARGET" = "dotnet" ]; then
     NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
 
     rm -rf *.tar.gz
-    if [ -n "$GITHUB_TOKEN" ]; then
-        echo "Log to GHCR with token"
-        echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
-    fi
+    ghcr_login_if_token_set
 
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
@@ -161,7 +165,19 @@ elif [ "$TARGET" = "ruby" ]; then
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     mkdir -p temp
-    if [ $VERSION = 'dev' ]; then
+
+    if [ "${VERSION:-}" = 'prod' ]; then
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
+
+    elif [ -n "${LIBRARY_TARGET_BRANCH:-}" ]; then
+        # Match GitLab's CI_COMMIT_REF_SLUG: lowercase, non-alphanumeric → '-', collapse, truncate to 63 bytes and trim
+        NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;s/-\+/-/g;s/^-//;s/-$//' | cut -c1-63 | sed 's/-$//')
+        ghcr_login_if_token_set
+        ../utils/scripts/docker_base_image.sh \
+            "ghcr.io/datadog/dd-trace-php/dd-library-php:${NORMALIZED_BRANCH}" \
+            ./temp
+
+    elif [ "${VERSION:-}" = 'dev' ]; then
         URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/latest/datadog-setup.php"
         echo "Downloading datadog-setup.php from: $URL"
         curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "$URL"
@@ -178,11 +194,12 @@ elif [ "$TARGET" = "php" ]; then
         echo "Downloading dd-library-php from: $URL"
         curl --fail --location --silent --show-error --output "./temp/dd-library-php-${VERSION_HASH}-$(arch)-linux-gnu.tar.gz" "$URL"
         echo "dd-library-php $(arch) downloaded"
-    elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
+
     else
-        echo "Don't know how to load version $VERSION for $TARGET"
+        echo "Don't know how to load version ${VERSION:-} for $TARGET"
+        exit 1
     fi
+
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 
 elif [ "$TARGET" = "golang" ]; then
@@ -211,13 +228,11 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using github.com/DataDog/orchestrion@latest"
     echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
-elif [ "$TARGET" = "envoy" ]; then
-    assert_version_is_dev
+    # envoy integration
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
-elif [ "$TARGET" = "haproxy" ]; then
-    assert_version_is_dev
+    # haproxy integration
     echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
     echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
 

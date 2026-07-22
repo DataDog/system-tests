@@ -1579,6 +1579,7 @@ manifest:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v0.87.0
@@ -2450,6 +2451,18 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     - declaration: bug (APMRP-360)
       component_version: 1.6.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities:
+    - weblog_declaration:
+        "*": v0.115.0
+        akka-http: v1.22.0
+        play: v1.22.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared:
+    - weblog_declaration:
+        "*": v0.115.0
+        akka-http: v1.22.0
+        play: v1.22.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
     - weblog_declaration:
         "*": v0.115.0
@@ -2969,15 +2982,15 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
-    - declaration: bug (DEBUG-3285)
-      component_version: <1.46.0
-      # Added by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner: bug (DEBUG-5838)
+  #  - declaration: bug (DEBUG-3285)
+  #    component_version: <1.46.0
+  # Added by easy win activation script
+  #  - weblog_declaration:
+  #      spring-boot-undertow: missing_feature
+  #      spring-boot-openliberty: missing_feature
+  #      spring-boot-jetty: missing_feature
+  #      spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -3273,6 +3286,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.63.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py: v1.61.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
@@ -3734,6 +3748,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: v1.31.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.31.0
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
@@ -3910,6 +3925,7 @@ manifest:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
   tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
@@ -4042,6 +4058,11 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler:
+    - weblog_declaration:
+        "*": v1.54.0
+        vertx3: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
+        vertx4: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0

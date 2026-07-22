@@ -1,6 +1,7 @@
 import pytest
 from utils import interfaces
 from utils._context._scenarios.core import ScenarioGroup
+from utils._context.constants import WeblogCategory
 from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer
 from utils._logger import logger
 from .endtoend import DockerScenario, ProxyBasedInterfaceValidator
@@ -33,9 +34,16 @@ class LambdaScenario(DockerScenario):
             all_scenario_groups.tracer_release,
             all_scenario_groups.end_to_end,
             all_scenario_groups.lambda_end_to_end,
+            all_scenario_groups.all,
         ] + (scenario_groups or [])
 
-        super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
+        super().__init__(
+            name,
+            github_workflow=github_workflow,
+            doc=doc,
+            scenario_groups=scenario_groups,
+            weblog_categories=[WeblogCategory.dd_trace_lambda],
+        )
 
         self.lambda_weblog = LambdaWeblogContainer(
             environment=weblog_env or {}, volumes=weblog_volumes or {}, trace_managed_services=trace_managed_services

@@ -27,6 +27,7 @@ import (
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
@@ -367,6 +368,7 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)

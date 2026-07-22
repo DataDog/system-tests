@@ -247,9 +247,48 @@ manifest:
         sinatra41: '>=2.35.0'
         rack: '>=2.35.0'
         sinatra32: '>=2.35.0'
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.37.0'
+        sinatra41: '>=2.37.0'
+        rails80: '>=2.37.0'
+        uds-sinatra: '>=2.37.0'
+        rails42: '>=2.37.0'
+        rails52: '>=2.37.0'
+        sinatra22: '>=2.37.0'
+        rails61: '>=2.37.0'
+        sinatra14: '>=2.37.0'
+        sinatra32: '>=2.37.0'
+        rails72: '>=2.37.0'
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -1106,6 +1145,7 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
@@ -1509,6 +1549,8 @@ manifest:
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.15.0
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.11.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: missing_feature
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -1741,7 +1783,12 @@ manifest:
       component_version: <=2.22.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+    - weblog_declaration:
+        "*": missing_feature
+        rails72: v2.39.0-dev
+        rails80: v2.39.0-dev
+        uds-rails: v2.39.0-dev
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
@@ -1853,6 +1900,9 @@ manifest:
         ruby-app-deployment-mode: v2.24.0
         rails6-app-vendored-mode: v2.29.0-dev
         ruby-app-vendored-mode: v2.29.0-dev
+        rails8-app: v2.38.0-dev
+        rails8-app-deployment-mode: v2.38.0-dev
+        rails8-app-vendored-mode: v2.38.0-dev
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <2.19.0
@@ -1881,6 +1931,11 @@ manifest:
     - declaration: bug (APMLP-1047)
       component_version: '<2.29.0-dev'
       weblog: [rails6-app-deployment-mode, ruby-app-deployment-mode]
+  tests/docker_ssi/test_docker_ssi_appsec.py:
+    - weblog_declaration:
+        rails8-app: v2.38.0-dev
+        rails8-app-deployment-mode: v2.38.0-dev
+        rails8-app-vendored-mode: v2.38.0-dev
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
     - declaration: bug (APPSEC-60983)
       component_version: '<2.29.0-dev'
@@ -2141,6 +2196,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
@@ -2324,6 +2380,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: missing_feature
@@ -2420,7 +2477,10 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging:
+    - weblog_declaration:
+        "*": v1.13.0
+        rails42: irrelevant (DI requires MRI Ruby 2.6+; rails42 runs on Ruby 2.5)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
@@ -2482,6 +2542,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler: missing_feature (no client-side stats computed when sampling drops all traces)
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
     - weblog_declaration:

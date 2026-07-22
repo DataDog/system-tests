@@ -24,6 +24,7 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/datastreams"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/Shopify/sarama"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -612,6 +613,7 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)

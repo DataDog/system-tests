@@ -1,0 +1,39 @@
+graphql23:
+  categories: [dd_trace_graphql]
+  excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ?
+rack:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+rails42:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+rails52:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+rails61:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+rails72:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+rails80:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+sinatra14:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+sinatra22:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+sinatra32:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+sinatra41:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+uds-rails:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+uds-sinatra:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]

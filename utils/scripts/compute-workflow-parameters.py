@@ -43,6 +43,7 @@ class CiData:
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
+        build_weblog_base_images: bool = False,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
@@ -87,12 +88,13 @@ class CiData:
             maximum_parallel_jobs=256,
             unique_id=self.unique_id,
             binaries_artifact=self.binaries_artifact,
+            build_base_images=build_weblog_base_images,
         )
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": len(scenario_map["parametric"]) > 0
+            "enable": len(scenario_map.get("parametric", [])) > 0
             and "otel" not in library
             and library
             not in (
@@ -190,13 +192,13 @@ class CiData:
     @staticmethod
     def _get_workflow_map(
         *, scenario_names: list[str], excluded_scenario_names: list[str], scenario_group_names: list[str]
-    ) -> dict:
+    ) -> dict[str, list[Scenario]]:
         """Returns a dict where:
         * the key is the workflow identifier
         * the value is a list of scenarios to run, associated to the workflow
         """
 
-        result: dict[str, list[str]] = {}
+        result: dict[str, list[Scenario]] = {}
 
         # clean inputs
         scenario_names = [scenario.strip() for scenario in scenario_names if scenario.strip()]
@@ -225,11 +227,11 @@ class CiData:
                 continue
 
             if scenario.name in scenario_names:
-                result[scenario.github_workflow].append(scenario.name)
+                result[scenario.github_workflow].append(scenario)
             else:
                 for group in scenario_group_names:
                     if all_scenarios_groups[group] in scenario.scenario_groups:
-                        result[scenario.github_workflow].append(scenario.name)
+                        result[scenario.github_workflow].append(scenario)
                         break
 
         return result
@@ -286,6 +288,12 @@ if __name__ == "__main__":
         "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
     )
     parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
+    parser.add_argument(
+        "--build-weblog-base-images",
+        type=str,
+        help="Rebuild weblog base images",
+        default="",
+    )
 
     args = parser.parse_args()
 
@@ -305,4 +313,5 @@ if __name__ == "__main__":
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
+        build_weblog_base_images=args.build_weblog_base_images == "true",
     ).export(export_format=args.format, output=args.output)

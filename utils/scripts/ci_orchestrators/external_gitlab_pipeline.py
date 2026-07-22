@@ -19,6 +19,37 @@ ALLOWED_VARIABLES = [
 LANG_STAGES = sorted(COMPONENT_GROUPS.ssi)
 
 
+def _is_local_include(entry: object) -> bool:
+    """Return True if a GitLab include entry refers to a local file path.
+
+    local: includes are resolved against the root project, not the project
+    that wrote the YAML.  When this file's output is used as a child pipeline
+    in a tracer repo, any local: path from system-tests' .gitlab-ci.yml would
+    be looked up inside the tracer repo and cause a pipeline compilation error.
+    """
+    if isinstance(entry, str):
+        return True  # bare strings are local file paths
+    if isinstance(entry, dict):
+        return "local" in entry
+    return False
+
+
+def _strip_local_includes(data: dict) -> None:
+    """Remove local: include entries from *data* in-place.
+
+    Only remote: (and other non-local) entries are kept so that the generated
+    pipeline is safe to run from any project.
+    """
+    raw = data.get("include")
+    if raw is None:
+        return
+    if isinstance(raw, list):
+        data["include"] = [e for e in raw if not _is_local_include(e)]
+    else:
+        # Single mapping or bare string
+        data["include"] = [] if _is_local_include(raw) else [raw]
+
+
 def main(language: str | None = None) -> None:
     """Main function to generate the gitlab system-tests pipeline
     Args:
@@ -31,11 +62,15 @@ def main(language: str | None = None) -> None:
     with open(".gitlab-ci.yml", "r") as file:
         data = yaml.safe_load(file)
 
+    # Drop local: includes — they resolve against the root project (the tracer
+    # repo) when this output is used as a child pipeline, not against
+    # system-tests, so any local: path would cause a compilation error there.
+    _strip_local_includes(data)
+
     # Ensure 'variables' section exists and update with new values
     data.setdefault("variables", {}).update(new_variables)
 
-    if language and language in LANG_STAGES:
-        data = filter_yaml(data, language)
+    data = filter_yaml(data, language)
 
     handle_parallelism(data)
 
@@ -43,19 +78,27 @@ def main(language: str | None = None) -> None:
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
-def is_allowed_stage(stage: str | None, language: str) -> bool:
+def is_allowed_stage(stage: str | None, language: str | None) -> bool:
     """Check if a stage is allowed based on the language."""
+    if not language or language not in LANG_STAGES:
+        return stage in LANG_STAGES or stage in {"configure", "pipeline-status"}
     return stage in {language, "configure", "pipeline-status"}
 
 
-def filter_yaml(yaml_data: dict, language: str) -> dict:
+def filter_yaml(yaml_data: dict, language: str | None) -> dict:
     """Filter the pipeline to run only the jobs for the specified language"""
 
-    # Find all jobs where stage == language
+    # Find all jobs where stage == language.
+    # Hidden jobs (`.`-prefixed templates, e.g. `.delayed_base_job`) have no
+    # stage and are never run on their own — they only exist to be pulled in via
+    # `extends`. Keep them regardless of stage; dropping them leaves any job that
+    # extends them dangling (`unknown keys in extends`), which fails compilation
+    # of the generated child pipeline.
     allowed_jobs = {
         job_name: job_data
         for job_name, job_data in yaml_data.items()
-        if isinstance(job_data, dict) and is_allowed_stage(job_data.get("stage"), language)
+        if isinstance(job_data, dict)
+        and (job_name.startswith(".") or is_allowed_stage(job_data.get("stage"), language))
     }
 
     # Keep only relevant sections

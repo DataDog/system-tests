@@ -1,0 +1,33 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+openai-py:
+  build_mode: none
+  framework_versions: ["2.0.0"]
+  categories : [dd_trace_frameworks]
+anthropic-py:
+  build_mode: none
+  framework_versions: ["0.75.0"]
+  categories : [dd_trace_frameworks]
+google_genai-py:
+  build_mode: none
+  framework_versions: ["1.55.0"]
+  categories : [dd_trace_frameworks]
+tornado:
+  categories: [dd_trace]
+django-poc:
+  categories: [dd_trace]
+django-py3.13:
+  categories: [dd_trace]
+  excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # APMAPI-1096
+python3.12:
+  categories: [dd_trace]
+  excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # APMAPI-1096
+uwsgi-poc:
+  categories: [dd_trace]
+uds-flask:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+flask-poc:
+  categories: [dd_trace]
+fastapi:
+  categories: [dd_trace]

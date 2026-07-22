@@ -38,6 +38,7 @@ import (
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
@@ -752,6 +753,7 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
 		span, ok := tracer.SpanFromContext(r.Context())

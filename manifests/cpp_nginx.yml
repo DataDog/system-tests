@@ -76,6 +76,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats: '>=1.19.1'  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: '>=1.12.0'  # Modified by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection: missing_feature  # Created by easy win activation script
@@ -172,6 +173,8 @@ manifest:
   tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.3.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.3.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.3.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature (blocking capabilities are advertised unconditionally, not yet gated on activation state)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
@@ -359,6 +362,7 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: '>=1.12.0'  # Modified by easy win activation script
   tests/stats/test_stats.py::Test_Agent_Info_Endpoint: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root: missing_feature  # Created by easy win activation script
@@ -369,6 +373,7 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
+  tests/stats/test_stats.py::Test_Error_Sampler: missing_feature
   tests/stats/test_stats.py::Test_Peer_Tags: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats: missing_feature  # Created by easy win activation script
