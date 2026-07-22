@@ -251,7 +251,7 @@ count_amis:
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/system-tests/base-image-builder
+  image: $CI_IMAGE
   tags:
     - arch:amd64
   id_tokens:
@@ -376,7 +376,7 @@ system_tests_param:
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
 build_ci_image:
-  image: $CI_IMAGE
+  image: registry.ddbuild.io/system-tests/image-builder:496bc0863a74
   interruptible: false
   tags:
     - docker-in-docker:amd64
