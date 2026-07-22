@@ -386,7 +386,7 @@ manifest:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.7.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
-  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v2.11.0-dev
   tests/appsec/test_alpha.py:
     - weblog_declaration:
         envoy: v1.72.0
