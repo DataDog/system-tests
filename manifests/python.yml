@@ -16,7 +16,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": v3.13.0.dev
+        "flask-poc": v4.13.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
