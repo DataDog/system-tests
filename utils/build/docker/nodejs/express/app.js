@@ -14,6 +14,7 @@ const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
 const http = require('http')
+const net = require('net')
 const fs = require('fs')
 const crypto = require('crypto')
 const winston = require('winston')
@@ -52,6 +53,17 @@ const jsonLogger = winston.createLogger({
 })
 
 iast.initData().catch(() => {})
+
+let lateOutboundPort
+const lateOutboundServer = net.createServer(socket => {
+  socket.once('data', () => {
+    socket.end('HTTP/1.1 202 Accepted\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok')
+  })
+})
+
+lateOutboundServer.listen(0, '127.0.0.1', () => {
+  lateOutboundPort = lateOutboundServer.address().port
+})
 
 app.use(require('body-parser').json({
   verify: (req, res, buf) => {
@@ -117,6 +129,23 @@ app.get('/healthcheck', (req, res) => {
       version: require('dd-trace/package.json').version
     }
   })
+})
+
+app.get('/late-outbound', (req, res) => {
+  const activeSpan = tracer.scope().active()
+  const rootSpan = activeSpan?.context()._trace.started[0] || activeSpan
+
+  setTimeout(() => {
+    tracer.scope().activate(rootSpan, () => {
+      http.get(`http://127.0.0.1:${lateOutboundPort}/intake/v2/events`, response => {
+        response.resume()
+      }).on('error', error => {
+        console.error('Late outbound request failed:', error)
+      })
+    })
+  }, 250)
+
+  res.status(200).send('late-outbound')
 })
 
 app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
