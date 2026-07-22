@@ -16,7 +16,7 @@ env:
   RUNS_PER_JOB: "10"
   SCENARIO: DEFAULT
   WEBLOG: uwsgi-poc
-  DDPY_BRANCH: main
+  DDPY_BRANCH: 4d2084ab0fc78410e0a1fd235e64cad01d5c14fa
 
 jobs:
   generate-matrix:
