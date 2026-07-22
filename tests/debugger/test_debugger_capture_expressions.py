@@ -149,7 +149,12 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
 
     ### method probe: capture expressions over method parameters ###
     def setup_method_parameter_capture_expressions(self):
-        self._setup("probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None)
+        self._setup(
+            "probe_capture_expressions_method_parameter",
+            "/debugger/expression?inputValue=testValue",
+            "log",
+            lines=None,
+        )
 
     def test_method_parameter_capture_expressions(self):
         self._assert()
