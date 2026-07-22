@@ -993,6 +993,7 @@ manifest:
         nextjs: missing_feature (endpoint not implemented)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: *ref_5_52_0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: *ref_5_18_0
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_TraceChunkBillingMarker: incomplete_test_app
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: *ref_5_40_0

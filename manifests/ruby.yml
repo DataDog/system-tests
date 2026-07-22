@@ -1148,6 +1148,7 @@ manifest:
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_TraceChunkBillingMarker: incomplete_test_app
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.31.0-dev

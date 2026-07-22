@@ -1,7 +1,8 @@
 'use strict'
 
 import { Request, Response } from "express";
-import http from 'http';
+import * as http from 'http';
+import * as net from 'net';
 
 const tracer = require('dd-trace').init();
 
@@ -19,6 +20,17 @@ const iast = require('./iast')
 const di = require('./debugger')
 
 iast.initData().catch(() => {})
+
+let lateOutboundPort: number
+const lateOutboundServer = net.createServer(socket => {
+  socket.once('data', () => {
+    socket.end('HTTP/1.1 202 Accepted\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok')
+  })
+})
+
+lateOutboundServer.listen(0, '127.0.0.1', () => {
+  lateOutboundPort = (lateOutboundServer.address() as net.AddressInfo).port
+})
 
 app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
@@ -46,6 +58,23 @@ app.get('/healthcheck', (req: Request, res: Response) => {
       version: require('dd-trace/package.json').version
     }
   });
+})
+
+app.get('/late-outbound', (req: Request, res: Response) => {
+  const activeSpan = tracer.scope().active()
+  const rootSpan = activeSpan?.context()._trace.started[0] || activeSpan
+
+  setTimeout(() => {
+    tracer.scope().activate(rootSpan, () => {
+      http.get(`http://127.0.0.1:${lateOutboundPort}/intake/v2/events`, (response: http.IncomingMessage) => {
+        response.resume()
+      }).on('error', (error: Error) => {
+        console.error('Late outbound request failed:', error)
+      })
+    })
+  }, 250)
+
+  res.status(200).send('late-outbound')
 })
 
 app.post('/waf', uploadToMemory.single('foo'), (req: Request, res: Response) => {

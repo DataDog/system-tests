@@ -6,6 +6,7 @@ const { promisify } = require('util')
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
+const net = require('net')
 const winston = require('winston')
 
 let fastifyHandler = null
@@ -64,6 +65,17 @@ fastify.register(require('@fastify/cookie'), { hook: 'onRequest', secret: 'my-se
 iast.initPlugins(fastify)
 iast.initData().catch(() => {})
 
+let lateOutboundPort
+const lateOutboundServer = net.createServer(socket => {
+  socket.once('data', () => {
+    socket.end('HTTP/1.1 202 Accepted\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok')
+  })
+})
+
+lateOutboundServer.listen(0, '127.0.0.1', () => {
+  lateOutboundPort = lateOutboundServer.address().port
+})
+
 fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (req, body, done) => {
   try {
     const xml2js = require('xml2js')
@@ -101,6 +113,24 @@ fastify.get('/healthcheck', async (request, reply) => {
       version: require('dd-trace/package.json').version
     }
   }
+})
+
+fastify.get('/late-outbound', (request, reply) => {
+  const activeSpan = tracer.scope().active()
+  const rootSpan = activeSpan?.context()._trace.started[0] || activeSpan
+
+  setTimeout(() => {
+    tracer.scope().activate(rootSpan, () => {
+      http.get(`http://127.0.0.1:${lateOutboundPort}/intake/v2/events`, response => {
+        response.resume()
+      }).on('error', error => {
+        console.error('Late outbound request failed:', error)
+      })
+    })
+  }, 250)
+
+  reply.status(200)
+  return 'late-outbound'
 })
 
 fastify.all('/waf', async (request, reply) => {
