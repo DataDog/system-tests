@@ -24,10 +24,8 @@ use tracing::debug;
 
 use crate::{get_tracer, AppState, ContextWithParent};
 
-/// Generates unique keys for contexts extracted without a valid remote span context (e.g.
-/// "restart" mode), so they can still be stored in `AppState::extracted_span_contexts` and
-/// referenced later as a `parent_id`. The high bit is set to keep these out of the real u64
-/// span id space.
+/// Fake span id for contexts without a valid remote span context (e.g. "restart" mode), so
+/// they can still be stored and referenced as a `parent_id`. High bit avoids real span ids.
 fn next_synthetic_span_id() -> u64 {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     (1u64 << 63) | COUNTER.fetch_add(1, Ordering::Relaxed)
@@ -155,8 +153,7 @@ async fn start_span(
     let span_id = u64::from_be_bytes(id.to_bytes());
     let trace_id = u128::from_be_bytes(span.span_context().trace_id().to_bytes());
 
-    // Build the child context from parent_ctx (not the ambient "current" context) so values
-    // attached to it, such as baggage, aren't dropped.
+    // Build from parent_ctx (not current) so baggage isn't dropped.
     let ctx = match &parent_ctx {
         Some(parent_ctx) => parent_ctx.with_span(span),
         None => Context::current_with_span(span),
@@ -315,8 +312,6 @@ async fn inject_headers(
         opentelemetry::global::get_text_map_propagator(|propagator| {
             let mut injector = HashMap::new();
 
-            // Inject the span's own stored context (not a freshly built one from just its
-            // SpanContext), so values attached to it, such as baggage, are preserved.
             let context = &ctx.context;
 
             debug!("inject_headers: context: {:#?}", context);
@@ -365,14 +360,6 @@ async fn extract_headers(
         debug!("extract_headers: received {:#?}", extractor);
 
         let context = propagator.extract(&HeaderExtractor(&extractor));
-
-        // A valid remote span context means "continue" mode extracted something. Other modes
-        // (e.g. "restart") don't set a remote span context but still attach data (such as a
-        // span link) to the returned Context via an opaque value only readable inside
-        // datadog-opentelemetry, so we can't distinguish "nothing extracted" from "extracted,
-        // but no remote span context" here. We store the context under a synthetic key in
-        // either case: a context with nothing useful attached behaves identically to no parent
-        // at all once fed into start_span, so this is safe even for genuinely empty extractions.
         let span_id = if context.span().span_context().is_valid() {
             u64::from_be_bytes(context.span().span_context().span_id().to_bytes())
         } else {
