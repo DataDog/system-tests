@@ -19,7 +19,6 @@ stages:
   - {stage}
 noop:
   stage: {stage}
-  image: registry.ddbuild.io/images/mirror/alpine:latest
   tags:
     - arch:amd64
   script:

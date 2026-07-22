@@ -33,7 +33,7 @@ spec:
     parametric_job_count:
       description: "Number of parallel jobs for the PARAMETRIC scenario"
       type: number
-      default: 1
+      default: 3
     push_to_test_optimization:
       description: "Push test results to Datadog Test Optimization"
       type: boolean
