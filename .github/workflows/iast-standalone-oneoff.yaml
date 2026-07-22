@@ -43,6 +43,9 @@ jobs:
           path: binaries/dd-trace-py
           persist-credentials: false
 
+      - name: Make dd-trace-py writable by the build container
+        run: chmod -R a+rwX binaries/dd-trace-py
+
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
 
