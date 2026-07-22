@@ -39,6 +39,7 @@ def render_library(
     docker_auth: bool,
     binaries_artifact_path: str,
     binaries_artifacts: str,
+    pipeline_start_time: str,
 ) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
@@ -72,6 +73,7 @@ def render_library(
         push_to_test_optimization=push_to_test_optimization,
         skip_header=skip_header,
         docker_auth_enabled=docker_auth,
+        pipeline_start_time=pipeline_start_time,
     )
 
 
@@ -88,6 +90,7 @@ def build(
     docker_auth: bool = False,
     binaries_artifact_path: str = "",
     binaries_artifacts: str = "",
+    pipeline_start_time: str = "",
 ) -> None:
     """Render pipeline chunk files into *output_dir*, one per chunk."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -127,6 +130,7 @@ def build(
                     docker_auth=docker_auth,
                     binaries_artifact_path=binaries_artifact_path,
                     binaries_artifacts=binaries_artifacts,
+                    pipeline_start_time=pipeline_start_time,
                 )
             )
 
@@ -156,6 +160,14 @@ def main(argv: list[str] | None = None) -> int:
         "(';' not ',' because job names may contain commas, e.g. parallel matrix names; "
         "falls back to the single binaries_artifact from params if empty)",
     )
+    parser.add_argument(
+        "--pipeline-start-time",
+        default="",
+        help="Unix epoch timestamp (from .system_tests_param_base) baked as a literal pipeline variable into "
+        "the generated child pipeline, so run jobs can compute elapsed time. Passed as a CLI argument (rather "
+        "than forwarded through trigger-job `variables:`) because GitLab does not reliably resolve dotenv-backed "
+        'variables referencing themselves (VAR: "$VAR") on trigger jobs.',
+    )
 
     args = parser.parse_args(argv)
 
@@ -173,6 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         docker_auth=args.docker_auth == "true",
         binaries_artifact_path=args.binaries_artifact_path,
         binaries_artifacts=args.binaries_artifacts,
+        pipeline_start_time=args.pipeline_start_time,
     )
     return 0
 

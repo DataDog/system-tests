@@ -64,11 +64,6 @@ on:
         default: false
         required: false
         type: boolean
-      push_to_feature_parity_dashbaord:
-        description: "Shall we push results to Feature Parity Dashbaord"
-        default: false
-        required: false
-        type: boolean
       skip_empty_scenarios:
         description: "Skip scenarios that contains only xfail or irrelevant tests"
         default: false

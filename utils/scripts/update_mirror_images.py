@@ -35,7 +35,7 @@ from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa:
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
     "MIRROR_IMAGES_URL",
-    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/d6c8f8ec4b1fb69b36e96dc204e5f79bed6bf067/mirror_images.py",
+    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/9d4911e4cf0e0fba6093854cb8bbfe0ae5fd9752/mirror_images.py",
 )
 
 # Destination registry for the mirrored images (override with $MIRROR_DEST_REGISTRY).

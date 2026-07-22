@@ -18,6 +18,9 @@
                         "rails6-app-deployment-mode",
                         "rails6-app-vendored-mode",
                         "rails6-app",
+                        "rails8-app-deployment-mode",
+                        "rails8-app-vendored-mode",
+                        "rails8-app",
                         "ruby-app-deployment-mode",
                         "ruby-app-vendored-mode",
                         "ruby-app"
@@ -45,6 +48,7 @@
                     ],
                     "ruby": [
                         "rails6-app",
+                        "rails8-app",
                         "ruby-app"
                     ],
                     "python": [
@@ -61,6 +65,7 @@
                 {
                     "ruby": [
                         "rails6-app",
+                        "rails8-app",
                         "ruby-app"
                     ],
                     "java": [
@@ -251,6 +256,7 @@
                         "allowed_runtime_versions": [
                             "RB27",
                             "RB30",
+                            "RB31",
                             "RB32",
                             "RB33",
                             "RB34"
@@ -261,6 +267,7 @@
                         "allowed_runtime_versions": [
                             "RB27",
                             "RB30",
+                            "RB31",
                             "RB32",
                             "RB33",
                             "RB34"
@@ -318,6 +325,57 @@
                             "RB32",
                             "RB33",
                             "RB34"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "rails8-app-deployment-mode",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB40"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB40"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "rails8-app-vendored-mode",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB40"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB40"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "rails8-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB40"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB40"
                         ]
                     }
                 ]
