@@ -26,9 +26,12 @@ import (
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 func main() {
@@ -185,6 +188,57 @@ func main() {
 			logrus.Fatalln(err)
 		}
 
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		return c.JSON(200, struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
+	})
+
+	r.Any("/otel_drop_in_extract_and_make_distant_call", func(c echo.Context) error {
+		url := c.Request().URL.Query().Get("url")
+		if url == "" {
+			return c.String(200, "OK")
+		}
+
+		// Extract the incoming trace context via the OTel propagation API and start a new span.
+		// We intentionally use context.Background() instead of c.Request().Context(): that context
+		// already carries the server span created by the HTTP middleware, which would cause the
+		// dd-trace-go OTel bridge to parent otel_extract_distant_call to that span rather than
+		// creating a fresh root with a span link (the expected restart behavior).
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		propagator := otel.GetTextMapPropagator()
+		ctx := propagator.Extract(context.Background(), propagation.HeaderCarrier(c.Request().Header))
+
+		p := ddotel.NewTracerProvider()
+		otel.SetTracerProvider(p)
+		otelTracer := p.Tracer("")
+		ctx, span := otelTracer.Start(ctx, "otel_extract_distant_call")
+		defer span.End()
+
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if ddSpan, ok := tracer.SpanFromContext(ctx); ok {
+			tracer.Inject(ddSpan.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
+		propagator.Inject(ctx, propagation.HeaderCarrier(req.Header))
+
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			logrus.Fatalln("client.Do", err)
+		}
 		defer res.Body.Close()
 
 		requestHeaders := make(map[string]string, len(req.Header))

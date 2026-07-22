@@ -1735,7 +1735,7 @@ manifest:
         haproxy: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.10.0-dev
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: v2.10.0-dev
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.10.0-dev
   tests/test_library_conf.py::Test_HeaderTags: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_basic:
