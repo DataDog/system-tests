@@ -8,9 +8,10 @@ import pytest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import context, scenarios, features, logger
+from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
 
 parametrize = pytest.mark.parametrize
 
@@ -37,22 +38,8 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
     return msgpack.unpackb(base64.b64decode(raw_body))
 
 
-def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
-    env = {
-        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
-        "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-    }
-    if context.library == "golang" and context.library.version < "v1.55.0":
-        env["DD_TRACE_FEATURES"] = "discovery"
-    if sample_rate is not None:
-        assert 0 <= sample_rate <= 1.0
-        env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
-
-    return parametrize("library_env", [env])
-
-
-def enable_agent_version(version: str = "7.65.0") -> pytest.MarkDecorator:
-    """Set the test agent version. Java tracer requires agent version >= 7.65.0 for client-side stats."""
+def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
+    """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
     return parametrize("agent_env", [agent_env_config])
 

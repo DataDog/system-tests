@@ -1579,7 +1579,10 @@ manifest:
         resteasy-netty3: missing_feature (login endpoints not implemented)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
+    - weblog_declaration:
+        "*": v1.65.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v0.87.0
@@ -3984,6 +3987,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.111.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.25.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
