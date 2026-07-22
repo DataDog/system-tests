@@ -257,7 +257,11 @@ check_merge_labels:
   id_tokens:
     DDOCTOSTS_ID_TOKEN:
       aud: dd-octo-sts
-  needs: []
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+
   stage: system-tests-utils
   before_script:
     # Get a token
