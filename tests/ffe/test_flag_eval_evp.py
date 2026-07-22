@@ -23,7 +23,7 @@ EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
 
-# Fixed input/output vector for the PII-protection tests. Every SDK's L1 unit tests
+# Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
 PII_TARGETING_KEY = "jane.doe@datadoghq.com"
 PII_TARGETING_KEY_HASHED = "sha256_b4698f9b6d186781fa8dc59e533578fa2d8379a46b1cf6db85cda6aa9c99e51b"
