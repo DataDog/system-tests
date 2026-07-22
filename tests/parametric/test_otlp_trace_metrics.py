@@ -79,6 +79,10 @@ TRUTHY = ("yes", "true", "1")
 AGGREGATION_TEMPORALITY_DELTA: tuple[int, str] = (1, "AGGREGATION_TEMPORALITY_DELTA")
 # OTel StatusCode (span status) values that denote an error, across possible serializations.
 ERROR_STATUS_VALUES: tuple[Any, ...] = (2, "ERROR", "STATUS_CODE_ERROR")
+# span.kind casing is still an open question pending OTEL spec finalization (RFC SEMCON-1093):
+# OTel SpanKind enum names are upper-case ("SERVER"), but the OTel Span Metrics Connector emits
+# lower-case ("server"). Accept both until the spec settles on one.
+SPAN_KIND_SERVER_VALUES = ("server", "SERVER")
 # Expected telemetry.sdk.language resource-attribute value per system-tests library name. The Go
 # tracer reports the OTel-standard "go" token rather than the system-tests "golang" library name.
 _SDK_LANGUAGE_BY_LIBRARY = {
@@ -347,7 +351,7 @@ class Test_FR01_Enablement_Configuration:
         "library_env",
         [{**_BASE_ENVVARS, "OTEL_TRACES_EXPORTER": "none", "DD_METRICS_OTEL_ENABLED": "true"}],
     )
-    def test_fr01_5_disabled_when_traces_exporter_not_otlp(
+    def test_fr01_5_disabled_when_tracing_is_disabled(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
@@ -368,6 +372,32 @@ class Test_FR01_Enablement_Configuration:
             metrics = test_agent.metrics()
             assert not _duration_data_points(metrics), (
                 f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
+            )
+            time.sleep(0.2)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "DD_APM_TRACING_ENABLED": "false"}],
+    )
+    def test_fr01_6_disabled_when_apm_tracing_disabled(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """OTLP trace metrics stay disabled when APM tracing itself is disabled (APM standalone mode),
+        even though the OTLP metrics gates are otherwise satisfied.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            metrics = test_agent.metrics()
+            assert not _duration_data_points(metrics), (
+                f"OTLP trace metrics must be disabled when APM tracing is disabled, got: {_all_metric_names(metrics)}"
             )
             time.sleep(0.2)
 
@@ -421,7 +451,10 @@ class Test_FR02_Metric_Identity:
 class Test_FR02_Mutual_Exclusion:
     """FR02: Trace metrics are exported in exactly one path (OTLP XOR native v0.6 stats)."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "DD_TRACE_STATS_COMPUTATION_ENABLED": "1"}],
+    )
     def test_fr02_3_otlp_suppresses_native_stats(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
@@ -430,6 +463,9 @@ class Test_FR02_Mutual_Exclusion:
     ):
         """With OTLP enabled: metrics go to /v1/metrics, no native v0.6 stats, and traces carry the
         Datadog-Client-Computed-Stats header so the Agent skips server-side stats computation.
+
+        DD_TRACE_STATS_COMPUTATION_ENABLED is also set here to prove OTLP wins when both mechanisms
+        are explicitly enabled, not just when native stats computation is left at its default.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -621,6 +657,9 @@ class Test_FR06_Otel_Span_Attributes:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.name") == "/users", f"Expected span.name=/users, got attrs: {attrs}"
+        assert "datadog.resource.name" not in attrs, (
+            f"datadog.resource.name must be absent in Datadog-default mode: {attrs}"
+        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr06_2_span_kind(
@@ -637,7 +676,11 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("span.kind") == "server", f"Expected span.kind=server, got attrs: {attrs}"
+        # Casing is intentionally tolerant pending OTEL spec finalization (RFC SEMCON-1093); see
+        # SPAN_KIND_SERVER_VALUES.
+        assert attrs.get("span.kind") in SPAN_KIND_SERVER_VALUES, (
+            f"Expected span.kind in {SPAN_KIND_SERVER_VALUES}, got attrs: {attrs}"
+        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr06_3_http_method(
@@ -739,7 +782,14 @@ class Test_FR06_Otel_Span_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR06_Otel_Resource_Attributes:
-    """FR06: Environment configuration maps to OTel resource attributes."""
+    """FR06: Environment configuration maps to OTel resource attributes.
+
+    OPEN QUESTION (PR #6834, pending OTEL spec finalization / RFC SEMCON-1093): test_fr06_9 and
+    test_fr06_14 below assert that a data point omits service.name when it matches the resource's
+    default service, mirroring "don't repeat what the resource already implies." Reviewers raised
+    whether SMC parity instead requires service.name on every data point regardless of whether it
+    matches the resource default. Left as-is pending spec guidance; do not change without it.
+    """
 
     @pytest.mark.parametrize(
         "library_env",
@@ -902,7 +952,14 @@ class Test_FR06_Otel_Resource_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR07_Otel_Semantics_Mode:
-    """FR07: With DD_TRACE_OTEL_SEMANTICS_ENABLED=true, only OTel attributes are emitted."""
+    """FR07: With DD_TRACE_OTEL_SEMANTICS_ENABLED=true, only OTel attributes are emitted.
+
+    OPEN QUESTION (PR #6834, pending OTEL spec finalization / RFC SEMCON-1093): test_fr07_2 below
+    asserts datadog.resource.name, datadog.span.type, and datadog.operation.name are all absent in
+    OTel-semantics mode. Reviewers questioned whether OTel-semantics mode should still emit some
+    Datadog-only attributes that have no OTel equivalent (env, http.*, etc.) rather than restricting
+    to SMC's default attribute set. Left as-is pending spec guidance; do not change without it.
+    """
 
     @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
     def test_fr07_1_no_datadog_attributes(
