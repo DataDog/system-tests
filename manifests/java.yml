@@ -4425,6 +4425,8 @@ manifest:
         spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
+    - declaration: missing_feature (Full schema definition/id capture removed from protobuf and avro instrumentation)
+      component_version: '>=1.65.0-SNAPSHOT'
   tests/test_resource_renaming.py:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT
