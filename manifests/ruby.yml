@@ -2844,7 +2844,6 @@ manifest:
         sinatra22: '>=2.34.0'
         rails61: '>=2.34.0'
         rails52: '>=2.34.0'
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
         "*": v2.23.0.dev

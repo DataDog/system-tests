@@ -1288,7 +1288,6 @@ manifest:
         php-fpm-7.4: missing_feature (profiling seems not to be activated)
         apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: v1.14.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
