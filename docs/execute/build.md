@@ -26,6 +26,7 @@ Build images used for system tests.
 
 ## Libraries names
 
+* `c`
 * `dotnet`
 * `golang`
 * `java`
@@ -38,6 +39,7 @@ Build images used for system tests.
 
 ## Weblog variants
 
+* For `c`: `python-stdlib` (default)
 * For `dotnet`: `poc` (default), `uds`
 * For `golang`: `net-http` (default), `gin`, `echo`, `chi`
   + Specific to the `GRAPHQL_APPSEC` scenario: `gqlgen`, `graph-gophers`, `graphql-go`
@@ -46,6 +48,29 @@ Build images used for system tests.
 * For `php`: `apache-mod-8.0` (default), `apache-mod-8.1`, `apache-mod-8.2`, `apache-mod-7.4`, `apache-mod-7.3`, `apache-mod-7.2`, `apache-mod-7.1`, `apache-mod-7.0`, `apache-mod-8.2-zts`, `apache-mod-8.1-zts`, `apache-mod-8.0-zts`, `apache-mod-7.4-zts`, `apache-mod-7.3-zts`, `apache-mod-7.2-zts`, `apache-mod-7.1-zts`, `apache-mod-7.0-zts`, `php-fpm-8.5`, `php-fpm-8.2`, `php-fpm-8.1`, `php-fpm-8.0`, `php-fpm-7.4`, `php-fpm-7.3`, `php-fpm-7.2`, `php-fpm-7.1`, `php-fpm-7.0`, `laravel11x`, `symfony7x`
 * For `python`: `flask-poc` (default), `fastapi`, `uwsgi-poc`, `django-poc`, `python3.12`
 * For `ruby`: `rails70` (default), `rack`, `sinatra21`, and lot of other sinatra/rails versions
+
+### dd-trace-c packages
+
+Build the native C tracer workload with:
+
+```bash
+./build.sh c -w python-stdlib
+```
+
+The production build uses the published `apm-library-c-package:latest` and
+`apm-inject-package:latest` images from `install.datadoghq.com`. Development
+builds use immutable commit-SHA tags from `installtesting.datad0g.com` (with a
+zero in `datad0g`). Run `./utils/scripts/load-binary.sh c` before a local
+development build to resolve the `dd-trace-c` and `auto_inject` branches and
+record both image references in `binaries/`.
+
+The `python-stdlib` workload supports `DEFAULT`, `SAMPLING`, and `IPV6`. It uses
+only Python 3.12's standard library; all tracing comes from dd-trace-c's native
+socket instrumentation. Auto-inject loads that native library when
+`DD_INJECT_NATIVE=always` and `DD_TRACE_HOOK_MODULES=socket` are set; the
+library is not added directly to `LD_PRELOAD`. The workload also enables
+128-bit trace ID generation. Unsupported product capabilities and workload-only
+gaps are recorded in `manifests/c.yml`.
 
 
 ## Real life examples

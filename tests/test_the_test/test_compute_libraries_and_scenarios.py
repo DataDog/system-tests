@@ -10,6 +10,7 @@ from utils import scenarios
 
 
 default_libs_with_prod = [
+    "c",
     "cpp",
     "cpp_httpd",
     "cpp_kong",
@@ -29,6 +30,7 @@ default_libs_with_prod = [
     "rust",
 ]
 default_libs_with_dev = [
+    "c",
     "cpp",
     "cpp_httpd",
     "cpp_kong",
@@ -187,6 +189,19 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,open_telemetry",
         )
 
+    def test_c_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/c/python-stdlib.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["c"],
+            ["c"],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
+        )
+
     @set_env("GITHUB_REF", "refs/heads/main")
     def test_ref_main(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
@@ -318,6 +333,20 @@ class Test_ComputeLibrariesAndScenarios:
             "false",
             "DEFAULT",
             "end_to_end,open_telemetry",
+        )
+
+    @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
+    def test_c_library_tag_with_branch(self):
+        inputs = build_inputs(["utils/build/docker/c/python-stdlib.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["c"],
+            ["c"],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")

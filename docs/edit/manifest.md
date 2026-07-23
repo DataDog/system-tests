@@ -21,6 +21,7 @@ When executed locally, tests run against the latest version of dd-trace by defau
 Each component has its own manifest file in the `manifests/` directory.
 
 ### Library Manifests
+- `manifests/c.yml` - C library
 - `manifests/cpp.yml` - C++ library
 - `manifests/cpp_httpd.yml` - C++ Apache httpd module
 - `manifests/cpp_kong.yml` - C++ Kong module

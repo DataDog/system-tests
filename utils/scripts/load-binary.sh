@@ -59,6 +59,39 @@ ghcr_login_if_token_set() {
   fi
 }
 
+resolve_github_branch_sha() {
+    local repository="$1"
+    local branch="$2"
+    local encoded_branch
+    local response
+    local sha
+
+    encoded_branch=$(jq -rn --arg value "$branch" '$value | @uri')
+    if ! response=$(curl --fail --location --silent --show-error \
+        "${GITHUB_AUTH_HEADER[@]}" \
+        "https://api.github.com/repos/${repository}/branches/${encoded_branch}"); then
+        echo "Unable to resolve branch '${branch}' in ${repository}" >&2
+        exit 1
+    fi
+
+    sha=$(jq -r '.commit.sha // empty' <<< "$response")
+    if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "Branch '${branch}' in ${repository} did not resolve to a commit SHA" >&2
+        exit 1
+    fi
+
+    printf '%s' "$sha"
+}
+
+validate_oci_image() {
+    local image="$1"
+
+    if ! docker manifest inspect "$image" >/dev/null; then
+        echo "OCI package does not exist or is not accessible: ${image}" >&2
+        exit 1
+    fi
+}
+
 get_github_action_artifact() {
     rm -rf artifacts artifacts.zip
 
@@ -127,9 +160,39 @@ fi
 
 echo "Load $VERSION binary for $TARGET"
 
-cd binaries/
+cd "${BINARIES_DIR:-binaries}/"
 
-if [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
+if [ "$TARGET" = "c" ]; then
+    if [ "$VERSION" = "prod" ]; then
+        if [[ -n "${LIBRARY_TARGET_BRANCH:-}" || -n "${AUTO_INJECT_TARGET_BRANCH:-}" ]]; then
+            echo "Target branches can only be used with the development c packages" >&2
+            exit 1
+        fi
+
+        C_LIBRARY_IMAGE="install.datadoghq.com/apm-library-c-package:latest"
+        C_INJECTOR_IMAGE="install.datadoghq.com/apm-inject-package:latest"
+    elif [ "$VERSION" = "dev" ]; then
+        LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+        AUTO_INJECT_TARGET_BRANCH="${AUTO_INJECT_TARGET_BRANCH:-main}"
+
+        C_LIBRARY_SHA=$(resolve_github_branch_sha "DataDog/dd-trace-c" "$LIBRARY_TARGET_BRANCH")
+        C_INJECTOR_SHA=$(resolve_github_branch_sha "DataDog/auto_inject" "$AUTO_INJECT_TARGET_BRANCH")
+        C_LIBRARY_IMAGE="installtesting.datad0g.com/apm-library-c-package:${C_LIBRARY_SHA}"
+        C_INJECTOR_IMAGE="installtesting.datad0g.com/apm-inject-package:${C_INJECTOR_SHA}"
+    else
+        echo "Don't know how to load version $VERSION for $TARGET" >&2
+        exit 1
+    fi
+
+    validate_oci_image "$C_LIBRARY_IMAGE"
+    validate_oci_image "$C_INJECTOR_IMAGE"
+
+    printf '%s\n' "$C_LIBRARY_IMAGE" > c-library-image
+    printf '%s\n' "$C_INJECTOR_IMAGE" > c-injector-image
+    echo "Using dd-trace-c package ${C_LIBRARY_IMAGE}"
+    echo "Using auto-inject package ${C_INJECTOR_IMAGE}"
+
+elif [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"

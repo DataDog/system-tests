@@ -25,6 +25,7 @@ class ComponentGroups(ConstGroups):
 
     def _items(self) -> dict[str, list[ConstGroup]]:
         return {
+            "c": [self.buildable, self.easy_win],
             "cpp": [self.easy_win, self.lib_injection, self.parametric],
             "cpp_httpd": [self.buildable, self.easy_win, self.ssi],
             "cpp_nginx": [self.buildable, self.easy_win, self.ssi],
