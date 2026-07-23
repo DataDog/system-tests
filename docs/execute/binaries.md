@@ -138,9 +138,32 @@ There are three ways to run system-tests with a custom node tracer.
 ## PHP library
 
 - Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-*-linux-gnu.tar.gz` in `/binaries` folder
-  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline), from a CI run of your branch.
+  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline of dd-trace-php's `gitlab.ddbuild.io`), from a CI run of your branch.
+    - **Via the browser:** open the pipeline for your branch, drill into the `package-trigger`
+      child pipeline, open the `package extension: [...]` job, and download its artifacts.
+    - **Via `glab` (for agents/CLI use):** the one-liners `glab ci artifact`/`glab job artifact`
+      only search the *top-level* pipeline's jobs, so they never find `package extension: [...]`
+      (it lives in the `package-trigger` **child** pipeline) — they just hang instead of failing
+      fast. Walk the GitLab API by hand instead (project is `DataDog/apm-reliability/dd-trace-php`,
+      project ID `355`; see [GitLab CLI setup](../ai/ai-tools-integration-guide.md#gitlab-cli-glab)):
+      ```bash
+      # 1. Find the top-level pipeline for your commit
+      glab api "/projects/355/pipelines?sha=<commit-sha>"
+
+      # 2. List that pipeline's trigger bridges, find package-trigger's downstream_pipeline.id
+      glab api "/projects/355/pipelines/<pipeline-id>/bridges"
+
+      # 3. Find the job's numeric id in that child pipeline (paginate with &page=N if needed)
+      glab api "/projects/355/pipelines/<child-pipeline-id>/jobs?per_page=100"
+
+      # 4. Download the job's artifacts zip (large; can take a few minutes)
+      glab api "/projects/355/jobs/<job-id>/artifacts" --output artifacts.zip
+
+      # 5. Pull out just the tarball you need
+      unzip -p artifacts.zip "packages/dd-library-php-<version>-aarch64-linux-gnu.tar.gz" \
+        > binaries/dd-library-php-<version>-aarch64-linux-gnu.tar.gz
+      ```
   - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
-- Copy it in the binaries folder
 
 Then run the tests from the repo root folder:
 
@@ -154,6 +177,12 @@ Then run the tests from the repo root folder:
     "single-request"
   ],
 ```
+
+> :note: **Keep `binaries/` clean between runs**
+> Only one PHP tarball should be present in `binaries/` at a time — a stale one left over from an earlier test causes `install_ddtrace.sh`'s "multiple dd-library-php tarballs found" error.
+> This can also happen even when `binaries/` on the host is clean: the PHP base image (`apache-mod.base.Dockerfile`, tagged e.g. `datadog/system-tests:apache-mod-8.2.base-v1`) bakes in whatever was in `binaries/` at the time it was built, and it's only rebuilt if the tag is missing locally.
+> If a stale tarball was baked into the base image, every later build adds a second tarball on top of it. Fix by removing the base image and letting it rebuild:
+> - `docker rmi datadog/system-tests:<variant>.base-v1`
 
 ## Python library
 
