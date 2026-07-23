@@ -4203,6 +4203,45 @@
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention[library_env0]": [
     "PARAMETRIC"
   ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_single_tracecontext": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_multiple_tracecontexts_with_overrides[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
   "tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid[library_env0]": [
     "PARAMETRIC"
   ],
