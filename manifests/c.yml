@@ -13,7 +13,6 @@ manifest:
   tests/test_identify.py: incomplete_test_app (User identity tagging requires an SDK endpoint)
   tests/test_library_conf.py: missing_feature (dd-trace-c does not support header-tag configuration or configurable extraction behavior)
   tests/test_library_logs.py: irrelevant (These assertions target Java and .NET logs)
-  tests/test_protobuf.py: incomplete_test_app (The Perl Mojolicious workload does not provide a protobuf endpoint)
   tests/test_rum_injection.py: irrelevant (dd-trace-c does not implement RUM injection)
   tests/test_sampling_rates.py::Test_SampleRateFunction: missing_feature (dd-trace-c does not implement static trace sampling rules)
   tests/test_sampling_rates.py::Test_SamplingDecisions: missing_feature (dd-trace-c does not implement static trace sampling rules)
