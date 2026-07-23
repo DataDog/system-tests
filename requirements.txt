@@ -8,12 +8,13 @@ docker==7.1.0
 filelock==3.12.2  # for parametric tests
 jsonschema==4.16.0
 kubernetes==29.0.0  #lib-injection kubernetes
-matplotlib  # for performance tests
 mitmproxy==9.0.1
 mock==5.2.0
 msgpack==1.0.4
 mypy==2.1.0
+numpy==2.5.1
 opentelemetry-api==1.27.0 # for parametric tests
+opentelemetry-proto==1.27.0 # for parametric tests
 paramiko==3.4.1
 pexpect==4.9.0  #On Boarding requirements
 pluggy==1.0.0

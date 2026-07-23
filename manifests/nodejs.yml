@@ -101,6 +101,7 @@ refs:
   - &ref_5_110_0 '>=5.110.0'
   - &ref_5_111_0 '>=5.111.0'
   - &ref_6_0_0 '>=6.0.0-pre'
+  - &ref_6_5_0 '>=6.5.0 || ^5.116.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -986,6 +987,7 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: *ref_6_5_0
   tests/appsec/test_alpha.py::Test_Basic: v2.0.0
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded:
     - weblog_declaration:
@@ -1338,6 +1340,8 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: missing_feature (can not block by query param in nextjs yet)
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: *ref_3_9_0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: *ref_3_9_0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: *ref_3_9_0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: *ref_3_9_0
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -1749,6 +1753,7 @@ manifest:
   : bug (MLOB-5070)
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
   : missing_feature (Node.js LLM Observability Google GenAI integration does not submit tool definitions)
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0
@@ -2060,6 +2065,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: bug (APMAPI-865)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: *ref_4_23_0
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2697 tracks Node.js agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_span_enrichment.py: "missing_feature (dd-trace-js#8343)"
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid: missing_feature (Need to remove b3=b3multi alias)
@@ -2197,6 +2203,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py: *ref_5_111_0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence::test_fr05_1_metrics_computed_before_sampling: missing_feature (nodejs does not drop sampled-out traces when client-side stats are computed)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (nodejs does not tag child spans with a different service than their parent as top-level)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
@@ -2259,6 +2266,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: *ref_5_13_0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: *ref_5_59_0
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:

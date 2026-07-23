@@ -22,6 +22,9 @@ manifest:
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v1.6.2
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v1.6.2
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: v1.11.0
+  tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints::test_sampling_delay:
+    - weblog_declaration:
+        laravel11x: flaky (APPSEC-69204)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: v1.11.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v1.11.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
@@ -98,6 +101,7 @@ manifest:
     - weblog_declaration:
         "*": v1.6.2
         laravel11x: missing_feature (PHP tracer Laravel integration collects response body schema regardless of DD_API_SECURITY_PARSE_RESPONSE_BODY=false)
+        symfony7x: missing_feature (PHP tracer Symfony integration collects response body schema regardless of DD_API_SECURITY_PARSE_RESPONSE_BODY=false)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v0.94.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v1.11.0-dev
   tests/appsec/api_security/test_schemas_auth.py: missing_feature
@@ -287,10 +291,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         laravel11x: v1.6.2
+        symfony7x: v1.6.2
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
     - weblog_declaration:
         "*": missing_feature
         laravel11x: v1.6.2
+        symfony7x: v1.6.2
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v1.6.2
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: missing_feature
@@ -314,10 +320,12 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke: missing_feature
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
         laravel11x: missing_feature
+        symfony7x: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -366,6 +374,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_failure_local:
     - weblog_declaration:
         laravel11x: v1.8.0
+        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -373,6 +382,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_sdk_success_local:
     - weblog_declaration:
         laravel11x: v1.8.0
+        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -384,6 +394,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_password_failure_local:
     - weblog_declaration:
         laravel11x: v1.8.0
+        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_wrong_user_failure_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -396,6 +407,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_failure_local:
     - weblog_declaration:
         laravel11x: v1.8.0
+        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -403,6 +415,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_sdk_success_local:
     - weblog_declaration:
         laravel11x: v1.8.0
+        symfony7x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_success_basic:
     - weblog_declaration:
         "*": missing_feature (Basic auth not implemented)
@@ -417,13 +430,19 @@ manifest:
         laravel11x: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v1.8.0
-  tests/appsec/test_automated_payment_events.py: v1.17.0-dev
+  tests/appsec/test_automated_payment_events.py:
+    - weblog_declaration:
+        "*": v1.17.0-dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_auto:
+    - weblog_declaration:
+        symfony7x: "missing_feature (APPSEC-68783: Symfony decide hook uses getUserIdentifier which returns username not database ID)"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking::test_user_tracking_sdk_overwrite:
     - weblog_declaration:
         laravel11x: missing_feature
+        symfony7x: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
@@ -517,6 +536,8 @@ manifest:
   tests/appsec/test_reports.py::Test_Info: v0.68.3  # probably 0.68.2, but was flaky
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.6.2
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.6.2
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.6.2
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: missing_feature (blocking capabilities are advertised unconditionally, not yet gated on activation state)
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.6.2
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
@@ -613,7 +634,8 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
         "*": v1.19.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: irrelevant (HTTP entry spans in PHP-FPM/Apache are C-level; execute stack is empty at span close time so no user frames are captured)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - weblog_declaration:
@@ -629,7 +651,8 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": v1.19.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20: irrelevant (The PHP weblog does not have non-user code, which could serve as boundary)
@@ -638,7 +661,8 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": v1.19.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception
   : '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators
@@ -656,18 +680,21 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": v1.20.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": v1.19.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_line_full: missing_feature (line probe infrastructure not implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS config key not implemented; only REDACTED_IDENTIFIERS exists which adds names, not removes them from the built-in list)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: missing_feature
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
@@ -677,16 +704,19 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (requires line probe infrastructure not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (line probe infrastructure not implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
@@ -699,7 +729,8 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
         "*": v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
@@ -712,17 +743,20 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": v1.21.0-dev
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": v1.21.0-dev
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/ffe/test_exposures.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": v1.21.0-dev
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
@@ -769,13 +803,15 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql:
     - weblog_declaration:
         "*": v0.91.1
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres:
     - weblog_declaration:
         "*": v0.91.1
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -800,15 +836,18 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": v1.8.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": v1.8.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": v1.8.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo:
     - declaration: missing_feature (mongodb PHP extension not available in apache-mod containers)
@@ -821,7 +860,8 @@ manifest:
   tests/integrations/test_sql.py::Test_Sql:
     - weblog_declaration:
         "*": v1.17.0
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
@@ -864,6 +904,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
+  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:
@@ -1061,6 +1102,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_injection_enabled: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_instrumentation_source_non_ssi: '>=1.16.0'
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: v1.22.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.96.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
@@ -1095,12 +1137,14 @@ manifest:
   tests/stats/test_stats.py: v1.19.0
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/stats/test_stats.py::Test_Client_Stats::test_disable: v1.17.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (PHP does not support gRPC)
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
@@ -1111,7 +1155,8 @@ manifest:
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
-        laravel11x: missing_feature (pending to be implemented on this weblog)
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -1262,6 +1307,9 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/test_sampling_rates.py::Test_SamplingDeterminism: v1.7.2  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingRates: v1.7.2  # real version unknown
+  tests/test_scrubbing.py::Test_UrlField::test_main:
+    - weblog_declaration:
+        symfony7x: incomplete_test_app
   tests/test_scrubbing.py::Test_UrlQuery: v0.76.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag: bug (APMAPI-920)
   tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url:

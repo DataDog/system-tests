@@ -9,11 +9,11 @@ WLS_ALLOWED_INJECTION = "Workload selection allowed injection: continuing"
 NO_KNOWN_RUNTIME = "No known runtime was detected - not injecting!"
 
 
-def exclude_telemetry_logs_filter(line: str):
+def exclude_telemetry_logs_filter(line: str) -> bool:
     return '"command":"telemetry"' not in line and '"caller":"telemetry/' not in line
 
 
-def command_injection_skipped(command_line: str, log_local_path: str):
+def command_injection_skipped(command_line: str, log_local_path: str) -> bool:
     """Determine if the given command was skipped from auto injection
     (e.g. by workload selection policies or no language matched).
     """
@@ -69,8 +69,8 @@ def _parse_command(command: str):
 def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
     r"""From instrumentation log file, extract all log lines per process.
 
-    A process chunk starts at the line containing \"process_exe:\" and runs until the next \"process_exe:\". This includes WLS decision
-    lines and post-WLS lines like \"No known runtime was detected - not injecting!\".
+    A process chunk starts at the line containing \"process_exe:\" and runs until the next \"process_exe:\".
+    This includes WLS decision lines and post-WLS lines like \"No known runtime was detected - not injecting!\".
     """
     process_logs: list[str] = []
     with open(log_local_path, encoding="utf-8") as f:
@@ -88,7 +88,7 @@ def _get_process_logs_from_log_file(log_local_path: str, line_filter: Callable):
         yield process_logs.copy()
 
 
-def main():
+def main() -> None:
     log_file = "logs_onboarding_host_block_list/host_injection_21711f84-86b3-4125-9a5f-cd129195d99a.log"
     command = "java -Dversion=-version -jar myapp.jar"
     skipped = command_injection_skipped(command, log_file)

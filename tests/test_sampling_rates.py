@@ -121,19 +121,18 @@ class Test_SamplingRates:
             sampled_count[priority_should_be_kept(sampling_priority)] += 1
 
         trace_count = sum(sampled_count.values())
-        # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
-        confidence_interval = 4 * (
-            trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
-        ) ** (1 / 2)
+        # Kept count ~ Binomial(n, p), std_dev = sqrt(n * p * (1 - p)). The tolerance band spans
+        # std_devs standard deviations: wide enough a correct tracer virtually never fails on noise.
+        std_devs = 5
+        std_dev = (trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)) ** (1 / 2)
+        tolerance = std_devs * std_dev
         # E = n * p
         expectation = context.tracer_sampling_rate * trace_count
-        if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
+        if not expectation - tolerance <= sampled_count[True] <= expectation + tolerance:
             raise ValueError(
-                f"Sampling rate is set to {context.tracer_sampling_rate}, "
-                f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True] / trace_count}, "
-                f"which is outside of the confidence interval of +-{confidence_interval}\n"
-                "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
+                f"Sampling rate {context.tracer_sampling_rate}: expected ~{expectation}/{trace_count} kept, "
+                f"got {sampled_count[True]}/{trace_count}, outside the +-{tolerance} ({std_devs} std_dev) band. "
+                "Probabilistic; rerun, and if it repeats the sampling rate is off."
             )
 
 
