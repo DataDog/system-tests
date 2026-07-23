@@ -206,6 +206,8 @@ class BaseDebuggerTest:
             "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
             "CaptureTimeout": {"java": [174], "nodejs": [157], "dotnet": [173]},
+            "CorrelationLoopBody": {"golang": [144]},
+            "CorrelationLoopSibling": {"golang": [147]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -348,6 +350,8 @@ class BaseDebuggerTest:
                             "20": "main.(*DebuggerController).logProbe",
                             "71": "main.(*DebuggerController).expression",
                             "117": "main.(*DebuggerController).budgetStep",
+                            "144": "main.(*DebuggerController).correlationLoop",
+                            "147": "main.(*DebuggerController).correlationLoop",
                         }
                         line = str(probe["where"]["lines"][0])
                         if line in golang_line_to_method:
