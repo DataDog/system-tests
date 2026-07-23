@@ -14,151 +14,159 @@ from utils.dd_constants import SamplingPriority
 from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracestate
 
 # ---------------------------------------------------------------------------
-# ot.rv / ot.th golden vectors
+# Expected ot.rv / ot.th values for known trace IDs and known sample rates
 #
 # DD's sampling decision is h = (trace_id_low64 * 1111111111111111111) mod 2**64, keep if h <= rate * (2**64 - 1)
 # (dd-trace-go/ddtrace/tracer/sampler.go:114-122). The OTel-compatible pair is:
-#   rv = (~h & (2**64 - 1)) >> 8      (56-bit, 14 hex digits)
-#   th = int((1 - rate) * (2**56))   (56-bit, trailing zero nibbles trimmed when formatted)
+#   rv = (~h & (2**64 - 1)) >> 8      (56-bit, 14 hex digits) -- depends only on trace_id, not on rate
+#   th = int((1 - rate) * (2**56))   (56-bit, trailing zero nibbles trimmed when formatted) -- depends only on rate
 #
 # Trace IDs are the ones already used (and verified) in tests/fixtures/sampling_rates.csv, crossed with
-# 5 rates. Values below were computed by /tmp/gen_otel_vectors2.py and cross-checked: at rate 0.5 they
+# 5 rates. Expected values below were computed with the formula above and cross-checked: at rate 0.5 they
 # reproduce the exact same keep/drop decisions as that CSV for all 23 trace IDs.
 # ---------------------------------------------------------------------------
 
-VECTORS_RATE_0_01 = [
-    # (trace_id, expected_rv_hex, expected_th_hex, expected_sampled)
-    (1, "f0948a54d43b8e", "fd70a3d70a3d7", False),
-    (10, "65cd67504a538e", "fd70a3d70a3d7", False),
-    (100, "fa060922e7438e", "fd70a3d70a3d7", False),
-    (1000, "c43c5b5d08a38e", "fd70a3d70a3d7", False),
-    (18444899399302180860, "1d6aabcffddf37", "fd70a3d70a3d7", False),
-    (18444899399302180861, "0dff3624d21ac5", "fd70a3d70a3d7", False),
-    (18444899399302180862, "fe93c079a65653", "fd70a3d70a3d7", True),
-    (18444899399302180863, "ef284ace7a91e1", "fd70a3d70a3d7", False),
-    (18446744073709551615, "0f6b75ab2bc471", "fd70a3d70a3d7", False),
-    (9223372036854775809, "70948a54d43b8e", "fd70a3d70a3d7", False),
-    (9223372036854775807, "8f6b75ab2bc471", "fd70a3d70a3d7", False),
-    (4611686018427387905, "30948a54d43b8e", "fd70a3d70a3d7", False),
-    (4611686018427387903, "4f6b75ab2bc471", "fd70a3d70a3d7", False),
-    (646771306295669658, "899fbcfd433be9", "fd70a3d70a3d7", False),
-    (1882305164521835798, "9d38be3d27241d", "fd70a3d70a3d7", False),
-    (5198373796167680436, "7188fdce730439", "fd70a3d70a3d7", False),
-    (6272545487220484606, "bea00261cb73bd", "fd70a3d70a3d7", False),
-    (8696342848850656916, "ca47c7b1ab2e46", "fd70a3d70a3d7", False),
-    (10197320802478874805, "d29c6d21f144ee", "fd70a3d70a3d7", False),
-    (10350218024687037124, "d6dc160c1c68fd", "fd70a3d70a3d7", False),
-    (12078589664685934330, "3a7d76f3c5a379", "fd70a3d70a3d7", False),
-    (13794769880582338323, "a6c17470cee7cd", "fd70a3d70a3d7", False),
-    (14629469446186818297, "295fd564326a5f", "fd70a3d70a3d7", False),
+TH_BY_RATE = {
+    0.01: "fd70a3d70a3d7",
+    0.1: "e6666666666668",
+    0.2: "ccccccccccccd",
+    0.5: "8",
+    0.99: "028f5c28f5c29",
+}
+
+SAMPLING_RATE_0_01 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
+    (1, "f0948a54d43b8e", False),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", False),
+    (1000, "c43c5b5d08a38e", False),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", False),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", False),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", False),
+    (1882305164521835798, "9d38be3d27241d", False),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", False),
+    (8696342848850656916, "ca47c7b1ab2e46", False),
+    (10197320802478874805, "d29c6d21f144ee", False),
+    (10350218024687037124, "d6dc160c1c68fd", False),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", False),
+    (14629469446186818297, "295fd564326a5f", False),
 ]
 
-VECTORS_RATE_0_1 = [
-    # (trace_id, expected_rv_hex, expected_th_hex, expected_sampled)
-    (1, "f0948a54d43b8e", "e6666666666668", True),
-    (10, "65cd67504a538e", "e6666666666668", False),
-    (100, "fa060922e7438e", "e6666666666668", True),
-    (1000, "c43c5b5d08a38e", "e6666666666668", False),
-    (18444899399302180860, "1d6aabcffddf37", "e6666666666668", False),
-    (18444899399302180861, "0dff3624d21ac5", "e6666666666668", False),
-    (18444899399302180862, "fe93c079a65653", "e6666666666668", True),
-    (18444899399302180863, "ef284ace7a91e1", "e6666666666668", True),
-    (18446744073709551615, "0f6b75ab2bc471", "e6666666666668", False),
-    (9223372036854775809, "70948a54d43b8e", "e6666666666668", False),
-    (9223372036854775807, "8f6b75ab2bc471", "e6666666666668", False),
-    (4611686018427387905, "30948a54d43b8e", "e6666666666668", False),
-    (4611686018427387903, "4f6b75ab2bc471", "e6666666666668", False),
-    (646771306295669658, "899fbcfd433be9", "e6666666666668", False),
-    (1882305164521835798, "9d38be3d27241d", "e6666666666668", False),
-    (5198373796167680436, "7188fdce730439", "e6666666666668", False),
-    (6272545487220484606, "bea00261cb73bd", "e6666666666668", False),
-    (8696342848850656916, "ca47c7b1ab2e46", "e6666666666668", False),
-    (10197320802478874805, "d29c6d21f144ee", "e6666666666668", False),
-    (10350218024687037124, "d6dc160c1c68fd", "e6666666666668", False),
-    (12078589664685934330, "3a7d76f3c5a379", "e6666666666668", False),
-    (13794769880582338323, "a6c17470cee7cd", "e6666666666668", False),
-    (14629469446186818297, "295fd564326a5f", "e6666666666668", False),
+SAMPLING_RATE_0_1 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", False),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", False),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", False),
+    (1882305164521835798, "9d38be3d27241d", False),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", False),
+    (8696342848850656916, "ca47c7b1ab2e46", False),
+    (10197320802478874805, "d29c6d21f144ee", False),
+    (10350218024687037124, "d6dc160c1c68fd", False),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", False),
+    (14629469446186818297, "295fd564326a5f", False),
 ]
 
-VECTORS_RATE_0_2 = [
-    # (trace_id, expected_rv_hex, expected_th_hex, expected_sampled)
-    (1, "f0948a54d43b8e", "ccccccccccccd", True),
-    (10, "65cd67504a538e", "ccccccccccccd", False),
-    (100, "fa060922e7438e", "ccccccccccccd", True),
-    (1000, "c43c5b5d08a38e", "ccccccccccccd", False),
-    (18444899399302180860, "1d6aabcffddf37", "ccccccccccccd", False),
-    (18444899399302180861, "0dff3624d21ac5", "ccccccccccccd", False),
-    (18444899399302180862, "fe93c079a65653", "ccccccccccccd", True),
-    (18444899399302180863, "ef284ace7a91e1", "ccccccccccccd", True),
-    (18446744073709551615, "0f6b75ab2bc471", "ccccccccccccd", False),
-    (9223372036854775809, "70948a54d43b8e", "ccccccccccccd", False),
-    (9223372036854775807, "8f6b75ab2bc471", "ccccccccccccd", False),
-    (4611686018427387905, "30948a54d43b8e", "ccccccccccccd", False),
-    (4611686018427387903, "4f6b75ab2bc471", "ccccccccccccd", False),
-    (646771306295669658, "899fbcfd433be9", "ccccccccccccd", False),
-    (1882305164521835798, "9d38be3d27241d", "ccccccccccccd", False),
-    (5198373796167680436, "7188fdce730439", "ccccccccccccd", False),
-    (6272545487220484606, "bea00261cb73bd", "ccccccccccccd", False),
-    (8696342848850656916, "ca47c7b1ab2e46", "ccccccccccccd", False),
-    (10197320802478874805, "d29c6d21f144ee", "ccccccccccccd", True),
-    (10350218024687037124, "d6dc160c1c68fd", "ccccccccccccd", True),
-    (12078589664685934330, "3a7d76f3c5a379", "ccccccccccccd", False),
-    (13794769880582338323, "a6c17470cee7cd", "ccccccccccccd", False),
-    (14629469446186818297, "295fd564326a5f", "ccccccccccccd", False),
+SAMPLING_RATE_0_2 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", False),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", False),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", False),
+    (1882305164521835798, "9d38be3d27241d", False),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", False),
+    (8696342848850656916, "ca47c7b1ab2e46", False),
+    (10197320802478874805, "d29c6d21f144ee", True),
+    (10350218024687037124, "d6dc160c1c68fd", True),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", False),
+    (14629469446186818297, "295fd564326a5f", False),
 ]
 
-VECTORS_RATE_0_5 = [
-    # (trace_id, expected_rv_hex, expected_th_hex, expected_sampled)
-    (1, "f0948a54d43b8e", "8", True),
-    (10, "65cd67504a538e", "8", False),
-    (100, "fa060922e7438e", "8", True),
-    (1000, "c43c5b5d08a38e", "8", True),
-    (18444899399302180860, "1d6aabcffddf37", "8", False),
-    (18444899399302180861, "0dff3624d21ac5", "8", False),
-    (18444899399302180862, "fe93c079a65653", "8", True),
-    (18444899399302180863, "ef284ace7a91e1", "8", True),
-    (18446744073709551615, "0f6b75ab2bc471", "8", False),
-    (9223372036854775809, "70948a54d43b8e", "8", False),
-    (9223372036854775807, "8f6b75ab2bc471", "8", True),
-    (4611686018427387905, "30948a54d43b8e", "8", False),
-    (4611686018427387903, "4f6b75ab2bc471", "8", False),
-    (646771306295669658, "899fbcfd433be9", "8", True),
-    (1882305164521835798, "9d38be3d27241d", "8", True),
-    (5198373796167680436, "7188fdce730439", "8", False),
-    (6272545487220484606, "bea00261cb73bd", "8", True),
-    (8696342848850656916, "ca47c7b1ab2e46", "8", True),
-    (10197320802478874805, "d29c6d21f144ee", "8", True),
-    (10350218024687037124, "d6dc160c1c68fd", "8", True),
-    (12078589664685934330, "3a7d76f3c5a379", "8", False),
-    (13794769880582338323, "a6c17470cee7cd", "8", True),
-    (14629469446186818297, "295fd564326a5f", "8", False),
+SAMPLING_RATE_0_5 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", True),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", True),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", True),
+    (1882305164521835798, "9d38be3d27241d", True),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", True),
+    (8696342848850656916, "ca47c7b1ab2e46", True),
+    (10197320802478874805, "d29c6d21f144ee", True),
+    (10350218024687037124, "d6dc160c1c68fd", True),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", True),
+    (14629469446186818297, "295fd564326a5f", False),
 ]
 
-VECTORS_RATE_0_99 = [
-    # (trace_id, expected_rv_hex, expected_th_hex, expected_sampled)
-    (1, "f0948a54d43b8e", "028f5c28f5c29", True),
-    (10, "65cd67504a538e", "028f5c28f5c29", True),
-    (100, "fa060922e7438e", "028f5c28f5c29", True),
-    (1000, "c43c5b5d08a38e", "028f5c28f5c29", True),
-    (18444899399302180860, "1d6aabcffddf37", "028f5c28f5c29", True),
-    (18444899399302180861, "0dff3624d21ac5", "028f5c28f5c29", True),
-    (18444899399302180862, "fe93c079a65653", "028f5c28f5c29", True),
-    (18444899399302180863, "ef284ace7a91e1", "028f5c28f5c29", True),
-    (18446744073709551615, "0f6b75ab2bc471", "028f5c28f5c29", True),
-    (9223372036854775809, "70948a54d43b8e", "028f5c28f5c29", True),
-    (9223372036854775807, "8f6b75ab2bc471", "028f5c28f5c29", True),
-    (4611686018427387905, "30948a54d43b8e", "028f5c28f5c29", True),
-    (4611686018427387903, "4f6b75ab2bc471", "028f5c28f5c29", True),
-    (646771306295669658, "899fbcfd433be9", "028f5c28f5c29", True),
-    (1882305164521835798, "9d38be3d27241d", "028f5c28f5c29", True),
-    (5198373796167680436, "7188fdce730439", "028f5c28f5c29", True),
-    (6272545487220484606, "bea00261cb73bd", "028f5c28f5c29", True),
-    (8696342848850656916, "ca47c7b1ab2e46", "028f5c28f5c29", True),
-    (10197320802478874805, "d29c6d21f144ee", "028f5c28f5c29", True),
-    (10350218024687037124, "d6dc160c1c68fd", "028f5c28f5c29", True),
-    (12078589664685934330, "3a7d76f3c5a379", "028f5c28f5c29", True),
-    (13794769880582338323, "a6c17470cee7cd", "028f5c28f5c29", True),
-    (14629469446186818297, "295fd564326a5f", "028f5c28f5c29", True),
+SAMPLING_RATE_0_99 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", True),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", True),
+    (18444899399302180860, "1d6aabcffddf37", True),
+    (18444899399302180861, "0dff3624d21ac5", True),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", True),
+    (9223372036854775809, "70948a54d43b8e", True),
+    (9223372036854775807, "8f6b75ab2bc471", True),
+    (4611686018427387905, "30948a54d43b8e", True),
+    (4611686018427387903, "4f6b75ab2bc471", True),
+    (646771306295669658, "899fbcfd433be9", True),
+    (1882305164521835798, "9d38be3d27241d", True),
+    (5198373796167680436, "7188fdce730439", True),
+    (6272545487220484606, "bea00261cb73bd", True),
+    (8696342848850656916, "ca47c7b1ab2e46", True),
+    (10197320802478874805, "d29c6d21f144ee", True),
+    (10350218024687037124, "d6dc160c1c68fd", True),
+    (12078589664685934330, "3a7d76f3c5a379", True),
+    (13794769880582338323, "a6c17470cee7cd", True),
+    (14629469446186818297, "295fd564326a5f", True),
 ]
 
 
@@ -193,13 +201,14 @@ def _priority_should_be_kept(sampling_priority: int) -> bool:
 class _EmitOtOnProbabilityDecisionBase:
     """A1: a probability sampling decision produces ot=rv:...;th:... consistent with the decision.
 
-    Subclasses fix a scenario (hence a configured sample rate) and its matching golden vectors.
+    Subclasses fix a scenario (hence a configured sample rate) and its matching trace IDs / expected values.
     """
 
     RATE: float
-    VECTORS: list[tuple[int, str, str, bool]]
+    TRACE_IDS: list[tuple[int, str, bool]]
 
     def setup_emit_ot_on_probability_decision(self):
+        expected_th = TH_BY_RATE[self.RATE]
         self.requests = [
             (
                 weblog.get(
@@ -212,7 +221,7 @@ class _EmitOtOnProbabilityDecisionBase:
                 expected_th,
                 expected_sampled,
             )
-            for trace_id, expected_rv, expected_th, expected_sampled in self.VECTORS
+            for trace_id, expected_rv, expected_sampled in self.TRACE_IDS
         ]
 
     def test_emit_ot_on_probability_decision(self):
@@ -246,35 +255,35 @@ class _EmitOtOnProbabilityDecisionBase:
 @features.w3c_headers_injection_and_extraction
 class Test_EmitOtOnProbabilityDecision_Rate0_01(_EmitOtOnProbabilityDecisionBase):
     RATE = 0.01
-    VECTORS = VECTORS_RATE_0_01
+    TRACE_IDS = SAMPLING_RATE_0_01
 
 
 @scenarios.otel_sampling_rate_0_1
 @features.w3c_headers_injection_and_extraction
 class Test_EmitOtOnProbabilityDecision_Rate0_1(_EmitOtOnProbabilityDecisionBase):
     RATE = 0.1
-    VECTORS = VECTORS_RATE_0_1
+    TRACE_IDS = SAMPLING_RATE_0_1
 
 
 @scenarios.otel_sampling_rate_0_2
 @features.w3c_headers_injection_and_extraction
 class Test_EmitOtOnProbabilityDecision_Rate0_2(_EmitOtOnProbabilityDecisionBase):
     RATE = 0.2
-    VECTORS = VECTORS_RATE_0_2
+    TRACE_IDS = SAMPLING_RATE_0_2
 
 
 @scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_EmitOtOnProbabilityDecision_Rate0_5(_EmitOtOnProbabilityDecisionBase):
     RATE = 0.5
-    VECTORS = VECTORS_RATE_0_5
+    TRACE_IDS = SAMPLING_RATE_0_5
 
 
 @scenarios.otel_sampling_rate_0_99
 @features.w3c_headers_injection_and_extraction
 class Test_EmitOtOnProbabilityDecision_Rate0_99(_EmitOtOnProbabilityDecisionBase):
     RATE = 0.99
-    VECTORS = VECTORS_RATE_0_99
+    TRACE_IDS = SAMPLING_RATE_0_99
 
 
 # Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
@@ -418,7 +427,7 @@ class Test_SampledWithoutOtNotFabricated:
 class Test_MalformedOtHandling:
     """A6: a malformed ot.th/ot.rv is treated as absent; dd= and other vendors survive, the trace is never rejected."""
 
-    # matches VECTORS_RATE_0_1's row for this trace ID: DD's own decision at rate 0.1
+    # matches SAMPLING_RATE_0_1's row for this trace ID: DD's own decision at rate 0.1
     TRACE_ID = FORWARD_TRACE_ID
     EXPECTED_RV = FORWARD_RV
     EXPECTED_TH = FORWARD_TH
