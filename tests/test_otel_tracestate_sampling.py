@@ -322,6 +322,31 @@ class Test_ForwardInboundOtUnchanged:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
+class Test_ThOnlyDoesNotFabricateRv:
+    """A2b: th alone is a valid OTel default-sampling decision (rv is only carried when the decision deviates
+    from that default); DD must forward th unchanged and never fabricate a matching rv.
+    """
+
+    def setup_th_only_does_not_fabricate_rv(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=True),
+                "tracestate": f"ot=th:{FORWARD_TH}",
+            },
+        )
+
+    def test_th_only_does_not_fabricate_rv(self):
+        assert self.r.status_code == 200
+
+        ot = _parse_ot(_outbound_tracestate(self.r))
+        assert ot.get("th") == FORWARD_TH, "inbound th was altered instead of being forwarded unchanged"
+        assert "rv" not in ot, "an rv was fabricated for a th-only (OTel default-sampling) decision"
+
+
+@scenarios.default
+@features.w3c_headers_injection_and_extraction
 class Test_PreserveDdAndOtherVendors:
     """A3: ot= handling must not disturb dd= or an unrelated vendor tracestate member."""
 
