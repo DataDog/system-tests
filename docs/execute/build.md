@@ -59,10 +59,10 @@ Build the native C tracer workload with:
 
 The production build uses the published `apm-library-c-package:latest` and
 `apm-inject-package:latest` images from `install.datadoghq.com`. Development
-builds use immutable commit-SHA tags from `installtesting.datad0g.com` (with a
-zero in `datad0g`). Run `./utils/scripts/load-binary.sh c` before a local
-development build to resolve the `dd-trace-c` and `auto_inject` branches and
-record both image references in `binaries/`.
+builds use the corresponding `latest` images from `installtesting.datad0g.com`
+(with a zero in `datad0g`). Explicit branch overrides are resolved to immutable
+commit-SHA tags. Run `./utils/scripts/load-binary.sh c` before a local
+development build to validate and record both image references in `binaries/`.
 
 The `perl-mojolicious` workload supports `DEFAULT`, `SAMPLING`, and `IPV6`. It
 uses Perl and Mojolicious without a Datadog Perl tracer; all tracing comes from

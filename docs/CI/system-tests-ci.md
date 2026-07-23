@@ -28,9 +28,10 @@ The native C lane accepts independent tracer and injector overrides:
 My PR title [c@my-dd-trace-c-branch][auto_inject@my-injector-branch]
 ```
 
-Both branches default to `main`. The workflow resolves them to immutable commit
-SHAs and verifies the corresponding images in `installtesting.datad0g.com`
-before building the weblog.
+Without overrides, the workflow uses the latest development packages from
+`installtesting.datad0g.com`. Explicit branch overrides are resolved to
+immutable commit SHAs, and the corresponding images are verified before the
+weblog is built.
 
 Each library in the CI matrix will use its own specified branch. Libraries without an override continue to use the default branch.
 

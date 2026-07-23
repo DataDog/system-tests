@@ -10,6 +10,8 @@ from utils import scenarios
 SCRIPT = Path("utils/scripts/load-binary.sh")
 C_LIBRARY_PROD_IMAGE = "install.datadoghq.com/apm-library-c-package:latest"
 C_INJECTOR_PROD_IMAGE = "install.datadoghq.com/apm-inject-package:latest"
+C_LIBRARY_DEV_IMAGE = "installtesting.datad0g.com/apm-library-c-package:latest"
+C_INJECTOR_DEV_IMAGE = "installtesting.datad0g.com/apm-inject-package:latest"
 C_LIBRARY_SHA = "1" * 40
 C_INJECTOR_SHA = "2" * 40
 
@@ -96,6 +98,17 @@ class Test_LoadBinaryC:
         docker_calls = (tmp_path / "docker-calls").read_text(encoding="utf-8")
         assert C_LIBRARY_PROD_IMAGE in docker_calls
         assert C_INJECTOR_PROD_IMAGE in docker_calls
+
+    def test_development_package_defaults_do_not_require_github_access(self, tmp_path: Path) -> None:
+        result = _run_loader(tmp_path, "dev")
+
+        assert result.returncode == 0, result.stderr
+        assert not (tmp_path / "curl-calls").exists()
+        assert (tmp_path / "binaries/c-library-image").read_text(encoding="utf-8").strip() == C_LIBRARY_DEV_IMAGE
+        assert (tmp_path / "binaries/c-injector-image").read_text(encoding="utf-8").strip() == C_INJECTOR_DEV_IMAGE
+        docker_calls = (tmp_path / "docker-calls").read_text(encoding="utf-8")
+        assert C_LIBRARY_DEV_IMAGE in docker_calls
+        assert C_INJECTOR_DEV_IMAGE in docker_calls
 
     def test_independent_branch_overrides_resolve_to_sha_tags(self, tmp_path: Path) -> None:
         result = _run_loader(
