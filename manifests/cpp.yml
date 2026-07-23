@@ -214,7 +214,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_simple_trace: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otlp_trace_metrics.py: missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link is not supported)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: ">2.1.2"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)  # The expected error status is not set
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Metric: missing_feature (Tracer does not provide a public method for directly setting a span metric)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
@@ -266,7 +266,9 @@ manifest:
     - declaration: bug (APMAPI-737)
       component_version: <2.0.0
   tests/parametric/test_span_events.py: missing_feature
-  tests/parametric/test_span_links.py: missing_feature
+  tests/parametric/test_span_links.py: ">2.1.2"
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (auto.drop not supported)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature (v0.5 not implemented)
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : missing_feature (span dropping policy not implemented)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_entire_trace_dropped_when_dropping_policy_is_active018: missing_feature (span dropping policy not implemented)
@@ -295,6 +297,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:  # Modified by easy win activation script
     - declaration: bug (APMAPI-908)
       component_version: <2.0.0
