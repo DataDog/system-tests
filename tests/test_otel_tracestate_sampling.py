@@ -365,6 +365,12 @@ class Test_ForceKeepClearsTh:
 
     INHERITED_RV = "1234567890abcd"
 
+    # a full upstream probability decision that dropped the trace (SAMPLING_RATE_0_1's row for trace_id=10, at
+    # rate 0.1: sampled=False), so DD's local force-keep has a real inherited decision to override, not just rv.
+    DROPPED_TRACE_ID = 10
+    DROPPED_RV = "65cd67504a538e"
+    DROPPED_TH = TH_BY_RATE[0.1]
+
     def setup_force_keep_with_no_inbound_ot(self):
         self.no_ot_request = weblog.get(
             "/make_distant_call",
@@ -405,6 +411,30 @@ class Test_ForceKeepClearsTh:
             assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
             break
 
+    def setup_force_keep_overrides_inherited_drop_decision(self):
+        self.dropped_request = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(self.DROPPED_TRACE_ID, sampled=False),
+                "tracestate": f"ot=rv:{self.DROPPED_RV};th:{self.DROPPED_TH}",
+                "User-Agent": "Arachni/v1",
+            },
+        )
+
+    def test_force_keep_overrides_inherited_drop_decision(self):
+        """Upstream already decided to drop (a full th/rv pair); the local force-keep still clears th but forwards the inherited rv unchanged."""
+        assert self.dropped_request.status_code == 200
+        ot = _parse_ot(_outbound_tracestate(self.dropped_request))
+
+        assert ot.get("rv") == self.DROPPED_RV, "inherited rv was not forwarded when overriding an inherited drop"
+        assert "th" not in ot, "th should be erased when a force-keep overrides an inherited drop decision"
+
+        spans = list(interfaces.library.get_spans(request=self.dropped_request))
+        assert spans, "no span found for this request: can't verify the sampling priority"
+        _, _, span = spans[0]
+        assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
+
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
@@ -439,11 +469,13 @@ class Test_MalformedOtHandling:
     OTHER_VENDOR_VALUE = "xyz123"
 
     def setup_malformed_rv_and_th_treated_as_absent(self):
+        # dd=s:1 (AUTO_KEEP) and the fresh decision DD is expected to derive (EXPECTED_RV/TH's row) both keep
+        # this trace, so the traceparent flag must say sampled=True to match: nothing here should conflict.
         self.malformed_both_request = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
             headers={
-                "traceparent": _traceparent(self.TRACE_ID, sampled=False),
+                "traceparent": _traceparent(self.TRACE_ID, sampled=True),
                 "tracestate": f"dd=s:1,ot=rv:not-hex-garbage;th:not-hex-either,congo={self.OTHER_VENDOR_VALUE}",
             },
         )
@@ -463,11 +495,12 @@ class Test_MalformedOtHandling:
         assert ot.get("th") == self.EXPECTED_TH, "malformed inbound th was not replaced by a freshly-derived one"
 
     def setup_malformed_th_only_treated_as_absent(self):
+        # same reasoning as above: traceparent must agree with the keep decision EXPECTED_RV/TH encodes.
         self.malformed_th_request = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
             headers={
-                "traceparent": _traceparent(self.TRACE_ID, sampled=False),
+                "traceparent": _traceparent(self.TRACE_ID, sampled=True),
                 "tracestate": "ot=rv:1234567890abcd;th:not-hex-either",
             },
         )
