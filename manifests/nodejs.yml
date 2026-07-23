@@ -2202,6 +2202,9 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py: *ref_5_111_0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence::test_fr05_1_metrics_computed_before_sampling: missing_feature (nodejs does not drop sampled-out traces when client-side stats are computed)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_14_custom_service_on_data_point: missing_feature (service.name is not yet always emitted on the data point; currently omitted when it matches the resource default)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: missing_feature (service.name is not yet always emitted on the data point; currently omitted when it matches the resource default)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode::test_fr07_3_only_smc_default_attributes: missing_feature (OTel-semantics mode still emits extra attributes beyond the Span Metrics Connector default set, e.g. http.* attributes)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (nodejs does not tag child spans with a different service than their parent as top-level)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)

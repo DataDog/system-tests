@@ -2000,8 +2000,15 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: v2.18.0
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otlp_trace_metrics.py: v4.13.0-dev
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_14_custom_service_on_data_point: missing_feature (service.name is not yet always emitted on the data point; currently omitted when it matches the resource default)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: missing_feature (service.name is not yet always emitted on the data point; currently omitted when it matches the resource default)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_2_span_kind: missing_feature (span.kind is emitted as the raw Datadog value, e.g. "server", not the SMC's SPAN_KIND_* convention)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_7_rpc_status_code: missing_feature (Requires libdatadog v38, will be added in future release)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode::test_fr07_3_only_smc_default_attributes: missing_feature (OTel-semantics mode still emits extra attributes beyond the Span Metrics Connector default set, e.g. http.* attributes)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention, so the error span is not counted)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v4.0.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: v2.16.0

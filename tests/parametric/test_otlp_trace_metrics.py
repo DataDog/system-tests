@@ -32,8 +32,8 @@ Key conventions:
     telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
   * service.name, service.version and deployment.environment.name are reported as resource attributes
     (the configured default service). No InstrumentationScope is emitted (it would be redundant with
-    the telemetry.sdk.* resource attributes); a span whose service differs from the configured default
-    additionally carries service.name on its data point.
+    the telemetry.sdk.* resource attributes); every data point also carries service.name, matching
+    the OTel Span Metrics Connector's default dimensions (see SMC_DEFAULT_DATA_POINT_ATTRIBUTES).
   * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
     The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
   * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
@@ -41,7 +41,8 @@ Key conventions:
 
 Datadog span tags are translated to OTel semantic-convention attributes on the exported metric:
 grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
-http.status_code -> http.response.status_code, and span.kind -> span.kind. host.name is reported when
+http.status_code -> http.response.status_code, and span.kind -> span.kind (value re-cased to the
+Span Metrics Connector's own convention, e.g. "server" -> "SPAN_KIND_SERVER"). host.name is reported when
 DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
 Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) are emitted as datadog.<key> resource
@@ -77,12 +78,20 @@ TRUTHY = ("yes", "true", "1")
 # as their string name (see https://protobuf.dev/programming-guides/json/), but parsers must also
 # accept the integer, so a standards-compliant OTLP/JSON exporter may emit either representation.
 AGGREGATION_TEMPORALITY_DELTA: tuple[int, str] = (1, "AGGREGATION_TEMPORALITY_DELTA")
-# OTel StatusCode (span status) values that denote an error, across possible serializations.
-ERROR_STATUS_VALUES: tuple[Any, ...] = (2, "ERROR", "STATUS_CODE_ERROR")
-# span.kind casing is still an open question pending OTEL spec finalization (RFC SEMCON-1093):
-# OTel SpanKind enum names are upper-case ("SERVER"), but the OTel Span Metrics Connector emits
-# lower-case ("server"). Accept both until the spec settles on one.
-SPAN_KIND_SERVER_VALUES = ("server", "SERVER")
+# The OTel Span Metrics Connector's default status.code dimension is always this exact string:
+# traceutil.StatusCodeStr() maps StatusCodeError -> "STATUS_CODE_ERROR" and writes it via
+# attr.PutStr (always a string, never an int). The bare "ERROR" value only appears under a
+# different, feature-gated key (otel.status_code), not status.code, so it does not apply here.
+# See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/connector/spanmetricsconnector/connector.go
+ERROR_STATUS_VALUES: tuple[str, ...] = ("STATUS_CODE_ERROR",)
+# The OTel Span Metrics Connector's default span.kind dimension is always this exact string:
+# traceutil.SpanKindStr() maps SpanKindServer -> "SPAN_KIND_SERVER" and writes it via attr.PutStr.
+# See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/internal/coreinternal/traceutil/traceutil.go
+SPAN_KIND_SERVER_VALUES: tuple[str, ...] = ("SPAN_KIND_SERVER",)
+# The OTel Span Metrics Connector's default dimensions (service.name, span.name, span.kind,
+# status.code); collector.instance.id and otel.status_code are feature-gated and off by default.
+# OTel-semantics mode must not emit data-point attributes beyond this set (FR07).
+SMC_DEFAULT_DATA_POINT_ATTRIBUTES = frozenset({"service.name", "span.name", "span.kind", "status.code"})
 # Expected telemetry.sdk.language resource-attribute value per system-tests library name. The Go
 # tracer reports the OTel-standard "go" token rather than the system-tests "golang" library name.
 _SDK_LANGUAGE_BY_LIBRARY = {
@@ -676,8 +685,7 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        # Casing is intentionally tolerant pending OTEL spec finalization (RFC SEMCON-1093); see
-        # SPAN_KIND_SERVER_VALUES.
+        # SMC parity: the value matches traceutil.SpanKindStr(), not the raw Datadog span.kind tag.
         assert attrs.get("span.kind") in SPAN_KIND_SERVER_VALUES, (
             f"Expected span.kind in {SPAN_KIND_SERVER_VALUES}, got attrs: {attrs}"
         )
@@ -784,11 +792,9 @@ class Test_FR06_Otel_Span_Attributes:
 class Test_FR06_Otel_Resource_Attributes:
     """FR06: Environment configuration maps to OTel resource attributes.
 
-    OPEN QUESTION (PR #6834, pending OTEL spec finalization / RFC SEMCON-1093): test_fr06_9 and
-    test_fr06_14 below assert that a data point omits service.name when it matches the resource's
-    default service, mirroring "don't repeat what the resource already implies." Reviewers raised
-    whether SMC parity instead requires service.name on every data point regardless of whether it
-    matches the resource default. Left as-is pending spec guidance; do not change without it.
+    service.name is a required data-point attribute on every data point, matching the OTel Span
+    Metrics Connector, which always attaches it as one of its default dimensions regardless of
+    whether it matches the resource's default service (PR #6834 review discussion).
     """
 
     @pytest.mark.parametrize(
@@ -802,8 +808,8 @@ class Test_FR06_Otel_Resource_Attributes:
         test_library: APMLibrary,
     ):
         """DD_SERVICE / DD_ENV / DD_VERSION map to the resource attributes service.name /
-        deployment.environment.name / service.version; the span uses the default service so its data
-        point omits service.name.
+        deployment.environment.name / service.version; service.name is also required on the span's
+        data point, matching the resource's default service.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -822,9 +828,10 @@ class Test_FR06_Otel_Resource_Attributes:
             or resource_attrs.get("deployment.environment.name") == "prod"
         ), f"Expected deployment environment=prod, got: {resource_attrs}"
 
-        # The span uses the configured default service, so its data point omits service.name.
-        assert SERVICE not in _data_point_services(metrics), (
-            f"Default service must not repeat on data points: {_data_point_services(metrics)}"
+        # service.name is a required data-point attribute (SMC parity), even though it matches the
+        # resource's default service.
+        assert SERVICE in _data_point_services(metrics), (
+            f"Expected service.name={SERVICE} on the data point: {_data_point_services(metrics)}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -834,10 +841,10 @@ class Test_FR06_Otel_Resource_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """A span whose service matches the configured default omits service.name on its data point
-        (it is implied by the resource); a span on a different service carries service.name on its
-        data point. Two root spans are used so both are top-level and therefore selected by the
-        client-side stats pipeline in every library.
+        """Both a span whose service matches the configured default and a span on a different
+        service carry service.name on their data point (SMC parity). Two root spans are used so
+        both are top-level and therefore selected by the client-side stats pipeline in every
+        library.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -852,13 +859,11 @@ class Test_FR06_Otel_Resource_Attributes:
             f"Expected resource service.name={SERVICE}, got: {_resource_attributes(metrics)}"
         )
         services_on_points = _data_point_services(metrics)
-        # The custom service is carried on its own data point; the default service is not repeated.
+        # Both the custom service and the default service carry service.name on their own data point.
         assert "postgres" in services_on_points, (
             f"Expected postgres service.name on its data point: {services_on_points}"
         )
-        assert SERVICE not in services_on_points, (
-            f"Default service must not repeat on data points: {services_on_points}"
-        )
+        assert SERVICE in services_on_points, f"Expected {SERVICE} service.name on its data point: {services_on_points}"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -952,13 +957,10 @@ class Test_FR06_Otel_Resource_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR07_Otel_Semantics_Mode:
-    """FR07: With DD_TRACE_OTEL_SEMANTICS_ENABLED=true, only OTel attributes are emitted.
-
-    OPEN QUESTION (PR #6834, pending OTEL spec finalization / RFC SEMCON-1093): test_fr07_2 below
-    asserts datadog.resource.name, datadog.span.type, and datadog.operation.name are all absent in
-    OTel-semantics mode. Reviewers questioned whether OTel-semantics mode should still emit some
-    Datadog-only attributes that have no OTel equivalent (env, http.*, etc.) rather than restricting
-    to SMC's default attribute set. Left as-is pending spec guidance; do not change without it.
+    """FR07: With DD_TRACE_OTEL_SEMANTICS_ENABLED=true, data points carry only the OTel Span
+    Metrics Connector's default attribute set (see SMC_DEFAULT_DATA_POINT_ATTRIBUTES); no
+    datadog.*-prefixed attributes and no additional OTel semantic-convention attributes beyond
+    that default set (e.g. http.*) are emitted (PR #6834 review discussion).
     """
 
     @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
@@ -1000,13 +1002,15 @@ class Test_FR07_Otel_Semantics_Mode:
         assert "datadog.operation.name" not in attrs, f"datadog.operation.name must be absent: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
-    def test_fr07_3_otel_attributes_present(
+    def test_fr07_3_only_smc_default_attributes(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """OTel semantic-convention attributes are still emitted in OTel-semantics mode."""
+        """OTel semantic-convention attributes beyond the SMC default set (e.g. http.*) are not
+        emitted in OTel-semantics mode, even though they are set on the span.
+        """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
                 span.set_meta("http.method", "GET")
@@ -1015,8 +1019,10 @@ class Test_FR07_Otel_Semantics_Mode:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("http.request.method") == "GET", f"Expected http.request.method=GET, got attrs: {attrs}"
-        assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
+        assert "http.request.method" not in attrs, f"http.request.method must be absent: {attrs}"
+        assert "http.route" not in attrs, f"http.route must be absent: {attrs}"
+        extra_keys = set(attrs) - SMC_DEFAULT_DATA_POINT_ATTRIBUTES
+        assert not extra_keys, f"Attributes beyond the SMC default set must be absent: {extra_keys}"
 
     @pytest.mark.parametrize(
         "library_env",
