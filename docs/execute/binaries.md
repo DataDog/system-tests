@@ -179,7 +179,7 @@ Then run the tests from the repo root folder:
 ```
 
 > :note: **Keep `binaries/` clean between runs**
-> Only one PHP tarball should be present in `binaries/` at a time — a stale one left over from an earlier test causes `install_ddtrace.sh`'s "multiple dd-library-php tarballs found" error. 
+> Only one PHP tarball should be present in `binaries/` at a time — a stale one left over from an earlier test causes `install_ddtrace.sh`'s "multiple dd-library-php tarballs found" error.
 > This can also happen even when `binaries/` on the host is clean: the PHP base image (`apache-mod.base.Dockerfile`, tagged e.g. `datadog/system-tests:apache-mod-8.2.base-v1`) bakes in whatever was in `binaries/` at the time it was built, and it's only rebuilt if the tag is missing locally.
 > If a stale tarball was baked into the base image, every later build adds a second tarball on top of it. Fix by removing the base image and letting it rebuild:
 > - `docker rmi datadog/system-tests:<variant>.base-v1`
