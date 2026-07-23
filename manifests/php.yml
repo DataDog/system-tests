@@ -1087,6 +1087,10 @@ manifest:
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: incomplete_test_app (Not currently testable)
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not emitted when agent is unreachable)
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: incomplete_test_app (Not currently testable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_export_fields: incomplete_test_app (Not currently testable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_logs_export_enabled: incomplete_test_app (Not currently testable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_metrics_export_enabled: incomplete_test_app (Not currently testable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_traces_export_enabled: incomplete_test_app (Not currently testable)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature

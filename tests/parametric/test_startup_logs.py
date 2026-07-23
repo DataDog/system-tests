@@ -12,6 +12,52 @@ parametrize = pytest.mark.parametrize
 # Regex pattern for matching startup log entries across all tracer libraries
 STARTUP_LOG_PATTERN = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
 
+# Boolean fields every tracer publishes in its startup diagnostic configuration describing
+# whether traces/metrics/logs are exported over OTLP.
+OTLP_EXPORT_FIELDS = (
+    "otlp_traces_export_enabled",
+    "otlp_metrics_export_enabled",
+    "otlp_logs_export_enabled",
+)
+
+
+def _extract_otlp_export_fields(logs: str) -> dict[str, bool]:
+    """Extract the three OTLP-export booleans from the tracer startup configuration line.
+
+    The startup diagnostic is NOT serialized uniformly across tracers:
+      - JSON, " - " marker separator: Node.js ("DATADOG TRACER CONFIGURATION - {json}"),
+        .NET ("DATADOG TRACER CONFIGURATION - {json}"), Ruby ("DATADOG CONFIGURATION - CORE - {json}").
+      - JSON, no " - " separator: Go ("DATADOG TRACER CONFIGURATION {json}"),
+        Java (SLF4J "DATADOG TRACER CONFIGURATION {json}").
+      - Python dict repr, NOT JSON: "- DATADOG TRACER CONFIGURATION - {dict}" produced by
+        "%s" % dict, so single-quoted keys and True/False/None -- json.loads would fail on it.
+
+    Rather than depend on a single per-language marker or full-object decoding (Python's payload
+    is not valid JSON, and the JSON payloads embed nested objects that make a naive brace match
+    fragile), the config line is located by field name and each boolean is read directly with a
+    quote-style- and casing-tolerant regex. An UNQUOTED true/false/True/False is required, so a
+    string-encoded value such as "true" would not match -- this preserves the guarantee that each
+    field is emitted as a real boolean.
+    """
+    config_line = None
+    for line in logs.splitlines():
+        if OTLP_EXPORT_FIELDS[0] in line:
+            config_line = line
+            break
+    assert config_line is not None, (
+        f"No tracer startup configuration line containing '{OTLP_EXPORT_FIELDS[0]}' found. "
+        f"Logs (first 2000 chars): {logs[:2000]}"
+    )
+
+    fields: dict[str, bool] = {}
+    for name in OTLP_EXPORT_FIELDS:
+        match = re.search(rf"""["']?{name}["']?\s*:\s*(true|false|True|False)\b""", config_line)
+        assert match, (
+            f"Field '{name}' not present as a boolean in the startup configuration line. Config line: {config_line}"
+        )
+        fields[name] = match.group(1).lower() == "true"
+    return fields
+
 
 def _get_dotnet_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str | None:
     """Get .NET tracer startup logs from the container (dotnet-tracer-managed* file).
@@ -94,6 +140,85 @@ class Test_Startup_Logs:
             assert match, (
                 f"Startup log not found. Searched for pattern: '{STARTUP_LOG_PATTERN}'. "
                 f"Content (first 2000 chars): {logs[:2000]}"
+            )
+
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_STARTUP_LOGS": "true"}],
+    )
+    def test_startup_logs_otlp_export_fields(self, test_library: APMLibrary):
+        """Verify the OTLP-export booleans are present, are booleans, and default to false.
+
+        No OTLP-related environment variables are set, so every implementing tracer must report
+        all three fields as False. DD_TRACE_STARTUP_LOGS=true only guarantees the diagnostic is
+        emitted; it does not affect the OTLP-export values. Uniform across implementing languages.
+        """
+        with test_library:
+            logs = _get_startup_logs(test_library, required=True)
+
+            assert logs is not None
+            fields = _extract_otlp_export_fields(logs)
+            for name in OTLP_EXPORT_FIELDS:
+                assert fields[name] is False, (
+                    f"Expected {name} to default to False (no OTLP env vars set), got {fields[name]!r}"
+                )
+
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_STARTUP_LOGS": "true", "OTEL_TRACES_EXPORTER": "otlp"}],
+    )
+    def test_startup_logs_otlp_traces_export_enabled(self, test_library: APMLibrary):
+        """Verify otlp_traces_export_enabled is true when OTEL_TRACES_EXPORTER=otlp.
+
+        Gated (via manifests) to the tracers that support OTLP trace export. Ruby and PHP do not
+        support it, so they are marked irrelevant/incomplete rather than skipped in the body.
+        """
+        with test_library:
+            logs = _get_startup_logs(test_library, required=True)
+
+            assert logs is not None
+            fields = _extract_otlp_export_fields(logs)
+            assert fields["otlp_traces_export_enabled"] is True, (
+                f"Expected otlp_traces_export_enabled to be True with OTEL_TRACES_EXPORTER=otlp, "
+                f"got {fields['otlp_traces_export_enabled']!r}"
+            )
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STARTUP_LOGS": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "DD_RUNTIME_METRICS_ENABLED": "true",  # .NET only flips OTLP metrics when runtime metrics are on
+            }
+        ],
+    )
+    def test_startup_logs_otlp_metrics_export_enabled(self, test_library: APMLibrary):
+        """Verify otlp_metrics_export_enabled is true when DD_METRICS_OTEL_ENABLED=true."""
+        with test_library:
+            logs = _get_startup_logs(test_library, required=True)
+
+            assert logs is not None
+            fields = _extract_otlp_export_fields(logs)
+            assert fields["otlp_metrics_export_enabled"] is True, (
+                f"Expected otlp_metrics_export_enabled to be True with DD_METRICS_OTEL_ENABLED=true, "
+                f"got {fields['otlp_metrics_export_enabled']!r}"
+            )
+
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_STARTUP_LOGS": "true", "DD_LOGS_OTEL_ENABLED": "true"}],
+    )
+    def test_startup_logs_otlp_logs_export_enabled(self, test_library: APMLibrary):
+        """Verify otlp_logs_export_enabled is true when DD_LOGS_OTEL_ENABLED=true."""
+        with test_library:
+            logs = _get_startup_logs(test_library, required=True)
+
+            assert logs is not None
+            fields = _extract_otlp_export_fields(logs)
+            assert fields["otlp_logs_export_enabled"] is True, (
+                f"Expected otlp_logs_export_enabled to be True with DD_LOGS_OTEL_ENABLED=true, "
+                f"got {fields['otlp_logs_export_enabled']!r}"
             )
 
     @parametrize(

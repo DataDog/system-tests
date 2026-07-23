@@ -2442,6 +2442,10 @@ manifest:
     - declaration: bug (APMAPI-1545)
       component_version: <2.20.0
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_special_glob_characters_span_sampling_sss002: "missing_feature (\"Issue: _dd.span_sampling.max_per_second is always set in Ruby\")"
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_export_fields: v2.40.0.dev
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_logs_export_enabled: v2.40.0.dev
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_metrics_export_enabled: v2.40.0.dev
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_traces_export_enabled: irrelevant (Ruby exports spans in Datadog native format and has no OTLP trace exporter)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
