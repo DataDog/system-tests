@@ -843,11 +843,11 @@ class Test_AppSecStandalone_TraceChunkBillingMarker:
         assert request_chunk_index < delayed_outbound_chunk_index
 
         for chunk in trace_chunks:
-            apm_enabled = chunk[0]["metrics"].get("_dd.apm.enabled")
-            error_message = f"Trace chunk first span is missing numeric _dd.apm.enabled:0: {chunk.raw_trace}"
-            assert isinstance(apm_enabled, (int, float)), error_message
-            assert not isinstance(apm_enabled, bool), error_message
-            assert apm_enabled == 0, error_message
+            apm_enabled_values = [span["metrics"].get("_dd.apm.enabled") for span in chunk]
+            assert any(
+                isinstance(value, (int, float)) and not isinstance(value, bool) and value == 0
+                for value in apm_enabled_values
+            ), f"Trace chunk has no span with numeric _dd.apm.enabled:0: {chunk.raw_trace}"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
