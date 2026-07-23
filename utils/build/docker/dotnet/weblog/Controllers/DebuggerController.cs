@@ -149,5 +149,26 @@ namespace weblog
             var longString = data["longString"];
             return Content("Capture limits probe"); // must be line 150
         }
+
+        [HttpGet("snapshot/capture-timeout")]
+        public IActionResult CaptureTimeout(int collectionSize = 0, int nestingDepth = 0)
+        {
+            return Content(CaptureTimeoutFixture(collectionSize, nestingDepth));
+        }
+
+        private static string CaptureTimeoutFixture(int collectionSize, int nestingDepth)
+        {
+            var largeCollection = new List<NestedObject>();
+            for (var i = 0; i < collectionSize; i++)
+            {
+                var nested = new NestedObject { level = i };
+                for (var level = nestingDepth; level > 0; level--)
+                {
+                    nested = new NestedObject { level = level, nested = nested };
+                }
+                largeCollection.Add(nested);
+            }
+            return "Capture timeout probe"; // must be line 171
+        }
     }
 }

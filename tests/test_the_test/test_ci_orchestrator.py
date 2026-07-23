@@ -52,6 +52,38 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
+def test_debugger_capture_timeout_runs_only_on_weblogs_with_the_fixture():
+    expected_supported = {
+        ("dotnet", "poc"),
+        ("dotnet", "uds"),
+        ("java", "spring-boot"),
+        ("java", "spring-boot-jetty"),
+        ("java", "spring-boot-openliberty"),
+        ("java", "spring-boot-payara"),
+        ("java", "spring-boot-undertow"),
+        ("java", "spring-boot-wildfly"),
+        ("java", "uds-spring-boot"),
+        ("nodejs", "express4"),
+        ("nodejs", "express4-typescript"),
+        ("nodejs", "express5"),
+        ("nodejs", "fastify"),
+        ("nodejs", "uds-express4"),
+    }
+    available_weblogs = {
+        (library, weblog_name) for library in COMPONENT_GROUPS.all for weblog_name in get_weblogs(library)
+    }
+
+    assert expected_supported <= available_weblogs
+    for library, weblog_name in available_weblogs:
+        weblog = get_weblog(library, weblog_name)
+        supported = weblog.support_scenario(
+            scenarios.debugger_capture_timeout.name,
+            scenarios.debugger_capture_timeout.weblog_categories,
+        )
+        assert supported == ((library, weblog_name) in expected_supported)
+
+
+@scenarios.test_the_test
 def test_get_endtoend_definitions_empty_scenario_map():
     # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
     defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")
@@ -152,6 +184,11 @@ def test_legacy_scenario_matrix():
     for library in sorted(COMPONENT_GROUPS.all):
         for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
             for scenario in get_all_scenarios():
+                # This scenario postdates the legacy matrix and intentionally supports only
+                # weblogs that implement its dedicated capture-timeout fixture.
+                if scenario.name == "DEBUGGER_CAPTURE_TIMEOUT":
+                    continue
+
                 legacy = _is_supported_legacy(weblog, scenario, "")
                 new_value = weblog.support_scenario(scenario.name, scenario.weblog_categories)
                 if legacy is not new_value:

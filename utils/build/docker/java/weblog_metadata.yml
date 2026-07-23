@@ -16,22 +16,29 @@ resteasy-netty3:
   categories: [dd_trace]
 spring-boot:
   categories: [dd_trace]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot-3-native:
   categories: [dd_trace]
 spring-boot-jetty:
   categories: [dd_trace]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot-openliberty:
   categories: [dd_trace]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot-payara:
   categories: [dd_trace]
   excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # probably because of a crash, but no history
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot-undertow:
   categories: [dd_trace]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot-wildfly:
   categories: [dd_trace]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 uds-spring-boot:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 vertx3:
   categories: [dd_trace]
 vertx4:

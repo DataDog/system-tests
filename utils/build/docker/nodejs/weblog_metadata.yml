@@ -3,15 +3,19 @@
 express4:
   build_mode: local
   categories: [dd_trace, dd_trace_graphql]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 express4-typescript:
   build_mode: local
   categories: [dd_trace, dd_trace_graphql]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 express5:
   build_mode: local
   categories: [dd_trace, dd_trace_graphql]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 fastify:
   build_mode: local
   categories: [dd_trace]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 nextjs:
   build_mode: local
   categories: [dd_trace]
@@ -19,6 +23,7 @@ uds-express4:
   build_mode: local
   categories: [dd_trace, dd_trace_graphql]
   excluded_scenarios: [IPV6]
+  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 openai-js:
   build_mode: none
   framework_versions: ["6.0.0"]
