@@ -220,6 +220,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
 class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
     def setup_code_origin_enabled_by_default(self):
         self.initialize_weblog_remote_config()
+        self.send_rc_apm_tracing(reset=True)
         threshold = self._get_max_trace_file_number()
         self._span_found = False
         self.send_weblog_request("/")
