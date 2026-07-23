@@ -1752,8 +1752,21 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.19.0
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.38.0
+        rails80: v2.38.0
+        uds-rails: v2.38.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Local variable capture not implemented for method probes)
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_local_capture_expressions
+  : missing_feature (Local variable capture not implemented for method probes)
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_parameter_capture_expressions
+  : - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.38.0
+        rails80: v2.38.0
+        uds-rails: v2.38.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": irrelevant
