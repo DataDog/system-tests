@@ -1005,8 +1005,12 @@ manifest:
       component_version: <=2.41.0
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py: v3.50.0
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection::test_fr04_2_unmeasured_child_excluded: missing_feature (non-top-level, non-measured spans are not yet excluded from OTLP trace metrics)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: missing_feature (host.name is not yet reported on the OTLP trace metrics resource)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as tracer_dd_tags on the OTLP trace metrics resource)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as tracer_dd_tags on the OTLP trace metrics resource)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_12_stats_additional_tags: missing_feature (DD_TRACE_STATS_ADDITIONAL_TAGS is not yet emitted as additional_metric_tags on OTLP trace metrics data points)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process tags are not yet emitted on the OTLP trace metrics resource)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link parametric endpoint is not implemented)
