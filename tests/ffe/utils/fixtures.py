@@ -23,10 +23,11 @@ def make_ufc_fixture(
     enabled: bool = True,
     allocation_key: str = "default-allocation",
     variation_values: dict[str, VariationValue] | None = None,
+    observe_full_evaluation_data: bool | None = None,
 ) -> JSON:
     values = variation_values or DEFAULT_VARIATION_VALUES[variation_type]
 
-    return {
+    ufc: JSON = {
         "createdAt": "2024-04-17T19:40:53.716Z",
         "format": "SERVER",
         "environment": {"name": "Test"},
@@ -47,6 +48,9 @@ def make_ufc_fixture(
             }
         },
     }
+    if observe_full_evaluation_data is not None:
+        ufc["observeFullEvaluationData"] = observe_full_evaluation_data
+    return ufc
 
 
 def make_exposure_ufc_fixture(

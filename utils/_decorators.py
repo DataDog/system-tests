@@ -234,6 +234,11 @@ scenario_crash = pytest.mark.skip_if_xfail
 Such tests are only executed if they were not deactivated
 """
 
+not_yet_implemented = pytest.mark.skip_if_xfail
+"""Decorator, marks a test function/class as testing a feature not yet implemented by all SDKs.
+Such tests are only executed if they were not deactivated via a manifest missing_feature declaration.
+"""
+
 auxiliary_test = pytest.mark.auxiliary_test
 """Mark a test as auxiliary to other tests.
 
