@@ -115,7 +115,7 @@ _BASE_ENVVARS = {
 
 # OTLP trace metrics explicitly enabled. DD_TRACE_OTEL_SEMANTICS_ENABLED is unset, so this is the
 # default Datadog mode where datadog.* attributes are emitted alongside OTel attributes (FR08).
-DEFAULT_ENVVARS = {**_BASE_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "true"}
+DEFAULT_ENVVARS = {**_BASE_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "true", "OTEL_TRACES_EXPORTER": "otlp"}
 
 # OTel-semantics mode: only OpenTelemetry attributes are emitted, no datadog.* attributes (FR07).
 OTEL_SEMANTICS_ENVVARS = {**DEFAULT_ENVVARS, "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"}
