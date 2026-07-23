@@ -20,8 +20,6 @@ stages:
 
 variables:
     TEST: 1
-    # TEMPORARY: rollout-control allowlist for system-tests-param LIBRARIES filter.
-    E2E_SUPPORTED_LANGUAGES: "python"
     # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
     MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/385a670d8fafd57f8c3c9872823aa8dcd65b53cc/mirror_images.py"
     # Destination registry for mirrored CI images.
@@ -352,26 +350,6 @@ system_tests_param:
               elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
       " > set_vars.sh
       source set_vars.sh
-    - |
-      if [ "$CI_COMMIT_BRANCH" != "main" ] || [ "$CI_PIPELINE_SOURCE" = "schedule" ]; then
-        export LIBRARIES=""
-      fi
-    # TEMPORARY: filter LIBRARIES via E2E_SUPPORTED_LANGUAGES (space-separated allowlist)
-    # used to control rollout, to be removed once rollout is complete.
-    - |
-      if [ -n "${E2E_SUPPORTED_LANGUAGES:-}" ]; then
-        echo "Filtering LIBRARIES with E2E_SUPPORTED_LANGUAGES='$E2E_SUPPORTED_LANGUAGES'"
-        filtered=""
-        for lib in $LIBRARIES; do
-          for allowed in $E2E_SUPPORTED_LANGUAGES; do
-            if [ "$lib" = "$allowed" ]; then
-              filtered="${filtered:+$filtered }$lib"
-              break
-            fi
-          done
-        done
-        export LIBRARIES="$filtered"
-      fi
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 

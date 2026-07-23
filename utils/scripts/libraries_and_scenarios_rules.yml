@@ -355,6 +355,13 @@ patterns:
 #     libraries: {library}
 ################################################################################
 
+    manifests/c.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: c
+    utils/build/docker/c/*:
+        libraries: c
+        scenario_groups: [ end_to_end, ]
+
     manifests/cpp.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: cpp

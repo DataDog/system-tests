@@ -24,7 +24,7 @@
         },
         "type": {
           "description": "Metric type variant",
-          "enum": ["gauge", "count", "rate"],
+          "enum": ["gauge", "count", "rate", "distribution"],
           "example": "gauge"
         },
         "points": {
@@ -59,7 +59,7 @@
       "if": {
         "properties": {
           "type": {
-            "const": "count"
+            "enum": ["count", "distribution"]
           }
         }
       },

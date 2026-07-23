@@ -114,7 +114,7 @@ class Test_DdtraceSchemas:
                 endpoint="/v0.6/stats",
                 data_path=None,
                 condition=context.library
-                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                in ("c", "cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
                 and context.scenario
                 in (
                     scenarios.appsec_blocking,
