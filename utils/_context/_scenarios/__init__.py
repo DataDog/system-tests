@@ -235,6 +235,40 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    # Fixed-rate scenarios for OTel ot.th/ot.rv golden-vector testing (see tests/test_otel_tracestate_sampling.py).
+    # One scenario per rate, since DD_TRACE_SAMPLE_RATE is baked into the weblog container at startup.
+    otel_sampling_rate_0_01 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_01",
+        tracer_sampling_rate=0.01,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.01 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_1 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_1",
+        tracer_sampling_rate=0.1,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.1 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_2 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_2",
+        tracer_sampling_rate=0.2,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.2 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_99 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_99",
+        tracer_sampling_rate=0.99,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.99 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     trace_propagation_style_w3c = DdTraceEndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={
