@@ -301,9 +301,6 @@
   "tests/test_profiling.py::Test_Profile::test_process_tags": [
     "PROFILING"
   ],
-  "tests/test_protobuf.py::Test_Protobuf::test_protobuf": [
-    "DEFAULT"
-  ],
   "tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_basic": [
     "TRACING_CONFIG_NONDEFAULT_3"
   ],

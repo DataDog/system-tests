@@ -51,7 +51,7 @@ This is a bit of a hack that is intended to help you validate WIP changes in dd-
 2. Add `ENV["LIBDATADOG_VENDOR_OVERRIDE"] ||= Pathname.new("#{__dir__}/../tmp/compiled_libdatadog_folder/").expand_path.to_s`to dd-trace-rb's `ext/libdatadog_extconf_helpers.rb`
 
 3. Add compile step in parametric tests Dockerfile template located in `utils/_context/_scenarios/parametric.py::ruby_library_factory`
-    - Change the FROM line to `ghcr.io/datadog/images-rb/engines/ruby:3.2` (or any Ruby version that you've used during the `libdatadog` compile step)
+    - Change the FROM line to `ghcr.io/datadog/images-rb/engines/ruby:3.2-gnu-gcc` (or any Ruby version that you've used during the `libdatadog` compile step)
     - After `COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/` line, add:
     ```
     WORKDIR /binaries/dd-trace-rb
