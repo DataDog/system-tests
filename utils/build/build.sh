@@ -42,7 +42,7 @@ readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
 readonly DEFAULT_ruby_lambda=ruby-apigw-rest
 readonly DEFAULT_rust=axum
-readonly DEFAULT_c=python-stdlib
+readonly DEFAULT_c=perl-mojolicious
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

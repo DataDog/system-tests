@@ -39,7 +39,7 @@ Build images used for system tests.
 
 ## Weblog variants
 
-* For `c`: `python-stdlib` (default)
+* For `c`: `perl-mojolicious` (default)
 * For `dotnet`: `poc` (default), `uds`
 * For `golang`: `net-http` (default), `gin`, `echo`, `chi`
   + Specific to the `GRAPHQL_APPSEC` scenario: `gqlgen`, `graph-gophers`, `graphql-go`
@@ -54,7 +54,7 @@ Build images used for system tests.
 Build the native C tracer workload with:
 
 ```bash
-./build.sh c -w python-stdlib
+./build.sh c -w perl-mojolicious
 ```
 
 The production build uses the published `apm-library-c-package:latest` and
@@ -64,9 +64,9 @@ zero in `datad0g`). Run `./utils/scripts/load-binary.sh c` before a local
 development build to resolve the `dd-trace-c` and `auto_inject` branches and
 record both image references in `binaries/`.
 
-The `python-stdlib` workload supports `DEFAULT`, `SAMPLING`, and `IPV6`. It uses
-only Python 3.12's standard library; all tracing comes from dd-trace-c's native
-socket instrumentation. Auto-inject loads that native library when
+The `perl-mojolicious` workload supports `DEFAULT`, `SAMPLING`, and `IPV6`. It
+uses Perl and Mojolicious without a Datadog Perl tracer; all tracing comes from
+dd-trace-c's native socket instrumentation. Auto-inject loads that native library when
 `DD_INJECT_NATIVE=always` and `DD_TRACE_HOOK_MODULES=socket` are set; the
 library is not added directly to `LD_PRELOAD`. The workload also enables
 128-bit trace ID generation. Unsupported product capabilities and workload-only

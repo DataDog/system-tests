@@ -79,8 +79,8 @@ fi
 @scenarios.test_the_test
 class Test_LoadBinaryC:
     def test_native_library_is_loaded_by_auto_inject(self) -> None:
-        dockerfile = Path("utils/build/docker/c/python-stdlib.Dockerfile").read_text(encoding="utf-8")
-        launcher = Path("utils/build/docker/c/python-stdlib/app.sh").read_text(encoding="utf-8")
+        dockerfile = Path("utils/build/docker/c/perl-mojolicious.Dockerfile").read_text(encoding="utf-8")
+        launcher = Path("utils/build/docker/c/perl-mojolicious/app.sh").read_text(encoding="utf-8")
 
         assert "DD_INJECT_NATIVE=always" in dockerfile
         assert "DD_TRACE_HOOK_MODULES=socket" in dockerfile

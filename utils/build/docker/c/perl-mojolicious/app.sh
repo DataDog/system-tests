@@ -15,4 +15,4 @@ if [[ -z "${DD_TRACE_AGENT_URL:-}" ]]; then
 fi
 
 export LD_PRELOAD="${launcher}${LD_PRELOAD:+:${LD_PRELOAD}}"
-exec python3 /app/server.py
+exec hypnotoad -f /app/app.pl

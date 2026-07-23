@@ -1,4 +1,4 @@
 # docs/understand/weblogs/weblog-metadata.md
 
-python-stdlib:
+perl-mojolicious:
   supported_scenarios: [DEFAULT, IPV6, SAMPLING]

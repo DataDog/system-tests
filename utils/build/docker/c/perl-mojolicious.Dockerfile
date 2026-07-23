@@ -29,17 +29,17 @@ RUN apk add --no-cache jq zstd \
     cp -a /packages/inject-content/. "/packages/inject/${injector_version}/"; \
     ln -s "$injector_version" /packages/inject/stable
 
-FROM python:3.12-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends ca-certificates curl \
+    && apt-get install --yes --no-install-recommends ca-certificates curl libio-socket-ip-perl libmojolicious-perl perl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=packages /packages/c/ /opt/datadog/apm/library/c/
 COPY --from=packages /packages/inject/ /opt/datadog-packages/datadog-apm-inject/
 
 WORKDIR /app
-COPY utils/build/docker/c/python-stdlib/ /app/
+COPY utils/build/docker/c/perl-mojolicious/ /app/
 
 ENV DD_INJECT_FORCE=true
 ENV DD_INJECT_NATIVE=always

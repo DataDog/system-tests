@@ -190,7 +190,7 @@ class Test_ComputeLibrariesAndScenarios:
         )
 
     def test_c_docker_file(self):
-        inputs = build_inputs(["utils/build/docker/c/python-stdlib.Dockerfile"])
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
 
         assert_github_processor(
             inputs,
@@ -337,7 +337,7 @@ class Test_ComputeLibrariesAndScenarios:
 
     @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
     def test_c_library_tag_with_branch(self):
-        inputs = build_inputs(["utils/build/docker/c/python-stdlib.Dockerfile"])
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
 
         assert_github_processor(
             inputs,
