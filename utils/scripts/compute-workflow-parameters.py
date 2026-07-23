@@ -94,7 +94,21 @@ class CiData:
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": len(scenario_map.get("parametric", [])) > 0 and library in COMPONENT_GROUPS.parametric,
+            "enable": len(scenario_map.get("parametric", [])) > 0
+            and "otel" not in library
+            and library
+            not in (
+                "c",
+                "cpp_nginx",
+                "cpp_kong",
+                "cpp_httpd",
+                "java_lambda",
+                "nodejs_lambda",
+                "python_lambda",
+                "ruby_lambda",
+                "envoy",
+                "haproxy",
+            ),
         }
 
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(

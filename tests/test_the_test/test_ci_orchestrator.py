@@ -1,8 +1,5 @@
-import json
 from functools import lru_cache
 from pathlib import Path
-import subprocess
-import sys
 
 from utils import scenarios, logger
 from utils.const import COMPONENT_GROUPS
@@ -12,9 +9,6 @@ from utils.scripts.ci_orchestrators.workflow_data import (
     _get_endtoend_weblogs,
     get_endtoend_definitions,
 )
-
-
-COMPUTE_WORKFLOW_PARAMETERS = Path("utils/scripts/compute-workflow-parameters.py")
 
 
 @lru_cache
@@ -68,22 +62,6 @@ def test_get_endtoend_definitions_empty_scenario_map():
 def test_get_endtoend_definitions_missing_endtoend_key():
     defs = get_endtoend_definitions("ruby", {"other": ["X"]}, [], "dev", 200000, 256, "123", "")
     assert defs["endtoend_defs"]["parallel_jobs"] == []
-
-
-@scenarios.test_the_test
-def test_parametric_workflow_uses_component_capabilities() -> None:
-    def is_parametric_enabled(library: str) -> bool:
-        result = subprocess.run(
-            [sys.executable, str(COMPUTE_WORKFLOW_PARAMETERS), library, "-s", "PARAMETRIC", "--format", "json"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        data: dict[str, dict[str, object]] = json.loads(result.stdout)
-        return data["parametric"]["enable"] is True
-
-    assert is_parametric_enabled("python")
-    assert not is_parametric_enabled("c")
 
 
 @scenarios.test_the_test
