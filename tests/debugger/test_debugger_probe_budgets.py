@@ -173,3 +173,39 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             f"{self.total_request_time:.1f}s), got {total_error_entries}. "
             f"Span probe expression error logging should be rate-limited."
         )
+
+    def setup_per_span_budget(self):
+        self.initialize_weblog_remote_config()
+
+        language = self.get_tracer()["language"]
+        loop_lines = self.method_and_language_to_line_number("CorrelationLoopBody", language)
+        sibling_lines = self.method_and_language_to_line_number("CorrelationLoopSibling", language)
+
+        template = debugger.read_probes("probe_snapshot_log_correlation_loop")[0]
+        probes = []
+        for lines in (loop_lines, sibling_lines):
+            probe = {**template, "where": {**template["where"], "lines": [str(n) for n in lines]}}
+            probe["id"] = debugger.generate_probe_id("log")
+            probes.append(probe)
+
+        self.set_probes(probes)
+        self.send_rc_probes()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
+
+        # The loop sleeps one second per iteration, so the time-based budget above would emit more
+        # than one snapshot while a span-scoped budget emits exactly one.
+        self.send_weblog_request("/debugger/correlation/loop/3")
+
+        self.wait_for_all_probes(statuses=["EMITTING"])
+        self.wait_for_all_snapshots()
+
+    def test_per_span_budget(self):
+        """A probe in a loop emits one snapshot per span and does not starve a sibling probe."""
+        self._assert()
+
+        # A single request is a single span, so every probe must have emitted exactly once.
+        for probe_id in self.probe_ids:
+            snapshots = [s for s in self.probe_snapshots.get(probe_id, []) if s.get("debugger", {}).get("snapshot")]
+            assert len(snapshots) == 1, (
+                f"probe {probe_id} emitted {len(snapshots)} snapshots for one span, expected exactly 1"
+            )
