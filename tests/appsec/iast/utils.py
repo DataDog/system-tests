@@ -323,7 +323,7 @@ def validate_extended_location_data(
         # If there is no stacktrace, just check for the presence of basic attributes.
         assert all(field in location for field in ["path", "line"])
 
-        if context.library.name not in ("python", "nodejs"):
+        if context.library.name not in ("python", "nodejs", "golang"):
             assert all(field in location for field in ["class", "method"])
     else:
         assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"

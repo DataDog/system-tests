@@ -182,12 +182,23 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
-  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher: missing_feature
-  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation: missing_feature
+  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher:
+    - weblog_declaration:
+        "*": missing_feature
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation:
+    - weblog_declaration:
+        "*": missing_feature
+        net-http-orchestrion: v2.11.0-dev
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace: missing_feature
-  tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication: missing_feature
-  tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash: missing_feature
-  tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_ExtendedLocation: missing_feature
+  tests/appsec/iast/sink/test_weak_hash.py:
+    - weblog_declaration:
+        "*": missing_feature
+        net-http-orchestrion: v2.11.0-dev
+  tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication:
+    - weblog_declaration:
+        "*": missing_feature
+        net-http-orchestrion: v2.11.0-dev
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_StackTrace: missing_feature
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness: missing_feature
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_ExtendedLocation: missing_feature
