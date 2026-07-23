@@ -37,6 +37,9 @@ class InternalController < ApplicationController
     if open_feature = Datadog.send(:components)&.open_feature
       worker = open_feature.instance_variable_get(:@worker)
       worker.send(:send_events, *worker.dequeue)
+
+      writer = open_feature.instance_variable_get(:@flag_eval_evp_writer)
+      writer&.send(:drain_and_flush)
     end
 
     # Flush OTel metrics

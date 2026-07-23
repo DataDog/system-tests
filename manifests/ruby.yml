@@ -1954,6 +1954,10 @@ manifest:
         "*": irrelevant
         rails72: v2.23.0-dev
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp_ruby.py:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: missing_feature (FFL-2446 pending dd-trace-rb#5896)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant

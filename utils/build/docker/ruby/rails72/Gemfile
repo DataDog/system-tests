@@ -18,7 +18,7 @@ gem 'devise', '~> 4.9'
 gem 'faraday', '~> 2.13.0'
 gem 'faraday-follow_redirects', '~> 0.3'
 # FFE related dependencies
-gem 'openfeature-sdk', '~> 0.5'  # v0.5.1+ required for provider hooks support
+gem 'openfeature-sdk', '~> 0.5', '>= 0.5.1'  # v0.5.1+ required for provider hooks support
 
 group :development do
   gem 'pry-byebug'
