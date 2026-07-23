@@ -1,6 +1,6 @@
 ## CI Workflow: Github Actions
 
-Our System-tests repository is fully integrated with Github Actions, which helps us build, execute and report tests results automatically.
+Our System-tests repository uses GitHub Actions to build, execute, and report most test results automatically. Native C end-to-end coverage runs in GitLab CI on DinD runners.
 
 The System-tests repository contains **one main workflow**: `ci.yml`. It is triggered in these cases:
 
@@ -22,16 +22,20 @@ If the PR's title includes `[target_library@branch_name_to_test]` the workflow w
 My PR title [java@my-java-branch][dotnet@my-dotnet-branch][ruby@my-ruby-branch]
 ```
 
-The native C lane accepts independent tracer and injector overrides:
+The native C binary loader accepts independent tracer and injector branch
+overrides:
 
-```text
-My PR title [c@my-dd-trace-c-branch][auto_inject@my-injector-branch]
+```shell
+LIBRARY_TARGET_BRANCH=my-dd-trace-c-branch \
+  AUTO_INJECT_TARGET_BRANCH=my-injector-branch \
+  ./utils/scripts/load-binary.sh c
 ```
 
-Without overrides, the workflow uses the latest development packages from
-`installtesting.datad0g.com`. Explicit branch overrides are resolved to
-immutable commit SHAs, and the corresponding images are verified before the
-weblog is built.
+Without an override, each component uses its latest production package. An
+explicit branch override is resolved to an immutable commit SHA and switches
+only that component to its corresponding package in
+`installtesting.datad0g.com`. Every selected image is verified before the weblog
+is built.
 
 Each library in the CI matrix will use its own specified branch. Libraries without an override continue to use the default branch.
 

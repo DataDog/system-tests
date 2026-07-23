@@ -177,14 +177,14 @@ if [ "$TARGET" = "c" ]; then
             C_LIBRARY_SHA=$(resolve_github_branch_sha "DataDog/dd-trace-c" "$LIBRARY_TARGET_BRANCH")
             C_LIBRARY_IMAGE="installtesting.datad0g.com/apm-library-c-package:${C_LIBRARY_SHA}"
         else
-            C_LIBRARY_IMAGE="installtesting.datad0g.com/apm-library-c-package:latest"
+            C_LIBRARY_IMAGE="install.datadoghq.com/apm-library-c-package:latest"
         fi
 
         if [[ -n "${AUTO_INJECT_TARGET_BRANCH:-}" ]]; then
             C_INJECTOR_SHA=$(resolve_github_branch_sha "DataDog/auto_inject" "$AUTO_INJECT_TARGET_BRANCH")
             C_INJECTOR_IMAGE="installtesting.datad0g.com/apm-inject-package:${C_INJECTOR_SHA}"
         else
-            C_INJECTOR_IMAGE="installtesting.datad0g.com/apm-inject-package:latest"
+            C_INJECTOR_IMAGE="install.datadoghq.com/apm-inject-package:latest"
         fi
     else
         echo "Don't know how to load version $VERSION for $TARGET" >&2
