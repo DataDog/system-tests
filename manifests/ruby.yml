@@ -15,7 +15,16 @@ manifest:
         rails80: '>=2.36.0'
         rails61: '>=2.36.0'
         rails52: '>=2.36.0'
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone::test_standalone_keeps_ai_guard_trace: bug (APPSEC-68488)  # Ruby does not yet set the _dd.p.ts trace source tag
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone::test_standalone_keeps_ai_guard_trace:
+    - weblog_declaration: 
+        "*": v2.40.0-dev
+        rails42: irrelevant
+        rack: irrelevant
+        sinatra14: irrelevant
+        sinatra22: irrelevant
+        sinatra32: irrelevant
+        sinatra41: irrelevant
+        uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
