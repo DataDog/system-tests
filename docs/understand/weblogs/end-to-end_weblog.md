@@ -953,10 +953,6 @@ It supports the following body fields:
 
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/edit/flushing.md`.
 
-### GET /late-outbound
-
-This endpoint must return a `200` response immediately, then make an outbound HTTP request after the inbound request span has finished. The outbound span must retain the inbound local root span as its parent so that it is exported later in a separate trace chunk. It is used to verify that standalone ASM adds the `_dd.apm.enabled:0` billing marker to every exported chunk, including chunks that contain only a delayed local child span.
-
 ### GET /spawn_child
 
 Used by the telemetry session ID header tests ([Stable Service Instance Identifier RFC](https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit)). Forks or execs a child process, waits for it, and returns a response. Validates the `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers across child processes.
