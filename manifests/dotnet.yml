@@ -697,6 +697,10 @@ manifest:
   : bug (DEBUG-5101)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5108)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Generation_Token: missing_feature (execution-context generation token not yet emitted)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Per_Span_Budget: missing_feature (per-span snapshot budget of 1 not implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Runtime_Id_In_Envelope: missing_feature (runtime_id not yet present in the snapshot envelope)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: v3.44.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload:  # Modified by easy win activation script

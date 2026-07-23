@@ -396,6 +396,12 @@ func main() {
 		d.budgets(c.Response().Writer, c.Request(), loops)
 		return nil
 	})
+	r.Any("/debugger/correlation", echoHandleFunc(d.correlation))
+	r.Any("/debugger/correlation/loop/:count", func(c echo.Context) error {
+		loops, _ := strconv.Atoi(c.Param("count"))
+		d.correlationLoop(c.Response().Writer, c.Request(), loops)
+		return nil
+	})
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

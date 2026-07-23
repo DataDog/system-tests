@@ -421,6 +421,11 @@ func main() {
 		loops, _ := strconv.Atoi(chi.RouteContext(r.Context()).URLParam("count"))
 		d.budgets(w, r, loops)
 	})
+	mux.HandleFunc("/debugger/correlation", d.correlation)
+	mux.HandleFunc("/debugger/correlation/loop/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(chi.RouteContext(r.Context()).URLParam("count"))
+		d.correlationLoop(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",
