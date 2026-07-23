@@ -91,8 +91,8 @@ manifest:
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : missing_feature  # Created by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_sampling_window_renewal: missing_feature  # Created by easy win activation script
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.7.0
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_TraceChunkBillingMarker: incomplete_test_app (/late-outbound endpoint not implemented)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.7.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: irrelevant
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: missing_feature

@@ -476,11 +476,11 @@ manifest:
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
         envoy: missing_feature
         haproxy: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_TraceChunkBillingMarker: incomplete_test_app
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0

@@ -2,7 +2,6 @@ from collections.abc import Callable
 import json
 from abc import ABC, abstractmethod
 import time
-from typing import Any
 
 from requests.structures import CaseInsensitiveDict
 
@@ -784,70 +783,24 @@ class BaseSCAStandaloneTelemetry:
 
 @features.appsec_standalone
 @scenarios.appsec_standalone
-class Test_AppSecStandalone_TraceChunkBillingMarker:
-    """Each standalone trace chunk carries the APM-disabled billing marker."""
+class Test_AppSecStandalone_APMDisabledMarker:
+    """Every span sent in standalone mode carries the APM-disabled billing marker."""
 
-    def setup_each_trace_chunk_has_apm_disabled_marker(self) -> None:
-        self.r = weblog.get("/late-outbound")
+    def setup_all_spans_have_apm_disabled_marker(self) -> None:
+        self.r = weblog.get("/")
 
-        def is_late_outbound_chunk(data: dict[str, Any]) -> bool:
-            return data["path"] in interfaces.library.trace_paths and "/intake/v2/events" in json.dumps(
-                data["request"].get("content")
-            )
-
-        assert interfaces.library.wait_for(is_late_outbound_chunk, timeout=10), "Delayed outbound chunk was not sent"
-
-    def test_each_trace_chunk_has_apm_disabled_marker(self) -> None:
+    def test_all_spans_have_apm_disabled_marker(self) -> None:
         assert self.r.status_code == 200
 
-        request_rid = self.r.get_rid()
-        request_matches = [
-            (data, trace, span)
-            for data, trace in interfaces.library.get_traces(request=self.r)
-            for span in trace
-            if span.get_rid() == request_rid
-        ]
-        assert len(request_matches) == 1, f"Expected one request span, got {len(request_matches)}"
-        request_data, request_trace, request_span = request_matches[0]
-        assert request_data["path"] == "/v0.4/traces"
+        spans = [span for _, trace in interfaces.library.get_traces(request=self.r) for span in trace]
+        assert spans, "No spans were sent for the request"
 
-        trace_chunks = []
-        for data, trace in interfaces.library.get_traces():
-            if data["path"] == "/v0.4/traces" and trace.trace_id_equals(request_trace.trace_id_as_int):
-                trace_chunks.append(trace)
-
-        raw_chunks = [chunk.raw_trace for chunk in trace_chunks]
-        assert len(trace_chunks) >= 2, f"Expected at least two chunks for the delayed trace, got {raw_chunks}"
-
-        request_chunk_index = next(
-            (
-                index
-                for index, chunk in enumerate(trace_chunks)
-                if any(span["span_id"] == request_span["span_id"] for span in chunk)
-            ),
-            None,
-        )
-        assert request_chunk_index is not None, f"Request chunk not found in {raw_chunks}"
-
-        delayed_outbound_matches = [
-            (index, span)
-            for index, chunk in enumerate(trace_chunks)
-            for span in chunk
-            if span["parent_id"] == request_span["span_id"]
-            and span["meta"].get("http.url", "").endswith("/intake/v2/events")
-        ]
-        assert len(delayed_outbound_matches) == 1, (
-            f"Expected one delayed outbound span, got {delayed_outbound_matches}: {raw_chunks}"
-        )
-        delayed_outbound_chunk_index, _ = delayed_outbound_matches[0]
-        assert request_chunk_index < delayed_outbound_chunk_index
-
-        for chunk in trace_chunks:
-            apm_enabled_values = [span["metrics"].get("_dd.apm.enabled") for span in chunk]
-            assert any(
-                isinstance(value, (int, float)) and not isinstance(value, bool) and value == 0
-                for value in apm_enabled_values
-            ), f"Trace chunk has no span with numeric _dd.apm.enabled:0: {chunk.raw_trace}"
+        for span in spans:
+            apm_enabled = span["metrics"].get("_dd.apm.enabled")
+            error_message = f"Span is missing numeric _dd.apm.enabled:0: {span.raw_span}"
+            assert isinstance(apm_enabled, (int, float)), error_message
+            assert not isinstance(apm_enabled, bool), error_message
+            assert apm_enabled == 0, error_message
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
