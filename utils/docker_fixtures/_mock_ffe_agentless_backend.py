@@ -231,6 +231,7 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
     def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFEAgentlessBackendStatus) -> None:
         body = json.dumps(payload).encode("utf-8")
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+            body = json.dumps(payload).encode("utf-8")
             self.send_response(status_code)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
