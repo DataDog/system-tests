@@ -251,13 +251,17 @@ count_amis:
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/system-tests/base-image-builder
+  image: $CI_IMAGE
   tags:
     - arch:amd64
   id_tokens:
     DDOCTOSTS_ID_TOKEN:
       aud: dd-octo-sts
-  needs: []
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+
   stage: system-tests-utils
   before_script:
     # Get a token
@@ -388,9 +392,7 @@ build_ci_image:
     - python3 utils/ci/gitlab/build_ci_image.py
   rules:
     - changes:
-        - utils/ci/gitlab/docker/image-builder.Dockerfile
-        - utils/ci/gitlab/docker/system-tests.Dockerfile
-        - utils/ci/gitlab/docker/docker-bake.hcl
+        - utils/ci/gitlab/docker
         - requirements.txt
         - utils/ci/gitlab/main.yml
 
