@@ -3927,7 +3927,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otlp_trace_metrics.py: v1.65.0-SNAPSHOT
+  tests/parametric/test_otlp_trace_metrics.py: v1.65.0-SNAPSHOT  # Easy win for all weblogs and version 1.64.1
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
@@ -3987,7 +3987,16 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=1.64.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_no_value: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_regex: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_regex_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_resource_normalization: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_tag_normalization_env: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.111.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.25.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
@@ -4057,9 +4066,54 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-jetty: '>=1.64.1'
+        spring-boot-payara: '>=1.64.1'
+        spring-boot-openliberty: '>=1.64.1'
+        spring-boot: '>=1.64.1'
+        vertx4: '>=1.64.1'
+        spring-boot-wildfly: '>=1.64.1'
+        spring-boot-undertow: '>=1.64.1'
+        ratpack: '>=1.64.1'
+        resteasy-netty3: '>=1.64.1'
+        uds-spring-boot: '>=1.64.1'
+        jersey-grizzly2: '>=1.64.1'
+        vertx3: '>=1.64.1'
+        play: '>=1.64.1'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-jetty: '>=1.64.1'
+        spring-boot-payara: '>=1.64.1'
+        spring-boot-openliberty: '>=1.64.1'
+        spring-boot: '>=1.64.1'
+        vertx4: '>=1.64.1'
+        spring-boot-wildfly: '>=1.64.1'
+        spring-boot-undertow: '>=1.64.1'
+        ratpack: '>=1.64.1'
+        resteasy-netty3: '>=1.64.1'
+        uds-spring-boot: '>=1.64.1'
+        jersey-grizzly2: '>=1.64.1'
+        vertx3: '>=1.64.1'
+        play: '>=1.64.1'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-jetty: '>=1.64.1'
+        spring-boot-payara: '>=1.64.1'
+        spring-boot-openliberty: '>=1.64.1'
+        spring-boot: '>=1.64.1'
+        vertx4: '>=1.64.1'
+        spring-boot-wildfly: '>=1.64.1'
+        spring-boot-undertow: '>=1.64.1'
+        ratpack: '>=1.64.1'
+        resteasy-netty3: '>=1.64.1'
+        uds-spring-boot: '>=1.64.1'
+        jersey-grizzly2: '>=1.64.1'
+        vertx3: '>=1.64.1'
+        play: '>=1.64.1'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler:
