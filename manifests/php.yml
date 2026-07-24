@@ -803,15 +803,15 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Mysql:
     - weblog_declaration:
         "*": v0.91.1
-        laravel11x: incomplete_test_app
-        symfony7x: incomplete_test_app
+        laravel11x: v1.23.0  # TODO: a lower version might be supported
+        symfony7x: v1.23.0  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Postgres:
     - weblog_declaration:
         "*": v0.91.1
-        laravel11x: incomplete_test_app
-        symfony7x: incomplete_test_app
+        laravel11x: v1.23.0  # TODO: a lower version might be supported
+        symfony7x: v1.23.0  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
