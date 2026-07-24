@@ -835,6 +835,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.44.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v3.10.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: incomplete_test_app (The parametric test app does not emit terminated-context span links)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v3.10.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
