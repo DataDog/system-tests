@@ -317,6 +317,10 @@ manifest:
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: missing_feature (Startup logs not implemented)
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not implemented)
   tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: missing_feature (Startup logs not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_export_fields: missing_feature (Startup logs not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_logs_export_enabled: missing_feature (Startup logs not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_metrics_export_enabled: missing_feature (Startup logs not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_traces_export_enabled: missing_feature (Startup logs not implemented)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
