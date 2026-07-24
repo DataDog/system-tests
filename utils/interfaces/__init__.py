@@ -31,6 +31,7 @@ postgres = _PostgresStdout()
 test_agent = _TestAgentInterfaceValidator()
 ffe_sidecar = FeatureFlagTelemetryInterfaceValidator("ffe_sidecar")
 ffe_direct = FeatureFlagTelemetryInterfaceValidator("ffe_direct")
+ffe_relay = FeatureFlagTelemetryInterfaceValidator("ffe_relay")
 
 python_buddy = LibraryInterfaceValidator("python_buddy")
 nodejs_buddy = LibraryInterfaceValidator("nodejs_buddy")
@@ -45,6 +46,7 @@ __all__ = [
     "agent_stdout",
     "backend",
     "ffe_direct",
+    "ffe_relay",
     "ffe_sidecar",
     "golang_buddy",
     "java_buddy",

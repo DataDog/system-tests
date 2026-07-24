@@ -1,5 +1,8 @@
 from typing import Any, Literal
+from http import HTTPStatus
+import json
 import os
+import time
 import pytest
 
 from docker.models.networks import Network
@@ -8,10 +11,11 @@ from docker.types import IPAMConfig, IPAMPool
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
-from utils import interfaces
+from utils import interfaces, weblog
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._feature_flag_telemetry import FeatureFlagTelemetryInterfaceValidator
 from utils.buddies import BuddyHostPorts
+from utils.proxy.mocked_response import MockedBackendResponse
 from utils.proxy.ports import ProxyPorts
 from utils._context.component_version import Version
 from utils._context.docker import get_docker_client
@@ -641,13 +645,18 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         self,
         name: str,
         *,
-        telemetry_route: Literal["none", "sidecar", "direct"] = "none",
+        telemetry_route: Literal["none", "sidecar", "in_process", "direct", "relay"] = "none",
+        relay_profile: Literal["v4", "v2", "no_evp", "evp_405", "evp_500"] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         self.telemetry_route = telemetry_route
+        self.relay_profile = relay_profile
         environment = dict(weblog_env or {})
+
+        if relay_profile is not None and telemetry_route not in ("relay", "direct"):
+            raise ValueError("A programmable relay profile requires relay or direct telemetry provenance")
 
         if telemetry_route != "none":
             environment |= {
@@ -657,9 +666,23 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 "OTEL_METRIC_EXPORT_INTERVAL": "1000",
                 "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_direct}",
+                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.ffe_direct}",
+                "NODE_EXTRA_CA_CERTS": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
             }
 
-        if telemetry_route == "sidecar":
+        if relay_profile is not None:
+            environment |= {
+                "DD_AGENT_HOST": "proxy",
+                "DD_TRACE_AGENT_PORT": str(ProxyPorts.ffe_relay),
+                "DD_TRACE_AGENT_URL": f"http://proxy:{ProxyPorts.ffe_relay}",
+                "DD_API_KEY": EXPECTED_API_KEY,
+                "DD_SITE": "datad0g.com",
+                # `/info` does not describe OTLP. Keep metrics explicitly direct
+                # so these profiles isolate the EVP capability state machine.
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.ffe_direct}/v1/metrics",
+                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": (f"dd-api-key={EXPECTED_API_KEY},dd-protocol=otlp"),
+            }
+        elif telemetry_route == "sidecar":
             environment |= {
                 "DD_AGENT_HOST": "ffe-serverless-sidecar",
                 "DD_TRACE_AGENT_PORT": "8126",
@@ -667,6 +690,20 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://ffe-serverless-sidecar:4318/v1/metrics",
             }
             other_weblog_containers += (ServerlessSidecarContainer,)
+        elif telemetry_route == "in_process":
+            environment |= {
+                "DD_AGENT_HOST": "127.0.0.1",
+                "DD_TRACE_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_URL": "http://127.0.0.1:8126",
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://127.0.0.1:4318/v1/metrics",
+                "DD_APM_ENABLED": "true",
+                "DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT": "127.0.0.1:4318",
+                # HTTPS_PROXY preserves ffe_sidecar route provenance.
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.ffe_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            }
         elif telemetry_route == "direct":
             environment |= {
                 "DD_API_KEY": EXPECTED_API_KEY,
@@ -683,20 +720,85 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             **kwargs,
         )
 
+        if relay_profile is not None:
+            self.proxy_container.internal_mocked_backend_responses.extend(self._relay_responses(relay_profile))
+
+    @staticmethod
+    def _wait_for_agentless_configuration() -> None:
+        """Wait until the initial UFC poll is applied before collecting test setup."""
+
+        for _ in range(50):
+            response = weblog.post(
+                "/ffe",
+                json={
+                    "flag": "numeric_flag",
+                    "variationType": "NUMERIC",
+                    "defaultValue": -1,
+                    "targetingKey": "agentless-readiness-probe",
+                    "attributes": {},
+                },
+            )
+            if response.status_code == HTTPStatus.OK and response.text is not None:
+                payload = json.loads(response.text)
+                if payload.get("value") != -1:
+                    return
+            time.sleep(0.2)
+        raise RuntimeError("Feature Flags agentless configuration was not applied before test collection")
+
+    @staticmethod
+    def _relay_responses(
+        relay_profile: Literal["v4", "v2", "no_evp", "evp_405", "evp_500"],
+    ) -> list[MockedBackendResponse]:
+        endpoints = {
+            "v4": ["/evp_proxy/v4/", "/evp_proxy/v2/"],
+            "v2": ["/evp_proxy/v2/"],
+            "no_evp": [],
+            "evp_405": ["/evp_proxy/v4/"],
+            "evp_500": ["/evp_proxy/v4/"],
+        }[relay_profile]
+        responses = [
+            MockedBackendResponse(
+                path="/info",
+                content=json.dumps({"endpoints": endpoints}).encode(),
+                content_type="application/json",
+            )
+        ]
+
+        failure_status = {"evp_405": 405, "evp_500": 500}.get(relay_profile)
+        if failure_status is not None:
+            for path in (
+                "/evp_proxy/v4/api/v2/exposures",
+                "/evp_proxy/v4/api/v2/flagevaluation",
+            ):
+                responses.append(
+                    MockedBackendResponse(
+                        path=path,
+                        content=b"local relay rejected payload",
+                        content_type="text/plain",
+                        status_code=failure_status,
+                    )
+                )
+
+        return responses
+
     @property
     def telemetry_interface(self) -> FeatureFlagTelemetryInterfaceValidator:
-        if self.telemetry_route == "sidecar":
+        if self.telemetry_route in ("sidecar", "in_process"):
             return interfaces.ffe_sidecar
         if self.telemetry_route == "direct":
             return interfaces.ffe_direct
+        if self.telemetry_route == "relay":
+            return interfaces.ffe_relay
         raise ValueError("This scenario does not capture Feature Flags telemetry")
 
     @property
     def unexpected_telemetry_interface(self) -> FeatureFlagTelemetryInterfaceValidator:
-        if self.telemetry_route == "sidecar":
+        if self.telemetry_route in ("sidecar", "in_process"):
             return interfaces.ffe_direct
         if self.telemetry_route == "direct":
-            return interfaces.ffe_sidecar
+            return interfaces.ffe_relay if self.relay_profile is not None else interfaces.ffe_sidecar
+        if self.telemetry_route == "relay":
+            return interfaces.ffe_direct
         raise ValueError("This scenario does not capture Feature Flags telemetry")
 
     def configure(self, config: pytest.Config) -> None:
@@ -708,10 +810,27 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             if self.telemetry_route != "none":
                 interfaces.ffe_sidecar.configure(self.host_log_folder, replay=self.replay)
                 interfaces.ffe_direct.configure(self.host_log_folder, replay=self.replay)
+                interfaces.ffe_relay.configure(self.host_log_folder, replay=self.replay)
             super().configure(config)
+            if self.telemetry_route == "in_process" and not self.replay:
+                library_container = self.weblog_infra.library_container
+                assert isinstance(library_container, WeblogContainer), (
+                    "The in-process serverless-init topology requires a standard weblog container"
+                )
+                library_container.wrap_with_serverless_init()
+            if not self.replay:
+                # This must run after EndToEndScenario has started the containers
+                # and confirmed weblog readiness.
+                self.warmups.append(self._wait_for_agentless_configuration)
         except BaseException:
             self._stop_mock_backend()
             raise
+
+    def get_image_list(self, library: str, weblog: str) -> list[str]:
+        images = super().get_image_list(library, weblog)
+        if self.telemetry_route == "in_process":
+            images.extend(ServerlessSidecarContainer().get_image_list(library, weblog))
+        return images
 
     def _set_containers_dependancies(self) -> None:
         super()._set_containers_dependancies()
@@ -726,7 +845,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     def _start_interfaces_watchdog(self) -> None:
         super()._start_interfaces_watchdog()
         if self.telemetry_route != "none":
-            self.start_interfaces_watchdog([interfaces.ffe_sidecar, interfaces.ffe_direct])
+            self.start_interfaces_watchdog([interfaces.ffe_sidecar, interfaces.ffe_direct, interfaces.ffe_relay])
 
     def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool) -> None:
         super()._wait_and_stop_containers(force_interface_timout_to_zero=force_interface_timout_to_zero)
@@ -747,11 +866,15 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
         interfaces.ffe_sidecar.check_deserialization_errors()
         interfaces.ffe_direct.check_deserialization_errors()
+        interfaces.ffe_relay.check_deserialization_errors()
 
     def _start_mock_backend(self, worker_id: str) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer(worker_id)
+        self._mock_backend = MockFFEAgentlessBackendServer(
+            worker_id,
+            require_auth=self.telemetry_route == "none",
+        )
         self._mock_backend.reset()
 
         environment = self.weblog_infra.library_container.environment

@@ -773,6 +773,17 @@ fastify.get('/flush', async (request, reply) => {
   // does have a callback :)
   const promises = []
 
+  if (process.env.DD_FEATURE_FLAGS_TELEMETRY_TRANSPORT) {
+    try {
+      const ddTraceDir = require('path').dirname(require.resolve('dd-trace'))
+      require(require.resolve('dc-polyfill', { paths: [ddTraceDir] })).channel('ffe:writers:flush').publish()
+      // FFE writer requests are asynchronous and do not expose a callback.
+      promises.push(new Promise(resolve => setTimeout(resolve, 1200)))
+    } catch (err) {
+      console.error('Unable to flush Feature Flags writers:', err)
+    }
+  }
+
   try {
     const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
     if (profiler?._collect) {

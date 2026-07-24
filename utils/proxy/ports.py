@@ -23,6 +23,9 @@ class ProxyPorts(IntEnum):
     ffe_direct = 8202
     """Feature Flags telemetry emitted directly by the SDK to Datadog intake."""
 
+    ffe_relay = 8203
+    """Programmable local Feature Flags relay used for capability and fallback contracts."""
+
     python_buddy = 9001
     nodejs_buddy = 9002
     java_buddy = 9003

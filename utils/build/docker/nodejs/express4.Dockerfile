@@ -4,6 +4,7 @@ FROM datadog/system-tests:express4.base-v3
 # runtime path so it is never bundled) so the /spawn_child endpoint is present.
 COPY utils/build/docker/nodejs/express/app.js app.js
 COPY utils/build/docker/nodejs/express/fork_child.js fork_child.js
+COPY utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem
 
 EXPOSE 7777
 

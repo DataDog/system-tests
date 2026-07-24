@@ -638,6 +638,18 @@ app.get('/flush', (req, res) => {
   // does have a callback :)
   const promises = []
 
+  if (process.env.DD_FEATURE_FLAGS_TELEMETRY_TRANSPORT) {
+    try {
+      const ddTraceDir = require('path').dirname(require.resolve('dd-trace'))
+      require(require.resolve('dc-polyfill', { paths: [ddTraceDir] })).channel('ffe:writers:flush').publish()
+      // FFE writer requests are asynchronous and do not expose a callback.
+      // Keep serverless-init alive for one full forwarding interval.
+      promises.push(new Promise(resolve => setTimeout(resolve, 12000)))
+    } catch (err) {
+      console.error('Unable to flush Feature Flags writers:', err)
+    }
+  }
+
   try {
     const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
     if (profiler?._collect) {
@@ -836,7 +848,10 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 let openFeatureClient = null
 
 // Initialize OpenFeature provider if FFE is enabled
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+if (
+  process.env.DD_FEATURE_FLAGS_ENABLED === 'true' ||
+  process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true'
+) {
   const { openfeature } = tracer
   OpenFeature.setProvider(openfeature)
   openFeatureClient = OpenFeature.getClient()
@@ -856,24 +871,26 @@ app.post('/ffe', async (req, res) => {
 
     for (const key of keys) {
       const context = { targetingKey: key, ...attributes }
+      let details
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          details = await openFeatureClient.getBooleanDetails(flag, defaultValue, context)
           break
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          details = await openFeatureClient.getStringDetails(flag, defaultValue, context)
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          details = await openFeatureClient.getObjectDetails(flag, defaultValue, context)
           break
         default:
           return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
       }
+      value = details.value
     }
 
     res.status(200).json({ value, count: keys.length })

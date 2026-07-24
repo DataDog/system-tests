@@ -3,7 +3,9 @@ import os
 import platform
 import re
 import stat
+import subprocess
 import sys
+import tempfile
 import json
 from typing import cast, Literal
 from http import HTTPStatus
@@ -52,6 +54,24 @@ _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
+_SERVERLESS_INIT_IMAGE = "datadog/serverless-init:1.9.13"
+
+
+def serverless_init_wrapper_dockerfile(base_image: str, init_image: str | None = None) -> str:
+    """Build a same-container serverless-init wrapper around a prepared weblog."""
+    init_image = init_image or mirror_image(_SERVERLESS_INIT_IMAGE)
+    return (
+        f"FROM {init_image} AS serverless-init\n"
+        f"FROM {base_image}\n"
+        "ARG TARGETARCH\n"
+        "USER root\n"
+        "COPY --from=serverless-init /datadog-init /datadog-init\n"
+        "COPY --from=serverless-init /lib/ /lib/\n"
+        'RUN if [ "$TARGETARCH" = "amd64" ]; then mkdir -p /lib64 && '
+        "ln -sf /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2; fi\n"
+        'ENTRYPOINT ["/datadog-init"]\n'
+        'LABEL system-tests-serverless-init-wrapper="true"\n'
+    )
 
 
 def create_network() -> Network:
@@ -1041,6 +1061,43 @@ class WeblogContainer(TestedContainer):
 
         return result
 
+    def wrap_with_serverless_init(self) -> None:
+        """Replace the prepared weblog image with an in-process init wrapper."""
+        source_image = self.image.name
+        source_id = self.image._image.id.removeprefix("sha256:")[:12]  # noqa: SLF001 - prepared image identity
+        source_platform = f"{self.image._image.attrs['Os']}/{self.image._image.attrs['Architecture']}"  # noqa: SLF001
+        worker_id = re.sub(r"[^a-z0-9_.-]", "-", os.environ.get("PYTEST_XDIST_WORKER", "master").lower())
+        wrapper_image = f"system_tests/weblog-serverless-init:{worker_id}-{source_id}"
+
+        with tempfile.TemporaryDirectory(prefix="system-tests-serverless-init-") as build_context:
+            Path(build_context, "Dockerfile").write_text(
+                serverless_init_wrapper_dockerfile(source_image),
+                encoding="utf-8",
+            )
+            build = subprocess.run(
+                [
+                    "docker",
+                    "build",
+                    "--platform",
+                    source_platform,
+                    "--file",
+                    str(Path(build_context, "Dockerfile")),
+                    "--tag",
+                    wrapper_image,
+                    build_context,
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if build.returncode != 0:
+                logger.stdout(build.stdout + build.stderr)
+                build.check_returncode()
+
+        self.image = ImageInfo(wrapper_image, local_image_only=True)
+        self.image.load()
+        self.image.save_image_info(self.log_folder_path)
+
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -1131,7 +1188,7 @@ class WeblogContainer(TestedContainer):
             return
 
         try:
-            r = weblog.get("/flush", timeout=10)
+            r = weblog.get("/flush", timeout=20)
             assert r.status_code == HTTPStatus.OK
         except Exception as e:
             self.healthy = False

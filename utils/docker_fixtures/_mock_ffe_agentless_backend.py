@@ -136,9 +136,10 @@ class MockFFEAgentlessBackendState:
 class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, server_address: tuple[str, int]) -> None:
+    def __init__(self, server_address: tuple[str, int], *, require_auth: bool) -> None:
         super().__init__(server_address, MockFFEAgentlessBackendRequestHandler)
         self.state = MockFFEAgentlessBackendState()
+        self.require_auth = require_auth
 
 
 class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
@@ -183,6 +184,7 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
             status_code, body, headers = _response_for_response(
                 response=response,
                 has_auth=_has_auth(request_headers),
+                require_auth=self.server.require_auth,
             )
             self.server.state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):
@@ -236,7 +238,15 @@ def _has_auth(headers: Mapping[str, str]) -> bool:
 
 
 def _valid_ufc_bytes() -> bytes:
-    return UFC_FIXTURE_PATH.read_bytes()
+    configuration = json.loads(UFC_FIXTURE_PATH.read_bytes())
+    return json.dumps(
+        {
+            "data": {
+                "type": "universal-flag-configuration",
+                "attributes": configuration,
+            }
+        }
+    ).encode()
 
 
 def validate_responses(responses: object) -> list[str]:
@@ -253,8 +263,8 @@ def validate_responses(responses: object) -> list[str]:
     return responses
 
 
-def _response_for_response(response: str, *, has_auth: bool) -> tuple[int, bytes, dict[str, str]]:
-    if not has_auth:
+def _response_for_response(response: str, *, has_auth: bool, require_auth: bool) -> tuple[int, bytes, dict[str, str]]:
+    if require_auth and not has_auth:
         return HTTPStatus.UNAUTHORIZED, b"", {}
 
     if response == "unauthorized":
@@ -273,9 +283,12 @@ def _strip_config_path(url: str) -> str:
 
 
 class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str) -> None:
+    def __init__(self, worker_id: str, *, require_auth: bool = True) -> None:
         self.port = get_host_port(worker_id, 4900)
-        self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
+        self._server = MockFFEAgentlessBackendHTTPServer(
+            ("0.0.0.0", self.port),  # noqa: S104 - test fixture must be container-reachable.
+            require_auth=require_auth,
+        )
         self._thread = threading.Thread(
             target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
         )
