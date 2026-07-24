@@ -1233,7 +1233,6 @@ manifest:
         uds: v3.36.0  # Modified by easy win activation script
   tests/test_profiling.py::Test_Profile::test_process_tags: v3.35.0
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
-  tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature

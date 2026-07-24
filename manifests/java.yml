@@ -5,7 +5,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.62.0
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.65.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -4415,16 +4418,6 @@ manifest:
         spring-boot-3-native: v1.39.0
         vertx3: v1.54.0-SNAPSHOT+c2aec92b86
         vertx4: v1.54.0-SNAPSHOT+c2aec92b86
-  tests/test_protobuf.py::Test_Protobuf:
-    - weblog_declaration:
-        "*": missing_feature
-        spring-boot: v1.47.0
-        spring-boot-wildfly: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-jetty: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-undertow: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
-        uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
   tests/test_resource_renaming.py:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT
