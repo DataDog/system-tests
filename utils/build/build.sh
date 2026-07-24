@@ -42,6 +42,7 @@ readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
 readonly DEFAULT_ruby_lambda=ruby-apigw-rest
 readonly DEFAULT_rust=axum
+readonly DEFAULT_c=perl-mojolicious
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -125,7 +126,7 @@ run_build_command() {
 	    exit_code=$?
 	    return $exit_code
     fi
-    log_file=$(mktemp /tmp/system-tests-build-XXXXXXX.log)
+    log_file=$(mktemp "${TMPDIR:-/tmp}/system-tests-build.XXXXXX")
     echo "Build log file: ${log_file}"
 
     set +e
@@ -317,6 +318,16 @@ build() {
                 fi
 
                 GITHUB_TOKEN_SECRET_ARG=""
+                C_PACKAGE_BUILD_ARGS=()
+
+                if [[ $TEST_LIBRARY == c ]]; then
+                    if [[ -f binaries/c-library-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "DD_TRACE_C_IMAGE=$(<binaries/c-library-image)")
+                    fi
+                    if [[ -f binaries/c-injector-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "AUTO_INJECT_IMAGE=$(<binaries/c-injector-image)")
+                    fi
+                fi
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
                     if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
@@ -345,6 +356,7 @@ build() {
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     ${GITHUB_TOKEN_SECRET_ARG} \
+                    "${C_PACKAGE_BUILD_ARGS[@]}" \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \

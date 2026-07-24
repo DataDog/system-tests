@@ -187,6 +187,19 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,open_telemetry",
         )
 
+    def test_c_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
+        )
+
     @set_env("GITHUB_REF", "refs/heads/main")
     def test_ref_main(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
@@ -318,6 +331,20 @@ class Test_ComputeLibrariesAndScenarios:
             "false",
             "DEFAULT",
             "end_to_end,open_telemetry",
+        )
+
+    @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
+    def test_c_library_tag_with_branch(self):
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -520,3 +547,37 @@ class Test_GitLabMode:
         libs = json.loads(libs_line.split("=", 1)[1])
         parts = libs.split()
         assert parts == sorted(parts)
+
+    @pytest.mark.parametrize("source", ["merge_request_event", "push"])
+    def test_pr_pipeline_selects_c(self, monkeypatch: pytest.MonkeyPatch, source: str) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/native-c")
+        inputs = build_inputs(modified_files=["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert 'libraries="c"' in process(inputs)
+
+    def test_pr_pipeline_excludes_python(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "merge_request_event")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/python")
+        inputs = build_inputs(modified_files=["utils/build/docker/python/flask-poc.Dockerfile"])
+
+        assert not any(line.startswith("libraries=") for line in process(inputs))
+
+    @pytest.mark.parametrize(
+        ("source", "ref"),
+        [("push", "main"), ("schedule", "main")],
+    )
+    def test_main_and_scheduled_pipelines_select_python(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        source: str,
+        ref: str,
+    ) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", ref)
+        inputs = build_inputs()
+
+        assert 'libraries="python"' in process(inputs)

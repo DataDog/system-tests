@@ -2,6 +2,10 @@
 # Do not edit manually.
 version: 1
 images:
+  alpine:3.22:
+    digest: sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
+    target: registry.ddbuild.io/system-tests/mirror/alpine:3.22
+    tag: '3.22'
   apache/kafka:3.7.1:
     digest: sha256:ed74d7d115968d5e8b00ba6822ac6a384cbaaf54ca38991828647000d7089b68
     target: registry.ddbuild.io/system-tests/mirror/apache/kafka:3.7.1
@@ -306,6 +310,10 @@ images:
     digest: sha256:0e7b3ee194aadc80845a29cd4e6501b9ed4422e6b998267926df31d63caf4770
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/graalvm/native-image-community:22.0.0
     tag: 22.0.0
+  ghcr.io/oras-project/oras:v1.2.3:
+    digest: sha256:63266a046d1cf5ebebb1461733ed7548148f122e0d422096e177cfa70b521cb1
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
+    tag: v1.2.3
   golang:1.25:
     digest: sha256:00feed335fe561979f2cdcc30a5191231977c5631fe79c40f7d3ab63b4fa222f
     target: registry.ddbuild.io/system-tests/mirror/golang:1.25
