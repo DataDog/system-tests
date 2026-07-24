@@ -258,7 +258,8 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_PROFILING_ENABLED": "false",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
-            # RFC-1110: agentic-onboarding flag set while AppSec is disabled -> appsec.agentic_onboarding=false
+            # RFC-1113: agentic-onboarding flag set while AppSec is disabled. The value is
+            # reported verbatim ("true"), decoupled from AppSec state (no derived boolean).
             "DD_APPSEC_AGENTIC_ONBOARDING": "true",
         },
         appsec_enabled=False,
@@ -272,9 +273,11 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
             "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
-            # RFC-1110: agentic-onboarding flag set while AppSec is enabled -> appsec.agentic_onboarding=true
-            # value "0" is intentional: the flag is presence-only, its value is never read
-            "DD_APPSEC_AGENTIC_ONBOARDING": "0",
+            # RFC-1113: agentic-onboarding flag set while AppSec is enabled. The value is
+            # reported verbatim; a mixed-case arbitrary value is intentional to prove it is a
+            # pass-through of the configured value (not a boolean derived from AppSec being
+            # active, and not lowercased/normalized by the tracer).
+            "DD_APPSEC_AGENTIC_ONBOARDING": "MiXeD-Value_42",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],

@@ -110,6 +110,10 @@ class TestAgentFactory:
             "ENABLED_CHECKS": "trace_count_header",
             "OTLP_HTTP_PORT": str(container_otlp_http_port),
             "OTLP_GRPC_PORT": str(container_otlp_grpc_port),
+            # Register the AI Guard REST API as a VCR upstream so the AI Guard/OpenAI integration
+            # can be replayed. Additive: extends the image's built-in providers (openai, anthropic,
+            # ...) without overriding them (see dd-apm-test-agent vcr_proxy.PROVIDER_BASE_URLS).
+            "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
             "VCR_CASSETTES_DIRECTORY": "/vcr-cassettes",
         }
         if os.getenv("DEV_MODE") is not None:

@@ -14,6 +14,7 @@ msgpack==1.0.4
 mypy==2.1.0
 numpy==2.5.1
 opentelemetry-api==1.27.0 # for parametric tests
+opentelemetry-proto==1.27.0 # for parametric tests
 paramiko==3.4.1
 pexpect==4.9.0  #On Boarding requirements
 pluggy==1.0.0
