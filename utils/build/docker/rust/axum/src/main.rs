@@ -112,7 +112,7 @@ fn app(state: AppState) -> Router {
         )
         .route(
             "/requestdownstream",
-            get(requestdownstream).post(requestdownstream),
+            get(request_downstream).post(request_downstream),
         )
         .route("/make_distant_call", get(make_distant_call))
         .with_state(state);
@@ -440,7 +440,7 @@ async fn header_map_to_json(headers: HeaderMap) -> Json<HashMap<String, String>>
     Json(header_map_to_string_map(&headers))
 }
 
-async fn requestdownstream(State(state): State<AppState>, method: Method) -> Response {
+async fn request_downstream(State(state): State<AppState>, method: Method) -> Response {
     let client = ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
         .build();
