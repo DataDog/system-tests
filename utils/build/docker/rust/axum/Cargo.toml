@@ -1,39 +1,39 @@
 [package]
-name         = "weblog"
-version      = "0.0.1"
-description  = "Dockerized Rust/Axum based HTTP server for System tests"
-edition      = "2021"
-publish      = false
+name = "weblog"
+version = "0.0.1"
+description = "Dockerized Rust/Axum based HTTP server for System tests"
+edition = "2021"
+publish = false
 
 rust-version = "1.94" # should match Dockerfile rustc version
 
 [[bin]]
-name  = "weblog"
-path  = "src/main.rs"
-doc   = false
+name = "weblog"
+path = "src/main.rs"
+doc = false
 bench = false
 
 [dependencies]
-async-trait                = "0.1.89"
-axum                       = { version = "0.8.9", features = ["json"] }
-http                       = "1"
-opentelemetry              = { version = "0.32", features = ["logs"] }
-opentelemetry-http         = "0.32"
-opentelemetry_sdk          = "0.32"
-reqwest                    = "0.13.4"
-reqwest-middleware         = "0.5.2"
+async-trait = "0.1.89"
+axum = { version = "0.8.9", features = ["json"] }
+http = "1"
+opentelemetry = { version = "0.32", features = ["logs"] }
+opentelemetry-http = "0.32"
+opentelemetry_sdk = "0.32"
+reqwest = "0.13.4"
+reqwest-middleware = "0.5.2"
 # The `opentelemetry_0_XX` feature is overridden by install_ddtrace.sh to match
 # the OpenTelemetry minor that datadog-opentelemetry resolves to.
-reqwest-tracing            = { version = "0.7.1", features = ["opentelemetry_0_32"] }
-serde                      = { version = "1", features = ["derive"] }
-serde_json                 = "1.0.150"
-tokio                      = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
-tracing                    = "0.1.44"
+reqwest-tracing = { version = "0.7.1", features = ["opentelemetry_0_32"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.44"
 # Version overridden by install_ddtrace.sh: tracing-opentelemetry 0.N depends on
 # opentelemetry 0.(N-1), so it is repinned to ~0.(otel_minor + 1) to track
 # datadog-opentelemetry's resolved OpenTelemetry minor.
-tracing-opentelemetry      = "0.33.0"
-tracing-subscriber         = "0.3"
+tracing-opentelemetry = "0.33.0"
+tracing-subscriber = "0.3"
 uuid = "1.23.4"
 
 # OpenTelemetry version alignment (see install_ddtrace.sh):
