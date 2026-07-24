@@ -781,6 +781,28 @@ class BaseSCAStandaloneTelemetry:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
 
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_AppSecStandalone_APMDisabledMarker:
+    """Every span sent in standalone mode carries the APM-disabled billing marker."""
+
+    def setup_all_spans_have_apm_disabled_marker(self) -> None:
+        self.r = weblog.get("/")
+
+    def test_all_spans_have_apm_disabled_marker(self) -> None:
+        assert self.r.status_code == 200
+
+        spans = [span for _, trace in interfaces.library.get_traces(request=self.r) for span in trace]
+        assert spans, "No spans were sent for the request"
+
+        for span in spans:
+            apm_enabled = span["metrics"].get("_dd.apm.enabled")
+            error_message = f"Span is missing numeric _dd.apm.enabled:0: {span.raw_span}"
+            assert isinstance(apm_enabled, (int, float)), error_message
+            assert not isinstance(apm_enabled, bool), error_message
+            assert apm_enabled == 0, error_message
+
+
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 class Test_AppSecStandalone_NotEnabled:

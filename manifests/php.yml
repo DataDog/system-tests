@@ -326,6 +326,7 @@ manifest:
   : - weblog_declaration:
         laravel11x: missing_feature
         symfony7x: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
