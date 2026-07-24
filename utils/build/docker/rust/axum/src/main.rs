@@ -445,26 +445,28 @@ async fn request_downstream(State(state): State<AppState>, method: Method) -> Re
         .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
         .build();
 
-    match client.request(method, &state.downstream_url).send().await {
-        Ok(response) if response.status().is_success() => match response.bytes().await {
-            Ok(body) => match serde_json::from_slice::<serde_json::Value>(&body) {
-                Ok(body) => Json(body).into_response(),
-                Err(error) => {
-                    tracing::warn!("requestdownstream received a non-JSON response: {error}");
-                    StatusCode::INTERNAL_SERVER_ERROR.into_response()
-                }
-            },
-            Err(error) => {
-                tracing::warn!("requestdownstream could not read the downstream response: {error}");
-                StatusCode::INTERNAL_SERVER_ERROR.into_response()
-            }
-        },
-        Ok(response) => {
-            tracing::warn!(status = %response.status(), "requestdownstream received a downstream error");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+    let response = client.request(method, &state.downstream_url).send().await;
+
+    let result = async {
+        let response = response.map_err(|e| format!("requestdownstream failed: {e}"))?;
+        if !response.status().is_success() {
+            return Err(format!(
+                "requestdownstream received a downstream error: status={}",
+                response.status()
+            ));
         }
+        let body = response.bytes().await.map_err(|e| {
+            format!("requestdownstream could not read the downstream response: {e}")
+        })?;
+        serde_json::from_slice::<serde_json::Value>(&body)
+            .map_err(|e| format!("requestdownstream received a non-JSON response: {e}"))
+    }
+    .await;
+
+    match result {
+        Ok(body) => Json(body).into_response(),
         Err(error) => {
-            tracing::warn!("requestdownstream failed: {error}");
+            tracing::warn!("{error}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
