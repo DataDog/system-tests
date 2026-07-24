@@ -1,6 +1,8 @@
 """Test startup log behavior for tracer libraries across supported languages."""
 
+import contextlib
 import re
+import time
 
 import pytest
 
@@ -11,6 +13,13 @@ parametrize = pytest.mark.parametrize
 
 # Regex pattern for matching startup log entries across all tracer libraries
 STARTUP_LOG_PATTERN = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
+
+# Defense-in-depth caps for the container stderr read in _get_startup_logs: whichever limit is
+# hit first stops the read, so an unbounded stream can't hang the suite. All are far above any
+# real tracer's startup output, so they never truncate logs in normal operation.
+_STARTUP_LOG_MAX_LINES = 50_000
+_STARTUP_LOG_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB
+_STARTUP_LOG_MAX_SECONDS = 30.0
 
 # Boolean fields every tracer publishes in its startup diagnostic configuration describing
 # whether traces/metrics/logs are exported over OTLP.
@@ -97,15 +106,58 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
     """
     if context.library == "dotnet":
         return _get_dotnet_startup_logs(test_library, required=required)
-    else:
-        try:
-            logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
-        except Exception as e:
-            if required:
-                pytest.fail(f"Failed to retrieve container logs: {e}")
-            return None
 
-    return logs
+    # Bound the stderr read so a misbehaving tracer emitting an unbounded stream (e.g. a logging
+    # feedback loop) can't hang the suite -- a one-shot container.logs() read would chase that
+    # moving target forever. Stream the current snapshot (follow=False self-terminates at its end)
+    # and stop at the first of the line/byte/time caps.
+    #
+    # Read the whole bounded snapshot rather than stopping at the first startup-config marker:
+    # some tracers emit asserted-on content after it (Ruby logs "CONFIGURATION - CORE" at init,
+    # then "CONFIGURATION - TRACING" and its "Agent Error" line only after a flush). Startup logs
+    # are early, so the caps never truncate them in normal runs.
+    log_stream = None
+    truncated = False
+    buffer = bytearray()
+    line_count = 0
+    try:
+        # stream=True yields raw byte chunks (docker log frames), not lines; a line may span
+        # chunks, so we accumulate bytes and decode once at the end.
+        log_stream = test_library.container.logs(stream=True, stdout=False, stderr=True, follow=False)
+
+        deadline = time.monotonic() + _STARTUP_LOG_MAX_SECONDS
+        for chunk in log_stream:
+            if not chunk:
+                continue
+            buffer += chunk
+            line_count += chunk.count(b"\n")
+            if (
+                line_count >= _STARTUP_LOG_MAX_LINES
+                or len(buffer) >= _STARTUP_LOG_MAX_BYTES
+                or time.monotonic() >= deadline
+            ):
+                truncated = True
+                break
+    except Exception as e:
+        if required:
+            pytest.fail(f"Failed to retrieve container logs: {e}")
+        return None
+    finally:
+        # Release the streaming socket promptly; we may have stopped mid-snapshot at a cap.
+        if log_stream is not None:
+            with contextlib.suppress(Exception):
+                log_stream.close()
+
+    if truncated:
+        # Never truncate silently: a cap only trips if a tracer is emitting an abnormally large
+        # (likely runaway) stderr stream, which is worth surfacing in CI output.
+        logger.warning(
+            f"Startup-log read hit a safety cap and was truncated at {line_count} lines / "
+            f"{len(buffer)} bytes; a tracer may be emitting an unbounded stderr stream."
+        )
+
+    # errors="replace" guards against a multi-byte character truncated at a cap boundary.
+    return buffer.decode("utf-8", errors="replace")
 
 
 @scenarios.parametric
