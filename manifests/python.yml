@@ -2044,6 +2044,10 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019:  # Modified by easy win activation script
     - declaration: bug (APMAPI-1545)
       component_version: <4.3.1
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_export_fields: v4.13.0.dev
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_logs_export_enabled: v4.13.0.dev
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_metrics_export_enabled: v4.13.0.dev
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_otlp_traces_export_enabled: v4.13.0.dev
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings:
     - declaration: missing_feature (Reports configurations with unexpected names)
