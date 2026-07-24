@@ -641,7 +641,9 @@ class Test_FR04_Span_Selection:
 class Test_FR05_Sampling_Independence:
     """FR05: Trace metrics are computed before head-based sampling, from 100% of spans."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}])
+    @pytest.mark.parametrize(
+        "library_env", [{**DEFAULT_ENVVARS_OTLP, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}]
+    )
     def test_fr05_1_metrics_computed_before_sampling(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
