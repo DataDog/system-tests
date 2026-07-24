@@ -185,10 +185,7 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
             if response in {"delayed_valid", "timeout"}:
                 time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
 
-            status_code, body, headers = _response_for_response(
-                response=response,
-                has_auth=_has_auth(request_headers),
-            )
+            status_code, body, headers = _response_for_response(response)
             self.server.state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):
                 self.send_response(status_code)
@@ -270,10 +267,7 @@ def validate_responses(responses: object) -> list[str]:
     return responses
 
 
-def _response_for_response(response: str, *, has_auth: bool) -> tuple[int, bytes, dict[str, str]]:
-    if not has_auth:
-        return HTTPStatus.UNAUTHORIZED, b"", {}
-
+def _response_for_response(response: str) -> tuple[int, bytes, dict[str, str]]:
     if response == "unauthorized":
         return HTTPStatus.UNAUTHORIZED, b"", {}
     if response == "malformed":
