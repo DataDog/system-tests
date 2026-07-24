@@ -659,26 +659,28 @@ class BaseDebuggerTest:
         return max_number
 
     def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
-        if data["path"] == _TRACES_PATH:
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+        if data["path"] != _TRACES_PATH:
+            return False
+
+        # Iterate through the agent interface rather than the raw payload, so that both the legacy
+        # (tracerPayloads) and the v1 (idxTracerPayloads) trace formats are handled.
+        for span_data, span in interfaces.agent.get_spans():
+            log_filename_found = re.search(r"/(\d+)__", span_data["log_filename"])
             if not log_filename_found:
-                return False
+                continue
 
-            log_number = int(log_filename_found.group(1))
-            if log_number > threshold:
-                content = data["request"]["content"]
-                if content:
-                    for payload in content["tracerPayloads"]:
-                        for chunk in payload["chunks"]:
-                            for span in chunk["spans"]:
-                                resource, resource_type = span.get("resource", ""), span.get("type")
+            if int(log_filename_found.group(1)) <= threshold:
+                continue
 
-                                if resource.startswith("GET") and resource_type == "web":
-                                    code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+            if span.get_span_type() != "web":
+                continue
 
-                                    if code_origin_type == "entry":
-                                        self._span_found = True
-                                        return True
+            if not span.get_span_resource().startswith("GET"):
+                continue
+
+            if span.meta.get("_dd.code_origin.type", "") == "entry":
+                self._span_found = True
+                return True
 
         return False
 
