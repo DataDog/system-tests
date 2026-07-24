@@ -53,9 +53,12 @@ NONDEFAULT_EXTRACT_STYLE = "datadog,tracecontext,b3multi,baggage"
 
 
 def assert_no_span_links(span: dict) -> None:
-    """retrieve_span_links raises ValueError when a span carries no span links."""
-    with pytest.raises(ValueError):
-        retrieve_span_links(span)
+    if "span_links" in span:  # v1 traces always contain a structured span-links array
+        assert retrieve_span_links(span) == []
+    else:
+        # v0.4 traces without span links omit the span-links tag entirely
+        with pytest.raises(ValueError):
+            retrieve_span_links(span)
 
 
 def injected_headers(test_library: APMLibrary, span_id: int) -> dict[str, str]:
