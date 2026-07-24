@@ -62,6 +62,8 @@ Rails.application.routes.draw do
   get '/debugger/init' => 'debugger#init'
   get '/debugger/pii' => 'debugger#pii'
   get '/debugger/log' => 'debugger#log_probe'
+  get '/debugger/correlation' => 'debugger#correlation'
+  get '/debugger/correlation/loop/:loops' => 'debugger#correlation_loop'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
   get '/debugger/snapshot/limits' => 'debugger#snapshot_limits'
   get '/debugger/expression' => 'debugger#expression'

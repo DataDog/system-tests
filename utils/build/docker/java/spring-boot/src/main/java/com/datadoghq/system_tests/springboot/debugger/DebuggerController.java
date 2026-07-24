@@ -152,4 +152,32 @@ public class DebuggerController {
         String longString = (String) data.get("longString");
         return "Capture limits probe"; // Line probe is instrumented here.
     }
+
+    @GetMapping("/correlation")
+    public String correlation() throws InterruptedException {
+        int result = correlationMiddle();
+        Thread.sleep(400); // space the probed call sites in time
+        return "Correlation " + result;
+    }
+
+    private int correlationMiddle() throws InterruptedException {
+        int result = correlationLeaf();
+        Thread.sleep(400); // space the probed call sites in time
+        return result;
+    }
+
+    private int correlationLeaf() {
+        return 3;
+    }
+
+    @GetMapping("/correlation/loop/{loops}")
+    public String correlationLoop(@PathVariable int loops) throws InterruptedException {
+        int total = 0;
+        for (int i = 0; i < loops; i++) {
+            total += i;
+            Thread.sleep(1000);
+        }
+        int afterLoop = total;
+        return "Loop " + afterLoop;
+    }
 }

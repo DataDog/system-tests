@@ -170,3 +170,42 @@ def snapshot_limits():
     largeCollection = data["largeCollection"]  # noqa: N806
     longString = data["longString"]  # noqa: N806
     return "Capture limits probe", 200
+
+
+# The endpoints below are appended so the line numbers of the endpoints above
+# stay stable for the line-probe tests that reference them.
+@debugger_blueprint.route("/correlation", methods=["GET"])
+def correlation():
+    result = correlation_spin(correlation_middle())
+    return f"Correlation {result}", 200
+
+
+def correlation_middle():
+    return correlation_spin(correlation_leaf())
+
+
+def correlation_leaf():
+    return 3
+
+
+@debugger_blueprint.route("/correlation/loop/<int:loops>", methods=["GET"])
+def correlation_loop(loops):
+    import time
+
+    total = 0
+    for i in range(loops):
+        total += i  # correlation loop body line probe
+        time.sleep(1)
+    afterLoop = total  # correlation loop sibling line probe  # noqa: N806
+    return f"Loop {afterLoop}", 200
+
+
+def correlation_spin(value):
+    # Space the probed call sites of the correlation chain in time. Under independent per-probe
+    # sampling this makes some probes in a trace emit while others drop (partial chains), whereas
+    # a single per-trace decision keeps the whole chain together. Defined after the loop endpoint
+    # so it does not shift the line numbers the line-probe tests reference.
+    import time
+
+    time.sleep(0.4)
+    return value

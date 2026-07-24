@@ -149,5 +149,40 @@ namespace weblog
             var longString = data["longString"];
             return Content("Capture limits probe"); // must be line 150
         }
+
+        [HttpGet("correlation")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult Correlation()
+        {
+            int result = CorrelationMiddle();
+            System.Threading.Thread.Sleep(400); // space the probed call sites in time
+            return Content($"Correlation {result}");
+        }
+
+        private int CorrelationMiddle()
+        {
+            int result = CorrelationLeaf();
+            System.Threading.Thread.Sleep(400); // space the probed call sites in time
+            return result;
+        }
+
+        private int CorrelationLeaf()
+        {
+            return 3;
+        }
+
+        [HttpGet("correlation/loop/{loops}")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult CorrelationLoop(int loops)
+        {
+            int total = 0;
+            for (int i = 0; i < loops; i++)
+            {
+                total += i;
+                System.Threading.Thread.Sleep(1000);
+            }
+            int afterLoop = total;
+            return Content($"Loop {afterLoop}");
+        }
     }
 }

@@ -135,5 +135,41 @@ module.exports = {
       })
       res.send('Capture limits probe') // This needs to be line 136
     })
+
+    app.get('/debugger/correlation', async (req, res) => {
+      const result = await correlation()
+      res.send(`Correlation ${result}`)
+    })
+
+    app.get('/debugger/correlation/loop/:loops', async (req, res) => {
+      const loops = parseInt(req.params.loops, 10) || 0
+      let total = 0
+      for (let i = 0; i < loops; i++) {
+        total += i
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+      }
+      const afterLoop = total
+      res.send(`Loop ${afterLoop}`)
+    })
   }
+}
+
+async function correlation () {
+  const result = await correlationMiddle()
+  await sleep(400) // space the probed call sites in time
+  return result
+}
+
+async function correlationMiddle () {
+  const result = await correlationLeaf()
+  await sleep(400) // space the probed call sites in time
+  return result
+}
+
+async function correlationLeaf () {
+  return 3
+}
+
+function sleep (ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
