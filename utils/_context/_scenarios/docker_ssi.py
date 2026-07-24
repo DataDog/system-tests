@@ -85,16 +85,16 @@ class DockerSSIScenario(Scenario):
         if self._custom_library_version:
             logger.stdout(f"Using custom library version: {self._custom_library_version}")
 
-        # Build the docker images to generate the weblog image
-        # Steps to build the docker ssi image:
-        # 1. Build the base image with the language runtime and the common dependencies
+        # Build the docker images to generate the weblog image. utils/docker_ssi/docker-ssi.rebuildr.py
+        # declares them as one graph, and Rebuildr resolves it in a single Buildx job:
+        # 1. base: the language runtime and the common dependencies
         #    If the runtime is not needed, we install only the common dependencies
-        # 2. Build the ssi installer image with the ssi installer
-        #    This image will be push in the registry
-        # 3. Build the weblog image with the ssi installer and the weblog app
-        #    3.1 Install the ssi to run the auto instrumentation (allway build using the ssi installer image buit in
-        #        the step 2)
-        #    3.2 Build the weblog image using the ssi image built in the step 3.1
+        # 2. ssi-installer: base plus the ssi installer
+        #    base and ssi-installer are content addressed and published to the registry, so a run
+        #    reuses the published image whenever its inputs did not change
+        # 3. ssi: the auto instrumentation installed on top of ssi-installer, rebuilt every run
+        #    because it picks up the library version under test
+        # 4. weblog: the weblog app on top of ssi
         self.ssi_image_builder = DockerSSIImageBuilder(
             self.host_log_folder,
             self._base_weblog,

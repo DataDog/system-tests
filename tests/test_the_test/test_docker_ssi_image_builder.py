@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
-from rebuildr import ImageHandle
+from rebuildr import ImageHandle, Project
 from rebuildr.project import CacheLocation
 
 import utils.docker_ssi.image_builder as image_builder_module
@@ -49,74 +49,136 @@ def _builder(
     )
 
 
-def _graphs(
+def _project(
     builder: DockerSSIImageBuilder,
     root: Path,
     *,
     digest: str = _BASE_DIGEST,
     installer: bytes = b"installer",
-) -> tuple[ImageHandle, ImageHandle]:
+) -> Project:
     (root / "installer.sh").write_bytes(installer)
-    return builder._load_projects(f"ubuntu@{digest}", "installer.sh")  # noqa: SLF001
+    return builder._load_project(f"ubuntu@{digest}", "installer.sh")  # noqa: SLF001
 
 
-def test_rebuildr_graphs_and_cached_identity(tmp_path: Path) -> None:
+def _images(project: Project) -> dict[str, ImageHandle]:
+    return {handle.name: handle for handle in project.select(["ssi-installer", "weblog"])}
+
+
+def test_rebuildr_graph_links_every_image(tmp_path: Path) -> None:
     _fixture(tmp_path)
-    cached, movable = _graphs(_builder(tmp_path), tmp_path)
+    images = _images(_project(_builder(tmp_path), tmp_path))
+    installer, weblog = images["ssi-installer"], images["weblog"]
+    ssi = weblog.image_refs["ssi-image"]
 
-    assert set(cached.image_refs) == {"cached-base"}
-    assert cached.definition.tag == "latest"
+    assert set(installer.image_refs) == {"cached-base"}
+    assert installer.definition.tag == "latest"
     assert (
-        cached.metadata["manifest"]["image_references"][0]["source_digest"]
-        == cached.image_refs["cached-base"].source_digest
+        installer.metadata["manifest"]["image_references"][0]["source_digest"]
+        == installer.image_refs["cached-base"].source_digest
     )
-    assert set(movable.image_refs) == {"ssi-image"}
-    assert movable.definition.repository == "weblog-injection"
-    assert movable.definition.content_tag is False
-    assert movable.image_refs["ssi-image"].definition.content_tag is False
+    # The per-run images stay out of the content cache, and the SSI runtime is the
+    # single graph edge between the weblog and the reusable installer.
+    assert weblog.definition.repository == "weblog-injection"
+    assert weblog.definition.content_tag is False
+    assert ssi.definition.content_tag is False
+    assert ssi.image_refs["installer-image"] is installer
+
+
+def test_reusable_images_only_change_with_their_own_inputs(tmp_path: Path) -> None:
+    _fixture(tmp_path)
+    installer = _images(_project(_builder(tmp_path), tmp_path))["ssi-installer"]
 
     changed = [
-        _graphs(_builder(tmp_path), tmp_path, digest="sha256:" + "2" * 64)[0],
-        _graphs(_builder(tmp_path, arch="linux/arm64"), tmp_path)[0],
-        _graphs(_builder(tmp_path, runtime="3.11.10"), tmp_path)[0],
-        _graphs(_builder(tmp_path), tmp_path, installer=b"changed")[0],
+        _project(_builder(tmp_path), tmp_path, digest="sha256:" + "2" * 64),
+        _project(_builder(tmp_path, arch="linux/arm64"), tmp_path),
+        _project(_builder(tmp_path, runtime="3.11.10"), tmp_path),
+        _project(_builder(tmp_path), tmp_path, installer=b"changed"),
     ]
     (tmp_path / "utils/build/ssi/base/base_lang.Dockerfile").write_text("FROM scratch\n", encoding="utf-8")
-    changed.append(_graphs(_builder(tmp_path), tmp_path)[0])
-    assert all(image.source_digest != cached.source_digest for image in changed)
-
-
-def test_versions_change_only_the_movable_graph(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    _fixture(tmp_path)
-    monkeypatch.setattr(image_builder_module.uuid, "uuid4", lambda: SimpleNamespace(hex="nonce"))
-    first_cached, first_movable = _graphs(_builder(tmp_path), tmp_path)
-    second_cached, second_movable = _graphs(
-        _builder(tmp_path, library_version="tracer", injector_version="injector"), tmp_path
-    )
-
-    assert first_cached.source_digest == second_cached.source_digest
-    assert first_movable.source_digest != second_movable.source_digest
+    changed.append(_project(_builder(tmp_path), tmp_path))
+    assert all(_images(project)["ssi-installer"].source_digest != installer.source_digest for project in changed)
 
 
 @pytest.mark.parametrize(
-    ("ci", "push", "expected"), [(False, False, "build"), (False, True, "push"), (True, False, "push")]
+    ("binaries", "installer", "expected"),
+    [
+        ({}, ".installer.sh", []),
+        ({"custom-tracer.whl": b"wheel"}, ".installer.sh", ["custom-tracer.whl"]),
+        ({}, "utils/build/ssi/base/binaries/install_script_agent7.sh", []),
+        (
+            {"custom-tracer.whl": b"wheel"},
+            "utils/build/ssi/base/binaries/install_script_agent7.sh",
+            ["custom-tracer.whl"],
+        ),
+    ],
+    ids=["downloaded", "downloaded-with-artifacts", "local-copy", "local-copy-with-artifacts"],
+)
+def test_custom_binaries_reach_the_ssi_image(
+    tmp_path: Path, binaries: dict[str, bytes], installer: str, expected: list[str]
+) -> None:
+    _fixture(tmp_path)
+    directory = tmp_path / "utils/build/ssi/base/binaries"
+    if binaries or installer.startswith("utils/"):
+        directory.mkdir()
+    for name, content in binaries.items():
+        (directory / name).write_bytes(content)
+    if installer.startswith("utils/"):
+        (tmp_path / installer).write_bytes(b"local installer")
+    else:
+        (tmp_path / installer).write_bytes(b"downloaded installer")
+
+    project = _builder(tmp_path)._load_project(f"ubuntu@{_BASE_DIGEST}", installer)  # noqa: SLF001
+    ssi = project.image("weblog").image_refs["ssi-image"]
+
+    # The agent installer is always present exactly once, whatever its source.
+    assert sorted(entry.target_path.as_posix() for entry in ssi.inputs.files) == [
+        *sorted(f"base/binaries/{name}" for name in [*expected, "install_script_agent7.sh"]),
+        "base/install_script_ssi.sh",
+    ]
+
+
+def test_versions_change_only_the_per_run_images(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _fixture(tmp_path)
+    monkeypatch.setattr(image_builder_module.uuid, "uuid4", lambda: SimpleNamespace(hex="nonce"))
+    first = _images(_project(_builder(tmp_path), tmp_path))
+    second = _images(_project(_builder(tmp_path, library_version="tracer", injector_version="injector"), tmp_path))
+
+    assert first["ssi-installer"].source_digest == second["ssi-installer"].source_digest
+    assert first["weblog"].source_digest != second["weblog"].source_digest
+
+
+@pytest.mark.parametrize(
+    ("ci", "push", "expected"),
+    [
+        (False, False, (["ssi-installer", "weblog"], None)),
+        (False, True, (["weblog"], ("base", "ssi-installer"))),
+        (True, False, (["weblog"], ("base", "ssi-installer"))),
+    ],
 )
 def test_publication_policy(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, ci: bool, push: bool, expected: str
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    ci: bool,
+    push: bool,
+    expected: tuple[list[str], tuple[str, ...] | None],
 ) -> None:
     builder = _builder(tmp_path, push=push)
-    builder.cached_root = Mock()
-    builder.movable_root = Mock()
-    builder.movable_root.build.return_value = "weblog-injection:latest"
+    builder.project = Mock()
+    builder.project.build.return_value = {"weblog": "weblog-injection:latest"}
     docker_client = SimpleNamespace(images=SimpleNamespace(get=Mock()))
     monkeypatch.setattr(image_builder_module, "get_docker_client", lambda: docker_client)
     monkeypatch.setenv("PRIVATE_DOCKER_REGISTRY", "registry.example")
     monkeypatch.setenv("GITLAB_CI", "true") if ci else monkeypatch.delenv("GITLAB_CI", raising=False)
 
-    builder.build_weblog()
+    builder._build_graph()  # noqa: SLF001
 
-    getattr(builder.cached_root, expected).assert_called_once_with()
-    builder.movable_root.build.assert_called_once_with()
+    built, pushed = expected
+    builder.project.build.assert_called_once_with(built)
+    if pushed is None:
+        builder.project.push.assert_not_called()
+    else:
+        builder.project.push.assert_called_once_with(pushed)
 
 
 @pytest.mark.parametrize(("ci", "push"), [(True, False), (False, True)])
@@ -130,14 +192,14 @@ def test_publication_requires_registry(
         builder.configure()
 
 
-def test_warm_cache_skips_cached_graph_but_runs_movable_graph(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_warm_cache_builds_only_the_per_run_images(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _fixture(tmp_path)
     builder = _builder(tmp_path)
-    builder.cached_root, builder.movable_root = _graphs(builder, tmp_path)
+    builder.project = _project(builder, tmp_path)
     bake_definitions = []
 
     monkeypatch.setattr(
-        image_builder_module.ImageHandle,
+        ImageHandle,
         "cache_location",
         lambda image: CacheLocation.REMOTE if image.name == "ssi-installer" else CacheLocation.MISS,
     )
@@ -147,15 +209,18 @@ def test_warm_cache_skips_cached_graph_but_runs_movable_graph(tmp_path: Path, mo
     )
     monkeypatch.setattr("rebuildr.project.pull_image", lambda *_args: None)
     monkeypatch.setattr("rebuildr.project.image_exists_locally", lambda *_args: True)
-    monkeypatch.setattr(image_builder_module.ImageHandle, "_verify_local", lambda *_args: None)
-    monkeypatch.setattr(image_builder_module.ImageHandle, "_materialize_local", lambda *_args: None)
+    monkeypatch.setattr(ImageHandle, "_verify_local", lambda *_args: None)
+    monkeypatch.setattr(ImageHandle, "_materialize_local", lambda *_args: None)
     monkeypatch.setattr(
         image_builder_module,
         "get_docker_client",
         lambda: SimpleNamespace(images=SimpleNamespace(get=Mock())),
     )
 
-    builder.build_weblog()
+    builder._build_graph()  # noqa: SLF001
 
+    # One Buildx job, and the cached installer is referenced instead of rebuilt.
     assert len(bake_definitions) == 1
-    assert set(bake_definitions[0]["target"]) == {"rebuildr0_ssi", "rebuildr1_weblog"}
+    targets = bake_definitions[0]["target"]
+    assert set(targets) == {"rebuildr0_ssi", "rebuildr1_weblog"}
+    assert targets["rebuildr0_ssi"]["contexts"]["installer-image"].startswith("docker-image://")

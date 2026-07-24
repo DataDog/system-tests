@@ -8,11 +8,11 @@ import uuid
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 from urllib.error import URLError
 from urllib.request import urlretrieve
 
-from rebuildr import ImageHandle, load
+from rebuildr import Project, load
 
 from utils._context.docker import get_docker_client
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
@@ -25,7 +25,12 @@ if TYPE_CHECKING:
 
 _INSTALLER_URL = "https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh"
 _INSTALLER_NAME = "install_script_agent7.sh"
-_REBUILDR_DIR = Path(__file__).parent
+_REBUILDR_FILE = Path(__file__).parent / "docker-ssi.rebuildr.py"
+
+# Content-addressed images that are shared between runs instead of rebuilt.
+_REUSABLE_IMAGES = ("base", "ssi-installer")
+
+_T = TypeVar("_T")
 
 
 class DockerSSIImageError(RuntimeError):
@@ -34,7 +39,7 @@ class DockerSSIImageError(RuntimeError):
 
 @dataclass
 class DockerSSIImageBuilder:
-    """Load and execute the reusable and per-run Docker SSI Rebuildr graphs."""
+    """Load and execute the Docker SSI Rebuildr image graph."""
 
     host_log_folder: str
     base_weblog: str
@@ -48,8 +53,8 @@ class DockerSSIImageBuilder:
     custom_injector_version: str | None
     appsec_enabled: bool | None = None
     root_dir: Path | None = None
-    cached_root: ImageHandle = field(init=False)
-    movable_root: ImageHandle = field(init=False)
+    project: Project = field(init=False)
+    _base_image_ref: str = field(init=False, default="")
     _weblog_image: DockerImage | None = field(init=False, default=None)
 
     def __post_init__(self) -> None:
@@ -62,20 +67,36 @@ class DockerSSIImageBuilder:
     def dd_lang(self) -> str:
         return "js" if self.library == "nodejs" else self.library
 
+    @property
+    def _publish(self) -> bool:
+        return "GITLAB_CI" in os.environ or self.push_base_images
+
     def configure(self) -> None:
-        if ("GITLAB_CI" in os.environ or self.push_base_images) and not os.getenv("PRIVATE_DOCKER_REGISTRY"):
+        if self._publish and not os.getenv("PRIVATE_DOCKER_REGISTRY"):
             source = "GitLab CI" if "GITLAB_CI" in os.environ else "--ssi-push-base-images/-P"
             raise DockerSSIImageError(f"{source} requires PRIVATE_DOCKER_REGISTRY")
         self._log_folder.mkdir(parents=True, exist_ok=True)
-        with self._installer_script() as installer:
-            self.cached_root, self.movable_root = self._load_projects(self._resolve_base_image(), installer)
+        self._base_image_ref = self._resolve_base_image()
 
     def build_weblog(self) -> None:
-        publish = "GITLAB_CI" in os.environ or self.push_base_images
-        cached_action = self.cached_root.push if publish else self.cached_root.build
-        self._run("Publish reusable images" if publish else "Build or download reusable images", cached_action)
-        final_image = self._run("Build per-run SSI and weblog images", self.movable_root.build)
-        self._weblog_image = get_docker_client().images.get(final_image)
+        # Rebuildr snapshots the context when an image is selected, so the installer
+        # script has to stay on disk until the last build call returns.
+        with self._installer_script() as installer:
+            self.project = self._load_project(self._base_image_ref, installer)
+            self._build_graph()
+
+    def _build_graph(self) -> None:
+        if self._publish:
+            # Publishing makes the reusable images available to every later run, which
+            # then references them from the registry instead of rebuilding them.
+            self._run("Publish reusable images", lambda: self.project.push(_REUSABLE_IMAGES))
+            targets = ["weblog"]
+        else:
+            # Locally the installer is built as a root so it gets its content tag in the
+            # image store and the next run can skip it, and the base image with it.
+            targets = ["ssi-installer", "weblog"]
+        images = self._run("Build the SSI image graph", lambda: self.project.build(targets))
+        self._weblog_image = get_docker_client().images.get(images["weblog"])
 
     def tested_components(self) -> dict[str, str]:
         result = get_docker_client().containers.run(
@@ -83,7 +104,7 @@ class DockerSSIImageBuilder:
         )
         return cast("dict[str, str]", json.loads(result.decode().replace("'", '"')))
 
-    def _load_projects(self, base_image: str, installer: str) -> tuple[ImageHandle, ImageHandle]:
+    def _load_project(self, base_image: str, installer: str) -> Project:
         registry = os.getenv("PRIVATE_DOCKER_REGISTRY", "").rstrip("/")
         values = {
             "REBUILDR_OVERRIDE_ROOT_DIR": str(self._root_dir),
@@ -103,16 +124,13 @@ class DockerSSIImageBuilder:
                 str(self.appsec_enabled).lower() if isinstance(self.appsec_enabled, bool) else None
             ),
             "DOCKER_SSI_BUILD_NONCE": uuid.uuid4().hex,
-            "DOCKER_SSI_CACHED_BASE_IMAGE": None,
         }
         previous = {name: os.environ.get(name) for name in values}
         try:
             os.environ.update({name: value or "" for name, value in values.items()})
-            cached = load(_REBUILDR_DIR / "ssi-installer.rebuildr.py").default
-            os.environ["DOCKER_SSI_CACHED_BASE_IMAGE"] = cached.uri
-            return cached, load(_REBUILDR_DIR / "weblog-injection.rebuildr.py").default
+            return load(_REBUILDR_FILE)
         except Exception as error:
-            raise DockerSSIImageError(f"Failed to load Docker SSI Rebuildr files: {error}") from error
+            raise DockerSSIImageError(f"Failed to load {_REBUILDR_FILE.name}: {error}") from error
         finally:
             for name, value in previous.items():
                 if value is None:
@@ -171,7 +189,7 @@ class DockerSSIImageBuilder:
         finally:
             temporary.unlink(missing_ok=True)
 
-    def _run(self, description: str, action: Callable[[], str]) -> str:
+    def _run(self, description: str, action: Callable[[], _T]) -> _T:
         self._log_folder.mkdir(parents=True, exist_ok=True)
         with self._build_log.open("a", encoding="utf-8") as build_log:
             build_log.write(f"\n{'*' * 63}\n{description}\n{'*' * 63}\n")
