@@ -441,7 +441,6 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_profiling.py::Test_Profile: missing_feature (profiling is not implemented)
-  tests/test_protobuf.py::Test_Protobuf::test_protobuf: missing_feature (/protobuf/serialize and /protobuf/deserialize endpoints not implemented)
   tests/test_resource_renaming.py: incomplete_test_app (resource-renaming endpoints are not implemented)
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature (sampling-rate capping is not implemented)
