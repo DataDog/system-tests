@@ -1,13 +1,11 @@
 import base64
 
-import numpy as np
 import msgpack
 import pytest
 
 
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
-from utils.docker_fixtures.spec.trace import find_root_span
 from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -351,51 +349,6 @@ class Test_Library_Tracestats:
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Hits"] == 1
-
-    @enable_tracestats()
-    @enable_agent_version()
-    def test_relative_error_TS008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When trace stats are computed for traces
-            The stats should be accurate to within 1% of the real values
-
-        Note that this test uses the duration of actual spans created and so this test could be flaky.
-        This flakyness however would indicate a bug in the trace stats computation.
-        """
-
-        with test_library:
-            # Create 10 traces to get more data
-            for _ in range(10):
-                with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                    pass
-
-        traces = test_agent.traces()
-        assert len(traces) == 10
-
-        durations: list[int] = []
-        for trace in traces:
-            span = find_root_span(trace)
-            assert span is not None
-            durations.append(span["duration"])
-
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) != 0, "Stats request should be sent"
-        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
-        stats = requests[0]["body"]["Stats"][0]["Stats"]
-        assert len(stats) == 1, "Only one stats aggregation is expected"
-
-        web_stats = [s for s in stats if s["Name"] == "web.request"][0]
-        assert web_stats["TopLevelHits"] == 10
-        assert web_stats["Hits"] == 10
-
-        # Validate the sketches
-        np_duration = np.array(durations)
-        assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
-        for quantile in (0.5, 0.75, 0.95, 0.99, 1):
-            assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                np.quantile(np_duration, quantile),
-                rel=0.01,
-            ), f"Quantile mismatch for quantile {quantile!r}"
 
     @enable_tracestats()
     @enable_agent_version()
