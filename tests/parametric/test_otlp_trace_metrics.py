@@ -126,8 +126,14 @@ _BASE_ENVVARS = {
 # default Datadog mode where datadog.* attributes are emitted alongside OTel attributes (FR08).
 DEFAULT_ENVVARS = {**_BASE_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "true"}
 
+# Same as DEFAULT_ENVVARS, but also exercises the OTLP trace export path (OTEL_TRACES_EXPORTER=otlp).
+# OTLP trace metrics require OTLP trace export (see TracerManagerFactory.GetAgentWriter); most tests
+# use this combination so OTLP trace metrics are actually enabled, paired with the
+# otlp_traces_and_metrics_library_env fixture below.
+DEFAULT_ENVVARS_OTLP = {**DEFAULT_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp"}
+
 # OTel-semantics mode: only OpenTelemetry attributes are emitted, no datadog.* attributes (FR07).
-OTEL_SEMANTICS_ENVVARS = {**DEFAULT_ENVVARS, "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"}
+OTEL_SEMANTICS_ENVVARS_OTLP = {**DEFAULT_ENVVARS_OTLP, "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"}
 
 
 @pytest.fixture
@@ -327,10 +333,10 @@ def _stats_computed_resource_attr_values(otlp_trace_reqs: list[dict]) -> list[An
 class Test_FR01_Enablement_Configuration:
     """FR01: OTLP trace metrics export is gated by OTEL_TRACES_SPAN_METRICS_ENABLED."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr01_1_enabled_explicit(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -343,10 +349,10 @@ class Test_FR01_Enablement_Configuration:
         metrics = _wait_for_otlp_metrics(test_agent)
         assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
     def test_fr01_2_disabled_explicit(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -365,7 +371,7 @@ class Test_FR01_Enablement_Configuration:
     )
     def test_fr01_3_enabled_by_default(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -384,7 +390,7 @@ class Test_FR01_Enablement_Configuration:
     )
     def test_fr01_4_disabled_when_metrics_export_off(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -403,7 +409,7 @@ class Test_FR01_Enablement_Configuration:
     )
     def test_fr01_5_disabled_when_traces_exporter_not_otlp(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -431,10 +437,10 @@ class Test_FR01_Enablement_Configuration:
 class Test_FR02_Metric_Identity:
     """FR02: Exactly one histogram named traces.span.sdk.metrics.duration; no native or SMC names."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr02_1_single_named_histogram(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -450,10 +456,10 @@ class Test_FR02_Metric_Identity:
         metric = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)
         assert "histogram" in metric, f"Metric is not a histogram: {metric}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr02_2_no_native_or_smc_metric_names(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -513,7 +519,7 @@ class Test_FR02_Mutual_Exclusion:
     )
     def test_fr02_4_native_stats_no_otlp(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -533,10 +539,10 @@ class Test_FR02_Mutual_Exclusion:
 class Test_FR03_Metric_Shape:
     """FR03: The exported metric is a delta-temporality histogram with unit "s"."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr03_1_unit_seconds(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -554,10 +560,10 @@ class Test_FR03_Metric_Shape:
         # A near-instant span is well under a second; a nanosecond value would be enormous.
         assert 0 < float(data_point["sum"]) < 60, f"Duration sum not in seconds: {data_point['sum']}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr03_2_delta_temporality(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -580,10 +586,10 @@ class Test_FR03_Metric_Shape:
 class Test_FR04_Span_Selection:
     """FR04: Only spans selected by the existing client-side stats pipeline are emitted."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr04_1_measured_child_selected(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -603,10 +609,10 @@ class Test_FR04_Span_Selection:
             f"Measured child span should produce a data point: {[_data_point_attrs(dp) for dp in data_points]}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr04_2_unmeasured_child_excluded(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -635,10 +641,10 @@ class Test_FR04_Span_Selection:
 class Test_FR05_Sampling_Independence:
     """FR05: Trace metrics are computed before head-based sampling, from 100% of spans."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate": 0}]'}])
     def test_fr05_1_metrics_computed_before_sampling(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -660,10 +666,10 @@ class Test_FR05_Sampling_Independence:
 class Test_FR06_Otel_Span_Attributes:
     """FR06: Span dimensions map to OTel semantic-convention data-point attributes (both modes)."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_1_resource_span_name(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -677,10 +683,10 @@ class Test_FR06_Otel_Span_Attributes:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.name") == "/users", f"Expected span.name=/users, got attrs: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_2_span_kind(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -694,10 +700,10 @@ class Test_FR06_Otel_Span_Attributes:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.kind") == "server", f"Expected span.kind=server, got attrs: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_3_http_method(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -711,10 +717,10 @@ class Test_FR06_Otel_Span_Attributes:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.request.method") == "GET", f"Expected http.request.method=GET, got attrs: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_4_http_status_code(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -730,10 +736,10 @@ class Test_FR06_Otel_Span_Attributes:
             f"Expected http.response.status_code == 200 (typed int), got attrs: {attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_5_http_route(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -747,11 +753,11 @@ class Test_FR06_Otel_Span_Attributes:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     @pytest.mark.parametrize("grpc_status", ["OK", "NOT_FOUND", "UNAVAILABLE"])
     def test_fr06_7_rpc_status_code(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
         grpc_status: str,
@@ -771,10 +777,10 @@ class Test_FR06_Otel_Span_Attributes:
             f"Expected rpc.response.status_code == {grpc_status!r}, got attrs: {attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_8_status_code_error(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -798,11 +804,11 @@ class Test_FR06_Otel_Resource_Attributes:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "DD_ENV": "prod", "DD_VERSION": "1.2.3"}],
+        [{**DEFAULT_ENVVARS_OTLP, "DD_ENV": "prod", "DD_VERSION": "1.2.3"}],
     )
     def test_fr06_9_service_env_version(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -832,10 +838,10 @@ class Test_FR06_Otel_Resource_Attributes:
             f"Default service must not repeat on data points: {_data_point_services(metrics)}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_14_custom_service_on_data_point(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -867,11 +873,11 @@ class Test_FR06_Otel_Resource_Attributes:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "DD_HOSTNAME": "ddhostname", "DD_TRACE_REPORT_HOSTNAME": "true"}],
+        [{**DEFAULT_ENVVARS_OTLP, "DD_HOSTNAME": "ddhostname", "DD_TRACE_REPORT_HOSTNAME": "true"}],
     )
     def test_fr06_10_hostname(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -893,10 +899,10 @@ class Test_FR06_Otel_Resource_Attributes:
             f"host.name should be present when reporting is enabled, got: {resource_attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_HOSTNAME": "ddhostname"}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP, "DD_HOSTNAME": "ddhostname"}])
     def test_fr06_11_hostname_omitted(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -914,10 +920,10 @@ class Test_FR06_Otel_Resource_Attributes:
         resource_attrs = _resource_attributes(metrics)
         assert "host.name" not in resource_attrs, f"host.name must be omitted when reporting is off: {resource_attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_12_telemetry_sdk_name(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -933,10 +939,10 @@ class Test_FR06_Otel_Resource_Attributes:
             f"Expected telemetry.sdk.name=datadog, got: {resource_attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_13_telemetry_sdk_language(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -959,10 +965,10 @@ class Test_FR06_Otel_Resource_Attributes:
 class Test_FR07_Otel_Semantics_Mode:
     """FR07: With DD_TRACE_OTEL_SEMANTICS_ENABLED=true, only OTel attributes are emitted."""
 
-    @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS_OTLP}])
     def test_fr07_1_no_datadog_attributes(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -977,10 +983,10 @@ class Test_FR07_Otel_Semantics_Mode:
         datadog_keys = [key for key in attrs if key.startswith(("datadog.", "_datadog."))]
         assert not datadog_keys, f"datadog.* attributes must not be emitted in OTel-semantics mode: {datadog_keys}"
 
-    @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS_OTLP}])
     def test_fr07_2_no_datadog_resource_or_type(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -997,10 +1003,10 @@ class Test_FR07_Otel_Semantics_Mode:
         assert "datadog.span.type" not in attrs, f"datadog.span.type must be absent: {attrs}"
         assert "datadog.operation.name" not in attrs, f"datadog.operation.name must be absent: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**OTEL_SEMANTICS_ENVVARS_OTLP}])
     def test_fr07_3_otel_attributes_present(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1018,11 +1024,11 @@ class Test_FR07_Otel_Semantics_Mode:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**OTEL_SEMANTICS_ENVVARS, "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}],
+        [{**OTEL_SEMANTICS_ENVVARS_OTLP, "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}],
     )
     def test_fr07_4_no_datadog_resource_attributes(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1044,10 +1050,10 @@ class Test_FR07_Otel_Semantics_Mode:
 class Test_FR08_Datadog_Attributes:
     """FR08: In default mode (DD_TRACE_OTEL_SEMANTICS_ENABLED=false) datadog.* attributes are added."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_1_operation_name(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1063,10 +1069,10 @@ class Test_FR08_Datadog_Attributes:
             f"Expected datadog.operation.name=web.request, got attrs: {attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_2_span_type(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1080,10 +1086,10 @@ class Test_FR08_Datadog_Attributes:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("datadog.span.type") == "web", f"Expected datadog.span.type=web, got attrs: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_3_top_level_root(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1099,10 +1105,10 @@ class Test_FR08_Datadog_Attributes:
             f"Expected datadog.span.top_level truthy on root, got attrs: {attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_4_top_level_child_same_service(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1127,10 +1133,10 @@ class Test_FR08_Datadog_Attributes:
             f"Expected datadog.span.top_level false on same-service child, got attrs: {attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_5_top_level_child_different_service(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1151,10 +1157,10 @@ class Test_FR08_Datadog_Attributes:
             f"Expected datadog.span.top_level true on service-entry child, got attrs: {attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_6_origin(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1168,10 +1174,10 @@ class Test_FR08_Datadog_Attributes:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("datadog.origin") == "synthetics", f"Expected datadog.origin=synthetics, got attrs: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_7_no_short_dd_prefix(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1188,11 +1194,11 @@ class Test_FR08_Datadog_Attributes:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}],
+        [{**DEFAULT_ENVVARS_OTLP, "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}],
     )
     def test_fr08_8_process_tags(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1213,10 +1219,10 @@ class Test_FR08_Datadog_Attributes:
             f"Expected at least one datadog.<process-tag> resource attribute, got: {list(resource_attrs)}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_9_top_level_not_mixed_with_measured(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1256,7 +1262,7 @@ class Test_FR08_AdditionalTags:
         "library_env",
         [
             {
-                **DEFAULT_ENVVARS,
+                **DEFAULT_ENVVARS_OTLP,
                 "DD_TAGS": (
                     "team:apm,tier:backend,"
                     "service:ignored-svc,env:ignored-env,version:ignored-ver,"
@@ -1267,7 +1273,7 @@ class Test_FR08_AdditionalTags:
     )
     def test_fr08_10_dd_tags_resource_attributes(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1294,11 +1300,11 @@ class Test_FR08_AdditionalTags:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "OTEL_RESOURCE_ATTRIBUTES": "team=apm,deployment.region=us-east-1"}],
+        [{**DEFAULT_ENVVARS_OTLP, "OTEL_RESOURCE_ATTRIBUTES": "team=apm,deployment.region=us-east-1"}],
     )
     def test_fr08_11_otel_resource_attributes_env(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1319,11 +1325,11 @@ class Test_FR08_AdditionalTags:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "DD_TRACE_STATS_ADDITIONAL_TAGS": "customer.tier,region"}],
+        [{**DEFAULT_ENVVARS_OTLP, "DD_TRACE_STATS_ADDITIONAL_TAGS": "customer.tier,region"}],
     )
     def test_fr08_12_stats_additional_tags(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1352,10 +1358,10 @@ class Test_FR08_AdditionalTags:
 class Test_FR09_Red_Metric_Derivation:
     """FR09: The histogram provides enough information to derive count, error count, and duration."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr09_1_data_point_consistency(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1375,10 +1381,10 @@ class Test_FR09_Red_Metric_Derivation:
         bucket_total = sum(int(count) for count in data_point["bucketCounts"])
         assert bucket_total == 1, f"Expected bucket counts to total 1, got {bucket_total} in data point: {data_point}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr09_3_fixed_bucket_layout(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1404,10 +1410,10 @@ class Test_FR09_Red_Metric_Derivation:
             f"bucketCounts must include the trailing overflow bucket (len == bounds + 1): {data_point}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr09_2_error_count(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1498,7 +1504,7 @@ class Test_FR15_Client_Computed_Stats_Header:
             f"Datadog-Client-Computed-Stats must be absent when OTLP trace metrics are disabled, got: {stats_headers}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp"}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr15_3_stats_computed_resource_attr_on_otlp_traces(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
