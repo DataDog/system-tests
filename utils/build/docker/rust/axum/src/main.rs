@@ -106,7 +106,10 @@ fn app(state: AppState) -> Router {
             "/otel_drop_in_default_propagator_inject",
             get(otel_drop_in_default_propagator_inject),
         )
-        .route("/returnheaders", get(returnheaders).post(returnheaders))
+        .route(
+            "/returnheaders",
+            get(header_map_to_json).post(header_map_to_json),
+        )
         .route(
             "/requestdownstream",
             get(requestdownstream).post(requestdownstream),
@@ -433,7 +436,7 @@ fn header_map_to_string_map(headers: &HeaderMap) -> HashMap<String, String> {
         .collect()
 }
 
-async fn returnheaders(headers: HeaderMap) -> Json<HashMap<String, String>> {
+async fn header_map_to_json(headers: HeaderMap) -> Json<HashMap<String, String>> {
     Json(header_map_to_string_map(&headers))
 }
 

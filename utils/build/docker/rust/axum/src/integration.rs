@@ -124,10 +124,10 @@ impl ReqwestOtelSpanBackend for DatadogClientSpanBackend {
             .query()
             .map(|q| format!("?{q}"))
             .unwrap_or_default();
-        let host_port = match req.url().port() {
-            Some(p) => format!("{host}:{p}"),
-            None => host.clone(),
-        };
+        let host_port = req
+            .url()
+            .port()
+            .map_or_else(|| host.clone(), |p| format!("{host}:{p}"));
         let scrubbed_url = format!(
             "{}://{}{}{}",
             req.url().scheme(),
