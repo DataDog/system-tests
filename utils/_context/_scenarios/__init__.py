@@ -764,6 +764,7 @@ class _Scenarios:
             "OTEL_TRACES_EXPORTER": "otlp",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
             "DD_TRACE_OTEL_ENABLED": "true",
         },
         backend_interface_timeout=5,
