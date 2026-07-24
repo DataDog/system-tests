@@ -145,23 +145,27 @@ There are three ways to run system-tests with a custom node tracer.
       only search the *top-level* pipeline's jobs, so they never find `package extension: [...]`
       (it lives in the `package-trigger` **child** pipeline) — they just hang instead of failing
       fast. Walk the GitLab API by hand instead (project is `DataDog/apm-reliability/dd-trace-php`,
-      project ID `355`; see [GitLab CLI setup](../ai/ai-tools-integration-guide.md#gitlab-cli-glab)):
+      project ID `355`; see [GitLab CLI setup](../ai/ai-tools-integration-guide.md#gitlab-cli-glab)).
+      These calls must target `gitlab.ddbuild.io` explicitly via `--hostname`, since `glab`'s
+      default host may point elsewhere:
       ```bash
       # 1. Find the top-level pipeline for your commit
-      glab api "/projects/355/pipelines?sha=<commit-sha>"
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines?sha=<commit-sha>"
 
       # 2. List that pipeline's trigger bridges, find package-trigger's downstream_pipeline.id
-      glab api "/projects/355/pipelines/<pipeline-id>/bridges"
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines/<pipeline-id>/bridges"
 
       # 3. Find the job's numeric id in that child pipeline (paginate with &page=N if needed)
-      glab api "/projects/355/pipelines/<child-pipeline-id>/jobs?per_page=100"
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines/<child-pipeline-id>/jobs?per_page=100"
 
-      # 4. Download the job's artifacts zip (large; can take a few minutes)
-      glab api "/projects/355/jobs/<job-id>/artifacts" --output artifacts.zip
+      # 4. Download the job's artifacts zip (large; can take a few minutes). `--output` selects
+      # glab's own response format (json/ndjson), not a file path, so redirect stdout instead.
+      glab api --hostname gitlab.ddbuild.io "/projects/355/jobs/<job-id>/artifacts" > artifacts.zip
 
-      # 5. Pull out just the tarball you need
-      unzip -p artifacts.zip "packages/dd-library-php-<version>-aarch64-linux-gnu.tar.gz" \
-        > binaries/dd-library-php-<version>-aarch64-linux-gnu.tar.gz
+      # 5. Pull out just the tarball you need, matching your host/container architecture
+      # (<arch> is aarch64 or x86_64, matching `uname -m` inside the PHP weblog container)
+      unzip -p artifacts.zip "packages/dd-library-php-<version>-<arch>-linux-gnu.tar.gz" \
+        > binaries/dd-library-php-<version>-<arch>-linux-gnu.tar.gz
       ```
   - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
 
