@@ -440,7 +440,6 @@ manifest:
   tests/test_miscs.py: irrelevant
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: '>=1.20.0'  # TODO: a lower version might be supported
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_edge_cases: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature

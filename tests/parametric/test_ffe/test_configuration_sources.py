@@ -44,6 +44,7 @@ AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
 
 BASE_ENVVARS = {
+    "DD_API_KEY": TEST_API_KEY,
     "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
@@ -86,7 +87,6 @@ def library_env(
     configuration_source = params.get("configuration_source", "agentless")
     response = params.get("response", "valid")
     responses = params.get("responses")
-    api_key = params.get("api_key", TEST_API_KEY)
 
     if "provider_enabled" in params:
         env["DD_FEATURE_FLAGS_ENABLED"] = str(params["provider_enabled"]).lower()
@@ -117,9 +117,6 @@ def library_env(
             )
         env |= agentless_env
         env[AGENTLESS_BASE_URL] = mock_ffe_agentless_backend.library_config_url
-
-    if api_key is not None:
-        env["DD_API_KEY"] = str(api_key)
 
     return env
 
@@ -300,7 +297,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # An absent, empty, or whitespace-only source with no legacy/stable enablement variable
         # models a new customer whose source is semantically unset; the usable CDN inputs ensure
         # default source selection can complete. Zero startup traffic proves agentless is lazy;
-        # evaluation, authenticated CONFIG_PATH traffic, and no RC capability prove CDN activation.
+        # evaluation, unauthenticated CONFIG_PATH traffic, and no RC capability prove CDN activation.
         _assert_no_mock_requests(mock_ffe_agentless_backend)
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -312,7 +309,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "valid response request",
         )
-        assert status["last_auth_present"] is True
+        assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -342,7 +339,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "stable-enabled default agentless response request",
         )
-        assert status["last_auth_present"] is True
+        assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -531,22 +528,20 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
 
     @parametrize(
         "library_env",
-        [{"configuration_source": "agentless", "response": "valid", "api_key": None}],
+        [{"configuration_source": "agentless", "response": "unauthorized"}],
         indirect=True,
     )
-    def test_missing_auth_cold(
+    def test_unauthorized_cold(
         self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
     ) -> None:
-        # Explicit agentless plus api_key=None removes authentication without changing the valid base
-        # URL or polling inputs, isolating authentication as the initial-load failure.
-        # A 401/403 on CONFIG_PATH with no auth header proves the intended request was rejected, and
-        # the default/not-ready evaluation proves unauthenticated bytes never initialize the provider.
+        # The custom endpoint explicitly returns 401 without relying on a Datadog API key. This
+        # isolates endpoint authentication failure while proving the tracer did not disclose its key.
         started = test_library.ffe_start()
 
         status = _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: current["last_status_code"] in {401, 403},
-            "missing_auth_cold auth failure",
+            "unauthorized_cold auth failure",
         )
         _assert_cold_not_ready(test_library, started=started)
         assert status["last_auth_present"] is False
@@ -560,9 +555,9 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
     def test_malformed_cold(
         self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
     ) -> None:
-        # Explicit agentless with response=malformed keeps transport, authentication, and HTTP status
-        # successful while making the first UFC payload invalid, isolating payload validation.
-        # The authenticated 200 request to CONFIG_PATH proves delivery occurred, while the
+        # Explicit agentless with response=malformed keeps transport and HTTP status successful while
+        # making the first UFC payload invalid, isolating payload validation. The unauthenticated 200
+        # request to CONFIG_PATH proves delivery occurred without disclosing the Datadog API key; the
         # default/not-ready evaluation proves malformed data was not installed.
         started = test_library.ffe_start()
 
@@ -572,7 +567,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "malformed_cold response",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is True
+        assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -595,7 +590,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "request_timeout_cold delayed valid response",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is True
+        assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -667,24 +662,25 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
     """Validate that later agentless failures do not corrupt last-known-good state."""
 
     @parametrize("library_env", [{"configuration_source": "agentless", "response": "valid"}], indirect=True)
-    def test_missing_auth_warm(
+    def test_unauthorized_warm(
         self, test_library: APMLibrary, mock_ffe_agentless_backend: MockFFEAgentlessBackendServer
     ) -> None:
         # Explicit agentless with an initially valid response establishes last-known-good state before
         # the backend switches to unauthorized, isolating a later authentication failure.
         # The 401/403 and additional CONFIG_PATH request prove the failing poll occurred, while the
         # unchanged expected evaluation proves warm state survives the rejection.
-        assert test_library.ffe_start(), "failed to start FFE provider before missing_auth_warm"
+        assert test_library.ffe_start(), "failed to start FFE provider before unauthorized_warm"
         _assert_expected_value(_evaluate(test_library))
 
         mock_ffe_agentless_backend.set_response("unauthorized")
         status = _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: current["last_status_code"] in {401, 403},
-            "missing_auth_warm auth failure",
+            "unauthorized_warm auth failure",
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["requests_total"] > 0
+        assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(

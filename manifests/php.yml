@@ -320,7 +320,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke: missing_feature
-  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
@@ -1102,6 +1102,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_injection_enabled: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_instrumentation_source_non_ssi: '>=1.16.0'
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: v1.22.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.96.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
@@ -1287,7 +1288,6 @@ manifest:
         php-fpm-7.4: missing_feature (profiling seems not to be activated)
         apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: v1.14.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
