@@ -485,17 +485,18 @@ class Test_SampledWithoutOtNotFabricated:
 @scenarios.otel_sampling_rate_0_1
 @features.w3c_headers_injection_and_extraction
 class Test_MalformedOtHandling:
-    """A6: a malformed ot.th/ot.rv is treated as absent; dd= and other vendors survive, the trace is never rejected."""
+    """A6: a malformed ot.th/ot.rv field is cleared, never re-derived; the actual sampling decision is already
 
-    # matches SAMPLING_RATE_0_1's row for this trace ID: DD's own decision at rate 0.1
+    settled by traceparent/dd=, so DD must not fabricate a fresh probability decision to replace it.
+    dd= and other vendors survive, and the trace is never rejected.
+    """
+
     TRACE_ID = FORWARD_TRACE_ID
-    EXPECTED_RV = FORWARD_RV
-    EXPECTED_TH = FORWARD_TH
+    MALFORMED_TH_RV = "1234567890abcd"
     OTHER_VENDOR_VALUE = "xyz123"
 
     def setup_malformed_rv_and_th_treated_as_absent(self):
-        # dd=s:1 (AUTO_KEEP) and the fresh decision DD is expected to derive (EXPECTED_RV/TH's row) both keep
-        # this trace, so the traceparent flag must say sampled=True to match: nothing here should conflict.
+        # dd=s:1 (AUTO_KEEP) is the actual decision here, so the traceparent flag must agree (sampled=True).
         self.malformed_both_request = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
@@ -506,7 +507,7 @@ class Test_MalformedOtHandling:
         )
 
     def test_malformed_rv_and_th_treated_as_absent(self):
-        """Both fields malformed: treated as no inbound decision, so DD makes its own probability decision."""
+        """Both fields malformed: cleared, not replaced by a freshly-derived pair."""
         req = self.malformed_both_request
         assert req.status_code == 200, "a malformed ot= must not cause the trace to be rejected"
 
@@ -514,27 +515,23 @@ class Test_MalformedOtHandling:
         assert "congo" in tracestate, "an unrelated vendor member was dropped while handling a malformed ot="
         assert tracestate["congo"] == self.OTHER_VENDOR_VALUE, "an unrelated vendor member was rewritten"
         assert "dd" in tracestate, "dd= tracestate member was dropped while handling a malformed ot="
-
-        ot = _parse_ot(tracestate)
-        assert ot.get("rv") == self.EXPECTED_RV, "malformed inbound rv was not replaced by a freshly-derived one"
-        assert ot.get("th") == self.EXPECTED_TH, "malformed inbound th was not replaced by a freshly-derived one"
+        assert "ot" not in tracestate, "a malformed ot= must be cleared, not replaced by a freshly-derived one"
 
     def setup_malformed_th_only_treated_as_absent(self):
-        # same reasoning as above: traceparent must agree with the keep decision EXPECTED_RV/TH encodes.
         self.malformed_th_request = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
             headers={
                 "traceparent": _traceparent(self.TRACE_ID, sampled=True),
-                "tracestate": "ot=rv:1234567890abcd;th:not-hex-either",
+                "tracestate": f"ot=rv:{self.MALFORMED_TH_RV};th:not-hex-either",
             },
         )
 
     def test_malformed_th_only_treated_as_absent(self):
-        """Th malformed, rv otherwise well-formed: th/rv are always paired, so the malformed-adjacent rv isn't reused."""
+        """Th malformed, rv otherwise well-formed: th is cleared, but the well-formed rv is still forwarded."""
         req = self.malformed_th_request
         assert req.status_code == 200, "a malformed ot.th must not cause the trace to be rejected"
 
         ot = _parse_ot(_outbound_tracestate(req))
-        assert ot.get("rv") == self.EXPECTED_RV, "a fresh rv/th pair should be derived, not the malformed-adjacent inbound rv"
-        assert ot.get("th") == self.EXPECTED_TH
+        assert ot.get("rv") == self.MALFORMED_TH_RV, "the well-formed inbound rv was not forwarded"
+        assert "th" not in ot, "a malformed ot.th must be cleared, not replaced by a freshly-derived one"
