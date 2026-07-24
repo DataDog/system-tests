@@ -1,0 +1,60 @@
+[package]
+name         = "weblog"
+version      = "0.0.1"
+description  = "Dockerized Rust/Axum based HTTP server for System tests"
+edition      = "2021"
+publish      = false
+
+rust-version = "1.94" # should match Dockerfile rustc version
+
+[[bin]]
+name  = "weblog"
+path  = "src/main.rs"
+doc   = false
+bench = false
+
+[dependencies]
+async-trait                = "0.1.89"
+axum                       = { version = "0.8.9", features = ["json"] }
+http                       = "1"
+opentelemetry              = { version = "0.32", features = ["logs"] }
+opentelemetry-http         = "0.32"
+opentelemetry_sdk          = "0.32"
+reqwest                    = "0.13.4"
+reqwest-middleware         = "0.5.2"
+# The `opentelemetry_0_XX` feature is overridden by install_ddtrace.sh to match
+# the OpenTelemetry minor that datadog-opentelemetry resolves to.
+reqwest-tracing            = { version = "0.7.1", features = ["opentelemetry_0_32"] }
+serde                      = { version = "1", features = ["derive"] }
+serde_json                 = "1.0.150"
+tokio                      = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
+tracing                    = "0.1.44"
+# Version overridden by install_ddtrace.sh: tracing-opentelemetry 0.N depends on
+# opentelemetry 0.(N-1), so it is repinned to ~0.(otel_minor + 1) to track
+# datadog-opentelemetry's resolved OpenTelemetry minor.
+tracing-opentelemetry      = "0.33.0"
+tracing-subscriber         = "0.3"
+uuid = "1.23.4"
+
+# OpenTelemetry version alignment (see install_ddtrace.sh):
+#
+# The whole opentelemetry crate family must resolve to a single minor version;
+# a duplicate silently turns HTTPLayer's server spans (and context extraction)
+# into no-ops. install_ddtrace.sh installs datadog-opentelemetry as the source
+# of truth (unbounded latest from crates.io, or a local /binaries checkout) and
+# then align_opentelemetry() repins the published family — opentelemetry*,
+# reqwest-tracing, tracing-opentelemetry — to the minor it resolves to.
+#
+# opentelemetry-instrumentation-tower is NOT on crates.io, so it cannot be
+# repinned by version/feature: its OpenTelemetry minor is whatever the git rev
+# below depends on. When datadog-opentelemetry moves to a new OpenTelemetry
+# minor, bump this rev to a commit on the matching minor; otherwise
+# check_single_opentelemetry_version fails the build with an actionable message.
+opentelemetry-instrumentation-tower = { git = "https://github.com/open-telemetry/opentelemetry-rust-contrib", rev = "66bfea4", package = "opentelemetry-instrumentation-tower", features = ["axum"] }
+
+# datadog-opentelemetry: git rev only matters for a plain `cargo build` outside
+# the Docker build; install_ddtrace.sh always overrides it (unbounded latest
+# from crates.io, or a path dependency to /binaries/dd-trace-rs for local
+# checkouts). Keep this rev on an OpenTelemetry minor that matches the pins above
+# so local builds resolve cleanly.
+datadog-opentelemetry = { git = "https://github.com/DataDog/dd-trace-rs", rev = "e2d2e95", package = "datadog-opentelemetry" }

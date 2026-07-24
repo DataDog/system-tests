@@ -113,5 +113,6 @@
 - "python:3.14-slim"
 - "rabbitmq:3.12-management-alpine"
 - "rockylinux:9"
+- "rust:1.94.1-slim-bookworm"
 - "softwaremill/elasticmq-native:1.6.11"
 - "ubuntu:24.04"
