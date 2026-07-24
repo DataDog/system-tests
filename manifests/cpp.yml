@@ -207,7 +207,23 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_simple_trace: irrelevant (library does not implement OpenTelemetry)
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py: '>=2.1.1'  # TODO: a lower version might be supported
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR07_Otel_Semantics_Mode: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: missing_feature
+  ? tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_3_stats_computed_resource_attr_on_otlp_traces
+  : missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: ">2.1.2"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)  # The expected error status is not set
@@ -292,7 +308,16 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=2.1.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_no_value: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_regex: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_regex_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_resource_normalization: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_tag_normalization_env: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:  # Modified by easy win activation script
     - declaration: bug (APMAPI-908)
       component_version: <2.0.0
