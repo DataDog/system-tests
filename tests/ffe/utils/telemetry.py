@@ -24,7 +24,7 @@ def telemetry_interface() -> FeatureFlagTelemetryInterfaceValidator:
 
 def telemetry_route() -> str:
     route = getattr(context.scenario, "telemetry_route", None)
-    assert route in ("sidecar", "direct"), f"Scenario {context.scenario.name} has no telemetry route"
+    assert route in ("sidecar", "in_process", "direct"), f"Scenario {context.scenario.name} has no telemetry route"
     return route
 
 
@@ -39,7 +39,7 @@ def matching_telemetry(matcher: Callable[[JSON], bool]) -> list[JSON]:
 
 
 def assert_expected_telemetry_route(matcher: Callable[[JSON], bool], description: str) -> None:
-    captured = matching_telemetry(matcher)
+    captured = [data for data in matching_telemetry(matcher) if telemetry_request_was_accepted(data)]
     assert captured, f"No {description} captured through {telemetry_route()} telemetry"
 
     if telemetry_route() == "direct":
@@ -51,12 +51,25 @@ def assert_expected_telemetry_route(matcher: Callable[[JSON], bool], description
     unexpected = getattr(context.scenario, "unexpected_telemetry_interface", None)
     assert isinstance(unexpected, FeatureFlagTelemetryInterfaceValidator)
     if unexpected.replay:
-        duplicated = any(matcher(cast("JSON", data)) for data in unexpected.get_data())
+        duplicated = any(
+            matcher(cast("JSON", data)) and telemetry_request_was_accepted(cast("JSON", data))
+            for data in unexpected.get_data()
+        )
     else:
         duplicated = unexpected.wait_for(
-            lambda data: matcher(cast("JSON", data)), timeout=UNEXPECTED_ROUTE_WAIT_SECONDS
+            lambda data: matcher(cast("JSON", data)) and telemetry_request_was_accepted(cast("JSON", data)),
+            timeout=UNEXPECTED_ROUTE_WAIT_SECONDS,
         )
     assert not duplicated, f"{description} was duplicated through the non-selected telemetry route"
+
+
+def telemetry_request_was_accepted(data: JSON) -> bool:
+    response = data.get("response")
+    if not isinstance(response, dict):
+        return False
+
+    status_code = response.get("status_code")
+    return isinstance(status_code, int) and 200 <= status_code < 300
 
 
 def _request_header(data: JSON, name: str) -> str | None:

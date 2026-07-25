@@ -730,7 +730,7 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
         weblog_env={
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
             "DD_REMOTE_CONFIGURATION_ENABLED": "false",
@@ -748,7 +748,7 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless_sidecar = FeatureFlaggingAgentlessEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR",
         weblog_env={
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
             "DD_REMOTE_CONFIGURATION_ENABLED": "false",
@@ -763,10 +763,28 @@ class _Scenarios:
         use_proxy_for_weblog=False,
     )
 
+    feature_flagging_and_experimentation_agentless_in_process = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_IN_PROCESS",
+        weblog_env={
+            "DD_FEATURE_FLAGS_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        },
+        doc="Validate auto telemetry through serverless-init wrapping the weblog process.",
+        include_agent=False,
+        include_default_scenario_groups=False,
+        library_interface_timeout=0,
+        scenario_groups=[scenario_groups.ffe],
+        telemetry_route="in_process",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
     feature_flagging_and_experimentation_agentless_direct_fallback = FeatureFlaggingAgentlessEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
         weblog_env={
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
             "DD_REMOTE_CONFIGURATION_ENABLED": "false",
@@ -777,6 +795,101 @@ class _Scenarios:
         library_interface_timeout=0,
         scenario_groups=[scenario_groups.ffe],
         telemetry_route="direct",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    feature_flagging_and_experimentation_agentless_relay_v4 = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_V4",
+        weblog_env={
+            "DD_FEATURE_FLAGS_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        },
+        doc="Validate that auto telemetry prefers EVP v4 when a local relay advertises v4 and v2.",
+        include_agent=False,
+        include_default_scenario_groups=False,
+        library_interface_timeout=0,
+        relay_profile="v4",
+        scenario_groups=[scenario_groups.ffe],
+        telemetry_route="relay",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    feature_flagging_and_experimentation_agentless_relay_v2 = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_V2",
+        weblog_env={
+            "DD_FEATURE_FLAGS_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        },
+        doc="Validate the compatible EVP v2 route when it is the only advertised local endpoint.",
+        include_agent=False,
+        include_default_scenario_groups=False,
+        library_interface_timeout=0,
+        relay_profile="v2",
+        scenario_groups=[scenario_groups.ffe],
+        telemetry_route="relay",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    feature_flagging_and_experimentation_agentless_relay_no_evp = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_NO_EVP",
+        weblog_env={
+            "DD_FEATURE_FLAGS_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        },
+        doc="Validate direct fallback before publish when local /info advertises no supported EVP endpoint.",
+        include_agent=False,
+        include_default_scenario_groups=False,
+        library_interface_timeout=0,
+        relay_profile="no_evp",
+        scenario_groups=[scenario_groups.ffe],
+        telemetry_route="direct",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    feature_flagging_and_experimentation_agentless_relay_evp_405 = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_EVP_405",
+        weblog_env={
+            "DD_FEATURE_FLAGS_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        },
+        doc="Validate exactly-once direct fallback after a definitive local EVP 405 response.",
+        include_agent=False,
+        include_default_scenario_groups=False,
+        library_interface_timeout=0,
+        relay_profile="evp_405",
+        scenario_groups=[scenario_groups.ffe],
+        telemetry_route="direct",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    feature_flagging_and_experimentation_agentless_relay_evp_500 = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_EVP_500",
+        weblog_env={
+            "DD_FEATURE_FLAGS_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
+        },
+        doc="Validate that an ambiguous local EVP 500 response does not cross-route retry the same batch.",
+        include_agent=False,
+        include_default_scenario_groups=False,
+        library_interface_timeout=0,
+        relay_profile="evp_500",
+        scenario_groups=[scenario_groups.ffe],
+        telemetry_route="relay",
         use_proxy_for_agent=False,
         use_proxy_for_weblog=False,
     )

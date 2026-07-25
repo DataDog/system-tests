@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tests.ffe.utils.telemetry import assert_expected_telemetry_route
+from tests.ffe.utils.telemetry import assert_expected_telemetry_route, telemetry_request_was_accepted
 from utils import context, features, scenarios
 from utils.interfaces._feature_flag_telemetry import FeatureFlagTelemetryInterfaceValidator, metric_points_from_data
 
@@ -86,7 +86,7 @@ def test_replay_route_assertion_checks_recorded_unexpected_route(monkeypatch: py
     expected.configure("unused", replay=True)
     unexpected.configure("unused", replay=True)
 
-    matching_data = {"path": "/api/v2/exposures"}
+    matching_data = {"path": "/api/v2/exposures", "response": {"status_code": 202}}
     expected._append_data(matching_data)  # noqa: SLF001 - focused replay fixture
     monkeypatch.setattr(
         context,
@@ -102,6 +102,21 @@ def test_replay_route_assertion_checks_recorded_unexpected_route(monkeypatch: py
 
     assert_expected_telemetry_route(matcher, "exposure event")
 
+    unexpected._append_data(  # noqa: SLF001 - focused replay fixture
+        {"path": "/api/v2/exposures", "response": {"status_code": 405}}
+    )
+    assert_expected_telemetry_route(matcher, "exposure event")
+
     unexpected._append_data(matching_data)  # noqa: SLF001 - focused replay fixture
     with pytest.raises(AssertionError, match="duplicated through the non-selected telemetry route"):
         assert_expected_telemetry_route(matcher, "exposure event")
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_only_2xx_telemetry_responses_are_accepted() -> None:
+    assert telemetry_request_was_accepted({"response": {"status_code": 200}})
+    assert telemetry_request_was_accepted({"response": {"status_code": 202}})
+    assert not telemetry_request_was_accepted({"response": {"status_code": 405}})
+    assert not telemetry_request_was_accepted({"response": {"status_code": 500}})
+    assert not telemetry_request_was_accepted({"response": None})

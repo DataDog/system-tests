@@ -20,7 +20,13 @@ def test_tracer_release():
     dormant_agentless_scenarios = [
         scenarios.feature_flagging_and_experimentation_agentless,
         scenarios.feature_flagging_and_experimentation_agentless_sidecar,
+        scenarios.feature_flagging_and_experimentation_agentless_in_process,
         scenarios.feature_flagging_and_experimentation_agentless_direct_fallback,
+        scenarios.feature_flagging_and_experimentation_agentless_relay_v4,
+        scenarios.feature_flagging_and_experimentation_agentless_relay_v2,
+        scenarios.feature_flagging_and_experimentation_agentless_relay_no_evp,
+        scenarios.feature_flagging_and_experimentation_agentless_relay_evp_405,
+        scenarios.feature_flagging_and_experimentation_agentless_relay_evp_500,
     ]
     for dormant_agentless_scenario in dormant_agentless_scenarios:
         assert dormant_agentless_scenario.include_agent is False
@@ -32,6 +38,7 @@ def test_tracer_release():
     assert scenarios.feature_flagging_and_experimentation_agentless.use_proxy is False
     assert scenarios.feature_flagging_and_experimentation_agentless._flush_weblog_on_stop is False  # noqa: SLF001
     assert scenarios.feature_flagging_and_experimentation_agentless_sidecar.use_proxy is True
+    assert scenarios.feature_flagging_and_experimentation_agentless_in_process.use_proxy is True
     assert scenarios.feature_flagging_and_experimentation_agentless_direct_fallback.use_proxy is True
 
     not_in_tracer_release_group = [

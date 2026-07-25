@@ -9,6 +9,7 @@ from utils.interfaces._feature_flag_telemetry import metric_points_from_data
 
 
 @scenarios.feature_flagging_and_experimentation_agentless_sidecar
+@scenarios.feature_flagging_and_experimentation_agentless_in_process
 @scenarios.feature_flagging_and_experimentation_agentless_direct_fallback
 @features.feature_flags_eval_metrics
 class Test_FFE_Agentless_Eval_Metric:

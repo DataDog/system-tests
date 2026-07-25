@@ -3353,14 +3353,43 @@
   ],
   "tests/ffe/test_agentless_exposures.py::Test_FFE_Agentless_Exposure::test_agentless_exposure": [
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_IN_PROCESS",
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
+  ],
+  "tests/ffe/test_agentless_exposures.py::Test_FFE_Agentless_Exposure_Discovery::test_agentless_exposure_prefers_advertised_local_evp": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_V2",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_V4"
+  ],
+  "tests/ffe/test_agentless_exposures.py::Test_FFE_Agentless_Exposure_PreSend_Fallback::test_agentless_exposure_falls_back_when_info_has_no_evp": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_NO_EVP"
+  ],
+  "tests/ffe/test_agentless_exposures.py::Test_FFE_Agentless_Exposure_Definitive_Fallback::test_agentless_exposure_retries_direct_after_405": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_EVP_405"
+  ],
+  "tests/ffe/test_agentless_exposures.py::Test_FFE_Agentless_Exposure_Ambiguous_Failure::test_agentless_exposure_does_not_retry_direct_after_500": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_EVP_500"
   ],
   "tests/ffe/test_agentless_flag_eval_evp.py::Test_FFE_Agentless_EVP_Flagevaluation::test_agentless_evp_flagevaluation": [
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_IN_PROCESS",
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
+  ],
+  "tests/ffe/test_agentless_flag_eval_evp.py::Test_FFE_Agentless_EVP_Flagevaluation_Discovery::test_agentless_flagevaluation_prefers_advertised_local_evp": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_V2",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_V4"
+  ],
+  "tests/ffe/test_agentless_flag_eval_evp.py::Test_FFE_Agentless_EVP_Flagevaluation_PreSend_Fallback::test_agentless_flagevaluation_falls_back_when_info_has_no_evp": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_NO_EVP"
+  ],
+  "tests/ffe/test_agentless_flag_eval_evp.py::Test_FFE_Agentless_EVP_Flagevaluation_Definitive_Fallback::test_agentless_flagevaluation_retries_direct_after_405": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_EVP_405"
+  ],
+  "tests/ffe/test_agentless_flag_eval_evp.py::Test_FFE_Agentless_EVP_Flagevaluation_Ambiguous_Failure::test_agentless_flagevaluation_does_not_retry_direct_after_500": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_RELAY_EVP_500"
   ],
   "tests/ffe/test_agentless_flag_eval_metrics.py::Test_FFE_Agentless_Eval_Metric::test_agentless_eval_metric": [
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT_FALLBACK",
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_IN_PROCESS",
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SIDECAR"
   ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [

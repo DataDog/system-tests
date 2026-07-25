@@ -1,5 +1,7 @@
 """Unit coverage for the mock FFE agentless backend test fixture."""
 
+import json
+from typing import Literal
 from unittest.mock import MagicMock
 
 import requests
@@ -14,7 +16,7 @@ from utils.docker_fixtures._mock_ffe_agentless_backend import (
     MockFFEAgentlessBackendServer,
 )
 from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
-from utils._context.containers import ServerlessSidecarContainer
+from utils._context.containers import ServerlessSidecarContainer, serverless_init_wrapper_dockerfile
 from utils.proxy.ports import ProxyPorts
 
 
@@ -25,11 +27,30 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
     try:
         response = requests.get(server.base_url + CONFIG_PATH, headers={"dd-api-key": EXPECTED_API_KEY}, timeout=5)
         response.raise_for_status()
+        payload = response.json()
+        assert payload["data"]["type"] == "universal-flag-configuration"
+        assert payload["data"]["attributes"]["flags"]
 
         status = server.status()
         assert status["requests_total"] == 1
         assert status["last_auth_present"] is True
         assert status["last_path"] == CONFIG_PATH
+        assert status["last_status_code"] == 200
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_mock_ffe_agentless_backend_can_serve_custom_endpoint_without_auth(worker_id: str) -> None:
+    server = MockFFEAgentlessBackendServer(worker_id, require_auth=False)
+    try:
+        response = requests.get(server.base_url + CONFIG_PATH, timeout=5)
+        response.raise_for_status()
+
+        status = server.status()
+        assert status["requests_total"] == 1
+        assert status["last_auth_present"] is False
         assert status["last_status_code"] == 200
     finally:
         server.close()
@@ -162,6 +183,33 @@ def test_agentless_sidecar_scenario_prefers_serverless_sidecar() -> None:
 
 @scenarios.test_the_test
 @features.not_reported
+def test_agentless_in_process_scenario_wraps_weblog() -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_IN_PROCESS",
+        doc="test",
+        include_agent=False,
+        telemetry_route="in_process",
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    environment = scenario.weblog_infra.library_container.environment
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    assert not scenario.weblog_infra._other_containers  # noqa: SLF001 - focused topology test
+    assert environment["DD_TRACE_AGENT_URL"] == "http://127.0.0.1:8126"
+    assert environment["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] == "http://127.0.0.1:4318/v1/metrics"
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_sidecar}"
+    assert "DD_EVP_PROXY_CONFIG_ADDITIONAL_ENDPOINTS" not in environment
+    assert scenario.telemetry_interface is interfaces.ffe_sidecar
+
+    dockerfile = serverless_init_wrapper_dockerfile("system_tests/weblog")
+    assert "FROM system_tests/weblog" in dockerfile
+    assert 'ENTRYPOINT ["/datadog-init"]' in dockerfile
+
+
+@scenarios.test_the_test
+@features.not_reported
 def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -175,7 +223,8 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     backend = MagicMock(spec=MockFFEAgentlessBackendServer)
     backend.reset.side_effect = RuntimeError("reset failed")
 
-    def create_backend(_worker_id: str) -> MagicMock:
+    def create_backend(_worker_id: str, *, require_auth: bool) -> MagicMock:
+        assert require_auth is True
         return backend
 
     monkeypatch.setattr(endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
@@ -230,3 +279,70 @@ def test_agentless_direct_scenario_uses_authenticated_fallback() -> None:
     assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
     assert environment["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] == f"http://proxy:{ProxyPorts.ffe_direct}/v1/metrics"
     assert environment["OTEL_EXPORTER_OTLP_METRICS_HEADERS"] == (f"dd-api-key={EXPECTED_API_KEY},dd-protocol=otlp")
+
+
+@scenarios.test_the_test
+@features.not_reported
+@pytest.mark.parametrize(
+    ("relay_profile", "telemetry_route", "expected_endpoints", "expected_failure"),
+    [
+        ("v4", "relay", ["/evp_proxy/v4/", "/evp_proxy/v2/"], None),
+        ("v2", "relay", ["/evp_proxy/v2/"], None),
+        ("no_evp", "direct", [], None),
+        ("evp_405", "direct", ["/evp_proxy/v4/"], 405),
+        ("evp_500", "relay", ["/evp_proxy/v4/"], 500),
+    ],
+)
+def test_agentless_programmable_relay_profiles(
+    relay_profile: Literal["v4", "v2", "no_evp", "evp_405", "evp_500"],
+    telemetry_route: Literal["relay", "direct"],
+    expected_endpoints: list[str],
+    expected_failure: int | None,
+) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_PROGRAMMABLE_RELAY",
+        doc="test",
+        include_agent=False,
+        relay_profile=relay_profile,
+        telemetry_route=telemetry_route,
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+
+    environment = scenario.weblog_infra.library_container.environment
+    assert environment["DD_TRACE_AGENT_URL"] == f"http://proxy:{ProxyPorts.ffe_relay}"
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+    assert environment["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] == f"http://proxy:{ProxyPorts.ffe_direct}/v1/metrics"
+
+    responses = scenario.proxy_container.internal_mocked_backend_responses
+    info = next(response for response in responses if response.path == "/info")
+    assert json.loads(info.content) == {"endpoints": expected_endpoints}
+
+    failures = [response for response in responses if response.path.endswith("/api/v2/exposures")]
+    if expected_failure is None:
+        assert not failures
+    else:
+        assert len(failures) == 1
+        assert failures[0].status_code == expected_failure
+
+    if telemetry_route == "relay":
+        assert scenario.telemetry_interface is interfaces.ffe_relay
+        assert scenario.unexpected_telemetry_interface is interfaces.ffe_direct
+    else:
+        assert scenario.telemetry_interface is interfaces.ffe_direct
+        assert scenario.unexpected_telemetry_interface is interfaces.ffe_relay
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_programmable_relay_rejects_incompatible_provenance() -> None:
+    with pytest.raises(ValueError, match="requires relay or direct telemetry provenance"):
+        FeatureFlaggingAgentlessEndToEndScenario(
+            "MOCK_FFE_AGENTLESS_INVALID_RELAY",
+            doc="test",
+            include_agent=False,
+            relay_profile="v4",
+            telemetry_route="sidecar",
+            use_proxy_for_agent=False,
+            use_proxy_for_weblog=False,
+        )

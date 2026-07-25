@@ -40,7 +40,7 @@ messages_counts: dict[str, int] = defaultdict(int)
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
-_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.ffe_sidecar, ProxyPorts.ffe_direct)
+_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.ffe_sidecar, ProxyPorts.ffe_direct, ProxyPorts.ffe_relay)
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -337,6 +337,8 @@ class _RequestLogger:
             interface = "ffe_sidecar"
         elif proxy_port == ProxyPorts.ffe_direct:
             interface = "ffe_direct"
+        elif proxy_port == ProxyPorts.ffe_relay:
+            interface = "ffe_relay"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -427,6 +429,7 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.agent}",  # from agent to backend
         f"regular@{ProxyPorts.ffe_sidecar}",  # Feature Flags sidecar to backend
         f"regular@{ProxyPorts.ffe_direct}",  # Feature Flags SDK direct to backend
+        f"regular@{ProxyPorts.ffe_relay}",  # programmable local Feature Flags relay
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
