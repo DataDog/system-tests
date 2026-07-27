@@ -203,16 +203,12 @@ fastify.get('/make_distant_call', async (request, reply) => {
   console.log(url)
 
   const parsedUrl = new URL(url)
-
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
+  const method = request.query.method || 'GET'
 
   return new Promise((resolve, reject) => {
-    const httpRequest = http.request(options, (response) => {
+    // Passing the URL object preserves query strings and credentials. This endpoint is used by
+    // semantic-convention tests that need the tracer to observe the complete outbound request.
+    const httpRequest = http.request(parsedUrl, { method }, (response) => {
       let responseBody = ''
       response.on('data', (chunk) => {
         responseBody += chunk

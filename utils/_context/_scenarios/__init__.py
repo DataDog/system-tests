@@ -244,17 +244,23 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    otel_semantics = EndToEndScenario(
+    otel_semantics = DdTraceEndToEndScenario(
         "OTEL_SEMANTICS",
-        weblog_env={"DD_TRACE_OTEL_SEMANTICS_ENABLED": "true"},
+        weblog_env={
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+        },
         doc="Test that HTTP server/client spans emit OpenTelemetry semantic-convention "
         "attribute names when DD_TRACE_OTEL_SEMANTICS_ENABLED=true",
         scenario_groups=[scenario_groups.open_telemetry],
     )
 
-    otel_semantics_otlp = EndToEndScenario(
+    otel_semantics_otlp = DdTraceEndToEndScenario(
         "OTEL_SEMANTICS_OTLP",
         weblog_env={
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
             "DD_TRACE_OTEL_ENABLED": "true",
             "OTEL_TRACES_EXPORTER": "otlp",
@@ -265,6 +271,24 @@ class _Scenarios:
         doc="Like OTEL_SEMANTICS but exports via OTLP, so HTTP attributes can be validated as typed "
         "OpenTelemetry values (e.g. http.response.status_code / server.port as int) which the "
         "Datadog agent protocol cannot represent",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_custom_error_statuses = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
+        weblog_env={
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200",
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        include_opentelemetry=True,
+        doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that custom "
+        "server and client error status configurations take precedence over OTel defaults",
         scenario_groups=[scenario_groups.open_telemetry],
     )
 

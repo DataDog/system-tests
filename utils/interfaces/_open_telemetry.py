@@ -40,7 +40,12 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                         attributes = span.get("attributes", {})
                         request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
                         user_agent_value = attributes.get("http.useragent", "")
-                        if rid in request_headers_user_agent_value or rid in user_agent_value:
+                        user_agent_original_value = attributes.get("user_agent.original", "")
+                        if (
+                            rid in request_headers_user_agent_value
+                            or rid in user_agent_value
+                            or rid in user_agent_original_value
+                        ):
                             yield span.get("trace_id") or span.get("traceId")
 
     def get_otel_spans(self, request: HttpResponse):
@@ -64,9 +69,11 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                         attributes = span.get("attributes", {})
                         request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
                         user_agent_value = attributes.get("http.useragent", "")
+                        user_agent_original_value = attributes.get("user_agent.original", "")
                         if (
                             rid in request_headers_user_agent_value
                             or rid in user_agent_value
+                            or rid in user_agent_original_value
                             or parent_span_id in parent_spans
                         ):
                             span_id = span.get("spanId")
