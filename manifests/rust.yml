@@ -110,6 +110,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
+  tests/parametric/test_extract_behavior.py: '>=0.4.1-dev'
   tests/parametric/test_ffe/test_configuration_sources.py: irrelevant (rust is not in scope for v1 agentless server SDK configuration-source coverage)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
@@ -187,7 +188,6 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature  # Created by easy win activation script

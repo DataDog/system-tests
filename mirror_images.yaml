@@ -7,6 +7,7 @@
 #
 # (also refreshes mirror_images.lock.yaml; commit both). The
 # `mirror_images_check` CI job fails if this file is out of date.
+- "alpine:3.22"
 - "apache/kafka:3.7.1"
 - "cassandra:latest"
 - "datadog/agent:latest"
@@ -83,6 +84,7 @@
 - "ghcr.io/datadog/images-rb/engines/ruby:3.1-gnu-gcc"
 - "ghcr.io/datadog/images-rb/engines/ruby:3.4-gnu-gcc"
 - "ghcr.io/graalvm/native-image-community:22.0.0"
+- "ghcr.io/oras-project/oras:v1.2.3"
 - "golang:1.25"
 - "golang:1.25-alpine"
 - "kong/kong-gateway:3.4"
