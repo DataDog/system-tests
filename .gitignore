@@ -79,3 +79,7 @@ go.work*
 
 # Hypothesis Python package
 .hypothesis/
+
+# Git worktrees
+.claude/worktrees/
+.worktrees/

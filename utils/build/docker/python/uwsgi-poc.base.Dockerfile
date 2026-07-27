@@ -14,5 +14,5 @@ RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-confi
 COPY utils/build/docker/python/flask/requirements-uwsgi-poc.txt /tmp/flask-requirements.txt
 RUN pip install --upgrade pip && pip install -r /tmp/flask-requirements.txt
 
-# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v8 .
-# docker push datadog/system-tests:uwsgi-poc.base-v8
+# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v10 .
+# docker push datadog/system-tests:uwsgi-poc.base-v10

@@ -1,0 +1,7 @@
+
+spring-boot-native:
+  categories: [open_telemetry]
+  excluded_scenarios: [OTEL_INTEGRATIONS]
+spring-boot-otel:
+  categories: [open_telemetry]
+  excluded_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]

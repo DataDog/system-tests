@@ -1,5 +1,6 @@
 from utils._logger import logger
 
+from utils._context.constants import WeblogCategory
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
@@ -10,6 +11,7 @@ class IPV6Scenario(EndToEndScenario):
             name,
             enable_ipv6=True,
             scenario_groups=[scenario_groups.ipv6],
+            weblog_categories=[WeblogCategory.dd_trace],
             use_proxy_for_agent=True,
             use_proxy_for_weblog=False,
             doc=(

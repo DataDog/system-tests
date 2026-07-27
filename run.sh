@@ -518,6 +518,14 @@ function main() {
                             echo "${scenario} was removed, skipping."
                             continue
         fi
+        if [[ "${scenario}" == GO_PROXIES_DEFAULT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == GO_PROXIES_APPSEC_BLOCKING ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
         ####
 
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"

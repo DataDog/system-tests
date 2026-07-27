@@ -4,8 +4,7 @@
 
 import json
 from utils import features, interfaces, scenarios, slow, weblog
-from utils.docker_fixtures.spec.trace import span_link_trace_id_equals
-from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
+from utils.dd_types import DataDogSpanLink
 
 
 @scenarios.trace_propagation_style_w3c
@@ -56,20 +55,20 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, trace, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
+            if len(span.get_span_links()) != 0
             and trace.trace_id_equals(2)
             and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 1
         span = trace[0]
-        links = _retrieve_span_links(span)
+        links = span.get_span_links()
         assert len(links) == 1
         link1 = links[0]
-        assert span_link_trace_id_equals(link1["trace_id"], 2)
-        assert link1["span_id"] == 987654321
-        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link1["trace_id_high"] == 1229782938247303441
+        assert link1.trace_id_low == 2
+        assert link1.span_id == 987654321
+        assert link1.attributes == {"reason": "terminated_context", "context_headers": "tracecontext"}
+        assert link1.trace_id_high == 1229782938247303441
 
     """Datadog and tracecontext headers, trace-id does match, Datadog is primary
     context we want to make sure there's no span link since they match"""
@@ -90,7 +89,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
+            if len(span.get_span_links()) != 0
             and span["trace_id"] == 1
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
@@ -117,7 +116,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
+            if len(span.get_span_links()) != 0
             and span["trace_id"] == 5
             and span["parent_id"] == 987654324  # Only fetch the trace that is related to the header extractions
         ]
@@ -147,7 +146,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
+            if len(span.get_span_links()) != 0
             and span["trace_id"] == 2
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
@@ -156,10 +155,10 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
-        span_links = _retrieve_span_links(span)
+        span_links = span.get_span_links()
         assert len(span_links) == 2
         link1 = span_links[0]
-        assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
+        assert link1.data["flags"] == 1 | DataDogSpanLink.TRACECONTEXT_FLAGS_SET
 
 
 @scenarios.default
@@ -183,7 +182,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
+            if len(span.get_span_links()) != 0
             and span["trace_id"] == 2
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
@@ -192,60 +191,10 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
-        links = _retrieve_span_links(span)
+        links = span.get_span_links()
         assert len(links) == 1
         link1 = links[0]
-        assert link1.get("tracestate") is None
-
-
-def _normalize_v1_span_link(link: dict) -> dict:
-    """Ensure v1 span link has trace_id_high when trace_id is 128-bit hex string."""
-    link = dict(link)
-    tid = link.get("trace_id")
-    if isinstance(tid, str) and tid.startswith("0x") and len(tid) > 18 and "trace_id_high" not in link:
-        # 128-bit: high 64 bits (first 16 hex chars after 0x)
-        link["trace_id_high"] = int(tid[2:18], 16)
-    return link
-
-
-def _retrieve_span_links(span: DataDogLibrarySpan):
-    if span.trace.format == LibraryTraceFormat.v10:
-        # v1.0: span_links can be at top level or in attributes
-        links = span.raw_span.get("span_links") or span.raw_span.get("attributes", {}).get("_dd.span_links")
-        if links:
-            return [_normalize_v1_span_link(lnk) for lnk in links]
-        return None
-
-    if span.get("span_links") is not None:
-        return span["span_links"]
-
-    if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into msgpack v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["span_id"] = int(json_link["span_id"], base=16)
-            if len(json_link["trace_id"]) > 16:
-                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
-            if "attributes" in json_link:
-                link["attributes"] = json_link.get("attributes")
-            if "tracestate" in json_link:
-                link["tracestate"] = json_link.get("tracestate")
-            elif "trace_state" in json_link:
-                link["tracestate"] = json_link.get("trace_state")
-            if "flags" in json_link:
-                link["flags"] = json_link.get("flags") | 1 << 31
-            else:
-                link["flags"] = 0
-            links.append(link)
-        return links
-    return None
-
-
-# The Datadog specific tracecontext flags to mark flags are set
-TRACECONTEXT_FLAGS_SET = 1 << 31
+        assert link1.data.get("tracestate") is None
 
 
 @scenarios.default

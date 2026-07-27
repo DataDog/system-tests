@@ -1,4 +1,4 @@
-FROM datadog/system-tests:fastify.base-v2
+FROM datadog/system-tests:fastify.base-v3
 
 EXPOSE 7777
 

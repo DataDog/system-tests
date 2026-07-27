@@ -77,3 +77,4 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v3.29.0
+  tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)

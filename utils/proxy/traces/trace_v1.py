@@ -436,6 +436,14 @@ def _deserialize_base64_trace_id(chunk: dict):
 def deserialize_v1_trace(content: bytes) -> dict:
     data: dict = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
+    if not isinstance(data, dict):
+        warnings.warn(
+            f"v1.0 trace payload must be a msgpack map, got {type(data).__name__}. "
+            "The tracer may be sending a v0.4-style array payload to the v1.0 endpoint.",
+            stacklevel=2,
+        )
+        return {}
+
     strings = _unstream_strings(data)
     if len(data) == 0:
         return {}

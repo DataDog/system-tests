@@ -1,28 +1,28 @@
-from collections.abc import Generator, Iterable
 import contextlib
+from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
 from typing import TypedDict, cast
 
-from requests.exceptions import RequestException
+import pytest
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
-import pytest
+from requests.exceptions import RequestException
 
-from utils.docker_fixtures._core import get_host_port, docker_run
+from utils._logger import logger
+from utils.docker_fixtures._core import extra_hosts_for_environment, get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.parametric import Link, LogLevel
 from utils.docker_fixtures.spec.llm_observability import (
-    SpanRequest,
-    LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
     DatasetResponse,
+    LlmObsAnnotationContextRequest,
+    SpanRequest,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
-from utils.docker_fixtures.parametric import LogLevel, Link
-from utils._logger import logger
 
-from ._core import TestClientFactory, TestClientApi
+from ._core import TestClientApi, TestClientFactory
 
 
 class ParametricTestClientFactory(TestClientFactory):
@@ -88,6 +88,7 @@ class ParametricTestClientFactory(TestClientFactory):
                 volumes=self.container_volumes,
                 log_file=log_file,
                 network=test_agent.network,
+                extra_hosts=extra_hosts_for_environment(env),
                 # Give ddtrace/OTLP/gRPC background threads time to drain on SIGTERM before
                 # the next test on this xdist worker reuses the same host port. SIGKILLing
                 # mid-shutdown was the most likely cause of rare container-exit flakes.
@@ -146,6 +147,12 @@ class _TestSpan:
                 assert all(c in "0123456789abcdefABCDEF" for c in span_id[2:]), f"{span_id} is not hexadecimal"
             else:
                 assert span_id.isdigit(), f"{span_id} is not decimal"
+
+    def get_trace_id(self) -> int:
+        return self.trace_id
+
+    def get_span_id(self) -> int | str:
+        return self.span_id
 
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
@@ -281,6 +288,9 @@ class ParametricTestClientApi(TestClientApi):
             self._session.get(self._url("/trace/crash"))
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
+
+    def get_logs(self) -> str:
+        return self.container.logs().decode("utf-8")
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:
@@ -1033,6 +1043,9 @@ class APMLibrary:
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run_raw(command)
+
+    def get_logs(self) -> str:
+        return self._client.get_logs()
 
     @contextlib.contextmanager
     def dd_start_span(

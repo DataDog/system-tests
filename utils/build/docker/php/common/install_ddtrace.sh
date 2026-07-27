@@ -4,6 +4,28 @@ set -eux
 
 IS_APACHE=${1:-0}
 
+if [ -z "$PHP_VERSION" ]; then
+  PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+fi
+
+cd /var/www/html
+export COMPOSER=composer.json
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+	export COMPOSER=composer.gte8.2.json
+fi
+if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
+  apt-get update -qq && apt-get install -y --no-install-recommends unzip
+  if [[ "$(printf '%s\n' "$PHP_VERSION" "8.1" | sort -V | head -n1)" = "8.1" ]]; then
+    # Also require open-telemetry/sdk so composer does not remove it from vendor/:
+    # the Dockerfile ADD overwrites composer.json with the repo version (which has
+    # stripe but not OTel), causing a bare `composer require stripe` to drop OTel
+    # from the resolved tree and wipe it from vendor/.
+    COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" "open-telemetry/sdk:^1.0.0" --no-interaction --ignore-platform-req=ext-mbstring
+  else
+    COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring
+  fi
+fi
+
 cd /binaries
 
 ARCH=$(uname -m)

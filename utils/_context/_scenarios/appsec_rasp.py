@@ -4,6 +4,7 @@ from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils._context._scenarios.core import scenario_groups
 from utils._context.containers import InternalServerContainer
+from utils._context.constants import WeblogCategory
 
 
 class AppsecRaspScenario(EndToEndScenario):
@@ -24,6 +25,7 @@ class AppsecRaspScenario(EndToEndScenario):
             # added to test Test_ExtendedRequestBodyCollection
             "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
             "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_DOWNSTREAM_BODY_BYTES": "128",
             "OPENAI_BASE_URL": "http://internal_server:8089",
         }
         merged_env = default_env | weblog_env
@@ -38,6 +40,7 @@ class AppsecRaspScenario(EndToEndScenario):
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario],
+            weblog_categories=[WeblogCategory.dd_trace],
             other_weblog_containers=(InternalServerContainer,),
         )
 

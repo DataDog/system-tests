@@ -62,8 +62,8 @@ on:
         default: false
         required: false
         type: boolean
-      push_to_feature_parity_dashbaord:
-        description: "Shall we push results to Feature Parity Dashbaord"
+      _build_weblog_base_image:
+        description: "Shall we build the weblog base image (only valid if weblog build is local)"
         default: false
         required: false
         type: boolean
@@ -112,6 +112,7 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
+      SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -145,6 +146,13 @@ jobs:
     - name: Build lambda-proxy image
       if: inputs._build_lambda_proxy_image
       run: ./build.sh -i lambda-proxy
+
+    - name: Build weblog base image
+      if: inputs._build_weblog_base_image
+      run: |
+        source venv/bin/activate
+        ./utils/script/build_base_image.py ${{ inputs.library }} ${{ inputs.weblog }}
+
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
@@ -195,6 +203,12 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO"')
       run: ./run.sh TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO
+    - name: Run TRACE_STATS_COMPUTATION_ERROR_SAMPLER scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_ERROR_SAMPLER"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_ERROR_SAMPLER
+    - name: Run TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE
     - name: Run IAST_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
@@ -413,9 +427,6 @@ jobs:
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
-    - name: Run DEBUGGER_PROBES_STATUS scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
-      run: ./run.sh DEBUGGER_PROBES_STATUS
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
@@ -503,12 +514,6 @@ jobs:
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
-    - name: Run GO_PROXIES_DEFAULT scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GO_PROXIES_DEFAULT"')
-      run: ./run.sh GO_PROXIES_DEFAULT --weblog ${{ inputs.weblog }}
-    - name: Run GO_PROXIES_APPSEC_BLOCKING scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING"')
-      run: ./run.sh GO_PROXIES_APPSEC_BLOCKING --weblog ${{ inputs.weblog }}
     - name: Run OTEL_COLLECTOR scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
@@ -525,6 +530,9 @@ jobs:
     - name: Run AI_GUARD_TELEMETRY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_TELEMETRY"')
       run: ./run.sh AI_GUARD_TELEMETRY
+    - name: Run AI_GUARD_STANDALONE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_STANDALONE"')
+      run: ./run.sh AI_GUARD_STANDALONE
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
@@ -550,21 +558,6 @@ jobs:
         name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
         retention-days: ${{ inputs.artifact_retention_days }}
-
-    - name: Push results to Feature Parity Dashboard
-      if: ${{ inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
-      run: |
-        for folder in logs*/ ; do
-          curl -X POST ${FP_IMPORT_URL} \
-            --fail
-            --header "Content-Type: application/json" \
-            --header "FP_API_KEY: ${FP_API_KEY}" \
-            --data "@./${folder}feature_parity.json" \
-            --include
-        done
-      env:
-        FP_API_KEY: ${{ secrets.FP_API_KEY }}
-        FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Push results to Test Optimization
       if: steps.build.outcome == 'success' && inputs.push_to_test_optimization && !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)

@@ -9,6 +9,35 @@ from utils import context, logger
 from threading import Timer
 
 
+_NODEJS_V6_MAJOR = 6
+_NODEJS_V6_MINIMUM_RUNTIME_MAJOR = 22
+_NODEJS_PRE_V6_MINIMUM_RUNTIME_MAJOR = 18
+_NODEJS_MULTICONTAINER_WEBLOG = "test-app-nodejs-multicontainer"
+
+
+def _unsupported_nodejs_multicontainer_runtime(runtime_version: str | None) -> bool:
+    if (
+        context.library != "nodejs"
+        or context.weblog_variant != _NODEJS_MULTICONTAINER_WEBLOG
+        or not runtime_version
+        or runtime_version == "latest"
+    ):
+        return False
+
+    try:
+        runtime_major = int(runtime_version.split(".", maxsplit=1)[0])
+    except ValueError:
+        return False
+
+    min_runtime_major = (
+        _NODEJS_V6_MINIMUM_RUNTIME_MAJOR
+        if context.library.version.major >= _NODEJS_V6_MAJOR
+        else _NODEJS_PRE_V6_MINIMUM_RUNTIME_MAJOR
+    )
+
+    return runtime_major < min_runtime_major
+
+
 class AutoInjectBaseTest:
     def _test_install(
         self,
@@ -21,13 +50,26 @@ class AutoInjectBaseTest:
         """If there is a multicontainer app, we need to make a request to each app"""
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
+            tested_supported_runtime = False
             for app in virtual_machine.get_deployed_weblog().multicontainer_apps:
                 vm_context_url = (
                     f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
                 )
+
+                if _unsupported_nodejs_multicontainer_runtime(app.runtime_version):
+                    logger.info(
+                        "Skipping unsupported multicontainer app runtime [%s] for library [%s]",
+                        app.runtime_version,
+                        context.library,
+                    )
+                    continue
+
                 self._check_install(
                     virtual_machine, vm_context_url, profile=profile, appsec=appsec, origin_detection=origin_detection
                 )
+                tested_supported_runtime = True
+
+            assert tested_supported_runtime, "No supported multicontainer app found to test"
 
         else:
             vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"

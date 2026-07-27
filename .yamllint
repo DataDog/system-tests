@@ -3,3 +3,7 @@ extends: relaxed
 rules:
     line-length: disable
     key-ordering: disable
+    indentation:
+        # .gitlab-ci.yml uses intentional mixed indentation (GitLab CI style).
+        ignore: |
+            .gitlab-ci.yml
