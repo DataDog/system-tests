@@ -26,6 +26,11 @@ if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
   fi
 fi
 
+if [[ "$(printf '%s\n' "$PHP_VERSION" "8.0" | sort -V | head -n1)" = "8.0" ]]; then
+  COMPOSER_DISCARD_CHANGES=true composer require "open-feature/sdk:^2.2" \
+    --prefer-dist --no-interaction --ignore-platform-req=ext-mbstring
+fi
+
 cd /binaries
 
 ARCH=$(uname -m)

@@ -1093,9 +1093,14 @@ accept a JSON body with these fields:
 - `defaultValue`: the value to return when evaluation cannot resolve the flag.
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
+- `evaluationApi`: optional. Use `openfeature` to evaluate through the OpenFeature provider.
 
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
+
+The endpoint contract does not depend on OpenFeature SDK availability. If the
+requested evaluation API is not available, return the supplied `defaultValue`.
+Set `reason` to `ERROR` and set `errorCode` to `PROVIDER_NOT_READY`.
 
 ### GET /healthcheck
 
