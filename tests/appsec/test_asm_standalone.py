@@ -5,6 +5,7 @@ import time
 
 from requests.structures import CaseInsensitiveDict
 
+from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SAMPLING_PRIORITY_KEY, SamplingPriority, TraceSource
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
@@ -793,14 +794,7 @@ class Test_AppSecStandalone_APMDisabledMarker:
         assert self.r.status_code == 200
 
         spans = [span for _, trace in interfaces.library.get_traces(request=self.r) for span in trace]
-        assert spans, "No spans were sent for the request"
-
-        for span in spans:
-            apm_enabled = span["metrics"].get("_dd.apm.enabled")
-            error_message = f"Span is missing numeric _dd.apm.enabled:0: {span.raw_span}"
-            assert isinstance(apm_enabled, (int, float)), error_message
-            assert not isinstance(apm_enabled, bool), error_message
-            assert apm_enabled == 0, error_message
+        assert_all_spans_have_apm_disabled_marker(spans)
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
