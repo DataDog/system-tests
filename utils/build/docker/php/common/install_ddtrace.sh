@@ -10,7 +10,7 @@ fi
 
 cd /var/www/html
 export COMPOSER=composer.json
-if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ] && [ -f composer.gte8.2.json ]; then
 	export COMPOSER=composer.gte8.2.json
 fi
 if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
