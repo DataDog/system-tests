@@ -1,4 +1,23 @@
 #!/bin/bash
+#
+# Installs datadog-opentelemetry (from /binaries/dd-trace-rs if present,
+# otherwise crates.io) into the weblog, then re-pins the rest of the
+# OpenTelemetry dependency graph to match.
+#
+# Why: datadog-opentelemetry, the plain opentelemetry* crates, and the
+# OTel-consuming contrib crates (reqwest-tracing, tracing-opentelemetry,
+# opentelemetry-instrumentation-tower) must all resolve to the same
+# `opentelemetry` minor version, or cargo links two copies side by side and
+# half the app silently gets a no-op tracer/propagator. Since
+# datadog-opentelemetry's required OTel minor moves with dd-trace-rs (and can
+# differ between a released version and a local/git checkout), we can't just
+# pin it statically in Cargo.toml: we install it first, inspect what OTel
+# minor `cargo metadata` says it actually resolved to, then re-pin every
+# other OTel-related crate to that minor (align_opentelemetry), and finally
+# fail the build if `cargo metadata` still reports more than one
+# `opentelemetry` version (check_single_opentelemetry_version) — usually
+# because opentelemetry-instrumentation-tower, which is git-pinned in
+# axum/Cargo.toml, has drifted from that minor.
 
 set -eu
 
