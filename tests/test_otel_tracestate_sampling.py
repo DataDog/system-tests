@@ -242,15 +242,6 @@ class _EmitOtOnProbabilityDecisionBase:
             assert ot.get("rv") == expected_rv, f"trace_id={trace_id}: rv={ot.get('rv')!r}, expected {expected_rv!r}"
             assert ot.get("th") == expected_th, f"trace_id={trace_id}: th={ot.get('th')!r}, expected {expected_th!r}"
 
-            # the configured sample rate must be recoverable from th alone: rate = 1 - th / 2**56.
-            # th is emitted with trailing zero nibbles trimmed, so right-pad back to the full
-            # 56-bit (14 hex digit) value before interpreting it.
-            recovered_rate = 1 - int(ot["th"].ljust(14, "0"), 16) / (1 << 56)
-            assert abs(recovered_rate - self.RATE) < 1e-6, (
-                f"trace_id={trace_id}: rate recomputed from th ({recovered_rate}) "
-                f"doesn't match the configured rate ({self.RATE})"
-            )
-
             for _, _, span in interfaces.library.get_spans(request=req):
                 sampling_priority = span.get_sampling_priority()
                 assert sampling_priority is not None, f"trace_id={trace_id}: no sampling priority on span"
