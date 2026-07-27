@@ -563,3 +563,47 @@ class Test_Library_Tracestats:
         assert "partial.snapshot" not in names, (
             f"Spans with _dd.partial_version set must be excluded from stats, but found in {names}"
         )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_eligibility_TS015(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Non-top-level spans with an eligible span.kind (server, client, producer, consumer) are
+        promoted into stats and tagged with their SpanKind; an ineligible kind (internal) is excluded.
+        """
+        eligible = {
+            "client.call": "client",
+            "producer.publish": "producer",
+            "consumer.receive": "consumer",
+        }
+        service = "webserver"
+        with (
+            test_library,
+            test_library.dd_start_span(name="server.entry", resource="/entry", service=service) as root,
+        ):
+            root.set_meta(key="span.kind", val="server")
+            for name, kind in eligible.items():
+                with test_library.dd_start_span(
+                    name=name, resource=f"/{kind}", service=service, parent_id=root.span_id
+                ) as child:
+                    child.set_meta(key="span.kind", val=kind)
+            with test_library.dd_start_span(
+                name="internal.work", resource="/internal", service=service, parent_id=root.span_id
+            ) as internal:
+                internal.set_meta(key="span.kind", val="internal")
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+        stats_entries = raw_stats["Stats"][0]["Stats"]
+        by_name = {s.get("Name"): s for s in stats_entries}
+
+        assert by_name.get("server.entry", {}).get("SpanKind") == "server", (
+            f"Expected server root in stats with SpanKind='server', got {by_name.get('server.entry')!r}"
+        )
+        for name, kind in eligible.items():
+            entry = by_name.get(name)
+            assert entry is not None, f"{kind} span ({name}) missing from stats: {set(by_name)}"
+            assert entry.get("SpanKind") == kind, (
+                f"Expected SpanKind={kind!r} for {name}, got {entry.get('SpanKind')!r}"
+            )
+        assert "internal.work" not in by_name, (
+            f"Non-top-level internal span must be excluded from stats, but found in {set(by_name)}"
+        )
