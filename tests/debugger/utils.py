@@ -176,7 +176,7 @@ class BaseDebuggerTest:
 
         return definitions.get(method, {}).get(language, [])
 
-    def _apply_line_probe_where(self, probes: list[dict], lines: list[int] | None) -> None:
+    def _rewrite_where_for_lines(self, probes: list[dict], lines: list[int] | None) -> None:
         """Point each probe's `where` at the given source lines.
 
         Line numbers are serialized as strings: the Go system-probe rejects
