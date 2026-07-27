@@ -345,6 +345,14 @@ class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
 
 # no dbm batch comment injection for pg
 
+# Maps library name → (integration param, dddbs value)
+_PG_LIBRARY_CONFIG = {
+    "java": ("postgresql", "postgresql"),
+    "golang": ("pg", "postgres.db"),
+    "ruby": ("pg", "pg"),
+    "php": ("pdo-pgsql", "pdo"),
+}
+
 
 @features.database_monitoring_support
 @scenarios.integrations
@@ -360,21 +368,14 @@ class Test_Dbm_Comment_Postgres(_BaseDbmComment):
     dddb = "system_tests_dbname"
     ddh = "postgres"
 
-    # Maps library name → (integration param, dddbs value)
-    _LIBRARY_CONFIG = {
-        "java": ("postgresql", "postgresql"),
-        "golang": ("pg", "postgres.db"),
-        "ruby": ("pg", "pg"),
-        "php": ("pdo-pgsql", "pdo"),
-    }
+    integration = _PG_LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
+    dddbs = _PG_LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
 
-    @property
-    def integration(self):
-        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
 
-    @property
-    def dddbs(self):
-        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
+_MYSQL_LIBRARY_CONFIG = {
+    "java": ("mysql", "mysql"),
+    "php": ("pdo-mysql", "pdo"),
+}
 
 
 @features.database_monitoring_support
@@ -386,18 +387,8 @@ class Test_Dbm_Comment_Mysql(_BaseDbmComment):
     dddb = "mysql_dbname"
     ddh = "mysqldb"
 
-    _LIBRARY_CONFIG = {
-        "java": ("mysql", "mysql"),
-        "php": ("pdo-mysql", "pdo"),
-    }
-
-    @property
-    def integration(self):
-        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
-
-    @property
-    def dddbs(self):
-        return self._LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
+    integration = _MYSQL_LIBRARY_CONFIG.get(context.library.name, (None, None))[0]
+    dddbs = _MYSQL_LIBRARY_CONFIG.get(context.library.name, (None, None))[1]
 
 
 class _BaseDbmDynamicService:

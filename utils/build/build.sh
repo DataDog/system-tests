@@ -42,6 +42,7 @@ readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
 readonly DEFAULT_ruby_lambda=ruby-apigw-rest
 readonly DEFAULT_rust=axum
+readonly DEFAULT_c=perl-mojolicious
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -125,7 +126,7 @@ run_build_command() {
 	    exit_code=$?
 	    return $exit_code
     fi
-    log_file=$(mktemp /tmp/system-tests-build-XXXXXXX.log)
+    log_file=$(mktemp "${TMPDIR:-/tmp}/system-tests-build.XXXXXX")
     echo "Build log file: ${log_file}"
 
     set +e
@@ -303,7 +304,30 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
+                # When the image mirror is enabled, create (or reuse) a buildx
+                # builder whose buildkitd daemon is configured to redirect all
+                # FROM pulls through registry.ddbuild.io/system-tests/mirror.
+                MIRROR_BUILDER_ARG=""
+                if [[ "${USE_IMAGE_MIRROR:-}" =~ ^(1|true|yes)$ ]]; then
+                    if ! docker buildx inspect system-tests-mirror &>/dev/null 2>&1; then
+                        docker buildx create \
+                            --name system-tests-mirror \
+                            --config "${SCRIPT_DIR}/docker/buildkitd.toml"
+                    fi
+                    MIRROR_BUILDER_ARG="--builder system-tests-mirror"
+                fi
+
                 GITHUB_TOKEN_SECRET_ARG=""
+                C_PACKAGE_BUILD_ARGS=()
+
+                if [[ $TEST_LIBRARY == c ]]; then
+                    if [[ -f binaries/c-library-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "DD_TRACE_C_IMAGE=$(<binaries/c-library-image)")
+                    fi
+                    if [[ -f binaries/c-injector-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "AUTO_INJECT_IMAGE=$(<binaries/c-injector-image)")
+                    fi
+                fi
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
                     if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
@@ -332,12 +356,14 @@ build() {
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     ${GITHUB_TOKEN_SECRET_ARG} \
+                    "${C_PACKAGE_BUILD_ARGS[@]}" \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                     -t system_tests/weblog \
                     $CACHE_TO \
                     $CACHE_FROM \
+                    $MIRROR_BUILDER_ARG \
                     $EXTRA_DOCKER_ARGS \
                     .
 
@@ -350,6 +376,7 @@ build() {
                         ${DOCKER_PLATFORM_ARGS} \
                         -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                         -t system_tests/weblog \
+                        $MIRROR_BUILDER_ARG \
                         $EXTRA_DOCKER_ARGS \
                         .
                 fi

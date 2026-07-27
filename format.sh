@@ -152,7 +152,7 @@ else
 fi
 
 echo "Running yamllint checks..."
-if ! ./venv/bin/yamllint -s manifests/; then
+if ! ./venv/bin/yamllint -s manifests/ utils/ci/gitlab/ .gitlab-ci.yml; then
   echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi

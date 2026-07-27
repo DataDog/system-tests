@@ -29,6 +29,9 @@ scenario_names = {scenario.name for scenario in get_all_scenarios()}
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
+GITHUB_EXCLUDED_LIBRARIES = {"c"}
+GITLAB_PR_LIBRARIES = {"c"}
+GITLAB_MAIN = {"python"}
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -145,19 +148,20 @@ class LibraryProcessor:
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
+        selected = self.selected - GITHUB_EXCLUDED_LIBRARIES
         populated_result = [
             {
                 "library": library,
                 "version": "prod",
             }
-            for library in sorted(self.selected)
+            for library in sorted(selected)
         ] + [
             {
                 "library": library,
                 "version": "dev",
             }
-            for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector")
+            for library in sorted(selected)
+            if "otel" not in library and library != "otel_collector"
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
@@ -166,6 +170,17 @@ class LibraryProcessor:
             "libraries_with_dev": libraries_with_dev,
             "desired_execution_time": 600 if len(self.selected) == 1 else 3600,
         }
+
+
+def filter_gitlab_libraries(inputs: Inputs, libraries: set[str]) -> set[str]:
+    """Limit the GitLab end-to-end rollout by pipeline context."""
+    if inputs.ref == "refs/heads/main" and inputs.event_name != "schedule":
+        return libraries & GITLAB_MAIN
+
+    if inputs.event_name in ("pull_request", "push"):
+        return libraries & GITLAB_PR_LIBRARIES
+
+    return set()
 
 
 class ScenarioProcessor:
@@ -306,8 +321,10 @@ class Inputs:
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
-            self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
-            self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
+            source = os.environ.get("CI_PIPELINE_SOURCE", "push")
+            self.event_name = "pull_request" if source == "merge_request_event" else source
+            branch = os.environ.get("CI_COMMIT_REF_NAME", "")
+            self.ref = f"refs/heads/{branch}" if branch else ""
             self.pr_title = ""
             self.is_gitlab = True
         else:
@@ -405,6 +422,9 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
+        libraries = " ".join(sorted(filter_gitlab_libraries(inputs, library_processor.selected)))
+        if libraries:
+            outputs["libraries"] = libraries
         outputs |= scenario_processor.get_outputs()
     else:
         outputs |= (

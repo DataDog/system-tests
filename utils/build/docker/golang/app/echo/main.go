@@ -26,6 +26,7 @@ import (
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
@@ -376,6 +377,7 @@ func main() {
 	r.Any("/rasp/multiple", echoHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+	r.Any("/rasp/cmdi", echoHandleFunc(rasp.CMDI))
 
 	r.Any("/external_request", echoHandleFunc(rasp.ExternalRequest))
 	r.GET("/external_request/redirect", echoHandleFunc(rasp.ExternalRedirectRequest))
@@ -389,6 +391,11 @@ func main() {
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
 	r.Any("/debugger/expression", echoHandleFunc(d.expression))
+	r.Any("/debugger/budgets/:count", func(c echo.Context) error {
+		loops, _ := strconv.Atoi(c.Param("count"))
+		d.budgets(c.Response().Writer, c.Request(), loops)
+		return nil
+	})
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()

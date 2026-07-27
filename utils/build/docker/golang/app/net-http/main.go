@@ -38,11 +38,14 @@ import (
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
+	common.RunAsChildIfRequested()
+
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)
@@ -187,6 +190,8 @@ func main() {
 		}
 		w.Write([]byte("OK"))
 	})
+
+	mux.HandleFunc("/spawn_child", common.SpawnChild)
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
@@ -748,6 +753,7 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
 		span, ok := tracer.SpanFromContext(r.Context())
@@ -774,6 +780,10 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 	mux.HandleFunc("/debugger/expression", d.expression)
+	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(r.PathValue("count"))
+		d.budgets(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

@@ -275,6 +275,18 @@ get '/api_security/sampling/:status' do
   'OK'
 end
 
+get '/api_security/multi-params-in-segment/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id.:format' do
+  'OK'
+end
+
+get '/api_security/optional-params/:id' do
+  'OK'
+end
+
 ssrf_handler = lambda do
   url = URI.parse(request.params['domain'])
   url = "http://#{url}" unless url.scheme

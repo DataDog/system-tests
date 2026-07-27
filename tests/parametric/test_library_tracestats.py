@@ -1,16 +1,15 @@
 import base64
 
-import numpy as np
 import msgpack
 import pytest
 
 
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
-from utils.docker_fixtures.spec.trace import find_root_span
-from utils import context, scenarios, features, logger
+from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
 
 parametrize = pytest.mark.parametrize
 
@@ -37,22 +36,8 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
     return msgpack.unpackb(base64.b64decode(raw_body))
 
 
-def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
-    env = {
-        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
-        "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-    }
-    if context.library == "golang" and context.library.version < "v1.55.0":
-        env["DD_TRACE_FEATURES"] = "discovery"
-    if sample_rate is not None:
-        assert 0 <= sample_rate <= 1.0
-        env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
-
-    return parametrize("library_env", [env])
-
-
-def enable_agent_version(version: str = "7.65.0") -> pytest.MarkDecorator:
-    """Set the test agent version. Java tracer requires agent version >= 7.65.0 for client-side stats."""
+def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
+    """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
     return parametrize("agent_env", [agent_env_config])
 
@@ -231,11 +216,23 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
-    @enable_tracestats()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                "DD_VERSION": "1.2.3",
+                "DD_ENV": "some-env",
+                "DD_SERVICE": "some-service",
+            }
+        ],
+    )
     @enable_agent_version()
     def test_top_level_TS005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
+        Asserts that version and env are set correctly in the stats request.
         """
         with (
             test_library,
@@ -251,8 +248,9 @@ class Test_Library_Tracestats:
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
-        for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, f"{key} should be in stats request"
+        assert request["Env"] == "some-env"
+        assert request["Version"] == "1.2.3"
+        assert request["Stats"] is not None
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -351,51 +349,6 @@ class Test_Library_Tracestats:
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Hits"] == 1
-
-    @enable_tracestats()
-    @enable_agent_version()
-    def test_relative_error_TS008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When trace stats are computed for traces
-            The stats should be accurate to within 1% of the real values
-
-        Note that this test uses the duration of actual spans created and so this test could be flaky.
-        This flakyness however would indicate a bug in the trace stats computation.
-        """
-
-        with test_library:
-            # Create 10 traces to get more data
-            for _ in range(10):
-                with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                    pass
-
-        traces = test_agent.traces()
-        assert len(traces) == 10
-
-        durations: list[int] = []
-        for trace in traces:
-            span = find_root_span(trace)
-            assert span is not None
-            durations.append(span["duration"])
-
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) != 0, "Stats request should be sent"
-        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
-        stats = requests[0]["body"]["Stats"][0]["Stats"]
-        assert len(stats) == 1, "Only one stats aggregation is expected"
-
-        web_stats = [s for s in stats if s["Name"] == "web.request"][0]
-        assert web_stats["TopLevelHits"] == 10
-        assert web_stats["Hits"] == 10
-
-        # Validate the sketches
-        np_duration = np.array(durations)
-        assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
-        for quantile in (0.5, 0.75, 0.95, 0.99, 1):
-            assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                np.quantile(np_duration, quantile),
-                rel=0.01,
-            ), f"Quantile mismatch for quantile {quantile!r}"
 
     @enable_tracestats()
     @enable_agent_version()

@@ -14,7 +14,8 @@ FR -> test-class mapping:
   FR06  OTel semantic-convention attributes wherever applicable          Test_FR06_Otel_Span_Attributes,
                                                                          Test_FR06_Otel_Resource_Attributes
   FR07  DD_TRACE_OTEL_SEMANTICS_ENABLED=true -> only OTel attributes      Test_FR07_Otel_Semantics_Mode
-  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes
+  FR08  DD_TRACE_OTEL_SEMANTICS_ENABLED=false (default) -> datadog.* allowed   Test_FR08_Datadog_Attributes,
+        DD_TAGS / OTEL_RESOURCE_ATTRIBUTES / DD_TRACE_STATS_ADDITIONAL_TAGS    Test_FR08_AdditionalTags
   FR09  Derive request/span count, error count, and duration             Test_FR09_Red_Metric_Derivation
   FR10  Transport over OTLP HTTP/JSON (set in _BASE_ENVVARS, exercised by every test)
   FR11  SDKs without client-side stats are out of scope (handled by manifests / @features gating)
@@ -39,7 +40,7 @@ Key conventions:
     while dd-trace-js supports both HTTP/JSON and HTTP/protobuf. Tests pin HTTP/JSON via _BASE_ENVVARS.
 
 Datadog span tags are translated to OTel semantic-convention attributes on the exported metric:
-grpc.method.name -> rpc.method, grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
+grpc.status.code -> rpc.response.status_code, http.method -> http.request.method,
 http.status_code -> http.response.status_code, and span.kind -> span.kind. host.name is reported when
 DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
@@ -50,9 +51,12 @@ must be typed OTLP values (intValue / boolValue); _dd.stats_computed is a string
 
 import base64
 import json
+import time
 from typing import Any
 
 import pytest
+from google.protobuf.json_format import MessageToDict
+from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils import context, features, scenarios
 from utils.docker_fixtures import TestAgentAPI
@@ -101,12 +105,19 @@ _PROCESS_TAG_KEYS = (
     "svc.auto",
 )
 
+
+# OTLP metrics export protocol per library. Transport support differs across tracers: dd-trace-py
+# and dd-trace-go export HTTP/JSON, dd-trace-java exports HTTP/protobuf.
+def _get_otlp_metrics_protocol() -> str:
+    return "http/protobuf" if context.library.name == "java" else "http/json"
+
+
 # Common env shared by every test. The OTLP trace-metrics flush cadence is fixed at 10s and is not
 # driven by OTEL_METRIC_EXPORT_INTERVAL; the internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL
 # (milliseconds) shortens it so metrics export within the test window. On-demand flushes still occur
 # via t.dd_flush(). Tests pin HTTP/JSON export (FR10), the transport common to all libraries.
 _BASE_ENVVARS = {
-    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": _get_otlp_metrics_protocol(),
     "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
     "DD_SERVICE": SERVICE,
 }
@@ -156,6 +167,8 @@ def _attr_value(item: dict) -> Any:  # noqa: ANN401
         return int(value["intValue"])
     if "doubleValue" in value:
         return value["doubleValue"]
+    if "arrayValue" in value:
+        return [_attr_value({"value": element}) for element in value["arrayValue"].get("values", [])]
     return None
 
 
@@ -172,6 +185,38 @@ def _all_metric_names(metrics: list[Any]) -> list[str]:
                 for metric in scope_metric["metrics"]:
                     names.append(metric["name"])
     return names
+
+
+def _snake_to_camel(key: str) -> str:
+    """Convert a snake_case protobuf field name to its canonical OTLP/JSON camelCase form.
+    Already-camelCase keys (no underscore) pass through unchanged.
+    """
+    head, *rest = key.split("_")
+    return head + "".join(word[:1].upper() + word[1:] for word in rest)
+
+
+def _normalize_keys(obj: Any) -> Any:  # noqa: ANN401
+    """Recursively normalize OTLP payload dict keys to camelCase so both wire representations
+    read identically: canonical OTLP/JSON (camelCase, the http/json path) and protobuf decoded
+    by the test agent (snake_case, via MessageToDict(preserving_proto_field_name=True), the
+    http/protobuf and grpc paths). Only dict keys are rewritten; values — including attribute
+    names carried under "key"/"value" — are left untouched.
+    """
+    if isinstance(obj, dict):
+        return {_snake_to_camel(k): _normalize_keys(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_normalize_keys(item) for item in obj]
+    return obj
+
+
+def _wait_for_otlp_metrics(test_agent: TestAgentAPI, num: int = 1) -> list[Any]:
+    """Wait for `num` OTLP metric payloads and normalize their keys to camelCase.
+
+    Normalizing here (rather than in the shared TestAgentAPI fixture, which other tests rely on
+    to return the agent's raw snake_case shape) lets every helper in this module read both the
+    http/json (camelCase) and http/protobuf|grpc (snake_case) representations identically.
+    """
+    return _normalize_keys(test_agent.wait_for_num_otlp_metrics(num=num))
 
 
 def _duration_data_points(metrics: list[Any]) -> list[dict]:
@@ -213,14 +258,34 @@ def _trace_requests(test_agent: TestAgentAPI) -> list[AgentRequest]:
     return [r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))]
 
 
+def _trace_count(request: AgentRequest) -> int:
+    """The X-Datadog-Trace-Count header value for a native trace export request (0 when absent/unparsable)."""
+    headers = {h.lower(): v for h, v in request["headers"].items()}
+    try:
+        return int(headers.get("x-datadog-trace-count", "0"))
+    except ValueError:
+        return 0
+
+
+def _span_carrying_trace_requests(test_agent: TestAgentAPI) -> list[AgentRequest]:
+    """Native trace export requests that actually carry spans (X-Datadog-Trace-Count > 0).
+
+    A tracer may also emit empty keep-alive trace payloads (Trace-Count 0); those are not real span
+    flushes and carry no client-computed-stats signal, so the client-computed-stats assertions are
+    only meaningful on the real span flush.
+    """
+    return [r for r in _trace_requests(test_agent) if _trace_count(r) > 0]
+
+
 def _client_computed_stats_values(test_agent: TestAgentAPI) -> list[str | None]:
-    """The Datadog-Client-Computed-Stats header on each trace export request (None when the header is absent).
+    """The Datadog-Client-Computed-Stats header on each real span-flush request (None when the header is absent).
 
     The Agent skips server-side stats computation only when this header is present; the tracer must set it
-    on exported traces exactly when it is computing trace metrics itself (here, via OTLP export).
+    on exported traces exactly when it is computing trace metrics itself (here, via OTLP export). Empty
+    keep-alive payloads (Trace-Count 0) are not real span flushes and are excluded.
     """
     values: list[str | None] = []
-    for request in _trace_requests(test_agent):
+    for request in _span_carrying_trace_requests(test_agent):
         headers = {h.lower(): v for h, v in request["headers"].items()}
         values.append(headers.get("datadog-client-computed-stats"))
     return values
@@ -231,11 +296,24 @@ def _otlp_trace_requests(test_agent: TestAgentAPI) -> list[dict]:
     return [r for r in test_agent.otlp_requests() if r["url"].endswith("/v1/traces")]
 
 
+def _decode_otlp_trace_body(req: dict) -> dict:
+    """Decode an intercepted OTLP /v1/traces request body to a camelCase dict, reading http/json and
+    http/protobuf identically.
+    """
+    raw = base64.b64decode(req["body"])
+    headers = {h.lower(): v for h, v in req["headers"].items()}
+    if "json" in headers.get("content-type", ""):
+        decoded = json.loads(raw.decode("utf-8"))
+    else:
+        decoded = MessageToDict(ExportTraceServiceRequest.FromString(raw), preserving_proto_field_name=False)
+    return _normalize_keys(decoded)
+
+
 def _stats_computed_resource_attr_values(otlp_trace_reqs: list[dict]) -> list[Any]:
     """The _dd.stats_computed resource attribute value from each OTLP trace ResourceSpans."""
     values: list[Any] = []
     for req in otlp_trace_reqs:
-        body = json.loads(base64.b64decode(req["body"]).decode("utf-8"))
+        body = _decode_otlp_trace_body(req)
         for resource_span in body.get("resourceSpans", []):
             attrs = resource_span.get("resource", {}).get("attributes", [])
             for kv in attrs:
@@ -262,7 +340,7 @@ class Test_FR01_Enablement_Configuration:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
@@ -279,7 +357,7 @@ class Test_FR01_Enablement_Configuration:
             t.dd_flush()
 
         with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+            _wait_for_otlp_metrics(test_agent)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -297,7 +375,7 @@ class Test_FR01_Enablement_Configuration:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
 
     @pytest.mark.parametrize(
@@ -317,7 +395,7 @@ class Test_FR01_Enablement_Configuration:
             t.dd_flush()
 
         with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+            _wait_for_otlp_metrics(test_agent)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -335,8 +413,17 @@ class Test_FR01_Enablement_Configuration:
                 pass
             t.dd_flush()
 
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+        # Other OTLP metrics (e.g. runtime metrics enabled by DD_METRICS_OTEL_ENABLED) may still be
+        # exported to the same endpoint, so checking for the absence of a single metric payload is not
+        # enough: the span-duration metric could arrive after an unrelated metric. Poll across the full
+        # flush window and fail if the span-duration trace metric ever appears.
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            metrics = test_agent.metrics()
+            assert not _duration_data_points(metrics), (
+                f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
+            )
+            time.sleep(0.2)
 
 
 @scenarios.parametric
@@ -357,7 +444,7 @@ class Test_FR02_Metric_Identity:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         assert scope_metrics, "No scope metrics received"
         metric = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)
@@ -376,7 +463,7 @@ class Test_FR02_Metric_Identity:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         names = _all_metric_names(metrics)
         assert SPAN_DURATION_METRIC in names, f"Expected {SPAN_DURATION_METRIC}, got: {names}"
         assert not any(name in SMC_METRIC_NAMES for name in names), f"SMC metric name emitted via OTLP: {names}"
@@ -403,13 +490,11 @@ class Test_FR02_Mutual_Exclusion:
                 pass
             t.dd_flush()
 
-        test_agent.wait_for_num_otlp_metrics(num=1)
+        _wait_for_otlp_metrics(test_agent)
         assert not test_agent.get_v06_stats_requests(), "Native v0.6 stats must not be sent when OTLP is enabled"
 
-        trace_requests = [
-            r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))
-        ]
-        assert trace_requests, "Expected at least one trace export request"
+        trace_requests = _span_carrying_trace_requests(test_agent)
+        assert trace_requests, "Expected at least one trace export request carrying spans"
         headers = {h.lower(): v for h, v in trace_requests[0]["headers"].items()}
         assert headers.get("datadog-client-computed-stats", "").lower() in TRUTHY, (
             f"Expected Datadog-Client-Computed-Stats to be truthy, got headers: {headers}"
@@ -422,6 +507,7 @@ class Test_FR02_Mutual_Exclusion:
                 **_BASE_ENVVARS,
                 "OTEL_TRACES_SPAN_METRICS_ENABLED": "false",
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_STATS_COMPUTATION_IGNORE_AGENT_VERSION": "true",
             }
         ],
     )
@@ -439,7 +525,7 @@ class Test_FR02_Mutual_Exclusion:
 
         assert test_agent.wait_for_num_v06_stats(num=1), "Native v0.6 stats should be sent when OTLP is disabled"
         with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+            _wait_for_otlp_metrics(test_agent)
 
 
 @scenarios.parametric
@@ -460,7 +546,7 @@ class Test_FR03_Metric_Shape:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         metric = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)
         assert metric["unit"] == "s", f"Expected unit 's', got: {metric['unit']}"
@@ -481,7 +567,7 @@ class Test_FR03_Metric_Shape:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         scope_metrics = metrics[0]["resourceMetrics"][0]["scopeMetrics"]
         histogram = find_metric_by_name(scope_metrics[0], SPAN_DURATION_METRIC)["histogram"]
         assert histogram["aggregationTemporality"] in AGGREGATION_TEMPORALITY_DELTA, (
@@ -510,7 +596,7 @@ class Test_FR04_Span_Selection:
                 child.set_metric(SPAN_MEASURED_KEY, 1)
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         data_points = _duration_data_points(metrics)
         child_point = _find_data_point(data_points, **{"datadog.operation.name": "child.op"})
         assert child_point is not None, (
@@ -533,7 +619,7 @@ class Test_FR04_Span_Selection:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         data_points = _duration_data_points(metrics)
         emitted = [_data_point_attrs(dp).get("datadog.operation.name") for dp in data_points]
         assert _find_data_point(data_points, **{"datadog.operation.name": "child.op"}) is None, (
@@ -562,7 +648,7 @@ class Test_FR05_Sampling_Independence:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         data_points = _duration_data_points(metrics)
         assert len(data_points) == 1, f"Expected one data point, got: {data_points}"
         assert int(data_points[0]["count"]) == 1, f"Expected count=1, got: {data_points[0]['count']}"
@@ -587,7 +673,7 @@ class Test_FR06_Otel_Span_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.name") == "/users", f"Expected span.name=/users, got attrs: {attrs}"
 
@@ -604,7 +690,7 @@ class Test_FR06_Otel_Span_Attributes:
                 span.set_meta("span.kind", "server")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.kind") == "server", f"Expected span.kind=server, got attrs: {attrs}"
 
@@ -621,7 +707,7 @@ class Test_FR06_Otel_Span_Attributes:
                 span.set_meta("http.method", "GET")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.request.method") == "GET", f"Expected http.request.method=GET, got attrs: {attrs}"
 
@@ -638,7 +724,7 @@ class Test_FR06_Otel_Span_Attributes:
                 span.set_meta("http.status_code", "200")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.response.status_code") == 200, (
             f"Expected http.response.status_code == 200 (typed int), got attrs: {attrs}"
@@ -657,45 +743,32 @@ class Test_FR06_Otel_Span_Attributes:
                 span.set_meta("http.route", "/users/{id}")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_fr06_6_rpc_method(
-        self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        """The Datadog gRPC span tag grpc.method.name is translated to the OTel attribute rpc.method."""
-        with test_library as t:
-            with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                span.set_meta("grpc.method.name", "GetUser")
-            t.dd_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("rpc.method") == "GetUser", f"Expected rpc.method=GetUser, got attrs: {attrs}"
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("grpc_status", ["OK", "NOT_FOUND", "UNAVAILABLE"])
     def test_fr06_7_rpc_status_code(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
+        grpc_status: str,
     ):
-        """The Datadog gRPC span tag grpc.status.code is translated to OTel rpc.response.status_code."""
+        """grpc.status.code is translated to the canonical OTel rpc.response.status_code name."""
         with test_library as t:
             with t.dd_start_span(name="grpc.request", service=SERVICE, typestr="grpc") as span:
-                # gRPC status code 0 == OK.
-                span.set_meta("grpc.status.code", "0")
+                # Note - grpc.status.code is the Datadog gRPC span tag set in dd-trace-py. Other
+                # tracers may use a different tag name. All tag names MUST be mapped to the canonical
+                # OTel status name. Update this test.
+                span.set_meta("grpc.status.code", grpc_status)
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("rpc.response.status_code") == 0, (
-            f"Expected rpc.response.status_code == 0 (typed int), got attrs: {attrs}"
+        assert attrs.get("rpc.response.status_code") == grpc_status, (
+            f"Expected rpc.response.status_code == {grpc_status!r}, got attrs: {attrs}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -711,7 +784,7 @@ class Test_FR06_Otel_Span_Attributes:
                 span.set_error(message="boom")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("status.code") in ERROR_STATUS_VALUES, (
             f"Expected status.code in {ERROR_STATUS_VALUES}, got attrs: {attrs}"
@@ -742,7 +815,7 @@ class Test_FR06_Otel_Resource_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         assert resource_attrs.get("service.name") == SERVICE, f"Expected service.name={SERVICE}, got: {resource_attrs}"
         assert resource_attrs.get("service.version") == "1.2.3", (
@@ -778,7 +851,7 @@ class Test_FR06_Otel_Resource_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         # The configured default service is reported on the resource.
         assert _resource_attributes(metrics).get("service.name") == SERVICE, (
             f"Expected resource service.name={SERVICE}, got: {_resource_attributes(metrics)}"
@@ -814,7 +887,7 @@ class Test_FR06_Otel_Resource_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         assert resource_attrs.get("host.name"), (
             f"host.name should be present when reporting is enabled, got: {resource_attrs}"
@@ -837,7 +910,7 @@ class Test_FR06_Otel_Resource_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         assert "host.name" not in resource_attrs, f"host.name must be omitted when reporting is off: {resource_attrs}"
 
@@ -854,7 +927,7 @@ class Test_FR06_Otel_Resource_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         assert resource_attrs.get("telemetry.sdk.name") == "datadog", (
             f"Expected telemetry.sdk.name=datadog, got: {resource_attrs}"
@@ -874,7 +947,7 @@ class Test_FR06_Otel_Resource_Attributes:
             t.dd_flush()
 
         expected_language = _SDK_LANGUAGE_BY_LIBRARY[context.library.name]
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         assert resource_attrs.get("telemetry.sdk.language") == expected_language, (
             f"Expected telemetry.sdk.language={expected_language}, got: {resource_attrs}"
@@ -899,7 +972,7 @@ class Test_FR07_Otel_Semantics_Mode:
                 span.set_meta(ORIGIN, "synthetics")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         datadog_keys = [key for key in attrs if key.startswith(("datadog.", "_datadog."))]
         assert not datadog_keys, f"datadog.* attributes must not be emitted in OTel-semantics mode: {datadog_keys}"
@@ -917,7 +990,7 @@ class Test_FR07_Otel_Semantics_Mode:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.name") == "/users", f"Expected span.name=/users, got attrs: {attrs}"
         assert "datadog.resource.name" not in attrs, f"datadog.resource.name must be absent: {attrs}"
@@ -938,7 +1011,7 @@ class Test_FR07_Otel_Semantics_Mode:
                 span.set_meta("http.route", "/users/{id}")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("http.request.method") == "GET", f"Expected http.request.method=GET, got attrs: {attrs}"
         assert attrs.get("http.route") == "/users/{id}", f"Expected http.route=/users/{{id}}, got attrs: {attrs}"
@@ -959,7 +1032,7 @@ class Test_FR07_Otel_Semantics_Mode:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         datadog_keys = [key for key in _resource_attributes(metrics) if key.startswith(("datadog.", "_datadog."))]
         assert not datadog_keys, (
             f"datadog.* resource attributes must not be emitted in OTel-semantics mode: {datadog_keys}"
@@ -984,7 +1057,7 @@ class Test_FR08_Datadog_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("datadog.operation.name") == "web.request", (
             f"Expected datadog.operation.name=web.request, got attrs: {attrs}"
@@ -1003,7 +1076,7 @@ class Test_FR08_Datadog_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("datadog.span.type") == "web", f"Expected datadog.span.type=web, got attrs: {attrs}"
 
@@ -1020,9 +1093,9 @@ class Test_FR08_Datadog_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("datadog.span.top_level") is True, (
+        assert attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level truthy on root, got attrs: {attrs}"
         )
 
@@ -1046,11 +1119,11 @@ class Test_FR08_Datadog_Attributes:
                 child.set_metric(SPAN_MEASURED_KEY, 1)
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         child_point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "child.op"})
         assert child_point is not None, "No data point for the child span"
         attrs = _data_point_attrs(child_point)
-        assert attrs.get("datadog.span.top_level") is False, (
+        assert attrs.get("datadog.span.top_level") in (False, 0), (
             f"Expected datadog.span.top_level false on same-service child, got attrs: {attrs}"
         )
 
@@ -1070,11 +1143,11 @@ class Test_FR08_Datadog_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         child = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "postgres.query"})
         assert child is not None, "No data point for the child span"
         attrs = _data_point_attrs(child)
-        assert attrs.get("datadog.span.top_level") is True, (
+        assert attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level true on service-entry child, got attrs: {attrs}"
         )
 
@@ -1091,7 +1164,7 @@ class Test_FR08_Datadog_Attributes:
                 span.set_meta(ORIGIN, "synthetics")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("datadog.origin") == "synthetics", f"Expected datadog.origin=synthetics, got attrs: {attrs}"
 
@@ -1108,7 +1181,7 @@ class Test_FR08_Datadog_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         dd_keys = [key for key in attrs if key.startswith("dd.")]
         assert not dd_keys, f"short dd.* attributes must not be emitted; use the datadog.* prefix: {dd_keys}"
@@ -1134,10 +1207,143 @@ class Test_FR08_Datadog_Attributes:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         assert any(f"datadog.{tag}" in resource_attrs for tag in _PROCESS_TAG_KEYS), (
             f"Expected at least one datadog.<process-tag> resource attribute, got: {list(resource_attrs)}"
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_fr08_9_top_level_not_mixed_with_measured(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """A top-level and a non-top-level (measured) span with identical dimensions must bucket separately,
+        each keeping its own datadog.span.top_level flag rather than merging into one bucket mislabeled false.
+        """
+        with test_library as t:
+            with (
+                t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as parent,
+                t.dd_start_span(name="web.request", service=SERVICE, typestr="web", parent_id=parent.span_id) as child,
+            ):
+                child.set_metric(SPAN_MEASURED_KEY, 1)
+            t.dd_flush()
+
+        metrics = _wait_for_otlp_metrics(test_agent)
+        points = [
+            dp
+            for dp in _duration_data_points(metrics)
+            if _data_point_attrs(dp).get("datadog.operation.name") == "web.request"
+        ]
+        top_level_flags = {_data_point_attrs(dp).get("datadog.span.top_level") for dp in points}
+        assert top_level_flags == {True, False}, (
+            "Top-level and non-top-level measured spans sharing the same aggregation dimensions must bucket "
+            "separately, each keeping its datadog.span.top_level flag; expected both a true and a false data "
+            f"point, got: {[_data_point_attrs(dp) for dp in points]}"
+        )
+
+
+@scenarios.parametric
+@features.client_side_stats_supported
+class Test_FR08_AdditionalTags:
+    """FR08: DD_TAGS (tracer_dd_tags) / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
+    DD_TRACE_STATS_ADDITIONAL_TAGS (additional_metric_tags) as data-point attributes (support pending in some SDKs).
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TAGS": (
+                    "team:apm,tier:backend,"
+                    "service:ignored-svc,env:ignored-env,version:ignored-ver,"
+                    "runtime_id:ignored-rid,runtime-id:ignored-rid2"
+                ),
+            }
+        ],
+    )
+    def test_fr08_10_dd_tags_resource_attributes(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Global DD_TAGS surface as the tracer_dd_tags resource-attribute container (repeated key:value
+        strings) in default mode; reserved service/env/version/runtime_id/runtime-id keys are ignored.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource_attrs = _resource_attributes(metrics)
+        tracer_dd_tags = resource_attrs.get("tracer_dd_tags") or []
+        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {resource_attrs}"
+        assert "tier:backend" in tracer_dd_tags, f"Expected tier:backend in tracer_dd_tags, got: {resource_attrs}"
+        for reserved in ("service", "env", "version", "runtime_id", "runtime-id"):
+            assert not any(str(entry).startswith(f"{reserved}:") for entry in tracer_dd_tags), (
+                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {tracer_dd_tags}"
+            )
+        assert resource_attrs.get("service.name") == SERVICE, (
+            f"DD_TAGS service must not override configured service.name={SERVICE}, got: {resource_attrs}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "OTEL_RESOURCE_ATTRIBUTES": "team=apm,deployment.region=us-east-1"}],
+    )
+    def test_fr08_11_otel_resource_attributes_env(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """OTEL_RESOURCE_ATTRIBUTES is an alias for DD_TAGS, so its entries also surface in the
+        tracer_dd_tags resource-attribute container.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        tracer_dd_tags = _resource_attributes(metrics).get("tracer_dd_tags") or []
+        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {tracer_dd_tags}"
+        assert "deployment.region:us-east-1" in tracer_dd_tags, (
+            f"Expected deployment.region:us-east-1 in tracer_dd_tags, got: {tracer_dd_tags}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS, "DD_TRACE_STATS_ADDITIONAL_TAGS": "customer.tier,region"}],
+    )
+    def test_fr08_12_stats_additional_tags(
+        self,
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS surface as the additional_metric_tags
+        data-point container (repeated key:value strings), since their values vary per span.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
+                span.set_meta("customer.tier", "gold")
+                span.set_meta("region", "us-east-1")
+            t.dd_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        attrs = _data_point_attrs(_duration_data_points(metrics)[0])
+        additional_metric_tags = attrs.get("additional_metric_tags") or []
+        assert "customer.tier:gold" in additional_metric_tags, (
+            f"Expected customer.tier:gold in additional_metric_tags, got: {attrs}"
+        )
+        assert "region:us-east-1" in additional_metric_tags, (
+            f"Expected region:us-east-1 in additional_metric_tags, got: {attrs}"
         )
 
 
@@ -1159,7 +1365,7 @@ class Test_FR09_Red_Metric_Derivation:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         data_points = _duration_data_points(metrics)
         assert len(data_points) == 1, f"Expected one data point, got: {data_points}"
         data_point = data_points[0]
@@ -1187,7 +1393,7 @@ class Test_FR09_Red_Metric_Derivation:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         data_point = _duration_data_points(metrics)[0]
         explicit_bounds = data_point.get("explicitBounds")
         assert explicit_bounds, f"Expected explicit bucket bounds, got: {explicit_bounds!r} in {data_point}"
@@ -1218,7 +1424,7 @@ class Test_FR09_Red_Metric_Derivation:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         data_points = _duration_data_points(metrics)
         total = sum(int(dp["count"]) for dp in data_points)
         error_count = sum(
@@ -1261,7 +1467,7 @@ class Test_FR15_Client_Computed_Stats_Header:
             t.dd_flush()
 
         # Confirm the metrics are actually exported via OTLP, so the header reflects client-side computation.
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
 
         stats_headers = _client_computed_stats_values(test_agent)
@@ -1284,11 +1490,11 @@ class Test_FR15_Client_Computed_Stats_Header:
             t.dd_flush()
 
         with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+            _wait_for_otlp_metrics(test_agent)
 
         stats_headers = _client_computed_stats_values(test_agent)
         assert stats_headers, "Expected at least one trace export request"
-        assert all(value is None for value in stats_headers), (
+        assert all(value is None or value == "" for value in stats_headers), (
             f"Datadog-Client-Computed-Stats must be absent when OTLP trace metrics are disabled, got: {stats_headers}"
         )
 
@@ -1305,7 +1511,7 @@ class Test_FR15_Client_Computed_Stats_Header:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
 
         otlp_traces = _otlp_trace_requests(test_agent)

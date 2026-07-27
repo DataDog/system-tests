@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/images-rb/engines/ruby:2.7
+FROM ghcr.io/datadog/images-rb/engines/ruby:2.7-gnu-gcc
 
 RUN mkdir -p /app
 WORKDIR /app

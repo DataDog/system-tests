@@ -6,6 +6,8 @@ jvm.*, go.*, v8js.*, etc.) instead of DD-proprietary naming (runtime.dotnet.*,
 runtime.go.*, runtime.node.*, etc.).
 """
 
+from __future__ import annotations
+
 from typing import TypedDict
 
 from utils import context, features, interfaces, scenarios, weblog
@@ -54,7 +56,7 @@ EXPECTED_METRICS: dict[str, dict[str, MetricConstraints]] = {
         "go.memory.allocations": {"all": []},
         "go.memory.gc.goal": {"all": []},
         "go.memory.limit": {"all": []},
-        "go.memory.used": {"all": []},
+        "go.memory.used": {"all": [], "present_values": {"go.memory.type": ["other", "stack"]}},
         "go.processor.limit": {"all": []},
     },
     "nodejs": {
@@ -251,6 +253,22 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     return result
 
 
+RUNTIME_METRICS_WAIT_TIMEOUT = 60
+
+
+def wait_for_runtime_metrics(library: str) -> None:
+    # OTLP metrics are exported on an interval, so wait (while the weblog is still up) until every expected
+    # metric for this library reaches the agent instead of relying on the fixed collection window.
+    expected = EXPECTED_METRICS.get(library)
+    if not expected:
+        return
+
+    interfaces.agent.wait_for(
+        lambda _: expected.keys() <= get_runtime_metrics_by_name().keys(),
+        timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
+    )
+
+
 @scenarios.otlp_runtime_metrics
 @features.runtime_metrics
 class Test_OtlpRuntimeMetrics:
@@ -258,6 +276,7 @@ class Test_OtlpRuntimeMetrics:
 
     def setup_otel_metrics_are_present_and_attributed(self) -> None:
         self.req = weblog.get("/")
+        wait_for_runtime_metrics(context.library.name)
 
     def test_otel_metrics_are_present_and_attributed(self) -> None:
         assert self.req.status_code == 200

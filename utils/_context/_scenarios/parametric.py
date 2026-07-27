@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from utils._context.component_version import ComponentVersion
+from utils._context.constants import WeblogCategory
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils.docker_fixtures import (
@@ -63,7 +64,8 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
+            weblog_categories=[WeblogCategory.parametric],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 

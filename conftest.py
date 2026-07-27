@@ -195,6 +195,9 @@ def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
 
+    if not config.option.weblog and os.environ.get("SYSTEM_TESTS_WEBLOG"):
+        config.option.weblog = os.environ.get("SYSTEM_TESTS_WEBLOG")
+
     if not config.option.library and "TEST_LIBRARY" in os.environ:
         config.option.library = os.environ["TEST_LIBRARY"].strip()
 
@@ -289,9 +292,13 @@ def _collect_item_metadata(item: pytest.Item):
     # decorate test for junit
     item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
-    for feature_id in metadata["features"]:
-        if feature_id != NOT_REPORTED_FEATURE_ID:
-            item.user_properties.append(("dd_tags[systest.case.feature_id]", str(feature_id)))
+    if metadata["features"] != [NOT_REPORTED_FEATURE_ID]:
+        item.user_properties.append(
+            (
+                "dd_tags[systest.case.feature_ids]",
+                str(list(filter(lambda x: x != NOT_REPORTED_FEATURE_ID, metadata["features"]))),
+            )
+        )
 
     if declaration:
         item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))

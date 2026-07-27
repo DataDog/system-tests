@@ -66,34 +66,9 @@ runs:
       env:
         PYTHONPATH: "."
 
-    - name: Login to Docker Hub
-      if: inputs.dockerhub_username != '' && inputs.dockerhub_token != ''
-      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-      with:
-        username: ${{ inputs.dockerhub_username }}
-        password: ${{ inputs.dockerhub_token }}
-
-    - name: Pull
+    - name: Login to Docker Hub and pull images
       shell: bash
-      run: |
-        max_attempts=5
-        timeout_seconds=900
-        attempt=1
-        while true; do
-          echo "Running docker compose pull (attempt ${attempt}/${max_attempts}, timeout ${timeout_seconds}s)..."
-
-          if timeout "${timeout_seconds}" docker compose pull; then
-            break
-          fi
-
-          if [ "${attempt}" -ge "${max_attempts}" ]; then
-            echo "docker compose pull failed after ${attempt} attempts"
-            exit 1
-          fi
-
-          # Exponential backoff: 30s, 60s, 120s, 240s
-          retry_wait_seconds=$(( 30 * (1 << (attempt - 1)) ))
-          echo "docker compose pull failed (attempt ${attempt}/${max_attempts}), retrying in ${retry_wait_seconds}s..."
-          sleep "${retry_wait_seconds}"
-          attempt=$((attempt + 1))
-        done
+      run: .github/actions/pull_images/main.sh
+      env:
+        DOCKERHUB_USERNAME: ${{ inputs.dockerhub_username }}
+        DOCKERHUB_TOKEN: ${{ inputs.dockerhub_token }}

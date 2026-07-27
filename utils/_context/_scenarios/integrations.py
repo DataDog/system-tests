@@ -14,6 +14,7 @@ from utils._context.containers import (
     MsSqlServerContainer,
     MySqlContainer,
 )
+from utils._context.constants import WeblogCategory
 
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
@@ -68,6 +69,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "Test the integrations of those databases with tracers"
             ),
             scenario_groups=[scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):
@@ -88,6 +90,7 @@ class DbmDynamicServiceScenario(EndToEndScenario):
                 "and sets _dd.propagated_hash on SQL spans with the same value."
             ),
             scenario_groups=[scenario_groups.integrations],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
 
@@ -112,6 +115,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             doc=doc,
             other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):
@@ -138,6 +142,7 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
                 KafkaContainer,
             ),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

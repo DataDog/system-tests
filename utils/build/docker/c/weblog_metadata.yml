@@ -1,0 +1,4 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+perl-mojolicious:
+  supported_scenarios: [DEFAULT, IPV6, SAMPLING]
