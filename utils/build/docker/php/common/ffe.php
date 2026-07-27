@@ -255,7 +255,7 @@ if (!array_key_exists('defaultValue', $payload)) {
 $flagKey = $payload['flag'];
 $variationType = $payload['variationType'];
 $defaultValue = dd_ffe_normalize_default_value($payload['defaultValue'], $variationType);
-$evaluationApi = isset($payload['evaluationApi']) ? strtolower((string) $payload['evaluationApi']) : 'native';
+$evaluationApi = isset($payload['evaluationApi']) ? strtolower((string) $payload['evaluationApi']) : 'openfeature';
 $targetingKey = isset($payload['targetingKey']) && $payload['targetingKey'] !== null
     ? (string) $payload['targetingKey']
     : null;

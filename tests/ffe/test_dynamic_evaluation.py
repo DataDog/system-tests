@@ -47,7 +47,7 @@ UFC_FIXTURE_DATA = {
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_dynamic_evaluation
 class Test_FFE_OpenFeature_Evaluation:
-    """The weblog must honor an explicit OpenFeature evaluation request."""
+    """The weblog must use OpenFeature for evaluation by default."""
 
     def setup_openfeature_evaluation(self) -> None:
         self.flag_key = "openfeature-evaluation"
@@ -62,7 +62,6 @@ class Test_FFE_OpenFeature_Evaluation:
                 "defaultValue": False,
                 "targetingKey": "customer-request",
                 "attributes": {},
-                "evaluationApi": "openfeature",
             },
         )
 

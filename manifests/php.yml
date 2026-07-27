@@ -1,5 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
+refs:
+  - &php7 "apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4"
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
@@ -741,11 +743,32 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v1.8.3
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py: v1.21.0-dev
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation:
+    - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
+      weblog: *php7
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Evaluation: v1.24.0-dev
-  tests/ffe/test_exposures.py: v1.21.0-dev
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start:
+    - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
+      weblog: *php7
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable:
+    - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
+      weblog: *php7
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Fields_Tolerance:
+    - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
+      weblog: *php7
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance:
+    - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
+      weblog: *php7
+  tests/ffe/test_exposures.py:
+    - weblog_declaration:
+        "*": v1.21.0-dev
+        *php7: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
   tests/ffe/test_exposures.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_metrics.py: v1.21.0-dev
+  tests/ffe/test_flag_eval_metrics.py:
+    - weblog_declaration:
+        "*": v1.21.0-dev
+        *php7: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
