@@ -407,12 +407,7 @@ class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
 @features.feature_flags_evp_flagevaluation
 @scenario_crash
 class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
-    """Test a bounded request burst through the async EVP aggregation path.
-
-    When enabling PHP for this file, add a per-class flaky entry in manifests/php.yml
-    (e.g. flaky (FFL-2864)) — PHP's sidecar process adds an async flush hop that makes
-    EVP event counts racy against wait_for_evp_flagevaluation_event.
-    """
+    """Test a bounded request burst through the async EVP aggregation path."""
 
     def setup_ffe_evp_flagevaluation_burst_aggregation(self) -> None:
         config_id = "ffe-evp-burst-aggregation"
@@ -451,11 +446,7 @@ class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
 @features.feature_flags_evp_flagevaluation
 @scenario_crash
 class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
-    """Test many full-tier aggregation buckets stay distinct and counted.
-
-    When enabling PHP for this file, add a per-class flaky entry in manifests/php.yml
-    (e.g. flaky (FFL-2864)) — same PHP sidecar timing caveat as Burst_Aggregation.
-    """
+    """Test many full-tier aggregation buckets stay distinct and counted."""
 
     def setup_ffe_evp_flagevaluation_high_cardinality_aggregation(self) -> None:
         config_id = "ffe-evp-high-cardinality-aggregation"
@@ -495,11 +486,7 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
 @features.feature_flags_evp_flagevaluation
 @scenario_crash
 class Test_FFE_EVP_Flagevaluation_Degradation:
-    """Test degraded EVP shape after the production per-flag full-tier cap is exceeded.
-
-    When enabling PHP for this file, add a per-class flaky entry in manifests/php.yml
-    (e.g. flaky (FFL-2864)) — same PHP sidecar timing caveat as Burst_Aggregation.
-    """
+    """Test degraded EVP shape after the production per-flag full-tier cap is exceeded."""
 
     def setup_ffe_evp_flagevaluation_degradation(self) -> None:
         config_id = "ffe-evp-degradation"
