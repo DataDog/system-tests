@@ -86,6 +86,7 @@ def _expected_to_fail(
 
     if library is not None:
         if library not in (
+            "c",
             "cpp",
             "cpp_httpd",
             "cpp_kong",

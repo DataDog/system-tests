@@ -9,6 +9,7 @@ from typing import Any
 
 from dateutil.parser import isoparse
 
+from tests.test_telemetry_heartbeat_utils import heartbeat_delays_by_runtime
 from utils import bug, context, features, interfaces, logger, rfc, scenarios, weblog
 from utils.interfaces._misc_validators import HeadersMatchValidator, HeadersPresenceValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
@@ -312,50 +313,25 @@ class Test_Telemetry:
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @staticmethod
-    def _get_heartbeat_delays_by_runtime() -> dict:
+    def _get_heartbeat_delays_by_runtime() -> dict[str, list[float]]:
         """Returns a dict where :
         The key is the runtime id
         The value is a list of delay observed on this runtime id
         """
 
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        heartbeats_by_runtime = defaultdict(list)
-
-        for data in telemetry_data:
-            if data["request"]["content"].get("request_type") == "app-heartbeat":
-                heartbeats_by_runtime[data["request"]["content"]["runtime_id"]].append(data)
-
-        delays_by_runtime = {}
-
-        # Short-lived processes (e.g. children spawned by the session-id tests) can emit
-        # only a couple of heartbeats before exiting, which is not enough samples to measure
-        # interval drift. Only long-lived runtimes are measured here.
-        measurable_runtimes = {rid: hbs for rid, hbs in heartbeats_by_runtime.items() if len(hbs) > 2}
-        heartbeat_counts = {rid: len(hbs) for rid, hbs in heartbeats_by_runtime.items()}
-        assert measurable_runtimes, (
+        delays_by_runtime, heartbeat_counts = heartbeat_delays_by_runtime(
+            interfaces.library.get_telemetry_data(flatten_message_batches=False),
+            # Require 2 intervals of lifespan so a short-lived process (e.g. a forked child
+            # from the session-id tests) can't skew the average with just a couple of
+            # samples. A normal long-lived runtime clears this easily.
+            min_lifespan=context.telemetry_heartbeat_interval * 2,
+        )
+        assert delays_by_runtime, (
             f"No runtime emitted enough heartbeats to check delays (runtimes seen: {heartbeat_counts})"
         )
 
-        for runtime_id, heartbeats in measurable_runtimes.items():
-            logger.debug(f"Heartbeats for runtime {runtime_id}:")
-
-            # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
-
-            prev_message_time = None
-            delays: list[float] = []
-            for data in heartbeats:
-                curr_message_time = isoparse(data["request"]["timestamp_start"])
-                if prev_message_time is None:
-                    logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
-                else:
-                    delay = (curr_message_time - prev_message_time).total_seconds()
-                    logger.debug(f"  * {data['log_filename']}: {curr_message_time} => {delay}s ellapsed")
-                    delays.append(delay)
-
-                prev_message_time = curr_message_time
-
-            delays_by_runtime[runtime_id] = delays
+        for runtime_id, delays in delays_by_runtime.items():
+            logger.debug(f"Heartbeat delays for runtime {runtime_id}: {delays}")
 
         return delays_by_runtime
 

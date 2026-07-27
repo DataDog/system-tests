@@ -27,6 +27,14 @@ from .spec.trace import Trace
 
 from ._core import HOST_GATEWAY_EXTRA_HOSTS, get_host_port, get_docker_client, docker_run
 
+# Default container-internal OTLP ports for the test-agent. The pooled parametric agent
+# (DockerFixturesScenario.get_agent_pool) is created with these, and the poolable check
+# in tests/parametric/conftest.py only pools tests that use them — a test that
+# parametrizes a custom OTLP port needs a fresh agent listening on that port. Single
+# source of truth so the pool creator and the poolable check cannot drift apart.
+DEFAULT_OTLP_HTTP_PORT = 4318
+DEFAULT_OTLP_GRPC_PORT = 4317
+
 
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
@@ -34,6 +42,11 @@ def _request_token(request: pytest.FixtureRequest) -> str:
     token += f".{request.cls.__name__}" if request.cls else ""
     token += f".{request.node.name}"
     return token
+
+
+def _agent_log_path(host_log_folder: str, request: "pytest.FixtureRequest") -> str:
+    cls_name = request.cls.__name__ if request.cls else "NoClass"
+    return f"{host_log_folder}/outputs/{cls_name}/{request.node.name}/agent_log.log"
 
 
 class AgentRequest(TypedDict):
@@ -72,8 +85,9 @@ class TestAgentFactory:
             get_docker_client().images.pull(self.image)
 
     @contextlib.contextmanager
-    def get_test_agent_api(
+    def start_agent(
         self,
+        *,
         request: pytest.FixtureRequest,
         worker_id: str,
         container_name: str,
@@ -81,27 +95,38 @@ class TestAgentFactory:
         agent_env: dict[str, str],
         container_otlp_http_port: int,
         container_otlp_grpc_port: int,
+        agent_port_base: int = 4600,
+        otlp_http_port_base: int = 4701,
+        otlp_grpc_port_base: int = 4802,
     ) -> Generator["TestAgentAPI", None, None]:
-        # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
-        # (trace_content_length) go client doesn't submit content length header
+        """Start a test-agent container and yield its API, tearing it down on exit.
+
+        A context manager so the container + log file are released cleanly on any error
+        during setup or teardown. The fresh-per-test path uses it directly with `with`;
+        the pooled path (WorkerAgentPool) keeps it open across tests via an ExitStack and
+        closes it at pool shutdown.
+        """
         env = {
             "ENABLED_CHECKS": "trace_count_header",
             "OTLP_HTTP_PORT": str(container_otlp_http_port),
             "OTLP_GRPC_PORT": str(container_otlp_grpc_port),
-            "VCR_CASSETTES_DIRECTORY": "/vcr-cassettes",  # TODO comment
+            # Register the AI Guard REST API as a VCR upstream so the AI Guard/OpenAI integration
+            # can be replayed. Additive: extends the image's built-in providers (openai, anthropic,
+            # ...) without overriding them (see dd-apm-test-agent vcr_proxy.PROVIDER_BASE_URLS).
+            "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+            "VCR_CASSETTES_DIRECTORY": "/vcr-cassettes",
         }
         if os.getenv("DEV_MODE") is not None:
             env["SNAPSHOT_CI"] = "0"
-
         env |= agent_env
 
-        host_port = get_host_port(worker_id, 4600)
-        container_port = 8126
-        otlp_http_host_port = get_host_port(worker_id, 4701)
-        otlp_grpc_host_port = get_host_port(worker_id, 4802)
+        host_port = get_host_port(worker_id, agent_port_base)
+        otlp_http_host_port = get_host_port(worker_id, otlp_http_port_base)
+        otlp_grpc_host_port = get_host_port(worker_id, otlp_grpc_port_base)
 
-        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+        log_path = _agent_log_path(self.host_log_folder, request)
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+        logger.stdout(f"REUSE-POC agent container created: {container_name}")
 
         with (
             open(log_path, "w+", encoding="utf-8") as log_file,
@@ -114,7 +139,7 @@ class TestAgentFactory:
                     "./tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
                 },
                 ports={
-                    f"{container_port}/tcp": host_port,
+                    "8126/tcp": host_port,
                     f"{container_otlp_http_port}/tcp": otlp_http_host_port,
                     f"{container_otlp_grpc_port}/tcp": otlp_grpc_host_port,
                 },
@@ -125,14 +150,14 @@ class TestAgentFactory:
         ):
             client = TestAgentAPI(
                 container_name,
-                container_port,
+                8126,
                 self.host_log_folder,
                 pytest_request=request,
                 otlp_http_host_port=otlp_http_host_port,
                 host_port=host_port,
                 network=docker_network,
             )
-            time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
+            time.sleep(0.2)  # the trace agent takes ~200ms to start
             expected_version = agent_env.get("TEST_AGENT_VERSION", "test")
             for _ in range(100):
                 try:
@@ -142,30 +167,53 @@ class TestAgentFactory:
                     time.sleep(0.1)
                 else:
                     if resp["version"] != expected_version:
-                        message = f"""Agent version {resp["version"]} is running instead of the test agent.
-                        Stop the agent on port {container_port} and try again."""
-                        pytest.fail(message, pytrace=False)
-
+                        pytest.fail(
+                            f"Agent version {resp['version']} is running instead of the test agent.",
+                            pytrace=False,
+                        )
                     logger.info("Test agent is ready")
                     break
             else:
-                logger.error("Could not connect to test agent")
                 pytest.fail(f"Could not connect to test agent, check the log file {log_file.name}.", pytrace=False)
 
-            # If the snapshot mark is on the test case then do a snapshot test
-            marks = list(request.node.iter_markers(name="snapshot"))
-            assert len(marks) <= 1, "Multiple snapshot marks detected"
-            if marks:
-                snap = marks[0]
-                assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
-                if "token" not in snap.kwargs:
-                    snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
-                with client.snapshot_context(**snap.kwargs):
-                    yield client
-            else:
-                yield client
+            yield client
 
-        request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
+    @contextlib.contextmanager
+    def get_test_agent_api(
+        self,
+        request: pytest.FixtureRequest,
+        worker_id: str,
+        container_name: str,
+        docker_network: str,
+        agent_env: dict[str, str],
+        container_otlp_http_port: int,
+        container_otlp_grpc_port: int,
+    ) -> Generator["TestAgentAPI", None, None]:
+        try:
+            with self.start_agent(
+                request=request,
+                worker_id=worker_id,
+                container_name=container_name,
+                docker_network=docker_network,
+                agent_env=agent_env,
+                container_otlp_http_port=container_otlp_http_port,
+                container_otlp_grpc_port=container_otlp_grpc_port,
+            ) as client:
+                # If the snapshot mark is on the test case then do a snapshot test
+                marks = list(request.node.iter_markers(name="snapshot"))
+                assert len(marks) <= 1, "Multiple snapshot marks detected"
+                if marks:
+                    snap = marks[0]
+                    assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+                    if "token" not in snap.kwargs:
+                        snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+                    with client.snapshot_context(**snap.kwargs):
+                        yield client
+                else:
+                    yield client
+        finally:
+            log_path = _agent_log_path(self.host_log_folder, request)
+            request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
 
 
 class TestAgentAPI:
@@ -186,6 +234,7 @@ class TestAgentAPI:
         self.container_name = container_name
         self.container_port = container_port
         self.network = network
+        self._host_log_folder = host_log_folder
 
         self.host = "localhost"
         self.host_port = host_port
@@ -193,9 +242,15 @@ class TestAgentAPI:
 
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = (
-            f"{host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
-        )
+        cls_name = pytest_request.cls.__name__ if pytest_request.cls else "NoClass"
+        self.log_path = f"{host_log_folder}/outputs/{cls_name}/{pytest_request.node.name}/agent_api.log"
+        Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
+
+    def rebind_request(self, pytest_request: "pytest.FixtureRequest") -> None:
+        """Re-point per-test API logging at the current test (used on reuse)."""
+        self._pytest_request = pytest_request
+        cls_name = pytest_request.cls.__name__ if pytest_request.cls else "NoClass"
+        self.log_path = f"{self._host_log_folder}/outputs/{cls_name}/{pytest_request.node.name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
@@ -396,8 +451,30 @@ class TestAgentAPI:
         raise ValueError(f"Number ({num}) of /v0.6/stats requests not received, got {len(requests)}")
 
     def clear(self) -> None:
-        self._session.get(self._url("/test/session/clear"))
+        # Drops recorded requests (traces, telemetry, integrations) only. Also used
+        # mid-test by the clear=True helpers, so it must NOT touch the remote-config the
+        # agent serves -- wiping a test's active RC mid-test would change tracer behavior
+        # before the test asserts it. The pooled-reuse RC reset lives in
+        # reset_remote_config(), called only between tests. Safety-critical for reuse (a
+        # silent failure leaves the next test on dirty state), so surface a bad status.
+        self._session.get(self._url("/test/session/clear")).raise_for_status()
+        # The OTLP test-agent's clear is best-effort and can return non-2xx (e.g. 400);
+        # don't fail the reset on it (matches the original fire-and-forget behavior).
         self._session.get(self._otlp_url("/test/session/clear"))
+
+    def reset_remote_config(self) -> None:
+        """Restore the served remote-config to the empty `{}` state a fresh agent has.
+
+        Kept out of `clear()` on purpose: `clear()` is also invoked mid-test by the
+        `clear=True` helpers, where wiping the active config would flip what the tracer
+        polls before the test asserts on it. Only the pooled-reuse path (between tests)
+        calls this, so a pooled non-snapshot test starts from a clean RC baseline --
+        e.g. the dynamic-config sampling tests assert the default rate before applying
+        their own RC. `/test/session/clear` does not reset RC (RemoteConfigServer
+        keeps `_responses` keyed by token), and non-snapshot tests share the default
+        token, so a prior test's RC would otherwise leak in.
+        """
+        self._session.post(self._url("/test/session/responses/config"), json={}).raise_for_status()
 
     def info(self):
         resp = self._session.get(self._url("/info"))

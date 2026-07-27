@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 import pytest
 from utils._logger import logger, get_log_formatter
+from utils._context.constants import WeblogCategory
 
 
 class ScenarioGroup:
@@ -106,7 +107,12 @@ VALID_CI_WORKFLOWS = {
 
 class Scenario:
     def __init__(
-        self, name: str, github_workflow: str | None, doc: str, scenario_groups: list[ScenarioGroup] | None = None
+        self,
+        name: str,
+        github_workflow: str | None,
+        doc: str,
+        weblog_categories: list[WeblogCategory] | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
     ) -> None:
         self.name = name
         self.replay = False
@@ -118,11 +124,14 @@ class Scenario:
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
-        # key value pair of what is actually tested
-        self.components: dict[str, Version] = {}
+        self.weblog_categories: list[WeblogCategory] = weblog_categories or []
+        """ Which weblog categories should this scenario applies """
 
-        # if xdist is used, this property will be set to false for sub workers
+        self.components: dict[str, Version] = {}
+        """ Key-value pair of what is actually tested """
+
         self.is_main_worker: bool = True
+        """ if xdist is used, this property will be set to false for sub workers """
 
         assert self.github_workflow in VALID_CI_WORKFLOWS, (
             f"Invalid github_workflow {self.github_workflow} for {self.name}"
