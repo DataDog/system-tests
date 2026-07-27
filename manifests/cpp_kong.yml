@@ -26,7 +26,6 @@ manifest:
   tests/test_library_conf.py: irrelevant
   tests/test_miscs.py: irrelevant
   tests/test_profiling.py: irrelevant (Kong is a proxy, not a profiling target)
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
