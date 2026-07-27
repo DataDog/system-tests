@@ -14,11 +14,11 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": missing_feature (APPSEC-62449)
+        "spring-boot": v1.64.1  # TODO: a lower version might be supported
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": missing_feature (APPSEC-62199)
+        "spring-boot": v1.64.1  # TODO: a lower version might be supported
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -298,9 +298,9 @@ manifest:
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders::test_not_propagated_downstream:
     - weblog_declaration:
         "*": v1.63.0
-        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        akka-http: v1.64.1  # TODO: a lower version might be supported
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: v1.64.1  # TODO: a lower version might be supported
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
@@ -1230,7 +1230,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: bug (APPSEC-61153)
+        vertx3: v1.64.1  # TODO: a lower version might be supported
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -1540,7 +1540,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
-        spring-boot-payara: missing_feature (APPSEC-54966)
+        spring-boot-payara: v1.64.1  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
         vertx3: missing_feature (APPSEC-55781)
@@ -1952,14 +1952,19 @@ manifest:
         spring-boot: v1.62.0-SNAPSHOT
         spring-boot-payara: v1.63.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        resteasy-netty3: v1.64.1  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.64.1  # TODO: a lower version might be supported
+        ratpack: v1.64.1  # TODO: a lower version might be supported
+        uds-spring-boot: v1.64.1  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.64.1  # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.15.0
         akka-http: v1.22.0
-        jersey-grizzly2: missing_feature
+        jersey-grizzly2: v1.64.1  # TODO: a lower version might be supported
         play: v1.22.0
-        ratpack: missing_feature
-        resteasy-netty3: missing_feature
+        ratpack: v1.64.1  # TODO: a lower version might be supported
+        resteasy-netty3: v1.64.1  # TODO: a lower version might be supported
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: bug (APPSEC-54985)
         spring-boot-payara: bug (APPSEC-54985)
@@ -4493,7 +4498,12 @@ manifest:
     - weblog_declaration:
         "*": v0.93.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62219)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APPSEC-62219)
+      component_version: <1.64.1
+      weblog: [akka-http, resteasy-netty3, spring-boot, spring-boot-undertow, play, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, vertx3, spring-boot-jetty, ratpack, uds-spring-boot, jersey-grizzly2, vertx4]
+    - declaration: missing_feature (APPSEC-62219)
+      excluded_weblog: [akka-http, resteasy-netty3, spring-boot, spring-boot-undertow, play, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, vertx3, spring-boot-jetty, ratpack, uds-spring-boot, jersey-grizzly2, vertx4]
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
