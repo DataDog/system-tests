@@ -585,3 +585,68 @@ class Test_MalformedOtHandling:
         ot = _parse_ot(_outbound_tracestate(req))
         assert ot.get("rv") == self.MALFORMED_TH_RV, "the well-formed inbound rv was not forwarded"
         assert "th" not in ot, "a malformed ot.th must be cleared, not replaced by a freshly-derived one"
+
+
+class _PrecisionBoundaryDecisionBase:
+    """A7: on a boundary trace ID, the 64-bit hash decision and the naive 56-bit (rv, th) pair disagree; DD must
+    adjust rv (never th) so that (rv >= th) reproduces its own keep/drop exactly.
+
+    See the RFC's "64-bit to 56-bit precision" section: DD keeps but rv < th -> rv = th;
+    DD drops but rv >= th -> rv = th - 1.
+    """
+
+    RATE: float
+    TRACE_ID: int
+    EXPECTED_TH: str
+    EXPECTED_ADJUSTED_RV: str
+    EXPECTED_SAMPLED: bool
+
+    def setup_precision_boundary_decision(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={"x-datadog-trace-id": str(self.TRACE_ID), "x-datadog-parent-id": str(self.TRACE_ID)},
+        )
+
+    def test_precision_boundary_decision(self):
+        assert self.r.status_code == 200
+
+        ot = _parse_ot(_outbound_tracestate(self.r))
+        assert ot.get("th") == self.EXPECTED_TH, f"th={ot.get('th')!r}, expected {self.EXPECTED_TH!r}"
+        assert ot.get("rv") == self.EXPECTED_ADJUSTED_RV, (
+            f"rv={ot.get('rv')!r}, expected the adjusted {self.EXPECTED_ADJUSTED_RV!r} "
+            "(the naive hash-derived rv disagrees with DD's own keep/drop on this boundary trace ID)"
+        )
+
+        spans = list(interfaces.library.get_spans(request=self.r))
+        assert spans, "no span found for this request: can't verify the sampling priority"
+        _, _, span = spans[0]
+        sampling_priority = span.get_sampling_priority()
+        assert sampling_priority is not None, "no sampling priority on span"
+        assert _priority_should_be_kept(sampling_priority) is self.EXPECTED_SAMPLED, (
+            f"sampling priority {sampling_priority} disagrees with the expected boundary decision"
+        )
+
+
+@scenarios.otel_sampling_rate_0_1
+@features.w3c_headers_injection_and_extraction
+class Test_PrecisionBoundaryDecision_Rate0_1(_PrecisionBoundaryDecisionBase):
+    """DD keeps (h below threshold) but the naive 56-bit rv falls just short of th; rv is bumped up to th."""
+
+    RATE = 0.1
+    TRACE_ID = 0x03A93EE8B1999F00
+    EXPECTED_TH = "e6666666666668"
+    EXPECTED_ADJUSTED_RV = "e6666666666668"
+    EXPECTED_SAMPLED = True
+
+
+@scenarios.otel_sampling_rate_0_05
+@features.w3c_headers_injection_and_extraction
+class Test_PrecisionBoundaryDecision_Rate0_05(_PrecisionBoundaryDecisionBase):
+    """DD drops (h above threshold) but the naive 56-bit rv would read as kept; rv is bumped down to th - 1."""
+
+    RATE = 0.05
+    TRACE_ID = 5401449561355763072
+    EXPECTED_TH = "f333333333333"
+    EXPECTED_ADJUSTED_RV = "f333333333332f"
+    EXPECTED_SAMPLED = False
