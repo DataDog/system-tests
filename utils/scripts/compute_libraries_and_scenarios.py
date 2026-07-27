@@ -31,7 +31,7 @@ OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentio
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 GITLAB_PR_LIBRARIES = {"c"}
-GITLAB_MAIN_AND_SCHEDULE_LIBRARIES = {"python"}
+GITLAB_MAIN = {"python"}
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -174,8 +174,8 @@ class LibraryProcessor:
 
 def filter_gitlab_libraries(inputs: Inputs, libraries: set[str]) -> set[str]:
     """Limit the GitLab end-to-end rollout by pipeline context."""
-    if inputs.ref == "refs/heads/main" or inputs.event_name == "schedule":
-        return libraries & GITLAB_MAIN_AND_SCHEDULE_LIBRARIES
+    if inputs.ref == "refs/heads/main" and inputs.event_name != "schedule":
+        return libraries & GITLAB_MAIN
 
     if inputs.event_name in ("pull_request", "push"):
         return libraries & GITLAB_PR_LIBRARIES
