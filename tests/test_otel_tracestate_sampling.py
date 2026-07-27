@@ -347,6 +347,52 @@ class Test_ThOnlyDoesNotFabricateRv:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
+class Test_ForwardInboundOtUnchangedWhenDropped:
+    """A2c: A2's forward-unchanged rule holds for a dropped decision too, not just a kept one."""
+
+    def setup_forward_inbound_ot_unchanged_when_dropped(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=False),
+                "tracestate": f"dd=s:0,ot=rv:{FORWARD_RV};th:{FORWARD_TH}",
+            },
+        )
+
+    def test_forward_inbound_ot_unchanged_when_dropped(self):
+        assert self.r.status_code == 200
+
+        ot = _parse_ot(_outbound_tracestate(self.r))
+        assert ot.get("rv") == FORWARD_RV, "inbound rv was altered instead of being forwarded unchanged"
+        assert ot.get("th") == FORWARD_TH, "inbound th was altered instead of being forwarded unchanged"
+
+
+@scenarios.default
+@features.w3c_headers_injection_and_extraction
+class Test_ThOnlyDoesNotFabricateRvWhenDropped:
+    """A2d: A2b's no-fabrication rule holds for a dropped decision too, not just a kept one."""
+
+    def setup_th_only_does_not_fabricate_rv_when_dropped(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=False),
+                "tracestate": f"ot=th:{FORWARD_TH}",
+            },
+        )
+
+    def test_th_only_does_not_fabricate_rv_when_dropped(self):
+        assert self.r.status_code == 200
+
+        ot = _parse_ot(_outbound_tracestate(self.r))
+        assert ot.get("th") == FORWARD_TH, "inbound th was altered instead of being forwarded unchanged"
+        assert "rv" not in ot, "an rv was fabricated for a th-only (OTel default-sampling) decision"
+
+
+@scenarios.default
+@features.w3c_headers_injection_and_extraction
 class Test_PreserveDdAndOtherVendors:
     """A3: ot= handling must not disturb dd= or an unrelated vendor tracestate member."""
 
