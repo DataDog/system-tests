@@ -567,9 +567,9 @@ class Test_GitLabMode:
 
     @pytest.mark.parametrize(
         ("source", "ref"),
-        [("push", "main"), ("schedule", "main")],
+        [("push", "some_branch"), ("schedule", "main"), ("schedule", "some_branch")],
     )
-    def test_main_and_scheduled_pipelines_select_python(
+    def test_non_main_and_scheduled_pipelines_do_not_select_python(
         self,
         monkeypatch: pytest.MonkeyPatch,
         source: str,
@@ -578,6 +578,17 @@ class Test_GitLabMode:
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
         monkeypatch.setenv("CI_COMMIT_REF_NAME", ref)
+        inputs = build_inputs()
+
+        assert 'libraries="python"' not in process(inputs)
+
+    def test_main_pipelines_select_python(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
         inputs = build_inputs()
 
         assert 'libraries="python"' in process(inputs)
