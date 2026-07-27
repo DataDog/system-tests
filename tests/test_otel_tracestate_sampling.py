@@ -234,7 +234,9 @@ class _EmitOtOnProbabilityDecisionBase:
             assert req.status_code == 200, f"trace_id={trace_id}: /make_distant_call failed"
 
             tracestate = _outbound_tracestate(req)
-            assert "ot" in tracestate, f"trace_id={trace_id}: no ot= tracestate member emitted on a probability decision"
+            assert "ot" in tracestate, (
+                f"trace_id={trace_id}: no ot= tracestate member emitted on a probability decision"
+            )
             ot = _parse_ot(tracestate)
 
             assert ot.get("rv") == expected_rv, f"trace_id={trace_id}: rv={ot.get('rv')!r}, expected {expected_rv!r}"
