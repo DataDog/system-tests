@@ -139,6 +139,9 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_81_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

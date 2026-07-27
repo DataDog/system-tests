@@ -1,5 +1,7 @@
 import json
 import math
+import re
+from pathlib import Path
 
 from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SamplingMechanism, SamplingPriority, TraceSource
@@ -491,6 +493,247 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(location, "start_index") is not None
             assert _assert_key(location, "end_index_exclusive") is not None
             assert _assert_key(location, "path")
+
+
+# Redaction scenarios and the matching VCR cassettes are generated together by
+# utils/scripts/gen_redaction_cassettes.py. The sidecar keeps the messages we send,
+# the exact replacement strings the backend returns and the raw sensitive values,
+# so the tests below and the cassettes never drift. Regenerate both after editing.
+REDACTION_SCENARIOS: dict = json.loads((Path(__file__).parent / "redaction_scenarios.json").read_text())
+
+_SEGMENT_RE = re.compile(r"^(?P<name>[A-Za-z0-9_]+)(?:\[(?P<index>[0-9]+)\])?\Z")
+
+
+def _resolve_path(messages: list, path: str) -> object:
+    """Resolve an sds_findings/redaction path (RFC path grammar) to the value it points at."""
+    obj: object = {"messages": messages}
+    for segment in path.split("."):
+        match = _SEGMENT_RE.match(segment)
+        assert match, f"Invalid path segment '{segment}' in '{path}'"
+        obj = obj[match.group("name")]  # type: ignore[index]
+        index = match.group("index")
+        if index is not None:
+            obj = obj[int(index)]  # type: ignore[index]
+    return obj
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/SDS/pages/6426329400/SDS+for+AI+Guard")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_Redaction:
+    """AI Guard sensitive-data redaction applied to the message payload.
+
+    Each scenario exercises a different shape of redaction. The backend returns a top-level
+    redaction_replacements array (one fully redacted string per path); the tracer overwrites
+    each path verbatim and stores the redacted messages in the ai_guard meta struct. We assert
+    on the meta struct because it is the cross-language, cross-provider surface for redaction.
+    """
+
+    def _assert_redacted_span(self, scenario: dict):
+        redactions = scenario["redactions"]
+
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            meta = span["meta"]
+            _assert_key(meta, "ai_guard.action", "ALLOW")
+
+            meta_struct = span["meta_struct"]
+            ai_guard = _assert_key(meta_struct, "ai_guard")
+            messages = _assert_key(ai_guard, "messages")
+            serialized = json.dumps(messages)
+
+            for redaction in redactions:
+                path = redaction["path"]
+                actual = _resolve_path(messages, path)
+                assert actual == redaction["replacement"], (
+                    f"Path '{path}' was not redacted to the backend replacement: "
+                    f"{actual!r} != {redaction['replacement']!r}"
+                )
+                for sensitive_value in redaction["sensitive_values"]:
+                    assert sensitive_value not in serialized, (
+                        f"Sensitive value '{sensitive_value}' still present in redacted messages: {serialized}"
+                    )
+
+            # sds_findings are independent detection metadata and must still be reported.
+            sds = _assert_key(ai_guard, "sds")
+            assert len(sds) > 0, f"No 'sds' detection metadata found alongside redaction in {ai_guard}"
+            return True
+
+        return validate
+
+    def _post(self, scenario_key: str):
+        scenario = REDACTION_SCENARIOS[scenario_key]
+        self.scenario = scenario
+        self.r = weblog.post("/ai_guard/evaluate", json=scenario["messages"])
+
+    def setup_redact_single_value(self):
+        self._post("REDACT_ONE_MSG_ONE_FINDING")
+
+    def test_redact_single_value(self):
+        """One message with a single sensitive value is redacted (baseline)."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+
+    def setup_redact_multi_messages_one_finding(self):
+        self._post("REDACT_MULTI_ONE_FINDING")
+
+    def test_redact_multi_messages_one_finding(self):
+        """Multiple messages where only one message carries sensitive data to redact."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+
+    def setup_redact_one_message_multiple_findings(self):
+        self._post("REDACT_ONE_MSG_MULTI_FINDINGS")
+
+    def test_redact_one_message_multiple_findings(self):
+        """A single message string that contains several sensitive values, all redacted in one replacement."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+
+    def setup_redact_mixed_findings(self):
+        self._post("REDACT_MIXED")
+
+    def test_redact_mixed_findings(self):
+        """Multiple messages: one string with several findings and another string with a single finding."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+
+    def setup_redact_tool_result(self):
+        self._post("REDACT_TOOL_RESULT")
+
+    def test_redact_tool_result(self):
+        """A conversation with tool calls where the tool result (role:tool) content carries sensitive data."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+
+    def setup_redact_tool_arguments(self):
+        self._post("REDACT_TOOL_ARGS")
+
+    def test_redact_tool_arguments(self):
+        """Tool call arguments (a JSON string) carry sensitive data and are redacted while remaining valid JSON."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+        # The redacted arguments must still be valid JSON.
+        arguments = _resolve_path(self.scenario["messages"], self.scenario["redactions"][0]["path"])
+        json.loads(self.scenario["redactions"][0]["replacement"])
+        assert arguments  # original arguments are non-empty
+
+    def setup_redact_system_prompt(self):
+        self._post("REDACT_SYSTEM_PROMPT")
+
+    def test_redact_system_prompt(self):
+        """An insecure system prompt with sensitive data baked into the system message is redacted."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_redacted_span(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/SDS/pages/6426329400/SDS+for+AI+Guard")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_NoRedaction:
+    """AI Guard leaves the payload untouched when there is nothing to redact.
+
+    When the backend returns no redaction_replacements the tracer must short-circuit: the
+    meta struct keeps the exact messages we sent, regardless of whether tool calls are present.
+    """
+
+    def _assert_unchanged_span(self, scenario: dict):
+        messages = scenario["messages"]
+
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            meta = span["meta"]
+            _assert_key(meta, "ai_guard.action", "ALLOW")
+
+            meta_struct = span["meta_struct"]
+            ai_guard = _assert_key(meta_struct, "ai_guard")
+            stored_messages = _assert_key(ai_guard, "messages")
+            assert stored_messages == messages, (
+                f"Messages must be unchanged when there is nothing to redact: {stored_messages} != {messages}"
+            )
+            return True
+
+        return validate
+
+    def _post(self, scenario_key: str):
+        scenario = REDACTION_SCENARIOS[scenario_key]
+        self.scenario = scenario
+        self.r = weblog.post("/ai_guard/evaluate", json=scenario["messages"])
+
+    def setup_no_redaction_single_message(self):
+        self._post("NO_REDACT_ONE_MSG")
+
+    def test_no_redaction_single_message(self):
+        """A benign single message is left untouched and returns no redaction_replacements."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        assert not body.get("redaction_replacements"), f"Unexpected redaction on benign message: {body}"
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_unchanged_span(self.scenario), full_trace=True
+        )
+
+    def setup_no_redaction_tool_calls(self):
+        self._post("NO_REDACT_TOOL_CALLS")
+
+    def test_no_redaction_tool_calls(self):
+        """A benign tool-call conversation (valid tool calls, no sensitive data) is left untouched."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        assert not body.get("redaction_replacements"), f"Unexpected redaction on benign tool calls: {body}"
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_unchanged_span(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/SDS/pages/6426329400/SDS+for+AI+Guard")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RedactionInSDKResponse:
+    """The SDK evaluate() response exposes the backend redaction_replacements contract.
+
+    Each entry is a {path, replacement} pair, independent of the sds_findings detection
+    metadata, which must still be present.
+    """
+
+    def setup_redaction_in_response(self):
+        self.scenario = REDACTION_SCENARIOS["REDACT_ONE_MSG_MULTI_FINDINGS"]
+        self.r = weblog.post("/ai_guard/evaluate", json=self.scenario["messages"])
+
+    def test_redaction_in_response(self):
+        """redaction_replacements is returned in the SDK response with one entry per redacted path."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+
+        replacements = _assert_key(body, "redaction_replacements")
+        assert len(replacements) == len(self.scenario["redactions"]), (
+            f"Expected {len(self.scenario['redactions'])} redaction_replacements, got {replacements}"
+        )
+        by_path = {entry["path"]: entry for entry in replacements}
+        for redaction in self.scenario["redactions"]:
+            entry = _assert_key(by_path, redaction["path"])
+            _assert_key(entry, "replacement", redaction["replacement"])
+
+        # sds_findings are independent detection metadata and must still be present.
+        sds = _assert_key(body, "sds")
+        assert len(sds) > 0, f"No sds detection metadata alongside redaction in SDK response: {body}"
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/x/KIApiQE")

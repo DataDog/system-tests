@@ -31,6 +31,9 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.57.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

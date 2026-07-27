@@ -1,0 +1,225 @@
+{
+  "NO_REDACT_ONE_MSG": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tell me a fun fact about the ocean."
+      }
+    ],
+    "redactions": []
+  },
+  "REDACT_ONE_MSG_ONE_FINDING": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED>",
+        "sensitive_values": [
+          "123-45-6789"
+        ]
+      }
+    ]
+  },
+  "REDACT_MULTI_ONE_FINDING": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Please email my report."
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, what is your email?"
+      },
+      {
+        "role": "user",
+        "content": "It is john.smith@acmebank.com"
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[3].content",
+        "replacement": "It is <REDACTED>",
+        "sensitive_values": [
+          "john.smith@acmebank.com"
+        ]
+      }
+    ]
+  },
+  "REDACT_ONE_MSG_MULTI_FINDINGS": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a banking assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789 and my email is paco@gmail.com"
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED> and my email is <REDACTED>",
+        "sensitive_values": [
+          "123-45-6789",
+          "paco@gmail.com"
+        ]
+      }
+    ]
+  },
+  "REDACT_MIXED": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789 and my email is paco@gmail.com"
+      },
+      {
+        "role": "assistant",
+        "content": "Understood, thank you."
+      },
+      {
+        "role": "user",
+        "content": "My phone number is 415-555-0132"
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED> and my email is <REDACTED>",
+        "sensitive_values": [
+          "123-45-6789",
+          "paco@gmail.com"
+        ]
+      },
+      {
+        "path": "messages[2].content",
+        "replacement": "My phone number is <REDACTED>",
+        "sensitive_values": [
+          "415-555-0132"
+        ]
+      }
+    ]
+  },
+  "REDACT_TOOL_RESULT": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Look up my bank account balance."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{ \"user\": \"john\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account 000123456789 SSN 123-45-6789 balance 100"
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[2].content",
+        "replacement": "Account <REDACTED> SSN <REDACTED> balance 100",
+        "sensitive_values": [
+          "000123456789",
+          "123-45-6789"
+        ]
+      }
+    ]
+  },
+  "NO_REDACT_TOOL_CALLS": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the weather in Paris?"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{ \"city\": \"Paris\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "It is sunny and 24 degrees."
+      }
+    ],
+    "redactions": []
+  },
+  "REDACT_TOOL_ARGS": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Send an email to my accountant."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "send_email",
+              "arguments": "{\"to\":\"john@acme.io\",\"ssn\":\"123-45-6789\"}"
+            }
+          }
+        ]
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[1].tool_calls[0].function.arguments",
+        "replacement": "{\"to\":\"<REDACTED>\",\"ssn\":\"<REDACTED>\"}",
+        "sensitive_values": [
+          "john@acme.io",
+          "123-45-6789"
+        ]
+      }
+    ]
+  },
+  "REDACT_SYSTEM_PROMPT": {
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are an assistant. Escalate to ops@acme.io or SSN 123-45-6789 if needed."
+      },
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ],
+    "redactions": [
+      {
+        "path": "messages[0].content",
+        "replacement": "You are an assistant. Escalate to <REDACTED> or SSN <REDACTED> if needed.",
+        "sensitive_values": [
+          "ops@acme.io",
+          "123-45-6789"
+        ]
+      }
+    ]
+  }
+}
