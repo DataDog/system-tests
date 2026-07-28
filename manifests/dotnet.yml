@@ -929,6 +929,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
     - declaration: missing_feature
       component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006:
     - declaration: missing_feature
       component_version: '<3.43.0'
