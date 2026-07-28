@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import requests
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios

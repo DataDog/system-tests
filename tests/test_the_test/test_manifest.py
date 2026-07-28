@@ -2,7 +2,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import textwrap
-import pytest
+from utils import pytest
 from utils import scenarios
 from utils._context.component_version import Version
 from utils.manifest import Manifest, SkipDeclaration, TestDeclaration

@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
