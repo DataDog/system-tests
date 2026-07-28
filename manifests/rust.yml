@@ -376,6 +376,8 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: '>=0.5.0-dev'
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: '>=0.5.0-dev'
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: '>=0.5.0-dev'
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: '>=0.5.0-dev'
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: '>=0.5.0-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: '>=0.5.0-dev'

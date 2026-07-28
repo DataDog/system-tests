@@ -245,6 +245,14 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    otel_sampling_rate_0_05 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_05",
+        tracer_sampling_rate=0.05,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.05 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     otel_sampling_rate_0_1 = DdTraceEndToEndScenario(
         "OTEL_SAMPLING_RATE_0_1",
         tracer_sampling_rate=0.1,
