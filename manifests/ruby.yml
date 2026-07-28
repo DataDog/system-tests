@@ -1646,6 +1646,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.54.2
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.0.0
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.11.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_all:
     - declaration: bug (APMRP-360)

@@ -1080,6 +1080,7 @@ manifest:
         "*": v0.58.5
         fastapi: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking:
     - weblog_declaration:
         "*": v1.16.1
