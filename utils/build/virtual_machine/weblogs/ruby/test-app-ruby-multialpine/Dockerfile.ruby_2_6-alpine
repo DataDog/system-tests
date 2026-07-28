@@ -19,7 +19,9 @@ WORKDIR /app
 COPY lib_injection_rails61_app /app
 
 # Install gems
-RUN bundle install
+RUN set -eu; \
+  cp "gemfiles/ruby-2.6.gemfile.lock" Gemfile.lock; \
+  bundle install
 
 # Set entrypoint
 ENTRYPOINT ["/bin/bash", "-c"]

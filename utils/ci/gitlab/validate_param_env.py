@@ -100,6 +100,7 @@ CHECKS: list[tuple[str, object]] = [
     ("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", validate_bool),
     ("BINARIES_ARTIFACTS", validate_semicolon_nonempty),
     ("BINARIES_ARTIFACT_PATH", validate_path),
+    ("SYSTEM_TESTS_PIPELINE_START_TIME", validate_positive_int),
 ]
 
 PARAM_ENV = "param.env"

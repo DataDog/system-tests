@@ -320,7 +320,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke: missing_feature
-  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
@@ -905,6 +905,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
+  tests/parametric/test_extract_behavior.py: incomplete_test_app (The PHP parametric test app does not yet implement extraction behavior)
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
@@ -978,7 +979,6 @@ manifest:
       component_version: '>=1.19.0'
     - declaration: missing_feature (php has not implemented stats computation yet)
       component_version: <1.19.0
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.1.0
@@ -1103,6 +1103,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_injection_enabled: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_instrumentation_source_non_ssi: '>=1.16.0'
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: v1.22.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.96.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
@@ -1288,7 +1289,6 @@ manifest:
         php-fpm-7.4: missing_feature (profiling seems not to be activated)
         apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: v1.14.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)

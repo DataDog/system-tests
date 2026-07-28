@@ -311,7 +311,7 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.51.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v3.4.1
   tests/appsec/smoke_tests/test_apm_standalone.py: v3.41.0
-  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v3.50.0
   tests/appsec/test_alpha.py::Test_Basic: v1.28.6
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.17.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
@@ -836,6 +836,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.44.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v3.10.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: incomplete_test_app (The parametric test app does not emit terminated-context span links)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v3.10.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
@@ -921,7 +927,6 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
     - declaration: missing_feature
       component_version: '<3.43.0'
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:
     - declaration: missing_feature
       component_version: '<3.43.0'
@@ -1066,6 +1071,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.50.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.53.0
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.48.0
@@ -1233,7 +1239,6 @@ manifest:
         uds: v3.36.0  # Modified by easy win activation script
   tests/test_profiling.py::Test_Profile::test_process_tags: v3.35.0
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
-  tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
