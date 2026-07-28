@@ -33,7 +33,7 @@ class WeblogInfra(ABC):
         """Perform any configuration. Executed only if the weblog will be used"""
 
     @abstractmethod
-    def stop(self) -> None:
+    def stop(self, *, flush: bool = True) -> None:
         """Stop the tested infra"""
 
 
@@ -133,13 +133,14 @@ class EndToEndWeblogInfra(WeblogInfra):
         self._proxy_runtime_container.depends_on = [self._processor_container, self._dummy_server_container]
 
     def set_weblog_dependencies(
-        self, agent_container: TestedContainer, proxy_container: TestedContainer | None
+        self, agent_container: TestedContainer | None, proxy_container: TestedContainer | None
     ) -> None:
         """Wire container start-order dependencies for all weblog containers.
 
         Handles both the standard weblog topology and the go-proxies one transparently.
         """
-        self.library_container.depends_on.append(agent_container)
+        if agent_container is not None:
+            self.library_container.depends_on.append(agent_container)
         if proxy_container is not None:
             self.library_container.depends_on.append(proxy_container)
 
@@ -207,7 +208,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             )
         return (self.http_container, *self._other_containers)
 
-    def stop(self) -> None:
+    def stop(self, *, flush: bool = True) -> None:
         if self._is_proxy_weblog:
             if self._proxy_runtime_container:
                 self._proxy_runtime_container.stop()
@@ -216,7 +217,8 @@ class EndToEndWeblogInfra(WeblogInfra):
             if self._dummy_server_container:
                 self._dummy_server_container.stop()
         else:
-            self.http_container.flush()
+            if flush:
+                self.http_container.flush()
             self.http_container.stop()
 
     @property
