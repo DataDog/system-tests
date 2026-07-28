@@ -36,6 +36,25 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
     return msgpack.unpackb(base64.b64decode(raw_body))
 
 
+def _all_v06_stats_entries(test_agent: TestAgentAPI) -> list[dict]:
+    """Return every ClientGroupedStats entry across all /v0.6/stats requests and time buckets.
+
+    Stats are partitioned into time buckets and may span multiple requests, so callers that only
+    care about which entries were emitted (not per-bucket detail) should flatten first.
+    """
+    entries: list[dict] = []
+    found = False
+    for request in test_agent.requests():
+        if "v0.6/stats" not in request["url"]:
+            continue
+        found = True
+        body = msgpack.unpackb(base64.b64decode(request["body"]))
+        for bucket in body.get("Stats", []):
+            entries.extend(bucket.get("Stats", []))
+    assert found, "Could not find /v0.6/stats request in test agent transcript"
+    return entries
+
+
 def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
     """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
@@ -562,4 +581,49 @@ class Test_Library_Tracestats:
         )
         assert "partial.snapshot" not in names, (
             f"Spans with _dd.partial_version set must be excluded from stats, but found in {names}"
+        )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_eligibility_TS015(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Non-top-level spans with an eligible span.kind (server, client, producer, consumer) are
+        promoted into stats and tagged with their SpanKind; an ineligible kind (internal) is excluded.
+        """
+        # Non-top-level children (share the root's service) covering every eligible kind, including a
+        # server-kind child so span-kind promotion is exercised for server too, not just as the root.
+        eligible = {
+            "server.child": "server",
+            "client.call": "client",
+            "producer.publish": "producer",
+            "consumer.receive": "consumer",
+        }
+        service = "webserver"
+        with (
+            test_library,
+            test_library.dd_start_span(name="server.entry", resource="/entry", service=service) as root,
+        ):
+            root.set_meta(key="span.kind", val="server")
+            for name, kind in eligible.items():
+                with test_library.dd_start_span(
+                    name=name, resource=f"/{kind}", service=service, parent_id=root.span_id
+                ) as child:
+                    child.set_meta(key="span.kind", val=kind)
+            with test_library.dd_start_span(
+                name="internal.work", resource="/internal", service=service, parent_id=root.span_id
+            ) as internal:
+                internal.set_meta(key="span.kind", val="internal")
+
+        by_name = {s.get("Name"): s for s in _all_v06_stats_entries(test_agent)}
+
+        assert by_name.get("server.entry", {}).get("SpanKind") == "server", (
+            f"Expected server root in stats with SpanKind='server', got {by_name.get('server.entry')!r}"
+        )
+        for name, kind in eligible.items():
+            entry = by_name.get(name)
+            assert entry is not None, f"{kind} span ({name}) missing from stats: {set(by_name)}"
+            assert entry.get("SpanKind") == kind, (
+                f"Expected SpanKind={kind!r} for {name}, got {entry.get('SpanKind')!r}"
+            )
+        assert "internal.work" not in by_name, (
+            f"Non-top-level internal span must be excluded from stats, but found in {set(by_name)}"
         )

@@ -480,6 +480,7 @@ manifest:
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
         envoy: missing_feature
