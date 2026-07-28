@@ -993,6 +993,7 @@ manifest:
     - weblog_declaration:
         nextjs: missing_feature (endpoint not implemented)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: *ref_5_52_0
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: *ref_5_18_0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
@@ -2065,6 +2066,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: bug (APMAPI-865)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: *ref_4_23_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: *ref_5_47_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2697 tracks Node.js agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_span_enrichment.py: "missing_feature (dd-trace-js#8343)"
@@ -2113,8 +2120,8 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: "missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: "missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-js does not filter spans with _dd.partial_version metric set; span_stats.js onSpanFinished only filters by TOP_LEVEL_KEY/MEASURED)"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: "missing_feature (CSS v1.2.0: dd-trace-js does not drop P0 traces when DD_TRACE_SAMPLE_RATE=0; traces are still emitted with _sampling_priority_v1=-1 instead of being dropped client-side)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015: "missing_feature (CSS v1.2.0: dd-trace-js emits stats for the eligible spans but does not serialize a SpanKind field in ClientGroupedStats; span_stats.js SpanAggKey has no span-kind component, so SpanKind is always absent)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: "missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: "missing_feature (CSS v1.2.0: dd-trace-js does not produce stats for nested top-level (service-entry) child spans when parent and child are in different services; only the outer span yields a stats entry)"
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
@@ -2459,7 +2466,6 @@ manifest:
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
         "*": *ref_5_81_0

@@ -5,7 +5,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.62.0
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.65.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -1667,6 +1670,7 @@ manifest:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
@@ -3751,6 +3755,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: v1.31.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.31.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v1.48.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v1.50.1
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v1.48.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v1.48.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
@@ -3810,8 +3820,7 @@ manifest:
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: missing_feature (CSS v1.2.0 - dd-trace-java exclusion uses internal longRunningVersion field, not the _dd.partial_version metric)
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: irrelevant (dd-trace-java excludes partial snapshots via its internal longRunningVersion field)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'
       component_version: <1.58.2+06122213c8
@@ -4415,16 +4424,6 @@ manifest:
         spring-boot-3-native: v1.39.0
         vertx3: v1.54.0-SNAPSHOT+c2aec92b86
         vertx4: v1.54.0-SNAPSHOT+c2aec92b86
-  tests/test_protobuf.py::Test_Protobuf:
-    - weblog_declaration:
-        "*": missing_feature
-        spring-boot: v1.47.0
-        spring-boot-wildfly: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-jetty: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-undertow: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
-        uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
   tests/test_resource_renaming.py:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT

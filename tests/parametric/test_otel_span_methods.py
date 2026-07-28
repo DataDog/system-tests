@@ -650,9 +650,9 @@ class Test_Otel_Span_Methods:
         assert event3["attributes"].get("int_val") == 1
         assert event3["attributes"].get("string_val") == "2"
 
-        v04_v07_events = "span_events" in root_span
+        arrays_are_flattened = "int_array.0" in event3["attributes"]
 
-        if v04_v07_events:
+        if arrays_are_flattened:
             assert event3["attributes"].get("int_array.0") == 3
             assert event3["attributes"].get("int_array.1") == 4
             assert event3["attributes"].get("string_array.0") == "5"

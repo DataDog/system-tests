@@ -8,7 +8,6 @@ from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_fo
 from utils.docker_fixtures._mock_ffe_agentless_backend import (
     CONFIG_PATH,
     CONFIG_QUERY,
-    EXPECTED_API_KEY,
     EXPECTED_DD_ENV,
     MockFFEAgentlessBackendServer,
     UFC_RESPONSE_TYPE,
@@ -23,14 +22,12 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
         for invalid_query in ("", "?dd_env=", "?dd_env=wrong", f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong"):
             response = requests.get(
                 server.base_url + CONFIG_PATH + invalid_query,
-                headers={"DD-API-KEY": EXPECTED_API_KEY},
                 timeout=5,
             )
             assert response.status_code == 404
 
         response = requests.get(
             f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
-            headers={"DD-API-KEY": EXPECTED_API_KEY},
             timeout=5,
         )
         response.raise_for_status()
@@ -43,9 +40,21 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
 
         status = server.status()
         assert status["requests_total"] == 1
-        assert status["last_auth_present"] is True
+        assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
         assert status["last_status_code"] == 200
+
+        server.set_response("unauthorized")
+        response = requests.get(
+            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
+            timeout=5,
+        )
+        assert response.status_code == 401
+
+        status = server.status()
+        assert status["requests_total"] == 2
+        assert status["last_auth_present"] is False
+        assert status["last_status_code"] == 401
     finally:
         server.close()
 

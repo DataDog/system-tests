@@ -709,6 +709,7 @@ manifest:
   : - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
       weblog: *django
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:  # Easy win for flask-poc and version 4.6.4
@@ -1814,6 +1815,10 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags:
     - declaration: flaky (APMAPI-1400)
       component_version: '>3.7.0'
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v2.20.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v2.20.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v2.20.0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
   tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2699 tracks Python agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_ffe/test_span_enrichment.py: '>=4.9.0'  # TODO: a lower version might be supported
@@ -1901,7 +1906,6 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (failure 2.8.0)  # Created by easy win activation script
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (failure 2.8.0)  # Created by easy win activation script
@@ -2314,7 +2318,6 @@ manifest:
         python3.12: v2.1.0
   tests/test_profiling.py::Test_Profile::test_process_tags: v4.2.0+dev
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
-  tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: v4.5.0
