@@ -1,5 +1,5 @@
 from threading import RLock
-import pytest
+from utils import pytest
 
 from utils._context._scenarios.endtoend import DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer

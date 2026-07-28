@@ -4,7 +4,7 @@ from pathlib import Path
 
 from functools import wraps
 
-import pytest
+from utils import pytest
 from utils.scripts.compute_libraries_and_scenarios import Inputs, process
 from utils import scenarios
 

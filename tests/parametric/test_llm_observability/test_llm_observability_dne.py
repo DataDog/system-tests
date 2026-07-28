@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-import pytest
+from utils import pytest
 
 from tests.parametric.test_llm_observability.utils import check_and_get_api_key
 from utils import features, scenarios

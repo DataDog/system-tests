@@ -1,7 +1,7 @@
 """Unit coverage for the mock FFE agentless backend test fixture."""
 
 import requests
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment

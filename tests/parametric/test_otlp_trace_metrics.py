@@ -54,7 +54,7 @@ import json
 import time
 from typing import Any
 
-import pytest
+from utils import pytest
 from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 

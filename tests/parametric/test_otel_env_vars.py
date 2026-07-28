@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 from utils import context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span

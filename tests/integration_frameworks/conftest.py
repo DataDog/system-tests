@@ -1,7 +1,7 @@
 from collections.abc import Generator
 import uuid
 
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures import (
     FrameworkTestClientApi,

@@ -29,7 +29,7 @@ and is intentionally not re-asserted here.
 
 import time
 
-import pytest
+from utils import pytest
 import requests
 
 from utils import features, scenarios

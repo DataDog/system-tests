@@ -1,9 +1,8 @@
 import sys
 import logging
 from typing import Any
-import pytest
 
-from utils import irrelevant, missing_feature, flaky, rfc, logger
+from utils import irrelevant, missing_feature, flaky, pytest, rfc, logger
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -73,6 +72,16 @@ class Test_Skips:
     def test_regular(self):
         assert is_not_skipped(Test_Class)
         assert is_not_skipped(Test_Class.test_good_method)
+
+
+class Test_PytestProxy:
+    def test_exposes_approved_apis(self):
+        assert callable(pytest.fixture)
+        assert callable(pytest.raises)
+        assert callable(pytest.mark.parametrize)
+
+    def test_hides_internal_force_skip_marker(self):
+        assert not hasattr(pytest.mark, "skip_if_xfail")
 
 
 if __name__ == "__main__":

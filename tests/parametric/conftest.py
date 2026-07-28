@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import uuid
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils import scenarios, logger
