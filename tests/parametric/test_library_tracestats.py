@@ -1,16 +1,15 @@
 import base64
 
-import numpy as np
 import msgpack
 import pytest
 
 
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
-from utils.docker_fixtures.spec.trace import find_root_span
-from utils import context, scenarios, features, logger
+from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
 
 parametrize = pytest.mark.parametrize
 
@@ -37,22 +36,27 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
     return msgpack.unpackb(base64.b64decode(raw_body))
 
 
-def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
-    env = {
-        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
-        "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-    }
-    if context.library == "golang" and context.library.version < "v1.55.0":
-        env["DD_TRACE_FEATURES"] = "discovery"
-    if sample_rate is not None:
-        assert 0 <= sample_rate <= 1.0
-        env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
+def _all_v06_stats_entries(test_agent: TestAgentAPI) -> list[dict]:
+    """Return every ClientGroupedStats entry across all /v0.6/stats requests and time buckets.
 
-    return parametrize("library_env", [env])
+    Stats are partitioned into time buckets and may span multiple requests, so callers that only
+    care about which entries were emitted (not per-bucket detail) should flatten first.
+    """
+    entries: list[dict] = []
+    found = False
+    for request in test_agent.requests():
+        if "v0.6/stats" not in request["url"]:
+            continue
+        found = True
+        body = msgpack.unpackb(base64.b64decode(request["body"]))
+        for bucket in body.get("Stats", []):
+            entries.extend(bucket.get("Stats", []))
+    assert found, "Could not find /v0.6/stats request in test agent transcript"
+    return entries
 
 
-def enable_agent_version(version: str = "7.65.0") -> pytest.MarkDecorator:
-    """Set the test agent version. Java tracer requires agent version >= 7.65.0 for client-side stats."""
+def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
+    """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
     return parametrize("agent_env", [agent_env_config])
 
@@ -367,51 +371,6 @@ class Test_Library_Tracestats:
 
     @enable_tracestats()
     @enable_agent_version()
-    def test_relative_error_TS008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When trace stats are computed for traces
-            The stats should be accurate to within 1% of the real values
-
-        Note that this test uses the duration of actual spans created and so this test could be flaky.
-        This flakyness however would indicate a bug in the trace stats computation.
-        """
-
-        with test_library:
-            # Create 10 traces to get more data
-            for _ in range(10):
-                with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                    pass
-
-        traces = test_agent.traces()
-        assert len(traces) == 10
-
-        durations: list[int] = []
-        for trace in traces:
-            span = find_root_span(trace)
-            assert span is not None
-            durations.append(span["duration"])
-
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) != 0, "Stats request should be sent"
-        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
-        stats = requests[0]["body"]["Stats"][0]["Stats"]
-        assert len(stats) == 1, "Only one stats aggregation is expected"
-
-        web_stats = [s for s in stats if s["Name"] == "web.request"][0]
-        assert web_stats["TopLevelHits"] == 10
-        assert web_stats["Hits"] == 10
-
-        # Validate the sketches
-        np_duration = np.array(durations)
-        assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
-        for quantile in (0.5, 0.75, 0.95, 0.99, 1):
-            assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                np.quantile(np_duration, quantile),
-                rel=0.01,
-            ), f"Quantile mismatch for quantile {quantile!r}"
-
-    @enable_tracestats()
-    @enable_agent_version()
     def test_metrics_computed_after_span_finsh_TS009(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -622,4 +581,49 @@ class Test_Library_Tracestats:
         )
         assert "partial.snapshot" not in names, (
             f"Spans with _dd.partial_version set must be excluded from stats, but found in {names}"
+        )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_eligibility_TS015(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Non-top-level spans with an eligible span.kind (server, client, producer, consumer) are
+        promoted into stats and tagged with their SpanKind; an ineligible kind (internal) is excluded.
+        """
+        # Non-top-level children (share the root's service) covering every eligible kind, including a
+        # server-kind child so span-kind promotion is exercised for server too, not just as the root.
+        eligible = {
+            "server.child": "server",
+            "client.call": "client",
+            "producer.publish": "producer",
+            "consumer.receive": "consumer",
+        }
+        service = "webserver"
+        with (
+            test_library,
+            test_library.dd_start_span(name="server.entry", resource="/entry", service=service) as root,
+        ):
+            root.set_meta(key="span.kind", val="server")
+            for name, kind in eligible.items():
+                with test_library.dd_start_span(
+                    name=name, resource=f"/{kind}", service=service, parent_id=root.span_id
+                ) as child:
+                    child.set_meta(key="span.kind", val=kind)
+            with test_library.dd_start_span(
+                name="internal.work", resource="/internal", service=service, parent_id=root.span_id
+            ) as internal:
+                internal.set_meta(key="span.kind", val="internal")
+
+        by_name = {s.get("Name"): s for s in _all_v06_stats_entries(test_agent)}
+
+        assert by_name.get("server.entry", {}).get("SpanKind") == "server", (
+            f"Expected server root in stats with SpanKind='server', got {by_name.get('server.entry')!r}"
+        )
+        for name, kind in eligible.items():
+            entry = by_name.get(name)
+            assert entry is not None, f"{kind} span ({name}) missing from stats: {set(by_name)}"
+            assert entry.get("SpanKind") == kind, (
+                f"Expected SpanKind={kind!r} for {name}, got {entry.get('SpanKind')!r}"
+            )
+        assert "internal.work" not in by_name, (
+            f"Non-top-level internal span must be excluded from stats, but found in {set(by_name)}"
         )

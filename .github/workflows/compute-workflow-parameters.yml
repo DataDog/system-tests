@@ -172,15 +172,18 @@ jobs:
 
         library_branch = ""
         agent_branch = ""
+        auto_inject_branch = ""
 
         if branch_map_str:
             branch_map = json.loads(branch_map_str)
             library_branch = branch_map.get(library, "")
             agent_branch = branch_map.get("agent", "")
+            auto_inject_branch = branch_map.get("auto_inject", "")
 
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
             f.write(f"library_branch={library_branch}\n")
             f.write(f"agent_branch={agent_branch}\n")
+            f.write(f"auto_inject_branch={auto_inject_branch}\n")
       env:
         TARGET_BRANCH_MAP: ${{ inputs._system_tests_library_target_branch_map }}
         LIBRARY: ${{ inputs.library }}
@@ -193,6 +196,7 @@ jobs:
       env:
         LIBRARY_TARGET_BRANCH: "${{ steps.extract_branch.outputs.library_branch }}"
         AGENT_TARGET_BRANCH: "${{ steps.extract_branch.outputs.agent_branch }}"
+        AUTO_INJECT_TARGET_BRANCH: "${{ steps.extract_branch.outputs.auto_inject_branch }}"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact

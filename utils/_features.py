@@ -2410,14 +2410,6 @@ class _Features:
         return _mark_test_object(test_object, feature_id=369, owner=_Owner.debugger)
 
     @staticmethod
-    def datastreams_monitoring_protobuf_schema_tracking(test_object):
-        """Dynamically enable debugger products
-
-        https://feature-parity.us1.prod.dog/#/?feature=371
-        """
-        return _mark_test_object(test_object, feature_id=371, owner=_Owner.dsm)  # apm/dsm
-
-    @staticmethod
     def trace_enablement(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
