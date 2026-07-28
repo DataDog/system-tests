@@ -111,6 +111,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_110_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_6_5_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
