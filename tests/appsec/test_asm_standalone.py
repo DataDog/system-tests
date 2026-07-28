@@ -5,6 +5,7 @@ import time
 
 from requests.structures import CaseInsensitiveDict
 
+from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SAMPLING_PRIORITY_KEY, SamplingPriority, TraceSource
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
@@ -779,6 +780,21 @@ class BaseSCAStandaloneTelemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
+
+
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_AppSecStandalone_APMDisabledMarker:
+    """Every span sent in standalone mode carries the APM-disabled billing marker."""
+
+    def setup_all_spans_have_apm_disabled_marker(self) -> None:
+        self.r = weblog.get("/")
+
+    def test_all_spans_have_apm_disabled_marker(self) -> None:
+        assert self.r.status_code == 200
+
+        spans = [span for _, trace in interfaces.library.get_traces(request=self.r) for span in trace]
+        assert_all_spans_have_apm_disabled_marker(spans)
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
