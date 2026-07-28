@@ -43,17 +43,21 @@ uuid = "1.23.4"
 # into no-ops. install_ddtrace.sh installs datadog-opentelemetry as the source
 # of truth (unbounded latest from crates.io, or a local /binaries checkout) and
 # then align_opentelemetry() repins the published family — opentelemetry*,
-# reqwest-tracing, tracing-opentelemetry — to the minor it resolves to.
+# reqwest-tracing, tracing-opentelemetry, and this crate — to the minor it
+# resolves to.
 #
 # opentelemetry-instrumentation-tower is on crates.io, but no released version
 # yet ships the HTTPLayer we need, so we depend on git instead. That means it
 # cannot be repinned by version/feature like the crates above: its OpenTelemetry
-# minor is whatever the git rev below depends on. When datadog-opentelemetry
-# moves to a new OpenTelemetry minor, bump this rev to a commit on the matching
-# minor; otherwise check_single_opentelemetry_version fails the build with an
-# actionable message. Once a crates.io release ships HTTPLayer, switch this back
-# to a version dependency and hand its pinning to install_ddtrace.sh's
-# align_opentelemetry(), like the other opentelemetry* crates.
+# minor is whatever the git rev below depends on. The rev pinned here (and
+# re-pinned to the same value by align_opentelemetry, as a plain `cargo build`
+# outside install_ddtrace.sh needs it too) is only known-good for OpenTelemetry
+# 0.32; align_opentelemetry has a TODO to pick a compatible rev automatically
+# once datadog-opentelemetry moves past that minor — until then it fails the
+# build with an actionable message. Once a crates.io release ships HTTPLayer,
+# switch this back to a version dependency and hand its pinning fully to
+# install_ddtrace.sh's align_opentelemetry(), like the other opentelemetry*
+# crates.
 opentelemetry-instrumentation-tower = { git = "https://github.com/open-telemetry/opentelemetry-rust-contrib", rev = "66bfea4", package = "opentelemetry-instrumentation-tower", features = ["axum"] }
 
 # datadog-opentelemetry: git rev only matters for a plain `cargo build` outside

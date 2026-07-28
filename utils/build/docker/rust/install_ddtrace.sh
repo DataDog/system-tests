@@ -13,11 +13,12 @@
 # differ between a released version and a local/git checkout), we can't just
 # pin it statically in Cargo.toml: we install it first, inspect what OTel
 # minor `cargo metadata` says it actually resolved to, then re-pin every
-# other OTel-related crate to that minor (align_opentelemetry), and finally
-# fail the build if `cargo metadata` still reports more than one
-# `opentelemetry` version (check_single_opentelemetry_version) — usually
-# because opentelemetry-instrumentation-tower, which is git-pinned in
-# axum/Cargo.toml, has drifted from that minor.
+# other OTel-related crate to that minor (align_opentelemetry) — including
+# opentelemetry-instrumentation-tower, which is git-only and currently
+# hardcoded to the rev known to match OTel 0.32 (see TODO in
+# align_opentelemetry) — and finally fail the build if `cargo metadata`
+# still reports more than one `opentelemetry` version
+# (check_single_opentelemetry_version).
 
 set -eu
 
@@ -153,6 +154,23 @@ align_opentelemetry() {
     if ! cargo add "tracing-opentelemetry@~${tracing_otel_minor}" >/dev/null 2>&1; then
         fail "no tracing-opentelemetry ~${tracing_otel_minor} on crates.io (needed for OpenTelemetry ${otel_minor}). Wait for that release or pin datadog-opentelemetry to a compatible OTel minor."
     fi
+
+    # opentelemetry-instrumentation-tower: git-only (no crates.io release ships
+    # HTTPLayer yet), so it can't be repinned by version/feature like the deps
+    # above. rev 66bfea4 is known-good for opentelemetry 0.32.
+    # TODO: once datadog-opentelemetry moves past OTel 0.32, we need a real
+    # strategy for picking a compatible rev (e.g. walk opentelemetry-rust-contrib
+    # commits/tags until one resolves to the target minor) instead of this
+    # hardcoded pin.
+    if [[ "$otel_minor_num" -gt 32 ]]; then
+        fail "opentelemetry-instrumentation-tower has no known rev for OpenTelemetry ${otel_minor} (only 0.32 is hardcoded). Update install_ddtrace.sh with a rev-selection strategy for this minor."
+    fi
+
+    cargo remove opentelemetry-instrumentation-tower >/dev/null 2>&1 || true
+    if ! cargo add --git https://github.com/open-telemetry/opentelemetry-rust-contrib --rev 66bfea4 \
+        --package opentelemetry-instrumentation-tower --features axum >/dev/null 2>&1; then
+        fail "could not install opentelemetry-instrumentation-tower from opentelemetry-rust-contrib@66bfea4."
+    fi
 }
 align_opentelemetry
 
@@ -167,7 +185,7 @@ check_single_opentelemetry_version() {
     fi
 
     if [[ $(echo "$versions" | grep -c .) -gt 1 ]]; then
-        fail "incompatible OpenTelemetry versions resolved: ${versions//$'\n'/, }. align_opentelemetry() already tracks the published crates (opentelemetry*, reqwest-tracing, tracing-opentelemetry) to whatever datadog-opentelemetry resolves, so the usual culprit is opentelemetry-instrumentation-tower: it is git-only (not on crates.io) and its OpenTelemetry minor is fixed by the pinned rev in axum/Cargo.toml. Bump that git rev to one depending on the same opentelemetry minor as datadog-opentelemetry (or use a compatible dd-trace-rs revision)."
+        fail "incompatible OpenTelemetry versions resolved: ${versions//$'\n'/, }. align_opentelemetry() already re-pins the published crates (opentelemetry*, reqwest-tracing, tracing-opentelemetry) and opentelemetry-instrumentation-tower to whatever datadog-opentelemetry resolves, so the usual culprit is that opentelemetry-instrumentation-tower's hardcoded rev (66bfea4, pinned for OTel 0.32) no longer matches — see the TODO in align_opentelemetry for picking a compatible rev, or use a dd-trace-rs revision that resolves back to OTel 0.32."
     fi
 }
 check_single_opentelemetry_version
