@@ -63,3 +63,10 @@ When adding a new weblog, verify the name is unique across all languages. Search
 - `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`)
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted
 - Entries should be sorted alphabetically within each manifest file
+
+## 11. New decorators
+
+PRs should not typically create new decorators. If a PR centered around creating, editing, activating or deactivating tests creates new decorators, it is most likely an error and you should comment with the correct approach.
+One exception to that would be creating a new scenario.
+
+- Ref: [skip-tests.md](mdc:docs/edit/skip-tests.md)
