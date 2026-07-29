@@ -1,5 +1,5 @@
 import contextlib
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from pathlib import Path
 from typing import TextIO
 from urllib.parse import urlparse
@@ -44,7 +44,7 @@ def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
     return fixed_volumes
 
 
-def extra_hosts_for_environment(env: dict[str, str]) -> dict[str, str] | None:
+def extra_hosts_for_environment(env: Mapping[str, str | None]) -> dict[str, str] | None:
     for value in env.values():
         if urlparse(str(value)).hostname == HOST_DOCKER_INTERNAL:
             return dict(HOST_GATEWAY_EXTRA_HOSTS)
