@@ -6,6 +6,7 @@ import static java.util.Collections.emptyMap;
 import com.datadoghq.system_tests.iast.utils.*;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -397,6 +398,21 @@ public class MyResource {
         headers.getRequestHeaders().forEach((name, values) ->
             values.forEach(value -> System.out.println(name + ": " + value)));
         return Response.status(statusCode).entity("ok").build();
+    }
+
+    @GET
+    @Path("/trace/manual_keep_drop")
+    public Response traceManualKeepDrop(@QueryParam("decision") String decision) {
+        if (!"keep".equals(decision) && !"drop".equals(decision)) {
+            return Response.status(400).entity("decision must be keep or drop").build();
+        }
+
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+        }
+
+        return Response.ok("OK").build();
     }
 
     @GET
