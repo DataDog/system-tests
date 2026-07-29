@@ -668,7 +668,7 @@ class Test_Library_Tracestats:
         # Collapse-not-discard: an overflow row keyed by the sentinel appears. This holds for both limiting
         # strategies (per-field folds `resource` to the sentinel; whole-key also sets `resource` to it).
         assert "tracer_blocked_value" in resources, (
-            f"expected an overflow entry keyed by 'tracer_blocked_value', got resources: {sorted(set(resources))}"
+            f"expected an overflow entry keyed by 'tracer_blocked_value', got resources: {sorted(map(str, set(resources)))}"
         )
         # Totals are preserved through collapsing: every eligible top-level span is still counted.
         total_hits = sum(e.get("Hits", 0) for e in entries)
