@@ -9,6 +9,7 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
+const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -212,6 +213,18 @@ app.get('/session/new', (req, res) => {
 
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code) || 400).send('OK')
+})
+
+app.get('/trace/manual_keep_drop', (req, res) => {
+  const decision = req.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop')
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  res.send('OK')
 })
 
 app.get('/make_distant_call', (req, res) => {
