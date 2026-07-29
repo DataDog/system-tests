@@ -1416,6 +1416,9 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
+    - declaration: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-go implements collapsing to the tracer_blocked_value sentinel and DD_TRACE_STATS_*_CARDINALITY_LIMIT from v2.11.0 via #5032)"
+      component_version: '<2.11.0-dev'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
     - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
       component_version: '<=2.10.0-dev'

@@ -905,6 +905,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
     - declaration: missing_feature
       component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: missing_feature
       component_version: '<3.43.0'

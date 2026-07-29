@@ -2123,6 +2123,7 @@ manifest:
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : "missing_feature (\"Issue: the decision maker is removed. Is that allowed behavior?\")"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-js does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: "missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: "missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-js does not filter spans with _dd.partial_version metric set; span_stats.js onSpanFinished only filters by TOP_LEVEL_KEY/MEASURED)"
