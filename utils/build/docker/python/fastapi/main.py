@@ -37,6 +37,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from openfeature import api
 from ddtrace.openfeature import DataDogProvider
 from openfeature.evaluation_context import EvaluationContext
@@ -427,6 +429,17 @@ async def stats_unique(code: int = 200):
     if code == 204:
         return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
+
+
+@app.get("/trace/manual_keep_drop")
+def trace_manual_keep_drop(decision: str = ""):
+    if decision not in ("keep", "drop"):
+        return PlainTextResponse("decision must be keep or drop", status_code=400)
+
+    span = tracer.current_span()
+    span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+    return PlainTextResponse("OK")
 
 
 @app.get("/make_distant_call")
