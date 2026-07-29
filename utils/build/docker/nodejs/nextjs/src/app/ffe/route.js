@@ -4,8 +4,9 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 let openFeatureClient = null
+let openFeatureClientPromise = null
 
-function getOpenFeatureClient () {
+async function getOpenFeatureClient () {
   if (openFeatureClient) {
     return openFeatureClient
   }
@@ -15,14 +16,24 @@ function getOpenFeatureClient () {
     return null
   }
 
-  OpenFeature.setProvider(tracer.openfeature)
-  openFeatureClient = OpenFeature.getClient()
-  return openFeatureClient
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 export async function POST (request) {
   try {
-    const client = getOpenFeatureClient()
+    const client = await getOpenFeatureClient()
     if (!client) {
       return NextResponse.json({ error: 'FFE provider not initialized' }, { status: 500 })
     }

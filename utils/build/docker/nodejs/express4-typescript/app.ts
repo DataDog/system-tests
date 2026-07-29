@@ -525,9 +525,10 @@ app.get('/external_request/redirect', (req: Request, res: Response) => {
 require('./rasp')(app)
 
 let openFeatureClient: Client | null = null
+let openFeatureProviderReady = Promise.resolve()
 
 if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  OpenFeature.setProvider(tracer.openfeature)
+  openFeatureProviderReady = OpenFeature.setProviderAndWait(tracer.openfeature)
   openFeatureClient = OpenFeature.getClient()
 }
 
@@ -571,7 +572,9 @@ app.post('/ffe', async (req: Request, res: Response) => {
   }
 })
 
-const startServer = () => {
+const startServer = async () => {
+  await openFeatureProviderReady
+
   return new Promise((resolve) => {
     const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
       if (req.url?.startsWith('/resource_renaming')) {

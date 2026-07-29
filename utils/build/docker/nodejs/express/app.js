@@ -834,11 +834,12 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 })
 
 let openFeatureClient = null
+let openFeatureProviderReady = Promise.resolve()
 
 // Initialize OpenFeature provider if FFE is enabled
 if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
   const { openfeature } = tracer
-  OpenFeature.setProvider(openfeature)
+  openFeatureProviderReady = OpenFeature.setProviderAndWait(openfeature)
   openFeatureClient = OpenFeature.getClient()
 }
 
@@ -890,7 +891,9 @@ const initGraphQL = () => {
     : Promise.resolve()
 }
 
-const startServer = () => {
+const startServer = async () => {
+  await openFeatureProviderReady
+
   return new Promise((resolve) => {
     const server = http.createServer((req, res) => {
       if (req.url.startsWith('/resource_renaming')) {

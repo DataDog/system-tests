@@ -961,9 +961,10 @@ fastify.get('/external_request/redirect', async (request, reply) => {
 require('./rasp')(fastify)
 
 let openFeatureClient = null
+let openFeatureProviderReady = Promise.resolve()
 
 if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  OpenFeature.setProvider(tracer.openfeature)
+  openFeatureProviderReady = OpenFeature.setProviderAndWait(tracer.openfeature)
   openFeatureClient = OpenFeature.getClient()
 }
 
@@ -1013,6 +1014,7 @@ fastify.post('/ffe', async (request, reply) => {
 
 const startServer = async () => {
   try {
+    await openFeatureProviderReady
     await fastify.listen({ port: 7777, host: '0.0.0.0' })
     tracer.trace('init.service', () => {})
     console.log('listening')
