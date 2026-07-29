@@ -25,6 +25,7 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
