@@ -12,8 +12,9 @@ the warning below — to make sure the weblog actually runs somewhere.
 > **A weblog with no `categories` and no `supported_scenarios` matches zero scenarios.**
 > Scenario matching is deny-by-default: a weblog only runs in a scenario if they share a
 > category, or the scenario is explicitly listed in `supported_scenarios`. If you add a new
-> weblog Dockerfile and forget the `weblog_metadata.yml` entry, it will build in CI but never
-> be selected for any test. This is exactly what happened in
+> weblog Dockerfile and forget the `weblog_metadata.yml` entry, it is dropped before the CI
+> matrix is even generated — it won't appear in the build matrix or any test job. This is
+> exactly what happened in
 > [#7077](https://github.com/DataDog/system-tests/pull/7077): the `net-http-span-pool` golang
 > weblog was added via Dockerfile only, with no `categories`, and silently ran in zero scenarios.
 > It was only caught because a legacy allow-by-default matcher is still kept around for parity
@@ -28,7 +29,7 @@ the warning below — to make sure the weblog actually runs somewhere.
   build_mode: none | local | prebuild        # default: prebuild
   framework_versions: ["1.0.0", ...]         # optional; omit for non-integration-framework weblogs
   categories: [dd_trace, ...]                # optional; see "Scenario matching" below — default: [] (matches nothing)
-  supported_scenarios: [SCENARIO_NAME, ...]  # optional; explicit allow-list, takes precedence over categories
+  supported_scenarios: [SCENARIO_NAME, ...]  # optional; explicit opt-in, additive to categories (does not restrict them)
   excluded_scenarios: [SCENARIO_NAME, ...]   # optional; explicit deny-list, takes precedence over everything
 ```
 
@@ -56,7 +57,12 @@ that decision. The precedence, from `WeblogMetaData.support_scenario` in
 1. `excluded_scenarios` — if the scenario name is listed here, the weblog is excluded, full stop.
 2. `supported_scenarios` — if the scenario name is listed here, the weblog is included, even if
    no category matches.
-3. `categories` — otherwise, the weblog is included only if it shares a category with the scenario.
+3. `categories` — for any other scenario, the weblog is included if it shares a category with it.
+
+Note that `supported_scenarios` is additive, not restrictive: it only adds scenarios beyond
+whatever category matching already grants — it never narrows down what `categories` matches. A
+weblog with both fields set still matches every category-matched scenario, plus whatever is
+listed in `supported_scenarios`.
 
 ### `categories`
 
@@ -69,7 +75,13 @@ A list of `WeblogCategory` values (defined in `utils/_context/constants.py`):
 | `dd_trace_lambda` | dd-trace inside a lambda function |
 | `dd_trace_frameworks` | dd-trace instrumentation of multi-language frameworks (mostly AI) |
 | `open_telemetry` | Open Telemetry library |
-| `parametric` | Weblog shipping a dd-trace library with an interface dedicated to the PARAMETRIC scenario |
+
+`parametric` also exists on the enum, but it currently has no effect when used in a weblog's
+`categories:` list: PARAMETRIC-flavored scenarios are selected through a separate mechanism
+(`scenario.github_workflow`, unrelated to `WeblogMetaData`), so `support_scenario()` is never
+consulted for them via this path. Adding `categories: [parametric]` to a real weblog would also
+break `test_legacy_scenario_matrix` (the legacy matcher always returns `False` for non-endtoend
+scenarios, so it would disagree with the new matcher). Treat it as reserved — don't use it.
 
 ### `supported_scenarios` / `excluded_scenarios`
 
