@@ -4,6 +4,7 @@ import akka.stream.Materializer
 import akka.stream.javadsl.Sink
 import akka.util.ByteString
 import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.DDTags
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
 import play.api.libs.json.{JsValue, Json, Writes}
@@ -180,6 +181,18 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
         Results.Ok(data)
       case anything =>
         Results.Ok(anything.toString)
+    }
+  }
+
+  def traceManualKeepDrop(decision: String) = Action {
+    if (decision != "keep" && decision != "drop") {
+      Results.BadRequest("decision must be keep or drop")
+    } else {
+      val span = GlobalTracer.get().activeSpan()
+      if (span != null) {
+        span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
+      }
+      Results.Ok("OK")
     }
   }
 
