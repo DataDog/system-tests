@@ -2,6 +2,7 @@
 
 const tracer = require('dd-trace').init()
 
+const { OpenFeature } = require('@openfeature/server-sdk')
 const { promisify } = require('util')
 const axios = require('axios')
 const crypto = require('crypto')
@@ -958,6 +959,57 @@ fastify.get('/external_request/redirect', async (request, reply) => {
 })
 
 require('./rasp')(fastify)
+
+let openFeatureClient = null
+
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  OpenFeature.setProvider(tracer.openfeature)
+  openFeatureClient = OpenFeature.getClient()
+}
+
+fastify.post('/ffe', async (request, reply) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = request.body
+
+    if (!openFeatureClient) {
+      reply.status(500)
+      return { error: 'FFE provider not initialized' }
+    }
+
+    let value
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
+
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          reply.status(400)
+          return { error: `Unknown variation type: ${variationType}` }
+      }
+    }
+
+    reply.status(200)
+    return { value, count: keys.length }
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    reply.status(500)
+    return { error: error.message }
+  }
+})
 
 const startServer = async () => {
   try {

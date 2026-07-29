@@ -1,10 +1,12 @@
 'use strict'
 
 import { Request, Response } from "express";
+import type { Client } from '@openfeature/server-sdk'
 import http from 'http';
 
 const tracer = require('dd-trace').init();
 
+const { OpenFeature } = require('@openfeature/server-sdk')
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
@@ -521,6 +523,53 @@ app.get('/external_request/redirect', (req: Request, res: Response) => {
 })
 
 require('./rasp')(app)
+
+let openFeatureClient: Client | null = null
+
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  OpenFeature.setProvider(tracer.openfeature)
+  openFeatureClient = OpenFeature.getClient()
+}
+
+app.post('/ffe', async (req: Request, res: Response) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+
+    if (!openFeatureClient) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
+
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+      }
+    }
+
+    return res.status(200).json({ value, count: keys.length })
+  } catch (error: any) {
+    console.error('[FFE] Error:', error)
+    return res.status(500).json({ error: error.message })
+  }
+})
 
 const startServer = () => {
   return new Promise((resolve) => {
