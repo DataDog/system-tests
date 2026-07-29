@@ -1,0 +1,29 @@
+[importlinter]
+root_packages =
+    tests
+    utils
+include_external_packages = True
+contract_types =
+    no-cross-test-imports: import_linter_contracts.NoCrossTestImportsContract
+
+[importlinter:contract:pytest-facade]
+name = Tests use the approved pytest facade
+type = forbidden
+source_modules =
+    tests
+forbidden_modules =
+    pytest
+allow_indirect_imports = True
+
+[importlinter:contract:no-cross-test-imports]
+name = Test files do not import other test files
+type = no-cross-test-imports
+ignore_imports =
+    tests.appsec.api_security.test_apisecurity_telemetry -> tests.appsec.api_security.test_schemas
+    tests.appsec.waf.test_blocking -> tests.appsec.waf.test_blocking_security_response_id
+    tests.docker_ssi.test_docker_ssi -> tests.parametric.test_telemetry
+    tests.docker_ssi.test_docker_ssi_appsec -> tests.parametric.test_telemetry
+    tests.parametric.test_ffe.test_configuration_sources -> tests.parametric.test_ffe.test_dynamic_evaluation
+    tests.parametric.test_parametric_endpoints -> tests.parametric.test_dynamic_configuration
+    tests.test_telemetry -> tests.test_telemetry_heartbeat_utils
+    tests.test_the_test.test_telemetry_heartbeat -> tests.test_telemetry_heartbeat_utils

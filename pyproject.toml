@@ -41,6 +41,7 @@ python_files = "test_*.py *utils.py"
 [tool.mypy]
 python_version = "3.12"
 files = [
+    "import_linter_contracts.py",
     "utils/",
     "tests/",
     "conftest.py",
@@ -280,4 +281,3 @@ ignore = [
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
-
