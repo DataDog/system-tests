@@ -89,6 +89,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -166,12 +167,11 @@ public class App {
     Map<String, Object> healtchcheck() {
 
         String version;
-        ClassLoader cl = ClassLoader.getSystemClassLoader();
 
         try (final BufferedReader reader =
             new BufferedReader(
                 new InputStreamReader(
-                    cl.getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+                    new FileInputStream("/app/SYSTEM_TESTS_LIBRARY_VERSION"), StandardCharsets.ISO_8859_1))) {
             String line = reader.readLine();
             if (line == null) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");

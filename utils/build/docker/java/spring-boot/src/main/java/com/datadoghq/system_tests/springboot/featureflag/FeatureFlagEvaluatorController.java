@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +113,13 @@ public class FeatureFlagEvaluatorController {
         result.put("reason", reason);
         result.put("value", value);
         result.put("count", targetingKeys.size());
+        result.put("javaAgentAttached", javaAgentAttached());
         return ResponseEntity.ok(result);
+    }
+
+    private static boolean javaAgentAttached() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .anyMatch(argument -> argument.startsWith("-javaagent:"));
     }
 
     private static EvaluationContext context(final EvaluateRequest request, final String targetingKey) {

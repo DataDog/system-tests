@@ -26,7 +26,33 @@ configure_custom_jar() {
 configure_custom_jar "dd-trace-api*.jar" "dd-trace-api" "customDdTraceApi"
 
 # Look for custom dd-openfeature jar in custom binaries folder
-configure_custom_jar "dd-openfeature*.jar" "dd-openfeature" "customDdOpenfeature"
+CUSTOM_DD_OPENFEATURE_COUNT=$(find /binaries/ -name "dd-openfeature*.jar" 2>/dev/null | wc -l)
+if [ "$CUSTOM_DD_OPENFEATURE_COUNT" = 0 ]; then
+    echo "Using default dd-openfeature"
+elif [ "$CUSTOM_DD_OPENFEATURE_COUNT" = 1 ]; then
+    CUSTOM_DD_OPENFEATURE=$(find /binaries/ -name "dd-openfeature*.jar")
+    CUSTOM_DD_OPENFEATURE_POM_COUNT=$(find /binaries/ -name "dd-openfeature*.pom" 2>/dev/null | wc -l)
+    if [ "$CUSTOM_DD_OPENFEATURE_POM_COUNT" = 1 ]; then
+        CUSTOM_DD_OPENFEATURE_POM=$(find /binaries/ -name "dd-openfeature*.pom")
+        CUSTOM_DD_OPENFEATURE_VERSION=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' "$CUSTOM_DD_OPENFEATURE_POM" | head -1)
+        if [ -z "$CUSTOM_DD_OPENFEATURE_VERSION" ]; then
+            echo "Could not read the dd-openfeature version from ${CUSTOM_DD_OPENFEATURE_POM}"
+            exit 1
+        fi
+        echo "Using custom dd-openfeature and generated POM: ${CUSTOM_DD_OPENFEATURE}"
+        mvn -q -Dfile="$CUSTOM_DD_OPENFEATURE" -DpomFile="$CUSTOM_DD_OPENFEATURE_POM" install:install-file
+        MAVEN_PROFILES="$MAVEN_PROFILES -Ddd-openfeature.version=${CUSTOM_DD_OPENFEATURE_VERSION}"
+    elif [ "$CUSTOM_DD_OPENFEATURE_POM_COUNT" = 0 ]; then
+        echo "Using custom dd-openfeature without a generated POM: ${CUSTOM_DD_OPENFEATURE}"
+        MAVEN_PROFILES="$MAVEN_PROFILES -DcustomDdOpenfeature=${CUSTOM_DD_OPENFEATURE}"
+    else
+        echo "Too many dd-openfeature POM files within binaries folder"
+        exit 1
+    fi
+else
+    echo "Too many dd-openfeature jar files within binaries folder"
+    exit 1
+fi
 
 # Look for custom dd-java-agent jar in custom binaries folder
 CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)

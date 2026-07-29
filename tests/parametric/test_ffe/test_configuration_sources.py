@@ -105,6 +105,16 @@ def library_env(
     if configuration_source is not None:
         env["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] = str(configuration_source)
 
+    normalized_source = None if configuration_source is None else str(configuration_source).strip()
+    remote_config_selected = params.get("provider_enabled") is not False and (
+        normalized_source == "remote_config"
+        or (not normalized_source and params.get("legacy_provider_enabled") is True)
+    )
+    if "java_agent_enabled" in params:
+        env["SYSTEM_TESTS_JAVA_AGENT_ENABLED"] = str(params["java_agent_enabled"]).lower()
+    elif not remote_config_selected:
+        env["SYSTEM_TESTS_JAVA_AGENT_ENABLED"] = "false"
+
     if params.get("agentless", True):
         agentless_env = dict(AGENTLESS_ENVVARS)
         if "poll_interval" in params:
@@ -165,7 +175,13 @@ def _assert_ffe_remote_config_activation(test_agent: TestAgentAPI) -> None:
 
 def _assert_no_ffe_remote_config_activation(test_agent: TestAgentAPI) -> None:
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
-        capabilities = test_agent.wait_for_rc_capabilities()
+        try:
+            capabilities = test_agent.wait_for_rc_capabilities()
+        except AssertionError as error:
+            if str(error) == "RemoteConfig capabilities were empty":
+                assert RC_PRODUCT not in _remote_config_products(test_agent)
+                return
+            raise
         assert Capabilities.FFE_FLAG_CONFIGURATION_RULES not in capabilities
         assert RC_PRODUCT not in _remote_config_products(test_agent)
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
@@ -186,6 +202,11 @@ def _assert_expected_value(result: dict[str, Any]) -> None:
     assert result.get("value") == EVALUATION_CASE["expected_value"], "unexpected FFE evaluation value"
     assert result.get("errorCode") in {None, ""}
     assert result.get("reason") != "ERROR"
+
+
+def _assert_java_agent_attached(test_library: APMLibrary, result: dict[str, Any], *, expected: bool) -> None:
+    if test_library.lang == "java":
+        assert result["javaAgentAttached"] is expected
 
 
 def _assert_default_or_not_ready(result: dict[str, Any]) -> None:
@@ -236,7 +257,9 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         _assert_ffe_remote_config_activation(test_agent)
 
         assert test_library.ffe_start(), "failed to start FFE provider in remote_config mode"
-        _assert_expected_value(_evaluate(test_library))
+        result = _evaluate(test_library)
+        _assert_expected_value(result)
+        _assert_java_agent_attached(test_library, result, expected=True)
 
         _assert_no_mock_requests(mock_ffe_agentless_backend)
 
@@ -302,7 +325,9 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         _assert_no_ffe_remote_config_activation(test_agent)
 
         assert test_library.ffe_start(), "failed to start FFE provider in default agentless mode"
-        _assert_expected_value(_evaluate(test_library))
+        result = _evaluate(test_library)
+        _assert_expected_value(result)
+        _assert_java_agent_attached(test_library, result, expected=False)
 
         status = _wait_for_status(
             mock_ffe_agentless_backend,
@@ -312,6 +337,31 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
+
+    @parametrize(
+        "library_env",
+        [{"configuration_source": "agentless", "java_agent_enabled": True, "response": "valid"}],
+        indirect=True,
+    )
+    def test_agentless_positive_with_java_agent(
+        self,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+
+        assert test_library.ffe_start(), "failed to start FFE provider in agentless mode"
+        result = _evaluate(test_library)
+        _assert_expected_value(result)
+        _assert_java_agent_attached(test_library, result, expected=True)
+
+        status = _wait_for_status(
+            mock_ffe_agentless_backend,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "valid response request with Java agent",
+        )
+        assert status["last_auth_present"] is False
+        assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
         "library_env",

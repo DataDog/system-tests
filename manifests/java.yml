@@ -3272,7 +3272,7 @@ manifest:
   tests/ffe/test_agentless_configuration.py:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.65.0
+        spring-boot: v1.65.0-SNAPSHOT
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3765,7 +3765,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v1.48.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
-  tests/parametric/test_ffe/test_configuration_sources.py: v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py: v1.65.0-SNAPSHOT
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
