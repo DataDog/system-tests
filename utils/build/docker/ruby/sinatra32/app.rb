@@ -125,6 +125,16 @@ get '/status' do
   'Ok'
 end
 
+get '/trace/manual_keep_drop' do
+  decision = request.params['decision']
+  halt 400, 'decision must be keep or drop' unless %w[keep drop].include?(decision)
+
+  trace = Datadog::Tracing.active_trace
+  decision == 'keep' ? trace.keep! : trace.reject!
+
+  'OK'
+end
+
 get '/make_distant_call' do
   content_type :json
 
