@@ -75,6 +75,20 @@ class AppController extends AbstractController
         return new Response('', $code);
     }
 
+    #[Route('/trace/manual_keep_drop', name: 'trace_manual_keep_drop', methods: ['GET'])]
+    public function traceManualKeepDrop(Request $request): Response
+    {
+        $decision = $request->query->get('decision', '');
+        if ($decision !== 'keep' && $decision !== 'drop') {
+            return new Response('decision must be keep or drop', 400);
+        }
+
+        $span = \DDTrace\active_span();
+        $span->meta[$decision === 'keep' ? \DDTrace\Tag::MANUAL_KEEP : \DDTrace\Tag::MANUAL_DROP] = true;
+
+        return new Response('OK');
+    }
+
     #[Route('/make_distant_call', name: 'make_distant_call', methods: ['GET'])]
     public function makeDistantCall(Request $request): JsonResponse
     {
