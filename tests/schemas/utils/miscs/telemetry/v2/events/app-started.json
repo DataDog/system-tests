@@ -14,9 +14,44 @@
     "error": {
       "$ref": "/miscs/telemetry/common/objects/error.json"
     },
+    "products": {
+      "$ref": "/miscs/telemetry/common/objects/products.json"
+    },
+    "install_signature": {
+      "type": "object",
+      "properties": {
+        "install_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "additional_payload": {
       "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+    },
+    "dependencies": {
+      "$comment": "The intake rejects the whole app-started payload if this is non-empty in v2. Send app-dependencies-loaded instead. Present-but-empty is tolerated.",
+      "type": "array",
+      "maxItems": 0
+    },
+    "integrations": {
+      "$comment": "As for `dependencies`: the intake rejects a non-empty value in v2. Send app-integrations-change instead.",
+      "type": "array",
+      "maxItems": 0
     }
-  },
-  "required": ["configuration"]
+  }
 }
