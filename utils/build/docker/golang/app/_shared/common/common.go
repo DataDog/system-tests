@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/ext"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -26,6 +27,30 @@ func InitDatadog() {
 	span := tracer.StartSpan("init.service")
 	defer span.Finish()
 	span.SetTag("whip", "done")
+}
+
+// ManualKeepDrop forces the sampling decision of the trace the request belongs to,
+// based on the mandatory `decision` query parameter (either "keep" or "drop").
+func ManualKeepDrop(w http.ResponseWriter, r *http.Request) {
+	span, ok := tracer.SpanFromContext(r.Context())
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("no active span"))
+		return
+	}
+
+	switch r.URL.Query().Get("decision") {
+	case "keep":
+		span.SetTag(ext.ManualKeep, true)
+	case "drop":
+		span.SetTag(ext.ManualDrop, true)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("decision must be keep or drop"))
+		return
+	}
+
+	w.Write([]byte("OK"))
 }
 
 func ParseBody(r *http.Request) (interface{}, error) {
