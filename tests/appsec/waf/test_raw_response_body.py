@@ -12,7 +12,10 @@ class Test_RawResponseBody:
     """WAF detects attacks in raw HTTP response body (server.response.body.raw address)"""
 
     def setup_waf_detects_response_body(self):
-        self.r = weblog.get("/tag_value/server_response_body_raw_poison/200")
+        self.r = weblog.post(
+            "/tag_value/payload_in_response_body_raw_attack/200",
+            data="attack=server_response_body_raw_poison",
+        )
 
     def test_waf_detects_response_body(self):
         """WAF fires when the response body contains a known attack pattern"""
