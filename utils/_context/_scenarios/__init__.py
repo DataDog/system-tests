@@ -558,7 +558,10 @@ class _Scenarios:
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="Appsec standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -624,7 +627,10 @@ class _Scenarios:
             "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
-        doc="Source code vulnerability standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -638,7 +644,10 @@ class _Scenarios:
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="SCA standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -1406,7 +1415,10 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="AI Guard standalone mode",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="AI Guard standalone mode, with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

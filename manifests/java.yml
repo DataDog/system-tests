@@ -9,6 +9,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.65.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -3824,6 +3825,7 @@ manifest:
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-java does not honor DD_TRACE_STATS_CARDINALITY_LIMIT for client-side stats, so its default limit is not lowered and no overflow collapsing to the tracer_blocked_value sentinel occurs)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: irrelevant (dd-trace-java excludes partial snapshots via its internal longRunningVersion field)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
     - declaration: 'missing_feature (FIXME: Undefined behavior according the java tracer core team)'

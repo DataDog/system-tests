@@ -17,6 +17,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -1903,6 +1904,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:  # Modified by easy win activation script
     - declaration: missing_feature (failure 2.8.0)
       component_version: <4.3.1
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-py/libdatadog does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (failure 2.8.0)  # Created by easy win activation script
