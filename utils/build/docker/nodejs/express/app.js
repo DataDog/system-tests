@@ -9,7 +9,7 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
-const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const app = require('express')()

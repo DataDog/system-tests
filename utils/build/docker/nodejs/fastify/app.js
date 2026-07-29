@@ -1,7 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
-const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const axios = require('axios')
