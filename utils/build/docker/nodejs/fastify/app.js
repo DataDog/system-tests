@@ -1,6 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const axios = require('axios')
@@ -195,6 +196,19 @@ fastify.get('/session/new', async (request, reply) => {
 
 fastify.get('/status', async (request, reply) => {
   reply.status(parseInt(request.query.code))
+  return 'OK'
+})
+
+fastify.get('/trace/manual_keep_drop', async (request, reply) => {
+  const decision = request.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    reply.status(400)
+    return 'decision must be keep or drop'
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
   return 'OK'
 })
 
