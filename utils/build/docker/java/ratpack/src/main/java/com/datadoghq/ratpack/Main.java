@@ -7,6 +7,7 @@ import static ratpack.jackson.Jackson.json;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
@@ -172,6 +173,20 @@ public class Main {
                                 }
                                 response.getHeaders().add("content-language", "en-US");
                                 response.send("text/plain", "Response with more than 50 headers");
+                            })
+                            .get("trace/manual_keep_drop", ctx -> {
+                                String decision = ctx.getRequest().getQueryParams().get("decision");
+                                if (!"keep".equals(decision) && !"drop".equals(decision)) {
+                                    ctx.getResponse().status(400).send("decision must be keep or drop");
+                                    return;
+                                }
+
+                                final Span span = GlobalTracer.get().activeSpan();
+                                if (span != null) {
+                                    span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+                                }
+
+                                ctx.getResponse().status(200).send("OK");
                             })
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
