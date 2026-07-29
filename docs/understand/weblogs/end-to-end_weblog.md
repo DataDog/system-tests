@@ -559,6 +559,25 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
 }
 ```
 
+### GET /trace/manual_keep_drop
+
+This endpoint forces the sampling decision of the current trace, using the tracer's manual keep/drop
+API (the `manual.keep` / `manual.drop` tags, or the equivalent idiomatic call in the library) applied
+to the currently active span.
+
+It accepts a mandatory query parameter `decision`, whose value must be either:
+
+- `keep`: force the trace to be kept (`manual.keep`)
+- `drop`: force the trace to be dropped (`manual.drop`)
+
+Examples:
+
+- `GET /trace/manual_keep_drop?decision=keep`
+- `GET /trace/manual_keep_drop?decision=drop`
+
+The endpoint returns a `200` status code with a plain text body once the decision has been applied.
+Any other value for `decision`, or a missing `decision` parameter, returns a `400` status code.
+
 ### GET /dbm
 
 This endpoint executes database queries for [DBM supported libraries](https://docs.datadoghq.com/database_monitoring/guide/connect_dbm_and_apm/?tab=go#before-you-begin). A 200 response is returned if the query
