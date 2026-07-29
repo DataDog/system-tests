@@ -43,6 +43,18 @@ Route::get('/status', function (Request $request) {
     return response('', $code);
 });
 
+Route::get('/trace/manual_keep_drop', function (Request $request) {
+    $decision = $request->query('decision', '');
+    if ($decision !== 'keep' && $decision !== 'drop') {
+        return response('decision must be keep or drop', 400);
+    }
+
+    $span = \DDTrace\active_span();
+    $span->meta[$decision === 'keep' ? \DDTrace\Tag::MANUAL_KEEP : \DDTrace\Tag::MANUAL_DROP] = true;
+
+    return response('OK');
+});
+
 Route::get('/make_distant_call', function (Request $request) {
     $url = $request->query('url', '');
     if ($url === '') {
