@@ -23,6 +23,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/ffe/test_agentless_configuration.py: missing_feature (Rust is not in scope for v1 agentless server SDK coverage; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
@@ -181,6 +182,7 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: missing_feature (can't guarantee the order of strings in the tracestate since they came from the map.)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature  # Created by easy win activation script

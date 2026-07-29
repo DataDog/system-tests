@@ -3,6 +3,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -1125,6 +1126,7 @@ manifest:
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
+  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
@@ -1414,6 +1416,9 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
+    - declaration: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-go implements collapsing to the tracer_blocked_value sentinel and DD_TRACE_STATS_*_CARDINALITY_LIMIT from v2.11.0 via #5032)"
+      component_version: '<2.11.0-dev'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:
     - declaration: missing_feature (CSS v1.2.0 - dd-trace-go does not set payload-level RuntimeID; stats.go PayloadAggregationKey omits it)
       component_version: '<=2.10.0-dev'
