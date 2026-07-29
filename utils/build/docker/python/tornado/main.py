@@ -20,8 +20,7 @@ import xmltodict
 from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
-from ddtrace.constants import MANUAL_DROP_KEY
-from ddtrace.constants import MANUAL_KEEP_KEY
+from ddtrace.constants import MANUAL_DROP_KEY, MANUAL_KEEP_KEY
 from ddtrace.contrib.trace_utils import set_user
 from ddtrace.openfeature import DataDogProvider
 from ddtrace.trace import tracer
