@@ -13,6 +13,7 @@ import com.datadoghq.vertx3.rasp.Api10RouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -404,6 +405,20 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+        router.get("/trace/manual_keep_drop").handler(ctx -> {
+            String decision = ctx.request().getParam("decision");
+            if (!"keep".equals(decision) && !"drop".equals(decision)) {
+                ctx.response().setStatusCode(400).end("decision must be keep or drop");
+                return;
+            }
+
+            final Span span = GlobalTracer.get().activeSpan();
+            if (span != null) {
+                span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+            }
+
+            ctx.response().end("OK");
+        });
         router.get("/make_distant_call").handler(ctx -> {
             String url = ctx.request().getParam("url");
             JsonObject requestHeaders = new JsonObject();
