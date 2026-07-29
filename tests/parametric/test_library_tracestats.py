@@ -647,8 +647,7 @@ class Test_Library_Tracestats:
     def test_cardinality_overflow_sentinel_TS017(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When stats cardinality exceeds the configured limit, the excess must collapse into an overflow
         bucket keyed by the sentinel `tracer_blocked_value` rather than be dropped, and service-level totals
-        must stay correct. CSS Cardinality Limits RFC §1. The numeric limit, eviction strategy, and
-        per-field vs whole-key choice are SDK policy and are deliberately not asserted.
+        must stay correct. The numeric limit, eviction strategy, and per-field vs whole-key choice are SDK policy and are deliberately not asserted.
         """
         n = 50  # well above the configured limit of 10, so collapsing must engage
         with test_library:
