@@ -483,6 +483,42 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agentless_ffe_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_agentless_configuration.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "",
+        )
+
+    def test_agentless_ffe_mocked_backend_file(self):
+        inputs = build_inputs(modified_files=["utils/mocked_backend/ffe.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,PARAMETRIC",
+            "",
+        )
+
+    def test_end_to_end_scenario_framework_file(self):
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/endtoend.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "end_to_end",
+        )
+
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 
@@ -567,9 +603,9 @@ class Test_GitLabMode:
 
     @pytest.mark.parametrize(
         ("source", "ref"),
-        [("push", "main"), ("schedule", "main")],
+        [("push", "some_branch"), ("schedule", "main"), ("schedule", "some_branch")],
     )
-    def test_main_and_scheduled_pipelines_select_python(
+    def test_non_main_and_scheduled_pipelines_do_not_select_python(
         self,
         monkeypatch: pytest.MonkeyPatch,
         source: str,
@@ -578,6 +614,17 @@ class Test_GitLabMode:
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
         monkeypatch.setenv("CI_COMMIT_REF_NAME", ref)
+        inputs = build_inputs()
+
+        assert 'libraries="python"' not in process(inputs)
+
+    def test_main_pipelines_select_python(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
         inputs = build_inputs()
 
         assert 'libraries="python"' in process(inputs)
