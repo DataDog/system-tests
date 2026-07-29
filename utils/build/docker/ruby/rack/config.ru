@@ -152,6 +152,24 @@ module Status
   end
 end
 
+# /trace/manual_keep_drop
+module TraceManualKeepDrop
+  module_function
+
+  def run(request)
+    decision = request.params['decision']
+
+    unless %w[keep drop].include?(decision)
+      return [400, { 'Content-Type' => 'text/plain' }, ['decision must be keep or drop']]
+    end
+
+    trace = Datadog::Tracing.active_trace
+    decision == 'keep' ? trace.keep! : trace.reject!
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
 # /make_distant_call
 module MakeDistantCall
   module_function
@@ -538,6 +556,8 @@ app = proc do |env|
     Identify.run
   elsif request.path.include?('/status')
     Status.run(request)
+  elsif request.path == '/trace/manual_keep_drop'
+    TraceManualKeepDrop.run(request)
   elsif request.path == '/make_distant_call'
     MakeDistantCall.run(request)
   elsif request.path == '/user_login_success_event'
