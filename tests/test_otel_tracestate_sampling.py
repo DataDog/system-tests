@@ -325,6 +325,16 @@ class Test_ForwardInboundOtUnchanged:
                 "tracestate": f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH};foo:bar",
             },
         )
+        # Unknown-only variant: an ot= with no rv/th carries no sampling decision, so its sub-key must
+        # still be forwarded verbatim and DD must not mistake it for a decision by fabricating rv/th.
+        self.unknown_only_request = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=True),
+                "tracestate": "dd=s:2;t.dm:-3,ot=foo:bar",
+            },
+        )
 
     def test_forward_inbound_ot_unknown_subkey(self):
         assert self.unknown_subkey_request.status_code == 200
@@ -336,6 +346,12 @@ class Test_ForwardInboundOtUnchanged:
             "an unknown inbound ot= sub-key was dropped instead of forwarded verbatim "
             "(OTEP 235 reserves room for future sub-keys; tracers must be transparent to them)"
         )
+
+        assert self.unknown_only_request.status_code == 200
+        ot_only = _parse_ot(_outbound_tracestate(self.unknown_only_request))
+        assert ot_only.get("foo") == "bar", "an unknown-only inbound ot= sub-key was dropped instead of forwarded verbatim"
+        assert "rv" not in ot_only, "rv was fabricated for an ot= that carried no sampling decision"
+        assert "th" not in ot_only, "th was fabricated for an ot= that carried no sampling decision"
 
 
 @scenarios.default
