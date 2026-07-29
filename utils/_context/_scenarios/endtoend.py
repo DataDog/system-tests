@@ -466,9 +466,9 @@ class EndToEndScenario(DockerScenario):
         else:
             self._wait_interface(interfaces.library, 0 if is_empty_test_run else self.library_interface_timeout)
 
-            # An empty selection has no test-generated data to flush. This also avoids waiting on
-            # Agent-backed writers in scenarios that intentionally do not start an Agent.
-            self.weblog_infra.stop(flush=not is_empty_test_run)
+            # An empty selection has no test-generated data to flush. An Agentless scenario also
+            # has no Agent-backed writer target, so its flush endpoint can only time out.
+            self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
