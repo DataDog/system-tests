@@ -19,6 +19,20 @@ def _upstream_headers(sampling_priority: SamplingPriority) -> dict[str, str]:
     }
 
 
+def _assert_upstream_trace_continued(request: HttpResponse) -> None:
+    """Without this check, a weblog that does not extract the upstream context at all would start a
+    fresh trace, and the manual decision alone would still yield the expected priority.
+    """
+    spans = [span for _, _, span in interfaces.library.get_spans(request=request)]
+    assert spans, "No span reported for that request"
+
+    trace_ids = {span["trace_id"] for span in spans}
+    assert trace_ids == {UPSTREAM_TRACE_ID}, f"Spans do not belong to the upstream trace: {trace_ids}"
+
+    parent_ids = {span.get("parent_id") for span in spans}
+    assert UPSTREAM_PARENT_ID in parent_ids, f"No span is a child of the upstream span: {parent_ids}"
+
+
 def _get_sampling_priority(request: HttpResponse) -> int:
     """Sampling priority is reported on the local root span of the trace chunk, which is the
     weblog span here, as the trace is continued from an upstream service.
@@ -49,6 +63,7 @@ class Test_Manual_Sampling:
 
     def test_manual_keep_overrides_upstream_drop(self):
         assert self.r_keep.status_code == 200
+        _assert_upstream_trace_continued(self.r_keep)
         assert _get_sampling_priority(self.r_keep) == SamplingPriority.USER_KEEP
 
     def setup_manual_drop_overrides_upstream_keep(self):
@@ -60,4 +75,5 @@ class Test_Manual_Sampling:
 
     def test_manual_drop_overrides_upstream_keep(self):
         assert self.r_drop.status_code == 200
+        _assert_upstream_trace_continued(self.r_drop)
         assert _get_sampling_priority(self.r_drop) == SamplingPriority.USER_REJECT
