@@ -65,6 +65,16 @@ class SystemTestController < ApplicationController
     render plain: File.read(params[:file])
   end
 
+  def trace_manual_keep_drop
+    decision = params[:decision]
+    return render plain: 'decision must be keep or drop', status: 400 unless %w[keep drop].include?(decision)
+
+    trace = Datadog::Tracing.active_trace
+    decision == 'keep' ? trace.keep! : trace.reject!
+
+    render plain: 'OK'
+  end
+
   def make_distant_call
     url = params[:url]
     uri = URI(url)
