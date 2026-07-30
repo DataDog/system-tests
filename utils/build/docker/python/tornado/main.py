@@ -281,7 +281,7 @@ class TagValueHandler(BaseHandler):
 
 
 class TraceManualKeepDropHandler(BaseHandler):
-    def get(self) -> None:
+    async def get(self) -> None:
         decision = self.get_argument("decision", "")
         if decision not in ("keep", "drop"):
             self.set_status(HTTPStatus.BAD_REQUEST)
@@ -291,7 +291,20 @@ class TraceManualKeepDropHandler(BaseHandler):
         span = tracer.current_span()
         span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
 
-        self.write("OK")
+        # Call downstream so that tests can assert on the sampling decision that gets propagated
+        url = "http://localhost:7777/"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+
+        result = {
+            "url": url,
+            "status_code": response.status_code,
+            "request_headers": dict(response.request.headers),
+            "response_headers": dict(response.headers),
+        }
+
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(result))
 
 
 class MakeDistantCallHandler(BaseHandler):
