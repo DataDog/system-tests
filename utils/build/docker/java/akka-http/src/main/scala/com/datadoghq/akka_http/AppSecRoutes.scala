@@ -204,7 +204,8 @@ object AppSecRoutes {
               if (span != null) {
                 span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
               }
-              complete(StatusCodes.OK, "OK")
+              // Call downstream so that tests can assert on the sampling decision that gets propagated
+              complete(StatusCodes.OK, makeDistantCall("http://localhost:7777/"))(Marshaller.futureMarshaller(jsonMarshaller))
             }
           }
         }
