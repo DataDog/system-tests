@@ -122,7 +122,6 @@ system_tests_build_{{library}}_{{variant}}:
 {% endfor %}
 {% for variant, scenario, build_required in scenario_pairs %}
 system_tests_run_{{library}}_{{scenario}}_{{variant}}:
-  timeout: 10 minutes
   variables:
     KUBERNETES_CPU_REQUEST: 0.5
     KUBERNETES_MEMORY_REQUEST: 1.3Gi
