@@ -1,5 +1,5 @@
 
-FROM datadog/system-tests:php-fpm-7.1.base-v1
+FROM datadog/system-tests:php-fpm-7.1.base-00d393cf23f8
 
 ARG PHP_VERSION=7.1
 

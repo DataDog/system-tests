@@ -190,38 +190,74 @@ images:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1
     tag: nodejs_buddy-v1
+  datadog/system-tests:php-fpm-7.0.base-061d55ceca9c:
+    digest: sha256:eda78f4ea4d3e141ed94ecab8f97d307099836d77c034e678cd63dc2151bca76
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.0.base-061d55ceca9c
+    tag: php-fpm-7.0.base-061d55ceca9c
   datadog/system-tests:php-fpm-7.0.base-v1:
     digest: sha256:ca3e2cd0e0e1c39c5008213bac2f4130b43499eb5f6392173c02791e1cbbba95
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.0.base-v1
     tag: php-fpm-7.0.base-v1
+  datadog/system-tests:php-fpm-7.1.base-00d393cf23f8:
+    digest: sha256:53a24beecdbe32e8427e8b2cef7456e57874c2850515607f5029c64cbd456322
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.1.base-00d393cf23f8
+    tag: php-fpm-7.1.base-00d393cf23f8
   datadog/system-tests:php-fpm-7.1.base-v1:
     digest: sha256:8efdc58bed6abc510b5b86c92f01fb1c361e9c2a0ceaa11de518ac4cbcbc9b49
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.1.base-v1
     tag: php-fpm-7.1.base-v1
+  datadog/system-tests:php-fpm-7.2.base-b4627a0205b4:
+    digest: sha256:149a994c2c19649ea860b6557026aed445103ad386630d30eac77638572f8532
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.2.base-b4627a0205b4
+    tag: php-fpm-7.2.base-b4627a0205b4
   datadog/system-tests:php-fpm-7.2.base-v1:
     digest: sha256:b0d8cdd1d6fcddcb6e67b5006f08b9c176196ad02ecebab97163b26b313d75ec
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.2.base-v1
     tag: php-fpm-7.2.base-v1
+  datadog/system-tests:php-fpm-7.3.base-a1fc7952b214:
+    digest: sha256:57690015a19beee6f6838fbc94299a8040020a04eaa49eab94ba87897172e4e8
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.3.base-a1fc7952b214
+    tag: php-fpm-7.3.base-a1fc7952b214
   datadog/system-tests:php-fpm-7.3.base-v1:
     digest: sha256:a2f396b7f1a4a74212c899c5782a5cbef48e3d581cccaede210b4088b1db2e29
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.3.base-v1
     tag: php-fpm-7.3.base-v1
+  datadog/system-tests:php-fpm-7.4.base-5b869d6d8a7d:
+    digest: sha256:04cf5ac0c3e9e9549e903b49794a0ebd0ed87219676f0833fb1c6d3e6900e90d
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.4.base-5b869d6d8a7d
+    tag: php-fpm-7.4.base-5b869d6d8a7d
   datadog/system-tests:php-fpm-7.4.base-v1:
     digest: sha256:65b4f41685a53e04ea090b5a5d6d36ed439f62806340dd2fd402d932556c0a00
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.4.base-v1
     tag: php-fpm-7.4.base-v1
+  datadog/system-tests:php-fpm-8.0.base-1069086bad21:
+    digest: sha256:d85f8630f5f3c36f438b42b84a45c304596c2de6324296574cff92d7bd1a498f
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.0.base-1069086bad21
+    tag: php-fpm-8.0.base-1069086bad21
   datadog/system-tests:php-fpm-8.0.base-v1:
     digest: sha256:71cc5b9746c6271641ee7f56408476bb5457277e5d24d4c646f6b41807f5eca6
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.0.base-v1
     tag: php-fpm-8.0.base-v1
+  datadog/system-tests:php-fpm-8.1.base-355df2b4c95e:
+    digest: sha256:45cabd71dd9b11eeb172bd0a374a8310aae1e7dc1a33b95f5be8b29b651350e6
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.1.base-355df2b4c95e
+    tag: php-fpm-8.1.base-355df2b4c95e
   datadog/system-tests:php-fpm-8.1.base-v1:
     digest: sha256:abc6845df939364b5179c7c513366462426a75e30e7a69fe4d91ce860e7e2411
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.1.base-v1
     tag: php-fpm-8.1.base-v1
+  datadog/system-tests:php-fpm-8.2.base-5f3f95d8440e:
+    digest: sha256:a6b89923e7013c2e65d685fef12e16d02706768495d9ebb426d7f50ea073bb22
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.2.base-5f3f95d8440e
+    tag: php-fpm-8.2.base-5f3f95d8440e
   datadog/system-tests:php-fpm-8.2.base-v1:
     digest: sha256:c716acd35cf91cb8b1c646047372c85868657d29576aaa1fdfb43c754a4bea84
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.2.base-v1
     tag: php-fpm-8.2.base-v1
+  datadog/system-tests:php-fpm-8.5.base-ce7071f41479:
+    digest: sha256:6be566588db25f2ab26de4f53477af5b958b8ee3935b0a12c0b917383b5fa2cf
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.5.base-ce7071f41479
+    tag: php-fpm-8.5.base-ce7071f41479
   datadog/system-tests:php-fpm-8.5.base-v1:
     digest: sha256:d5ffab83a326dcd2f2d106949a3ff63a290fe396e3753cad221a5cb5d3ea4fc7
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.5.base-v1
