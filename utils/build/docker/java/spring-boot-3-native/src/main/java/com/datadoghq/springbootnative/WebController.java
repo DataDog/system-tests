@@ -178,7 +178,7 @@ public class WebController {
   }
 
   @RequestMapping("/trace/manual_keep_drop")
-  ResponseEntity<String> traceManualKeepDrop(@RequestParam String decision) {
+  ResponseEntity<?> traceManualKeepDrop(@RequestParam String decision) throws Exception {
     if (!"keep".equals(decision) && !"drop".equals(decision)) {
       return ResponseEntity.badRequest().body("decision must be keep or drop");
     }
@@ -188,7 +188,8 @@ public class WebController {
       span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
     }
 
-    return ResponseEntity.ok("OK");
+    // Call downstream so that tests can assert on the sampling decision that gets propagated
+    return ResponseEntity.ok(make_distant_call("http://localhost:7777/"));
   }
 
   @RequestMapping("/make_distant_call")
