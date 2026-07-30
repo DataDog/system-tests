@@ -72,7 +72,24 @@ class SystemTestController < ApplicationController
     trace = Datadog::Tracing.active_trace
     decision == 'keep' ? trace.keep! : trace.reject!
 
-    render plain: 'OK'
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = 'http://localhost:7777/'
+    uri = URI(url)
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    render json: {
+      "url": url,
+      "status_code": response.code.to_i,
+      "request_headers": request.each_header.to_h,
+      "response_headers": response.each_header.to_h,
+    }
   end
 
   def make_distant_call
