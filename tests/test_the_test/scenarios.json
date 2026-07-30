@@ -5079,6 +5079,9 @@
   "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default[library_env0]": [
     "PARAMETRIC"
   ],
+  "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags[library_env0]": [
+    "PARAMETRIC"
+  ],
   "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_under_limit_one_payload[library_env0]": [
     "PARAMETRIC"
   ],
