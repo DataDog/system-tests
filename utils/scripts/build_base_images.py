@@ -55,6 +55,8 @@ _MANIFEST_INSPECT_RETRY_DELAY_SECONDS = 5.0
 _MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
 _SUPPORTED_BAKE_FIELDS = {"args", "context", "dockerfile", "tags"}
 _BASE_TAG_PREFIX = "datadog/system-tests:"
+_REGULAR_FILE_MODE = 0o644
+_EXECUTABLE_FILE_MODE = 0o755
 
 
 def _bake_file(library: str) -> Path:
@@ -195,7 +197,7 @@ def compute_hash(build_dir: Path, bake_config: dict) -> str:
 
     for file in sorted(p for p in build_dir.rglob("*") if p.is_file()):
         digest.update(str(file.relative_to(build_dir)).encode())
-        digest.update(stat.S_IMODE(file.lstat().st_mode).to_bytes(4, "big"))
+        digest.update(_normalized_file_mode(file).to_bytes(4, "big"))
         digest.update(file.read_bytes())
 
     return digest.hexdigest()[:_CONTENT_HASH_LENGTH]
@@ -264,13 +266,25 @@ def _lock_drift(prospective: dict[str, str], lock_path: Path = LOCK_PATH, *, ful
     return True
 
 
+def _normalized_file_mode(path: Path) -> int:
+    """Return the file mode represented by Git: regular or executable."""
+    return _EXECUTABLE_FILE_MODE if path.stat().st_mode & stat.S_IXUSR else _REGULAR_FILE_MODE
+
+
 def _link_or_copy(source: Path, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        os.link(source, dest)
-    except OSError:
-        # e.g. source and dest are on different filesystems
-        shutil.copy2(source, dest)
+    normalized_mode = _normalized_file_mode(source)
+    if stat.S_IMODE(source.stat().st_mode) == normalized_mode:
+        try:
+            os.link(source, dest)
+            return
+        except OSError:
+            pass  # e.g. source and dest are on different filesystems
+
+    # A hardlink cannot be chmodded without mutating the checkout. Copy when
+    # the checkout's umask produced permissions Git does not represent.
+    shutil.copy2(source, dest)
+    dest.chmod(normalized_mode)
 
 
 def materialize_build_context(

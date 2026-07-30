@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -585,6 +586,24 @@ class Test_MaterializeBuildContext:
             Path(dockerfile.name),
         ]
 
+    def test_permissions_are_normalized_without_mutating_source(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(build_base_images, "BUILD_CONTEXT_ROOT", tmp_path / "build")
+        source = tmp_path / "app.js"
+        source.write_text("")
+        source.chmod(0o664)
+        dockerfile = _write_dockerfile(
+            tmp_path,
+            """\
+            FROM node:18-alpine
+            COPY app.js .
+            """,
+        )
+
+        build_dir = materialize_build_context("somelib", "sometarget", tmp_path, dockerfile, [Path("app.js")])
+
+        assert stat.S_IMODE(source.stat().st_mode) == 0o664
+        assert stat.S_IMODE((build_dir / "app.js").stat().st_mode) == 0o644
+
 
 @scenarios.test_the_test
 class Test_ComputeHash:
@@ -657,6 +676,18 @@ class Test_ComputeHash:
         executable_hash = compute_hash(tmp_path, {"tags": ["x"]})
 
         assert regular_hash != executable_hash
+
+    def test_umask_permissions_do_not_change_the_hash(self, tmp_path: Path):
+        script = tmp_path / "script.sh"
+        script.write_text("#!/bin/sh\n")
+
+        script.chmod(0o644)
+        owner_writable_hash = compute_hash(tmp_path, {"tags": ["x"]})
+
+        script.chmod(0o664)
+        group_writable_hash = compute_hash(tmp_path, {"tags": ["x"]})
+
+        assert owner_writable_hash == group_writable_hash
 
 
 @scenarios.test_the_test
