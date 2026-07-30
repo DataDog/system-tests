@@ -1,5 +1,8 @@
 FROM datadog/system-tests:express5.base-v3
 
+# Refresh the application code baked into the base image.
+COPY utils/build/docker/nodejs/express/app.js app.js
+
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user

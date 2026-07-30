@@ -525,18 +525,38 @@ app.get('/external_request/redirect', (req: Request, res: Response) => {
 require('./rasp')(app)
 
 let openFeatureClient: Client | null = null
-let openFeatureProviderReady = Promise.resolve()
+let openFeatureClientPromise: Promise<Client> | null = null
 
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  openFeatureProviderReady = OpenFeature.setProviderAndWait(tracer.openfeature)
-  openFeatureClient = OpenFeature.getClient()
+async function getOpenFeatureClient (): Promise<Client | null> {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED !== 'true') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch((error: unknown) => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 app.post('/ffe', async (req: Request, res: Response) => {
   try {
     const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
 
-    if (!openFeatureClient) {
+    if (!client) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
@@ -548,17 +568,17 @@ app.post('/ffe', async (req: Request, res: Response) => {
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          value = await client.getBooleanValue(flag, defaultValue, context)
           break
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          value = await client.getStringValue(flag, defaultValue, context)
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          value = await client.getNumberValue(flag, defaultValue, context)
           break
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          value = await client.getObjectValue(flag, defaultValue, context)
           break
         default:
           return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
@@ -572,9 +592,7 @@ app.post('/ffe', async (req: Request, res: Response) => {
   }
 })
 
-const startServer = async () => {
-  await openFeatureProviderReady
-
+const startServer = () => {
   return new Promise((resolve) => {
     const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
       if (req.url?.startsWith('/resource_renaming')) {

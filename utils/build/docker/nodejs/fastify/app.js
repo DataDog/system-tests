@@ -961,18 +961,38 @@ fastify.get('/external_request/redirect', async (request, reply) => {
 require('./rasp')(fastify)
 
 let openFeatureClient = null
-let openFeatureProviderReady = Promise.resolve()
+let openFeatureClientPromise = null
 
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  openFeatureProviderReady = OpenFeature.setProviderAndWait(tracer.openfeature)
-  openFeatureClient = OpenFeature.getClient()
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED !== 'true') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 fastify.post('/ffe', async (request, reply) => {
   try {
     const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = request.body
+    const client = await getOpenFeatureClient()
 
-    if (!openFeatureClient) {
+    if (!client) {
       reply.status(500)
       return { error: 'FFE provider not initialized' }
     }
@@ -985,17 +1005,17 @@ fastify.post('/ffe', async (request, reply) => {
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          value = await client.getBooleanValue(flag, defaultValue, context)
           break
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          value = await client.getStringValue(flag, defaultValue, context)
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          value = await client.getNumberValue(flag, defaultValue, context)
           break
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          value = await client.getObjectValue(flag, defaultValue, context)
           break
         default:
           reply.status(400)
@@ -1014,7 +1034,6 @@ fastify.post('/ffe', async (request, reply) => {
 
 const startServer = async () => {
   try {
-    await openFeatureProviderReady
     await fastify.listen({ port: 7777, host: '0.0.0.0' })
     tracer.trace('init.service', () => {})
     console.log('listening')
