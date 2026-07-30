@@ -186,7 +186,47 @@ public class Main {
                                     span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
                                 }
 
-                                ctx.getResponse().status(200).send("OK");
+                                // Call downstream so that tests can assert on the sampling decision that gets propagated
+                                final Promise<String> downstream = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/";
+
+                                    URL urlObject = new URL(url);
+
+                                    HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+                                    con.setRequestMethod("GET");
+
+                                    // Save request headers
+                                    HashMap<String, String> request_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : con.getRequestProperties().entrySet()) {
+                                        if (header.getKey() == null) {
+                                            continue;
+                                        }
+
+                                        request_headers.put(header.getKey(), header.getValue().get(0));
+                                    }
+
+                                    // Save response headers and status code
+                                    int status_code = con.getResponseCode();
+                                    HashMap<String, String> response_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : con.getHeaderFields().entrySet()) {
+                                        if (header.getKey() == null) {
+                                            continue;
+                                        }
+
+                                        response_headers.put(header.getKey(), header.getValue().get(0));
+                                    }
+
+                                    DistantCallResponse result = new DistantCallResponse();
+                                    result.url = url;
+                                    result.status_code = status_code;
+                                    result.request_headers = request_headers;
+                                    result.response_headers = response_headers;
+
+                                    return (new ObjectMapper()).writeValueAsString(result);
+                                });
+                                downstream.then((r) -> {
+                                    ctx.getResponse().send("application/json", r);
+                                });
                             })
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
