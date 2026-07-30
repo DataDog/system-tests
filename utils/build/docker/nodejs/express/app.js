@@ -224,7 +224,27 @@ app.get('/trace/manual_keep_drop', (req, res) => {
 
   tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
 
-  res.send('OK')
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: response.req.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
 })
 
 app.get('/make_distant_call', (req, res) => {
