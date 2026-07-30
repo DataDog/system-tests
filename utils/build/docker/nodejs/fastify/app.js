@@ -209,7 +209,26 @@ fastify.get('/trace/manual_keep_drop', async (request, reply) => {
 
   tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
 
-  return 'OK'
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+      response.on('data', () => {})
+
+      response.on('end', () => {
+        resolve({
+          url,
+          status_code: response.statusCode,
+          request_headers: response.req.getHeaders(),
+          response_headers: response.headers
+        })
+      })
+    })
+
+    httpRequest.on('error', reject)
+
+    httpRequest.end()
+  })
 })
 
 fastify.get('/make_distant_call', async (request, reply) => {
