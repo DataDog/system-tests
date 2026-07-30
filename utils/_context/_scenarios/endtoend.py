@@ -33,6 +33,8 @@ from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
+NODE_EXTRA_CA_CERTS_PATH = "/usr/local/share/ca-certificates/system-tests-ffe-agentless.pem"
+
 
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
@@ -647,17 +649,17 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     def configure(self, config: pytest.Config) -> None:
         try:
             if not self.replay:
-                self._start_mock_backend()
+                self._start_mock_backend(use_tls=config.option.library == "nodejs")
 
             super().configure(config)
         except BaseException:
             self._stop_mock_backend()
             raise
 
-    def _start_mock_backend(self) -> None:
+    def _start_mock_backend(self, *, use_tls: bool = False) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer()
+        self._mock_backend = MockFFEAgentlessBackendServer(use_tls=use_tls)
         self._mock_backend.reset()
 
         environment = self.weblog_infra.library_container.environment
@@ -665,6 +667,13 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             "DD_API_KEY": EXPECTED_API_KEY,
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
         }
+        if use_tls:
+            assert self._mock_backend.ca_cert_path is not None
+            environment["NODE_EXTRA_CA_CERTS"] = NODE_EXTRA_CA_CERTS_PATH
+            self.weblog_infra.library_container.volumes[str(self._mock_backend.ca_cert_path)] = {
+                "bind": NODE_EXTRA_CA_CERTS_PATH,
+                "mode": "ro",
+            }
         self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
 
     def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
