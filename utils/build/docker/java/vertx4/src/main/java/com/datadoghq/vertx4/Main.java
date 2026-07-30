@@ -416,7 +416,51 @@ public class Main {
                 span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
             }
 
-            ctx.response().end("OK");
+            // Call downstream so that tests can assert on the sampling decision that gets propagated
+            String url = "http://localhost:7777/";
+            JsonObject requestHeaders = new JsonObject();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    requestHeaders.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    ctx.response().setStatusCode(500).end(e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    JsonObject responseHeaders = new JsonObject();
+                    Headers headers = response.headers();
+                    for (String name : headers.names()) {
+                        responseHeaders.put(name, headers.get(name));
+                    }
+
+                    JsonObject result = new JsonObject();
+                    result.put("url", url);
+                    result.put("status_code", response.code());
+                    result.put("request_headers", requestHeaders);
+                    result.put("response_headers", responseHeaders);
+
+                    ctx.response().end(result.encodePrettily());
+                }
+            });
         });
 
         router.get("/make_distant_call").handler(ctx -> {
