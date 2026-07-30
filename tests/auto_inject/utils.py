@@ -126,8 +126,63 @@ class AutoInjectBaseTest:
 
     def _appsec_validator(self, _: str, trace_data: dict):
         """Validator for Appsec traces that checks if the trace contains an Appsec event."""
-        root_id = trace_data["trace"]["root_id"]
-        root_span = trace_data["trace"]["spans"][root_id]
+        trace = trace_data["trace"]
+        root_id = trace["root_id"]
+        spans = trace["spans"]
+        root_span = spans[root_id]
+
+        trace_appsec_fields = {}
+        for section_name in ("meta", "metrics", "meta_struct", "attributes"):
+            section = trace.get(section_name)
+            if isinstance(section, dict):
+                trace_appsec_fields[section_name] = {
+                    str(key): {
+                        "type": type(value).__name__,
+                        "has_triggers": isinstance(value, dict) and bool(value.get("triggers")),
+                    }
+                    for key, value in section.items()
+                    if "appsec" in str(key)
+                }
+
+        logger.info(
+            "AppSec trace diagnostics: root_id=%r, span_ids=%r, trace_keys=%r, trace_appsec_fields=%r",
+            root_id,
+            list(spans),
+            sorted(trace),
+            trace_appsec_fields,
+        )
+
+        for span_id, span in spans.items():
+            span_meta = span.get("meta", {})
+            span_metrics = span.get("metrics", {})
+            span_meta_struct = span.get("meta_struct", {})
+            meta_payload = span_meta.get("_dd.appsec.json")
+            meta_struct_payload = span_meta_struct.get("appsec")
+
+            logger.info(
+                "AppSec span diagnostics: span_id=%r, selected_root=%r, parent_id=%r, name=%r, resource=%r, "
+                "span_keys=%r, meta_event=%r, metrics_event=%r, meta_enabled=%r, metrics_enabled=%r, "
+                "meta_appsec_keys=%r, metrics_appsec_keys=%r, meta_struct_appsec_keys=%r, "
+                "meta_payload_type=%s, meta_payload_has_triggers=%r, meta_struct_payload_type=%s, "
+                "meta_struct_payload_has_triggers=%r",
+                span_id,
+                span_id == root_id,
+                span.get("parent_id"),
+                span.get("name"),
+                span.get("resource"),
+                sorted(span),
+                span_meta.get("appsec.event"),
+                span_metrics.get("appsec.event"),
+                span_meta.get("_dd.appsec.enabled"),
+                span_metrics.get("_dd.appsec.enabled"),
+                sorted(str(key) for key in span_meta if "appsec" in str(key)),
+                sorted(str(key) for key in span_metrics if "appsec" in str(key)),
+                sorted(str(key) for key in span_meta_struct if "appsec" in str(key)),
+                type(meta_payload).__name__,
+                isinstance(meta_payload, dict) and bool(meta_payload.get("triggers")),
+                type(meta_struct_payload).__name__,
+                isinstance(meta_struct_payload, dict) and bool(meta_struct_payload.get("triggers")),
+            )
 
         meta = root_span.get("meta", {})
         metrics = root_span.get("metrics", {})
@@ -141,11 +196,6 @@ class AutoInjectBaseTest:
 
         # Accept both layouts because v1 typed booleans may be normalized into metrics.
         meta_or_metrics = {**meta, **metrics}
-        logger.info(
-            "AppSec event values: meta=%r, metrics=%r",
-            meta.get("appsec.event"),
-            metrics.get("appsec.event"),
-        )
         if is_same_boolean(actual=meta_or_metrics.get("appsec.event"), expected="true"):
             return True
 
