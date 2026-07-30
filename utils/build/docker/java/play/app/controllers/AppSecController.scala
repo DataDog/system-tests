@@ -184,19 +184,24 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     }
   }
 
-  def traceManualKeepDrop(decision: String) = Action {
+  def traceManualKeepDrop(decision: String) = Action.async {
     if (decision != "keep" && decision != "drop") {
-      Results.BadRequest("decision must be keep or drop")
+      Future.successful(Results.BadRequest("decision must be keep or drop"))
     } else {
       val span = GlobalTracer.get().activeSpan()
       if (span != null) {
         span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
       }
-      Results.Ok("OK")
+      // Call downstream so that tests can assert on the sampling decision that gets propagated
+      makeDistantCall("http://localhost:7777/")
     }
   }
 
   def distantCall(url: String) = Action.async {
+    makeDistantCall(url)
+  }
+
+  private def makeDistantCall(url: String): Future[Result] = {
     val remoteReq: WSRequest = ws.url(url).withMethod("GET")
 
     // we need to break the abstraction to be able to get to the request headers
