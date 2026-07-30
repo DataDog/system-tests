@@ -67,21 +67,20 @@ class Test_V1SpanLinks:
     def test_span_links_present(self):
         """V1 spans carrying span links expose them at the top level or in attributes"""
         spans_with_links = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)
-            if span.raw_span.get("span_links") or span.raw_span.get("attributes", {}).get("_dd.span_links")
+            span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True) if span.get_span_links()
         ]
         assert len(spans_with_links) >= 1, "Expected at least one span with span links"
 
         link_carrier = spans_with_links[0]
-        links = link_carrier.raw_span.get("span_links") or []
+        assert link_carrier.trace.format == LibraryTraceFormat.v10
+        links = link_carrier.get_span_links()
 
         assert len(links) >= 1
         link = links[0]
 
-        assert isinstance(link["trace_id"], str)
-        assert link["trace_id"].startswith("0x")
-        assert isinstance(link["span_id"], int)
+        assert isinstance(link.data["trace_id"], str)
+        assert link.data["trace_id"].startswith("0x")
+        assert isinstance(link.data["span_id"], int)
 
 
 @scenarios.apm_tracing_efficient_payload

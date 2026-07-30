@@ -196,6 +196,14 @@ def _assert_fixture_evaluation(
             f"expected={expected_value}, actual={actual_value}"
         )
 
+        expected_reason = test_case["result"]["reason"]
+        actual_reason = result.get("reason")
+        assert actual_reason == expected_reason, (
+            f"Test case {index} in {test_case_file} failed: "
+            f"flag='{test_case['flag']}', targetingKey='{test_case['targetingKey']}', "
+            f"expected reason={expected_reason}, actual reason={actual_reason}"
+        )
+
 
 @scenarios.parametric
 @features.feature_flags_dynamic_evaluation

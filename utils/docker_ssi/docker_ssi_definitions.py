@@ -181,6 +181,7 @@ class RubyRuntimeInstallableVersions:
     RB32 = RuntimeInstallableVersion("RB32", "3.2.9")
     RB33 = RuntimeInstallableVersion("RB33", "3.3.9")
     RB34 = RuntimeInstallableVersion("RB34", "3.4.7")
+    RB40 = RuntimeInstallableVersion("RB40", "4.0.5")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -192,6 +193,7 @@ class RubyRuntimeInstallableVersions:
             RubyRuntimeInstallableVersions.RB32,
             RubyRuntimeInstallableVersions.RB33,
             RubyRuntimeInstallableVersions.RB34,
+            RubyRuntimeInstallableVersions.RB40,
         ]
 
     @staticmethod

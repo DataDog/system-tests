@@ -21,7 +21,12 @@ from .core import scenario_groups as groups
 class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
     _required_cassette_generation_api_keys: dict[str, list[str]] = {
-        "openai": ["OPENAI_API_KEY"],
+        # DD_API_KEY / DD_APP_KEY are needed by the AI Guard client, which calls the real
+        # AI Guard API while recording. Declaring them here means they are injected into the
+        # container via the scenario environment (never through ``library_env``, which is
+        # serialized into the JSON report) and that a missing key fails fast at configure()
+        # time instead of surfacing as a silent xfail during cassette generation.
+        "openai": ["OPENAI_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
         "anthropic": ["ANTHROPIC_API_KEY"],
         "google_genai": ["GEMINI_API_KEY"],
     }
@@ -31,7 +36,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="endtoend",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
             scenario_groups=(groups.integration_frameworks,),
             weblog_categories=[WeblogCategory.dd_trace_frameworks],
         )

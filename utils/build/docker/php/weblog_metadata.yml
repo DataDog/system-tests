@@ -52,3 +52,5 @@ php-fpm-8.5:
   categories: [dd_trace]
 laravel11x:
   categories: [dd_trace]
+symfony7x:
+  categories: [dd_trace]
