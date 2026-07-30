@@ -14,9 +14,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
-import ssl
-import subprocess
-import tempfile
 import threading
 import time
 from typing import TYPE_CHECKING, Any, TypedDict, cast
@@ -292,43 +289,18 @@ def _strip_config_path(url: str) -> str:
 
 
 class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str = "master", *, port: int | None = None, use_tls: bool = False) -> None:
-        self._use_tls = use_tls
-        self._tls_directory: tempfile.TemporaryDirectory[str] | None = None
-        self.ca_cert_path: Path | None = None
-
-        try:
-            cert_path: Path | None = None
-            key_path: Path | None = None
-            if use_tls:
-                cert_path, key_path = self._create_tls_certificate()
-
-            self.port = get_host_port(worker_id, 4900) if port is None else port
-            self._server = MockFFEAgentlessBackendHTTPServer(
-                ("0.0.0.0", self.port)  # noqa: S104 - test fixture must be container-reachable.
-            )
-            self.port = self._server.server_port
-
-            if cert_path is not None and key_path is not None:
-                tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-                tls_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
-                self._server.socket = tls_context.wrap_socket(self._server.socket, server_side=True)
-
-            self._thread = threading.Thread(
-                target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
-            )
-            self._thread.start()
-        except BaseException:
-            server = getattr(self, "_server", None)
-            if server is not None:
-                server.server_close()
-            self._close_tls_directory()
-            raise
+    def __init__(self, worker_id: str = "master", *, port: int | None = None) -> None:
+        self.port = get_host_port(worker_id, 4900) if port is None else port
+        self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
+        self.port = self._server.server_port
+        self._thread = threading.Thread(
+            target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
+        )
+        self._thread.start()
 
     @property
     def base_url(self) -> str:
-        scheme = "https" if self._use_tls else "http"
-        return f"{scheme}://127.0.0.1:{self.port}"
+        return f"http://127.0.0.1:{self.port}"
 
     @property
     def library_base_url(self) -> str:
@@ -341,15 +313,14 @@ class MockFFEAgentlessBackendServer:
         host = os.environ.get("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST") or os.environ.get(
             "SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", "host.docker.internal"
         )
-        scheme = "https" if self._use_tls else "http"
-        return f"{scheme}://{host}:{self.port}"
+        return f"http://{host}:{self.port}"
 
     @property
     def library_config_url(self) -> str:
         return f"{self.library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
 
     def reset(self) -> None:
-        response = requests.post(f"{self.base_url}/control/reset", timeout=5, verify=self._requests_verify)
+        response = requests.post(f"{self.base_url}/control/reset", timeout=5)
         response.raise_for_status()
 
     def set_response(self, response_id: str) -> None:
@@ -358,15 +329,12 @@ class MockFFEAgentlessBackendServer:
     def set_responses(self, responses: object) -> None:
         validated_responses = validate_responses(responses)
         response = requests.post(
-            f"{self.base_url}/control/responses",
-            json={"responses": validated_responses},
-            timeout=5,
-            verify=self._requests_verify,
+            f"{self.base_url}/control/responses", json={"responses": validated_responses}, timeout=5
         )
         response.raise_for_status()
 
     def status(self) -> MockFFEAgentlessBackendStatus:
-        response = requests.get(f"{self.base_url}/status", timeout=5, verify=self._requests_verify)
+        response = requests.get(f"{self.base_url}/status", timeout=5)
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
@@ -374,55 +342,6 @@ class MockFFEAgentlessBackendServer:
         self._server.shutdown()
         self._server.server_close()
         self._thread.join(timeout=5)
-        self._close_tls_directory()
-
-    @property
-    def _requests_verify(self) -> bool | str:
-        return str(self.ca_cert_path) if self.ca_cert_path is not None else True
-
-    def _create_tls_certificate(self) -> tuple[Path, Path]:
-        self._tls_directory = tempfile.TemporaryDirectory(prefix="system-tests-ffe-agentless-")
-        directory = Path(self._tls_directory.name)
-        cert_path = directory / "certificate.pem"
-        key_path = directory / "private-key.pem"
-        subprocess.run(
-            [
-                "openssl",
-                "req",
-                "-x509",
-                "-newkey",
-                "rsa:2048",
-                "-sha256",
-                "-nodes",
-                "-days",
-                "1",
-                "-subj",
-                "/CN=host.docker.internal",
-                "-addext",
-                "subjectAltName=DNS:host.docker.internal,IP:127.0.0.1",
-                "-addext",
-                "basicConstraints=critical,CA:TRUE",
-                "-addext",
-                "keyUsage=critical,digitalSignature,keyEncipherment,keyCertSign",
-                "-addext",
-                "extendedKeyUsage=serverAuth",
-                "-keyout",
-                str(key_path),
-                "-out",
-                str(cert_path),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        self.ca_cert_path = cert_path
-        return cert_path, key_path
-
-    def _close_tls_directory(self) -> None:
-        if self._tls_directory is not None:
-            self._tls_directory.cleanup()
-            self._tls_directory = None
-            self.ca_cert_path = None
 
 
 @pytest.fixture

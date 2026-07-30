@@ -15,7 +15,7 @@ from utils.mocked_backend.ffe import (
     MockFFEAgentlessBackendServer,
     UFC_RESPONSE_TYPE,
 )
-from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario, NODE_EXTRA_CA_CERTS_PATH
+from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
 
 
 @scenarios.test_the_test
@@ -79,24 +79,6 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_tls(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id, port=0, use_tls=True)
-    try:
-        assert server.ca_cert_path is not None
-        assert server.base_url.startswith("https://127.0.0.1:")
-        assert server.library_config_url.startswith("https://host.docker.internal:")
-
-        response = requests.get(
-            f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
-            timeout=5,
-            verify=str(server.ca_cert_path),
-        )
-        response.raise_for_status()
-    finally:
-        server.close()
-
-
-@scenarios.test_the_test
 def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
     server = MockFFEAgentlessBackendServer(worker_id, port=0)
     try:
@@ -142,29 +124,6 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_trusts_tls_backend() -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_TLS_E2E", doc="test")
-
-    try:
-        scenario._start_mock_backend(use_tls=True)  # noqa: SLF001 - focused lifecycle test
-
-        environment = scenario.weblog_infra.library_container.environment
-        assert environment["NODE_EXTRA_CA_CERTS"] == NODE_EXTRA_CA_CERTS_PATH
-        base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
-        assert isinstance(base_url, str)
-        assert base_url.startswith("https://")
-
-        assert scenario._mock_backend is not None  # noqa: SLF001 - focused lifecycle test
-        assert scenario._mock_backend.ca_cert_path is not None  # noqa: SLF001 - focused lifecycle test
-        assert scenario.weblog_infra.library_container.volumes[str(scenario._mock_backend.ca_cert_path)] == {  # noqa: SLF001
-            "bind": NODE_EXTRA_CA_CERTS_PATH,
-            "mode": "ro",
-        }
-    finally:
-        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
-
-
-@scenarios.test_the_test
 def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -172,16 +131,13 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     backend = MagicMock(spec=MockFFEAgentlessBackendServer)
     backend.reset.side_effect = RuntimeError("reset failed")
 
-    def create_backend(*, use_tls: bool = False) -> MagicMock:
-        assert use_tls is True
+    def create_backend() -> MagicMock:
         return backend
 
     monkeypatch.setattr(endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
 
-    config = MagicMock(spec=pytest.Config)
-    config.option = MagicMock(library="nodejs")
     with pytest.raises(RuntimeError, match="reset failed"):
-        scenario.configure(config)
+        scenario.configure(MagicMock(spec=pytest.Config))
 
     backend.close.assert_called_once_with()
     assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
