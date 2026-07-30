@@ -6,6 +6,7 @@ import pytest
 from utils import scenarios
 from utils._context.component_version import Version
 from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
+from utils.manifest._internal.declaration import Declaration
 from utils.manifest._internal.types import ManifestData, SemverRange as CustomSpec, Condition
 from utils.manifest._internal.validate import assert_nodeids_exist
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
@@ -31,6 +32,33 @@ def manifest_init(
 class TestManifest:
     def test_formats(self):
         Manifest.validate()
+
+    @pytest.mark.parametrize(
+        "raw_declaration",
+        [
+            "bug (APPSEC-123)",
+            "bug (APPSEC-123, APPSEC-456)",
+            "flaky (APPSEC-123)",
+            "flaky (APPSEC-123, APPSEC-456)",
+        ],
+    )
+    def test_bug_and_flaky_declarations_with_jira_reasons(self, raw_declaration: str) -> None:
+        Declaration(raw_declaration, "python", is_inline=True)
+
+    @pytest.mark.parametrize(
+        "raw_declaration",
+        [
+            "bug",
+            "bug (APPSEC-123 & APPSEC-456)",
+            "bug (arbitrary reason)",
+            "flaky",
+            "flaky (APPSEC-123 & APPSEC-456)",
+            "flaky (arbitrary reason)",
+        ],
+    )
+    def test_bug_and_flaky_declarations_without_jira_reasons(self, raw_declaration: str) -> None:
+        with pytest.raises(ValueError, match="Please set a jira ticket"):
+            Declaration(raw_declaration, "python", is_inline=True)
 
     def test_parser(self):
         manifest = Manifest.parse(Path("tests/test_the_test/manifests/manifests_parser_test/"))
