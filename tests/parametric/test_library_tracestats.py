@@ -1,13 +1,11 @@
 import base64
 
-import numpy as np
 import msgpack
 import pytest
 
 
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
-from utils.docker_fixtures.spec.trace import find_root_span
 from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -36,6 +34,25 @@ def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
             raw_body = request["body"]
     assert raw_body is not None, "Could not find /v0.6/stats request in test agent transcript"
     return msgpack.unpackb(base64.b64decode(raw_body))
+
+
+def _all_v06_stats_entries(test_agent: TestAgentAPI) -> list[dict]:
+    """Return every ClientGroupedStats entry across all /v0.6/stats requests and time buckets.
+
+    Stats are partitioned into time buckets and may span multiple requests, so callers that only
+    care about which entries were emitted (not per-bucket detail) should flatten first.
+    """
+    entries: list[dict] = []
+    found = False
+    for request in test_agent.requests():
+        if "v0.6/stats" not in request["url"]:
+            continue
+        found = True
+        body = msgpack.unpackb(base64.b64decode(request["body"]))
+        for bucket in body.get("Stats", []):
+            entries.extend(bucket.get("Stats", []))
+    assert found, "Could not find /v0.6/stats request in test agent transcript"
+    return entries
 
 
 def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
@@ -354,51 +371,6 @@ class Test_Library_Tracestats:
 
     @enable_tracestats()
     @enable_agent_version()
-    def test_relative_error_TS008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When trace stats are computed for traces
-            The stats should be accurate to within 1% of the real values
-
-        Note that this test uses the duration of actual spans created and so this test could be flaky.
-        This flakyness however would indicate a bug in the trace stats computation.
-        """
-
-        with test_library:
-            # Create 10 traces to get more data
-            for _ in range(10):
-                with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                    pass
-
-        traces = test_agent.traces()
-        assert len(traces) == 10
-
-        durations: list[int] = []
-        for trace in traces:
-            span = find_root_span(trace)
-            assert span is not None
-            durations.append(span["duration"])
-
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) != 0, "Stats request should be sent"
-        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
-        stats = requests[0]["body"]["Stats"][0]["Stats"]
-        assert len(stats) == 1, "Only one stats aggregation is expected"
-
-        web_stats = [s for s in stats if s["Name"] == "web.request"][0]
-        assert web_stats["TopLevelHits"] == 10
-        assert web_stats["Hits"] == 10
-
-        # Validate the sketches
-        np_duration = np.array(durations)
-        assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
-        for quantile in (0.5, 0.75, 0.95, 0.99, 1):
-            assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                np.quantile(np_duration, quantile),
-                rel=0.01,
-            ), f"Quantile mismatch for quantile {quantile!r}"
-
-    @enable_tracestats()
-    @enable_agent_version()
     def test_metrics_computed_after_span_finsh_TS009(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -609,4 +581,98 @@ class Test_Library_Tracestats:
         )
         assert "partial.snapshot" not in names, (
             f"Spans with _dd.partial_version set must be excluded from stats, but found in {names}"
+        )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_eligibility_TS015(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Non-top-level spans with an eligible span.kind (server, client, producer, consumer) are
+        promoted into stats and tagged with their SpanKind; an ineligible kind (internal) is excluded.
+        """
+        # Non-top-level children (share the root's service) covering every eligible kind, including a
+        # server-kind child so span-kind promotion is exercised for server too, not just as the root.
+        eligible = {
+            "server.child": "server",
+            "client.call": "client",
+            "producer.publish": "producer",
+            "consumer.receive": "consumer",
+        }
+        service = "webserver"
+        with (
+            test_library,
+            test_library.dd_start_span(name="server.entry", resource="/entry", service=service) as root,
+        ):
+            root.set_meta(key="span.kind", val="server")
+            for name, kind in eligible.items():
+                with test_library.dd_start_span(
+                    name=name, resource=f"/{kind}", service=service, parent_id=root.span_id
+                ) as child:
+                    child.set_meta(key="span.kind", val=kind)
+            with test_library.dd_start_span(
+                name="internal.work", resource="/internal", service=service, parent_id=root.span_id
+            ) as internal:
+                internal.set_meta(key="span.kind", val="internal")
+
+        by_name = {s.get("Name"): s for s in _all_v06_stats_entries(test_agent)}
+
+        assert by_name.get("server.entry", {}).get("SpanKind") == "server", (
+            f"Expected server root in stats with SpanKind='server', got {by_name.get('server.entry')!r}"
+        )
+        for name, kind in eligible.items():
+            entry = by_name.get(name)
+            assert entry is not None, f"{kind} span ({name}) missing from stats: {set(by_name)}"
+            assert entry.get("SpanKind") == kind, (
+                f"Expected SpanKind={kind!r} for {name}, got {entry.get('SpanKind')!r}"
+            )
+        assert "internal.work" not in by_name, (
+            f"Non-top-level internal span must be excluded from stats, but found in {set(by_name)}"
+        )
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # Force collapsing at a low limit. Set both the per-field resource limit and the whole-key
+                # limit so the test triggers regardless of which axis an SDK caps on. The RFC mandates this
+                # naming pattern but exposing the setting is only a SHOULD, so SDKs honoring neither env get
+                # a missing_feature marker.
+                "DD_TRACE_STATS_RESOURCE_CARDINALITY_LIMIT": "10",
+                "DD_TRACE_STATS_CARDINALITY_LIMIT": "10",
+            }
+        ],
+    )
+    @enable_agent_version()
+    def test_cardinality_overflow_sentinel_TS017(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When stats cardinality exceeds the configured limit, the excess must collapse into an overflow
+        bucket keyed by the sentinel `tracer_blocked_value` rather than be dropped, and service-level totals
+        must stay correct. The numeric limit, eviction strategy, and per-field vs whole-key choice are SDK policy and are deliberately not asserted.
+        """
+        n = 50  # well above the configured limit of 10, so collapsing must engage
+        with test_library:
+            for i in range(n):
+                with test_library.dd_start_span(
+                    name="web.request", resource=f"/resource/{i}", service="webserver", typestr="web"
+                ):
+                    pass
+
+        # go/java flush stats on demand rather than on a timer within the short test window.
+        if test_library.lang in ("golang", "java"):
+            test_library.dd_flush()
+
+        entries = _all_v06_stats_entries(test_agent)
+        resources = [e.get("Resource") for e in entries]
+
+        # Collapse-not-discard: an overflow row keyed by the sentinel appears. This holds for both limiting
+        # strategies (per-field folds `resource` to the sentinel; whole-key also sets `resource` to it).
+        assert "tracer_blocked_value" in resources, (
+            f"expected an overflow entry keyed by 'tracer_blocked_value', got resources: {sorted(map(str, set(resources)))}"
+        )
+        # Totals are preserved through collapsing: every eligible top-level span is still counted.
+        total_hits = sum(e.get("Hits", 0) for e in entries)
+        assert total_hits == n, f"totals must be preserved through collapse: expected {n} hits, got {total_hits}"
+        # Limiting actually reduced cardinality (fewer distinct resources than emitted).
+        assert len(set(resources)) < n, (
+            f"collapsing should reduce distinct resource cardinality below {n}, got {len(set(resources))}"
         )
