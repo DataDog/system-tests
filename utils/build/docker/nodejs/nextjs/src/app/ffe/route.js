@@ -12,7 +12,7 @@ async function getOpenFeatureClient () {
   }
 
   const tracer = global._ddtrace
-  if (!tracer?.openfeature || process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED !== 'true') {
+  if (!tracer?.openfeature || process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
     return null
   }
 

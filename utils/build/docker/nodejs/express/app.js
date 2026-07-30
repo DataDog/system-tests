@@ -841,7 +841,7 @@ async function getOpenFeatureClient () {
     return openFeatureClient
   }
 
-  if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED !== 'true') {
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
     return null
   }
 
