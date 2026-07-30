@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
+
 from utils import weblog, interfaces, scenarios, features
 from utils._weblog import HttpResponse
 from utils.dd_constants import SamplingPriority
@@ -37,7 +39,7 @@ def _assert_decision_propagated_downstream(request: HttpResponse, expected: Samp
     """The endpoint calls downstream once the decision has been applied, and reports the headers it
     sent. The propagated priority must be the manual decision, not the upstream one.
     """
-    request_headers = request.json()["request_headers"]
+    request_headers = json.loads(request.text)["request_headers"]
 
     # Case-insensitive lookup, as the header casing depends on the weblog app implementation, and some
     # weblogs report the headers as a list of objects instead of a dict
