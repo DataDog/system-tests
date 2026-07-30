@@ -1,5 +1,8 @@
-from typing import Literal
+import json
 import os
+from pathlib import Path
+from typing import Literal, cast
+
 import pytest
 
 from docker.models.networks import Network
@@ -615,6 +618,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     """FFE end-to-end scenario with UFC available before the weblog starts."""
 
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
+    _mock_backend_status_filename = "mock_ffe_agentless_backend_status.json"
 
     _mock_backend: MockFFEAgentlessBackendServer | None = None
     _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
@@ -646,12 +650,15 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def configure(self, config: pytest.Config) -> None:
         try:
-            if not self.replay:
+            if self.replay:
+                self._load_mock_backend_status()
+            else:
+                self._last_mock_backend_status = None
                 self._start_mock_backend()
 
             super().configure(config)
         except BaseException:
-            self._stop_mock_backend()
+            self._stop_mock_backend(persist_status=False)
             raise
 
     def _start_mock_backend(self) -> None:
@@ -672,14 +679,30 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             return self._mock_backend.status()
         return self._last_mock_backend_status
 
-    def _stop_mock_backend(self) -> None:
+    @property
+    def _mock_backend_status_path(self) -> Path:
+        return Path(self.host_log_folder) / self._mock_backend_status_filename
+
+    def _load_mock_backend_status(self) -> None:
+        self._last_mock_backend_status = cast(
+            "MockFFEAgentlessBackendStatus",
+            json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
+        )
+
+    def _stop_mock_backend(self, *, persist_status: bool = True) -> None:
         backend = self._mock_backend
         if backend is None:
             return
 
         self._mock_backend = None
         try:
-            self._last_mock_backend_status = backend.status()
+            if persist_status:
+                self._last_mock_backend_status = backend.status()
+                self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
+                self._mock_backend_status_path.write_text(
+                    json.dumps(self._last_mock_backend_status, indent=2) + "\n",
+                    encoding="utf-8",
+                )
         finally:
             backend.close()
 
