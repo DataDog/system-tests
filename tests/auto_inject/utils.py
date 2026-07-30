@@ -139,7 +139,14 @@ class AutoInjectBaseTest:
             )
             return False
 
-        if is_same_boolean(actual=meta.get("appsec.event"), expected="true"):
+        # Accept both layouts because v1 typed booleans may be normalized into metrics.
+        meta_or_metrics = {**meta, **metrics}
+        logger.info(
+            "AppSec event values: meta=%r, metrics=%r",
+            meta.get("appsec.event"),
+            metrics.get("appsec.event"),
+        )
+        if is_same_boolean(actual=meta_or_metrics.get("appsec.event"), expected="true"):
             return True
 
         # Check for AppSec event payload
