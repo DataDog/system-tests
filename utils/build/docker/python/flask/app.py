@@ -2267,6 +2267,9 @@ def ai_guard_evaluate():
             "reason": getattr(e, "reason", ""),
             "tags": getattr(e, "tags", []),
             "sds": getattr(e, "sds", []),
+            # The redacted conversation: the block path returns no evaluation, so the error is the
+            # only place the messages surface. Empty on tracers without sensitive data redaction.
+            "messages": getattr(e, "messages", []),
         }
         tag_probs = getattr(e, "tag_probs", None)
         if tag_probs is not None:

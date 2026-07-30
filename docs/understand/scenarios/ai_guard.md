@@ -112,6 +112,41 @@ The scenario sets the following environment variables on the weblog:
 | `DD_API_KEY` | `mock_api_key` | Mock key (real key not needed with VCR) |
 | `DD_APP_KEY` | `mock_app_key` | Mock key (real key not needed with VCR) |
 
+## Related scenarios
+
+Three more scenarios share the same weblog and VCR setup, and differ only by configuration:
+
+| Scenario | Extra configuration | What it covers |
+|---|---|---|
+| `AI_GUARD_STANDALONE` | `DD_APM_TRACING_ENABLED=false` | AI Guard traces still reach the backend when APM tracing is off |
+| `AI_GUARD_TELEMETRY` | `DD_AI_GUARD_MAX_MESSAGES_LENGTH=1`, `DD_AI_GUARD_MAX_CONTENT_SIZE=5` | The `ai_guard.requests` and `ai_guard.truncated` telemetry metrics |
+| `AI_GUARD_REDACTION_DISABLED` | `DD_AI_GUARD_REDACTION_ENABLED=false` | The sensitive data redaction kill-switch: nothing is redacted and the redaction tags are not emitted |
+
+## Sensitive data redaction
+
+The redaction tests are driven by a corpus shared with the cassettes, so the two cannot drift.
+`utils/scripts/gen_redaction_cassettes.py` owns both sides: for every scenario it writes the
+cassette that returns the `redaction_replacements` array and an entry in
+`tests/ai_guard/redaction_scenarios.json` describing the expected outcome (the messages after
+redaction, the sensitive values that must be gone, and whether the evaluation must report itself
+as redacted). The expected outcome is computed by a reference implementation of the RFC redaction
+algorithm inside the script, cross-checked against the intent each scenario declares.
+
+To add or change a redaction scenario, edit `SCENARIOS` in that script and re-run it from the
+repository root:
+
+```bash
+python3 utils/scripts/gen_redaction_cassettes.py
+```
+
+Cassettes are addressed by a hash of the request body, so every scenario must send a distinct
+message list. The script fails rather than overwriting a cassette owned by another AI Guard test,
+and deletes cassettes no test claims any more.
+
+The blocked path is covered too: `Test_RedactionOnBlock` sends a redacting scenario with
+`X-AI-Guard-Block: true`, so the SDK aborts instead of returning an evaluation. The weblog then
+answers 403 with the messages carried by the abort error, which must be the redacted ones.
+
 ---
 
 ## See also
