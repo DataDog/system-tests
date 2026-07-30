@@ -41,9 +41,16 @@ DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
 # Limit JIT to tier one as the client application is a short-lived process that frequently killed / restarted
 OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
 
+# The no-agent FFE tests run the OpenFeature provider without attaching dd-java-agent.jar.
+JAVA_AGENT_OPTIONS=()
+case $(echo "${SYSTEM_TESTS_JAVA_AGENT_ENABLED:-true}" | tr '[:upper:]' '[:lower:]') in
+  "false" | "0") ;;
+  *) JAVA_AGENT_OPTIONS=(-javaagent:"${DD_JAVA_AGENT}");;
+esac
+
 # Start client application
 # shellcheck disable=SC2086
-java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
+java -Xmx128M "${JAVA_AGENT_OPTIONS[@]}" \
   $ENABLE_OTEL_TRACING_API \
   "${ENABLE_CRASH_TRACKING[@]}" \
   "${DISABLED_FEATURES[@]}" \

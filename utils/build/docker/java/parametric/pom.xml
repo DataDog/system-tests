@@ -149,6 +149,11 @@
                     <scope>system</scope>
                     <systemPath>${customDdOpenfeature}</systemPath>
                 </dependency>
+                <dependency>
+                    <groupId>com.squareup.moshi</groupId>
+                    <artifactId>moshi</artifactId>
+                    <version>1.11.0</version>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>
