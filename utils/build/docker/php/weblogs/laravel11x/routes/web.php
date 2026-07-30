@@ -55,7 +55,27 @@ Route::get('/trace/manual_keep_drop', function (Request $request) {
         $decision === 'keep' ? DD_TRACE_PRIORITY_SAMPLING_USER_KEEP : DD_TRACE_PRIORITY_SAMPLING_USER_REJECT
     );
 
-    return response('OK');
+    // Call downstream so that tests can assert on the sampling decision that gets propagated
+    $url = 'http://localhost:7777/';
+    $requestHeaders = [];
+    $response = Http::beforeSending(function ($outgoingRequest) use (&$requestHeaders) {
+            foreach ($outgoingRequest->headers() as $name => $values) {
+                $requestHeaders[strtolower($name)] = implode(', ', $values);
+            }
+        })
+        ->get($url);
+
+    $responseHeaders = [];
+    foreach ($response->headers() as $name => $values) {
+        $responseHeaders[strtolower($name)] = implode(', ', $values);
+    }
+
+    return response()->json([
+        'url'              => $url,
+        'status_code'      => $response->status(),
+        'request_headers'  => $requestHeaders,
+        'response_headers' => $responseHeaders,
+    ]);
 });
 
 Route::get('/make_distant_call', function (Request $request) {
