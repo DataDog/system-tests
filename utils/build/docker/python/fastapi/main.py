@@ -439,7 +439,16 @@ def trace_manual_keep_drop(decision: str = ""):
     span = tracer.current_span()
     span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
 
-    return PlainTextResponse("OK")
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = "http://localhost:7777/"
+    response = requests.get(url)
+
+    return {
+        "url": url,
+        "status_code": response.status_code,
+        "request_headers": dict(response.request.headers),
+        "response_headers": dict(response.headers),
+    }
 
 
 @app.get("/make_distant_call")
