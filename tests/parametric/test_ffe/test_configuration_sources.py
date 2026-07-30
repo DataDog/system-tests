@@ -96,6 +96,8 @@ def library_env(
         env["DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS"] = str(
             params["provider_initialization_timeout_ms"]
         )
+    if "java_agent_enabled" in params:
+        env["SYSTEM_TESTS_JAVA_AGENT_ENABLED"] = str(params["java_agent_enabled"]).lower()
 
     if responses is not None:
         mock_ffe_agentless_backend.set_responses(responses)
@@ -798,3 +800,91 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         assert status["requests_total"] >= requests_before + 2
         assert status["max_in_flight"] == 1
         assert status["last_path"] == CONFIG_PATH
+
+
+@scenarios.parametric
+@features.feature_flags_agentless
+class Test_Feature_Flag_Agentless_Without_Java_Agent:
+    """Validate Java agentless delivery without attaching dd-java-agent.jar."""
+
+    @parametrize(
+        "library_env",
+        [
+            pytest.param(
+                {"configuration_source": None, "java_agent_enabled": False, "response": "valid"},
+                id="default-agentless",
+            ),
+            pytest.param(
+                {
+                    "configuration_source": "agentless",
+                    "java_agent_enabled": False,
+                    "legacy_provider_enabled": True,
+                    "response": "valid",
+                },
+                id="explicit-agentless-over-legacy",
+            ),
+        ],
+        indirect=True,
+    )
+    def test_agentless_evaluation_without_java_agent(
+        self,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
+
+        assert test_library.ffe_start(), "failed to start the no-agent FFE provider"
+        _assert_expected_value(_evaluate(test_library))
+
+        status = _wait_for_status(
+            mock_ffe_agentless_backend,
+            lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
+            "no-agent valid response request",
+        )
+        assert status["last_auth_present"] is False
+        assert status["last_path"] == CONFIG_PATH
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "configuration_source": "agentless",
+                "java_agent_enabled": False,
+                "responses": ["valid", "server_error"],
+            }
+        ],
+        indirect=True,
+    )
+    def test_no_agent_preserves_last_known_good_configuration(
+        self,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        assert test_library.ffe_start(), "failed to start the no-agent FFE provider"
+
+        status = _wait_for_status(
+            mock_ffe_agentless_backend,
+            lambda current: _has_status_sequence(current["status_codes"], [200, 500]),
+            "no-agent valid-to-server-error sequence",
+        )
+        _assert_expected_value(_evaluate(test_library))
+        assert status["last_path"] == CONFIG_PATH
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "configuration_source": "remote_config",
+                "java_agent_enabled": False,
+                "response": "valid",
+            }
+        ],
+        indirect=True,
+    )
+    def test_remote_config_requires_java_agent(
+        self,
+        test_library: APMLibrary,
+        mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
+    ) -> None:
+        assert not test_library.ffe_start(), "remote_config started without dd-java-agent.jar"
+        _assert_no_mock_requests(mock_ffe_agentless_backend)
