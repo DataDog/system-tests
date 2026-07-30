@@ -575,8 +575,21 @@ Examples:
 - `GET /trace/manual_keep_drop?decision=keep`
 - `GET /trace/manual_keep_drop?decision=drop`
 
-The endpoint returns a `200` status code with a plain text body once the decision has been applied.
-Any other value for `decision`, or a missing `decision` parameter, returns a `400` status code.
+Once the decision has been applied, the endpoint makes an outgoing HTTP call to `http://localhost:7777/`,
+so that tests can assert on the sampling decision propagated downstream. Unlike `/make_distant_call`
+the target is not configurable. The response mirrors `/make_distant_call`, with a `200` status code:
+
+```js
+{
+    "url": "http://localhost:7777/",  // the hardcoded downstream url
+    "status_code": 200, // status code of the downstream response
+    "request_headers": {}, // headers sent downstream, including the propagated sampling decision
+    "response_headers": {} // headers of the downstream response
+}
+```
+
+Any other value for `decision`, or a missing `decision` parameter, returns a `400` status code and
+makes no downstream call.
 
 ### GET /dbm
 
