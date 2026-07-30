@@ -1,4 +1,4 @@
-FROM datadog/system-tests:apache-mod-7.0-zts.base-v1
+FROM datadog/system-tests:apache-mod-7.0-zts.base-243dabf977f7
 
 ENV PHP_VERSION=7.0
 ENV VARIANT=release-zts
