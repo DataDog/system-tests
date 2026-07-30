@@ -402,7 +402,7 @@ public class MyResource {
 
     @GET
     @Path("/trace/manual_keep_drop")
-    public Response traceManualKeepDrop(@QueryParam("decision") String decision) {
+    public Response traceManualKeepDrop(@QueryParam("decision") String decision) throws Exception {
         if (!"keep".equals(decision) && !"drop".equals(decision)) {
             return Response.status(400).entity("decision must be keep or drop").build();
         }
@@ -412,7 +412,10 @@ public class MyResource {
             span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
         }
 
-        return Response.ok("OK").build();
+        // Call downstream so that tests can assert on the sampling decision that gets propagated
+        String result = new ObjectMapper().writeValueAsString(make_distant_call("http://localhost:7777/"));
+
+        return Response.ok(result).type(MediaType.APPLICATION_JSON).build();
     }
 
     @GET
