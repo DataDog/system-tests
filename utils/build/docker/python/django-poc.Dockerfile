@@ -1,4 +1,4 @@
-FROM datadog/system-tests:django-poc.base-dcc755f1e239
+FROM system_tests_base_python_django_poc
 
 WORKDIR /app
 

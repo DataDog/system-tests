@@ -1,4 +1,4 @@
-FROM datadog/system-tests:apache-mod-8.1-zts.base-8f16859a70c2
+FROM system_tests_base_php_apache_mod_8_1_zts
 
 ENV PHP_VERSION=8.1
 ENV VARIANT=release-zts

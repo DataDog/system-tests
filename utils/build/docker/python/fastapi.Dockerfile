@@ -1,4 +1,4 @@
-FROM datadog/system-tests:fastapi.base-fbd77e804efc
+FROM system_tests_base_python_fastapi
 
 WORKDIR /app
 

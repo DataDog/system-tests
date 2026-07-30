@@ -1,4 +1,4 @@
-FROM datadog/system-tests:flask-poc.base-a13c40d185ba
+FROM system_tests_base_python_flask_poc
 
 WORKDIR /app
 

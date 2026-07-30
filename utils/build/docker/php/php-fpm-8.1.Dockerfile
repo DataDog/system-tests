@@ -1,5 +1,5 @@
 
-FROM datadog/system-tests:php-fpm-8.1.base-355df2b4c95e
+FROM system_tests_base_php_php_fpm_8_1
 
 ARG PHP_VERSION=8.1
 

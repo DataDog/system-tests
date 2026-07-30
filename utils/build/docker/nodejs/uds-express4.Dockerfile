@@ -1,4 +1,4 @@
-FROM datadog/system-tests:express4.base-789fbc914699
+FROM system_tests_base_nodejs_express4
 
 # The base image bakes in app.js; refresh it (and fork_child.js, which is loaded via a
 # runtime path so it is never bundled) so the /spawn_child endpoint is present.

@@ -1,4 +1,4 @@
-FROM datadog/system-tests:express5.base-49dd63c1bfb6
+FROM system_tests_base_nodejs_express5
 
 EXPOSE 7777
 

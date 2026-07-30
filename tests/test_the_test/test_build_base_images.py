@@ -1,4 +1,7 @@
 from pathlib import Path
+import json
+import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -8,13 +11,21 @@ import pytest
 
 from utils import scenarios
 from utils.scripts import build_base_images
-from utils.scripts.base_image import base_image_ref
+from utils.scripts.base_image import (
+    BaseImageLockError,
+    base_image_contexts,
+    base_image_ref,
+    load_base_image_lock,
+)
 from utils.scripts.build_base_images import (
     _changed_libraries,
     _dependency_paths,
     _files_under,
+    _write_lock,
+    alias_for_base_tag,
     compute_hash,
     image_exists,
+    lock_images,
     materialize_build_context,
     parse_copy_dependencies,
 )
@@ -266,6 +277,87 @@ class Test_BaseImageRef:
 
     def test_no_datadog_base_returns_none(self):
         assert base_image_ref("FROM node:18-alpine\nCOPY app.js .\n") is None
+
+    def test_symbolic_alias_resolves_through_lock(self, tmp_path: Path):
+        lock_path = tmp_path / "lock.json"
+        _write_lock(
+            {"system_tests_base_express4": "datadog/system-tests:express4.base-123456789abc"},
+            lock_path,
+        )
+        assert base_image_ref("FROM system_tests_base_express4\n", lock_path) == (
+            "datadog/system-tests:express4.base-123456789abc"
+        )
+
+    def test_flagged_lowercase_and_multistage_aliases_resolve(self, tmp_path: Path):
+        lock_path = tmp_path / "lock.json"
+        _write_lock(
+            {
+                "system_tests_base_express4": "datadog/system-tests:express4.base-123456789abc",
+                "system_tests_base_fastify": "datadog/system-tests:fastify.base-abcdef123456",
+            },
+            lock_path,
+        )
+        dockerfile = textwrap.dedent(
+            """\
+            from --platform=linux/amd64 system_tests_base_express4 AS build
+            FROM system_tests_base_fastify
+            """
+        )
+        assert base_image_contexts(dockerfile, lock_path) == {
+            "system_tests_base_express4": "datadog/system-tests:express4.base-123456789abc",
+            "system_tests_base_fastify": "datadog/system-tests:fastify.base-abcdef123456",
+        }
+
+    def test_missing_alias_fails_clearly(self, tmp_path: Path):
+        lock_path = tmp_path / "lock.json"
+        _write_lock({}, lock_path)
+        with pytest.raises(BaseImageLockError, match="missing base-image lock entry"):
+            base_image_ref("FROM system_tests_base_missing\n", lock_path)
+
+
+@scenarios.test_the_test
+class Test_BaseImageLock:
+    def test_load_rejects_malformed_lock(self, tmp_path: Path):
+        lock_path = tmp_path / "lock.json"
+        lock_path.write_text('{"version": 2, "images": {}}')
+        with pytest.raises(BaseImageLockError, match="unsupported version"):
+            load_base_image_lock(lock_path)
+
+    def test_load_rejects_malformed_image(self, tmp_path: Path):
+        lock_path = tmp_path / "lock.json"
+        lock_path.write_text(
+            json.dumps({"version": 1, "images": {"system_tests_base_x": "datadog/system-tests:x.base-latest"}})
+        )
+        with pytest.raises(BaseImageLockError, match="invalid locked image"):
+            load_base_image_lock(lock_path)
+
+    def test_atomic_write_is_sorted(self, tmp_path: Path):
+        lock_path = tmp_path / "lock.json"
+        _write_lock(
+            {
+                "system_tests_base_z": "datadog/system-tests:z.base-abcdef123456",
+                "system_tests_base_a": "datadog/system-tests:a.base-123456789abc",
+            },
+            lock_path,
+        )
+        assert list(json.loads(lock_path.read_text())["images"]) == [
+            "system_tests_base_a",
+            "system_tests_base_z",
+        ]
+        assert list(tmp_path.iterdir()) == [lock_path]
+
+    def test_alias_normalization(self):
+        assert alias_for_base_tag("php", "datadog/system-tests:apache-mod-8.2-zts.base") == (
+            "system_tests_base_php_apache_mod_8_2_zts"
+        )
+
+    def test_alias_collision_is_rejected(self, tmp_path: Path):
+        targets = [
+            ("a", tmp_path, "one", "datadog/system-tests:foo-bar.base-123456789abc", tmp_path, "one"),
+            ("a", tmp_path, "two", "datadog/system-tests:foo.bar.base-abcdef123456", tmp_path, "two"),
+        ]
+        with pytest.raises(ValueError, match="Alias collision"):
+            lock_images(targets)
 
 
 @scenarios.test_the_test
@@ -538,6 +630,22 @@ class Test_ComputeHash:
 
         assert compute_hash(tmp_path, {"tags": ["x"]}) == compute_hash(tmp_path, {"tags": ["y"]})
 
+    def test_resolved_paths_are_excluded_from_the_hash(self, tmp_path: Path):
+        (tmp_path / "app.js").write_text("console.log(1);")
+        relative = {"context": ".", "dockerfile": "x.base.Dockerfile", "tags": ["x"]}
+        absolute = {"context": "/checkout/on/another/runner", "dockerfile": "/tmp/x.base.Dockerfile", "tags": ["x"]}
+        assert compute_hash(tmp_path, relative) == compute_hash(tmp_path, absolute)
+
+    def test_build_arg_order_is_irrelevant(self, tmp_path: Path):
+        (tmp_path / "app.js").write_text("console.log(1);")
+        assert compute_hash(tmp_path, {"args": {"A": "1", "B": "2"}}) == compute_hash(
+            tmp_path, {"args": {"B": "2", "A": "1"}}
+        )
+
+    def test_unsupported_bake_field_is_rejected(self, tmp_path: Path):
+        with pytest.raises(ValueError, match="Unsupported Bake target field"):
+            compute_hash(tmp_path, {"network": "host"})
+
     def test_different_file_mode_changes_the_hash(self, tmp_path: Path):
         script = tmp_path / "script.sh"
         script.write_text("#!/bin/sh\n")
@@ -602,13 +710,16 @@ class Test_Main:
         monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs"])
         monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
         monkeypatch.setattr(
-            build_base_images, "process_library", lambda library: [(library, tmp_path, "t", "tag", tmp_path, "df")]
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
         )
 
         def boom(*_args: object, **_kwargs: object) -> None:
             raise RuntimeError("buildx bake --push failed")
 
         monkeypatch.setattr(build_base_images, "process_target", boom)
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: False)
 
         with pytest.raises(SystemExit) as exc:
             build_base_images.main()
@@ -618,9 +729,12 @@ class Test_Main:
         monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs"])
         monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
         monkeypatch.setattr(
-            build_base_images, "process_library", lambda library: [(library, tmp_path, "t", "tag", tmp_path, "df")]
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
         )
         monkeypatch.setattr(build_base_images, "process_target", lambda *_a, **_k: None)
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: False)
 
         build_base_images.main()  # must not raise SystemExit
 
@@ -654,3 +768,97 @@ class Test_Main:
         monkeypatch.setattr(build_base_images.subprocess, "run", raise_cpe)
 
         assert _changed_libraries() is None
+
+    def test_changed_libraries_processes_all_when_hash_tooling_changes(self, monkeypatch: pytest.MonkeyPatch):
+        outputs = iter(
+            [
+                subprocess.CompletedProcess([], 0, stdout="abc123\n"),
+                subprocess.CompletedProcess([], 0, stdout="utils/scripts/build_base_images.py\n"),
+            ]
+        )
+        monkeypatch.setattr(build_base_images.subprocess, "run", lambda *_a, **_k: next(outputs))
+        assert _changed_libraries() is None
+
+
+@scenarios.test_the_test
+class Test_RepositoryBaseImageAliases:
+    def test_every_consumer_alias_is_locked(self):
+        lock = load_base_image_lock()
+        consumers: set[str] = set()
+        for dockerfile in Path("utils/build/docker").glob("*/*.Dockerfile"):
+            consumers.update(base_image_contexts(dockerfile.read_text()))
+        assert consumers
+        assert consumers <= lock.keys()
+
+    def test_every_bake_target_has_exactly_one_lock_entry(self):
+        expected: set[str] = set()
+        for bake_file in Path("utils/build/docker").glob("*/docker-bake.hcl"):
+            for match in re.finditer(
+                r'tags\s*=\s*\["(datadog/system-tests:[^"]+\.base)"\]',
+                bake_file.read_text(),
+            ):
+                expected.add(alias_for_base_tag(bake_file.parent.name, match.group(1)))
+        assert expected == load_base_image_lock().keys()
+
+
+@scenarios.test_the_test
+class Test_BuildScriptBaseImageContexts:
+    def test_weblog_build_preserves_arguments_and_injects_locked_context(self, tmp_path: Path):
+        fake_bin = tmp_path / "bin"
+        fake_bin.mkdir()
+        capture = tmp_path / "docker-args"
+        docker = fake_bin / "docker"
+        docker.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$CAPTURE"\n')
+        docker.chmod(0o755)
+        token = tmp_path / "github-token"
+        token.write_text("secret")
+
+        env = dict(os.environ)
+        env.update(
+            {
+                "CAPTURE": str(capture),
+                "CI": "true",
+                "PATH": f"{fake_bin}:{env['PATH']}",
+                "USE_IMAGE_MIRROR": "true",
+            }
+        )
+        subprocess.run(
+            [
+                "bash",
+                "utils/build/build.sh",
+                "--images",
+                "weblog",
+                "--library",
+                "nodejs",
+                "--weblog-variant",
+                "express4",
+                "--cache-mode",
+                "RW",
+                "--docker-platform",
+                "linux/amd64",
+                "--github-token-file",
+                str(token),
+                "--extra-docker-args",
+                "--pull",
+            ],
+            check=True,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+
+        args = capture.read_text().splitlines()
+        locked = load_base_image_lock()["system_tests_base_nodejs_express4"]
+        assert ["--build-context", f"system_tests_base_nodejs_express4=docker-image://{locked}"] == args[
+            args.index("--build-context") : args.index("--build-context") + 2
+        ]
+        assert "--platform" in args
+        assert "linux/amd64" in args
+        assert "--secret" in args
+        assert f"id=github_token,src={token}" in args
+        assert "--cache-from" in args
+        assert "--cache-to" in args
+        assert "--builder" in args
+        assert "system-tests-mirror" in args
+        assert "--pull" in args
+        assert "--load" in args

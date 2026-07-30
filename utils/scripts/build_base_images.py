@@ -6,12 +6,13 @@ For each library with a `utils/build/docker/<library>/docker-bake.hcl` and each 
   1. Resolves the bake config via `docker buildx bake --print`.
   2. Parses `COPY` instructions in the Dockerfile for local dependencies.
   3. Hardlinks those files + the Dockerfile into an isolated build context.
-  4. Hashes the bake config (tags excluded) + that context.
+  4. Hashes normalized build arguments + that context.
   5. Appends "-<hash12>" to the base tag (e.g. `datadog/system-tests:express4.base-<hash12>`).
   6. Skips if that tag already exists on Docker Hub; otherwise builds and pushes.
 
-Idempotent: never overwrites an existing tag. Use --dry-run to print the computed tag without
-building or pushing.
+Idempotent: never overwrites an existing tag. The prospective aliases and tags are compared with
+``utils/build/docker/base-images.lock.json`` on every run. Use ``--update-lock`` to atomically
+regenerate that file after the new images have been published.
 
 Dockerfile constraints (required for dependency detection to work):
   - No `ADD`; use `COPY <source> <dest>` only (one source per instruction, no remote URLs).
@@ -32,25 +33,36 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
-# So `python utils/scripts/build_base_images.py` works regardless of the caller's cwd.
 REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO_ROOT))
 
-from utils.const import COMPONENT_GROUPS  # noqa: E402
+# Import the sibling stdlib-only helper without requiring the package form when
+# this file is executed directly.
+try:
+    from .base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock
+except ImportError:  # pragma: no cover - direct script execution
+    from base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock
 
 BUILD_CONTEXT_ROOT = REPO_ROOT / ".base_image_build"
 
 _SOURCE_AND_DEST_TOKEN_COUNT = 2
+_CONTENT_HASH_LENGTH = 12
 _MANIFEST_INSPECT_ATTEMPTS = 3
 _MANIFEST_INSPECT_RETRY_DELAY_SECONDS = 5.0
 _MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
+_SUPPORTED_BAKE_FIELDS = {"args", "context", "dockerfile", "tags"}
+_BASE_TAG_PREFIX = "datadog/system-tests:"
 
 
 def _bake_file(library: str) -> Path:
     return REPO_ROOT / "utils" / "build" / "docker" / library / "docker-bake.hcl"
+
+
+def _base_image_libraries() -> list[str]:
+    return sorted(path.parent.name for path in (REPO_ROOT / "utils" / "build" / "docker").glob("*/docker-bake.hcl"))
 
 
 def _run(cmd: list[str], *, cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess:
@@ -165,18 +177,91 @@ def _dependency_paths(context_root: Path, dockerfile: Path) -> list[Path]:
 
 
 def compute_hash(build_dir: Path, bake_config: dict) -> str:
-    """Hash the bake config and materialized build context."""
+    """Hash repository-controlled build arguments and materialized context."""
     digest = hashlib.sha256()
 
-    config_without_tags = {k: v for k, v in bake_config.items() if k != "tags"}
-    digest.update(json.dumps(config_without_tags, sort_keys=True).encode())
+    unsupported = set(bake_config) - _SUPPORTED_BAKE_FIELDS
+    if unsupported:
+        raise ValueError(
+            "Unsupported Bake target field(s), define their hash semantics before use: "
+            + ", ".join(sorted(unsupported))
+        )
+    args = bake_config.get("args", {})
+    if not isinstance(args, dict) or any(
+        not isinstance(key, str) or not isinstance(value, str) for key, value in args.items()
+    ):
+        raise ValueError("Bake target args must be a string-to-string mapping")
+    digest.update(json.dumps({"args": args}, sort_keys=True, separators=(",", ":")).encode())
 
     for file in sorted(p for p in build_dir.rglob("*") if p.is_file()):
         digest.update(str(file.relative_to(build_dir)).encode())
         digest.update(stat.S_IMODE(file.lstat().st_mode).to_bytes(4, "big"))
         digest.update(file.read_bytes())
 
-    return digest.hexdigest()[:12]
+    return digest.hexdigest()[:_CONTENT_HASH_LENGTH]
+
+
+def alias_for_base_tag(library: str, base_tag: str) -> str:
+    """Convert a base tag into its stable BuildKit context alias."""
+    if not base_tag.startswith(_BASE_TAG_PREFIX) or not base_tag.endswith(".base"):
+        raise ValueError(f"Base target tag must match datadog/system-tests:<name>.base, got {base_tag!r}")
+    name = base_tag.removeprefix(_BASE_TAG_PREFIX).removesuffix(".base")
+    normalized = "".join(character if character.isalnum() else "_" for character in name.lower())
+    normalized = "_".join(part for part in normalized.split("_") if part)
+    if not normalized:
+        raise ValueError(f"Could not derive an alias from base tag {base_tag!r}")
+    normalized_library = "_".join(part for part in library.lower().replace("-", "_").split("_") if part)
+    return f"{ALIAS_PREFIX}{normalized_library}_{normalized}"
+
+
+def lock_images(targets: list[tuple]) -> dict[str, str]:
+    """Build a sorted lock mapping, rejecting aliases that normalize to one key."""
+    images: dict[str, str] = {}
+    sources: dict[str, str] = {}
+    for library, _bake_file_path, target, tag, _build_dir, _dockerfile in targets:
+        base_tag, separator, content_hash = tag.rpartition("-")
+        if not separator or len(content_hash) != _CONTENT_HASH_LENGTH:
+            raise ValueError(f"Unexpected content-addressed base tag {tag!r}")
+        alias = alias_for_base_tag(library, base_tag)
+        source = f"{library}/{target}"
+        if alias in images:
+            raise ValueError(f"Alias collision for {alias}: {sources[alias]} and {source}")
+        images[alias] = tag
+        sources[alias] = source
+    return dict(sorted(images.items()))
+
+
+def _write_lock(images: dict[str, str], lock_path: Path = LOCK_PATH) -> None:
+    """Atomically write a stable, versioned base-image lock."""
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    content = json.dumps({"version": LOCK_VERSION, "images": dict(sorted(images.items()))}, indent=2) + "\n"
+    with tempfile.NamedTemporaryFile("w", dir=lock_path.parent, prefix=f".{lock_path.name}.", delete=False) as file:
+        temporary_path = Path(file.name)
+        file.write(content)
+        file.flush()
+        os.fsync(file.fileno())
+    temporary_path.replace(lock_path)
+
+
+def _lock_drift(prospective: dict[str, str], lock_path: Path = LOCK_PATH, *, full: bool = True) -> bool:
+    """Report whether the committed lock differs from a prospective mapping."""
+    try:
+        committed = load_base_image_lock(lock_path)
+    except ValueError as exc:
+        print(f"Base-image lock drift: {exc}")
+        return True
+
+    compared_committed = committed if full else {alias: committed.get(alias) for alias in prospective}
+    if compared_committed == prospective:
+        print("Base-image lock is up to date")
+        return False
+
+    print("Base-image lock is stale:")
+    aliases = (set(committed) | set(prospective)) if full else set(prospective)
+    for alias in sorted(aliases):
+        if committed.get(alias) != prospective.get(alias):
+            print(f"  {alias}: {committed.get(alias, '(missing)')} -> {prospective.get(alias, '(removed)')}")
+    return True
 
 
 def _link_or_copy(source: Path, dest: Path) -> None:
@@ -293,6 +378,11 @@ def process_library(library: str) -> list[tuple]:
 
     targets = []
     for target, bake_config in _all_bake_configs(bake_file).items():
+        unsupported = set(bake_config) - _SUPPORTED_BAKE_FIELDS
+        if unsupported:
+            raise ValueError(
+                f"{bake_file} target {target}: unsupported Bake field(s): {', '.join(sorted(unsupported))}"
+            )
         # `docker buildx bake --print` may report `context` as absolute or relative.
         context_root = (REPO_ROOT / bake_file.parent / bake_config["context"]).resolve()
         dockerfile = context_root / bake_config["dockerfile"]
@@ -303,7 +393,11 @@ def process_library(library: str) -> list[tuple]:
         # will see.
         build_dir = materialize_build_context(library, target, context_root, dockerfile, dependencies)
 
-        base_tag = bake_config["tags"][0]
+        tags = bake_config.get("tags")
+        if not isinstance(tags, list) or len(tags) != 1 or not isinstance(tags[0], str):
+            raise ValueError(f"{bake_file} target {target}: exactly one string tag is required")
+        base_tag = tags[0]
+        alias_for_base_tag(library, base_tag)
         content_hash = compute_hash(build_dir, bake_config)
         tag = f"{base_tag}-{content_hash}"
         targets.append((library, bake_file, target, tag, build_dir, bake_config["dockerfile"]))
@@ -328,8 +422,13 @@ def _changed_libraries() -> set[str] | None:
         print(f"Warning: could not determine changed libraries ({exc}); processing all libraries")
         return None
 
+    changed_paths = set(diff.splitlines())
+    if changed_paths & {"utils/scripts/build_base_images.py", "utils/scripts/base_image.py"}:
+        print("--changed-only: base-image tooling changed; processing all libraries")
+        return None
+
     prefix = "utils/build/docker/"
-    return {line[len(prefix) :].split("/", 1)[0] for line in diff.splitlines() if line.startswith(prefix)} - {""}
+    return {line[len(prefix) :].split("/", 1)[0] for line in changed_paths if line.startswith(prefix)} - {""}
 
 
 def main() -> None:
@@ -346,7 +445,15 @@ def main() -> None:
         action="store_true",
         help="Only print the computed tag and whether it exists on Docker Hub; never build or push",
     )
+    parser.add_argument(
+        "--update-lock",
+        action="store_true",
+        help="Regenerate utils/build/docker/base-images.lock.json without building or pushing",
+    )
     args = parser.parse_args()
+
+    if args.update_lock and (args.library or args.changed_only or args.dry_run):
+        parser.error("--update-lock cannot be combined with --library, --changed-only, or --dry-run")
 
     if args.library:
         if not _bake_file(args.library).exists():
@@ -354,7 +461,7 @@ def main() -> None:
             sys.exit(1)
         libraries = [args.library]
     else:
-        libraries = sorted(COMPONENT_GROUPS.all)
+        libraries = _base_image_libraries()
         if args.changed_only:
             changed = _changed_libraries()
             if changed is not None:
@@ -365,6 +472,13 @@ def main() -> None:
     for library in libraries:
         targets += process_library(library)
 
+    prospective = lock_images(targets)
+    if args.update_lock:
+        _write_lock(prospective)
+        print(f"Updated {LOCK_PATH} with {len(prospective)} base images")
+        return
+
+    drift = _lock_drift(prospective, full=not args.library and not args.changed_only)
     failures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         futures = {executor.submit(process_target, *t, dry_run=args.dry_run): (t[0], t[2]) for t in targets}
@@ -380,6 +494,11 @@ def main() -> None:
         print("The following targets failed to build/push:")
         for failure in failures:
             print(f"  {failure}")
+        sys.exit(1)
+
+    if drift:
+        print("Base images are published, but the committed lock is stale. Regenerate and commit it:")
+        print("  python utils/scripts/build_base_images.py --update-lock")
         sys.exit(1)
 
 
