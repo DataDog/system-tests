@@ -166,7 +166,26 @@ module TraceManualKeepDrop
     trace = Datadog::Tracing.active_trace
     decision == 'keep' ? trace.keep! : trace.reject!
 
-    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = 'http://localhost:7777/'
+    uri = URI(url)
+    downstream_request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      downstream_request = Net::HTTP::Get.new(uri)
+
+      response = http.request(downstream_request)
+    end
+
+    result = {
+      url: url,
+      status_code: response.code.to_i,
+      request_headers: downstream_request.each_header.to_h,
+      response_headers: response.each_header.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [result.to_json]]
   end
 end
 
