@@ -8,9 +8,10 @@ RUN node --version && npm --version && bun --version && curl --version
 
 WORKDIR /usr/app
 
-COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/bun.lock ./
-COPY utils/build/docker/nodejs/nextjs /usr/app
-COPY utils/build/docker/nodejs/nft-prune.mjs ./
+COPY nextjs/package.json ./
+COPY nextjs/bun.lock ./
+COPY nextjs /usr/app
+COPY nft-prune.mjs ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && bun run build \
  && node nft-prune.mjs \
@@ -24,5 +25,5 @@ RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
       node_modules/next/dist/compiled/terser \
  && rm -rf .next/cache /root/.bun
 
-# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v3 .
+# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v3 utils/build/docker/nodejs
 # docker push datadog/system-tests:nextjs.base-v3
