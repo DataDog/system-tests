@@ -33,6 +33,32 @@ def _assert_upstream_trace_continued(request: HttpResponse) -> None:
     assert UPSTREAM_PARENT_ID in parent_ids, f"No span is a child of the upstream span: {parent_ids}"
 
 
+def _assert_decision_propagated_downstream(request: HttpResponse, expected: SamplingPriority) -> None:
+    """The endpoint calls downstream once the decision has been applied, and reports the headers it
+    sent. The propagated priority must be the manual decision, not the upstream one.
+    """
+    request_headers = request.json()["request_headers"]
+
+    # Case-insensitive lookup, as the header casing depends on the weblog app implementation, and some
+    # weblogs report the headers as a list of objects instead of a dict
+    if isinstance(request_headers, dict):
+        propagated = next(
+            (value for key, value in request_headers.items() if key.lower() == "x-datadog-sampling-priority"), None
+        )
+    else:
+        propagated = next(
+            (
+                header.get("value")
+                for header in request_headers
+                if header.get("key", "").lower() == "x-datadog-sampling-priority"
+            ),
+            None,
+        )
+
+    assert propagated is not None, f"No sampling priority propagated downstream: {request_headers}"
+    assert int(propagated) == expected, f"Propagated sampling priority is {propagated}, expected {int(expected)}"
+
+
 def _get_sampling_priority(request: HttpResponse) -> int:
     """Sampling priority is reported on the local root span of the trace chunk, which is the
     weblog span here, as the trace is continued from an upstream service.
@@ -65,6 +91,7 @@ class Test_Manual_Sampling:
         assert self.r_keep.status_code == 200
         _assert_upstream_trace_continued(self.r_keep)
         assert _get_sampling_priority(self.r_keep) == SamplingPriority.USER_KEEP
+        _assert_decision_propagated_downstream(self.r_keep, SamplingPriority.USER_KEEP)
 
     def setup_manual_drop_overrides_upstream_keep(self):
         self.r_drop = weblog.get(
@@ -77,3 +104,4 @@ class Test_Manual_Sampling:
         assert self.r_drop.status_code == 200
         _assert_upstream_trace_continued(self.r_drop)
         assert _get_sampling_priority(self.r_drop) == SamplingPriority.USER_REJECT
+        _assert_decision_propagated_downstream(self.r_drop, SamplingPriority.USER_REJECT)
