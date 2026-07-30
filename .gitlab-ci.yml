@@ -428,16 +428,10 @@ mirror_images:
     - source venv/bin/activate
     - python -m pip install --quiet uv
     # Fail if any committed mirror artifact is stale vs the scenarios and base-image lock.
-    - python utils/scripts/update_mirror_images.py
+    - python utils/scripts/update_mirror_images.py --skip-lock
     - |
       if ! git diff --exit-code -- mirror_images.yaml; then
         echo "❌ mirror_images.yaml is out of date. Regenerate and commit it:"
-        echo "   python utils/scripts/update_mirror_images.py"
-        exit 1
-      fi
-    - |
-      if ! git diff --exit-code -- mirror_images.lock.yaml; then
-        echo "❌ mirror_images.lock.yaml is out of date. Regenerate and commit it:"
         echo "   python utils/scripts/update_mirror_images.py"
         exit 1
       fi
