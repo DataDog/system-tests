@@ -5,7 +5,6 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.vm_logger import vm_logger
-from utils.dd_types import is_same_boolean
 from utils import context, logger
 from threading import Timer
 
@@ -139,12 +138,13 @@ class AutoInjectBaseTest:
             )
             return False
 
-        if is_same_boolean(actual=meta.get("appsec.event"), expected="true"):
+        # Check for v0.4 protocol, which exposes the AppSec event marker directly in span metadata.
+        if meta.get("appsec.event") == "true":
             return True
 
-        # Check for AppSec event payload
+        # Check for v1 protocol, which exposes either the event payload or flattened trigger fields.
         appsec_payload = meta.get("_dd.appsec.json")
-        if appsec_payload and appsec_payload.get("triggers"):
+        if (appsec_payload and appsec_payload.get("triggers")) or meta.get("appsec.triggers.rule.id"):
             return True
 
         logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
