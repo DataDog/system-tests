@@ -1,6 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const axios = require('axios')
@@ -196,6 +197,38 @@ fastify.get('/session/new', async (request, reply) => {
 fastify.get('/status', async (request, reply) => {
   reply.status(parseInt(request.query.code))
   return 'OK'
+})
+
+fastify.get('/trace/manual_keep_drop', async (request, reply) => {
+  const decision = request.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    reply.status(400)
+    return 'decision must be keep or drop'
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+      response.on('data', () => {})
+
+      response.on('end', () => {
+        resolve({
+          url,
+          status_code: response.statusCode,
+          request_headers: response.req.getHeaders(),
+          response_headers: response.headers
+        })
+      })
+    })
+
+    httpRequest.on('error', reject)
+
+    httpRequest.end()
+  })
 })
 
 fastify.get('/make_distant_call', async (request, reply) => {

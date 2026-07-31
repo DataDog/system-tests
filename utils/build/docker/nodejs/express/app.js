@@ -9,6 +9,7 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -212,6 +213,38 @@ app.get('/session/new', (req, res) => {
 
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code) || 400).send('OK')
+})
+
+app.get('/trace/manual_keep_drop', (req, res) => {
+  const decision = req.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop')
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: response.req.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
 })
 
 app.get('/make_distant_call', (req, res) => {
