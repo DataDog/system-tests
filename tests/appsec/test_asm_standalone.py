@@ -5,7 +5,8 @@ import time
 
 from requests.structures import CaseInsensitiveDict
 
-from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
+from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
+from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SAMPLING_PRIORITY_KEY, SamplingPriority, TraceSource
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
 from utils import context, weblog, interfaces, scenarios, features, rfc, logger
@@ -781,6 +782,21 @@ class BaseSCAStandaloneTelemetry:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
 
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_AppSecStandalone_APMDisabledMarker:
+    """Every span sent in standalone mode carries the APM-disabled billing marker."""
+
+    def setup_all_spans_have_apm_disabled_marker(self) -> None:
+        self.r = weblog.get("/")
+
+    def test_all_spans_have_apm_disabled_marker(self) -> None:
+        assert self.r.status_code == 200
+
+        spans = [span for _, trace in interfaces.library.get_traces(request=self.r) for span in trace]
+        assert_all_spans_have_apm_disabled_marker(spans)
+
+
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 class Test_AppSecStandalone_NotEnabled:
@@ -813,10 +829,10 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamP
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self) -> str:
-        return "_dd.p.ts"
+        return TRACE_SOURCE_PROPAGATION_KEY
 
     def propagated_tag_value(self) -> str:
-        return "02"
+        return TraceSource.ASM.as_tag_value()
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -826,10 +842,10 @@ class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropa
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self) -> str:
-        return "_dd.p.ts"
+        return TRACE_SOURCE_PROPAGATION_KEY
 
     def propagated_tag_value(self) -> str:
-        return "02"
+        return TraceSource.ASM.as_tag_value()
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -839,10 +855,10 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self) -> str:
-        return "_dd.p.ts"
+        return TRACE_SOURCE_PROPAGATION_KEY
 
     def propagated_tag_value(self) -> str:
-        return "02"
+        return TraceSource.ASM.as_tag_value()
 
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
@@ -852,10 +868,10 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
     def propagated_tag(self) -> str:
-        return "_dd.p.ts"
+        return TRACE_SOURCE_PROPAGATION_KEY
 
     def propagated_tag_value(self) -> str:
-        return "02"
+        return TraceSource.ASM.as_tag_value()
 
     @staticmethod
     def get_schema(request: HttpResponse, address: str) -> list | None:
@@ -1031,7 +1047,7 @@ class Test_UserEventsStandalone_Automated:
 
     def _get_standalone_span_meta(self, trace_id: int):
         tested_meta: dict[str, str | Callable | None] = {
-            "_dd.p.ts": "02",
+            TRACE_SOURCE_PROPAGATION_KEY: TraceSource.ASM.as_tag_value(),
         }
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -1104,7 +1120,7 @@ class Test_UserEventsStandalone_SDK_V1:
 
     def _get_standalone_span_meta(self, trace_id: int):
         tested_meta: dict[str, str | Callable | None] = {
-            "_dd.p.ts": "02",
+            TRACE_SOURCE_PROPAGATION_KEY: TraceSource.ASM.as_tag_value(),
         }
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -1168,7 +1184,7 @@ class Test_UserEventsStandalone_SDK_V2:
 
     def _get_standalone_span_meta(self, trace_id: int):
         tested_meta: dict[str, str | Callable | None] = {
-            "_dd.p.ts": "02",
+            TRACE_SOURCE_PROPAGATION_KEY: TraceSource.ASM.as_tag_value(),
         }
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)

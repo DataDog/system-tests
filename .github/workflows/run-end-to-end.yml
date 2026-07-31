@@ -320,6 +320,9 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION
+    - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
+      run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -409,6 +412,21 @@ jobs:
     - name: Run SAMPLING_RATE_CAPPING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
       run: ./run.sh SAMPLING_RATE_CAPPING
+    - name: Run OTEL_SAMPLING_RATE_0_01 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_01"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_01
+    - name: Run OTEL_SAMPLING_RATE_0_05 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_05"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_05
+    - name: Run OTEL_SAMPLING_RATE_0_1 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_1"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_1
+    - name: Run OTEL_SAMPLING_RATE_0_2 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_2"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_2
+    - name: Run OTEL_SAMPLING_RATE_0_99 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_99"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_99
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED

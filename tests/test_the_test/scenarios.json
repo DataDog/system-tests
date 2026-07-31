@@ -301,9 +301,6 @@
   "tests/test_profiling.py::Test_Profile::test_process_tags": [
     "PROFILING"
   ],
-  "tests/test_protobuf.py::Test_Protobuf::test_protobuf": [
-    "DEFAULT"
-  ],
   "tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_basic": [
     "TRACING_CONFIG_NONDEFAULT_3"
   ],
@@ -3348,6 +3345,9 @@
   "tests/external_processing/test_apm.py::Test_ExternalProcessing_Tracing::test_correct_span_structure": [
     "EXTERNAL_PROCESSING"
   ],
+  "tests/ffe/test_agentless_configuration.py::Test_FFE_Agentless_Configuration::test_default_agentless_source": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
+  ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
   ],
@@ -4201,6 +4201,45 @@
     "PARAMETRIC"
   ],
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_single_tracecontext": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_multiple_tracecontexts_with_overrides[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage[library_env0]": [
     "PARAMETRIC"
   ],
   "tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid[library_env0]": [

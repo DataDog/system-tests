@@ -28,3 +28,5 @@ chi:
   categories: [dd_trace]
 net-http-orchestrion:
   categories: [dd_trace]
+net-http-span-pool:
+  categories: [dd_trace]
