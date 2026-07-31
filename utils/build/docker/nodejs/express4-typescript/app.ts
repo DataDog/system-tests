@@ -165,7 +165,7 @@ app.get("/trace/manual_keep_drop", (req: Request, res: Response) => {
       res.json({
         url,
         status_code: response.statusCode,
-        request_headers: response.req.getHeaders(),
+        request_headers: request.getHeaders(),
         response_headers: response.headers
       })
     })
