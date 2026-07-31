@@ -6,7 +6,7 @@
       "name": "express4-typescript",
       "dependencies": {
         "@openfeature/core": "^1.9.0",
-        "@openfeature/server-sdk": "~1.19.0",
+        "@openfeature/server-sdk": "~1.18.0",
         "@opentelemetry/api": "^1.9.0",
         "@types/express-session": "^1.18.1",
         "@types/ldapjs": "^3.0.6",
@@ -95,7 +95,7 @@
 
     "@openfeature/core": ["@openfeature/core@1.12.0", "", {}, "sha512-7PCPzyd1OC19begz30+CRknFB0ChtyaZUhk7YWrk+Bov1fpVw0HYkTXtoxxsvPfDZB9P9WsT7uixN+Z8f9+bcA=="],
 
-    "@openfeature/server-sdk": ["@openfeature/server-sdk@1.19.0", "", { "peerDependencies": { "@openfeature/core": "^1.9.0" } }, "sha512-sxmYKkBCpWWkKX2xJt6bFK15dorfR2lH27lkeKduTFPXRMV+pO7eORUelI9gctXhxvfXbDGK94ybq5fiso3/vg=="],
+    "@openfeature/server-sdk": ["@openfeature/server-sdk@1.18.0", "", { "peerDependencies": { "@openfeature/core": "^1.7.0" } }, "sha512-uP8nqEGBS58s3iWXx6d8vnJ6ZVt3DACJL4PWADOAuwIS4xXpID91783e9f6zQ0i1ijQpj3yx+3ZuCB2LfQMUMA=="],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.1", "", {}, "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="],
 
