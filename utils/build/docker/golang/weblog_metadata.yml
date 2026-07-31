@@ -34,4 +34,5 @@ net-http-orchestrion:
   categories: [dd_trace]
   excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 net-http-span-pool:
-  categories: [dd_trace]  
+  categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
