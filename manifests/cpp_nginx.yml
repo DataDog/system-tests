@@ -11,6 +11,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -91,6 +92,7 @@ manifest:
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : missing_feature  # Created by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_sampling_window_renewal: missing_feature  # Created by easy win activation script
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.7.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.7.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: irrelevant
@@ -270,6 +272,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/ffe/test_agentless_configuration.py: missing_feature (C++ is not in scope for v1 agentless server SDK coverage; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)

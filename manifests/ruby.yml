@@ -25,6 +25,7 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -1157,6 +1158,7 @@ manifest:
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -1955,6 +1957,7 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0
   tests/docker_ssi/test_docker_ssi_servicenaming.py::TestDockerServiceNaming::test_service_name: missing_feature (No implemented)
+  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2307,6 +2310,7 @@ manifest:
     - declaration: "missing_feature (\"Issue: does not escape '~' characters to '=' in _dd.p.usr.id\")"
       component_version: <2.27.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: missing_feature (ruby has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (ruby has not implemented stats computation yet)

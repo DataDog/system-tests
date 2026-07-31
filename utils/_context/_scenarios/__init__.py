@@ -7,7 +7,12 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, DdTraceEndToEndScenario, GraphQlEndToEndScenario
+from .endtoend import (
+    DockerScenario,
+    DdTraceEndToEndScenario,
+    FeatureFlaggingAgentlessEndToEndScenario,
+    GraphQlEndToEndScenario,
+)
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
@@ -595,7 +600,10 @@ class _Scenarios:
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="Appsec standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -661,7 +669,10 @@ class _Scenarios:
             "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
-        doc="Source code vulnerability standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -675,7 +686,10 @@ class _Scenarios:
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="SCA standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -770,6 +784,10 @@ class _Scenarios:
         },
         doc="",
         scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
@@ -1439,7 +1457,10 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="AI Guard standalone mode",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="AI Guard standalone mode, with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.ai_guard],
     )
 
