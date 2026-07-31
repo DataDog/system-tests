@@ -349,7 +349,9 @@ class Test_ForwardInboundOtUnchanged:
 
         assert self.unknown_only_request.status_code == 200
         ot_only = _parse_ot(_outbound_tracestate(self.unknown_only_request))
-        assert ot_only.get("foo") == "bar", "an unknown-only inbound ot= sub-key was dropped instead of forwarded verbatim"
+        assert ot_only.get("foo") == "bar", (
+            "an unknown-only inbound ot= sub-key was dropped instead of forwarded verbatim"
+        )
         assert "rv" not in ot_only, "rv was fabricated for an ot= that carried no sampling decision"
         assert "th" not in ot_only, "th was fabricated for an ot= that carried no sampling decision"
 
