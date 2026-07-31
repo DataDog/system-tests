@@ -13,7 +13,6 @@ class DebuggerScenario(EndToEndScenario):
         name: str,
         doc: str,
         weblog_env: dict[str, str | None],
-        weblog_categories: list[WeblogCategory] | None = None,
     ) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
@@ -32,7 +31,7 @@ class DebuggerScenario(EndToEndScenario):
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
-            weblog_categories=weblog_categories if weblog_categories is not None else [WeblogCategory.dd_trace],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

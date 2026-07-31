@@ -2,8 +2,6 @@
 
 poc:
   categories: [dd_trace]
-  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 uds:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
-  supported_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]

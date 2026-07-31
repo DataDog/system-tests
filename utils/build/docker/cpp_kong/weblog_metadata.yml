@@ -2,3 +2,4 @@
 
 kong:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
