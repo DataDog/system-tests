@@ -102,6 +102,9 @@ class Test_Partial_Flushing:
             assert first_span["metrics"]["_sampling_priority_v1"] == 2.0
             assert first_span["meta"]["_dd.p.tid"]
             assert first_span["meta"]["_dd.p.dm"] == "-3"
+            for later_span in partial_trace[1:]:
+                assert "_dd.p.tid" not in later_span.get("meta", {})
+                assert "_dd.p.dm" not in later_span.get("meta", {})
 
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
         full_trace = find_trace(traces, parent_span.trace_id)
