@@ -921,12 +921,16 @@ class Test_RedactionSkipsStructuralFields:
 @features.ai_guard
 @scenarios.ai_guard
 class Test_RedactionOnBlock:
-    """A blocked evaluation reports the redacted messages, never the originals.
+    """A blocked evaluation reports the redacted messages in meta struct, never the originals.
 
-    The block path never returns an evaluation to the caller, so the span is the only place the
-    payload surfaces. The RFC still requires the redaction to be applied there: a blocked
-    conversation is exactly the one most likely to carry sensitive data, and it must reach the
-    backend and the UI redacted, with the ai_guard.redacted tag set alongside ai_guard.blocked.
+    The block path returns no evaluation to the caller, so the span is the only place the payload
+    surfaces, and the redaction must still be applied there: a blocked conversation is exactly the
+    one most likely to carry sensitive data, and it must reach the backend and the UI redacted,
+    with the ai_guard.redacted tag set alongside ai_guard.blocked.
+
+    The abort error itself deliberately carries no messages. Errors get logged and the conversation
+    is arbitrarily large, so putting the list on the error reopens the leak channel redaction just
+    closed. Meta struct is the reporting surface on this path, not the exception.
     """
 
     def _assert_blocked_and_redacted(self, scenario: dict):
@@ -953,26 +957,6 @@ class Test_RedactionOnBlock:
         interfaces.library.validate_one_span(
             self.r, validator=self._assert_blocked_and_redacted(self.scenario), full_trace=True
         )
-
-    def test_redacted_messages_on_abort_error(self):
-        """The abort error raised to the caller carries the redacted messages.
-
-        No evaluation is returned on the block path, so the error is the only handle a caller has
-        on the conversation. It must expose the redacted list, so a handler that logs or retries
-        cannot resurrect the sensitive values the evaluation just removed.
-        """
-        assert self.r.status_code == 403
-        body = json.loads(self.r.text)
-
-        messages = _assert_key(body, "messages")
-        assert messages == self.scenario["expected_messages"], (
-            f"Abort error messages are not the redacted ones: {messages} != {self.scenario['expected_messages']}"
-        )
-        serialized = json.dumps(messages)
-        for sensitive_value in self.scenario["sensitive_values"]:
-            assert sensitive_value not in serialized, (
-                f"Sensitive value '{sensitive_value}' still present in the abort error: {serialized}"
-            )
 
 
 @rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
