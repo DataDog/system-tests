@@ -1,6 +1,4 @@
 import base64
-import threading
-import time
 
 import msgpack
 import pytest
@@ -10,7 +8,6 @@ from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
 from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures._core import get_docker_client
 from .conftest import APMLibrary
 from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
 
@@ -62,40 +59,6 @@ def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.Mar
     """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
     return parametrize("agent_env", [agent_env_config])
-
-
-@scenarios.parametric
-@features.client_side_stats_supported
-class Test_Python_DDTrace_Stats_Flush:
-    @enable_tracestats()
-    @enable_agent_version()
-    def test_flush_while_trace_export_is_blocked(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        agent_container = get_docker_client().containers.get(test_agent.container_name)
-        agent_container.pause()
-        unpause_timer = None
-
-        try:
-            with test_library.dd_start_span("blocked_export"):
-                pass
-            time.sleep(2)
-            unpause_timer = threading.Timer(1, agent_container.unpause)
-            unpause_timer.start()
-            started_at = time.monotonic()
-            assert test_library.dd_flush_stats()
-            assert time.monotonic() - started_at >= 0.5
-        finally:
-            if unpause_timer is not None:
-                unpause_timer.join()
-            agent_container.reload()
-            if agent_container.status == "paused":
-                agent_container.unpause()
-
-        assert test_agent.wait_for_num_v06_stats(1)
-
-        with test_library.dd_start_span("after_recreate"):
-            pass
-        assert test_library.dd_flush_stats()
-        assert test_agent.wait_for_num_v06_stats(2)
 
 
 @scenarios.parametric

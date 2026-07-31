@@ -986,7 +986,6 @@ manifest:
       component_version: '>=1.19.0'
     - declaration: missing_feature (php has not implemented stats computation yet)
       component_version: <1.19.0
-  tests/parametric/test_library_tracestats.py::Test_Python_DDTrace_Stats_Flush: irrelevant (specific test for python tracer)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.1.0
