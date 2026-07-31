@@ -18,7 +18,14 @@
       ]
     },
     "error": {
-      "$ref": "./error.json"
+      "anyOf": [
+        {
+          "$ref": "./error.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "$comment": "`enabled` is deliberately optional and nullable: absent or null means false, so `{}` is a valid way to report a product as not enabled."

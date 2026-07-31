@@ -12,7 +12,14 @@
       "$ref": "/miscs/telemetry/common/objects/remote_config.json"
     },
     "error": {
-      "$ref": "/miscs/telemetry/common/objects/error.json"
+      "anyOf": [
+        {
+          "$ref": "/miscs/telemetry/common/objects/error.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "products": {
       "$ref": "/miscs/telemetry/common/objects/products.json"
