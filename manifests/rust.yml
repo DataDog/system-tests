@@ -446,21 +446,21 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: '>=0.5.0-dev'
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: '>=0.5.0-dev'
   tests/test_profiling.py::Test_Profile: missing_feature (profiling is not implemented)
   tests/test_resource_renaming.py: incomplete_test_app (resource-renaming endpoints are not implemented)
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
