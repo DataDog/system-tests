@@ -2131,6 +2131,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015: "missing_feature (CSS v1.2.0: dd-trace-js emits stats for the eligible spans but does not serialize a SpanKind field in ClientGroupedStats; span_stats.js SpanAggKey has no span-kind component, so SpanKind is always absent)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: "missing_feature (CSS v1.2.0: dd-trace-js groups error and success spans into the same aggregation bucket; ErrorSummary distinct from OkSummary is not produced)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: "missing_feature (CSS v1.2.0: dd-trace-js does not produce stats for nested top-level (service-entry) child spans when parent and child are in different services; only the outer span yields a stats entry)"
+  tests/parametric/test_library_tracestats.py::Test_Python_DDTrace_Stats_Flush: irrelevant (specific test for python tracer)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: missing_feature (cost_tags not yet supported in Node.js LLMObs SDK)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: *ref_5_83_0
