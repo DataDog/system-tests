@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
-import uuid
 
 import pytest
 import yaml
 
 from utils import scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+from utils.docker_fixtures._core import new_test_id
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
 
@@ -21,7 +21,7 @@ default_subprocess_run_timeout = 300
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    result = str(uuid.uuid4())[0:6]
+    result = new_test_id()
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result
 
