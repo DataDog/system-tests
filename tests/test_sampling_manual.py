@@ -64,16 +64,16 @@ def _assert_decision_propagated_downstream(request: HttpResponse, expected: Samp
 
 
 def _get_sampling_priority(request: HttpResponse) -> int:
-    """Sampling priority is reported on the local root span of the trace chunk, which is the
-    weblog span here, as the trace is continued from an upstream service.
+    """Sampling priority is reported on the local root span in legacy payloads and on the trace
+    chunk in v1 payloads.
     """
     priorities = {
-        span["metrics"]["_sampling_priority_v1"]
+        sampling_priority
         for _, _, span in interfaces.library.get_spans(request=request)
-        if "_sampling_priority_v1" in span.get("metrics", {})
+        if (sampling_priority := span.get_sampling_priority()) is not None
     }
 
-    assert priorities, "No span reported a _sampling_priority_v1 metric for that request"
+    assert priorities, "No span reported a sampling priority for that request"
     assert len(priorities) == 1, f"Spans of the same trace disagree on the sampling priority: {priorities}"
 
     return priorities.pop()
