@@ -40,30 +40,23 @@
             "resource_name": {
               "type": "string"
             },
-            "request_body_type": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "string"
-                }
-              ]
-            },
             "response_body_type": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "string"
-                }
-              ]
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string"
+              }
             },
             "response_code": {
-              "type": "array",
-              "items": [
-                {
-                  "type": "integer"
-                }
+              "type": [
+                "array",
+                "null"
               ],
-              "minItems": 1
+              "items": {
+                "type": "integer"
+              }
             },
             "authentication": {
               "type": "array",
