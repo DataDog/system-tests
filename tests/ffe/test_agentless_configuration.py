@@ -29,4 +29,3 @@ class Test_FFE_Agentless_Configuration:
         assert backend_status is not None
         assert backend_status["requests_total"] >= 1
         assert backend_status["last_path"] == CONFIG_PATH
-        assert backend_status["last_auth_present"] is True

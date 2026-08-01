@@ -867,20 +867,40 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 })
 
 let openFeatureClient = null
+let openFeatureClientPromise = null
 
-// Initialize OpenFeature provider if FFE is enabled
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  const { openfeature } = tracer
-  OpenFeature.setProvider(openfeature)
-  openFeatureClient = OpenFeature.getClient()
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    const { openfeature } = tracer
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 // Single FFE endpoint that evaluates feature flags
 app.post('/ffe', async (req, res) => {
   try {
     const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
 
-    if (!openFeatureClient) {
+    if (!client) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
@@ -892,17 +912,17 @@ app.post('/ffe', async (req, res) => {
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          value = await client.getBooleanValue(flag, defaultValue, context)
           break
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          value = await client.getStringValue(flag, defaultValue, context)
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          value = await client.getNumberValue(flag, defaultValue, context)
           break
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          value = await client.getObjectValue(flag, defaultValue, context)
           break
         default:
           return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
