@@ -29,7 +29,9 @@ def _assert_upstream_trace_continued(request: HttpResponse) -> None:
     assert spans, "No span reported for that request"
 
     trace_ids = {span["trace_id"] for span in spans}
-    assert trace_ids == {UPSTREAM_TRACE_ID}, f"Spans do not belong to the upstream trace: {trace_ids}"
+    assert all(span.trace_id_equals(UPSTREAM_TRACE_ID) for span in spans), (
+        f"Spans do not belong to the upstream trace: {trace_ids}"
+    )
 
     parent_ids = {span.get("parent_id") for span in spans}
     assert UPSTREAM_PARENT_ID in parent_ids, f"No span is a child of the upstream span: {parent_ids}"
