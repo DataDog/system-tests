@@ -1581,7 +1581,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.63.0-rc.1
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: v2.11.0-dev
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.60.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0
@@ -1825,6 +1825,7 @@ manifest:
         net-http-orchestrion: v2.4.0
         net-http-span-pool: v2.4.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py::Test_Manual_Sampling: v2.4.0  # before 2.4, the manual tags could not override an extracted decision
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v2.7.0-dev
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown

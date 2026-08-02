@@ -296,6 +296,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py: missing_feature
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: missing_feature
   tests/parametric/test_sampling_span_tags.py: '>=0.2.1'  # Modified by easy win activation script
@@ -447,6 +448,7 @@ manifest:
   tests/test_profiling.py::Test_Profile: missing_feature (profiling is not implemented)
   tests/test_resource_renaming.py: incomplete_test_app (resource-renaming endpoints are not implemented)
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
+  tests/test_sampling_manual.py::Test_Manual_Sampling: missing_feature (dd-trace-rs does not honor the manual.keep/manual.drop attributes)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature (sampling-rate capping is not implemented)
   tests/test_scrubbing.py::Test_UrlQuery: missing_feature (Rust does not implement query string obfuscation)
   tests/test_span_events.py: missing_feature (Span Events are not implemented)

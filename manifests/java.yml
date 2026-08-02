@@ -3962,6 +3962,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags: v1.65.0-SNAPSHOT+7071ae2ed6
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: v1.59.0-SNAPSHOT+419da213f7
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v1.61.0-SNAPSHOT  # https://github.com/DataDog/dd-trace-java/pull/10802
@@ -4438,6 +4439,14 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (RUM injection only supported for spring-boot)
         spring-boot: v1.49.0
+  tests/test_sampling_manual.py::Test_Manual_Sampling::test_manual_drop_overrides_upstream_keep: bug (APMAPI-2194)
+  tests/test_sampling_manual.py::Test_Manual_Sampling::test_manual_keep_overrides_upstream_drop:
+    - weblog_declaration:
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v1.60.0-SNAPSHOT+c95286e6a5
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction:

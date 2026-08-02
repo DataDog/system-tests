@@ -2420,6 +2420,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v2.31.0-dev
@@ -2886,6 +2887,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py::Test_Manual_Sampling: v1.0.0  # trace-level keep!/reject! are not available before 1.0
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v2.15.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.12.1  # real version unknown
