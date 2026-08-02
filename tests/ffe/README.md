@@ -17,6 +17,31 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## Canonical parametric fixtures
+
+The parametric evaluation suite consumes the SDK-neutral fixtures from
+[`DataDog/ffe-system-test-data`](https://github.com/DataDog/ffe-system-test-data) through the
+`tests/parametric/test_ffe/ffe-system-test-data` git submodule. Initialize it after cloning or
+switching to a revision that changes the fixture pin:
+
+```bash
+git submodule update --init --recursive
+```
+
+Make shared evaluator fixture changes in `ffe-system-test-data`, not by adding copied JSON files to
+`system-tests`. After those changes merge, Dependabot proposes the weekly submodule update. To test
+an update manually before that PR is created:
+
+```bash
+git submodule update --remote tests/parametric/test_ffe/ffe-system-test-data
+TEST_LIBRARY=<language> ./run.sh PARAMETRIC \
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation
+```
+
+GitHub and GitLab parametric CI initialize the submodule recursively. If a selected FFE test cannot
+find the canonical corpus, collection leaves an explicit failing case with the initialization
+command instead of silently dropping evaluator coverage.
+
 ---
 
 # Eval Metrics Implementation Guide
@@ -182,7 +207,7 @@ The tests use `interfaces.agent.get_metrics()` to retrieve metrics from the agen
 
 ### 1. Test returns `parse_error` instead of expected reason
 - Check UFC fixture format (especially `totalShards` placement)
-- Verify the fixture matches `flags-v1.json` format in dd-trace-py
+- Verify the fixture matches `ffe-system-test-data/ufc-config.json`
 
 ### 2. Test returns `static` instead of `split`
 - Need multiple variations with different shard ranges
