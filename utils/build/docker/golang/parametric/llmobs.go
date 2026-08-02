@@ -1,34 +1,5 @@
 package main
 
-// This file reorients the /llm_observability/trace endpoint from the native
-// dd-trace-go llmobs SDK path to an OTel gen_ai OTLP path.
-//
-// Design (verified against the parametric app + OTLP capture research):
-//   - We DO NOT add any new module. Spans are created through the app's EXISTING
-//     ddotel bridge provider (s.tp, a *ddotel.TracerProvider created in
-//     newServer()). dd-trace-go's own OTLP trace exporter — enabled by the
-//     scenario via OTEL_TRACES_EXPORTER=otlp + OTEL_EXPORTER_OTLP_TRACES_* — ships
-//     these spans as OTLP/JSON to the ddapm-test-agent OTLP receiver, exactly the
-//     transport the hermetic test_otlp_trace_metrics.py tests already rely on
-//     (see test_fr15_3, which reads /v1/traces off the OTLP receiver for spans
-//     produced by dd-trace-go's OTLP export). No upstream otlptrace exporter and
-//     no sdktrace provider is introduced, so this compiles against the deps
-//     already in parametric/go.mod.
-//   - The intake headers (dd-otlp-source=llmobs, dd-ml-app, dd-api-key) are set on
-//     the exporter via OTEL_EXPORTER_OTLP_TRACES_HEADERS (scenario env), not in
-//     code, because dd-trace-go's OTLP exporter reads standard OTLP env.
-//   - Each SpanRequest node is mapped to gen_ai.* attributes per the authoritative
-//     Datadog LLM Obs OTel schema. The backend mapping of those attributes is NOT
-//     asserted here; the hermetic pytest only asserts the emitted OTLP payload's
-//     gen_ai.* attributes + headers.
-//
-// The /llm_observability/trace input contract (the SpanRequest tree) is
-// unchanged, so the harness can still drive it via test_library.llmobs_trace().
-//
-// TODO(draft): whether dd-trace-go's OTLP trace export preserves arbitrary
-// gen_ai.* string attributes verbatim (vs. remapping/dropping them) is the key
-// unverified assumption; the pytest is what proves or disproves it.
-
 import (
 	"context"
 	"encoding/json"
@@ -40,13 +11,6 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-// ---------------------------------------------------------------------------
-// Request types — unchanged from the native draft; they mirror the harness-side
-// dataclasses in utils/docker_fixtures/spec/llm_observability.py. The three node
-// shapes (ApmSpanRequest, LlmObsSpanRequest, LlmObsAnnotationContextRequest) fold
-// into one recursive struct discriminated by "type"/"sdk".
-// ---------------------------------------------------------------------------
-
 type llmObsTraceRequest struct {
 	TraceStructureRequest *llmObsSpanNode `json:"trace_structure_request"`
 }
@@ -56,7 +20,6 @@ type llmObsSpanNode struct {
 	SDK  string `json:"sdk"`  // "tracer" | "llmobs"
 	Name string `json:"name"`
 
-	// LlmObsSpanRequest-only fields.
 	Kind          string `json:"kind"`
 	SessionID     string `json:"session_id"`
 	MLApp         string `json:"ml_app"`
@@ -68,7 +31,6 @@ type llmObsSpanNode struct {
 	AnnotateAfter bool                      `json:"annotate_after"`
 	ExportSpan    string                    `json:"export_span"` // "explicit" | "implicit"
 
-	// LlmObsAnnotationContextRequest-only fields (also reuses Name/Children).
 	Prompt   map[string]any `json:"prompt"`
 	Tags     map[string]any `json:"tags"`
 	CostTags []any          `json:"cost_tags"`
@@ -85,19 +47,7 @@ type llmObsAnnotationRequest struct {
 	ExplicitSpan bool               `json:"explicit_span"`
 }
 
-// ---------------------------------------------------------------------------
-// POST /llm_observability/trace
-// ---------------------------------------------------------------------------
-
 func (s *apmClientServer) llmObsTraceHandler(w http.ResponseWriter, r *http.Request) {
-	// dd-trace-go's OTLP trace exporter (scenario: OTEL_TRACES_EXPORTER=otlp +
-	// OTEL_EXPORTER_OTLP_TRACES_*) is what ships these spans to the test-agent OTLP
-	// receiver. tracer.Flush() pushes the trace writer; the hermetic test also
-	// polls the OTLP receiver with a deadline as a backstop.
-	//
-	// TODO(draft): confirm tracer.Flush() drains the OTLP trace exporter and not
-	// only the native trace writer. If it does not, an explicit OTLP exporter
-	// flush hook (or a short poll on the receiver) is required.
 	defer tracer.Flush()
 
 	var req llmObsTraceRequest
@@ -110,7 +60,6 @@ func (s *apmClientServer) llmObsTraceHandler(w http.ResponseWriter, r *http.Requ
 	tr := s.tp.Tracer("system-tests-llmobs")
 	exported := s.buildGenAISpan(context.Background(), tr, req.TraceStructureRequest)
 	if exported == nil {
-		// Success with no export requested -> {} (mirrors llmobs.py llmobs_trace).
 		exported = map[string]any{}
 	}
 
@@ -120,18 +69,12 @@ func (s *apmClientServer) llmObsTraceHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// buildGenAISpan walks the recursive SpanRequest tree, emitting one OTel span per
-// node with gen_ai.* attributes, and bubbles up the first exported span context.
 func (s *apmClientServer) buildGenAISpan(ctx context.Context, tr oteltrace.Tracer, node *llmObsSpanNode) map[string]any {
 	if node == nil {
 		return nil
 	}
 
-	// annotation_context has no gen_ai equivalent (it is a dd-trace-py scope that
-	// applies prompt/name/tags to spans opened within the block). Recurse so the
-	// tree/parentage is preserved; the contextual annotations are dropped.
-	// TODO(draft): if the contract needs those tags on descendant spans, apply
-	// node.Tags/node.Prompt to each child span here.
+	// gen_ai has no annotation-context equivalent, so preserve nesting while dropping its annotations.
 	if node.Type == "annotation_context" {
 		var exported map[string]any
 		for _, child := range node.Children {
@@ -158,9 +101,7 @@ func (s *apmClientServer) buildGenAISpan(ctx context.Context, tr oteltrace.Trace
 
 	var exported map[string]any
 	if node.ExportSpan != "" {
-		// The hermetic test does not read the export dict back from a backend, so
-		// the OTel span/trace ids (hex) are a best-effort echo. Both "explicit" and
-		// "implicit" resolve to the same span here.
+		// Both export modes return the current OTel span context.
 		exported = map[string]any{
 			"span_id":  span.SpanContext().SpanID().String(),
 			"trace_id": span.SpanContext().TraceID().String(),
@@ -180,12 +121,9 @@ func (s *apmClientServer) buildGenAISpan(ctx context.Context, tr oteltrace.Trace
 	return exported
 }
 
-// genAIBaseAttributes maps the node's kind/model/session onto gen_ai.* attributes.
 func genAIBaseAttributes(node *llmObsSpanNode) []attribute.KeyValue {
 	if node.SDK == "tracer" {
-		// Plain APM-style span: no gen_ai.* attributes, kept only for tree shape.
-		// TODO(draft): gen_ai has no APM-span concept; such a node defaults to a
-		// workflow span on the backend (operation.name omitted).
+		// Tracer nodes preserve tree shape but carry no gen_ai attributes.
 		return nil
 	}
 
@@ -205,10 +143,6 @@ func genAIBaseAttributes(node *llmObsSpanNode) []attribute.KeyValue {
 	return attrs
 }
 
-// genAIOperation maps a SpanRequest kind to gen_ai.operation.name per the schema:
-// chat->llm, embeddings->embedding, execute_tool->tool, invoke_agent->agent;
-// anything else (including workflow) defaults to a workflow span when the
-// attribute is omitted.
 func genAIOperation(kind string) (string, bool) {
 	switch kind {
 	case "llm":
@@ -220,18 +154,13 @@ func genAIOperation(kind string) (string, bool) {
 	case "agent":
 		return "invoke_agent", true
 	case "workflow", "task", "retrieval", "":
-		// default -> workflow. task/retrieval have no authoritative gen_ai operation.
-		// TODO(draft): confirm task/retrieval are acceptable as workflow spans.
+		// These kinds have no authoritative gen_ai operation mapping.
 		return "", false
 	default:
 		return "", false
 	}
 }
 
-// genAIAnnotationAttributes maps a single annotation onto gen_ai I/O + usage +
-// metadata attributes. The same gen_ai.input.messages / gen_ai.output.messages
-// attributes are used for every kind; the backend routes them to
-// meta.input.messages (llm) or meta.input.value (others).
 func genAIAnnotationAttributes(kind string, a llmObsAnnotationRequest) []attribute.KeyValue {
 	var attrs []attribute.KeyValue
 	if a.InputData != nil {
@@ -242,16 +171,13 @@ func genAIAnnotationAttributes(kind string, a llmObsAnnotationRequest) []attribu
 	}
 	if len(a.Metadata) > 0 {
 		if b, err := json.Marshal(a.Metadata); err == nil {
-			// Custom metadata is carried as a JSON string; the backend merges
-			// _dd.ml_obs.metadata into meta.metadata.
+			// The backend merges this JSON string into meta.metadata.
 			attrs = append(attrs, attribute.String("_dd.ml_obs.metadata", string(b)))
 		}
 	}
 	attrs = append(attrs, genAIUsageAttributes(a.Metrics)...)
 
-	// TODO(draft): tags, prompt, and cost_tags have no authoritative gen_ai.*
-	// attribute in this schema and are dropped. If needed, tags could be folded
-	// into _dd.ml_obs.metadata and prompt into gen_ai.request.* / a prompt attr.
+	// These fields have no authoritative gen_ai attribute mapping.
 	_ = a.Tags
 	_ = a.Prompt
 	_ = a.CostTags
@@ -259,7 +185,6 @@ func genAIAnnotationAttributes(kind string, a llmObsAnnotationRequest) []attribu
 	return attrs
 }
 
-// genAIUsageAttributes maps recognized token metrics to gen_ai.usage.* integers.
 func genAIUsageAttributes(metrics map[string]float64) []attribute.KeyValue {
 	if len(metrics) == 0 {
 		return nil
@@ -272,18 +197,15 @@ func genAIUsageAttributes(metrics map[string]float64) []attribute.KeyValue {
 		"total_tokens":      "gen_ai.usage.total_tokens",
 	}
 	var attrs []attribute.KeyValue
+	// Non-token metrics have no gen_ai usage mapping.
 	for k, v := range metrics {
 		if attrKey, ok := usageKeys[k]; ok {
 			attrs = append(attrs, attribute.Int64(attrKey, int64(v)))
 		}
-		// TODO(draft): non-token custom metrics have no gen_ai.usage.* mapping
-		// and are dropped.
 	}
 	return attrs
 }
 
-// genAIMessagesJSON renders an input/output value as the JSON string expected by
-// gen_ai.input.messages / gen_ai.output.messages.
 func genAIMessagesJSON(v any) string {
 	msgs := toGenAIMessages(v)
 	b, err := json.Marshal(msgs)
@@ -319,10 +241,7 @@ func toGenAIMessages(v any) []map[string]any {
 	}
 }
 
-// normalizeMessage keeps role/content when present (the common gen_ai message
-// shape); everything else is stringified into content.
-// TODO(draft): the full gen_ai message schema (role enum, structured parts) is
-// not modeled; role/content passthrough is the minimal faithful subset.
+// Preserve the common role/content subset and encode other shapes as content.
 func normalizeMessage(m map[string]any) map[string]any {
 	msg := map[string]any{}
 	if role, ok := m["role"]; ok {
@@ -336,8 +255,6 @@ func normalizeMessage(m map[string]any) map[string]any {
 	return msg
 }
 
-// toText renders a value as a string: strings pass through, everything else is
-// JSON-encoded.
 func toText(v any) string {
 	if v == nil {
 		return ""
