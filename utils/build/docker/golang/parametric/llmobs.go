@@ -16,8 +16,8 @@ type llmObsTraceRequest struct {
 }
 
 type llmObsSpanNode struct {
-	Type string `json:"type"` // "span" (default) | "annotation_context"
-	SDK  string `json:"sdk"`  // "tracer" | "llmobs"
+	Type string `json:"type"`
+	SDK  string `json:"sdk"`
 	Name string `json:"name"`
 
 	Kind          string `json:"kind"`
@@ -29,7 +29,7 @@ type llmObsSpanNode struct {
 	Children      []*llmObsSpanNode         `json:"children"`
 	Annotations   []llmObsAnnotationRequest `json:"annotations"`
 	AnnotateAfter bool                      `json:"annotate_after"`
-	ExportSpan    string                    `json:"export_span"` // "explicit" | "implicit"
+	ExportSpan    string                    `json:"export_span"`
 
 	Prompt   map[string]any `json:"prompt"`
 	Tags     map[string]any `json:"tags"`

@@ -130,7 +130,6 @@ func main() {
 	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
 	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
 
-	// llm-observability (gen_ai OTLP) endpoint:
 	http.HandleFunc("/llm_observability/trace", s.llmObsTraceHandler)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
