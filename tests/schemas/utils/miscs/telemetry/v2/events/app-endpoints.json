@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/app-endpoints.json",
+  "description": "app-endpoints v2 schema",
+  "title": "app-endpoints v2",
+  "type": "object",
+  "properties": {
+    "is-first": {
+      "type": "boolean"
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operation_name": {
+            "type": "string"
+          },
+          "resource_name": {
+            "type": "string"
+          },
+          "request_body_type": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "response_body_type": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "response_code": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            }
+          },
+          "authentication": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "$comment": "An endpoint must be identifiable, so operation_name and resource_name are required. method/path are not and so may be null, and the intake drops such an endpoint rather than rejecting the payload.",
+        "required": [
+          "operation_name",
+          "resource_name"
+        ]
+      }
+    }
+  },
+  "required": [
+    "endpoints"
+  ]
+}

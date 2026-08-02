@@ -260,8 +260,9 @@ def _data_point_services(metrics: list[Any]) -> set[Any]:
 
 
 def _trace_requests(test_agent: TestAgentAPI) -> list[AgentRequest]:
-    """Native Datadog trace export requests (v0.4/v0.5/v0.7), regardless of the wire version used."""
-    return [r for r in test_agent.requests() if r["url"].endswith(("/v0.4/traces", "/v0.5/traces", "/v0.7/traces"))]
+    """Native Datadog trace export requests, regardless of the wire version used."""
+    trace_endpoints = ("/v0.4/traces", "/v0.5/traces", "/v0.7/traces", "/v1.0/traces")
+    return [r for r in test_agent.requests() if r["url"].endswith(trace_endpoints)]
 
 
 def _trace_count(request: AgentRequest) -> int:

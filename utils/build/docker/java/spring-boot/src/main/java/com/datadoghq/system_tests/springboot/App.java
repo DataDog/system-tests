@@ -127,6 +127,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import datadog.trace.api.DDTags;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
@@ -1055,6 +1056,21 @@ public class App {
         }
 
         return "hi OGNL";
+    }
+
+    @RequestMapping("/trace/manual_keep_drop")
+    ResponseEntity<?> traceManualKeepDrop(@RequestParam String decision) throws Exception {
+        if (!"keep".equals(decision) && !"drop".equals(decision)) {
+            return ResponseEntity.badRequest().body("decision must be keep or drop");
+        }
+
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+        }
+
+        // Call downstream so that tests can assert on the sampling decision that gets propagated
+        return ResponseEntity.ok(make_distant_call("http://localhost:7777/"));
     }
 
     @RequestMapping("/make_distant_call")
