@@ -40,6 +40,15 @@
             "resource_name": {
               "type": "string"
             },
+            "request_body_type": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string"
+              }
+            },
             "response_body_type": {
               "type": [
                 "array",
