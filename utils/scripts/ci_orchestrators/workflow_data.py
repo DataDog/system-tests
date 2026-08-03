@@ -493,7 +493,7 @@ def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog) -> list[Scenari
         [
             scenario
             for scenario in set(scenarios)
-            if scenario.supports_library(weblog.library)
+            if scenario.supports_tracer(weblog.library)
             and weblog.support_scenario(scenario.name, scenario.weblog_categories)
         ],
         key=lambda scenario: scenario.name,

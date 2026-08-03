@@ -356,6 +356,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             deselected.append(item)
             continue
 
+        # DEFAULT_V1 uses the same test selection as DEFAULT.
         test_scenario_name = "DEFAULT" if context.scenario.name == "DEFAULT_V1" else context.scenario.name
         if test_scenario_name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")

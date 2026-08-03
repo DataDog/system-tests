@@ -57,9 +57,12 @@ class _Scenarios:
     mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
 
     default = DefaultScenario("DEFAULT")
+
+    # Run the DEFAULT suite with the v1 protocol forced.
+    # Go uses v1 by default, while Java supports v1 but defaults to v0.4.
+    # Keep only tracers that support v1 but do not yet use it by default.
     default_v1 = DefaultScenario("DEFAULT_V1")
-    # The v1 protocol is under development for other tracers.
-    default_v1.weblog_libraries = {"java", "golang"}
+    default_v1.supported_tracers = {"java"}
     default_v1.weblog_container.environment["DD_TRACE_AGENT_PROTOCOL_VERSION"] = "1.0"
     default_v1.agent_container.environment["DD_APM_ENABLE_V1_TRACE_ENDPOINT"] = "true"
 
