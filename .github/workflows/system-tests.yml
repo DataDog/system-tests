@@ -219,7 +219,7 @@ jobs:
         if: matrix.weblog.build_base_image
         run: |
           source venv/bin/activate
-          ./utils/script/build_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
+          ./utils/scripts/build-base-image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

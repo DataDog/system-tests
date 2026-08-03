@@ -25,6 +25,7 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -1969,6 +1970,7 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0
   tests/docker_ssi/test_docker_ssi_servicenaming.py::TestDockerServiceNaming::test_service_name: missing_feature (No implemented)
+  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2319,6 +2321,7 @@ manifest:
     - declaration: "missing_feature (\"Issue: does not escape '~' characters to '=' in _dd.p.usr.id\")"
       component_version: <2.27.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: missing_feature (ruby has not implemented stats computation yet)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_http_method_endpoint_TS011: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (ruby has not implemented stats computation yet)
@@ -2427,6 +2430,7 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v2.31.0-dev
@@ -2893,6 +2897,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py::Test_Manual_Sampling: v1.0.0  # trace-level keep!/reject! are not available before 1.0
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v2.15.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.12.1  # real version unknown

@@ -11,6 +11,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -271,6 +272,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/ffe/test_agentless_configuration.py: missing_feature (C++ is not in scope for v1 agentless server SDK coverage; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
@@ -444,6 +446,7 @@ manifest:
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_edge_cases: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py: irrelevant (nginx is a proxy, not an application)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.0.0  # real version unknown

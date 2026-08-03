@@ -3,6 +3,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -722,6 +723,7 @@ manifest:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
+  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
@@ -903,6 +905,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013:
     - declaration: missing_feature
       component_version: '<3.43.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:
+    - declaration: missing_feature
+      component_version: '<3.43.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: missing_feature
       component_version: '<3.43.0'
@@ -1016,7 +1021,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otlp_trace_metrics.py: v3.50.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: irrelevant (OTLP trace metrics alongside native (non-OTLP) trace export was removed and will not be supported; OTLP trace metrics now require OTEL_TRACES_EXPORTER=otlp)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection::test_fr04_2_unmeasured_child_excluded: bug (APMAPI-2193)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection::test_fr04_2_unmeasured_child_excluded: v3.51.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: missing_feature (host.name is not yet reported on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as tracer_dd_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as tracer_dd_tags on the OTLP trace metrics resource)
@@ -1250,6 +1255,7 @@ manifest:
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py::Test_Manual_Sampling: v3.0.0  # before 3.0, ActiveScope can be null on ASP.NET Core requests
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v3.11.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v3.11.1  # real version unknown

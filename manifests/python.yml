@@ -17,6 +17,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -709,7 +710,7 @@ manifest:
   : - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
       weblog: *django
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: v4.13.0rc1
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:  # Easy win for flask-poc and version 4.6.4
@@ -1347,6 +1348,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-603)
       component_version: '>=3.0.0-dev'
+  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2699 tracks Python agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_exposures.py: v4.2.0-dev
@@ -1902,6 +1904,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:  # Modified by easy win activation script
     - declaration: missing_feature (failure 2.8.0)
       component_version: <4.3.1
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-py/libdatadog does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (failure 2.8.0)  # Created by easy win activation script
