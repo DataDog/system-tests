@@ -1818,59 +1818,59 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: v2.11.0-dev
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: v2.11.0-dev
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: v2.11.0-dev
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v2.11.0-dev
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: v2.11.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy: irrelevant (not applicable to proxies)
         haproxy: irrelevant (not applicable to proxies)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v2.10.0-dev
