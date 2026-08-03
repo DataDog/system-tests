@@ -1435,8 +1435,36 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
             "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
             "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
+            # The metric assertions read telemetry while the scenario is still running, and
+            # metrics are only sent at the heartbeat interval, 60s by default: longer than the
+            # scenario itself. Tracers split these two knobs differently, so both are set.
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
         },
         doc="AI Guard telemetry tests with low truncation thresholds",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_redaction_disabled = AIGuardScenario(
+        "AI_GUARD_REDACTION_DISABLED",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+            # Global kill-switch: evaluations still run and findings are still reported, but the
+            # redaction_replacements returned by the backend are never applied.
+            "DD_AI_GUARD_REDACTION_ENABLED": "false",
+            # Test_RedactionDisabledTelemetry reads telemetry while the scenario is still
+            # running, so the metrics have to be sent well before the default 60s heartbeat.
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+        },
+        doc="AI Guard with the sensitive data redaction kill-switch turned off",
         scenario_groups=[scenario_groups.ai_guard],
     )
 
