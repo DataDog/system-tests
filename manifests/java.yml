@@ -1671,7 +1671,10 @@ manifest:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:
+    - weblog_declaration:
+        "*": v1.64.2
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
