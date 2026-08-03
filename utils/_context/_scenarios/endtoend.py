@@ -633,7 +633,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         environment: dict[str, str | None] = {
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
-            "SYSTEM_TESTS_JAVA_AGENT_ENABLED": "false",
+            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
         }
         environment.update(weblog_env or {})
 

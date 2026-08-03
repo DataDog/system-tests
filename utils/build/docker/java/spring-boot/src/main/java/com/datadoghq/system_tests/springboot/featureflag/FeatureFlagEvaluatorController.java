@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +37,9 @@ public class FeatureFlagEvaluatorController {
         @Bean
         public Client client() {
             final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-            final boolean featureFlaggingConfigured =
-                    System.getenv("DD_FEATURE_FLAGS_ENABLED") != null
-                            || System.getenv("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE") != null
-                            || System.getenv("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL") != null
-                            || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
+            final String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
             final FeatureProvider provider;
-            if (featureFlaggingConfigured) {
+            if (Boolean.parseBoolean(envProperty)) {
                 provider = new Provider();
             } else {
                 provider = new NoOpProvider() {
@@ -113,13 +108,7 @@ public class FeatureFlagEvaluatorController {
         result.put("reason", reason);
         result.put("value", value);
         result.put("count", targetingKeys.size());
-        result.put("javaAgentAttached", javaAgentAttached());
         return ResponseEntity.ok(result);
-    }
-
-    private static boolean javaAgentAttached() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
-                .anyMatch(argument -> argument.startsWith("-javaagent:"));
     }
 
     private static EvaluationContext context(final EvaluateRequest request, final String targetingKey) {

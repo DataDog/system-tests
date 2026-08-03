@@ -23,10 +23,7 @@ class Test_FFE_Agentless_Configuration:
 
     def test_default_agentless_source(self) -> None:
         assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
-        response = json.loads(self.response.text)
-        assert response["value"] == "on-value"
-        if scenarios.feature_flagging_and_experimentation_agentless.library.name == "java":
-            assert response["javaAgentAttached"] is False
+        assert json.loads(self.response.text)["value"] == "on-value"
 
         backend_status = scenarios.feature_flagging_and_experimentation_agentless.mock_backend_status()
         assert backend_status is not None

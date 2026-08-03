@@ -41,14 +41,9 @@ DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
 # Limit JIT to tier one as the client application is a short-lived process that frequently killed / restarted
 OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
 
-JAVA_AGENT_ARGUMENTS=()
-if [[ "${SYSTEM_TESTS_JAVA_AGENT_ENABLED:-true}" != "false" ]]; then
-  JAVA_AGENT_ARGUMENTS=(-javaagent:"${DD_JAVA_AGENT}")
-fi
-
 # Start client application
 # shellcheck disable=SC2086
-java -Xmx128M "${JAVA_AGENT_ARGUMENTS[@]}" \
+java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   $ENABLE_OTEL_TRACING_API \
   "${ENABLE_CRASH_TRACKING[@]}" \
   "${DISABLED_FEATURES[@]}" \

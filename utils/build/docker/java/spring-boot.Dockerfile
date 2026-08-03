@@ -12,12 +12,7 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot/src ./src
 COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
-RUN if [ -f /dd-tracer/dd-openfeature-version ]; then \
-      mvn -Dmaven.repo.local=/maven \
-        -Ddd-openfeature.version="$(cat /dd-tracer/dd-openfeature-version)" package; \
-    else \
-      mvn -Dmaven.repo.local=/maven package; \
-    fi
+RUN mvn -Dmaven.repo.local=/maven package
 
 RUN /binaries/install_drop_in.sh
 
