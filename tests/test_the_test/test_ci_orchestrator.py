@@ -6,6 +6,7 @@ from utils.const import COMPONENT_GROUPS
 from utils._context.weblog_metadata import WeblogMetaData
 from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
+    _filter_scenarios,
     _get_endtoend_weblogs,
     get_endtoend_definitions,
 )
@@ -49,6 +50,27 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
     assert not _is_supported(get_weblog("dotnet", "uds"), scenarios.ipv6)
     assert not _is_supported(get_weblog("python", "uds-flask"), scenarios.ipv6)
     assert _is_supported(get_weblog("python", "flask-poc"), scenarios.ipv6)
+
+
+# TODO: Remove this test once v1 becomes the global default.
+@scenarios.test_the_test
+def test_default_v1_uses_java_and_go_default_weblogs():
+    assert scenarios.default_v1.weblog_libraries == {"java", "golang"}
+    assert scenarios.default_v1.weblog_container.environment["DD_TRACE_AGENT_PROTOCOL_VERSION"] == "1.0"
+    assert scenarios.default_v1.agent_container.environment["DD_APM_ENABLE_V1_TRACE_ENDPOINT"] == "true"
+
+    def supporting_weblogs(scenario: Scenario) -> set[tuple[str, str]]:
+        return {
+            (library, weblog.name)
+            for library in sorted(COMPONENT_GROUPS.all)
+            for weblog in WeblogMetaData.load(library)
+            if scenario in _filter_scenarios([scenario], weblog)
+        }
+
+    default_weblogs = supporting_weblogs(scenarios.default)
+    expected_v1_weblogs = {weblog for weblog in default_weblogs if weblog[0] in {"java", "golang"}}
+
+    assert supporting_weblogs(scenarios.default_v1) == expected_v1_weblogs
 
 
 @scenarios.test_the_test
@@ -153,7 +175,7 @@ def test_legacy_scenario_matrix():
         for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
             for scenario in get_all_scenarios():
                 legacy = _is_supported_legacy(weblog, scenario, "")
-                new_value = weblog.support_scenario(scenario.name, scenario.weblog_categories)
+                new_value = scenario in _filter_scenarios([scenario], weblog)
                 if legacy is not new_value:
                     has_error = True
                     logger.error((library, legacy, new_value, weblog.name, scenario.name, scenario.weblog_categories))
@@ -205,6 +227,12 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
 
     library = weblog.library
     weblog_name = weblog.name
+
+    if not scenario.supports_library(library):
+        return False
+
+    if scenario.name == "DEFAULT_V1":
+        scenario = scenarios.default
 
     if library == "c":
         return scenario.name in ("DEFAULT", "IPV6", "SAMPLING")

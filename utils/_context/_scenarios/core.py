@@ -127,6 +127,9 @@ class Scenario:
         self.weblog_categories: list[WeblogCategory] = weblog_categories or []
         """ Which weblog categories should this scenario applies """
 
+        self.weblog_libraries: set[str] | None = None
+        """Libraries for which this scenario can be scheduled, or all libraries when unset."""
+
         self.components: dict[str, Version] = {}
         """ Key-value pair of what is actually tested """
 
@@ -143,6 +146,9 @@ class Scenario:
 
         self.warmups: list[Callable] = []
         self.collect_only: bool = False
+
+    def supports_library(self, library: str) -> bool:
+        return self.weblog_libraries is None or library in self.weblog_libraries
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:

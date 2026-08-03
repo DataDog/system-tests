@@ -490,7 +490,12 @@ def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dic
 
 def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog) -> list[Scenario]:
     return sorted(
-        [scenario for scenario in set(scenarios) if weblog.support_scenario(scenario.name, scenario.weblog_categories)],
+        [
+            scenario
+            for scenario in set(scenarios)
+            if scenario.supports_library(weblog.library)
+            and weblog.support_scenario(scenario.name, scenario.weblog_categories)
+        ],
         key=lambda scenario: scenario.name,
     )
 
