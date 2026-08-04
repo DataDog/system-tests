@@ -2480,7 +2480,6 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (the shared HTTP instrumentation is covered by express4)
         express4: *ref_6_0_0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_method_original_on_case_variant: incomplete_test_app (node's http server uppercases req.method before any instrumentation hook runs, so no tracer can observe that the wire token was lowercase)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v5.107.0-pre
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature

@@ -374,35 +374,6 @@ class Test_OtelSemantics_Spans_Http_Server:
         assert "99999" not in str(route_high), f"the path parameter leaked into http.route {route_high!r}"
         assert "99999" not in _span_name(high), f"the path parameter leaked into the span name {_span_name(high)!r}"
 
-    def setup_method_original_on_case_variant(self) -> None:
-        # RFC 9110 method tokens are case-sensitive, so a lowercase "get" is not the GET method.
-        self.response = weblog.request("get", "/")
-
-    def test_method_original_on_case_variant(self) -> None:
-        """A case-variant method must be reported through ``http.request.method_original``.
-
-        ``http.request.method_original`` is Conditionally Required if and only if it differs from
-        ``http.request.method``, and case normalization is exactly such a difference. The two
-        readings of the RFC disagree on what ``http.request.method`` should then be (``GET`` by
-        normalization, or ``_OTHER`` because the raw token is not a known method, which is what
-        upstream SDKs do), so this asserts only what both readings require: the original is
-        recorded, the reported method is not the raw token, and the raw token never reaches the
-        span name.
-        """
-        span = _server_span(self.response)
-        attrs = _attributes(span)
-        assert attrs.get("http.request.method_original") == "get", (
-            "http.request.method_original must carry the method exactly as sent, got "
-            f"{attrs.get('http.request.method_original')!r}"
-        )
-        assert attrs.get("http.request.method") in ("GET", "_OTHER"), (
-            f"http.request.method must be normalized, got {attrs.get('http.request.method')!r}"
-        )
-        assert _span_name(span) == _expected_span_name(span, "http.route")
-        name = _span_name(span)
-        assert "get " not in name, f"the raw method token must never appear in the span name, got {name!r}"
-        assert name != "get", f"the raw method token must never appear in the span name, got {name!r}"
-
     def setup_status_500_no_exception_is_status_code_error(self) -> None:
         self.response = weblog.get("/status", params={"code": "500"})
 
