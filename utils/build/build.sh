@@ -32,6 +32,7 @@ readonly DEFAULT_java=spring-boot
 readonly DEFAULT_java_otel=spring-boot-otel
 readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
+readonly DEFAULT_dotnet_otel=poc-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp_httpd=httpd

@@ -232,6 +232,7 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
             ("java_otel", "spring-boot-otel"),
             ("nodejs_otel", "express4-otel"),
             ("python_otel", "flask-poc-otel"),
+            ("dotnet_otel", "poc-otel"),
         )
         if (library, weblog_name) not in possible_values:
             return False
@@ -281,7 +282,7 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
             return False
 
     # open-telemetry-automatic
-    if weblog_name in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
+    if weblog_name in ["express4-otel", "flask-poc-otel", "spring-boot-otel", "poc-otel"]:
         if scenario.name not in ("OTEL_INTEGRATIONS", "OTEL_SEMANTICS_UPSTREAM_SDK"):
             return False
 
