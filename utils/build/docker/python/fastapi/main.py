@@ -430,8 +430,10 @@ async def stats_unique(code: int = 200):
 
 
 @app.get("/make_distant_call")
-def make_distant_call(url: str):
-    response = requests.get(url)
+def make_distant_call(url: str, method: str = "GET"):
+    # The method is configurable so semantic-convention tests can drive a non-standard verb
+    # through the client instrumentation. Matches the nodejs express weblog.
+    response = requests.request(method, url)
 
     result = {
         "url": url,

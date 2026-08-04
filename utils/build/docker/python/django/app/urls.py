@@ -851,7 +851,10 @@ def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
     url = request.GET.get("url")
-    response = requests.get(url)
+    # The method is configurable so semantic-convention tests can drive a non-standard verb
+    # through the client instrumentation. Matches the nodejs express weblog.
+    method = request.GET.get("method", "GET")
+    response = requests.request(method, url)
 
     result = {
         "url": url,
