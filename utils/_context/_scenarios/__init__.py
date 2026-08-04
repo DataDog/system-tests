@@ -225,6 +225,31 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_v1 = DdTraceEndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_V1",
+        # Same as trace_stats_computation, but the tracer emits traces on the v1 (efficient payload)
+        # endpoint instead of a legacy one. CSS and the v1 trace protocol are independent features, so
+        # the stats assertions must hold identically here: the only delta versus TRACE_STATS_COMPUTATION
+        # is the trace protocol. Without this scenario the combination is only ever reached by accident,
+        # via whichever protocol a tracer happens to default to.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
+        },
+        agent_env={
+            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and the v1 trace protocol. "
+            "Tests that client-side stats computation is unaffected by the trace payload format."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = DdTraceEndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
