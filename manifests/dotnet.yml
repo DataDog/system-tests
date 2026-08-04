@@ -1231,7 +1231,8 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Client: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Server: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)

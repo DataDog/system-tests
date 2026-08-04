@@ -2299,7 +2299,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP::test_http_endpoint_retained_otlp: missing_feature (the resource-renaming processor skips 404 responses, so http.endpoint is never emitted for a route-less request; needs a JIRA and a bug entry)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Server::test_http_endpoint_retained_otlp: missing_feature (the resource-renaming processor skips 404 responses, so http.endpoint is never emitted for a route-less request; needs a JIRA and a bug entry)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_span_name_is_method: missing_feature (dd-trace-py deliberately does not remap the resource name under DD_TRACE_OTEL_SEMANTICS_ENABLED, so the client resource stays "GET /")
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_span_name_unknown_method: missing_feature (dd-trace-py deliberately does not remap the resource name under DD_TRACE_OTEL_SEMANTICS_ENABLED, so the raw verb stays in the resource)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained: missing_feature (the resource-renaming processor skips 404 responses, so http.endpoint is never emitted for a route-less request; needs a JIRA and a bug entry)

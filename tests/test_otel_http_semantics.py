@@ -653,26 +653,33 @@ class Test_OtelSemantics_Spans_Http_Client:
 @features.semantic_core_validations
 @scenarios.otel_semantics_otlp
 @scenarios.otel_semantics_upstream_sdk
-class Test_OtelSemantics_OTLP:
-    """OTLP export retains required attributes and their specified integer types."""
+class Test_OtelSemantics_OTLP_Server:
+    """OTLP export of the HTTP **server** span: required attributes, and the two integer types.
+
+    Split from the client class on purpose. A tracer converts one span kind at a time, so a test
+    that asserts on the server span and the client span together reports a tracer that has finished
+    half the work as having finished none of it, and gives whoever is doing the other half no signal
+    at all.
+
+    ``server.port`` and ``http.response.status_code`` are the only two attributes the RFC types as
+    ``int``; everything else in its tables is a string, so those are the only two typed here.
+    """
 
     def setup_status_code_is_integer_type(self) -> None:
-        self.response = _distant_call()
+        self.response = weblog.get("/")
 
     def test_status_code_is_integer_type(self) -> None:
-        for span in (_server_span(self.response), _client_span(self.response)):
-            _assert_int_attribute(span, "http.response.status_code", 200)
-            attrs = _attributes(span)
-            assert not isinstance(attrs["http.response.status_code"], float), (
-                "http.response.status_code must be an OTLP intValue, not a doubleValue"
-            )
+        span = _server_span(self.response)
+        _assert_int_attribute(span, "http.response.status_code", 200)
+        assert not isinstance(_attributes(span)["http.response.status_code"], float), (
+            "http.response.status_code must be an OTLP intValue, not a doubleValue"
+        )
 
     def setup_server_port_is_integer_type(self) -> None:
-        self.response = _distant_call()
+        self.response = weblog.get("/")
 
     def test_server_port_is_integer_type(self) -> None:
-        for span in (_server_span(self.response), _client_span(self.response)):
-            _assert_int_attribute(span, "server.port", 7777)
+        _assert_int_attribute(_server_span(self.response), "server.port", 7777)
 
     def setup_http_endpoint_retained_otlp(self) -> None:
         self.response = weblog.get("/no_such_route_xyz")
@@ -688,38 +695,66 @@ class Test_OtelSemantics_OTLP:
         )
 
     def setup_otel_attributes_present_otlp(self) -> None:
+        self.response = weblog.get("/")
+
+    def test_otel_attributes_present_otlp(self) -> None:
+        attrs = _attributes(_server_span(self.response))
+        for key in ("http.request.method", "url.path", "url.scheme", "http.response.status_code"):
+            assert key in attrs, f"{key} must be present on the OTLP server span"
+
+    def setup_legacy_attributes_absent_otlp(self) -> None:
+        self.response = weblog.get("/")
+
+    def test_legacy_attributes_absent_otlp(self) -> None:
+        attrs = _attributes(_server_span(self.response))
+        for legacy in _LEGACY_SERVER_KEYS:
+            assert legacy not in attrs, f"legacy Datadog key {legacy!r} must be absent under the flag"
+
+
+@rfc("https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06uDMY/edit")
+@features.semantic_core_validations
+@scenarios.otel_semantics_otlp
+@scenarios.otel_semantics_upstream_sdk
+class Test_OtelSemantics_OTLP_Client:
+    """OTLP export of the HTTP **client** span. See ``Test_OtelSemantics_OTLP_Server`` on the split."""
+
+    def setup_status_code_is_integer_type(self) -> None:
+        self.response = _distant_call()
+
+    def test_status_code_is_integer_type(self) -> None:
+        span = _client_span(self.response)
+        _assert_int_attribute(span, "http.response.status_code", 200)
+        assert not isinstance(_attributes(span)["http.response.status_code"], float), (
+            "http.response.status_code must be an OTLP intValue, not a doubleValue"
+        )
+
+    def setup_server_port_is_integer_type(self) -> None:
+        self.response = _distant_call()
+
+    def test_server_port_is_integer_type(self) -> None:
+        _assert_int_attribute(_client_span(self.response), "server.port", 7777)
+
+    def setup_otel_attributes_present_otlp(self) -> None:
         self.response = _distant_call()
 
     def test_otel_attributes_present_otlp(self) -> None:
-        server_attrs = _attributes(_server_span(self.response))
-        assert all(
-            key in server_attrs
-            for key in ("http.request.method", "url.path", "url.scheme", "http.response.status_code")
-        )
-
-        client_attrs = _attributes(_client_span(self.response))
-        assert all(
-            key in client_attrs
-            for key in (
-                "http.request.method",
-                "url.full",
-                "server.address",
-                "server.port",
-                "http.response.status_code",
-            )
-        )
+        attrs = _attributes(_client_span(self.response))
+        for key in (
+            "http.request.method",
+            "url.full",
+            "server.address",
+            "server.port",
+            "http.response.status_code",
+        ):
+            assert key in attrs, f"{key} must be present on the OTLP client span"
 
     def setup_legacy_attributes_absent_otlp(self) -> None:
         self.response = _distant_call()
 
     def test_legacy_attributes_absent_otlp(self) -> None:
-        server_attrs = _attributes(_server_span(self.response))
-        for legacy in _LEGACY_SERVER_KEYS:
-            assert legacy not in server_attrs, f"legacy Datadog key {legacy!r} must be absent under the flag"
-
-        client_attrs = _attributes(_client_span(self.response))
+        attrs = _attributes(_client_span(self.response))
         for legacy in _LEGACY_CLIENT_KEYS:
-            assert legacy not in client_attrs, f"legacy Datadog key {legacy!r} must be absent under the flag"
+            assert legacy not in attrs, f"legacy Datadog key {legacy!r} must be absent under the flag"
 
 
 @rfc("https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06uDMY/edit")

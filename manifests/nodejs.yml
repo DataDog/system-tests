@@ -2460,7 +2460,11 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP:
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Client:
+    - weblog_declaration:
+        "*": irrelevant (the shared HTTP instrumentation is covered by express4)
+        express4: *ref_6_0_0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Server:
     - weblog_declaration:
         "*": irrelevant (the shared HTTP instrumentation is covered by express4)
         express4: *ref_6_0_0
