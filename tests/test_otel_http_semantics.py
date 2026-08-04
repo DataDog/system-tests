@@ -189,7 +189,16 @@ def _server_span(request: HttpResponse) -> HttpSpan:
                 continue
             if fallback is None:
                 fallback = span
-            user_agent = str(_attributes(span).get("user_agent.original", ""))
+            # Correlation is plumbing, not an assertion, so accept whichever user-agent key the
+            # tracer happens to emit. A tracer that has converted its client spans but not its
+            # server spans still reports the request id under the legacy names, and insisting on
+            # user_agent.original here silently picks an unrelated span and fails every client
+            # test for a reason that has nothing to do with the client.
+            attrs = _attributes(span)
+            user_agent = " ".join(
+                str(attrs.get(key, ""))
+                for key in ("user_agent.original", "http.useragent", "http.request.headers.user-agent")
+            )
             if request_id in user_agent:
                 return span
         assert fallback is not None, "no SERVER span found in the OTLP payload"
