@@ -48,9 +48,11 @@ DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog 
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
 Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) surface as the single resource attribute
 datadog.process_tags: an arrayValue of colon-joined "key:value" strings (enabled by default in some SDKs).
-Peer tags surface the same way as the data-point attribute datadog.peer_tags. This is the same shape as
-additional_metric_tags (see Test_FR08_AdditionalTags) -- do not flatten either of these
-into per-key datadog.<key> attributes. datadog.is_trace_root is a boolean data-point attribute, true only
+Peer tags surface the same way as the data-point attribute datadog.peer_tags, sharing
+datadog.process_tags' colon-joined-list shape -- do not flatten either into per-key datadog.<key>
+attributes. additional_metric_tags (see Test_FR08_AdditionalTags) is the opposite: DD_TRACE_STATS_ADDITIONAL_TAGS
+tags are split into individual data-point attributes, one per configured key, with no datadog. prefix.
+datadog.is_trace_root is a boolean data-point attribute, true only
 for the span whose ParentID == 0; it is distinct from datadog.span.top_level (the service-entry marker),
 which a non-root child span can also carry. Status-code and boolean metric attributes must be typed OTLP
 values (intValue / boolValue); _dd.stats_computed is a string-valued Datadog convention.
@@ -1187,8 +1189,9 @@ class Test_FR08_Datadog_Attributes:
         test_library: APMLibrary,
     ):
         """Process tags surface as the single resource attribute datadog.process_tags: an arrayValue
-        of colon-joined "key:value" strings (same shape as additional_metric_tags;
-        see test_fr08_12_stats_additional_tags), not one datadog.<key> attribute per tag.
+        of colon-joined "key:value" strings (same shape as datadog.peer_tags), not one datadog.<key>
+        attribute per tag, and not split into individual entries the way additional_metric_tags is
+        (see test_fr08_12_stats_additional_tags).
 
         Which process tags are populated varies per library/runtime, so the assertion only requires
         that at least one known process-tag key is present inside datadog.process_tags.
@@ -1310,7 +1313,7 @@ class Test_FR08_Datadog_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR08_AdditionalTags:
-    """FR08: DD_TRACE_STATS_ADDITIONAL_TAGS (additional_metric_tags) surfaces as a data-point attribute."""
+    """FR08: DD_TRACE_STATS_ADDITIONAL_TAGS (additional_metric_tags) surfaces as individual data-point attributes."""
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1322,11 +1325,9 @@ class Test_FR08_AdditionalTags:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS surface as the additional_metric_tags
-        data-point container (repeated key:value strings), since their values vary per span.
-
-        This colon-joined-list shape is the reference pattern datadog.peer_tags and
-        datadog.process_tags must also follow -- do not flatten them into datadog.<key> attributes.
+        """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS are split into individual data-point
+        attributes, each keyed by its own tag name with no datadog. prefix -- unlike datadog.peer_tags
+        and datadog.process_tags, which stay combined in a single colon-joined-list attribute.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
@@ -1336,13 +1337,13 @@ class Test_FR08_AdditionalTags:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        additional_metric_tags = attrs.get("additional_metric_tags") or []
-        assert "customer.tier:gold" in additional_metric_tags, (
-            f"Expected customer.tier:gold in additional_metric_tags, got: {attrs}"
+        assert attrs.get("customer.tier") == "gold", f"Expected customer.tier=gold as its own attribute, got: {attrs}"
+        assert attrs.get("region") == "us-east-1", f"Expected region=us-east-1 as its own attribute, got: {attrs}"
+        assert "additional_metric_tags" not in attrs, (
+            f"additional_metric_tags must not be a single container attribute: {attrs}"
         )
-        assert "region:us-east-1" in additional_metric_tags, (
-            f"Expected region:us-east-1 in additional_metric_tags, got: {attrs}"
-        )
+        assert "datadog.customer.tier" not in attrs, f"Additional tags must not carry a datadog. prefix: {attrs}"
+        assert "datadog.region" not in attrs, f"Additional tags must not carry a datadog. prefix: {attrs}"
 
 
 @scenarios.parametric
