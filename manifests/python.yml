@@ -1596,8 +1596,8 @@ manifest:
         *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
-        uds-flask: bug (APMAPI-1058)
+        flask-poc: v4.12.2  # TODO: a lower version might be supported
+        uds-flask: v4.12.2  # TODO: a lower version might be supported
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1683,7 +1683,12 @@ manifest:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
         uds-flask: bug (APMAPI-1058)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-flask: '>=4.12.2'
+        flask-poc: '>=4.12.2'
+        uwsgi-poc: '>=4.12.2'
   tests/integrations/test_dbm.py::_BaseDbmComment::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
@@ -1703,7 +1708,7 @@ manifest:
         flask-poc: v2.16.0
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.12.2  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
