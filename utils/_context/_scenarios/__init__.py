@@ -872,6 +872,26 @@ class _Scenarios:
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )
 
+    apm_tracing_efficient_payload_stats_disabled = DdTraceEndToEndScenario(
+        "APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED",
+        # Same as apm_tracing_efficient_payload but with Client-Side Stats explicitly disabled. CSS is
+        # negotiated out of band (the Datadog-Client-Computed-Stats header and the separate /v0.6/stats
+        # endpoint), so turning it off must not change the trace wire format. This is the only scenario
+        # that pins the v1 protocol while CSS is off, which is what makes it able to catch a tracer
+        # gating v1 on CSS and silently falling back to /v0.4/traces.
+        weblog_env={
+            "DD_TRACE_SAMPLE_RATE": "1.0",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
+            # Same idiom DefaultScenario uses to express "CSS off"
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+        },
+        agent_env={
+            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
+        },
+        backend_interface_timeout=5,
+        doc="End-to-end testing that the v1 trace format does not depend on Client-Side Stats being enabled",
+    )
+
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")

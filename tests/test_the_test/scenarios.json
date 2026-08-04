@@ -611,6 +611,9 @@
   "tests/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_propagated": [
     "DEFAULT"
   ],
+  "tests/test_v1_payloads.py::Test_V1PayloadWithStatsDisabled::test_v1_used_with_stats_disabled": [
+    "APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED"
+  ],
   "tests/test_v1_payloads.py::Test_V1Payloads::test_field_changes": [
     "APM_TRACING_EFFICIENT_PAYLOAD"
   ],

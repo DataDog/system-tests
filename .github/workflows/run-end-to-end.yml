@@ -281,6 +281,9 @@ jobs:
     - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
       run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
+    - name: Run APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED"')
+      run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS

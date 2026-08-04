@@ -45,6 +45,36 @@ class Test_V1Payloads:
         assert agent_trace.trace_id == trace.raw_trace["trace_id"]
 
 
+@scenarios.apm_tracing_efficient_payload_stats_disabled
+@features.efficient_trace_payload
+class Test_V1PayloadWithStatsDisabled:
+    """The v1 trace format must not depend on Client-Side Stats being enabled.
+
+    CSS is negotiated out of band: a Datadog-Client-Computed-Stats header and a separate /v0.6/stats
+    endpoint, both handled identically by the Agent on either trace protocol. Disabling it therefore
+    has no bearing on the trace wire format. dd-trace-go used to gate v1 on CSS capability and
+    silently downgrade to /v0.4/traces the moment stats computation was turned off
+    (https://github.com/DataDog/dd-trace-go/pull/5122); this pins the two as independent.
+    """
+
+    def setup_v1_used_with_stats_disabled(self):
+        self.r = weblog.get("/status?code=200")
+
+    def test_v1_used_with_stats_disabled(self):
+        # Guard the premise: if CSS were somehow active, this scenario would not be testing anything.
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) == 0, "Client-side stats must be disabled in this scenario"
+
+        traces = list(interfaces.library.get_traces())
+        assert len(traces) > 0, "Expected at least one trace"
+        for data, trace in traces:
+            assert data["path"] == "/v1.0/traces", (
+                f"Trace was sent to {data['path']} rather than /v1.0/traces while stats computation "
+                f"was disabled: the trace protocol must not be gated on Client-Side Stats"
+            )
+            assert trace.format == LibraryTraceFormat.v10
+
+
 @scenarios.apm_tracing_efficient_payload
 @features.efficient_trace_payload
 class Test_V1SpanLinks:
