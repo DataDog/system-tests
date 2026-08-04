@@ -1302,13 +1302,13 @@ manifest:
       weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
     - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
       excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
-  tests/test_baggage.py::Test_Baggage_Headers_Malformed2:  # TODO: a lower version might be supported
+  tests/test_baggage.py::Test_Baggage_Headers_Malformed:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
       component_version: <1.23.3
       weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
     - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
       excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
-  tests/test_baggage.py::Test_Baggage_Headers_Malformed:  # TODO: a lower version might be supported
+  tests/test_baggage.py::Test_Baggage_Headers_Malformed2:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
       component_version: <1.23.3
       weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
