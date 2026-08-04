@@ -9,10 +9,6 @@ The behavior tests run over both supported transports:
 * ``OTEL_SEMANTICS`` validates the tracer-to-Agent payload.
 * ``OTEL_SEMANTICS_OTLP`` validates the direct OTLP export.
 * ``OTEL_SEMANTICS_STATS`` validates that the span and the trace stats agree.
-* ``OTEL_SEMANTICS_UPSTREAM_SDK`` runs the same behavior tests against an upstream
-  OpenTelemetry SDK weblog rather than a Datadog tracer. That scenario is a measurement, not a
-  gate: an assertion an upstream SDK fails is either a bug in the assertion or a place where
-  this RFC deviates from upstream behavior, and either answer is worth having.
 
 Transport-specific helpers below normalize those payloads so every semantic assertion is
 identical on both paths. OTLP-only tests additionally validate attribute value types and
@@ -71,7 +67,6 @@ def _is_otlp_scenario() -> bool:
     return context.scenario in (
         scenarios.otel_semantics_otlp,
         scenarios.otel_semantics_otlp_custom_error_statuses,
-        scenarios.otel_semantics_upstream_sdk,
     )
 
 
@@ -282,7 +277,6 @@ def _assert_status_not_error(span: HttpSpan, status_code: int) -> None:
 @features.semantic_core_validations
 @scenarios.otel_semantics
 @scenarios.otel_semantics_otlp
-@scenarios.otel_semantics_upstream_sdk
 class Test_OtelSemantics_Spans_Http_Server:
     """HTTP server spans use OTel names, values, naming, and status semantics."""
 
@@ -526,7 +520,6 @@ class Test_OtelSemantics_Spans_Http_Server:
 @features.semantic_core_validations
 @scenarios.otel_semantics
 @scenarios.otel_semantics_otlp
-@scenarios.otel_semantics_upstream_sdk
 class Test_OtelSemantics_Spans_Http_Client:
     """HTTP client spans use OTel names, values, naming, and status semantics."""
 
@@ -656,7 +649,6 @@ class Test_OtelSemantics_Spans_Http_Client:
 @rfc("https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06uDMY/edit")
 @features.semantic_core_validations
 @scenarios.otel_semantics_otlp
-@scenarios.otel_semantics_upstream_sdk
 class Test_OtelSemantics_OTLP_Server:
     """OTLP export of the HTTP **server** span: required attributes, and the two integer types.
 
@@ -718,7 +710,6 @@ class Test_OtelSemantics_OTLP_Server:
 @rfc("https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06uDMY/edit")
 @features.semantic_core_validations
 @scenarios.otel_semantics_otlp
-@scenarios.otel_semantics_upstream_sdk
 class Test_OtelSemantics_OTLP_Client:
     """OTLP export of the HTTP **client** span. See ``Test_OtelSemantics_OTLP_Server`` on the split."""
 

@@ -1,9 +1,7 @@
 
 spring-boot-native:
   categories: [open_telemetry]
-  excluded_scenarios: [OTEL_INTEGRATIONS, OTEL_SEMANTICS_UPSTREAM_SDK]
+  excluded_scenarios: [OTEL_INTEGRATIONS]
 spring-boot-otel:
   categories: [open_telemetry]
-  # Not OTEL_SEMANTICS_UPSTREAM_SDK: its /make_distant_call is hardcoded to GET, so the
-  # unaccepted-method assertions would report a weblog gap as a tracer result.
-  excluded_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_SEMANTICS_UPSTREAM_SDK, OTEL_TRACING_E2E]
+  excluded_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]

@@ -227,18 +227,13 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
         return False
 
     # open-telemetry-automatic
-    if scenario.name in ("OTEL_INTEGRATIONS", "OTEL_SEMANTICS_UPSTREAM_SDK"):
+    if scenario.name == "OTEL_INTEGRATIONS":
         possible_values: tuple = (
             ("java_otel", "spring-boot-otel"),
             ("nodejs_otel", "express4-otel"),
             ("python_otel", "flask-poc-otel"),
         )
-        if scenario.name == "OTEL_SEMANTICS_UPSTREAM_SDK":
-            # poc-otel is HTTP only, so it joins the semantics suite but not OTEL_INTEGRATIONS.
-            possible_values += (("dotnet_otel", "poc-otel"),)
         if (library, weblog_name) not in possible_values:
-            return False
-        if scenario.name == "OTEL_SEMANTICS_UPSTREAM_SDK" and library == "java_otel":
             return False
 
     # open-telemetry-manual
@@ -286,8 +281,8 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
             return False
 
     # open-telemetry-automatic
-    if weblog_name in ["express4-otel", "flask-poc-otel", "spring-boot-otel", "poc-otel"]:
-        if scenario.name not in ("OTEL_INTEGRATIONS", "OTEL_SEMANTICS_UPSTREAM_SDK"):
+    if weblog_name in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
+        if scenario.name not in ("OTEL_INTEGRATIONS",):
             return False
 
     # Go proxies

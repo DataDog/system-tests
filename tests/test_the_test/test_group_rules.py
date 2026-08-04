@@ -30,9 +30,6 @@ def test_tracer_release():
         scenarios.otel_metric_e2e,
         scenarios.otel_tracing_e2e,
         scenarios.otel_collector,
-        # measurement scenario against an upstream OpenTelemetry SDK, not a Datadog tracer, so a
-        # failure here is not a tracer release blocker
-        scenarios.otel_semantics_upstream_sdk,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
         scenarios.container_auto_injection_install_script_appsec,

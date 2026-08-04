@@ -308,7 +308,6 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "cpp_kong",
         "cpp_nginx",
         "dotnet",
-        "dotnet_otel",
         "golang",
         "java",
         "java_lambda",

@@ -13,48 +13,9 @@ app.use(require("body-parser").urlencoded({ extended: true }));
 app.use(require("express-xml-bodyparser")());
 app.use(require("cookie-parser")());
 
-app.all("/", (req, res) => {
+app.get("/", (req, res) => {
   console.log("Received a request");
   res.send("Hello\n");
-});
-
-
-// Endpoints below mirror the Datadog express weblog so the OpenTelemetry HTTP
-// semantic-convention suite can also be pointed at the upstream OpenTelemetry SDK. Keep the
-// paths and the query parameter names identical to utils/build/docker/nodejs/express/app.js.
-app.get("/sample_rate_route/:i", (req, res) => {
-  res.send("OK");
-});
-
-
-app.get("/status", (req, res) => {
-  res.status(parseInt(req.query.code, 10) || 200).send("OK");
-});
-
-
-app.get("/make_distant_call", (req, res) => {
-  const http = require("http");
-  const parsedUrl = new URL(req.query.url);
-  const method = req.query.method || "GET";
-
-  const request = http.request(parsedUrl, { method }, (response) => {
-    let responseBody = "";
-    response.on("data", (chunk) => { responseBody += chunk; });
-    response.on("end", () => {
-      res.json({
-        url: req.query.url,
-        status_code: response.statusCode,
-        request_headers: request.getHeaders(),
-        response_headers: response.headers
-      });
-    });
-  });
-
-  request.on("error", (error) => {
-    res.json({ url: req.query.url, status_code: 0, error: String(error) });
-  });
-
-  request.end();
 });
 
 

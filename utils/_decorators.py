@@ -101,7 +101,6 @@ def _expected_to_fail(
             "java_otel",
             "python_otel",
             "nodejs_otel",
-            "dotnet_otel",
             "python_lambda",
             "java_lambda",
             "nodejs_lambda",
