@@ -46,9 +46,10 @@ Span Metrics Connector's own convention, e.g. "server" -> "SPAN_KIND_SERVER"). h
 DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
 Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) surface as the resource attribute
-datadog.process_tags, and peer tags as the data-point attribute datadog.peer_tags -- both an arrayValue
-of colon-joined "key:value" strings. additional_metric_tags (DD_TRACE_STATS_ADDITIONAL_TAGS, see
-Test_FR08_AdditionalTags) instead splits each configured key into its own data-point attribute.
+datadog.process_tags, peer tags as the data-point attribute datadog.peer_tags, and global tags
+(DD_TAGS / OTEL_RESOURCE_ATTRIBUTES) as the resource attribute datadog.tracer_tags -- all three an
+arrayValue of colon-joined "key:value" strings. additional_metric_tags (DD_TRACE_STATS_ADDITIONAL_TAGS,
+see Test_FR08_AdditionalTags) instead splits each configured key into its own data-point attribute.
 datadog.is_trace_root is a boolean data-point attribute, true only for the span whose ParentID == 0;
 it is distinct from datadog.span.top_level (the service-entry marker), which a non-root child span
 can also carry. Status-code and boolean metric attributes must be typed OTLP values (intValue /
@@ -98,7 +99,7 @@ _SDK_LANGUAGE_BY_LIBRARY = {
     "rust": "rust",
     "cpp": "cpp",
 }
-# Known process-tag keys; any one appearing as its own datadog.<key> resource attribute satisfies FR08.
+# Known process-tag keys; any one appearing inside datadog.process_tags (as "key:value") satisfies FR08.
 # Which tags are populated varies per library/runtime, so the test only requires one known key present.
 _PROCESS_TAG_KEYS = (
     "entrypoint.name",
@@ -1234,9 +1235,9 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Process tags surface as the resource attribute datadog.process_tags: an arrayValue of
-        colon-joined "key:value" strings. Which tags are populated varies per library/runtime, so the
-        assertion only requires that at least one known process-tag key is present.
+        """Process tags surface as the single resource attribute datadog.process_tags: an arrayValue
+        of colon-joined "key:value" strings. Which tags are populated varies per library/runtime, so
+        the assertion only requires that at least one known process-tag key is present.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1244,9 +1245,9 @@ class Test_FR08_Datadog_Attributes:
             t.dd_flush()
 
         metrics = _wait_for_otlp_metrics(test_agent)
-        resource_attrs = _resource_attributes(metrics)
-        assert any(f"datadog.{tag}" in resource_attrs for tag in _PROCESS_TAG_KEYS), (
-            f"Expected at least one datadog.<process-tag> resource attribute, got: {list(resource_attrs)}"
+        process_tags = _resource_attributes(metrics).get("datadog.process_tags") or []
+        assert any(str(entry).split(":", 1)[0] in _PROCESS_TAG_KEYS for entry in process_tags), (
+            f"Expected a known process-tag key inside datadog.process_tags, got: {process_tags}"
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
@@ -1350,7 +1351,7 @@ class Test_FR08_Datadog_Attributes:
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR08_AdditionalTags:
-    """FR08: DD_TAGS (tracer_dd_tags) / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
+    """FR08: DD_TAGS (datadog.tracer_tags) / OTEL_RESOURCE_ATTRIBUTES surface as resource attributes and
     DD_TRACE_STATS_ADDITIONAL_TAGS (additional_metric_tags) as data-point attributes (support pending in some SDKs).
     """
 
@@ -1373,8 +1374,9 @@ class Test_FR08_AdditionalTags:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Global DD_TAGS surface as the tracer_dd_tags resource-attribute container (repeated key:value
-        strings) in default mode; reserved service/env/version/runtime_id/runtime-id keys are ignored.
+        """Global DD_TAGS surface as the resource attribute datadog.tracer_tags: an arrayValue of
+        colon-joined "key:value" strings (same shape as datadog.process_tags), in default mode;
+        reserved service/env/version/runtime_id/runtime-id keys are ignored.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1383,12 +1385,12 @@ class Test_FR08_AdditionalTags:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         resource_attrs = _resource_attributes(metrics)
-        tracer_dd_tags = resource_attrs.get("tracer_dd_tags") or []
-        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {resource_attrs}"
-        assert "tier:backend" in tracer_dd_tags, f"Expected tier:backend in tracer_dd_tags, got: {resource_attrs}"
+        tracer_tags = resource_attrs.get("datadog.tracer_tags") or []
+        assert "team:apm" in tracer_tags, f"Expected team:apm in datadog.tracer_tags, got: {resource_attrs}"
+        assert "tier:backend" in tracer_tags, f"Expected tier:backend in datadog.tracer_tags, got: {resource_attrs}"
         for reserved in ("service", "env", "version", "runtime_id", "runtime-id"):
-            assert not any(str(entry).startswith(f"{reserved}:") for entry in tracer_dd_tags), (
-                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {tracer_dd_tags}"
+            assert not any(str(entry).startswith(f"{reserved}:") for entry in tracer_tags), (
+                f"Reserved DD_TAGS key {reserved!r} must be ignored, got: {tracer_tags}"
             )
         assert resource_attrs.get("service.name") == SERVICE, (
             f"DD_TAGS service must not override configured service.name={SERVICE}, got: {resource_attrs}"
@@ -1405,7 +1407,7 @@ class Test_FR08_AdditionalTags:
         test_library: APMLibrary,
     ):
         """OTEL_RESOURCE_ATTRIBUTES is an alias for DD_TAGS, so its entries also surface in the
-        tracer_dd_tags resource-attribute container.
+        datadog.tracer_tags resource attribute.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1413,10 +1415,10 @@ class Test_FR08_AdditionalTags:
             t.dd_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        tracer_dd_tags = _resource_attributes(metrics).get("tracer_dd_tags") or []
-        assert "team:apm" in tracer_dd_tags, f"Expected team:apm in tracer_dd_tags, got: {tracer_dd_tags}"
-        assert "deployment.region:us-east-1" in tracer_dd_tags, (
-            f"Expected deployment.region:us-east-1 in tracer_dd_tags, got: {tracer_dd_tags}"
+        tracer_tags = _resource_attributes(metrics).get("datadog.tracer_tags") or []
+        assert "team:apm" in tracer_tags, f"Expected team:apm in datadog.tracer_tags, got: {tracer_tags}"
+        assert "deployment.region:us-east-1" in tracer_tags, (
+            f"Expected deployment.region:us-east-1 in datadog.tracer_tags, got: {tracer_tags}"
         )
 
     @pytest.mark.parametrize(
