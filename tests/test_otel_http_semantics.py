@@ -203,7 +203,12 @@ def _server_span(request: HttpResponse) -> HttpSpan:
 
 def _client_span(request: HttpResponse) -> HttpSpan:
     if _is_otlp_scenario():
-        spans: Iterator[HttpSpan] = _iter_otlp_spans(request)
+        # An OTLP payload is a batch, so it holds spans from unrelated requests. Every distant
+        # call in this file targets weblog:7777, so matching on the target alone can return
+        # another test's client span. Pin to the trace of the request-correlated server span.
+        trace_id = _server_span(request).get("traceId")
+        assert trace_id, "the request-correlated server span carries no traceId"
+        spans: Iterator[HttpSpan] = (s for s in _iter_otlp_spans(request) if s.get("traceId") == trace_id)
     else:
         spans = (span for _, _, span in interfaces.library.get_spans(request, full_trace=True))
 
