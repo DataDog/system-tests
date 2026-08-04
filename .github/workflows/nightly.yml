@@ -279,10 +279,10 @@ jobs:
                 --head "$BRANCH_NAME" \
                 --base main
               PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
-            fi
 
-            echo "Requesting changes on PR #$PR_NUMBER to block automatic merge..."
-            GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
+              echo "Requesting changes on newly created PR #$PR_NUMBER to block automatic merge..."
+              GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
+            fi
 
             # # Enable auto-merge on the PR
             # echo "Enabling auto-merge on PR #$PR_NUMBER..."
