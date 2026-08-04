@@ -371,5 +371,6 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Stats_Consistency: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_v1_payloads.py: missing_feature

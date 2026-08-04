@@ -1,3 +1,5 @@
 poc-otel:
   categories: [open_telemetry]
-  excluded_scenarios: [OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]
+  # OTEL_INTEGRATIONS drives database, messaging and cache endpoints. This weblog is a minimal
+  # HTTP app built for the semantic-convention suite and implements none of them.
+  excluded_scenarios: [OTEL_INTEGRATIONS, OTEL_LOG_E2E, OTEL_METRIC_E2E, OTEL_TRACING_E2E]

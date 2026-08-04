@@ -85,7 +85,10 @@ def _attributes(span: HttpSpan) -> dict[str, Any]:
     """
     if isinstance(span, DataDogLibrarySpan):
         return {**span.meta, **span.metrics}
-    return span.get("attributes", {})
+    # The OTLP deserializer only flattens the attribute list into a dict when it is non-empty,
+    # so an attribute-less span still carries the raw `[]`. Normalize it to a mapping.
+    attributes = span.get("attributes")
+    return attributes if isinstance(attributes, dict) else {}
 
 
 def _assert_int_attribute(span: HttpSpan, key: str, expected: int) -> None:
@@ -179,23 +182,33 @@ def _span_is_error(span: HttpSpan) -> bool:
 
 
 def _iter_otlp_spans(request: HttpResponse) -> Iterator[dict[str, Any]]:
-    """Yield every span in the first OTLP payload associated with ``request``."""
+    """Yield every span in the OTLP payloads associated with ``request``, each one once.
+
+    ``get_otel_spans`` yields one ``(data, content, span)`` triple per correlated span, so the
+    same payload comes back once per span it holds. Dedupe on the span id rather than stopping
+    after the first payload: a tracer that flushes the server span and the client span in two
+    separate exports would otherwise lose the second one.
+    """
+    seen: set[str] = set()
     for _, content, _ in interfaces.open_telemetry.get_otel_spans(request):
         for resource_span in content.get("resourceSpans", []):
             for scope_span in resource_span.get("scopeSpans", []):
-                yield from scope_span.get("spans", [])
-        return
+                for span in scope_span.get("spans", []):
+                    span_id = str(span.get("spanId", ""))
+                    if span_id in seen:
+                        continue
+                    seen.add(span_id)
+                    yield span
 
 
 def _server_span(request: HttpResponse) -> HttpSpan:
     if _is_otlp_scenario():
         request_id = request.get_rid()
-        fallback: dict[str, Any] | None = None
+        server_spans: list[dict[str, Any]] = []
         for span in _iter_otlp_spans(request):
             if span.get("kind") != SpanKind.SERVER.value:
                 continue
-            if fallback is None:
-                fallback = span
+            server_spans.append(span)
             # Correlation is plumbing, not an assertion, so accept whichever user-agent key the
             # tracer happens to emit. A tracer that has converted its client spans but not its
             # server spans still reports the request id under the legacy names, and insisting on
@@ -208,8 +221,16 @@ def _server_span(request: HttpResponse) -> HttpSpan:
             )
             if request_id in user_agent:
                 return span
-        assert fallback is not None, "no SERVER span found in the OTLP payload"
-        return fallback
+
+        # No user-agent key carried the request id. Fall back only when the batch leaves no room
+        # for ambiguity: with more than one server span, picking the first would silently assert
+        # against another request's span, and an absence check would then pass for free.
+        assert server_spans, "no SERVER span found in the OTLP payload"
+        assert len(server_spans) == 1, (
+            f"could not correlate a SERVER span to request {request_id} by user agent, and the OTLP "
+            f"batch holds {len(server_spans)} server spans, so there is no unambiguous fallback"
+        )
+        return server_spans[0]
 
     spans = [span for _, _, span in interfaces.library.get_spans(request)]
     assert spans, "no server span found in the tracer payload"
@@ -613,6 +634,8 @@ class Test_OtelSemantics_Spans_Http_Client:
 
     def test_url_full_credential_redaction(self) -> None:
         full_url = str(_attributes(_client_span(self.response)).get("url.full", ""))
+        # Without this the whole test passes for free on a tracer that never emits url.full.
+        assert full_url, "url.full must be present on the client span for redaction to be checked"
         assert "otel-user" not in full_url
         assert "otel-pass" not in full_url
         # Some HTTP APIs retain userinfo for the tracer to redact, while others remove it

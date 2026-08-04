@@ -4417,6 +4417,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Stats_Consistency: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_dd_metrics_are_absent: bug (APMAPI-1952)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_otel_metrics_are_present_and_attributed:
     - weblog_declaration:
