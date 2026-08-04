@@ -146,6 +146,7 @@ jobs:
       contents: read
       actions: read
       id-token: write
+      pull-requests: write
     needs:
       - create_test_report
     env:
@@ -217,6 +218,7 @@ jobs:
         if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         env:
           GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+          PR_REVIEW_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           gh auth setup-git
@@ -280,7 +282,7 @@ jobs:
             fi
 
             echo "Requesting changes on PR #$PR_NUMBER to block automatic merge..."
-            gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
+            GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
 
             # # Enable auto-merge on the PR
             # echo "Enabling auto-merge on PR #$PR_NUMBER..."
