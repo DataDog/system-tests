@@ -282,7 +282,6 @@ class _Scenarios:
     otel_semantics_otlp_custom_error_statuses = DdTraceEndToEndScenario(
         "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
         weblog_env={
-            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200",
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
@@ -292,8 +291,8 @@ class _Scenarios:
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
         },
         include_opentelemetry=True,
-        doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that custom "
-        "server and client error status configurations take precedence over OTel defaults",
+        doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
+        "server error status configuration takes precedence over the OTel default",
         scenario_groups=[scenario_groups.open_telemetry],
     )
 

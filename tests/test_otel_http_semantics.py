@@ -756,7 +756,12 @@ class Test_OtelSemantics_OTLP_Client:
 @features.semantic_core_validations
 @scenarios.otel_semantics_otlp_custom_error_statuses
 class Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:
-    """User-configured error status ranges take precedence over OTel defaults."""
+    """A user-configured error status range takes precedence over the OTel default.
+
+    Server spans only. There is no client-side equivalent of
+    ``DD_TRACE_HTTP_SERVER_ERROR_STATUSES`` in any tracer yet, so under the flag the client
+    error range is fixed at 400-599 and is covered by the client class instead.
+    """
 
     def setup_server_error_statuses_config_overrides(self) -> None:
         self.response = weblog.get("/")
@@ -765,17 +770,6 @@ class Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:
         span = _server_span(self.response)
         _assert_int_attribute(span, "http.response.status_code", 200)
         assert _span_is_error(span), "configured HTTP server status 200 must be marked as an error"
-        assert _attributes(span).get("error.type") == "200", (
-            "error.type must be the status code as a string whenever the status made the span an error"
-        )
-
-    def setup_client_error_statuses_config_overrides(self) -> None:
-        self.response = _distant_call()
-
-    def test_client_error_statuses_config_overrides(self) -> None:
-        span = _client_span(self.response)
-        _assert_int_attribute(span, "http.response.status_code", 200)
-        assert _span_is_error(span), "configured HTTP client status 200 must be marked as an error"
         assert _attributes(span).get("error.type") == "200", (
             "error.type must be the status code as a string whenever the status made the span an error"
         )
@@ -794,18 +788,6 @@ class Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:
         _assert_int_attribute(span, "http.response.status_code", 500)
         assert not _span_is_error(span), (
             "HTTP 500 is outside the configured server error range, so the span must not be an error"
-        )
-        assert "error.type" not in _attributes(span)
-
-    def setup_client_error_statuses_config_excludes_500(self) -> None:
-        self.response = _distant_call("http://weblog:7777/status?code=500")
-
-    def test_client_error_statuses_config_excludes_500(self) -> None:
-        """As above for client spans, where the OTel default range is the wider 400-599."""
-        span = _client_span(self.response)
-        _assert_int_attribute(span, "http.response.status_code", 500)
-        assert not _span_is_error(span), (
-            "HTTP 500 is outside the configured client error range, so the span must not be an error"
         )
         assert "error.type" not in _attributes(span)
 
