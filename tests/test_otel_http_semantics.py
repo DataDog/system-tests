@@ -758,9 +758,10 @@ class Test_OtelSemantics_OTLP_Client:
 class Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:
     """A user-configured error status range takes precedence over the OTel default.
 
-    Server spans only. There is no client-side equivalent of
-    ``DD_TRACE_HTTP_SERVER_ERROR_STATUSES`` in any tracer yet, so under the flag the client
-    error range is fixed at 400-599 and is covered by the client class instead.
+    Server spans only. ``DD_TRACE_HTTP_CLIENT_ERROR_STATUSES`` exists in Java, .NET, Go, Ruby
+    and PHP but not in Python or Node.js, so there is nothing to configure on the client side
+    in the two tracers under test. Their client error range is fixed at 400-599 under the flag
+    and is covered by the client class instead.
     """
 
     def setup_server_error_statuses_config_overrides(self) -> None:
