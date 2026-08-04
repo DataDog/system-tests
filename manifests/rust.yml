@@ -356,7 +356,10 @@ manifest:
   tests/parametric/test_tracer.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer: missing_feature  # Created by easy win activation script
-  tests/parametric/test_tracer.py::Test_TracerBaseService: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <0.5.1-dev+8efc582
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
@@ -404,7 +407,12 @@ manifest:
   : missing_feature (query string obfuscation is not implemented)
   ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default::test_query_string_obfuscation_configured_server
   : missing_feature (query string obfuscation is not implemented)
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server: missing_feature (query string obfuscation is not implemented)
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server:  # TODO: a lower version might be supported
+    - declaration: missing_feature (query string obfuscation is not implemented)
+      component_version: <0.5.1-dev+8efc582
+      weblog: [axum]
+    - declaration: missing_feature (query string obfuscation is not implemented)
+      excluded_weblog: [axum]
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature (runtime metrics are not implemented)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature (runtime metrics are not implemented)
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: missing_feature (/read_file endpoint not implemented)
