@@ -3172,3 +3172,14 @@ manifest:
         uds-express4: missing_feature
         express4-typescript: missing_feature
         nextjs: missing_feature
+  # dd-trace-js has no v1 trace encoder (packages/dd-trace/src/encode/ only ships
+  # 0.4 and 0.5), so no v1 root span is ever collected. This was activated by the
+  # easy win script off a vacuous pass, before the test asserted a root span exists.
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        fastify: missing_feature
+        express4: missing_feature
+        express5: missing_feature
+        uds-express4: missing_feature
+        express4-typescript: missing_feature
+        nextjs: missing_feature
