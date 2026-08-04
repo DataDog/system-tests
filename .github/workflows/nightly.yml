@@ -277,11 +277,15 @@ jobs:
           - If the tests are failing it might be due to a change made since the last nightly system-tests run. You can close the PR, an updated one will be available tomorrow.
           - If you close the PR please also delete the branch" \
                 --head "$BRANCH_NAME" \
-                --base main
+                --base main \
+                --draft
               PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
 
               echo "Requesting changes on newly created PR #$PR_NUMBER to block automatic merge..."
               GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
+
+              echo "Marking PR #$PR_NUMBER as ready for review..."
+              gh pr ready "$PR_NUMBER"
             fi
 
             # # Enable auto-merge on the PR
