@@ -292,6 +292,41 @@ class _Scenarios:
         scenario_groups=[scenario_groups.open_telemetry],
     )
 
+    otel_semantics_stats = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_STATS",
+        weblog_env={
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        doc="Like OTEL_SEMANTICS but with client-side stats computation on, so that the span's "
+        "error decision and the trace-stats error decision can be compared. A transform that "
+        "flips error=1 on export while stats still apply the Datadog rule leaves the two "
+        "disagreeing, and no span-level assertion can see it.",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_upstream_sdk = OpenTelemetryScenario(
+        "OTEL_SEMANTICS_UPSTREAM_SDK",
+        weblog_env={
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            # Without this the SDKs still emit the pre-1.0 HTTP attributes (http.method, http.url,
+            # http.status_code), so every assertion would fail for the wrong reason. "http" opts
+            # into the stable names only, which is what the RFC is written against.
+            "OTEL_SEMCONV_STABILITY_OPT_IN": "http",
+        },
+        include_intake=False,
+        include_collector=False,
+        doc="Run the OpenTelemetry HTTP semantic-convention suite against an upstream "
+        "OpenTelemetry SDK weblog instead of a Datadog tracer. This is a measurement scenario: "
+        "any assertion an upstream SDK fails is either a bug in the assertion or a place where "
+        "the Datadog RFC deviates from upstream behavior.",
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = DdTraceEndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
