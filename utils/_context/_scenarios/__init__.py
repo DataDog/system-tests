@@ -250,6 +250,10 @@ class _Scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            # http.endpoint is the Datadog-only fallback a tracer emits when the framework
+            # resolved no route, and every tracer gates it on this option. Without it the
+            # attribute never exists, so the "retained under the flag" assertions test nothing.
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
         },
         doc="Test that HTTP server/client spans emit OpenTelemetry semantic-convention "
         "attribute names when DD_TRACE_OTEL_SEMANTICS_ENABLED=true",
@@ -262,6 +266,7 @@ class _Scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_OTEL_ENABLED": "true",
             "OTEL_TRACES_EXPORTER": "otlp",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",

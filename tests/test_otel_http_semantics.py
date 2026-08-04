@@ -473,7 +473,10 @@ class Test_OtelSemantics_Spans_Http_Server:
         _assert_int_attribute(span, "server.port", 7777)
 
     def setup_http_endpoint_retained(self) -> None:
-        self.response = weblog.get("/sample_rate_route/1")
+        # http.endpoint is the endpoint-aggregation fallback for requests the framework
+        # resolved no route for, so a routed path never carries it in any tracer. Ask for a
+        # path with no route, with DD_TRACE_RESOURCE_RENAMING_ENABLED set by the scenario.
+        self.response = weblog.get("/no_such_route_xyz")
 
     def test_http_endpoint_retained(self) -> None:
         """``http.endpoint`` is Datadog-only with no OTel equivalent, so it is retained.
@@ -663,7 +666,7 @@ class Test_OtelSemantics_OTLP:
             _assert_int_attribute(span, "server.port", 7777)
 
     def setup_http_endpoint_retained_otlp(self) -> None:
-        self.response = weblog.get("/sample_rate_route/1")
+        self.response = weblog.get("/no_such_route_xyz")
 
     def test_http_endpoint_retained_otlp(self) -> None:
         """``http.endpoint`` survives the OTLP export as a Datadog-only attribute.
