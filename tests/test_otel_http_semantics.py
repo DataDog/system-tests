@@ -127,8 +127,16 @@ def _expected_span_name(span: HttpSpan, target_key: str) -> str:
     """The span name derived from this span's own attributes.
 
     ``{method} {target}`` when the span publishes a target, else bare ``{method}``, where
-    ``{method}`` is ``http.request.method`` unless that is ``_OTHER``, in which case the token
-    is the literal ``HTTP``.
+    ``{method}`` is the value of ``http.request.method`` verbatim, including ``_OTHER``.
+
+    This is the OpenTelemetry Collector's ``set_semconv_span_name`` algorithm
+    (``processor/transformprocessor/internal/traces``), which Datadog agreed to adopt for OTel
+    semantics mode rather than mirroring whatever each upstream instrumentation library happens
+    to emit. Its ``httpSpanName`` reads ``http.request.method`` and one target key, ``http.route``
+    for SERVER and ``url.template`` for CLIENT, and returns ``method + " " + target`` or bare
+    ``method``. It performs no substitution, so an unknown method names the span ``_OTHER /users``
+    and not ``HTTP /users``. The HTTP semconv prose says ``HTTP`` there; the collector does not,
+    and the collector is the algorithm we agreed to follow.
 
     Deriving instead of hardcoding is deliberate: the RFC's system-tests section excludes the
     server span's ``http.route`` value and the server span's name value from the cross-tracer
@@ -136,14 +144,13 @@ def _expected_span_name(span: HttpSpan, target_key: str) -> str:
     Deriving keeps the assertion framework-neutral, makes per-framework template syntax
     (``{i}`` / ``{i:int}`` / ``<i>`` / ``:i``) cancel out, and still catches the two real bugs:
     falling back to the URI path as a target, and substituting the whole name rather than only
-    the method token for ``_OTHER``.
+    the method token when the method is not an accepted one.
     """
     attrs = _attributes(span)
     method = attrs.get("http.request.method")
     assert method, "span carries no http.request.method, so no span name can be derived"
-    token = "HTTP" if method == "_OTHER" else str(method)
     target = attrs.get(target_key)
-    return f"{token} {target}" if target else token
+    return f"{method} {target}" if target else str(method)
 
 
 def _assert_name_has_no_uri_path(span: HttpSpan) -> None:
@@ -327,11 +334,12 @@ class Test_OtelSemantics_Spans_Http_Server:
     def test_span_name_unknown_method(self) -> None:
         """``_OTHER`` substitutes the method token only, so a resolved route still appends.
 
-        The spec says ``{method}`` MUST be ``HTTP`` when the method is not an accepted value. It
-        does not say the whole name collapses to ``HTTP``. Asserting exactly ``"HTTP"`` is
-        therefore wrong for any framework that resolves a route for the request: the upstream
-        OTel Java agent emits ``HTTP /**`` there, which is correct. Derive instead, and keep the
-        raw-verb negative, which is what catches a tracer that never normalizes at all.
+        The name comes from the collector algorithm (see ``_expected_span_name``), which uses the
+        value of ``http.request.method`` verbatim. An unmatched verb is therefore ``_OTHER`` in
+        the name, not the literal ``HTTP`` the HTTP semconv prose asks for. Two consequences the
+        assertions below encode: the whole name does not collapse to one token, so a framework
+        that resolves a route still gets ``_OTHER {route}``, and the raw verb never survives into
+        the name, which is what catches a tracer that does not normalize at all.
         """
         span = _server_span(self.response)
         attrs = _attributes(span)
@@ -576,15 +584,17 @@ class Test_OtelSemantics_Spans_Http_Client:
         """Bare ``{method}`` on client spans, because no Datadog tracer emits ``url.template``.
 
         Derived rather than hardcoded so the test stays correct if ``url.template`` ever lands.
-        The ``HTTP `` prefix negative is the one that earns its keep: upstream otelhttp names
-        client spans ``HTTP GET``, appropriating the literal the spec reserves for ``_OTHER``.
+        ``url.template`` is the only target key the collector algorithm reads on a CLIENT span, so
+        a tracer that appends the path or the host here is naming the span from something the
+        algorithm never looks at. The ``HTTP `` prefix negative is the one that earns its keep:
+        upstream otelhttp names client spans ``HTTP GET``, which is neither the method nor
+        ``{method} {url.template}``.
         """
         span = _client_span(self.response)
         name = _span_name(span)
         assert name == _expected_span_name(span, "url.template")
-        assert not name.startswith("HTTP ") or _attributes(span).get("http.request.method") == "_OTHER", (
-            f"'HTTP' is reserved for the _OTHER case, got client span name {name!r} with method "
-            f"{_attributes(span).get('http.request.method')!r}"
+        assert not name.startswith("HTTP "), (
+            f"the client span name must be {{method}} or {{method}} {{url.template}}, got {name!r}"
         )
 
     def setup_span_name_unknown_method(self) -> None:
