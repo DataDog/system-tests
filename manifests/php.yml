@@ -750,7 +750,14 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation:
     - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
       weblog: *php7
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Evaluation: v1.24.0-dev
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Evaluation:
+    - weblog_declaration:
+        "*": v1.24.0-dev
+        *php7: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Unavailable:
+    - weblog_declaration:
+        "*": irrelevant (OpenFeature SDK fallback applies only to PHP 7)
+        *php7: v1.24.0-dev
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start:
     - declaration: missing_feature (OpenFeature PHP SDK requires PHP 8 or later)
       weblog: *php7

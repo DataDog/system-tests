@@ -69,17 +69,38 @@ class Test_FFE_OpenFeature_Evaluation:
         assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
         result = json.loads(self.response.text)
 
-        if result.get("errorCode") == "PROVIDER_NOT_READY":
-            assert result["value"] is False, f"Unavailable providers must return the supplied default: {result}"
-            assert result.get("reason") == "ERROR", f"Unavailable providers must return an error result: {result}"
-            assert result.get("errorMessage"), (
-                f"Unavailable providers must explain why evaluation is unavailable: {result}"
-            )
-            return
-
         assert result["value"] is True, f"OpenFeature evaluation did not return the configured value: {result}"
         assert result.get("reason") != "ERROR", f"OpenFeature evaluation returned an unexpected error: {result}"
         assert result.get("errorCode") is None, f"OpenFeature evaluation returned an unexpected error code: {result}"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_dynamic_evaluation
+class Test_FFE_OpenFeature_Unavailable:
+    """Weblogs without the OpenFeature SDK must return the supplied default."""
+
+    def setup_openfeature_unavailable(self) -> None:
+        self.response = weblog.post(
+            "/ffe",
+            json={
+                "flag": "openfeature-unavailable",
+                "variationType": "BOOLEAN",
+                "defaultValue": False,
+                "targetingKey": "customer-request",
+                "attributes": {},
+            },
+        )
+
+    def test_openfeature_unavailable(self) -> None:
+        assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+        result = json.loads(self.response.text)
+
+        assert result["value"] is False, f"Unavailable providers must return the supplied default: {result}"
+        assert result.get("reason") == "ERROR", f"Unavailable providers must return an error result: {result}"
+        assert result.get("errorCode") == "PROVIDER_NOT_READY", (
+            f"Unavailable providers must report PROVIDER_NOT_READY: {result}"
+        )
+        assert result.get("errorMessage"), f"Unavailable providers must explain why evaluation is unavailable: {result}"
 
 
 @scenarios.feature_flagging_and_experimentation
