@@ -238,9 +238,9 @@ jobs:
             PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
 
             if [[ -n "$PR_NUMBER" ]]; then
-              # Skip if the PR has any activity (comments, reviews, or extra commits)
+              # Skip if the PR has any human activity (comments, reviews, or extra commits)
               COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq '[.[] | select(.user.login | endswith("[bot]") | not)] | length')
-              REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq 'length')
+              REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq '[.[] | select(.user.login != "github-actions[bot]")] | length')
               COMMITS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/commits" --jq 'length')
 
               if [[ "$COMMENTS" -gt 0 || "$REVIEWS" -gt 0 || "$COMMITS" -gt 1 ]]; then
