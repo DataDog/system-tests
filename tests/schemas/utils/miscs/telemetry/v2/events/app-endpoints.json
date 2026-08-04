@@ -5,7 +5,7 @@
   "title": "app-endpoints v2",
   "type": "object",
   "properties": {
-    "is-first": {
+    "is_first": {
       "type": "boolean"
     },
     "endpoints": {
