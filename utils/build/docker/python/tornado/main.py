@@ -20,6 +20,7 @@ import xmltodict
 from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
+from ddtrace.constants import MANUAL_DROP_KEY, MANUAL_KEEP_KEY
 from ddtrace.contrib.trace_utils import set_user
 from ddtrace.openfeature import DataDogProvider
 from ddtrace.trace import tracer
@@ -277,6 +278,33 @@ class TagValueHandler(BaseHandler):
 
     def options(self, tag_value: str, status_code: str) -> None:
         self._handle(tag_value, status_code)
+
+
+class TraceManualKeepDropHandler(BaseHandler):
+    async def get(self) -> None:
+        decision = self.get_argument("decision", "")
+        if decision not in ("keep", "drop"):
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            self.write("decision must be keep or drop")
+            return
+
+        span = tracer.current_span()
+        span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+        # Call downstream so that tests can assert on the sampling decision that gets propagated
+        url = "http://localhost:7777/"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+
+        result = {
+            "url": url,
+            "status_code": response.status_code,
+            "request_headers": dict(response.request.headers),
+            "response_headers": dict(response.headers),
+        }
+
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(result))
 
 
 class MakeDistantCallHandler(BaseHandler):
@@ -1035,6 +1063,7 @@ def make_app() -> Application:
             # Tag value endpoint
             (r"/tag_value/(?P<tag_value>[^/]+)/(?P<status_code>\d+)", TagValueHandler),
             # HTTP client endpoints
+            (r"/trace/manual_keep_drop", TraceManualKeepDropHandler),
             (r"/make_distant_call", MakeDistantCallHandler),
             (r"/external_request", ExternalRequestHandler),
             (r"/external_request/redirect", ExternalRequestRedirectHandler),

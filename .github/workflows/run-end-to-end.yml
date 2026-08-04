@@ -151,7 +151,7 @@ jobs:
       if: inputs._build_weblog_base_image
       run: |
         source venv/bin/activate
-        ./utils/script/build_base_image.py ${{ inputs.library }} ${{ inputs.weblog }}
+        ./utils/scripts/build-base-image.py ${{ inputs.library }} ${{ inputs.weblog }}
 
     - name: Pull images
       uses: ./.github/actions/pull_images

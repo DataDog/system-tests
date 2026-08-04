@@ -31,6 +31,7 @@ mod integration;
 
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
 const DOWNSTREAM_RETURN_HEADERS_URL: &str = "http://localhost:7777/returnheaders";
+const DOWNSTREAM_ROOT_URL: &str = "http://localhost:7777/";
 
 #[derive(Clone)]
 struct AppState {
@@ -41,6 +42,11 @@ struct AppState {
 #[derive(Deserialize)]
 struct StatusQuery {
     code: u16,
+}
+
+#[derive(Deserialize)]
+struct ManualKeepDropQuery {
+    decision: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -114,7 +120,9 @@ fn app(state: AppState) -> Router {
             "/requestdownstream",
             get(request_downstream).post(request_downstream),
         )
+        .route("/rasp/sqli", get(rasp_sqli))
         .route("/make_distant_call", get(make_distant_call))
+        .route("/trace/manual_keep_drop", get(trace_manual_keep_drop))
         .with_state(state);
     integration::install_middleware(router)
 }
@@ -472,18 +480,60 @@ async fn request_downstream(State(state): State<AppState>, method: Method) -> Re
     }
 }
 
+/// Emit a SQL client span with a raw (unobfuscated) statement so that the tracer
+/// exercises its client-side stats obfuscation. Distinct `user_id` values produce
+/// distinct raw resources that all normalise to `SELECT * FROM users WHERE id = ?`
+/// once obfuscated.
+async fn rasp_sqli(Query(params): Query<HashMap<String, String>>) -> Response {
+    let user_id = params.get("user_id").cloned().unwrap_or_default();
+    let statement = format!("SELECT * FROM users WHERE id = '{user_id}'");
+
+    let mut attributes = e2e_span_attributes(&statement, "", false, true);
+    attributes.push(KeyValue::new("db.system", "sqlite"));
+
+    let mut span = global::tracer("weblog")
+        .span_builder("sqlite.query")
+        .with_kind(SpanKind::Client)
+        .with_attributes(attributes)
+        .start_with_context(&global::tracer("weblog"), &Context::new());
+    span.end();
+
+    StatusCode::OK.into_response()
+}
+
 // ─── External request endpoints ─────────────────────────────────────────────
+
+/// Forces the sampling decision of the trace the request belongs to, then calls downstream so that
+/// tests can assert on the sampling decision that gets propagated.
+async fn trace_manual_keep_drop(Query(query): Query<ManualKeepDropQuery>) -> Response {
+    let tag = match query.decision.as_deref() {
+        Some("keep") => "manual.keep",
+        Some("drop") => "manual.drop",
+        _ => {
+            return (StatusCode::BAD_REQUEST, "decision must be keep or drop").into_response();
+        }
+    };
+
+    Context::current()
+        .span()
+        .set_attribute(KeyValue::new(tag, true));
+
+    distant_call(DOWNSTREAM_ROOT_URL).await
+}
 
 async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
     let url = params.get("url").cloned().unwrap_or_default();
+    distant_call(&url).await
+}
 
+async fn distant_call(url: &str) -> Response {
     let capture_request_headers = integration::CaptureRequestHeaders::new();
     let client = ClientBuilder::new(reqwest::Client::new())
         .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
         .with(capture_request_headers.clone())
         .build();
 
-    let resp = client.get(&url).send().await;
+    let resp = client.get(url).send().await;
 
     match resp {
         Ok(r) => {

@@ -34,6 +34,8 @@ from iast import (
 import ddtrace
 
 from ddtrace.appsec import trace_utils as ato_user_sdk_v1
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 
 try:
     from ddtrace.appsec import track_user_sdk
@@ -847,6 +849,28 @@ def view_iast_code_injection_secure(request):
     return HttpResponse("OK", status=200)
 
 
+def trace_manual_keep_drop(request):
+    decision = request.GET.get("decision")
+    if decision not in ("keep", "drop"):
+        return HttpResponse("decision must be keep or drop", status=400)
+
+    span = tracer.current_span()
+    span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = "http://localhost:7777/"
+    response = requests.get(url)
+
+    return JsonResponse(
+        {
+            "url": url,
+            "status_code": response.status_code,
+            "request_headers": dict(response.request.headers),
+            "response_headers": dict(response.headers),
+        }
+    )
+
+
 def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
@@ -1290,6 +1314,7 @@ urlpatterns = [
     path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
     path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
     path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
+    path("trace/manual_keep_drop", trace_manual_keep_drop),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
