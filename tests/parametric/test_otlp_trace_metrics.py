@@ -1342,6 +1342,9 @@ class Test_FR08_AdditionalTags:
         assert "additional_metric_tags" not in attrs, (
             f"additional_metric_tags must not be a single container attribute: {attrs}"
         )
+        assert "datadog.additional_metric_tags" not in attrs, (
+            f"additional_metric_tags must not be a container attribute, prefixed or not: {attrs}"
+        )
         assert "datadog.customer.tier" not in attrs, f"Additional tags must not carry a datadog. prefix: {attrs}"
         assert "datadog.region" not in attrs, f"Additional tags must not carry a datadog. prefix: {attrs}"
 
