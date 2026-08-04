@@ -83,16 +83,6 @@ TRUTHY = ("yes", "true", "1")
 # as their string name (see https://protobuf.dev/programming-guides/json/), but parsers must also
 # accept the integer, so a standards-compliant OTLP/JSON exporter may emit either representation.
 AGGREGATION_TEMPORALITY_DELTA: tuple[int, str] = (1, "AGGREGATION_TEMPORALITY_DELTA")
-# The OTel Span Metrics Connector's default status.code dimension is always this exact string:
-# traceutil.StatusCodeStr() maps StatusCodeError -> "STATUS_CODE_ERROR" and writes it via
-# attr.PutStr (always a string, never an int). The bare "ERROR" value only appears under a
-# different, feature-gated key (otel.status_code), not status.code, so it does not apply here.
-# See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/connector/spanmetricsconnector/connector.go
-ERROR_STATUS_VALUES: tuple[str, ...] = ("STATUS_CODE_ERROR",)
-# The OTel Span Metrics Connector's default span.kind dimension is always this exact string:
-# traceutil.SpanKindStr() maps SpanKindServer -> "SPAN_KIND_SERVER" and writes it via attr.PutStr.
-# See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/internal/coreinternal/traceutil/traceutil.go
-SPAN_KIND_SERVER_VALUES: tuple[str, ...] = ("SPAN_KIND_SERVER",)
 # Expected telemetry.sdk.language resource-attribute value per system-tests library name. The Go
 # tracer reports the OTel-standard "go" token rather than the system-tests "golang" library name.
 _SDK_LANGUAGE_BY_LIBRARY = {
@@ -683,10 +673,7 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        # SMC parity: the value matches traceutil.SpanKindStr(), not the raw Datadog span.kind tag.
-        assert attrs.get("span.kind") in SPAN_KIND_SERVER_VALUES, (
-            f"Expected span.kind in {SPAN_KIND_SERVER_VALUES}, got attrs: {attrs}"
-        )
+        assert attrs.get("span.kind") == "SPAN_KIND_SERVER", f"Expected span.kind=SPAN_KIND_SERVER, got: {attrs}"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr06_3_http_method(
@@ -780,9 +767,7 @@ class Test_FR06_Otel_Span_Attributes:
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("status.code") in ERROR_STATUS_VALUES, (
-            f"Expected status.code in {ERROR_STATUS_VALUES}, got attrs: {attrs}"
-        )
+        assert attrs.get("status.code") == "STATUS_CODE_ERROR", f"Expected status.code=STATUS_CODE_ERROR, got: {attrs}"
 
 
 @scenarios.parametric
@@ -1409,7 +1394,7 @@ class Test_FR09_Red_Metric_Derivation:
         data_points = _duration_data_points(metrics)
         total = sum(int(dp["count"]) for dp in data_points)
         error_count = sum(
-            int(dp["count"]) for dp in data_points if _data_point_attrs(dp).get("status.code") in ERROR_STATUS_VALUES
+            int(dp["count"]) for dp in data_points if _data_point_attrs(dp).get("status.code") == "STATUS_CODE_ERROR"
         )
         assert total == 2, f"Expected 2 selected spans, got {total}"
         assert error_count == 1, f"Expected exactly one error span, got {error_count}"
