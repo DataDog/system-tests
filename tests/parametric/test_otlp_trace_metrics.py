@@ -1256,11 +1256,6 @@ class Test_FR08_Datadog_Attributes:
             f"A service-entry child is not the trace root; expected datadog.is_trace_root=false: {service_entry_attrs}"
         )
 
-    @pytest.mark.skip(
-        reason="Blocked on test-agent support: the ddapm-test-agent /info response has no mechanism "
-        "today to advertise a peer_tags allowlist, which client-side stats peer-tag aggregation "
-        "requires. Un-skip once the test agent (or a system-tests-side override) supports it."
-    )
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr08_14_peer_tags(
         self,
