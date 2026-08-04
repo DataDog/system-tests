@@ -1646,7 +1646,6 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: v0.54.2
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.0.0
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
-  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.11.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_all:
     - declaration: bug (APMRP-360)
@@ -1701,6 +1700,7 @@ manifest:
       component_version: <=1.12.1
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: v0.54.2
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: v1.0.0.beta1
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring: v1.8.0
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: irrelevant (replaced by test_waf_monitoring_once_rfc1025)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once: irrelevant (replaced by test_waf_monitoring_once_rfc1025)

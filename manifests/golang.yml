@@ -946,7 +946,6 @@ manifest:
     - weblog_declaration:
         envoy: missing_feature
         haproxy: missing_feature
-  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:
     - declaration: bug (APPSEC-61196)
@@ -992,6 +991,7 @@ manifest:
     - weblog_declaration:
         "*": v1.36.0
         gin: v1.37.0
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring: v1.38.0
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: irrelevant (expected tags were deprecated by rfc1025)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once:
