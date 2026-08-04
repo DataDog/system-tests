@@ -18,9 +18,37 @@ from integrations.db.postgres import executePostgresOperation
 app = Flask(__name__)
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST", "HEAD", "OPTIONS", "PROPFIND"])
 def hello_world():
     return "Hello, World!\\n"
+
+
+# Endpoints below mirror the Datadog flask weblog so the OpenTelemetry HTTP semantic-convention
+# suite can also be pointed at the upstream OpenTelemetry SDK. Keep the paths and the query
+# parameter names identical to utils/build/docker/python/flask/app.py.
+@app.route("/sample_rate_route/<i>")
+def sample_rate(i):
+    return "OK"
+
+
+@app.route("/status")
+def status_code():
+    code = flask_request.args.get("code", default=200, type=int)
+    return Response("OK, probably", status=code)
+
+
+@app.route("/make_distant_call")
+def make_distant_call():
+    url = flask_request.args["url"]
+    method = flask_request.args.get("method", default="GET")
+    response = requests.request(method, url)
+
+    return {
+        "url": url,
+        "status_code": response.status_code,
+        "request_headers": dict(response.request.headers),
+        "response_headers": dict(response.headers),
+    }
 
 
 @app.route("/healthcheck")
