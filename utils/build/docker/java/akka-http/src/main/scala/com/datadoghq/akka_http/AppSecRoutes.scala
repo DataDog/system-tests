@@ -32,6 +32,7 @@ import datadog.appsec.api.user.User.setUser
 import scala.jdk.CollectionConverters._
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import scala.concurrent.duration._
 
 object AppSecRoutes {
 
@@ -162,10 +163,12 @@ object AppSecRoutes {
         } ~
           post {
             entity(as[Multipart.FormData]) { formData =>
-              val contentFuture = formData.parts
-                .mapAsync(1)(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _))
-                .runFold(ByteString.empty)(_ ++ _)
-                .map(_.utf8String)
+              val contentFuture = formData.toStrict(20.seconds).flatMap { strict =>
+                strict.parts
+                  .mapAsync(1)(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _))
+                  .runFold(ByteString.empty)(_ ++ _)
+                  .map(_.utf8String)
+              }
               onSuccess(contentFuture) { content =>
                 complete(content)
               }
