@@ -373,7 +373,27 @@ manifest:
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
-  tests/remote_config/test_remote_configuration.py: missing_feature (Remote Configuration is not implemented)
+  tests/remote_config/test_remote_configuration.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Remote Configuration is not implemented)
+      component_version: <0.5.1-dev+8efc582
+      weblog: [axum]
+    - declaration: missing_feature (Remote Configuration is not implemented)
+      excluded_weblog: [axum]
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD:
+    - weblog_declaration:
+        axum: missing_feature (Remote Configuration is not implemented)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache:
+    - weblog_declaration:
+        axum: missing_feature (Remote Configuration is not implemented)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures:
+    - weblog_declaration:
+        axum: missing_feature (Remote Configuration is not implemented)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache:
+    - weblog_declaration:
+        axum: missing_feature (Remote Configuration is not implemented)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging:
+    - weblog_declaration:
+        axum: missing_feature (Remote Configuration is not implemented)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject::test_main: missing_feature (/mock_s3/copy_object endpoint not implemented)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload::test_main: missing_feature (/mock_s3/multipart_upload endpoint not implemented)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject::test_main: missing_feature (/mock_s3/put_object endpoint not implemented)
