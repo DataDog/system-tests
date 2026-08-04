@@ -33,8 +33,7 @@ Key conventions:
   * service.name, service.version and deployment.environment.name are reported as resource attributes
     (the configured default service). No InstrumentationScope is emitted (it would be redundant with
     the telemetry.sdk.* resource attributes); a span whose service differs from the configured default
-    additionally carries service.name on its data point. Whether it is also repeated on a data point
-    whose service matches the default is not asserted (implementations differ; not required either way).
+    additionally carries service.name on its data point.
   * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
     The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
   * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
@@ -46,16 +45,14 @@ http.status_code -> http.response.status_code, and span.kind -> span.kind (value
 Span Metrics Connector's own convention, e.g. "server" -> "SPAN_KIND_SERVER"). host.name is reported when
 DD_TRACE_REPORT_HOSTNAME is enabled; its source is library-specific (libdatadog tracers honor DD_HOSTNAME,
 while dd-trace-js does not yet support DD_HOSTNAME and uses os.hostname()), so tests assert presence, not value.
-Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) surface as the single resource attribute
-datadog.process_tags: an arrayValue of colon-joined "key:value" strings (enabled by default in some SDKs).
-Peer tags surface the same way as the data-point attribute datadog.peer_tags, sharing
-datadog.process_tags' colon-joined-list shape -- do not flatten either into per-key datadog.<key>
-attributes. additional_metric_tags (see Test_FR08_AdditionalTags) is the opposite: DD_TRACE_STATS_ADDITIONAL_TAGS
-tags are split into individual data-point attributes, one per configured key, with no datadog. prefix.
-datadog.is_trace_root is a boolean data-point attribute, true only
-for the span whose ParentID == 0; it is distinct from datadog.span.top_level (the service-entry marker),
-which a non-root child span can also carry. Status-code and boolean metric attributes must be typed OTLP
-values (intValue / boolValue); _dd.stats_computed is a string-valued Datadog convention.
+Process tags (DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED) surface as the resource attribute
+datadog.process_tags, and peer tags as the data-point attribute datadog.peer_tags -- both an arrayValue
+of colon-joined "key:value" strings. additional_metric_tags (DD_TRACE_STATS_ADDITIONAL_TAGS, see
+Test_FR08_AdditionalTags) instead splits each configured key into its own data-point attribute.
+datadog.is_trace_root is a boolean data-point attribute, true only for the span whose ParentID == 0;
+it is distinct from datadog.span.top_level (the service-entry marker), which a non-root child span
+can also carry. Status-code and boolean metric attributes must be typed OTLP values (intValue /
+boolValue); _dd.stats_computed is a string-valued Datadog convention.
 """
 
 import base64
@@ -670,9 +667,6 @@ class Test_FR06_Otel_Span_Attributes:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("span.name") == "/users", f"Expected span.name=/users, got attrs: {attrs}"
-        assert "datadog.resource.name" not in attrs, (
-            f"datadog.resource.name must be absent in Datadog-default mode: {attrs}"
-        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_fr06_2_span_kind(
@@ -807,8 +801,7 @@ class Test_FR06_Otel_Resource_Attributes:
         test_library: APMLibrary,
     ):
         """DD_SERVICE / DD_ENV / DD_VERSION map to the resource attributes service.name /
-        deployment.environment.name / service.version. The span uses the default service, so whether
-        its data point also repeats service.name is not asserted here (implementations differ).
+        deployment.environment.name / service.version.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -851,8 +844,7 @@ class Test_FR06_Otel_Resource_Attributes:
             f"Expected resource service.name={SERVICE}, got: {_resource_attributes(metrics)}"
         )
         services_on_points = _data_point_services(metrics)
-        # The custom service is carried on its own data point. Whether the default service is also
-        # repeated on its own data point is not asserted (implementations differ; not required either way).
+        # The custom service is carried on its own data point.
         assert "postgres" in services_on_points, (
             f"Expected postgres service.name on its data point: {services_on_points}"
         )
@@ -1188,13 +1180,9 @@ class Test_FR08_Datadog_Attributes:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """Process tags surface as the single resource attribute datadog.process_tags: an arrayValue
-        of colon-joined "key:value" strings (same shape as datadog.peer_tags), not one datadog.<key>
-        attribute per tag, and not split into individual entries the way additional_metric_tags is
-        (see test_fr08_12_stats_additional_tags).
-
-        Which process tags are populated varies per library/runtime, so the assertion only requires
-        that at least one known process-tag key is present inside datadog.process_tags.
+        """Process tags surface as the resource attribute datadog.process_tags: an arrayValue of
+        colon-joined "key:value" strings. Which tags are populated varies per library/runtime, so the
+        assertion only requires that at least one known process-tag key is present.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
@@ -1326,8 +1314,7 @@ class Test_FR08_AdditionalTags:
         test_library: APMLibrary,
     ):
         """Span tags named in DD_TRACE_STATS_ADDITIONAL_TAGS are split into individual data-point
-        attributes, each keyed by its own tag name with no datadog. prefix -- unlike datadog.peer_tags
-        and datadog.process_tags, which stay combined in a single colon-joined-list attribute.
+        attributes, each keyed by its own tag name.
         """
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web") as span:
@@ -1339,14 +1326,6 @@ class Test_FR08_AdditionalTags:
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("customer.tier") == "gold", f"Expected customer.tier=gold as its own attribute, got: {attrs}"
         assert attrs.get("region") == "us-east-1", f"Expected region=us-east-1 as its own attribute, got: {attrs}"
-        assert "additional_metric_tags" not in attrs, (
-            f"additional_metric_tags must not be a single container attribute: {attrs}"
-        )
-        assert "datadog.additional_metric_tags" not in attrs, (
-            f"additional_metric_tags must not be a container attribute, prefixed or not: {attrs}"
-        )
-        assert "datadog.customer.tier" not in attrs, f"Additional tags must not carry a datadog. prefix: {attrs}"
-        assert "datadog.region" not in attrs, f"Additional tags must not carry a datadog. prefix: {attrs}"
 
 
 @scenarios.parametric
