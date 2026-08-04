@@ -14,7 +14,7 @@ class Test_RawResponseBody:
     def setup_waf_detects_response_body(self):
         self.r = weblog.post(
             "/tag_value/payload_in_response_body_raw_attack/200",
-            data="attack=server_response_body_raw_poison",
+            data={"attack": "server_response_body_raw_poison"},
         )
 
     def test_waf_detects_response_body(self):
