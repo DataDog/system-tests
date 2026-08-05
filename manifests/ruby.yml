@@ -25,7 +25,14 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails52: '>=2.40.0'
+        uds-rails: '>=2.40.0'
+        rails72: '>=2.40.0'
+        rails61: '>=2.40.0'
+        rails80: '>=2.40.0'
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -1162,6 +1169,17 @@ manifest:
     - weblog_declaration:
         '*': missing_feature
         rack: '>=2.39.0'
+        rails52: v2.40.0  # TODO: a lower version might be supported
+        rails42: v2.40.0  # TODO: a lower version might be supported
+        sinatra14: v2.40.0  # TODO: a lower version might be supported
+        uds-rails: v2.40.0  # TODO: a lower version might be supported
+        rails72: v2.40.0  # TODO: a lower version might be supported
+        sinatra32: v2.40.0  # TODO: a lower version might be supported
+        rails61: v2.40.0  # TODO: a lower version might be supported
+        sinatra22: v2.40.0  # TODO: a lower version might be supported
+        sinatra41: v2.40.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.40.0  # TODO: a lower version might be supported
+        rails80: v2.40.0  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
