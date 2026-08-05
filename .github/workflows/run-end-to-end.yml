@@ -101,6 +101,11 @@ on:
         default: false
         required: false
         type: boolean
+      weblog_env:
+        description: "JSON object of environment variables to force on the weblog"
+        default: "{}"
+        required: false
+        type: string
 
 jobs:
   main:
@@ -112,7 +117,8 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
-      SYSTEM_TESTS_WEBLOG: ${{ inputs.weblog }}
+      SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
+      SYSTEM_TESTS_WEBLOG_ENV: ${{ inputs.weblog_env }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -132,7 +138,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
-      if: ${{ inputs.binaries_artifact != '' }}
+      if : ${{ inputs.binaries_artifact != '' }}
       uses: ./.github/actions/download_artifact
       with:
         name: ${{ inputs.binaries_artifact }}
@@ -224,9 +230,6 @@ jobs:
     - name: Run DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
-    - name: Run DEFAULT_V1 scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEFAULT_V1"')
-      run: ./run.sh DEFAULT_V1
     - name: Run GRAPHQL_APPSEC scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC

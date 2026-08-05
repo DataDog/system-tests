@@ -200,6 +200,8 @@ def get_docker_ssi_matrix(
 
 # End-to-end corner
 
+_V1_PROTOCOL_WEBLOG_ENV = {"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"}
+
 
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
@@ -213,6 +215,8 @@ class Job:
         build_time: float,
         *,
         build_base_images: bool,
+        name_suffix: str = "",
+        weblog_env: dict[str, str] | None = None,
     ):
         self.library = library
         self.weblog = weblog
@@ -223,6 +227,9 @@ class Job:
         # as a given weblog can have multiple runner executing its scenarios
         # weblog_instance will be used to differentiate them
         self.weblog_instance = weblog_instance
+        self.name_suffix = name_suffix
+
+        self.weblog_env = weblog_env or {}
 
         # build_time is not directly tight to the job, as another runner will execute it
         # but it's convenient to store this info here, as we'll need it to execute the
@@ -238,8 +245,11 @@ class Job:
             "library": self.library,
             "weblog": self.weblog.name,
             "weblog_build_required": self.weblog.require_build,
-            "weblog_instance": self.weblog_instance,
+            "weblog_instance": f"{self.weblog_instance}{self.name_suffix}"
+            if self.name_suffix
+            else self.weblog_instance,
             "scenarios": sorted(self.scenarios),
+            "weblog_env": self.weblog_env,
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
             "build_weblog_base_image": self.weblog.build_mode == BuildMode.local
@@ -257,6 +267,10 @@ class Job:
 
     @property
     def sort_key(self) -> tuple:
+        return (self.weblog.name, self.weblog_instance, self.name_suffix)
+
+    @property
+    def identity(self) -> tuple[str, int]:
         return (self.weblog.name, self.weblog_instance)
 
     def get_scenario_time(self, scenario: str) -> float:
@@ -265,6 +279,27 @@ class Job:
     def append_scenario(self, scenario: str, execution_time: float) -> None:
         assert scenario not in self._scenarios_times
         self._scenarios_times[scenario] = execution_time
+
+    def duplicate(
+        self,
+        *,
+        name_suffix: str,
+        scenarios: tuple[str, ...] | None = None,
+        weblog_env: dict[str, str] | None = None,
+    ) -> "Job":
+        selected_scenarios = scenarios or self.scenarios
+        assert set(selected_scenarios) <= set(self.scenarios)
+
+        return Job(
+            library=self.library,
+            weblog=self.weblog,
+            weblog_instance=self.weblog_instance,
+            scenarios_times={scenario: self._scenarios_times[scenario] for scenario in selected_scenarios},
+            build_time=self.build_time,
+            build_base_images=self.build_base_images,
+            name_suffix=name_suffix,
+            weblog_env=weblog_env,
+        )
 
     def split_for_parallel_execution(self, desired_execution_time: float) -> list["Job"]:
         result: list[Job] = []
@@ -371,6 +406,8 @@ def get_endtoend_definitions(
     if desired_execution_time > 0:  # 0 or less means that user doesn't want to split jobs
         jobs = _split_jobs_for_parallel_execution(jobs, desired_execution_time, maximum_parallel_jobs)
 
+    jobs.extend(_add_java_v1_protocol_jobs(jobs, library=library, ci_environment=ci_environment))
+
     # sort jobs by weblog name and weblog instance
     jobs.sort(key=lambda job: job.sort_key)
 
@@ -425,6 +462,32 @@ def _split_jobs_for_parallel_execution(
                 break
 
     return result
+
+
+def _add_java_v1_protocol_jobs(jobs: list[Job], *, library: str, ci_environment: str) -> list[Job]:
+    if library != "java" or ci_environment != "prod":
+        return []
+
+    # Exercise DEFAULT on every Java weblog. For spring-boot-jetty, replace the
+    # DEFAULT-only duplicate with complete duplicates of its three CI shards.
+    duplicates = {
+        job.identity: job.duplicate(
+            name_suffix="_v1",
+            scenarios=("DEFAULT",),
+            weblog_env=_V1_PROTOCOL_WEBLOG_ENV,
+        )
+        for job in jobs
+        if "DEFAULT" in job.scenarios
+    }
+
+    for job in jobs:
+        if job.weblog.name == "spring-boot-jetty" and job.weblog_instance in (1, 2, 3):
+            duplicates[job.identity] = job.duplicate(
+                name_suffix="_v1",
+                weblog_env=_V1_PROTOCOL_WEBLOG_ENV,
+            )
+
+    return sorted(duplicates.values(), key=lambda job: job.sort_key)
 
 
 def _split_scenarios_for_parallel_execution(
@@ -490,12 +553,7 @@ def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dic
 
 def _filter_scenarios(scenarios: list[Scenario], weblog: Weblog) -> list[Scenario]:
     return sorted(
-        [
-            scenario
-            for scenario in set(scenarios)
-            if scenario.supports_tracer(weblog.library)
-            and weblog.support_scenario(scenario.name, scenario.weblog_categories)
-        ],
+        [scenario for scenario in set(scenarios) if weblog.support_scenario(scenario.name, scenario.weblog_categories)],
         key=lambda scenario: scenario.name,
     )
 

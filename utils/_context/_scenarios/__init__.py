@@ -58,14 +58,6 @@ class _Scenarios:
 
     default = DefaultScenario("DEFAULT")
 
-    # Run the DEFAULT suite with the v1 protocol forced.
-    # Go uses v1 by default, while Java supports v1 but defaults to v0.4.
-    # Keep only tracers that support v1 but do not yet use it by default.
-    default_v1 = DefaultScenario("DEFAULT_V1")
-    default_v1.supported_tracers = {"java"}
-    default_v1.weblog_container.environment["DD_TRACE_AGENT_PROTOCOL_VERSION"] = "1.0"
-    default_v1.agent_container.environment["DD_APM_ENABLE_V1_TRACE_ENDPOINT"] = "true"
-
     integrations = IntegrationsScenario()
     integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     dbm_dynamic_service = DbmDynamicServiceScenario()
@@ -847,9 +839,6 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
             "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
-        },
-        agent_env={
-            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
         },
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",

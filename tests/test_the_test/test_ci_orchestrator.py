@@ -6,6 +6,8 @@ from utils.const import COMPONENT_GROUPS
 from utils._context.weblog_metadata import WeblogMetaData
 from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
+    Job,
+    _add_java_v1_protocol_jobs,
     _get_endtoend_weblogs,
     get_endtoend_definitions,
 )
@@ -141,8 +143,36 @@ def test_otel_collector():
             "weblog": "otel_collector",
             "weblog_build_required": False,
             "weblog_instance": 1,
+            "weblog_env": {},
         }
     ]
+
+
+@scenarios.test_the_test
+def test_java_prod_v1_protocol_jobs():
+    weblog = get_weblog("java", "spring-boot-jetty")
+    other_weblog = get_weblog("java", "spring-boot")
+    jobs = [
+        Job("java", weblog, 1, {"DEFAULT": 10.0, "FIRST": 20.0}, 5.0, build_base_images=False),
+        Job("java", weblog, 2, {"SECOND": 30.0}, 5.0, build_base_images=False),
+        Job("java", weblog, 3, {"THIRD": 40.0}, 5.0, build_base_images=False),
+        Job("java", other_weblog, 1, {"DEFAULT": 10.0, "OTHER": 20.0}, 5.0, build_base_images=False),
+    ]
+
+    result = _add_java_v1_protocol_jobs(jobs, library="java", ci_environment="prod")
+    v1_jobs = {f"{job.weblog.name} {job.serialize()['weblog_instance']}": job for job in result}
+
+    assert set(v1_jobs) == {
+        "spring-boot-jetty 1_v1",
+        "spring-boot-jetty 2_v1",
+        "spring-boot-jetty 3_v1",
+        "spring-boot 1_v1",
+    }
+    assert v1_jobs["spring-boot-jetty 1_v1"].scenarios == ("DEFAULT", "FIRST")
+    assert v1_jobs["spring-boot 1_v1"].scenarios == ("DEFAULT",)
+    assert all(job.weblog_env == {"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"} for job in v1_jobs.values())
+    assert _add_java_v1_protocol_jobs(jobs, library="java", ci_environment="dev") == []
+    assert _add_java_v1_protocol_jobs(jobs, library="nodejs", ci_environment="prod") == []
 
 
 @scenarios.test_the_test
@@ -152,10 +182,6 @@ def test_legacy_scenario_matrix():
     for library in sorted(COMPONENT_GROUPS.all):
         for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
             for scenario in get_all_scenarios():
-                # DEFAULT_V1 has no legacy equivalent.
-                if scenario is scenarios.default_v1:
-                    continue
-
                 legacy = _is_supported_legacy(weblog, scenario, "")
                 new_value = weblog.support_scenario(scenario.name, scenario.weblog_categories)
                 if legacy is not new_value:
