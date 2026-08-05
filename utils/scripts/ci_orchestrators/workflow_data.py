@@ -200,8 +200,6 @@ def get_docker_ssi_matrix(
 
 # End-to-end corner
 
-_V1_PROTOCOL_WEBLOG_ENV = {"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"}
-
 
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
@@ -406,7 +404,18 @@ def get_endtoend_definitions(
     if desired_execution_time > 0:  # 0 or less means that user doesn't want to split jobs
         jobs = _split_jobs_for_parallel_execution(jobs, desired_execution_time, maximum_parallel_jobs)
 
-    jobs.extend(_add_java_v1_protocol_jobs(jobs, library=library, ci_environment=ci_environment))
+    # Duplicate selected test jobs to exercise an alternative protocol without changing the original jobs.
+    # This can force v1 while the originals use v0.x, or test a legacy protocol while they use the current one.
+    # Add, remove, or adjust library-specific selections here as protocol coverage evolves.
+    if library == "java" and ci_environment == "prod":
+        jobs.extend(
+            _duplicate_jobs(
+                jobs,
+                weblog_names=("spring-boot-jetty",),
+                name_suffix="_v1",
+                weblog_env={"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"},
+            )
+        )
 
     # sort jobs by weblog name and weblog instance
     jobs.sort(key=lambda job: job.sort_key)
@@ -464,30 +473,26 @@ def _split_jobs_for_parallel_execution(
     return result
 
 
-def _add_java_v1_protocol_jobs(jobs: list[Job], *, library: str, ci_environment: str) -> list[Job]:
-    if library != "java" or ci_environment != "prod":
-        return []
-
-    # Exercise DEFAULT on every Java weblog. For spring-boot-jetty, replace the
-    # DEFAULT-only duplicate with complete duplicates of its three CI shards.
-    duplicates = {
-        job.identity: job.duplicate(
-            name_suffix="_v1",
-            scenarios=("DEFAULT",),
-            weblog_env=_V1_PROTOCOL_WEBLOG_ENV,
-        )
-        for job in jobs
-        if "DEFAULT" in job.scenarios
-    }
-
-    for job in jobs:
-        if job.weblog.name == "spring-boot-jetty" and job.weblog_instance in (1, 2, 3):
-            duplicates[job.identity] = job.duplicate(
-                name_suffix="_v1",
-                weblog_env=_V1_PROTOCOL_WEBLOG_ENV,
+def _duplicate_jobs(
+    jobs: list[Job],
+    *,
+    weblog_names: tuple[str, ...],
+    name_suffix: str,
+    weblog_env: dict[str, str] | None = None,
+) -> list[Job]:
+    """Duplicate every job for the selected weblogs."""
+    selected_weblogs = set(weblog_names)
+    return sorted(
+        [
+            job.duplicate(
+                name_suffix=name_suffix,
+                weblog_env=weblog_env,
             )
-
-    return sorted(duplicates.values(), key=lambda job: job.sort_key)
+            for job in jobs
+            if job.weblog.name in selected_weblogs
+        ],
+        key=lambda job: job.sort_key,
+    )
 
 
 def _split_scenarios_for_parallel_execution(
