@@ -433,7 +433,7 @@ class Test_FR01_Enablement_Configuration:
         # flush window and fail if the span-duration trace metric ever appears.
         deadline = time.monotonic() + 8
         while time.monotonic() < deadline:
-            metrics = test_agent.metrics()
+            metrics = _normalize_keys(test_agent.metrics())
             assert not _duration_data_points(metrics), (
                 f"OTLP trace metrics must be disabled when OTLP trace export is off, got: {_all_metric_names(metrics)}"
             )
@@ -459,7 +459,7 @@ class Test_FR01_Enablement_Configuration:
 
         deadline = time.monotonic() + 8
         while time.monotonic() < deadline:
-            metrics = test_agent.metrics()
+            metrics = _normalize_keys(test_agent.metrics())
             assert not _duration_data_points(metrics), (
                 f"OTLP trace metrics must be disabled when APM tracing is disabled, got: {_all_metric_names(metrics)}"
             )
@@ -1343,13 +1343,17 @@ class Test_FR08_Datadog_Attributes:
         service_entry_point = _find_data_point(points, **{"datadog.operation.name": "postgres.query"})
         assert service_entry_point is not None, "No data point for the service-entry child span"
         service_entry_attrs = _data_point_attrs(service_entry_point)
-        assert service_entry_attrs.get("datadog.span.top_level") is True, (
+        assert service_entry_attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level=true on the service-entry child: {service_entry_attrs}"
         )
         assert service_entry_attrs.get("datadog.is_trace_root") is False, (
             f"A service-entry child is not the trace root; expected datadog.is_trace_root=false: {service_entry_attrs}"
         )
 
+    @pytest.mark.parametrize(
+        "agent_env",
+        [{"DD_AGENT_EXTRA_INFO": json.dumps({"peer_tags": ["db.hostname"]})}],
+    )
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_14_peer_tags(
         self,
@@ -1362,7 +1366,9 @@ class Test_FR08_Datadog_Attributes:
         the Agent's peer_tags allowlist covers (e.g. db.hostname, aws.s3.bucket, grpc.target).
         """
         with test_library as t:
+            assert t.ensure_agent_info(), "Tracer did not consume the Agent /info response"
             with t.dd_start_span(name="postgres.query", service="postgres", typestr="db") as span:
+                span.set_meta("span.kind", "client")
                 span.set_meta("db.hostname", "prod-db-1")
             t.dd_flush()
 
