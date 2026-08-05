@@ -597,6 +597,7 @@ manifest:
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing: v0.1.0
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: v0.1.0
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: v0.2.0
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: v1.24.0
   tests/appsec/waf/test_reports.py::Test_Monitoring: v0.73.0
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
   tests/appsec/waf/test_rules.py::Test_CommandInjection: v0.68.3

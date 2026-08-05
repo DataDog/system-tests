@@ -1156,6 +1156,7 @@ manifest:
     - weblog_declaration:
         "*": v1.2.1
         fastapi: v2.4.0
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring:
     - weblog_declaration:
         "*": v1.5.0-rc1
