@@ -65,18 +65,18 @@ class DebuggerController < ActionController::Base
   end
 
   # Padding
-  # Padding
-  # Padding
-  # Padding
-  # Padding
+  # run_expression passes inputValue so a method probe can capture it as an argument
+  def run_expression
+    expression(params[:inputValue])
+  end
   # Padding
   # Padding
   # Padding
 
-  def expression
-    inputValue = params[:inputValue]
+  def expression(inputValue)
     testStruct = ExpressionTestStruct.new
     localValue = inputValue.length
+
 
     render inline: "Great success number #{localValue}"
   end # must be line 82

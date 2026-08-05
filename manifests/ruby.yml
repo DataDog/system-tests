@@ -1156,9 +1156,12 @@ manifest:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature (APPSEC-68904)
+  tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v2.40.0-dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v2.18.0
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rack: '>=2.39.0'
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -1754,8 +1757,21 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.19.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.19.0
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.38.0
+        rails80: v2.38.0
+        uds-rails: v2.38.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Local variable capture not implemented for method probes)
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_local_capture_expressions
+  : missing_feature (Local variable capture not implemented for method probes)
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_parameter_capture_expressions
+  : - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.38.0
+        rails80: v2.38.0
+        uds-rails: v2.38.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": irrelevant
@@ -2146,6 +2162,8 @@ manifest:
         rails72: v2.0.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Ruby extract seems to fail even though it should be supported)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -2838,6 +2856,21 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: missing_feature (APMAPI-2171)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: missing_feature
   tests/test_profiling.py::Test_Profile:  # Modified by easy win activation script
     - declaration: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)

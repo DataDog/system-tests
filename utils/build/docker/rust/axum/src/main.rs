@@ -120,6 +120,7 @@ fn app(state: AppState) -> Router {
             "/requestdownstream",
             get(request_downstream).post(request_downstream),
         )
+        .route("/rasp/sqli", get(rasp_sqli))
         .route("/make_distant_call", get(make_distant_call))
         .route("/trace/manual_keep_drop", get(trace_manual_keep_drop))
         .with_state(state);
@@ -477,6 +478,27 @@ async fn request_downstream(State(state): State<AppState>, method: Method) -> Re
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
+}
+
+/// Emit a SQL client span with a raw (unobfuscated) statement so that the tracer
+/// exercises its client-side stats obfuscation. Distinct `user_id` values produce
+/// distinct raw resources that all normalise to `SELECT * FROM users WHERE id = ?`
+/// once obfuscated.
+async fn rasp_sqli(Query(params): Query<HashMap<String, String>>) -> Response {
+    let user_id = params.get("user_id").cloned().unwrap_or_default();
+    let statement = format!("SELECT * FROM users WHERE id = '{user_id}'");
+
+    let mut attributes = e2e_span_attributes(&statement, "", false, true);
+    attributes.push(KeyValue::new("db.system", "sqlite"));
+
+    let mut span = global::tracer("weblog")
+        .span_builder("sqlite.query")
+        .with_kind(SpanKind::Client)
+        .with_attributes(attributes)
+        .start_with_context(&global::tracer("weblog"), &Context::new());
+    span.end();
+
+    StatusCode::OK.into_response()
 }
 
 // ─── External request endpoints ─────────────────────────────────────────────
