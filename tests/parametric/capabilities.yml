@@ -61,7 +61,7 @@ capabilities:
     '>=1.54.0':
       - APM_TRACING_MULTICONFIG
 
-    '>=1.64.2':
+    '>=1.65.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
   nodejs:
