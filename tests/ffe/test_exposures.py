@@ -87,8 +87,8 @@ UFC_FIXTURE_DATA = {
     "format": "SERVER",
     "environment": {"name": "Test"},
     "flags": {
-        "test-flag": {
-            "key": "test-flag",
+        "exposure-generation-test-flag": {
+            "key": "exposure-generation-test-flag",
             "enabled": True,
             "variationType": "STRING",
             "variations": {"on": {"key": "on", "value": "on"}, "off": {"key": "off", "value": "off"}},
@@ -108,7 +108,7 @@ UFC_FIXTURE_DATA = {
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_exposures
 class Test_FFE_Exposure_Events:
-    def setup_ffe_exposure_event_generation(self):
+    def setup_ffe_exposure_event_generation(self) -> None:
         """Set up FFE exposure event generation."""
         # Set up Remote Config
         config_id = "ffe-test-config"
@@ -116,7 +116,7 @@ class Test_FFE_Exposure_Events:
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
 
         # Evaluate a feature flag
-        self.flag = "test-flag"
+        self.flag = "exposure-generation-test-flag"
         variation_type = "STRING"
         default_value = "default"
         self.targeting_key = "test-user"
@@ -133,11 +133,15 @@ class Test_FFE_Exposure_Events:
             },
         )
 
-    def test_ffe_exposure_event_generation(self):
-        """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+        result = json.loads(self.r.text)
+        assert result["value"] == "on", f"Expected 'on', got {result['value']!r}"
+
+        # Exposure delivery is asynchronous; wait before the next setup replaces Remote Config.
         wait_for_exposure_event({self.flag}, self.targeting_key)
 
+    def test_ffe_exposure_event_generation(self) -> None:
+        """Test that FFE generates exposure events when flags are evaluated via weblog."""
         # Search for our specific flag in all exposure events
         matching_event = None
         context_validated = False
