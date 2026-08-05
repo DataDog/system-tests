@@ -519,7 +519,7 @@ class Test_FR02_Mutual_Exclusion:
         "library_env",
         [
             {
-                **DEFAULT_ENVVARS_OTLP,
+                **DEFAULT_ENVVARS,
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",
             }
@@ -527,7 +527,7 @@ class Test_FR02_Mutual_Exclusion:
     )
     def test_fr02_3_otlp_suppresses_native_stats(
         self,
-        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
