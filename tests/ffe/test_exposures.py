@@ -133,15 +133,13 @@ class Test_FFE_Exposure_Events:
             },
         )
 
+    def test_ffe_exposure_event_generation(self) -> None:
+        """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
         result = json.loads(self.r.text)
         assert result["value"] == "on", f"Expected 'on', got {result['value']!r}"
-
-        # Exposure delivery is asynchronous; wait before the next setup replaces Remote Config.
         wait_for_exposure_event({self.flag}, self.targeting_key)
 
-    def test_ffe_exposure_event_generation(self) -> None:
-        """Test that FFE generates exposure events when flags are evaluated via weblog."""
         # Search for our specific flag in all exposure events
         matching_event = None
         context_validated = False
