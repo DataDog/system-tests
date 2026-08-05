@@ -1477,6 +1477,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, agent_port: int = 8126) -> None:
+        # ddapm-test-agent also starts OTLP HTTP/GRPC servers, on ports 4318/4317 by default.
+        # agent_port is picked at random from a wide range, so it can accidentally collide
+        # with those defaults, which makes the agent refuse to start
+        # ("APM and OTLP [HTTP|GRPC] ports cannot be the same"). Derive distinct OTLP ports
+        # from agent_port so they can never collide with it (nor with each other).
+        otlp_http_port = agent_port + 1
+        otlp_grpc_port = agent_port + 2
+
         super().__init__(
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
             name="ddapm-test-agent",
@@ -1484,6 +1492,8 @@ class APMTestAgentContainer(TestedContainer):
                 "SNAPSHOT_CI": "0",
                 "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket",
                 "PORT": str(agent_port),
+                "OTLP_HTTP_PORT": str(otlp_http_port),
+                "OTLP_GRPC_PORT": str(otlp_grpc_port),
             },
             healthcheck={
                 "test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info",
