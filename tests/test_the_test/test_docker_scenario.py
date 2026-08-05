@@ -1,9 +1,11 @@
 from threading import RLock
+from unittest.mock import MagicMock
+
 from utils import pytest
 
-from utils._context._scenarios.endtoend import DockerScenario
+from utils import interfaces, scenarios
+from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer
-from utils import scenarios
 
 
 class FakeContainer(_TestedContainer):
@@ -102,3 +104,33 @@ def test_recursive_2():
     scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("include_agent", "is_empty_test_run", "flush"),
+    [(True, True, False), (True, False, True), (False, True, False), (False, False, False)],
+)
+def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
+    monkeypatch: pytest.MonkeyPatch, *, include_agent: bool, is_empty_test_run: bool, flush: bool
+) -> None:
+    scenario = DdTraceEndToEndScenario(
+        "FAKE_END_TO_END",
+        doc="",
+        include_agent=include_agent,
+        use_proxy_for_agent=False,
+        use_proxy_for_weblog=False,
+    )
+    scenario.replay = False
+    scenario.library_interface_timeout = 0
+    scenario.weblog_infra = MagicMock()
+    monkeypatch.setattr(scenario, "_wait_interface", MagicMock())
+
+    monkeypatch.setattr(interfaces.library, "check_deserialization_errors", MagicMock())
+    monkeypatch.setattr(interfaces.backend, "check_deserialization_errors", MagicMock())
+
+    scenario._wait_and_stop_containers(  # noqa: SLF001 - focused lifecycle test
+        is_empty_test_run=is_empty_test_run
+    )
+
+    scenario.weblog_infra.stop.assert_called_once_with(flush=flush)

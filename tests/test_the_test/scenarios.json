@@ -3345,6 +3345,9 @@
   "tests/external_processing/test_apm.py::Test_ExternalProcessing_Tracing::test_correct_span_structure": [
     "EXTERNAL_PROCESSING"
   ],
+  "tests/ffe/test_agentless_configuration.py::Test_FFE_Agentless_Configuration::test_default_agentless_source": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
+  ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
   ],
@@ -5074,6 +5077,9 @@
     "PARAMETRIC"
   ],
   "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags[library_env0]": [
     "PARAMETRIC"
   ],
   "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_under_limit_one_payload[library_env0]": [

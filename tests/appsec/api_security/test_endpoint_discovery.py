@@ -83,9 +83,10 @@ class Test_Endpoint_Discovery:
         endpoints = self._get_endpoints()
         found = False
         for endpoint in endpoints:
-            if "type" in endpoint:
+            endpoint_type = endpoint.get("type")
+            if endpoint_type is not None:
                 found = True
-                assert isinstance(endpoint["type"], str)
+                assert isinstance(endpoint_type, str)
         assert found, "No endpoint contained the optional 'type' attribute"
 
     def setup_optional_method(self):
@@ -110,9 +111,10 @@ class Test_Endpoint_Discovery:
         }
         found = False
         for endpoint in endpoints:
-            if "method" in endpoint:
+            endpoint_method = endpoint.get("method")
+            if endpoint_method is not None:
                 found = True
-                assert endpoint["method"] in allowed
+                assert endpoint_method in allowed
         assert found, "No endpoint contained the optional 'method' attribute"
 
     def setup_optional_path(self):
@@ -123,9 +125,10 @@ class Test_Endpoint_Discovery:
         endpoints = self._get_endpoints()
         found = False
         for endpoint in endpoints:
-            if "path" in endpoint:
+            endpoint_path = endpoint.get("path")
+            if endpoint_path is not None:
                 found = True
-                assert isinstance(endpoint["path"], str)
+                assert isinstance(endpoint_path, str)
         assert found, "No endpoint contained the optional 'path' attribute"
 
     def setup_optional_request_body_type(self):
@@ -136,10 +139,11 @@ class Test_Endpoint_Discovery:
         endpoints = self._get_endpoints()
         found = False
         for endpoint in endpoints:
-            if "request_body_type" in endpoint:
+            endpoint_body_type = endpoint.get("request_body_type")
+            if endpoint_body_type is not None:
                 found = True
-                assert isinstance(endpoint["request_body_type"], list)
-                assert all(isinstance(t, str) for t in endpoint["request_body_type"])
+                assert isinstance(endpoint_body_type, list)
+                assert all(isinstance(t, str) for t in endpoint_body_type)
         assert found, "No endpoint contained the optional 'request_body_type' attribute"
 
     def setup_optional_response_body_type(self):
@@ -150,10 +154,11 @@ class Test_Endpoint_Discovery:
         endpoints = self._get_endpoints()
         found = False
         for endpoint in endpoints:
-            if "response_body_type" in endpoint:
+            endpoint_body_type = endpoint.get("response_body_type")
+            if endpoint_body_type is not None:
                 found = True
-                assert isinstance(endpoint["response_body_type"], list)
-                assert all(isinstance(t, str) for t in endpoint["response_body_type"])
+                assert isinstance(endpoint_body_type, list)
+                assert all(isinstance(t, str) for t in endpoint_body_type)
         assert found, "No endpoint contained the optional 'response_body_type' attribute"
 
     def setup_optional_response_code(self):
@@ -164,11 +169,12 @@ class Test_Endpoint_Discovery:
         endpoints = self._get_endpoints()
         found = False
         for endpoint in endpoints:
-            if "response_code" in endpoint:
+            endpoint_code = endpoint.get("response_code")
+            if endpoint_code is not None:
                 found = True
-                assert isinstance(endpoint["response_code"], list)
-                assert len(endpoint["response_code"]) >= 1
-                assert all(isinstance(code, int) for code in endpoint["response_code"])
+                assert isinstance(endpoint_code, list)
+                assert len(endpoint_code) >= 1
+                assert all(isinstance(code, int) for code in endpoint_code)
         assert found, "No endpoint contained the optional 'response_code' attribute"
 
     def setup_optional_authentication(self):
@@ -180,10 +186,11 @@ class Test_Endpoint_Discovery:
         allowed = {"JWT", "basic", "oauth", "OIDC", "api_key", "session", "mTLS", "SAML", "LDAP", "Form", "other"}
         found = False
         for endpoint in endpoints:
-            if "authentication" in endpoint:
+            endpoint_authentication = endpoint.get("authentication")
+            if endpoint_authentication is not None:
                 found = True
-                assert isinstance(endpoint["authentication"], list)
-                assert all(auth in allowed for auth in endpoint["authentication"])
+                assert isinstance(endpoint_authentication, list)
+                assert all(auth in allowed for auth in endpoint_authentication)
         assert found, "No endpoint contained the optional 'authentication' attribute"
 
     def setup_optional_metadata(self):
@@ -194,7 +201,8 @@ class Test_Endpoint_Discovery:
         endpoints = self._get_endpoints()
         found = False
         for endpoint in endpoints:
-            if "metadata" in endpoint:
+            endpoint_metadata = endpoint.get("metadata")
+            if endpoint_metadata is not None:
                 found = True
-                assert isinstance(endpoint["metadata"], dict)
+                assert isinstance(endpoint_metadata, dict)
         assert found, "No endpoint contained the optional 'metadata' attribute"
