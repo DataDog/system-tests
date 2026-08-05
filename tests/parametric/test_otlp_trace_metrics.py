@@ -32,8 +32,8 @@ Key conventions:
     telemetry.sdk.language (the library's OTel language token, e.g. "go" for golang).
   * service.name, service.version and deployment.environment.name are reported as resource attributes
     (the configured default service). No InstrumentationScope is emitted (it would be redundant with
-    the telemetry.sdk.* resource attributes); a span whose service differs from the configured default
-    additionally carries service.name on its data point.
+    the telemetry.sdk.* resource attributes); every data point also unconditionally carries its own
+    service.name, whether or not it matches the configured default.
   * OTLP metric flush/export cadence is fixed at 10s and is not overridable by OTEL_METRIC_EXPORT_INTERVAL.
     The internal _DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL (milliseconds) shortens it in tests only.
   * Transport differs per library and is out of scope for parity: dd-trace-py exports HTTP/JSON only,
@@ -255,7 +255,9 @@ def _resource_attributes(metrics: list[Any]) -> dict[str, Any]:
 
 
 def _data_point_services(metrics: list[Any]) -> set[Any]:
-    """Collect every service.name carried on a duration data point (custom/non-default services)."""
+    """Collect every service.name carried on a duration data point (every data point carries one,
+    including spans on the configured default service).
+    """
     services: set[Any] = set()
     for data_point in _duration_data_points(metrics):
         service = _data_point_attrs(data_point).get("service.name")
@@ -439,11 +441,11 @@ class Test_FR01_Enablement_Configuration:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "DD_APM_TRACING_ENABLED": "false"}],
+        [{**DEFAULT_ENVVARS_OTLP, "DD_APM_TRACING_ENABLED": "false"}],
     )
     def test_fr01_6_disabled_when_apm_tracing_disabled(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -515,11 +517,17 @@ class Test_FR02_Mutual_Exclusion:
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**DEFAULT_ENVVARS, "DD_TRACE_STATS_COMPUTATION_ENABLED": "1"}],
+        [
+            {
+                **DEFAULT_ENVVARS_OTLP,
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+            }
+        ],
     )
     def test_fr02_3_otlp_suppresses_native_stats(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -870,11 +878,6 @@ class Test_FR06_Otel_Resource_Attributes:
             or resource_attrs.get("deployment.environment.name") == "prod"
         ), f"Expected deployment environment=prod, got: {resource_attrs}"
 
-        # The span uses the configured default service, so its data point omits service.name.
-        assert SERVICE not in _data_point_services(metrics), (
-            f"Default service must not repeat on data points: {_data_point_services(metrics)}"
-        )
-
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_14_custom_service_on_data_point(
         self,
@@ -902,6 +905,27 @@ class Test_FR06_Otel_Resource_Attributes:
         # The custom service is carried on its own data point.
         assert "postgres" in services_on_points, (
             f"Expected postgres service.name on its data point: {services_on_points}"
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
+    def test_fr06_15_default_service_on_data_point(
+        self,
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """A span on the configured default service still carries service.name on its data point;
+        it is not omitted just because it matches the resource-level default.
+        """
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = _wait_for_otlp_metrics(test_agent)
+        services_on_points = _data_point_services(metrics)
+        assert SERVICE in services_on_points, (
+            f"Expected default service {SERVICE} on its data point: {services_on_points}"
         )
 
     @pytest.mark.parametrize(
@@ -1281,10 +1305,10 @@ class Test_FR08_Datadog_Attributes:
             f"point, got: {[_data_point_attrs(dp) for dp in points]}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_13_is_trace_root(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1301,7 +1325,7 @@ class Test_FR08_Datadog_Attributes:
                 same_service_child.set_metric(SPAN_MEASURED_KEY, 1)
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         points = _duration_data_points(metrics)
 
         root_point = _find_data_point(points, **{"datadog.operation.name": "web.request"})
@@ -1326,10 +1350,10 @@ class Test_FR08_Datadog_Attributes:
             f"A service-entry child is not the trace root; expected datadog.is_trace_root=false: {service_entry_attrs}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr08_14_peer_tags(
         self,
-        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1342,7 +1366,7 @@ class Test_FR08_Datadog_Attributes:
                 span.set_meta("db.hostname", "prod-db-1")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         peer_tags = attrs.get("datadog.peer_tags") or []
         assert "db.hostname:prod-db-1" in peer_tags, f"Expected db.hostname:prod-db-1 in datadog.peer_tags: {attrs}"
@@ -1383,7 +1407,7 @@ class Test_FR08_AdditionalTags:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         resource_attrs = _resource_attributes(metrics)
         tracer_tags = resource_attrs.get("datadog.tracer_tags") or []
         assert "team:apm" in tracer_tags, f"Expected team:apm in datadog.tracer_tags, got: {resource_attrs}"
@@ -1414,7 +1438,7 @@ class Test_FR08_AdditionalTags:
                 pass
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         tracer_tags = _resource_attributes(metrics).get("datadog.tracer_tags") or []
         assert "team:apm" in tracer_tags, f"Expected team:apm in datadog.tracer_tags, got: {tracer_tags}"
         assert "deployment.region:us-east-1" in tracer_tags, (
@@ -1440,7 +1464,7 @@ class Test_FR08_AdditionalTags:
                 span.set_meta("region", "us-east-1")
             t.dd_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
         assert attrs.get("customer.tier") == "gold", f"Expected customer.tier=gold as its own attribute, got: {attrs}"
         assert attrs.get("region") == "us-east-1", f"Expected region=us-east-1 as its own attribute, got: {attrs}"
