@@ -1533,8 +1533,15 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : "irrelevant (\"Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
+  tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_15_default_service_on_data_point: missing_feature (default service not on data point)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_2_span_kind: missing_feature (span.kind is emitted as the raw Datadog value, e.g. "server", not the SMC's SPAN_KIND_* convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature (datadog.tracer_tags / DD_TRACE_STATS_ADDITIONAL_TAGS per-key attrs not yet implemented)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (datadog.is_trace_root not emitted)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process_tags is split into per-key datadog.<key> resource attributes instead of one combined datadog.process_tags arrayValue)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention, so the error span is not counted)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
