@@ -150,15 +150,14 @@ class _DebuggerSnapshotGuardrailTest(debugger.BaseDebuggerTest):
         self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok()
 
-        for probe_id in self.probe_ids:
-            snapshots = self.probe_snapshots.get(probe_id, [])
-            assert len(snapshots) == 1, f"Expected exactly 1 snapshot for {probe_id}, got {len(snapshots)}"
-            envelope = snapshots[0]
-            snapshot = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot")
-            assert isinstance(snapshot, dict), f"Snapshot data not found in expected format for {probe_id}"
-            return probe_id, snapshot
-
-        raise AssertionError("No probe IDs were registered")
+        assert len(self.probe_ids) == 1, f"Expected exactly 1 probe, got {len(self.probe_ids)}"
+        probe_id = self.probe_ids[0]
+        snapshots = self.probe_snapshots.get(probe_id, [])
+        assert len(snapshots) == 1, f"Expected exactly 1 snapshot for {probe_id}, got {len(snapshots)}"
+        envelope = snapshots[0]
+        snapshot = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot")
+        assert isinstance(snapshot, dict), f"Snapshot data not found in expected format for {probe_id}"
+        return probe_id, snapshot
 
     def _get_captured_local(self, snapshot: dict[str, Any], variable_name: str) -> dict[str, Any]:
         captures = snapshot.get("captures", {})
