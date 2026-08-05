@@ -10,6 +10,11 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
+# Refresh the application code and dependencies baked into the base image.
+COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fastify/bun.lock ./
+COPY utils/build/docker/nodejs/fastify/app.js app.js
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN chmod +x app.sh

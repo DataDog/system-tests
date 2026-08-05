@@ -1016,6 +1016,7 @@ manifest:
     - weblog_declaration:
         "*": v1.36.0
         gin: v1.37.0
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring: v1.38.0
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: irrelevant (expected tags were deprecated by rfc1025)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once:
@@ -1363,6 +1364,8 @@ manifest:
         net-http: v1.70.1
         net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -1581,7 +1584,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.63.0-rc.1
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: v2.11.0-dev
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.60.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0
@@ -1816,6 +1819,61 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy: irrelevant (not applicable to proxies)
+        haproxy: irrelevant (not applicable to proxies)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v2.10.0-dev
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_resource_renaming.py:
@@ -1825,6 +1883,7 @@ manifest:
         net-http-orchestrion: v2.4.0
         net-http-span-pool: v2.4.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py::Test_Manual_Sampling: v2.4.0  # before 2.4, the manual tags could not override an extracted decision
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v2.7.0-dev
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown

@@ -2,8 +2,15 @@ FROM system_tests_base_nodejs_nextjs
 
 EXPOSE 7777
 
+# Refresh the application route and dependencies baked into the base image.
+COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/bun.lock ./
+COPY utils/build/docker/nodejs/nextjs/src/app/ffe ./src/app/ffe
+RUN rm -rf node_modules \
+ && bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
+RUN bun run build && rm -rf .next/cache
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker startup

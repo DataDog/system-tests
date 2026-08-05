@@ -5,6 +5,10 @@ FROM system_tests_base_nodejs_express4
 COPY utils/build/docker/nodejs/express/app.js app.js
 COPY utils/build/docker/nodejs/express/fork_child.js fork_child.js
 
+# Refresh the dependencies baked into the base image.
+COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/bun.lock ./
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user
