@@ -1,9 +1,10 @@
 import base64
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 import json
 from pathlib import Path
 import shutil
 import subprocess
+from typing import Any
 import uuid
 
 import pytest
@@ -188,21 +189,42 @@ def nodejs_telemetry_value(test_agent: TestAgentAPI, dd_key: str) -> str | int |
     return entries[0].get("value")
 
 
-def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
-    """Assert expected dd_* config values against the nodejs telemetry configuration."""
-    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+def _nodejs_telemetry_config_matches(
+    configurations: dict[str, list[dict[str, Any]]], expected: Mapping[str, object]
+) -> bool:
     for dd_key, expected_value in expected.items():
-        name = _telemetry_name(dd_key)
-        entries = configuration_by_name.get(name)
-        assert entries, f"No telemetry configuration '{name}'"
+        entries = configurations.get(_telemetry_name(dd_key))
+        if not entries:
+            return False
         actual = entries[0].get("value")
         if dd_key == "dd_tags":
             actual_tags = "" if actual is None else str(actual)
             expected_tags = expected_value if isinstance(expected_value, list) else str(expected_value).split(",")
-            for tag in expected_tags:
-                assert tag in actual_tags, f"Expected tag '{tag}' not found in telemetry tags: {actual_tags}"
-        else:
-            assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
+            if any(tag not in actual_tags for tag in expected_tags):
+                return False
+        elif str(actual).lower() != str(expected_value).lower():
+            return False
+    return True
+
+
+def assert_nodejs_telemetry_config(
+    test_agent: TestAgentAPI, expected: Mapping[str, object], *, runtime_id: str | None = None
+) -> None:
+    """Assert expected dd_* config values against the nodejs telemetry configuration."""
+    if runtime_id is None:
+        runtime_id = test_agent.wait_for_telemetry_runtime_id()
+    test_agent.wait_for_telemetry_configurations(
+        runtime_id=runtime_id,
+        validator=lambda configurations: _nodejs_telemetry_config_matches(configurations, expected),
+    )
+
+
+def restart_and_get_runtime_id(test_agent: TestAgentAPI, test_library: APMLibrary) -> str | None:
+    previous_runtime_id = test_agent.wait_for_telemetry_runtime_id() if test_library.lang == "nodejs" else None
+    test_library.container_restart()
+    if previous_runtime_id is None:
+        return None
+    return test_agent.wait_for_telemetry_runtime_id(exclude={previous_runtime_id})
 
 
 def nodejs_startup_config(test_library: APMLibrary) -> dict:
