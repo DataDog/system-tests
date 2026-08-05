@@ -1536,10 +1536,10 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_15_default_service_on_data_point: missing_feature (default service not on data point)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature (datadog.tracer_tags / DD_TRACE_STATS_ADDITIONAL_TAGS per-key attrs not yet implemented)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_2_span_type: missing_feature (datadog.span.type not emitted)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_6_origin: missing_feature (datadog.origin not emitted)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (datadog.is_trace_root not emitted)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_2_span_type: missing_feature (datadog.span.type not emitted)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_6_origin: missing_feature (datadog.origin not emitted)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
