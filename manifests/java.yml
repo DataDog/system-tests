@@ -2824,6 +2824,7 @@ manifest:
         "*": v0.95.0
         akka-http: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring:
     - weblog_declaration:
         "*": v0.100.0
@@ -3294,8 +3295,18 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_malformed_flag_returns_default:
     - component_version: 1.63.0
       declaration: bug (APMRP-360)  # the bug has been shipped in this exact release
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected: bug (FFL-2184)
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-2184)
+      component_version: <1.64.2
+      weblog: [spring-boot]
+    - declaration: bug (FFL-2184)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-2184)
+      component_version: <1.64.2
+      weblog: [spring-boot]
+    - declaration: bug (FFL-2184)
+      excluded_weblog: [spring-boot]
   tests/ffe/test_exposures.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3345,7 +3356,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v0.2.0  # real version not known
-  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+      component_version: <1.64.2
+      weblog: [spring-boot]
+    - declaration: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
+      excluded_weblog: [spring-boot]
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_produce_trace_equality: missing_feature (Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work)
   tests/integrations/test_base_service.py::Test_BaseService_SqlSpan:
     - weblog_declaration:
@@ -3699,15 +3715,15 @@ manifest:
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process::test_dsm_manual_checkpoint_intra_process:
     - weblog_declaration:
         spring-boot: flaky (AIDM-117)
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:  # Easy win for spring-boot and version 1.64.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:  # Easy win for spring-boot and version 1.64.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:  # Easy win for spring-boot and version 1.64.2
     - weblog_declaration:
         "*": irrelevant
         spring-boot: ">=1.56.0 <1.61.0-SNAPSHOT"
@@ -3781,9 +3797,34 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v1.48.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
-  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+      component_version: <1.64.2
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_agentless_wins_over_legacy_true
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_remote_config_wins_over_legacy_false
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_provider_kill_switch_overrides_legacy_true
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_positive_ignores_agentless_env
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_without_rc_does_not_fallback_to_agentless
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
+  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: '>=1.64.2'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Experiments_Per_Subject: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Subjects: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <1.58.2+06122213c8
@@ -3957,7 +3998,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otlp_trace_metrics.py: v1.65.0-SNAPSHOT
+  tests/parametric/test_otlp_trace_metrics.py: v1.65.0-SNAPSHOT  # Easy win for all weblogs and version 1.64.2
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
@@ -4018,7 +4059,16 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.61.0-SNAPSHOT  # Normalization of telemetry keys updated in https://github.com/DataDog/dd-trace-java/pull/10823
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=1.64.2'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_no_value: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_regex: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_regex_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_resource_normalization: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_tag_normalization_env: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.111.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.25.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
@@ -4088,9 +4138,57 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0
         spring-boot-3-native: missing_feature (rasp endpoint not implemented)
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot: '>=1.64.2'
+        uds-spring-boot: '>=1.64.2'
+        resteasy-netty3: '>=1.64.2'
+        ratpack: '>=1.64.2'
+        spring-boot-openliberty: '>=1.64.2'
+        spring-boot-wildfly: '>=1.64.2'
+        vertx4: '>=1.64.2'
+        spring-boot-jetty: '>=1.64.2'
+        jersey-grizzly2: '>=1.64.2'
+        spring-boot-undertow: '>=1.64.2'
+        play: '>=1.64.2'
+        akka-http: '>=1.64.2'
+        vertx3: '>=1.64.2'
+        spring-boot-payara: '>=1.64.2'
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot: '>=1.64.2'
+        uds-spring-boot: '>=1.64.2'
+        resteasy-netty3: '>=1.64.2'
+        ratpack: '>=1.64.2'
+        spring-boot-openliberty: '>=1.64.2'
+        spring-boot-wildfly: '>=1.64.2'
+        vertx4: '>=1.64.2'
+        spring-boot-jetty: '>=1.64.2'
+        jersey-grizzly2: '>=1.64.2'
+        spring-boot-undertow: '>=1.64.2'
+        play: '>=1.64.2'
+        akka-http: '>=1.64.2'
+        vertx3: '>=1.64.2'
+        spring-boot-payara: '>=1.64.2'
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot: '>=1.64.2'
+        uds-spring-boot: '>=1.64.2'
+        resteasy-netty3: '>=1.64.2'
+        ratpack: '>=1.64.2'
+        spring-boot-openliberty: '>=1.64.2'
+        spring-boot-wildfly: '>=1.64.2'
+        vertx4: '>=1.64.2'
+        spring-boot-jetty: '>=1.64.2'
+        jersey-grizzly2: '>=1.64.2'
+        spring-boot-undertow: '>=1.64.2'
+        play: '>=1.64.2'
+        akka-http: '>=1.64.2'
+        vertx3: '>=1.64.2'
+        spring-boot-payara: '>=1.64.2'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler:
