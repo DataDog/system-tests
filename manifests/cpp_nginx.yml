@@ -239,6 +239,7 @@ manifest:
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing: v1.2.0
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: v1.2.0
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: v1.2.0
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring:  # Modified by easy win activation script
     - declaration: missing_feature (WAF monitoring tags not implemented)
       component_version: <1.12.0
