@@ -272,20 +272,19 @@ jobs:
                 --title "Auto-activate ${{ matrix.library }} easy wins for $OWNER" \
                 --body "Automated activation of easy-win tests for \`${{ matrix.library }}\` owned by \`$OWNER\`
           [View nightly workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          - This PR starts with an automated request-for-changes review to block automatic merge.
-          - If you approve this PR, please merge it manually or dismiss that review according to repository rules.
+          - This PR is created ready for review and can be merged according to repository rules.
           - If the tests are failing it might be due to a change made since the last nightly system-tests run. You can close the PR, an updated one will be available tomorrow.
           - If you close the PR please also delete the branch" \
                 --head "$BRANCH_NAME" \
-                --base main \
-                --draft
+                --base main
               PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
 
-              echo "Requesting changes on newly created PR #$PR_NUMBER to block automatic merge..."
-              GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
-
-              echo "Marking PR #$PR_NUMBER as ready for review..."
-              gh pr ready "$PR_NUMBER"
+              # This block can be activated to add a change request on new PRs to block auto merge (you also need to add --draft to gh pr create)
+              # echo "Requesting changes on newly created PR #$PR_NUMBER to block automatic merge..."
+              # GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
+              #
+              # echo "Marking PR #$PR_NUMBER as ready for review..."
+              # gh pr ready "$PR_NUMBER"
             fi
 
             # # Enable auto-merge on the PR
