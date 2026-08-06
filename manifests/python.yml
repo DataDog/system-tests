@@ -2306,6 +2306,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v4.15.0-dev
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v4.15.0-dev
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained: missing_feature (the resource-renaming processor skips 404 responses, so http.endpoint is never emitted for a route-less request; needs a JIRA and a bug entry)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Stats_Consistency: missing_feature (the fix is in libdatadog's stats concentrator, DataDog/libdatadog#2323, and dd-trace-py pins libdatadog v38.0.0 which predates it; enable once the pin moves to a release containing it)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
