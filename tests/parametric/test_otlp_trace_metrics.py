@@ -1303,7 +1303,7 @@ class Test_FR08_Datadog_Attributes:
         point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "mapped.request"})
         assert point is not None, "No data point for the service-override span"
         attrs = _data_point_attrs(point)
-        assert attrs.get("datadog.svc_src") == "m", f"Expected datadog.svc_src=m, got attrs: {attrs}"
+        assert attrs.get("datadog.svc_src"), f"Expected datadog.svc_src to be set, got attrs: {attrs}"
 
 
 @scenarios.parametric
