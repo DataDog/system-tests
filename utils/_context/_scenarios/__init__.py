@@ -371,7 +371,10 @@ class _Scenarios:
     )
     appsec_custom_rules = DdTraceEndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_custom_rules.json",
+            "DD_APPSEC_RAW_RESPONSE_BODY_ENABLED": "1",
+        },
         weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
         doc="Test custom appsec rules file",
         scenario_groups=[scenario_groups.appsec],
