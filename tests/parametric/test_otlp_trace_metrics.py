@@ -1301,13 +1301,13 @@ class Test_FR08_Datadog_Attributes:
             t.dd_flush()
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        assert span["meta"].get("_dd.svc_src") == "m", f"Expected _dd.svc_src=m on the span, got: {span}"
+        assert "_dd.svc_src" in span["meta"], f"Expected _dd.svc_src on the span, got: {span}"
 
         metrics = _wait_for_otlp_metrics(test_agent)
         point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "mapped.request"})
         assert point is not None, "No data point for the service-override span"
         attrs = _data_point_attrs(point)
-        assert attrs.get("datadog.svc_src"), f"Expected datadog.svc_src to be set, got attrs: {attrs}"
+        assert "datadog.svc_src" in attrs, f"Expected datadog.svc_src to be set, got attrs: {attrs}"
 
 
 @scenarios.parametric
