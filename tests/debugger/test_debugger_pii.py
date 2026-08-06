@@ -125,8 +125,11 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         if not lines:
             # Placeholder for manifest-disabled languages without a PII line-probe workload.
             return "0"
-        assert len(lines) == 1, f"Expected one PII probe line, got {lines!r}"
         return str(lines[0])
+
+    def _assert_pii_line_mapping(self) -> None:
+        lines = self.method_and_language_to_line_number("Pii", self.get_tracer()["language"])
+        assert len(lines) == 1, f"Expected one PII probe line, got {lines!r}"
 
     def _setup(self, *, line_probe: bool = False):
         self.initialize_weblog_remote_config()
@@ -162,6 +165,8 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
 
     ############ assert ############
     def _assert(self, excluded_identifiers: list[str] | None = None, *, line_probe: bool = False):
+        if line_probe:
+            self._assert_pii_line_mapping()
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
@@ -276,18 +281,27 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         self,
         redacted_expressions: dict[str, dict[str, Any]],
         visible_expressions: dict[str, tuple[dict[str, Any], str]] | None = None,
+        *,
+        require_exact_redaction: bool = True,
+        required_redacted_message_values: tuple[str, ...] = (),
     ) -> None:
         self.initialize_weblog_remote_config()
         visible_expressions = visible_expressions or {}
 
         probes: list[dict[str, Any]] = []
         self.redacted_log_message_probe_ids: set[str] = set()
+        self.exact_redacted_log_message_values: dict[str, str] = {}
+        self.redacted_log_message_required_values: dict[str, tuple[str, ...]] = {}
         self.visible_log_message_values: dict[str, str] = {}
 
         for label, expression in redacted_expressions.items():
             probe = self._create_log_message_probe(label, expression)
             probes.append(probe)
             self.redacted_log_message_probe_ids.add(probe["id"])
+            if require_exact_redaction:
+                self.exact_redacted_log_message_values[probe["id"]] = f"{label}={REDACTED_MESSAGE_PLACEHOLDER}"
+            if required_redacted_message_values:
+                self.redacted_log_message_required_values[probe["id"]] = required_redacted_message_values
 
         for label, (expression, expected_value) in visible_expressions.items():
             probe = self._create_log_message_probe(label, expression)
@@ -328,10 +342,21 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
 
         for probe_id in self.redacted_log_message_probe_ids:
             for message in messages[probe_id]:
-                assert REDACTED_MESSAGE_PLACEHOLDER in message, (
-                    f"Expected {REDACTED_MESSAGE_PLACEHOLDER!r} in rendered message for probe {probe_id}, "
-                    f"got {message!r}"
-                )
+                expected_message = self.exact_redacted_log_message_values.get(probe_id)
+                if expected_message is not None:
+                    assert message == expected_message, (
+                        f"Expected rendered message {expected_message!r} for probe {probe_id}, got {message!r}"
+                    )
+                else:
+                    assert REDACTED_MESSAGE_PLACEHOLDER in message, (
+                        f"Expected {REDACTED_MESSAGE_PLACEHOLDER!r} in rendered message for probe {probe_id}, "
+                        f"got {message!r}"
+                    )
+                for required_value in self.redacted_log_message_required_values.get(probe_id, ()):
+                    assert required_value in message, (
+                        f"Expected visible value {required_value!r} in rendered message for probe {probe_id}, "
+                        f"got {message!r}"
+                    )
 
         for probe_id, expected_value in self.visible_log_message_values.items():
             for message in messages[probe_id]:
@@ -345,6 +370,7 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
             assert secret not in rendered_messages, f"Raw secret {secret!r} leaked in rendered log-probe messages"
 
     def _assert_log_probe_messages(self) -> None:
+        self._assert_pii_line_mapping()
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
@@ -405,7 +431,11 @@ class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionT
         self._assert_log_probe_messages()
 
     def setup_pii_redaction_log_probe_map_rendering(self) -> None:
-        self._setup_log_probe_messages(redacted_expressions={"map": {"ref": "user"}})
+        self._setup_log_probe_messages(
+            redacted_expressions={"map": {"ref": "user"}},
+            require_exact_redaction=False,
+            required_redacted_message_values=(EXCLUDED_IDENTIFIER_VALUE, NON_SENSITIVE_VALUE),
+        )
 
     @slow
     def test_pii_redaction_log_probe_map_rendering(self) -> None:
