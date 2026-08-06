@@ -26,6 +26,45 @@ noop:
 """
 
 
+def _ensure_quoted(s: str) -> str:
+    ret = s
+    if not s.startswith('"'):
+        ret = '"' + ret
+    if not s.endswith('"'):
+        ret = ret + '"'
+    return ret
+
+
+def _trace(name: str, command: str, library: str, weblog: str = "", scenario: str = "") -> str:
+    return "".join(
+        [
+            "datadog-ci trace ",
+            f"--name {_ensure_quoted(name)} ",
+            f"--tags system-tests.library:{library} ",
+            f"--tags system-tests.weblog:{weblog} " if weblog else "",
+            f"--tags system-tests.scenario:{scenario} " if scenario else "",
+            f"-- {command}",
+        ]
+    )
+
+
+def _render_build(library: str, weblog: str, *, push: bool = False) -> str:
+    registry_base = "registry.ddbuild.io/system-tests/cache"
+    ref = f"{registry_base}/{library}/{weblog}:main"
+    command = "".join(
+        [
+            f"./build.sh {library} ",
+            "-i weblog --save-to-binaries ",
+            f"--weblog-variant {weblog} ",
+            '--extra-docker-args "',
+            f"--cache-from=type=registry,ref={ref} ",
+            f"--cache-to=type=registry,ref={ref},mode=max" if push else "",
+            '"',
+        ]
+    )
+    return _trace(f'"build {library} {weblog}"', command, library, weblog)
+
+
 def render_library(
     library: str,
     params: dict,
@@ -35,7 +74,6 @@ def render_library(
     ci_image: str,
     ref: str,
     push_to_test_optimization: bool,
-    docker_auth: bool,
     binaries_artifact_path: str,
     binaries_artifacts: str,
     pipeline_start_time: str,
@@ -71,8 +109,9 @@ def render_library(
         ref=ref,
         push_to_test_optimization=push_to_test_optimization,
         skip_header=skip_header,
-        docker_auth_enabled=docker_auth,
         pipeline_start_time=pipeline_start_time,
+        render_build=_render_build,
+        trace=_trace,
     )
 
 
@@ -86,7 +125,6 @@ def build(
     ref: str = "",
     push_to_test_optimization: bool = False,
     chunks: int = 3,
-    docker_auth: bool = False,
     binaries_artifact_path: str = "",
     binaries_artifacts: str = "",
     pipeline_start_time: str = "",
@@ -126,7 +164,6 @@ def build(
                     ci_image=ci_image,
                     ref=ref,
                     push_to_test_optimization=push_to_test_optimization,
-                    docker_auth=docker_auth,
                     binaries_artifact_path=binaries_artifact_path,
                     binaries_artifacts=binaries_artifacts,
                     pipeline_start_time=pipeline_start_time,
@@ -181,7 +218,6 @@ def main(argv: list[str] | None = None) -> int:
         ref=args.ref,
         push_to_test_optimization=args.push_to_test_optimization == "true",
         chunks=args.chunks,
-        docker_auth=args.docker_auth == "true",
         binaries_artifact_path=args.binaries_artifact_path,
         binaries_artifacts=args.binaries_artifacts,
         pipeline_start_time=args.pipeline_start_time,

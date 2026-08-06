@@ -134,3 +134,67 @@ class Test_BuildPipeline:
 
         for job_name in expected_run_jobs:
             assert ".system_tests_base" in pipeline[job_name]["extends"]
+
+    def test_buildx_cache_update_from_main(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+            ref="main",
+        )
+
+        assert re.search("--cache-to=type=registry,ref=", (out / "generated-pipeline-chunk-0.yml").read_text())
+
+    def test_buildx_cache_does_not_update_from_not_main(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+            ref="some-branch",
+        )
+
+        assert not re.search("--cache-to=type=registry,ref=", (out / "generated-pipeline-chunk-0.yml").read_text())
