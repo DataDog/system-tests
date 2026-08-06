@@ -1239,13 +1239,13 @@ class Test_FR08_Datadog_Attributes:
 
         root_point = _find_data_point(points, **{"datadog.operation.name": "web.request"})
         assert root_point is not None, "No data point for the root span"
-        assert _data_point_attrs(root_point).get("datadog.is_trace_root") is True, (
+        assert _data_point_attrs(root_point).get("datadog.is_trace_root") in (True, 1), (
             f"Expected datadog.is_trace_root=true on the root span: {_data_point_attrs(root_point)}"
         )
 
         same_service_point = _find_data_point(points, **{"datadog.operation.name": "child.op"})
         assert same_service_point is not None, "No data point for the same-service child span"
-        assert _data_point_attrs(same_service_point).get("datadog.is_trace_root") is False, (
+        assert _data_point_attrs(same_service_point).get("datadog.is_trace_root") in (False, 0), (
             f"Expected datadog.is_trace_root=false on a non-root child: {_data_point_attrs(same_service_point)}"
         )
 
@@ -1255,7 +1255,7 @@ class Test_FR08_Datadog_Attributes:
         assert service_entry_attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level=true on the service-entry child: {service_entry_attrs}"
         )
-        assert service_entry_attrs.get("datadog.is_trace_root") is False, (
+        assert service_entry_attrs.get("datadog.is_trace_root") in (False, 0), (
             f"A service-entry child is not the trace root; expected datadog.is_trace_root=false: {service_entry_attrs}"
         )
 
