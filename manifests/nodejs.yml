@@ -1710,6 +1710,13 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_computed_key: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_identifiers: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_key: missing_feature (Not yet implemented)
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
+  : missing_feature (Not yet implemented)
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
+  : missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:

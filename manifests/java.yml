@@ -3170,6 +3170,8 @@ manifest:
         spring-boot-undertow: v1.49.0
         spring-boot-wildfly: v1.49.0
         uds-spring-boot: v1.49.0
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
+  : bug (DEBUG-5958)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
