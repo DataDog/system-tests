@@ -1540,6 +1540,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature (datadog.tracer_tags / DD_TRACE_STATS_ADDITIONAL_TAGS per-key attrs not yet implemented)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (datadog.is_trace_root not emitted)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_15_service_source: missing_feature (pending implementation release)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process_tags is split into per-key datadog.<key> resource attributes instead of one combined datadog.process_tags arrayValue)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention, so the error span is not counted)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
