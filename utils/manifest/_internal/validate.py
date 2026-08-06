@@ -147,10 +147,7 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
     errors = []
     module_cache: dict[str, object | None] = {}
 
-    for key, declaration in obj.items():
-        if isinstance(declaration, str) and declaration.startswith("irrelevant"):
-            continue
-
+    for key in obj:
         elements = key.split("::")
 
         if not Path(elements[0]).exists():

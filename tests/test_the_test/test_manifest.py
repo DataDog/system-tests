@@ -375,13 +375,6 @@ class Test_NodeidValidation:
         finally:
             shutil.rmtree(test_dir)
 
-    def test_irrelevant_nodeids_allow_tombstones(self):
-        manifest = {
-            "manifest": {"tests/test_the_test/test_manifest.py::Test_Retired": "irrelevant (requirement retired)"}
-        }
-
-        assert assert_nodeids_exist(manifest) == []
-
 
 @scenarios.test_the_test
 class Test_ManifestEditor_WriteNewRules:
