@@ -3106,44 +3106,4 @@ manifest:
         fastify: '>=6.8.0'
         nextjs: '>=6.8.0'
   tests/test_telemetry.py::Test_TelemetryV2: *ref_4_21_0
-  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
-    - weblog_declaration:
-        '*': missing_feature
-        express4-typescript: '>=6.8.0'
-        uds-express4: '>=6.8.0'
-        express4: '>=6.8.0'
-        express5: '>=6.8.0'
-        fastify: '>=6.8.0'
-        nextjs: '>=6.8.0'
-  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
-    - weblog_declaration:
-        fastify: missing_feature
-        express4: missing_feature
-        express5: missing_feature
-        uds-express4: missing_feature
-        express4-typescript: missing_feature
-        nextjs: missing_feature
-  tests/test_v1_payloads.py::Test_V1Payloads:
-    - weblog_declaration:
-        fastify: missing_feature
-        express4: missing_feature
-        express5: missing_feature
-        uds-express4: missing_feature
-        express4-typescript: missing_feature
-        nextjs: missing_feature
-  tests/test_v1_payloads.py::Test_V1SpanEvents:
-    - weblog_declaration:
-        fastify: missing_feature
-        express4: missing_feature
-        express5: missing_feature
-        uds-express4: missing_feature
-        express4-typescript: missing_feature
-        nextjs: missing_feature
-  tests/test_v1_payloads.py::Test_V1SpanLinks:
-    - weblog_declaration:
-        fastify: missing_feature
-        express4: missing_feature
-        express5: missing_feature
-        uds-express4: missing_feature
-        express4-typescript: missing_feature
-        nextjs: missing_feature
+  tests/test_v1_payloads.py: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
