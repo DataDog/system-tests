@@ -13,6 +13,7 @@ manifest:
   tests/test_identify.py: incomplete_test_app (User identity tagging requires an SDK endpoint)
   tests/test_library_conf.py: missing_feature (dd-trace-c does not support header-tag configuration or configurable extraction behavior)
   tests/test_library_logs.py: irrelevant (These assertions target Java and .NET logs)
+  tests/test_otel_tracestate_sampling.py: missing_feature (APMAPI-2171, dd-trace-c does not implement OpenTelemetry ot.th/ot.rv sampling)
   tests/test_rum_injection.py: irrelevant (dd-trace-c does not implement RUM injection)
   tests/test_sampling_manual.py: missing_feature (dd-trace-c does not implement manual keep/drop)
   tests/test_sampling_rates.py::Test_SampleRateFunction: missing_feature (dd-trace-c does not implement static trace sampling rules)

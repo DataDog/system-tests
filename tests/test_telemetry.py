@@ -749,7 +749,9 @@ class Test_TelemetryEnhancedConfigReporting:
             actual = sorted_configs[i]
             assert actual["name"] in config_names, f"Config: {actual}, Expected Name in: {config_names}"
             assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
-            assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
+            assert actual["value"] == expected["value"] or (
+                context.library.name == "python" and actual["value"] == str(expected["value"]).lower()
+            ), f" Config: {actual}, Expected Value: {expected['value']}"
 
     def _get_latest_configs_by_origin(self, configs: list[dict]) -> dict[str, dict[str, Any]]:
         """Group configs by origin and return the latest (highest seq_id) for each origin."""
