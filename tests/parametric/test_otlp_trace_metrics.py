@@ -1326,7 +1326,7 @@ class Test_FR08_AdditionalTags:
             }
         ],
     )
-    def test_fr08_10_dd_tags_resource_attributes(
+    def test_fr08_10_dd_tags_tracer_tags_resource_attributes(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
@@ -1358,7 +1358,7 @@ class Test_FR08_AdditionalTags:
         "library_env",
         [{**DEFAULT_ENVVARS_OTLP, "OTEL_RESOURCE_ATTRIBUTES": "team=apm,deployment.region=us-east-1"}],
     )
-    def test_fr08_11_otel_resource_attributes_env(
+    def test_fr08_11_otel_resource_attributes_env_tracer_tags(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
