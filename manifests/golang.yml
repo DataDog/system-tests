@@ -2087,5 +2087,5 @@ manifest:
         '*': missing_feature
         net-http: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
-  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (not implemented by default yet)
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (v1 is the default since v2.10.0-rc.1, but it is gated on client-side stats, which the DEFAULT scenario disables, so the tracer downgrades to v0.4)
   tests/test_v1_payloads.py::Test_V1Payloads: v2.7.0
