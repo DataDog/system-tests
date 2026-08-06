@@ -2814,6 +2814,7 @@ manifest:
         "*": v0.95.0
         akka-http: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py::Test_Monitoring:
     - weblog_declaration:
         "*": v0.100.0
@@ -3276,7 +3277,7 @@ manifest:
   tests/ffe/test_agentless_configuration.py:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
+        spring-boot: v1.65.0
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3789,23 +3790,23 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.64.2
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_agentless_wins_over_legacy_true
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_remote_config_wins_over_legacy_false
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_provider_kill_switch_overrides_legacy_true
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_positive_ignores_agentless_env
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_without_rc_does_not_fallback_to_agentless
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
-  : missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2693 tracks Java agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  : v1.65.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.65.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_span_enrichment.py: '>=1.64.2'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
@@ -3988,7 +3989,15 @@ manifest:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
   tests/parametric/test_otlp_trace_metrics.py: v1.65.0-SNAPSHOT  # Easy win for all weblogs and version 1.64.2
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_15_default_service_on_data_point: missing_feature (service.name is omitted from the data point when the span uses the configured default service)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_2_span_kind: missing_feature (span.kind is emitted as the raw Datadog value, e.g. "server", not the SMC's SPAN_KIND_* convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error: missing_feature (status.code is emitted as the bare string "ERROR" instead of the SMC's STATUS_CODE_ERROR convention, and is omitted entirely for non-error spans)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature (DD_TAGS/OTEL_RESOURCE_ATTRIBUTES are not yet emitted as the datadog.tracer_tags resource attribute; support coming in a future PR)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (datadog.is_trace_root is computed but never emitted on OTLP trace metrics data points)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process_tags is split into per-key datadog.<key> resource attributes instead of one combined datadog.process_tags arrayValue)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as the bare string "ERROR" instead of the SMC's STATUS_CODE_ERROR convention, so the error span is not counted)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
