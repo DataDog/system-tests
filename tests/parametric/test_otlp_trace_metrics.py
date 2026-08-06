@@ -68,6 +68,7 @@ from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures._test_agent import AgentRequest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import ORIGIN
+from utils.docker_fixtures.spec.trace import find_only_span
 from .conftest import APMLibrary
 
 
@@ -1286,18 +1287,21 @@ class Test_FR08_Datadog_Attributes:
         peer_tags = attrs.get("datadog.peer_tags") or []
         assert "db.hostname:prod-db-1" in peer_tags, f"Expected db.hostname:prod-db-1 in datadog.peer_tags: {attrs}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_SERVICE": "default-service"}])
     def test_fr08_15_service_source(
         self,
-        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
+        otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
         """The service override source maps to the string attribute datadog.svc_src."""
         with test_library as t:
-            with t.dd_start_span(name="mapped.request", service="mapped-service", typestr="web") as span:
-                span.set_meta("_dd.svc_src", "m")
+            with t.dd_start_span(name="mapped.request", service="mapped-service", typestr="web"):
+                pass
             t.dd_flush()
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span["meta"].get("_dd.svc_src") == "m", f"Expected _dd.svc_src=m on the span, got: {span}"
 
         metrics = _wait_for_otlp_metrics(test_agent)
         point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "mapped.request"})
