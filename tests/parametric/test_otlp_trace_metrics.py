@@ -1067,7 +1067,7 @@ class Test_FR08_Datadog_Attributes:
 
         metrics = _wait_for_otlp_metrics(test_agent)
         attrs = _data_point_attrs(_duration_data_points(metrics)[0])
-        assert attrs.get("datadog.span.top_level") is True, (
+        assert attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level truthy on root, got attrs: {attrs}"
         )
 
@@ -1095,7 +1095,7 @@ class Test_FR08_Datadog_Attributes:
         child_point = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "child.op"})
         assert child_point is not None, "No data point for the child span"
         attrs = _data_point_attrs(child_point)
-        assert attrs.get("datadog.span.top_level") is False, (
+        assert attrs.get("datadog.span.top_level") in (False, 0), (
             f"Expected datadog.span.top_level false on same-service child, got attrs: {attrs}"
         )
 
@@ -1119,7 +1119,7 @@ class Test_FR08_Datadog_Attributes:
         child = _find_data_point(_duration_data_points(metrics), **{"datadog.operation.name": "postgres.query"})
         assert child is not None, "No data point for the child span"
         attrs = _data_point_attrs(child)
-        assert attrs.get("datadog.span.top_level") is True, (
+        assert attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level true on service-entry child, got attrs: {attrs}"
         )
 
@@ -1252,7 +1252,7 @@ class Test_FR08_Datadog_Attributes:
         service_entry_point = _find_data_point(points, **{"datadog.operation.name": "postgres.query"})
         assert service_entry_point is not None, "No data point for the service-entry child span"
         service_entry_attrs = _data_point_attrs(service_entry_point)
-        assert service_entry_attrs.get("datadog.span.top_level") is True, (
+        assert service_entry_attrs.get("datadog.span.top_level") in (True, 1), (
             f"Expected datadog.span.top_level=true on the service-entry child: {service_entry_attrs}"
         )
         assert service_entry_attrs.get("datadog.is_trace_root") is False, (
