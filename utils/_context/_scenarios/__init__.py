@@ -305,10 +305,12 @@ class _Scenarios:
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
         },
-        # With stats computation on, the agent tells the tracer it may drop p0 traces. The
-        # successful-request half of the suite reads the span itself, and a 200 with no sampling
-        # decision is exactly what gets dropped, so keep p0s flowing.
-        client_drop_p0s=False,
+        # libdatadog only turns client-side stats on when the agent advertises client_drop_p0s,
+        # so a tracer built on it computes no stats at all when this is False and the agent
+        # computes them instead, which is not what this scenario is testing. Safe to advertise
+        # here because the scenario pins the sampling rate to 1, so every trace is p1 and none of
+        # the spans these tests read can be dropped.
+        client_drop_p0s=True,
         doc="Like OTEL_SEMANTICS but with client-side stats computation on, so that the span's "
         "error decision and the trace-stats error decision can be compared. A transform that "
         "flips error=1 on export while stats still apply the Datadog rule leaves the two "
