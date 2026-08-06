@@ -1,7 +1,7 @@
 'use strict'
 /* eslint-disable no-unused-vars, camelcase */
 
-const Pii = require('./pii')
+const { Pii, createPiiLocals } = require('./pii')
 const dataGenerator = require('./data_generator')
 
 module.exports = {
@@ -60,7 +60,7 @@ module.exports = {
     // Padding
 
     fastify.get('/debugger/pii', async (request, reply) => {
-      const pii = new Pii()
+      const { pii, password, user, customPii } = createPiiLocals()
       return 'Hello World' // This needs to be line 64
     })
 
