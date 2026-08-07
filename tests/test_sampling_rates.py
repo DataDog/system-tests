@@ -37,7 +37,12 @@ def get_trace_request_path(root_span: DataDogLibrarySpan) -> str | None:
 def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
     path_to_logfile = {}
 
-    for trace, span in interfaces.library.get_root_spans():
+    # get_root_spans() yields nothing when no root span was collected. Report that explicitly instead
+    # of letting it surface as "every path is missing" below.
+    root_spans = list(interfaces.library.get_root_spans())
+    assert root_spans, "Expected at least one root span"
+
+    for trace, span in root_spans:
         path = get_trace_request_path(span)
         path_to_logfile[path] = trace.data["log_filename"]
 
@@ -171,8 +176,13 @@ class Test_SamplingDecisions:
                     f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
                 )
 
-        for data, span in interfaces.library.get_root_spans():
-            validator(data, span)
+        # get_root_spans() yields nothing when no root span was collected, so the validator below
+        # would never run without this guard
+        root_spans = list(interfaces.library.get_root_spans())
+        assert root_spans, "Expected at least one root span"
+
+        for trace, root_span in root_spans:
+            validator(trace, root_span)
 
 
 @scenarios.sampling
