@@ -23,6 +23,7 @@ from utils._context.containers import (
     ProxyContainer,
     BuddyContainer,
     TestedContainer,
+    ServerlessInitContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils.docker_fixtures._core import extra_hosts_for_environment
@@ -628,8 +629,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         name: str,
         *,
         doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
+        serverless_exposures: bool = False,
         weblog_env: dict[str, str | None] | None = None,
     ) -> None:
+        self.serverless_exposures = serverless_exposures
         environment: dict[str, str | None] = {
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
@@ -637,15 +640,35 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         }
         environment.update(weblog_env or {})
 
+        other_weblog_containers: tuple[type[TestedContainer], ...] = ()
+        weblog_volumes: dict[str, dict[str, str]] = {}
+        if serverless_exposures:
+            environment |= {
+                "DD_AGENT_HOST": "ffe-serverless-init",
+                "DD_TRACE_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_URL": "http://ffe-serverless-init:8126",
+                "DD_SITE": "datad0g.com",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_direct}",
+                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.ffe_direct}",
+                "NODE_EXTRA_CA_CERTS": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+            }
+            other_weblog_containers = (ServerlessInitContainer,)
+            weblog_volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] = {
+                "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+                "mode": "ro",
+            }
+
         super().__init__(
             name,
             doc=doc,
             include_agent=False,
             library_interface_timeout=0,
+            other_weblog_containers=other_weblog_containers,
             scenario_groups=[all_scenario_groups.ffe],
             use_proxy_for_agent=False,
-            use_proxy_for_weblog=False,
+            use_proxy_for_weblog=serverless_exposures,
             weblog_env=environment,
+            weblog_volumes=weblog_volumes,
         )
 
     def configure(self, config: pytest.Config) -> None:
@@ -657,9 +680,58 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 self._start_mock_backend()
 
             super().configure(config)
+            if self.serverless_exposures:
+                interfaces.ffe_sidecar.configure(self.host_log_folder, replay=self.replay)
+                interfaces.ffe_direct.configure(self.host_log_folder, replay=self.replay)
         except BaseException:
             self._stop_mock_backend(persist_status=False)
             raise
+
+    def get_libraries(self) -> set[str] | None:
+        if self.serverless_exposures:
+            return {"nodejs"}
+        return super().get_libraries()
+
+    @property
+    def serverless_init_container(self) -> ServerlessInitContainer:
+        for container in self.weblog_infra.get_containers():
+            if isinstance(container, ServerlessInitContainer):
+                return container
+        raise ValueError("This scenario has no serverless-init container")
+
+    def _set_containers_dependancies(self) -> None:
+        super()._set_containers_dependancies()
+        if self.serverless_exposures:
+            self.serverless_init_container.depends_on.append(self.proxy_container)
+
+    def _start_interfaces_watchdog(self) -> None:
+        super()._start_interfaces_watchdog()
+        if self.serverless_exposures:
+            self.start_interfaces_watchdog([interfaces.ffe_sidecar, interfaces.ffe_direct])
+
+    def _wait_for_app_readiness(self) -> None:
+        if self.serverless_exposures:
+            return
+        super()._wait_for_app_readiness()
+
+    def _set_components(self) -> None:
+        super()._set_components()
+        if self.serverless_exposures:
+            self.components["serverless-init"] = self.serverless_init_container.serverless_init_version
+
+    def _wait_and_stop_containers(self, *, is_empty_test_run: bool) -> None:
+        super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
+        if not self.serverless_exposures:
+            return
+
+        if self.replay:
+            interfaces.ffe_sidecar.load_data_from_logs()
+            interfaces.ffe_direct.load_data_from_logs()
+        else:
+            self.serverless_init_container.stop()
+
+        interfaces.ffe_sidecar.check_deserialization_errors()
+        interfaces.ffe_direct.check_deserialization_errors()
 
     def _start_mock_backend(self) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"

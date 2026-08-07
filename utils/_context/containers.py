@@ -838,6 +838,36 @@ class AgentContainer(TestedContainer):
         return os.environ.get("DD_SITE", "datad0g.com")
 
 
+class ServerlessInitContainer(TestedContainer):
+    """Run serverless-init as the local trace and Feature Flags relay."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            name="ffe-serverless-init",
+            image_name="datadog/serverless-init:1.9.13",
+            environment={
+                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_SITE": "datad0g.com",
+                "DD_SERVICE": "ffe-system-tests-serverless-init",
+                "DD_ENV": "system-tests",
+                "DD_APM_ENABLED": "true",
+                "DD_APM_NON_LOCAL_TRAFFIC": "true",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.ffe_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            },
+        )
+
+    @property
+    def serverless_init_version(self) -> Version:
+        """Read the serverless-init version from the image metadata."""
+        version = self.image.labels.get("org.opencontainers.image.version")
+        if not version:
+            raise ValueError("The serverless-init image has no OCI version label")
+        return Version(version)
+
+
 class BuddyContainer(TestedContainer):
     def __init__(
         self,

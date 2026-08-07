@@ -1998,6 +1998,7 @@ manifest:
       component_version: <2.7.0
   tests/docker_ssi/test_docker_ssi_servicenaming.py::TestDockerServiceNaming::test_service_name: missing_feature (No implemented)
   tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
+  tests/ffe/test_agentless_serverless_exposures.py: irrelevant (This contract applies only to Node.js)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant

@@ -6,7 +6,8 @@ from unittest.mock import MagicMock
 import requests
 import pytest
 
-from utils import scenarios
+from utils import features, scenarios
+from utils._context.containers import ServerlessInitContainer
 from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
 from utils.mocked_backend.ffe import (
@@ -17,6 +18,7 @@ from utils.mocked_backend.ffe import (
     UFC_RESPONSE_TYPE,
 )
 from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from utils.proxy.ports import ProxyPorts
 
 
 @scenarios.test_the_test
@@ -122,6 +124,34 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         assert status["requests_total"] == 0
     finally:
         scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_serverless_exposure_scenario_has_one_nodejs_route() -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_SERVERLESS_EXPOSURES",
+        doc="test",
+        serverless_exposures=True,
+    )
+
+    environment = scenario.weblog_infra.library_container.environment
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.get_libraries() == {"nodejs"}
+    assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-init:8126"
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+    assert environment["NODE_EXTRA_CA_CERTS"] == "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem"
+    assert scenario.weblog_infra.library_container.volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] == {
+        "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+        "mode": "ro",
+    }
+
+    serverless_init = scenario.serverless_init_container
+    assert isinstance(serverless_init, ServerlessInitContainer)
+    assert serverless_init.image.name == "datadog/serverless-init:1.9.13"
+    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_sidecar}"
 
 
 @scenarios.test_the_test

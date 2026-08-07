@@ -224,7 +224,9 @@ patterns:
         scenario_groups: appsec_rasp_scenario
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
-        scenarios: FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+        scenarios:
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS_EXPOSURES
     utils/_context/_scenarios/integration_frameworks.py:
         scenarios: INTEGRATION_FRAMEWORKS
     utils/_context/_scenarios/integrations.py:
@@ -291,7 +293,10 @@ patterns:
         scenario_groups: [end_to_end, open_telemetry]
 
     utils/mocked_backend/ffe.py:
-        scenarios: [FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS, PARAMETRIC]
+        scenarios:
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS_EXPOSURES
+          - PARAMETRIC
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
@@ -557,6 +562,15 @@ patterns:
     tests/test_the_test/*:
         scenario_groups: null
         libraries: null
+
+    tests/ffe/test_agentless_serverless_exposures.py:
+        scenarios: FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS_EXPOSURES
+        libraries: nodejs
+
+    tests/ffe/utils/exposures.py:
+        scenarios:
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS_EXPOSURES
 
     # This helper has no test items of its own, so it's invisible to the scenario map that
     # drives dynamic selection below. List its consumers' scenarios explicitly.

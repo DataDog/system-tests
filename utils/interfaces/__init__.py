@@ -26,6 +26,8 @@ library_dotnet_managed = _LibraryDotnetManaged()
 backend = _BackendInterfaceValidator(library_interface=library)
 open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
+ffe_sidecar = ProxyBasedInterfaceValidator("ffe_sidecar")
+ffe_direct = ProxyBasedInterfaceValidator("ffe_direct")
 postgres = _PostgresStdout()
 test_agent = _TestAgentInterfaceValidator()
 
@@ -41,6 +43,8 @@ __all__ = [
     "agent",
     "agent_stdout",
     "backend",
+    "ffe_direct",
+    "ffe_sidecar",
     "golang_buddy",
     "java_buddy",
     "library",
