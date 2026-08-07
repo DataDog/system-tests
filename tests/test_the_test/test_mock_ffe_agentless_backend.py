@@ -1,5 +1,6 @@
 """Unit coverage for the mock FFE agentless backend test fixture."""
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import requests
@@ -155,3 +156,41 @@ def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> Non
 
     backend.close.assert_called_once_with()
     assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
+
+
+@scenarios.test_the_test
+def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    recording_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY", doc="test")
+    recording_scenario._mock_backend_status_path.parent.mkdir()  # noqa: SLF001 - focused lifecycle test
+
+    expected_status = {
+        "requests_total": 1,
+        "in_flight": 0,
+        "max_in_flight": 1,
+        "last_path": CONFIG_PATH,
+        "last_if_none_match": None,
+        "last_auth_present": True,
+        "last_status_code": 200,
+        "status_codes": [200],
+    }
+    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
+    backend.status.return_value = expected_status
+    recording_scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
+
+    recording_scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+    replay_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY", doc="test")
+    replay_scenario.replay = True
+    base_configure = MagicMock()
+    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "configure", base_configure)
+    config = MagicMock(spec=pytest.Config)
+    replay_scenario.configure(config)
+
+    backend.close.assert_called_once_with()
+    base_configure.assert_called_once_with(config)
+    assert replay_scenario.mock_backend_status() == expected_status

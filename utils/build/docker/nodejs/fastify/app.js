@@ -1,7 +1,9 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
+const { OpenFeature } = require('@openfeature/server-sdk')
 const { promisify } = require('util')
 const axios = require('axios')
 const crypto = require('crypto')
@@ -196,6 +198,38 @@ fastify.get('/session/new', async (request, reply) => {
 fastify.get('/status', async (request, reply) => {
   reply.status(parseInt(request.query.code))
   return 'OK'
+})
+
+fastify.get('/trace/manual_keep_drop', async (request, reply) => {
+  const decision = request.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    reply.status(400)
+    return 'decision must be keep or drop'
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+      response.on('data', () => {})
+
+      response.on('end', () => {
+        resolve({
+          url,
+          status_code: response.statusCode,
+          request_headers: response.req.getHeaders(),
+          response_headers: response.headers
+        })
+      })
+    })
+
+    httpRequest.on('error', reject)
+
+    httpRequest.end()
+  })
 })
 
 fastify.get('/make_distant_call', async (request, reply) => {
@@ -958,6 +992,78 @@ fastify.get('/external_request/redirect', async (request, reply) => {
 })
 
 require('./rasp')(fastify)
+
+let openFeatureClient = null
+let openFeatureClientPromise = null
+
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
+}
+
+fastify.post('/ffe', async (request, reply) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = request.body
+    const client = await getOpenFeatureClient()
+
+    if (!client) {
+      reply.status(500)
+      return { error: 'FFE provider not initialized' }
+    }
+
+    let value
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
+
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await client.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await client.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await client.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await client.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          reply.status(400)
+          return { error: `Unknown variation type: ${variationType}` }
+      }
+    }
+
+    reply.status(200)
+    return { value, count: keys.length }
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    reply.status(500)
+    return { error: error.message }
+  }
+})
 
 const startServer = async () => {
   try {

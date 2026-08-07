@@ -3028,5 +3028,14 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=560, owner=_Owner.asm)
 
+    @staticmethod
+    def appsec_raw_response_body(test_object):
+        """AppSec sends the raw HTTP response body to the WAF for inspection
+        (server.response.body.raw address), enabled via DD_APPSEC_RAW_RESPONSE_BODY_ENABLED.
+
+        https://feature-parity.us1.prod.dog/#/?feature=565
+        """
+        return _mark_test_object(test_object, feature_id=565, owner=_Owner.asm)
+
 
 features = _Features()

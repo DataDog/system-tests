@@ -627,3 +627,52 @@ class Test_Library_Tracestats:
         assert "internal.work" not in by_name, (
             f"Non-top-level internal span must be excluded from stats, but found in {set(by_name)}"
         )
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # Force collapsing at a low limit. Set both the per-field resource limit and the whole-key
+                # limit so the test triggers regardless of which axis an SDK caps on. The RFC mandates this
+                # naming pattern but exposing the setting is only a SHOULD, so SDKs honoring neither env get
+                # a missing_feature marker.
+                "DD_TRACE_STATS_RESOURCE_CARDINALITY_LIMIT": "10",
+                "DD_TRACE_STATS_CARDINALITY_LIMIT": "10",
+            }
+        ],
+    )
+    @enable_agent_version()
+    def test_cardinality_overflow_sentinel_TS017(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When stats cardinality exceeds the configured limit, the excess must collapse into an overflow
+        bucket keyed by the sentinel `tracer_blocked_value` rather than be dropped, and service-level totals
+        must stay correct. The numeric limit, eviction strategy, and per-field vs whole-key choice are SDK policy and are deliberately not asserted.
+        """
+        n = 50  # well above the configured limit of 10, so collapsing must engage
+        with test_library:
+            for i in range(n):
+                with test_library.dd_start_span(
+                    name="web.request", resource=f"/resource/{i}", service="webserver", typestr="web"
+                ):
+                    pass
+
+        # go/java flush stats on demand rather than on a timer within the short test window.
+        if test_library.lang in ("golang", "java"):
+            test_library.dd_flush()
+
+        entries = _all_v06_stats_entries(test_agent)
+        resources = [e.get("Resource") for e in entries]
+
+        # Collapse-not-discard: an overflow row keyed by the sentinel appears. This holds for both limiting
+        # strategies (per-field folds `resource` to the sentinel; whole-key also sets `resource` to it).
+        assert "tracer_blocked_value" in resources, (
+            f"expected an overflow entry keyed by 'tracer_blocked_value', got resources: {sorted(map(str, set(resources)))}"
+        )
+        # Totals are preserved through collapsing: every eligible top-level span is still counted.
+        total_hits = sum(e.get("Hits", 0) for e in entries)
+        assert total_hits == n, f"totals must be preserved through collapse: expected {n} hits, got {total_hits}"
+        # Limiting actually reduced cardinality (fewer distinct resources than emitted).
+        assert len(set(resources)) < n, (
+            f"collapsing should reduce distinct resource cardinality below {n}, got {len(set(resources))}"
+        )

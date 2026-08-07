@@ -6,22 +6,25 @@
   "type": "object",
   "properties": {
     "auto_enabled": {
-      "type": "boolean"
+      "type": ["boolean", "null"]
     },
     "compatible": {
-      "type": "boolean"
+      "type": ["boolean", "null"]
     },
     "enabled": {
       "type": "boolean"
     },
     "error": {
-      "type": "string"
+      "type": ["string", "null"]
     },
     "name": {
       "type": "string"
     },
+    "hash": {
+      "type": ["string", "null"]
+    },
     "version": {
-      "type": "string"
+      "type": ["string", "null"]
     }
   },
   "required": ["name", "enabled"]

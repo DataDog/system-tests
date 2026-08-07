@@ -107,14 +107,17 @@ def test_recursive_2():
 
 
 @scenarios.test_the_test
-@pytest.mark.parametrize(("is_empty_test_run", "flush"), [(True, False), (False, True)])
-def test_end_to_end_scenario_only_flushes_non_empty_test_runs(
-    monkeypatch: pytest.MonkeyPatch, *, is_empty_test_run: bool, flush: bool
+@pytest.mark.parametrize(
+    ("include_agent", "is_empty_test_run", "flush"),
+    [(True, True, False), (True, False, True), (False, True, False), (False, False, False)],
+)
+def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
+    monkeypatch: pytest.MonkeyPatch, *, include_agent: bool, is_empty_test_run: bool, flush: bool
 ) -> None:
     scenario = DdTraceEndToEndScenario(
         "FAKE_END_TO_END",
         doc="",
-        include_agent=False,
+        include_agent=include_agent,
         use_proxy_for_agent=False,
         use_proxy_for_weblog=False,
     )

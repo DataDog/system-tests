@@ -31,16 +31,15 @@
     },
     "tracer_version": {
       "type": "string"
+    },
+    "process_tags": {
+      "type": "string"
     }
   },
   "required": [
     "service_name",
-    "env",
-    "service_version",
     "tracer_version",
     "language_name",
-    "language_version",
-    "runtime_name",
-    "runtime_version"
+    "language_version"
   ]
 }

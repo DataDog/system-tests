@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/objects/request_type.json",
+  "description": "Accepted v2 request_type values",
+  "title": "Instrumentation Telemetry V2 request_type",
+  "type": "object",
+  "properties": {
+    "request_type": {
+      "enum": [
+        "app-started",
+        "app-extended-heartbeat",
+        "app-integrations-change",
+        "app-dependencies-loaded",
+        "app-client-configuration-change",
+        "app-product-change",
+        "app-endpoints",
+        "generate-metrics",
+        "app-heartbeat",
+        "app-closing",
+        "apm-onboarding-event",
+        "apm-remote-config-event",
+        "message-batch",
+        "distributions",
+        "sketches",
+        "logs",
+        "debug-logs",
+        "traces",
+        "agent-metrics",
+        "agent-bsod",
+        "start-service",
+        "end-service",
+        "heartbeat-service",
+        "injection-metadata",
+        "agent-logs"
+      ]
+    }
+  }
+}

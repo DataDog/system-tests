@@ -9,6 +9,7 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -212,6 +213,38 @@ app.get('/session/new', (req, res) => {
 
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code) || 400).send('OK')
+})
+
+app.get('/trace/manual_keep_drop', (req, res) => {
+  const decision = req.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop')
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: response.req.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
 })
 
 app.get('/make_distant_call', (req, res) => {
@@ -834,20 +867,40 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 })
 
 let openFeatureClient = null
+let openFeatureClientPromise = null
 
-// Initialize OpenFeature provider if FFE is enabled
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  const { openfeature } = tracer
-  OpenFeature.setProvider(openfeature)
-  openFeatureClient = OpenFeature.getClient()
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    const { openfeature } = tracer
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 // Single FFE endpoint that evaluates feature flags
 app.post('/ffe', async (req, res) => {
   try {
     const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
 
-    if (!openFeatureClient) {
+    if (!client) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
@@ -859,17 +912,17 @@ app.post('/ffe', async (req, res) => {
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          value = await client.getBooleanValue(flag, defaultValue, context)
           break
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          value = await client.getStringValue(flag, defaultValue, context)
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          value = await client.getNumberValue(flag, defaultValue, context)
           break
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          value = await client.getObjectValue(flag, defaultValue, context)
           break
         default:
           return res.status(400).json({ error: `Unknown variation type: ${variationType}` })

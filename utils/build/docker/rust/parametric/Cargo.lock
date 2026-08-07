@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "datadog-opentelemetry"
-version = "0.4.0"
+version = "0.3.3"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -1068,9 +1068,9 @@ dependencies = [
 
 [[package]]
 name = "libdd-data-pipeline"
-version = "6.0.0"
+version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bda4a989dc3fc0ebd0523521f52d18ee72172d9f275762b65a205ec9b960eb9"
+checksum = "1f03752a6f29378a786c6d28121549e1e36dcb48fa2abc760504cdd0e126d83f"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -1145,9 +1145,9 @@ dependencies = [
 
 [[package]]
 name = "libdd-sampling"
-version = "4.0.0"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e4a7bf5fe62282784cd6ae4c805b2e35f0520c3464ca090f49b3c9794d4fd4d"
+checksum = "df229b55274db81b8a85a1b9ab14663af070358f39017ab68d26a3aada535db6"
 dependencies = [
  "libdd-common",
  "lru",
@@ -1222,9 +1222,9 @@ dependencies = [
 
 [[package]]
 name = "libdd-trace-obfuscation"
-version = "4.0.0"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44197ef58464bd75d002d10e02f702096dc52d68d08b7355860b534a30f8ac5b"
+checksum = "6b2feb45760f019fb70338b35e1341605b078c2e56a55e8fdbe3e66f256ad60d"
 dependencies = [
  "anyhow",
  "fluent-uri",
@@ -1250,9 +1250,9 @@ dependencies = [
 
 [[package]]
 name = "libdd-trace-stats"
-version = "5.0.0"
+version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d32bfbd154a6d6a5b452458850adfa1dd3e36d567ad6ae606b16b8bfeb97fa7a"
+checksum = "4313c4ce9cd9ea55b46c980164fc41569909c8c2bb6e0320ad1237194bd25a58"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -1276,9 +1276,9 @@ dependencies = [
 
 [[package]]
 name = "libdd-trace-utils"
-version = "8.0.0"
+version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58340581c2d7f02782e5e0ace77cd42bca18938761f359079a7ff534a24bca99"
+checksum = "166fa5c3998dbaa5412156289e8fb24fee35d9aaf2a4707a17c34e956b20b505"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

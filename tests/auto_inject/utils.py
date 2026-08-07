@@ -138,13 +138,13 @@ class AutoInjectBaseTest:
             )
             return False
 
-        # Check for v0.4 protocol
+        # Check for v0.4 protocol, which exposes the AppSec event marker directly in span metadata.
         if meta.get("appsec.event") == "true":
             return True
 
-        # Check for v1.4 protocol
+        # Check for v1 protocol, which exposes either the event payload or flattened trigger fields.
         appsec_payload = meta.get("_dd.appsec.json")
-        if appsec_payload and appsec_payload.get("triggers"):
+        if (appsec_payload and appsec_payload.get("triggers")) or meta.get("appsec.triggers.rule.id"):
             return True
 
         logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")

@@ -623,7 +623,7 @@ def test_manifest_editor_add_condition_to_function_level_inline_declaration():
         manifest_content = """---
 manifest:
   tests/appsec/test_feature.py::Test_Feature: missing_feature
-  tests/appsec/test_feature.py::Test_Feature::test_method2: bug (XXXX)
+  tests/appsec/test_feature.py::Test_Feature::test_method2: bug (TEST-123)
 """
         (manifest_dir / "python.yml").write_text(manifest_content)
 
@@ -637,7 +637,7 @@ manifest:
             result = yaml.safe_load(f)
 
         rule = result["manifest"].get("tests/appsec/test_feature.py::Test_Feature::test_method2")
-        assert rule == [{"declaration": "bug (XXXX)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
+        assert rule == [{"declaration": "bug (TEST-123)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
 
 
 # =============================================================================

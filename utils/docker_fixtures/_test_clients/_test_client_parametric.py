@@ -498,6 +498,9 @@ class ParametricTestClientApi(TestClientApi):
         if not HTTPStatus(r.status_code).is_success:
             return False
 
+        return self.dd_flush_stats()
+
+    def dd_flush_stats(self) -> bool:
         r = self._session.post(self._url("/trace/stats/flush"), json={})
 
         return HTTPStatus(r.status_code).is_success
@@ -1103,6 +1106,9 @@ class APMLibrary:
 
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
+
+    def dd_flush_stats(self) -> bool:
+        return self._client.dd_flush_stats()
 
     def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
         """Synchronously drain pending Remote Config and return the applied set.

@@ -606,6 +606,8 @@ class Test_Client_Drop_P0s:
             trace_requests = list(interfaces.library.get_data("/v0.5/traces"))
         if len(trace_requests) == 0:
             trace_requests = list(interfaces.library.get_data("/v0.7/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v1.0/traces"))
 
         assert len(trace_requests) > 0, "Should have at least one trace request"
 

@@ -157,6 +157,8 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 
+	r.Any("/trace/manual_keep_drop", ginHandleFunc(common.ManualKeepDrop))
+
 	r.Any("/make_distant_call", func(ctx *gin.Context) {
 		url := ctx.Request.URL.Query().Get("url")
 		if url == "" {

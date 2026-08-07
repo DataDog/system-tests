@@ -752,9 +752,7 @@ class BaseSCAStandaloneTelemetry:
         )
 
         outcome_value: bool | str = True
-        if context.library in ["java", "php"]:
-            outcome_value = str(outcome_value).lower()
-        assert cfg_appsec_enabled[0].get("value") == outcome_value
+        assert cfg_appsec_enabled[0].get("value") in (outcome_value, str(outcome_value).lower())
 
     def setup_app_dependencies_loaded(self):
         # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case

@@ -134,7 +134,7 @@ class _BaseSQS:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def setup_consume(self):
         """Send request A to library buddy : this request will produce a sqs message
