@@ -188,13 +188,15 @@ def nodejs_telemetry_value(test_agent: TestAgentAPI, dd_key: str) -> str | int |
     return entries[0].get("value")
 
 
-def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> None:
+def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict, *, runtime_id: str | None = None) -> None:
     """Assert expected dd_* config values against the nodejs telemetry configuration."""
-    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    if runtime_id is None:
+        runtime_id = test_agent.wait_for_telemetry_runtime_id()
+    configurations = test_agent.wait_for_telemetry_configurations(runtime_id=runtime_id)
     for dd_key, expected_value in expected.items():
         name = _telemetry_name(dd_key)
-        entries = configuration_by_name.get(name)
-        assert entries, f"No telemetry configuration '{name}'"
+        entries = configurations.get(name)
+        assert entries, f"No telemetry configuration '{name}' for runtime '{runtime_id}'"
         actual = entries[0].get("value")
         if dd_key == "dd_tags":
             actual_tags = "" if actual is None else str(actual)
@@ -203,6 +205,14 @@ def assert_nodejs_telemetry_config(test_agent: TestAgentAPI, expected: dict) -> 
                 assert tag in actual_tags, f"Expected tag '{tag}' not found in telemetry tags: {actual_tags}"
         else:
             assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
+
+
+def restart_and_get_runtime_id(test_agent: TestAgentAPI, test_library: APMLibrary) -> str | None:
+    previous_runtime_id = test_agent.wait_for_telemetry_runtime_id() if test_library.lang == "nodejs" else None
+    test_library.container_restart()
+    if previous_runtime_id is None:
+        return None
+    return test_agent.wait_for_telemetry_runtime_id(exclude=previous_runtime_id)
 
 
 def nodejs_startup_config(test_library: APMLibrary) -> dict:
