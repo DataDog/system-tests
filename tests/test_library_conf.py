@@ -40,14 +40,14 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """Test that http.request.headers.user-agent is in all web spans"""
 
-        # get_root_spans() yields nothing when no root span was collected, so the loop below would
-        # pass vacuously without this guard
-        root_spans = list(interfaces.library.get_root_spans())
-        assert root_spans, "Expected at least one root span"
+        # get_root_spans() yields nothing when no root span was collected, and filtering by
+        # type == "web" can also empty out the collection, so the loop below would pass
+        # vacuously without this guard
+        web_spans = [span for _, span in interfaces.library.get_root_spans() if span.get("type") == "web"]
+        assert web_spans, "Expected at least one web root span"
 
-        for _, span in root_spans:
-            if span.get("type") == "web":
-                assert "http.request.headers.user-agent" in span.get("meta", {})
+        for span in web_spans:
+            assert "http.request.headers.user-agent" in span.get("meta", {})
 
 
 @scenarios.library_conf_custom_header_tags
