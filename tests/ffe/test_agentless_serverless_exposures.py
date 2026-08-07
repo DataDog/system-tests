@@ -1,4 +1,4 @@
-"""Test Node.js exposure delivery with agentless UFC and serverless-init."""
+"""Test exposure delivery with agentless UFC and serverless-init."""
 
 from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exposure_events_from_data
 from utils import features, interfaces, scenarios, weblog
@@ -6,7 +6,7 @@ from utils._context.component_version import Version
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 
-@scenarios.feature_flagging_and_experimentation_agentless_serverless_exposures
+@scenarios.feature_flagging_and_experimentation_agentless_serverless
 @features.feature_flags_exposures
 class Test_FFE_Agentless_Serverless_Exposures:
     flag_key = "empty-targeting-key-flag"
@@ -28,7 +28,7 @@ class Test_FFE_Agentless_Serverless_Exposures:
         ]
 
     def test_agentless_serverless_exposure(self) -> None:
-        scenario = scenarios.feature_flagging_and_experimentation_agentless_serverless_exposures
+        scenario = scenarios.feature_flagging_and_experimentation_agentless_serverless
         assert scenario.components["serverless-init"] == Version("1.9.13")
 
         matching_requests = assert_exposure_side_effects_contract(

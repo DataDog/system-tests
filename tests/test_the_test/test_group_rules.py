@@ -25,7 +25,7 @@ def test_tracer_release():
     assert scenario_groups.end_to_end not in dormant_agentless_scenario.scenario_groups
     assert scenario_groups.tracer_release not in dormant_agentless_scenario.scenario_groups
 
-    serverless_exposure_scenario = scenarios.feature_flagging_and_experimentation_agentless_serverless_exposures
+    serverless_exposure_scenario = scenarios.feature_flagging_and_experimentation_agentless_serverless
     assert serverless_exposure_scenario.include_agent is False
     assert serverless_exposure_scenario.use_proxy is True
     assert scenario_groups.ffe in serverless_exposure_scenario.scenario_groups

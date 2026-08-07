@@ -3278,7 +3278,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.65.0
-  tests/ffe/test_agentless_serverless_exposures.py: irrelevant (This contract applies only to Node.js)
+  tests/ffe/test_agentless_serverless_exposures.py: missing_feature (Not yet implemented)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant

@@ -128,7 +128,7 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
 
 @scenarios.test_the_test
 @features.not_reported
-def test_agentless_serverless_exposure_scenario_has_one_nodejs_route() -> None:
+def test_agentless_serverless_exposure_scenario_has_no_agent_and_two_capture_routes() -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_SERVERLESS_EXPOSURES",
         doc="test",
@@ -138,16 +138,10 @@ def test_agentless_serverless_exposure_scenario_has_one_nodejs_route() -> None:
     environment = scenario.weblog_infra.library_container.environment
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
-    assert scenario.get_libraries() == {"nodejs"}
+    assert scenario.get_libraries() is None
     assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-init:8126"
     assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
     assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.ffe_direct}"
-    assert environment["NODE_EXTRA_CA_CERTS"] == "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem"
-    assert scenario.weblog_infra.library_container.volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] == {
-        "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
-        "mode": "ro",
-    }
-
     serverless_init = scenario.serverless_init_container
     assert isinstance(serverless_init, ServerlessInitContainer)
     assert serverless_init.image.name == "datadog/serverless-init:1.9.13"

@@ -793,9 +793,9 @@ class _Scenarios:
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
     )
 
-    feature_flagging_and_experimentation_agentless_serverless_exposures = FeatureFlaggingAgentlessEndToEndScenario(
-        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS_EXPOSURES",
-        doc="Validate Node.js exposure delivery with agentless UFC and serverless-init 1.9.13.",
+    feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+        doc="Validate exposure delivery with agentless UFC and serverless-init 1.9.13.",
         serverless_exposures=True,
     )
 
