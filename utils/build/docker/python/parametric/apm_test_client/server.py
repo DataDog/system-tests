@@ -456,17 +456,18 @@ def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
             return TraceStatsFlushReturn()
 
     # Modern path: dd-trace-py >= 3.x delegates CSS to libdatadog's native TraceExporter.
-    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown,
-    # so we force a shutdown+recreate to flush stats deterministically for the test.
-    writer = getattr(ddtrace.tracer._span_aggregator, "writer", None)
-    if writer is not None and hasattr(writer, "on_shutdown") and hasattr(writer, "recreate"):
-        writer.on_shutdown()
-        try:
-            ddtrace.tracer._span_aggregator.writer = writer.recreate()
-        except Exception:
-            # If recreate is unavailable or raises, the writer is left stopped — acceptable
-            # since the test client is reset after each parametric test.
-            pass
+    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown.
+    span_aggregator = getattr(ddtrace.tracer, "_span_aggregator", None)
+    writer = getattr(span_aggregator, "writer", None)
+    if writer is None:
+        return TraceStatsFlushReturn()
+    stats_enabled = (
+        getattr(writer, "_compute_stats_enabled", False) and not getattr(writer, "_stats_opt_out", False)
+    ) or getattr(writer, "_otlp_metrics_endpoint", None)
+    if not stats_enabled:
+        return TraceStatsFlushReturn()
+    if hasattr(writer, "recreate"):
+        span_aggregator.writer = writer.recreate()
     return TraceStatsFlushReturn()
 
 

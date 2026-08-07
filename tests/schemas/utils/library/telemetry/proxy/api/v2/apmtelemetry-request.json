@@ -2,8 +2,11 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "/library/telemetry/proxy/api/v2/apmtelemetry-request.json",
   "description": "Instrumentation telemetry schema",
+  "$comment": "api_version is required so that exactly one of the v1/v2 branches applies. Without it an absent api_version made both `if`s pass vacuously and the payload was validated against v1 AND v2 simultaneously.",
+  "type": "object",
   "allOf": [
     {
+      "required": ["api_version"],
       "properties": {
         "api_version": {
           "enum": ["v1", "v2"]
@@ -12,6 +15,7 @@
     },
     {
       "if": {
+        "required": ["api_version"],
         "properties": {
           "api_version": {
             "const": "v1"
@@ -24,6 +28,7 @@
     },
     {
       "if": {
+        "required": ["api_version"],
         "properties": {
           "api_version": {
             "const": "v2"

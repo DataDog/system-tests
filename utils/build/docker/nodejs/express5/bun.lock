@@ -6,7 +6,7 @@
       "name": "express5",
       "dependencies": {
         "@openfeature/core": "^1.9.0",
-        "@openfeature/server-sdk": "~1.19.0",
+        "@openfeature/server-sdk": "~1.18.0",
         "@opentelemetry/api": "^1.9.0",
         "@opentelemetry/core": "^1.30.1",
         "amqplib": "^0.10.3",
@@ -48,7 +48,7 @@
     },
   },
   "overrides": {
-    "@openfeature/server-sdk": "~1.19.0",
+    "@openfeature/server-sdk": "~1.18.0",
   },
   "packages": {
     "@azure-rest/core-client": ["@azure-rest/core-client@2.6.0", "", { "dependencies": { "@azure/abort-controller": "^2.1.2", "@azure/core-auth": "^1.10.0", "@azure/core-rest-pipeline": "^1.22.0", "@azure/core-tracing": "^1.3.0", "@typespec/ts-http-runtime": "^0.3.0", "tslib": "^2.6.2" } }, "sha512-iuFKDm8XPzNxPfRjhyU5/xKZmcRDzSuEghXDHHk4MjBV/wFL34GmYVBZnn9wmuoLBeS1qAw9ceMdaeJBPcB1QQ=="],
@@ -127,7 +127,7 @@
 
     "@openfeature/core": ["@openfeature/core@1.10.0", "", {}, "sha512-C3ynxtPYhe5qVJgQIqCNxZXeRXo4t1Eo86uiROr8+sD6F2OjEJGIp6VOGxz+r6jkad2s8Br9BnUJOvskhai/3A=="],
 
-    "@openfeature/server-sdk": ["@openfeature/server-sdk@1.19.0", "", { "peerDependencies": { "@openfeature/core": "^1.9.0" } }, "sha512-sxmYKkBCpWWkKX2xJt6bFK15dorfR2lH27lkeKduTFPXRMV+pO7eORUelI9gctXhxvfXbDGK94ybq5fiso3/vg=="],
+    "@openfeature/server-sdk": ["@openfeature/server-sdk@1.18.0", "", { "peerDependencies": { "@openfeature/core": "^1.7.0" } }, "sha512-uP8nqEGBS58s3iWXx6d8vnJ6ZVt3DACJL4PWADOAuwIS4xXpID91783e9f6zQ0i1ijQpj3yx+3ZuCB2LfQMUMA=="],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.1", "", {}, "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="],
 
