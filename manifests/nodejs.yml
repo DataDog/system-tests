@@ -3107,4 +3107,41 @@ manifest:
         fastify: '>=6.8.0'
         nextjs: '>=6.8.0'
   tests/test_telemetry.py::Test_TelemetryV2: *ref_4_21_0
-  tests/test_v1_payloads.py: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+      component_version: <6.9.0
+      weblog: [uds-express4, express5, express4-typescript, nextjs, express4, fastify]
+    - declaration: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+      excluded_weblog: [uds-express4, express5, express4-typescript, nextjs, express4, fastify]
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        express5: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        fastify: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        nextjs: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4-typescript: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        uds-express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        express5: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        fastify: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        nextjs: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4-typescript: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        uds-express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+  tests/test_v1_payloads.py::Test_V1SpanEvents:
+    - weblog_declaration:
+        express5: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        fastify: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        nextjs: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4-typescript: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        uds-express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        express5: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        fastify: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        nextjs: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        express4-typescript: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
+        uds-express4: missing_feature (dd-trace-js only implements the 0.4 and 0.5 trace encoders)
