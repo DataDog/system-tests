@@ -1125,9 +1125,15 @@ accept a JSON body with these fields:
 - `defaultValue`: the value to return when evaluation cannot resolve the flag.
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
+- `evaluationApi`: optional. The default is `openfeature`. Use `native` only to
+  test the language-native Datadog client.
 
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
+
+The endpoint contract does not depend on OpenFeature SDK availability. If the
+selected evaluation API is not available, return the supplied `defaultValue`.
+Set `reason` to `ERROR` and set `errorCode` to `PROVIDER_NOT_READY`.
 
 ### GET /healthcheck
 
