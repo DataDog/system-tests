@@ -454,9 +454,6 @@ patterns:
         libraries: nodejs
     lib-injection/build/docker/nodejs/*:
         libraries: nodejs
-    utils/build/build_nodejs_base_images.sh:
-        libraries: nodejs
-
     manifests/nodejs_lambda.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs_lambda
@@ -472,9 +469,6 @@ patterns:
         libraries: php
     lib-injection/build/docker/php/*:
         libraries: php
-    utils/build/build_php_base_images.sh:
-        libraries: php
-
     manifests/python.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: python
@@ -483,9 +477,6 @@ patterns:
         scenario_groups: [ end_to_end, open_telemetry]
     lib-injection/build/docker/python/*:
         libraries: python
-    utils/build/build_python_base_images.sh:
-        libraries: python
-
     manifests/ruby.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: ruby

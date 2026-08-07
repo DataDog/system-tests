@@ -122,3 +122,48 @@ produces `openai-js@6.0.0` and `openai-js@7.0.0`.
 `WeblogMetaData.load(library)` in `utils/_context/weblog_metadata.py` merges:
 1. Weblogs discovered from `*.Dockerfile` files in the library folder (default metadata).
 2. Explicit overrides from `weblog_metadata.yml`.
+
+## Base image dependencies
+
+Base images (built by the `build_base_images` CI job, `utils/scripts/build_base_images.py`) are
+declared in each library's `utils/build/docker/<library>/docker-bake.hcl`, one target per base
+image. There is no separate dependency list to maintain: for each target, the job parses the
+target's own `<name>.base.Dockerfile` and treats every `COPY` source as a dependency. This works
+because base Dockerfiles are required to follow a few rules that make that derivation
+unambiguous:
+
+- No `ADD` — use `COPY` for everything (no glob sources, no whole-directory copies, no remote
+  URLs).
+- Every `COPY` has exactly one source: `COPY [flags] <source> <dest>`.
+- The bake target's `context` is always the Dockerfile's own directory, so every `COPY` source
+  is a plain path relative to that directory.
+- No `RUN --mount` — a bind/cache/secret mount reads from a path the script can't see, so it
+  would silently escape the derived dependency list.
+
+(`COPY --from=<stage-or-image>` is unaffected: it isn't a local repository path, so it's skipped.)
+
+The job computes a content hash from normalized build arguments, the target's Dockerfile, and
+every git-tracked file under each derived dependency path, then pushes the base image to Docker
+Hub tagged `<base-tag>-<hash12>` if that tag doesn't already exist. Other Bake target fields are
+rejected until their hash semantics are explicitly defined.
+
+Consumer Dockerfiles use stable BuildKit context aliases in `FROM`, for example
+`FROM system_tests_base_nodejs_express4`. The versioned, sorted
+`utils/build/docker/base-images.lock.json` maps each alias to its immutable content tag.
+`./build.sh` reads the lock and supplies `--build-context
+<alias>=docker-image://<locked-reference>` to Buildx. Consequently, raw `docker build` is not a
+supported entrypoint for these consumers.
+
+As a safety net, before building, every derived dependency is hardlinked (or copied, if
+hardlinking isn't possible) into an isolated build context under `.base_image_build/`, and the
+image is built from that directory instead of the real one. This way, if the Dockerfile
+references a file the parser failed to recognize as a dependency, the build fails loudly
+("file not found") instead of silently succeeding against the full checkout — which would leave
+the tag's content hash stale without anyone noticing.
+
+GitHub Actions never builds these base images itself: `utils/scripts/wait_for_base_image.py`
+resolves the alias through the same lock and polls Docker Hub for the locked tag (with a timeout)
+before building the weblog, since GitLab CI is the only pipeline that builds and pushes them.
+After changing a base input, first let GitLab publish the prospective content tags. Then run
+`python utils/scripts/build_base_images.py --update-lock` and
+`python utils/scripts/update_mirror_images.py`, and commit the lock and mirror artifacts.

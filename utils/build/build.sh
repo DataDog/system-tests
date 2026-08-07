@@ -303,6 +303,13 @@ build() {
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+                BASE_IMAGE_CONTEXT_ARGS=()
+                BASE_IMAGE_CONTEXTS=$(python3 utils/scripts/base_image.py --build-contexts "$DOCKERFILE")
+                if [[ -n "$BASE_IMAGE_CONTEXTS" ]]; then
+                    while IFS= read -r base_image_context; do
+                        BASE_IMAGE_CONTEXT_ARGS+=(--build-context "$base_image_context")
+                    done <<< "$BASE_IMAGE_CONTEXTS"
+                fi
 
                 # When the image mirror is enabled, create (or reuse) a buildx
                 # builder whose buildkitd daemon is configured to redirect all
@@ -357,6 +364,7 @@ build() {
                     ${DOCKER_PLATFORM_ARGS} \
                     ${GITHUB_TOKEN_SECRET_ARG} \
                     "${C_PACKAGE_BUILD_ARGS[@]}" \
+                    "${BASE_IMAGE_CONTEXT_ARGS[@]}" \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \

@@ -74,6 +74,9 @@ version-check-output/
 
 tmp/
 
+# Materialized build context for utils/scripts/build_base_images.py
+/.base_image_build/
+
 # Go
 go.work*
 
