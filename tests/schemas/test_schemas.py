@@ -164,14 +164,16 @@ class Test_DdtraceSchemas:
                 endpoint="/v0.6/stats",
                 data_path="$",  # service is missing
                 condition=context.library == "nodejs"
-                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                and context.scenario
+                in (scenarios.trace_stats_computation_client_drop_p0s_false, scenarios.trace_stats_computation_v1),
                 ticket="APMLP-1498",
             ),
             SchemaBug(
                 endpoint="/v0.6/stats",
                 data_path="$.Stats[].Stats[]",  # IsTraceRoot is missing
                 condition=context.library == "nodejs"
-                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                and context.scenario
+                in (scenarios.trace_stats_computation_client_drop_p0s_false, scenarios.trace_stats_computation_v1),
                 ticket="APMLP-1498",
             ),
         ]
