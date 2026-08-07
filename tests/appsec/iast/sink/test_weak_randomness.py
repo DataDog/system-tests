@@ -38,6 +38,7 @@ class TestWeakRandomness_StackTrace:
         self.r = weblog.get("/iast/weak_randomness/test_insecure")
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -52,4 +53,5 @@ class TestWeakRandomness_ExtendedLocation:
         self.r = weblog.get("/iast/weak_randomness/test_insecure")
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)

@@ -45,6 +45,7 @@ class TestUnvalidatedForward_StackTrace:
         )
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -61,4 +62,5 @@ class TestUnvalidatedForward_ExtendedLocation:
         )
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
