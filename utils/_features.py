@@ -2346,6 +2346,19 @@ class _Features:
         return _mark_test_object(test_object, feature_id=368, owner=_Owner.debugger)
 
     @staticmethod
+    def debugger_snapshot_correlation(test_object):
+        """Coordinated per-trace snapshot sampling (Live Debugger)
+
+        The sampling decision is made once per trace and applies to every probe in that trace,
+        with snapshots correlated by the dd.trace_id already carried in the snapshot envelope (no
+        snapshot payload change). Runtime-id-in-envelope and the execution-context generation
+        token are separate follow-on work and are not part of this feature.
+
+        https://feature-parity.us1.prod.dog/#/?feature=564
+        """
+        return _mark_test_object(test_object, feature_id=564, owner=_Owner.debugger)
+
+    @staticmethod
     def debugger_method_probe(test_object):
         """Method-level Probes
 
