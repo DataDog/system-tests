@@ -8,6 +8,7 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import datadog.appsec.api.blocking.Blocking
+import datadog.trace.api.DDTags
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
 import com.datadoghq.system_tests.iast.utils.Utils
@@ -31,6 +32,7 @@ import datadog.appsec.api.user.User.setUser
 import scala.jdk.CollectionConverters._
 import akka.stream.scaladsl._
 import akka.util.ByteString
+import scala.concurrent.duration._
 
 object AppSecRoutes {
 
@@ -161,10 +163,12 @@ object AppSecRoutes {
         } ~
           post {
             entity(as[Multipart.FormData]) { formData =>
-              val contentFuture = formData.parts
-                .mapAsync(1)(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _))
-                .runFold(ByteString.empty)(_ ++ _)
-                .map(_.utf8String)
+              val contentFuture = formData.toStrict(20.seconds).flatMap { strict =>
+                strict.parts
+                  .mapAsync(1)(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _))
+                  .runFold(ByteString.empty)(_ ++ _)
+                  .map(_.utf8String)
+              }
               onSuccess(contentFuture) { content =>
                 complete(content)
               }
@@ -191,6 +195,22 @@ object AppSecRoutes {
       path("waf" / RemainingPath) { remaining: Path =>
         get {
           complete(remaining.toString())
+        }
+      } ~
+      path("trace" / "manual_keep_drop") {
+        get {
+          parameter("decision") { decision =>
+            if (decision != "keep" && decision != "drop") {
+              complete(StatusCodes.BadRequest, "decision must be keep or drop")
+            } else {
+              val span = GlobalTracer.get().activeSpan()
+              if (span != null) {
+                span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
+              }
+              // Call downstream so that tests can assert on the sampling decision that gets propagated
+              complete(StatusCodes.OK, makeDistantCall("http://localhost:7777/"))(Marshaller.futureMarshaller(jsonMarshaller))
+            }
+          }
         }
       } ~
       path("make_distant_call") {
