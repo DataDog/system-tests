@@ -3,7 +3,9 @@ from collections.abc import Generator, Mapping
 from pathlib import Path
 from typing import TextIO
 from urllib.parse import urlparse
+import uuid
 
+from docker.errors import NotFound
 from docker.models.containers import Container
 import pytest
 
@@ -13,6 +15,15 @@ from utils._context.docker import get_docker_client
 
 HOST_DOCKER_INTERNAL = "host.docker.internal"
 HOST_GATEWAY_EXTRA_HOSTS = {HOST_DOCKER_INTERNAL: "host-gateway"}
+
+INVOCATION_LABEL = "system-tests.invocation-id"
+
+# 64 bits, and short enough to keep the longest generated name inside the 63-char DNS label limit
+_TEST_ID_HEX_CHARS = 16
+
+
+def new_test_id() -> str:
+    return uuid.uuid4().hex[:_TEST_ID_HEX_CHARS]
 
 
 def get_host_port(worker_id: str, base_port: int) -> int:
@@ -75,6 +86,8 @@ def docker_run(
     """
     logger.info(f"Run container {name} from image {image} with ports {ports}")
 
+    invocation_id = uuid.uuid4().hex
+
     try:
         container: Container = get_docker_client().containers.run(
             image,
@@ -85,13 +98,16 @@ def docker_run(
             ports=ports,
             command=command,
             extra_hosts=extra_hosts,
+            labels={INVOCATION_LABEL: invocation_id},
             detach=True,
         )
         logger.debug(f"Container {name} successfully started")
     except Exception as e:
-        # at this point, even if it failed to start, the container may exists!
-        for container in get_docker_client().containers.list(filters={"name": name}, all=True):
-            container.remove(force=True)
+        # only containers this call created: a name match may be another xdist worker's live one
+        for created in get_docker_client().containers.list(
+            filters={"label": f"{INVOCATION_LABEL}={invocation_id}"}, all=True
+        ):
+            created.remove(force=True)
 
         pytest.fail(f"Failed to run container {name}: {e}")
 
@@ -99,8 +115,10 @@ def docker_run(
         yield container
     finally:
         logger.info(f"Stopping {name}")
-        container.stop(timeout=stop_timeout)
-        logs = container.logs()
-        log_file.write(logs.decode("utf-8"))
-        log_file.flush()
-        container.remove(force=True)
+        try:
+            container.stop(timeout=stop_timeout)
+            log_file.write(container.logs().decode("utf-8"))
+            log_file.flush()
+        finally:
+            with contextlib.suppress(NotFound):
+                container.remove(force=True)
