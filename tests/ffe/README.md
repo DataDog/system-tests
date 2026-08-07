@@ -96,22 +96,25 @@ Check if the wheel is on S3 by verifying the "Upload wheels to S3" job passed in
 
 The system tests cover:
 
-### Resolution Reasons (5 tests)
+### Resolution Reasons (7 tests)
 | Reason | Test | Scenario |
 |--------|------|----------|
 | `static` | `Test_FFE_Eval_Metric_Basic` | No rules, no shards (catch-all) |
 | `targeting_match` | `Test_FFE_Eval_Reason_Targeting` | Targeting rules match context |
 | `split` | `Test_FFE_Eval_Reason_Split` | 50/50 shard-based rollout |
 | `default` | `Test_FFE_Eval_Reason_Default` | Rules don't match |
+| `default` | `Test_FFE_Eval_Metric_Invalid_Regex_Default` | Invalid regex in per-flag configuration |
+| `default` | `Test_FFE_Eval_Metric_Invalid_Variant_Default` | Variant value doesn't match the declared type |
 | `disabled` | `Test_FFE_Eval_Reason_Disabled` | Flag is disabled |
 
-### Error Codes (5 tests)
+Invalid per-flag configuration returns the caller default without `error.type`.
+A malformed full configuration payload remains a `parse_error`.
+
+### Error Codes (3 tests)
 | Error Code | Test | Trigger |
 |------------|------|---------|
 | `flag_not_found` | `Test_FFE_Eval_Config_Exists_Flag_Missing` | Config exists, flag missing |
 | `type_mismatch` | `Test_FFE_Eval_Metric_Type_Mismatch` | Request boolean from string flag |
-| `parse_error` | `Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex` | Invalid regex pattern in condition |
-| `parse_error` | `Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch` | Variant value doesn't match declared type |
 | `provider_not_ready` | `Test_FFE_Eval_No_Config_Loaded` | No config loaded |
 
 ### Other Tests
@@ -180,9 +183,9 @@ The tests use `interfaces.agent.get_metrics()` to retrieve metrics from the agen
 
 ## Common Issues
 
-### 1. Test returns `parse_error` instead of expected reason
-- Check UFC fixture format (especially `totalShards` placement)
-- Verify the fixture matches `flags-v1.json` format in dd-trace-py
+### 1. Invalid per-flag configuration returns an error instead of the caller default
+- Verify that the evaluator isolates invalid flags during configuration compilation
+- Verify that the result omits `error.type`
 
 ### 2. Test returns `static` instead of `split`
 - Need multiple variations with different shard ranges
