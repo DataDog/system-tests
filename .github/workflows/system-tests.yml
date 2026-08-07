@@ -263,6 +263,7 @@ jobs:
       weblog_instance: ${{ matrix.job.weblog_instance }}
       weblog_build_required: ${{ matrix.job.weblog_build_required }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
+      weblog_env: ${{ toJson(matrix.job.weblog_env) }}
       force_execute: ${{ inputs.force_execute }}
       binaries_artifact: ${{ matrix.job.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}

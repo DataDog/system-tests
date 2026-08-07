@@ -101,6 +101,11 @@ on:
         default: false
         required: false
         type: boolean
+      weblog_env:
+        description: "JSON object of environment variables to force on the weblog"
+        default: "{}"
+        required: false
+        type: string
 
 jobs:
   main:
@@ -113,6 +118,7 @@ jobs:
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
       SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
+      SYSTEM_TESTS_WEBLOG_ENV: ${{ inputs.weblog_env }}
     steps:
     - name: Compute ref
       id: compute_ref

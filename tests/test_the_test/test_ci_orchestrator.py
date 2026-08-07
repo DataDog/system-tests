@@ -6,6 +6,8 @@ from utils.const import COMPONENT_GROUPS
 from utils._context.weblog_metadata import WeblogMetaData
 from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
+    Job,
+    _duplicate_jobs,
     _get_endtoend_weblogs,
     get_endtoend_definitions,
 )
@@ -141,8 +143,39 @@ def test_otel_collector():
             "weblog": "otel_collector",
             "weblog_build_required": False,
             "weblog_instance": 1,
+            "weblog_env": {},
         }
     ]
+
+
+@scenarios.test_the_test
+def test_duplicate_jobs_for_selected_weblogs():
+    weblog = get_weblog("java", "spring-boot-jetty")
+    other_weblog = get_weblog("java", "spring-boot")
+    jobs = [
+        Job("java", weblog, 1, {"DEFAULT": 1.0, "JETTY_SCENARIO_1": 1.0}, 1.0, build_base_images=False),
+        Job("java", weblog, 2, {"JETTY_SCENARIO_2": 1.0}, 1.0, build_base_images=False),
+        Job("java", weblog, 3, {"JETTY_SCENARIO_3": 1.0}, 1.0, build_base_images=False),
+        Job("java", other_weblog, 1, {"DEFAULT": 1.0, "NON_DEFAULT_SCENARIO": 1.0}, 1.0, build_base_images=False),
+    ]
+
+    result = _duplicate_jobs(
+        jobs,
+        weblog_names=("spring-boot-jetty",),
+        name_suffix="_v1",
+        weblog_env={"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"},
+    )
+    v1_jobs = {f"{job.weblog.name} {job.serialize()['weblog_instance']}": job for job in result}
+
+    assert set(v1_jobs) == {
+        "spring-boot-jetty 1_v1",
+        "spring-boot-jetty 2_v1",
+        "spring-boot-jetty 3_v1",
+    }
+    assert v1_jobs["spring-boot-jetty 1_v1"].scenarios == ("DEFAULT", "JETTY_SCENARIO_1")
+    assert v1_jobs["spring-boot-jetty 2_v1"].scenarios == ("JETTY_SCENARIO_2",)
+    assert v1_jobs["spring-boot-jetty 3_v1"].scenarios == ("JETTY_SCENARIO_3",)
+    assert all(job.weblog_env == {"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"} for job in v1_jobs.values())
 
 
 @scenarios.test_the_test
