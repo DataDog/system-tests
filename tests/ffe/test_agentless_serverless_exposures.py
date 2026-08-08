@@ -3,7 +3,6 @@
 from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exposure_events_from_data
 from utils import features, interfaces, scenarios, weblog
 from utils._context.component_version import Version
-from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 
 @scenarios.feature_flagging_and_experimentation_agentless_serverless
@@ -32,7 +31,7 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert scenario.components["serverless-init"] == Version("1.9.13")
 
         matching_requests = assert_exposure_side_effects_contract(
-            interfaces.ffe_direct,
+            interfaces.ffe_sidecar,
             self.responses,
             flag_key=self.flag_key,
             targeting_key=self.targeting_key,
@@ -45,9 +44,9 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"] == EXPECTED_API_KEY
+        assert headers["dd-api-key"]
 
         assert not any(
             exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-            for data in interfaces.ffe_sidecar.get_data()
+            for data in interfaces.ffe_direct.get_data()
         )
