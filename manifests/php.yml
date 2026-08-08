@@ -1453,6 +1453,10 @@ manifest:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        symfony7x: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
   tests/test_profiling.py::Test_Profile::test_process_tags_svc:
     - declaration: missing_feature
     - weblog_declaration:
@@ -1481,6 +1485,10 @@ manifest:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        symfony7x: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
   tests/test_resource_renaming.py: v1.14.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
