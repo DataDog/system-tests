@@ -503,7 +503,9 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,PARAMETRIC",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS,PARAMETRIC",
             "",
         )
 
@@ -515,7 +517,9 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
             "end_to_end",
         )
 

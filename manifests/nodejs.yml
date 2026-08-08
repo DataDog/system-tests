@@ -1744,6 +1744,7 @@ manifest:
       component_version: <5.66.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: *ref_5_83_0
   tests/ffe/test_agentless_configuration.py: *ref_6_8_0
+  tests/ffe/test_agentless_serverless_exposures.py: missing_feature (dd-trace-js#9527)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": incomplete_test_app

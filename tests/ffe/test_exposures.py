@@ -2,6 +2,12 @@
 
 import json
 
+from tests.ffe.utils.exposures import (
+    EXPOSURES_PATH,
+    EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    assert_exposure_side_effects_contract,
+    exposure_events_from_data,
+)
 from tests.ffe.utils.fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
     weblog,
@@ -14,41 +20,6 @@ from utils import (
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-EXPOSURES_PATH = "/api/v2/exposures"
-EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
-
-
-def exposure_events_from_data(
-    data: dict, flag_keys: set[str] | None = None, subject_id: str | None = None
-) -> list[dict]:
-    """Return exposure events from one agent payload matching the optional flag/subject filters."""
-    if data.get("path") != EXPOSURES_PATH:
-        return []
-
-    exposure_data = data.get("request", {}).get("content")
-    if not isinstance(exposure_data, dict):
-        return []
-
-    exposures = exposure_data.get("exposures")
-    if not isinstance(exposures, list):
-        return []
-
-    events = []
-    for event in exposures:
-        if not isinstance(event, dict):
-            continue
-
-        flag = event.get("flag")
-        subject = event.get("subject")
-        event_flag_key = flag.get("key") if isinstance(flag, dict) else None
-        event_subject_id = subject.get("id") if isinstance(subject, dict) else None
-
-        if flag_keys is not None and event_flag_key not in flag_keys:
-            continue
-        if subject_id is not None and event_subject_id != subject_id:
-            continue
-        events.append(event)
-    return events
 
 
 def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[dict]:
@@ -536,21 +507,14 @@ class Test_FFE_Exposure_Caching_Same_Subject:
             self.responses.append(r)
 
     def test_ffe_exposure_caching_same_subject(self):
-        """Test that multiple evaluations for the same subject generate at most one exposure event."""
-        # Verify all requests succeeded
-        for i, r in enumerate(self.responses):
-            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
-            result = json.loads(r.text)
-            assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
-
-        # Count exposure events for this specific subject
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
-
-        # The exposure cache should deduplicate events - we expect exactly 1 exposure
-        # for the same (subject, allocation, variant) tuple
-        assert exposure_count == 1, (
-            f"Expected exactly 1 exposure event for subject '{self.targeting_key}' due to caching, "
-            f"but found {exposure_count} events"
+        """Test the shared exposure contract through Remote Configuration and an Agent."""
+        assert_exposure_side_effects_contract(
+            interfaces.agent,
+            self.responses,
+            flag_key=self.flag_key,
+            targeting_key=self.targeting_key,
+            expected_value="value-a",
+            expected_variant="variant-a",
         )
 
 
