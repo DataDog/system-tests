@@ -44,7 +44,7 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"] == scenario.serverless_init_container.environment["DD_API_KEY"]
+        assert headers["dd-api-key"] == "--redacted--"
 
         assert not any(
             exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
