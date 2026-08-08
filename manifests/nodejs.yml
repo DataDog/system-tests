@@ -2686,7 +2686,15 @@ manifest:
         uds-express4: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        express4: '>=6.10.0'
+        express5: '>=6.10.0'
+        express4-typescript: '>=6.10.0'
+        uds-express4: '>=6.10.0'
+        fastify: '>=6.10.0'
+        nextjs: '>=6.10.0'
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False:
     - weblog_declaration:
         "*": *ref_5_25_0
