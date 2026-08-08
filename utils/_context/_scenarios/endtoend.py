@@ -629,10 +629,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         name: str,
         *,
         doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
-        serverless_exposures: bool = False,
+        exposure_egress: Literal["sidecar", "direct"] | None = None,
         weblog_env: dict[str, str | None] | None = None,
     ) -> None:
-        self.serverless_exposures = serverless_exposures
+        self.exposure_egress = exposure_egress
         environment: dict[str, str | None] = {
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "1",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
@@ -642,21 +642,25 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
         other_weblog_containers: tuple[type[TestedContainer], ...] = ()
         weblog_volumes: dict[str, dict[str, str]] = {}
-        if serverless_exposures:
+        if exposure_egress is not None:
             environment |= {
-                "DD_AGENT_HOST": "ffe-serverless-init",
-                "DD_TRACE_AGENT_PORT": "8126",
-                "DD_TRACE_AGENT_URL": "http://ffe-serverless-init:8126",
                 "DD_SITE": "datad0g.com",
                 "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.datadog_direct}",
                 "NODE_EXTRA_CA_CERTS": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
             }
-            other_weblog_containers = (ServerlessInitContainer,)
             weblog_volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] = {
                 "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
                 "mode": "ro",
             }
+
+        if exposure_egress == "sidecar":
+            environment |= {
+                "DD_AGENT_HOST": "ffe-serverless-init",
+                "DD_TRACE_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_URL": "http://ffe-serverless-init:8126",
+            }
+            other_weblog_containers = (ServerlessInitContainer,)
 
         super().__init__(
             name,
@@ -666,7 +670,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             other_weblog_containers=other_weblog_containers,
             scenario_groups=[all_scenario_groups.ffe],
             use_proxy_for_agent=False,
-            use_proxy_for_weblog=serverless_exposures,
+            use_proxy_for_weblog=exposure_egress is not None,
             weblog_env=environment,
             weblog_volumes=weblog_volumes,
         )
@@ -680,7 +684,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 self._start_mock_backend()
 
             super().configure(config)
-            if self.serverless_exposures:
+            if self.exposure_egress is not None:
                 interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
                 interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
         except BaseException:
@@ -696,33 +700,33 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def _set_containers_dependancies(self) -> None:
         super()._set_containers_dependancies()
-        if self.serverless_exposures:
+        if self.exposure_egress == "sidecar":
             self.serverless_init_container.depends_on.append(self.proxy_container)
 
     def _start_interfaces_watchdog(self) -> None:
         super()._start_interfaces_watchdog()
-        if self.serverless_exposures:
+        if self.exposure_egress is not None:
             self.start_interfaces_watchdog([interfaces.datadog_sidecar, interfaces.datadog_direct])
 
     def _wait_for_app_readiness(self) -> None:
-        if self.serverless_exposures:
+        if self.exposure_egress is not None:
             return
         super()._wait_for_app_readiness()
 
     def _set_components(self) -> None:
         super()._set_components()
-        if self.serverless_exposures:
+        if self.exposure_egress == "sidecar":
             self.components["serverless-init"] = self.serverless_init_container.serverless_init_version
 
     def _wait_and_stop_containers(self, *, is_empty_test_run: bool) -> None:
         super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
-        if not self.serverless_exposures:
+        if self.exposure_egress is None:
             return
 
         if self.replay:
             interfaces.datadog_sidecar.load_data_from_logs()
             interfaces.datadog_direct.load_data_from_logs()
-        else:
+        elif self.exposure_egress == "sidecar":
             self.serverless_init_container.stop()
 
         interfaces.datadog_sidecar.check_deserialization_errors()

@@ -504,6 +504,7 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
             "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS,PARAMETRIC",
             "",
         )
@@ -517,6 +518,7 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
             "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
             "end_to_end",
         )
