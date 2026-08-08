@@ -4,6 +4,7 @@ from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exp
 from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from utils._context.component_version import Version
+from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 
 @scenarios.feature_flagging_and_experimentation_agentless_direct
@@ -36,11 +37,13 @@ class Test_FFE_Agentless_Exposures:
             assert scenario.components["serverless-init"] == Version("1.9.13")
             selected_interface = interfaces.datadog_sidecar
             excluded_interface = interfaces.datadog_direct
+            expected_api_key = "--redacted--"
         else:
             assert scenario.exposure_egress == "direct"
             assert "serverless-init" not in scenario.components
             selected_interface = interfaces.datadog_direct
             excluded_interface = interfaces.datadog_sidecar
+            expected_api_key = EXPECTED_API_KEY
 
         matching_requests = assert_exposure_side_effects_contract(
             selected_interface,
@@ -56,7 +59,7 @@ class Test_FFE_Agentless_Exposures:
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"] == "--redacted--"
+        assert headers["dd-api-key"] == expected_api_key
 
         assert not any(
             exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
