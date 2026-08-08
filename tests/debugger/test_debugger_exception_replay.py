@@ -40,6 +40,28 @@ def set_span_attrs(span: dict, span_format: AgentTraceFormat, meta: dict[str, st
         raise ValueError(f"Unknown span format: {span_format}")
 
 
+def normalize_approval_data(data: object) -> object:
+    """Makes approval data comparable across trace payload formats.
+
+    When the trace agent converts an incoming v0.4 payload to v1, it stamps the span with a
+    ``_dd.convertedv1`` provenance marker and carries the v0.4 string-only ``meta`` values through
+    as strings, whereas a natively emitted v1 payload keeps real booleans. Neither difference is
+    relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
+    comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
+    """
+    if isinstance(data, dict):
+        return {key: normalize_approval_data(value) for key, value in data.items() if key != "_dd.convertedv1"}
+
+    if isinstance(data, list):
+        return [normalize_approval_data(item) for item in data]
+
+    # bool must be checked before int, as bool is a subclass of int
+    if isinstance(data, bool):
+        return "true" if data else "false"
+
+    return data
+
+
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
@@ -375,6 +397,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 span_meta = get_span_meta(span, span_format)
                 for meta_key, meta_value in span_meta.items():
                     if meta_key in {
+                        "_dd.convertedv1",  # trace agent marker, only set when it converts v0.4 -> v1
                         "_dd.appsec.fp.http.endpoint",
                         "_dd.appsec.fp.http.header",
                         "_dd.appsec.fp.http.network",
@@ -444,7 +467,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             expected = self._read_approval(test_name, expected_suffix)
 
-            assert expected == normalized_for_approval
+            # Normalize both sides so already-recorded approvals stay valid whether or not the
+            # trace agent converts v0.4 payloads to v1 (see normalize_approval_data).
+            assert normalize_approval_data(expected) == normalize_approval_data(normalized_for_approval)
 
             missing_keys_dict = {}
 
