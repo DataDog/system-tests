@@ -648,8 +648,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 "DD_TRACE_AGENT_PORT": "8126",
                 "DD_TRACE_AGENT_URL": "http://ffe-serverless-init:8126",
                 "DD_SITE": "datad0g.com",
-                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_direct}",
-                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.ffe_direct}",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",
+                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.datadog_direct}",
                 "NODE_EXTRA_CA_CERTS": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
             }
             other_weblog_containers = (ServerlessInitContainer,)
@@ -681,8 +681,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
             super().configure(config)
             if self.serverless_exposures:
-                interfaces.ffe_sidecar.configure(self.host_log_folder, replay=self.replay)
-                interfaces.ffe_direct.configure(self.host_log_folder, replay=self.replay)
+                interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
+                interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
         except BaseException:
             self._stop_mock_backend(persist_status=False)
             raise
@@ -702,7 +702,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
     def _start_interfaces_watchdog(self) -> None:
         super()._start_interfaces_watchdog()
         if self.serverless_exposures:
-            self.start_interfaces_watchdog([interfaces.ffe_sidecar, interfaces.ffe_direct])
+            self.start_interfaces_watchdog([interfaces.datadog_sidecar, interfaces.datadog_direct])
 
     def _wait_for_app_readiness(self) -> None:
         if self.serverless_exposures:
@@ -720,13 +720,13 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             return
 
         if self.replay:
-            interfaces.ffe_sidecar.load_data_from_logs()
-            interfaces.ffe_direct.load_data_from_logs()
+            interfaces.datadog_sidecar.load_data_from_logs()
+            interfaces.datadog_direct.load_data_from_logs()
         else:
             self.serverless_init_container.stop()
 
-        interfaces.ffe_sidecar.check_deserialization_errors()
-        interfaces.ffe_direct.check_deserialization_errors()
+        interfaces.datadog_sidecar.check_deserialization_errors()
+        interfaces.datadog_direct.check_deserialization_errors()
 
     def _start_mock_backend(self) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"

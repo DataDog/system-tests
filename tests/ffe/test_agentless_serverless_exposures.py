@@ -31,7 +31,7 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert scenario.components["serverless-init"] == Version("1.9.13")
 
         matching_requests = assert_exposure_side_effects_contract(
-            interfaces.ffe_sidecar,
+            interfaces.datadog_sidecar,
             self.responses,
             flag_key=self.flag_key,
             targeting_key=self.targeting_key,
@@ -44,9 +44,9 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"]
+        assert headers["dd-api-key"] == scenario.serverless_init_container.environment["DD_API_KEY"]
 
         assert not any(
             exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-            for data in interfaces.ffe_direct.get_data()
+            for data in interfaces.datadog_direct.get_data()
         )

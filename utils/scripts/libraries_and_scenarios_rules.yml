@@ -568,6 +568,7 @@ patterns:
         libraries: null
 
     tests/ffe/utils/exposures.py:
+        # This helper is shared by Agent and agentless serverless exposure tests.
         scenarios:
           - FEATURE_FLAGGING_AND_EXPERIMENTATION
           - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS
