@@ -2,22 +2,28 @@
 
 akka-http:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 jersey-grizzly2:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 openai-java:
   build_mode: none
   framework_versions: ["4.29.0"]
   categories: [dd_trace_frameworks]
 play:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 ratpack:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 resteasy-netty3:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot:
   categories: [dd_trace]
 spring-boot-3-native:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 spring-boot-jetty:
   categories: [dd_trace]
 spring-boot-openliberty:
@@ -34,5 +40,7 @@ uds-spring-boot:
   excluded_scenarios: [IPV6]
 vertx3:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 vertx4:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]

@@ -15,6 +15,7 @@ fastify:
 nextjs:
   build_mode: local
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 uds-express4:
   build_mode: local
   categories: [dd_trace, dd_trace_graphql]

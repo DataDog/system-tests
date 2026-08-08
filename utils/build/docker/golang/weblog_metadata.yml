@@ -17,16 +17,22 @@ graph-gophers:
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 echo:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 gin:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 uds-echo:
   categories: [dd_trace]
-  excluded_scenarios: [IPV6]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT, IPV6]
 net-http:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 chi:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 net-http-orchestrion:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 net-http-span-pool:
   categories: [dd_trace]
+  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
