@@ -641,6 +641,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         environment.update(weblog_env or {})
 
         other_weblog_containers: tuple[type[TestedContainer], ...] = ()
+        weblog_volumes: dict[str, dict[str, str]] = {}
         if serverless_exposures:
             environment |= {
                 "DD_AGENT_HOST": "ffe-serverless-init",
@@ -649,8 +650,13 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 "DD_SITE": "datad0g.com",
                 "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.ffe_direct}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.ffe_direct}",
+                "NODE_EXTRA_CA_CERTS": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
             }
             other_weblog_containers = (ServerlessInitContainer,)
+            weblog_volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] = {
+                "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+                "mode": "ro",
+            }
 
         super().__init__(
             name,
@@ -662,6 +668,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
             use_proxy_for_agent=False,
             use_proxy_for_weblog=serverless_exposures,
             weblog_env=environment,
+            weblog_volumes=weblog_volumes,
         )
 
     def configure(self, config: pytest.Config) -> None:

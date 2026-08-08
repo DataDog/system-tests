@@ -142,6 +142,12 @@ def test_agentless_serverless_exposure_scenario_has_no_agent_and_two_capture_rou
     assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-init:8126"
     assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
     assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+    assert environment["NODE_EXTRA_CA_CERTS"] == "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem"
+    assert scenario.weblog_infra.library_container.volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] == {
+        "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+        "mode": "ro",
+    }
+
     serverless_init = scenario.serverless_init_container
     assert isinstance(serverless_init, ServerlessInitContainer)
     assert serverless_init.image.name == "datadog/serverless-init:1.9.13"
