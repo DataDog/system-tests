@@ -140,12 +140,12 @@ def test_agentless_serverless_exposure_scenario_has_no_agent_and_two_capture_rou
     assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.get_libraries() is None
     assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-init:8126"
-    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_direct}"
-    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.ffe_direct}"
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
     serverless_init = scenario.serverless_init_container
     assert isinstance(serverless_init, ServerlessInitContainer)
     assert serverless_init.image.name == "datadog/serverless-init:1.9.13"
-    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.ffe_sidecar}"
+    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
 
 
 @scenarios.test_the_test

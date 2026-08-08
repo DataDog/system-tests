@@ -32,7 +32,7 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert scenario.components["serverless-init"] == Version("1.9.13")
 
         matching_requests = assert_exposure_side_effects_contract(
-            interfaces.ffe_direct,
+            interfaces.datadog_direct,
             self.responses,
             flag_key=self.flag_key,
             targeting_key=self.targeting_key,
@@ -49,5 +49,5 @@ class Test_FFE_Agentless_Serverless_Exposures:
 
         assert not any(
             exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-            for data in interfaces.ffe_sidecar.get_data()
+            for data in interfaces.datadog_sidecar.get_data()
         )
