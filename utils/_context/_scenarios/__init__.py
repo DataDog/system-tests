@@ -793,10 +793,16 @@ class _Scenarios:
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
     )
 
+    feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
+        doc="Validate direct exposure delivery with agentless UFC and no local receiver.",
+        exposure_egress="direct",
+    )
+
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAgentlessEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
         doc="Validate exposure delivery with agentless UFC and serverless-init 1.9.13.",
-        serverless_exposures=True,
+        exposure_egress="sidecar",
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(

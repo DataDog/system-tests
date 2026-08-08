@@ -1,18 +1,19 @@
-"""Test exposure delivery with agentless UFC and serverless-init."""
+"""Test exposure delivery with agentless UFC through sidecar and direct routes."""
 
 from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exposure_events_from_data
-from utils import features, interfaces, scenarios, weblog
+from utils import context, features, interfaces, scenarios, weblog
+from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from utils._context.component_version import Version
-from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 
+@scenarios.feature_flagging_and_experimentation_agentless_direct
 @scenarios.feature_flagging_and_experimentation_agentless_serverless
 @features.feature_flags_exposures
-class Test_FFE_Agentless_Serverless_Exposures:
+class Test_FFE_Agentless_Exposures:
     flag_key = "empty-targeting-key-flag"
     targeting_key = "agentless-serverless-exposure-user"
 
-    def setup_agentless_serverless_exposure(self) -> None:
+    def setup_agentless_exposure(self) -> None:
         self.responses = [
             weblog.post(
                 "/ffe",
@@ -27,12 +28,22 @@ class Test_FFE_Agentless_Serverless_Exposures:
             for _ in range(5)
         ]
 
-    def test_agentless_serverless_exposure(self) -> None:
-        scenario = scenarios.feature_flagging_and_experimentation_agentless_serverless
-        assert scenario.components["serverless-init"] == Version("1.9.13")
+    def test_agentless_exposure(self) -> None:
+        scenario = context.scenario
+        assert isinstance(scenario, FeatureFlaggingAgentlessEndToEndScenario)
+
+        if scenario.exposure_egress == "sidecar":
+            assert scenario.components["serverless-init"] == Version("1.9.13")
+            selected_interface = interfaces.datadog_sidecar
+            excluded_interface = interfaces.datadog_direct
+        else:
+            assert scenario.exposure_egress == "direct"
+            assert "serverless-init" not in scenario.components
+            selected_interface = interfaces.datadog_direct
+            excluded_interface = interfaces.datadog_sidecar
 
         matching_requests = assert_exposure_side_effects_contract(
-            interfaces.datadog_direct,
+            selected_interface,
             self.responses,
             flag_key=self.flag_key,
             targeting_key=self.targeting_key,
@@ -45,9 +56,9 @@ class Test_FFE_Agentless_Serverless_Exposures:
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"] == EXPECTED_API_KEY
+        assert headers["dd-api-key"] == "--redacted--"
 
         assert not any(
             exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-            for data in interfaces.datadog_sidecar.get_data()
+            for data in excluded_interface.get_data()
         )
