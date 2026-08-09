@@ -565,11 +565,11 @@ patterns:
         scenario_groups: null
         libraries: null
 
-    tests/ffe/test_agentless_serverless_exposures.py:
+    tests/ffe/test_exposure_egress.py:
         scenarios:
+          - FEATURE_FLAGGING_AND_EXPERIMENTATION
           - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
           - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS
-        libraries: null
 
     tests/ffe/utils/exposures.py:
         # This helper is shared by Agent and agentless exposure tests.

@@ -495,6 +495,20 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_exposure_egress_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_exposure_egress.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            "",
+        )
+
     def test_agentless_ffe_mocked_backend_file(self):
         inputs = build_inputs(modified_files=["utils/mocked_backend/ffe.py"])
         assert_github_processor(
