@@ -104,6 +104,7 @@ refs:
   - &ref_6_5_0 '>=6.5.0 || ^5.116.0'
   - &ref_6_7_0 '>=6.7.0 || ^5.118.0'
   - &ref_6_8_0 '>=6.8.0 || ^5.119.0'
+  - &ref_6_9_0 '>=6.9.0 || ^5.120.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -2686,7 +2687,7 @@ manifest:
         uds-express4: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: *ref_6_9_0
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False:
     - weblog_declaration:
         "*": *ref_5_25_0
