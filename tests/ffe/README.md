@@ -7,6 +7,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | File | Description |
 |------|-------------|
 | `test_dynamic_evaluation.py` | Dynamic flag evaluation via Remote Config |
+| `test_exposure_egress.py` | Shared exposure cache and payload contract across Agent, sidecar, and direct egress |
 | `test_exposures_datadog_agent.py` | Flag exposure tracking and reporting through the Datadog Agent |
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
