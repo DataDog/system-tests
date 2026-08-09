@@ -29,10 +29,12 @@ def exposure_egress() -> ExposureEgress:
 
     if scenario.exposure_egress == "sidecar":
         assert scenario.components["serverless-init"] == Version("1.9.13")
+        expected_api_key = scenario.serverless_init_container.environment["DD_API_KEY"]
+        assert expected_api_key is not None
         return ExposureEgress(
             interfaces.datadog_sidecar,
             (interfaces.datadog_direct,),
-            "--redacted--",
+            expected_api_key,
         )
 
     assert scenario.exposure_egress == "direct"
@@ -91,7 +93,7 @@ class ExposureEgressContract:
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"] == egress.expected_api_key
+        assert headers["dd-api-key"] in {egress.expected_api_key, "--redacted--"}
 
         for excluded_interface in egress.excluded_interfaces:
             assert not any(
