@@ -145,6 +145,11 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     assert scenario.get_libraries() is None
     assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
     assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+    assert environment["NODE_EXTRA_CA_CERTS"] == "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem"
+    assert scenario.weblog_infra.library_container.volumes["./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"] == {
+        "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+        "mode": "ro",
+    }
 
     if exposure_egress == "direct":
         assert "DD_TRACE_AGENT_URL" not in environment
