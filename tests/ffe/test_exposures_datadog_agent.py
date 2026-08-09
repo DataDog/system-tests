@@ -1,4 +1,4 @@
-"""Test feature flags exposure events logging in weblog end-to-end scenario."""
+"""Test Feature Flags exposure events through the Datadog Agent."""
 
 import json
 
