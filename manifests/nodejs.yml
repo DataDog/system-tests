@@ -104,6 +104,7 @@ refs:
   - &ref_6_5_0 '>=6.5.0 || ^5.116.0'
   - &ref_6_7_0 '>=6.7.0 || ^5.118.0'
   - &ref_6_8_0 '>=6.8.0 || ^5.119.0'
+  - &ref_6_10_0 '>=6.10.0 || ^5.121.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -276,9 +277,18 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
   tests/appsec/api_security/test_schemas_auth.py: missing_feature
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: *ref_5_104_0
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
-  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_10_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_10_0
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams:
+    - weblog_declaration:
+        "*": missing_feature
+        express5: *ref_6_10_0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
     - weblog_declaration:
         "*": *ref_5_20_0
