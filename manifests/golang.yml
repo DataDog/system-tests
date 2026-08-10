@@ -1629,9 +1629,9 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: v2.11.0-dev
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: v2.9.1
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: v2.9.1
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
