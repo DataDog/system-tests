@@ -161,6 +161,10 @@ class BaseDebuggerTest:
             "Budgets": {"java": [138], "dotnet": [136], "python": [142], "golang": [117]},
             "LogProbe": {"nodejs": [20]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
+            # In-scope line for the probe_capture_expressions_line line probe. Kept separate
+            # from "Expression" because Node.js captures at a different line (71) than its
+            # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
+            "CaptureExpressionsLine": {"java": [71], "nodejs": [71], "golang": [71], "ruby": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
@@ -171,6 +175,25 @@ class BaseDebuggerTest:
         }
 
         return definitions.get(method, {}).get(language, [])
+
+    def _rewrite_where_for_lines(self, probes: list[dict], lines: list[int] | None) -> None:
+        """Point each probe's `where` at the given source lines.
+
+        Line numbers are serialized as strings: the Go system-probe rejects
+        integer line numbers, so an integer `lines` makes the probe never reach
+        INSTALLED status. When `lines` is None the probe's `where` is left
+        untouched, which is how method probes keep the type/method targeting
+        from their JSON definition.
+        """
+        if lines is None:
+            return
+
+        string_lines = [str(line) for line in lines]
+        for probe in probes:
+            probe["where"].pop("methodName", None)
+            probe["where"]["lines"] = string_lines
+            probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+            probe["where"]["typeName"] = None
 
     ###### set #####
     def set_probes(
