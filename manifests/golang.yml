@@ -1534,8 +1534,16 @@ manifest:
   : "irrelevant (\"Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: 'missing_feature (DD_TAGS are not yet emitted as datadog.<key> resource attributes; support coming in a future PR)'
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header: 'missing_feature'
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_15_default_service_on_data_point: missing_feature (default service not on data point)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_2_span_kind: missing_feature (span.kind is emitted as the raw Datadog value, e.g. "server", not the SMC's SPAN_KIND_* convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (pending implementation release)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_15_service_source: missing_feature (pending implementation release)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process_tags is split into per-key datadog.<key> resource attributes instead of one combined datadog.process_tags arrayValue)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention, so the error span is not counted)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
@@ -1621,9 +1629,9 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: irrelevant (variant has no gRPC endpoint)
   tests/stats/test_stats.py::Test_Client_Stats::test_top_level_service: v2.11.0-dev
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version: v2.9.1
+  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: v2.9.1
+  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
@@ -2081,5 +2089,5 @@ manifest:
         '*': missing_feature
         net-http: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
-  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (not implemented by default yet)
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (v1 is the default since v2.10.0-rc.1, but it is gated on client-side stats, which the DEFAULT scenario disables, so the tracer downgrades to v0.4)
   tests/test_v1_payloads.py::Test_V1Payloads: v2.7.0
