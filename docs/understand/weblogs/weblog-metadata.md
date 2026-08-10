@@ -132,8 +132,7 @@ target's own `<name>.base.Dockerfile` and treats every `COPY` source as a depend
 because base Dockerfiles are required to follow a few rules that make that derivation
 unambiguous:
 
-- No `ADD` — use `COPY` for everything (no glob sources, no whole-directory copies, no remote
-  URLs).
+- No `ADD` — use `COPY` for everything (no remote URLs).
 - Every `COPY` has exactly one source: `COPY [flags] <source> <dest>`.
 - The bake target's `context` is always the Dockerfile's own directory, so every `COPY` source
   is a plain path relative to that directory.
