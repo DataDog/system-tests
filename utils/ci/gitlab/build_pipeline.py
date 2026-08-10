@@ -111,7 +111,7 @@ def render_library(
         binaries_artifacts_list = []
 
     render_build = _generate_build_renderer(
-        push_main=ci_project_name == "system-tests" and ci_commit_branch == "main",
+        push_main=True,
         push_lib_main=(ci_project_name != "system-tests" and ci_commit_branch in {"main", "master", ci_default_branch}),
     )
 

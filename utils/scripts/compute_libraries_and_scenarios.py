@@ -30,8 +30,8 @@ LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
-GITLAB_PR_LIBRARIES = {"c"}
-GITLAB_MAIN = {"python"}
+GITLAB_PR_LIBRARIES = {"c", "python"}
+GITLAB_MAIN = {}
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
