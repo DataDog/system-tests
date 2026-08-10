@@ -19,7 +19,9 @@ from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracestate
 # DD's sampling decision is h = (trace_id_low64 * 1111111111111111111) mod 2**64, keep if h <= rate * (2**64 - 1)
 # (dd-trace-go/ddtrace/tracer/sampler.go:114-122). The OTel-compatible pair is:
 #   rv = (~h & (2**64 - 1)) >> 8      (56-bit, 14 hex digits) -- depends only on trace_id, not on rate
-#   th = int((1 - rate) * (2**56))   (56-bit, trailing zero nibbles trimmed when formatted) -- depends only on rate
+#   th = round((1 - rate) * (2**56)) (56-bit, trailing zero nibbles trimmed when formatted) -- depends only on rate
+#   These fixtures use the maximum available 14 hexadecimal digits of precision, rather than the 4 digits
+#   recommended by the OTel specification: https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/
 #
 # Trace IDs are the ones already used (and verified) in tests/fixtures/sampling_rates.csv, crossed with
 # 5 rates. Expected values below were computed with the formula above and cross-checked: at rate 0.5 they
