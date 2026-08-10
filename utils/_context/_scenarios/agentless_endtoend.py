@@ -18,7 +18,6 @@ from .endtoend import DdTraceEndToEndScenario
 class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     """End-to-end scenario without a Datadog Agent, using agentless delivery mechanisms."""
 
-    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
     _mock_backend: MockFFEAgentlessBackendServer | None = None
@@ -30,14 +29,14 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         *,
         doc: str,
         weblog_env: dict[str, str | None] | None = None,
-        scenario_groups: list[ScenarioGroup] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
             name,
             doc=doc,
             include_agent=False,
             library_interface_timeout=0,
-            scenario_groups=scenario_groups,
+            scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
             use_proxy_for_agent=False,
             use_proxy_for_weblog=False,
             weblog_env=weblog_env,
@@ -128,6 +127,6 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         super().__init__(
             name,
             doc=doc,
-            scenario_groups=[all_scenario_groups.ffe],
+            scenario_groups=(all_scenario_groups.ffe,),
             weblog_env=environment,
         )
