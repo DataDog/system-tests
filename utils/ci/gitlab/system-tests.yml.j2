@@ -93,7 +93,7 @@ system_tests_build_{{library}}_{{variant}}:
     {% endif %}
     - section_start "build" "Building weblog" false
     {{ job_tag("build") }}
-    - {{ render_build(library, variant, push = true) }}
+    - {{ render_build(library, variant) }}
     - mv binaries ..
     - section_end "build"
   artifacts:

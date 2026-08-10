@@ -135,7 +135,7 @@ class Test_BuildPipeline:
         for job_name in expected_run_jobs:
             assert ".system_tests_base" in pipeline[job_name]["extends"]
 
-    def test_buildx_cache_update_from_main(self, tmp_path: Path) -> None:
+    def test_buildx_cache_updates_system_tests_main(self, tmp_path: Path) -> None:
         params = {
             "endtoend_defs": {
                 "parallel_weblogs": [{"name": "perl-mojolicious"}],
@@ -163,9 +163,63 @@ class Test_BuildPipeline:
             binaries_artifacts="system_tests_package_refs",
             binaries_artifact_path="system-tests-binaries",
             ref="main",
+            ci_project_name="system-tests",
+            ci_commit_branch="main",
+            ci_default_branch="main",
         )
 
-        assert re.search("--cache-to=type=registry,ref=", (out / "generated-pipeline-chunk-0.yml").read_text())
+        text = (out / "generated-pipeline-chunk-0.yml").read_text()
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:main,mode=max"
+            in text
+        )
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:lib_main,mode=max"
+            not in text
+        )
+
+    def test_buildx_cache_updates_library_default_branch(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+            ref="main",
+            ci_project_name="dd-trace-rb",
+            ci_commit_branch="master",
+            ci_default_branch="master",
+        )
+
+        text = (out / "generated-pipeline-chunk-0.yml").read_text()
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:lib_main,mode=max"
+            in text
+        )
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:main,mode=max"
+            not in text
+        )
 
     def test_buildx_cache_does_not_update_from_not_main(self, tmp_path: Path) -> None:
         params = {
@@ -195,6 +249,9 @@ class Test_BuildPipeline:
             binaries_artifacts="system_tests_package_refs",
             binaries_artifact_path="system-tests-binaries",
             ref="some-branch",
+            ci_project_name="system-tests",
+            ci_commit_branch="some-branch",
+            ci_default_branch="main",
         )
 
         assert not re.search("--cache-to=type=registry,ref=", (out / "generated-pipeline-chunk-0.yml").read_text())

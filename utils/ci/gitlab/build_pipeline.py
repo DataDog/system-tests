@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 _env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), autoescape=select_autoescape())
 _template = _env.get_template("system-tests.yml.j2")
@@ -48,21 +53,26 @@ def _trace(name: str, command: str, library: str, weblog: str = "", scenario: st
     )
 
 
-def _render_build(library: str, weblog: str, *, push: bool = False) -> str:
-    registry_base = "registry.ddbuild.io/system-tests/cache"
-    ref = f"{registry_base}/{library}/{weblog}:main"
-    command = "".join(
-        [
-            f"./build.sh {library} ",
-            "-i weblog --save-to-binaries ",
-            f"--weblog-variant {weblog} ",
-            '--extra-docker-args "',
-            f"--cache-from=type=registry,ref={ref} ",
-            f"--cache-to=type=registry,ref={ref},mode=max" if push else "",
-            '"',
-        ]
-    )
-    return _trace(f'"build {library} {weblog}"', command, library, weblog)
+def _generate_build_renderer(*, push_main: bool = False, push_lib_main: bool = False) -> Callable[[str, str], str]:
+    def _render_build(library: str, weblog: str) -> str:
+        registry_base = "registry.ddbuild.io/system-tests/cache"
+        ref = f"{registry_base}/{library}/{weblog}"
+        command = "".join(
+            [
+                f"./build.sh {library} ",
+                "-i weblog --save-to-binaries ",
+                f"--weblog-variant {weblog} ",
+                '--extra-docker-args "',
+                f"--cache-from=type=registry,ref={ref}:main ",
+                f"--cache-from=type=registry,ref={ref}:lib_main ",
+                f"--cache-to=type=registry,ref={ref}:main,mode=max " if push_main else "",
+                f"--cache-to=type=registry,ref={ref}:lib_main,mode=max" if push_lib_main else "",
+                '"',
+            ]
+        )
+        return _trace(f'"build {library} {weblog}"', command, library, weblog)
+
+    return _render_build
 
 
 def render_library(
@@ -77,6 +87,9 @@ def render_library(
     binaries_artifact_path: str,
     binaries_artifacts: str,
     pipeline_start_time: str,
+    ci_project_name: str = "",
+    ci_commit_branch: str = "",
+    ci_default_branch: str = "",
 ) -> str:
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
@@ -96,6 +109,12 @@ def render_library(
         binaries_artifacts_list = [binaries_artifact]
     else:
         binaries_artifacts_list = []
+
+    render_build = _generate_build_renderer(
+        push_main=ci_project_name == "system-tests" and ci_commit_branch == "main",
+        push_lib_main=(ci_project_name != "system-tests" and ci_commit_branch in {"main", "master", ci_default_branch}),
+    )
+
     return _template.render(
         scenario_pairs=scenario_pairs,
         stage=stage,
@@ -110,7 +129,7 @@ def render_library(
         push_to_test_optimization=push_to_test_optimization,
         skip_header=skip_header,
         pipeline_start_time=pipeline_start_time,
-        render_build=_render_build,
+        render_build=render_build,
         trace=_trace,
     )
 
@@ -128,6 +147,9 @@ def build(
     binaries_artifact_path: str = "",
     binaries_artifacts: str = "",
     pipeline_start_time: str = "",
+    ci_project_name: str = "",
+    ci_commit_branch: str = "",
+    ci_default_branch: str = "",
 ) -> None:
     """Render pipeline chunk files into *output_dir*, one per chunk."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -167,6 +189,9 @@ def build(
                     binaries_artifact_path=binaries_artifact_path,
                     binaries_artifacts=binaries_artifacts,
                     pipeline_start_time=pipeline_start_time,
+                    ci_project_name=ci_project_name,
+                    ci_commit_branch=ci_commit_branch,
+                    ci_default_branch=ci_default_branch,
                 )
             )
 
@@ -221,6 +246,9 @@ def main(argv: list[str] | None = None) -> int:
         binaries_artifact_path=args.binaries_artifact_path,
         binaries_artifacts=args.binaries_artifacts,
         pipeline_start_time=args.pipeline_start_time,
+        ci_project_name=os.getenv("CI_PROJECT_NAME", ""),
+        ci_commit_branch=os.getenv("CI_COMMIT_BRANCH", ""),
+        ci_default_branch=os.getenv("CI_DEFAULT_BRANCH", ""),
     )
     return 0
 
