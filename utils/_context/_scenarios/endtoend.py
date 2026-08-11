@@ -631,7 +631,12 @@ class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
         weblog_env: dict[str, str | None] | None = None,
     ) -> None:
         environment: dict[str, str | None] = {
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
+            # Both variables are integer seconds across the SDKs: Java parses them with
+            # getInteger, and the shared configuration registry declares them "int" with an
+            # allowed pattern of [1-9]\d*. A fractional value only ever worked on Node, which
+            # has a single numeric type and does not enforce that pattern; it is a hard parse
+            # error in the strictly-typed libraries. 1s is the smallest legal interval.
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "1",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
             "DD_REMOTE_CONFIGURATION_ENABLED": "false",
         }
