@@ -11,6 +11,8 @@ lang_variant:
             echo "Ubuntu 23.04 (Lunar) detected - Configuring archive sources"
             sudo sed -i -e 's|http://[^/]*/ubuntu|http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list
             sudo sed -i -e 's|https://[^/]*/ubuntu|http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+            # ARM64 uses ubuntu-ports, but archives don't have that distinction
+            sudo sed -i -e 's|/ubuntu-ports|/ubuntu|g' /etc/apt/sources.list
           fi
           sudo apt-get update
           sudo apt install -y python-is-python3
