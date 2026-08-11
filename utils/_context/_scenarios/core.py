@@ -37,6 +37,7 @@ class _ScenarioGroups:
     2. select a set of scenario to execute in the official system-tests workflow
     """
 
+    agentless = ScenarioGroup()
     all = ScenarioGroup()
     ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()
