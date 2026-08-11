@@ -119,12 +119,15 @@ class _BaseKafka:
         producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
         consumer_span = self.get_span(interfaces.library, span_kind="consumer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
 
-        # Both producer and consumer spans should be part of the same trace
-        # Different tracers can handle the exact propagation differently, so for now, this test avoids
-        # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span.trace_id_equals(consumer_span["trace_id"])
+
+        same_trace = producer_span.trace_id_equals(consumer_span["trace_id"])
+        linked_to_producer = any(
+            producer_span.trace_id_equals(link.trace_id) and producer_span["span_id"] == link.span_id
+            for link in consumer_span.get_span_links()
+        )
+        assert same_trace or linked_to_producer
 
     def validate_kafka_spans(
         self,
