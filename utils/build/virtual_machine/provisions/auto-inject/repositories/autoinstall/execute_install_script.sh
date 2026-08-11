@@ -23,8 +23,8 @@ if [ "${DD_env}" == "dev" ]; then
       if [ "${DD_LANG}" == "python" ]; then
         export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=4
       fi
-else 
-    export DD_SITE="datadoghq.com" 
+else
+    export DD_SITE="datadoghq.com"
       #The latest release of python tracer version is 2.x we want to use 4.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       if [ "${DD_LANG}" == "python" ]; then
@@ -37,12 +37,12 @@ export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
 
 if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
    export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
-   export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}" 
+   export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
 fi
 
 if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
-    # Special case for Node.js, the staging major version is 1 above the prod major (6 here)
-    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="6"
+    # Special case for Node.js, the staging major version is 1 above the prod major (7 here)
+    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="7"
 fi
 
 if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then

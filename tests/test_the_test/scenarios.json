@@ -301,9 +301,6 @@
   "tests/test_profiling.py::Test_Profile::test_process_tags": [
     "PROFILING"
   ],
-  "tests/test_protobuf.py::Test_Protobuf::test_protobuf": [
-    "DEFAULT"
-  ],
   "tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag::test_http_endpoint_basic": [
     "TRACING_CONFIG_NONDEFAULT_3"
   ],
@@ -3300,27 +3297,6 @@
   "tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot": [
     "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"
   ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_log_method_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_metric_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_decoration_method_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_log_line_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
-  "tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status": [
-    "DEBUGGER_PROBES_STATUS"
-  ],
   "tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata": [
     "DEBUGGER_SYMDB"
   ],
@@ -3368,6 +3344,9 @@
   ],
   "tests/external_processing/test_apm.py::Test_ExternalProcessing_Tracing::test_correct_span_structure": [
     "EXTERNAL_PROCESSING"
+  ],
+  "tests/ffe/test_agentless_configuration.py::Test_FFE_Agentless_Configuration::test_default_agentless_source": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
   ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
@@ -4224,6 +4203,45 @@
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention[library_env0]": [
     "PARAMETRIC"
   ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_single_tracecontext": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_multiple_tracecontexts_with_overrides[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_single_tracecontext[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_multiple_tracecontexts[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage[library_env0]": [
+    "PARAMETRIC"
+  ],
   "tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid[library_env0]": [
     "PARAMETRIC"
   ],
@@ -5061,6 +5079,9 @@
   "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default[library_env0]": [
     "PARAMETRIC"
   ],
+  "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags[library_env0]": [
+    "PARAMETRIC"
+  ],
   "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_under_limit_one_payload[library_env0]": [
     "PARAMETRIC"
   ],
@@ -5540,9 +5561,6 @@
   ],
   "tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types[library_env0]": [
     "PARAMETRIC"
-  ],
-  "tests/perfs/test_performances.py::Test_Performances::test_main": [
-    "PERFORMANCES"
   ],
   "tests/remote_config/test_remote_configuration.py::Test_NoError::test_no_error": [
     "DEFAULT"

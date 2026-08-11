@@ -4,7 +4,8 @@ from typing import Any
 
 import pytest
 
-from utils._context._scenarios import get_all_scenarios, EndToEndScenario, scenarios
+from utils._context._scenarios import get_all_scenarios, scenarios
+from utils._context._scenarios.endtoend import EndToEndScenario
 from utils import logger
 
 # Map of scenario pairs that cannot be merged and their specific reasons
@@ -58,9 +59,9 @@ def test_minimal_number_of_scenarios():
     - LEVEL 1 + LEVEL 3: scenarios_are_equivalent == True AND one_env_can_be_included_in_other == True
     """
 
-    # Filter only scenarios that are exactly EndToEndScenario class (not subclasses)
+    # Filter scenarios that are EndToEndScenario or one of its subclasses
     endtoend_scenarios: list[EndToEndScenario] = [
-        scenario for scenario in get_all_scenarios() if type(scenario) is EndToEndScenario
+        scenario for scenario in get_all_scenarios() if isinstance(scenario, EndToEndScenario)
     ]
 
     # sort keys in SKIP_MERGE_SCENARIOS

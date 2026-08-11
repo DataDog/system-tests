@@ -15,9 +15,7 @@ default_libs_with_prod = [
     "cpp_kong",
     "cpp_nginx",
     "dotnet",
-    "envoy",
     "golang",
-    "haproxy",
     "java",
     "java_lambda",
     "nodejs",
@@ -36,9 +34,7 @@ default_libs_with_dev = [
     "cpp_kong",
     "cpp_nginx",
     "dotnet",
-    "envoy",
     "golang",
-    "haproxy",
     "java",
     "java_lambda",
     "nodejs",
@@ -191,6 +187,19 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,open_telemetry",
         )
 
+    def test_c_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
+        )
+
     @set_env("GITHUB_REF", "refs/heads/main")
     def test_ref_main(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
@@ -322,6 +331,20 @@ class Test_ComputeLibrariesAndScenarios:
             "false",
             "DEFAULT",
             "end_to_end,open_telemetry",
+        )
+
+    @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
+    def test_c_library_tag_with_branch(self):
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -460,6 +483,54 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agentless_ffe_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_agentless_configuration.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "",
+        )
+
+    def test_agentless_ffe_mocked_backend_file(self):
+        inputs = build_inputs(modified_files=["utils/mocked_backend/ffe.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,PARAMETRIC",
+            "",
+        )
+
+    def test_end_to_end_scenario_framework_file(self):
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/endtoend.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
+        )
+
+    def test_end_to_end_agentless_scenario_framework_file(self):
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/agentless_endtoend.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "agentless",
+        )
+
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 
@@ -469,7 +540,7 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
+            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
             "",
         )
 
@@ -488,3 +559,84 @@ class Test_ComputeLibrariesAndScenarios:
                 new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
                 old_manifests=Path("./wrong/path"),
             )
+
+
+@scenarios.test_the_test
+class Test_GitLabMode:
+    @pytest.mark.parametrize(
+        ("source", "expected_event"),
+        [("merge_request_event", "pull_request"), ("push", "push"), ("schedule", "schedule")],
+    )
+    def test_event_and_ref_normalization(self, monkeypatch: pytest.MonkeyPatch, source: str, expected_event: str):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
+        inputs = build_inputs()
+        assert inputs.event_name == expected_event
+        assert inputs.ref == "refs/heads/feat-x"
+        assert inputs.is_gitlab
+
+    def test_empty_ref(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "")
+        inputs = build_inputs()
+        assert inputs.ref == ""
+
+    def test_libraries_output_sorted(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
+        # all-libs trigger file
+        inputs = build_inputs(modified_files=[".github/workflows/run-docker-ssi.yml"])
+        output = process(inputs)
+        libs_line = next((line for line in output if line.startswith("libraries=")), None)
+        assert libs_line is not None, "GitLab mode must emit 'libraries=' output"
+        libs = json.loads(libs_line.split("=", 1)[1])
+        parts = libs.split()
+        assert parts == sorted(parts)
+
+    @pytest.mark.parametrize("source", ["merge_request_event", "push"])
+    def test_pr_pipeline_selects_c(self, monkeypatch: pytest.MonkeyPatch, source: str) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/native-c")
+        inputs = build_inputs(modified_files=["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert 'libraries="c"' in process(inputs)
+
+    def test_pr_pipeline_excludes_python(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "merge_request_event")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/python")
+        inputs = build_inputs(modified_files=["utils/build/docker/python/flask-poc.Dockerfile"])
+
+        assert not any(line.startswith("libraries=") for line in process(inputs))
+
+    @pytest.mark.parametrize(
+        ("source", "ref"),
+        [("push", "some_branch"), ("schedule", "main"), ("schedule", "some_branch")],
+    )
+    def test_non_main_and_scheduled_pipelines_do_not_select_python(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        source: str,
+        ref: str,
+    ) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", ref)
+        inputs = build_inputs()
+
+        assert 'libraries="python"' not in process(inputs)
+
+    def test_main_pipelines_select_python(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs()
+
+        assert 'libraries="python"' in process(inputs)

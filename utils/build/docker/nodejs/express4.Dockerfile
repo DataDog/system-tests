@@ -1,4 +1,13 @@
-FROM datadog/system-tests:express4.base-v2
+FROM datadog/system-tests:express4.base-v3
+
+# The base image bakes in app.js; refresh it (and fork_child.js, which is loaded via a
+# runtime path so it is never bundled) so the /spawn_child endpoint is present.
+COPY utils/build/docker/nodejs/express/app.js app.js
+COPY utils/build/docker/nodejs/express/fork_child.js fork_child.js
+
+# Refresh the dependencies baked into the base image.
+COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/bun.lock ./
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 
 EXPOSE 7777
 

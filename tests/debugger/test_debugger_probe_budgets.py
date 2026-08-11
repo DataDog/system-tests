@@ -28,12 +28,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         for probe in probes:
             probe["id"] = debugger.generate_probe_id(probe_type)
 
-        for probe in probes:
-            if "methodName" in probe["where"]:
-                del probe["where"]["methodName"]
-            probe["where"]["lines"] = lines
-            probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
-            probe["where"]["typeName"] = None
+        self._rewrite_where_for_lines(probes, lines)
 
         self.set_probes(probes)
 

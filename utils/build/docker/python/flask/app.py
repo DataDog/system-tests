@@ -14,6 +14,8 @@ import http.client
 import json
 import logging
 import os
+import signal
+import time
 import random
 import shlex
 import subprocess
@@ -98,6 +100,8 @@ if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
     config._logs_injection = True
 
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -321,6 +325,43 @@ def healthcheck():
             "version": ddtrace.__version__,
         },
     }
+
+
+@app.route("/spawn_child")
+def spawn_child():
+    """Spawn child via fork or exec. Params: sleep, crash, fork. Used for telemetry session ID header tests."""
+    sleep_arg = request.args.get("sleep", type=int)
+    crash_arg = request.args.get("crash", "").lower()
+    fork_arg = (request.args.get("fork") or "").lower()
+    if sleep_arg is None:
+        return "sleep required", 400
+    if crash_arg not in ("true", "false"):
+        return "crash required (boolean)", 400
+    if fork_arg not in ("true", "false"):
+        return "fork required (boolean)", 400
+    crash = crash_arg == "true"
+    use_fork = fork_arg == "true"
+
+    if use_fork:
+        pid = os.fork()
+        if pid > 0:
+            _, status = os.waitpid(pid, 0)
+            return f"Child process {pid} exited with status {status}"
+        time.sleep(sleep_arg)
+        if crash:
+            os.kill(os.getpid(), signal.SIGSEGV)
+        sys.exit(0)
+
+    # exec path: spawn subprocess
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"import time, sys, os, signal; time.sleep({sleep_arg}); os.kill(os.getpid(), signal.SIGSEGV) if {crash} else sys.exit(0)",
+        ],
+        timeout=sleep_arg + 5,
+    )
+    return f"Child process exited with status {proc.returncode}"
 
 
 @app.route("/sample_rate_route/<i>")
@@ -568,6 +609,27 @@ def status_code():
 def stats_unique():
     code = flask_request.args.get("code", default=200, type=int)
     return Response("OK, probably", status=code)
+
+
+@app.route("/trace/manual_keep_drop")
+def trace_manual_keep_drop():
+    decision = flask_request.args.get("decision")
+    if decision not in ("keep", "drop"):
+        return Response("decision must be keep or drop", status=400)
+
+    span = tracer.current_span()
+    span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = "http://localhost:7777/"
+    response = requests.get(url)
+
+    return {
+        "url": url,
+        "status_code": response.status_code,
+        "request_headers": dict(response.request.headers),
+        "response_headers": dict(response.headers),
+    }
 
 
 @app.route("/make_distant_call")
@@ -2192,13 +2254,22 @@ def external_request_redirect():
 @app.route("/ai_guard/evaluate", methods=["POST"])
 def ai_guard_evaluate():
     """AI Guard evaluation endpoint."""
-    from ddtrace.internal.settings.asm import ai_guard_config
+    # AI Guard was moved from `ddtrace.appsec.ai_guard` to the top-level `ddtrace.aiguard`
+    # package (dd-trace-py#18754, #19110). Import the new location first and fall back to
+    # the old one to stay compatible with every tracer version under test.
+    try:
+        from ddtrace.internal.settings.aiguard import aiguard_config
+    except ImportError:
+        from ddtrace.internal.settings.asm import ai_guard_config as aiguard_config
 
-    if not ai_guard_config._ai_guard_enabled:
+    if not aiguard_config._ai_guard_enabled:
         return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
 
     try:
-        from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+        try:
+            from ddtrace.aiguard import new_ai_guard_client, Options, AIGuardAbortError
+        except ImportError:
+            from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
         from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"

@@ -126,6 +126,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import datadog.trace.api.DDTags;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
@@ -332,6 +333,41 @@ public class App {
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    @GetMapping("/spawn_child")
+    ResponseEntity<String> spawnChild(
+            @RequestParam(required = false) Integer sleep,
+            @RequestParam(required = false) String crash,
+            @RequestParam(required = false) String fork) {
+        if (sleep == null || sleep < 0) {
+            return ResponseEntity.badRequest().body("sleep required");
+        }
+        if (crash == null || (!crash.equalsIgnoreCase("true") && !crash.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("crash required (boolean)");
+        }
+        if (fork == null || (!fork.equalsIgnoreCase("true") && !fork.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("fork required (boolean)");
+        }
+        if (fork.equalsIgnoreCase("true")) {
+            return ResponseEntity.badRequest().body("fork not supported");
+        }
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "java", "-Xmx128m",
+                    "-javaagent:/app/dd-java-agent.jar",
+                    "-jar", "/app/app.jar");
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_SLEEP", String.valueOf(sleep));
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_CRASH", crash.toLowerCase());
+            pb.inheritIO();
+            Process p = pb.start();
+            // Do not block on the child's full lifetime: a JVM child (agent init + sleep)
+            // can exceed the test client timeout. Return promptly; the child emits its own
+            // telemetry independently and the test validates it asynchronously.
+            return ResponseEntity.ok("Spawned child process " + p.pid());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed: " + e.getMessage());
+        }
     }
 
     @RequestMapping("/stats-unique")
@@ -1020,6 +1056,21 @@ public class App {
         }
 
         return "hi OGNL";
+    }
+
+    @RequestMapping("/trace/manual_keep_drop")
+    ResponseEntity<?> traceManualKeepDrop(@RequestParam String decision) throws Exception {
+        if (!"keep".equals(decision) && !"drop".equals(decision)) {
+            return ResponseEntity.badRequest().body("decision must be keep or drop");
+        }
+
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+        }
+
+        // Call downstream so that tests can assert on the sampling decision that gets propagated
+        return ResponseEntity.ok(make_distant_call("http://localhost:7777/"));
     }
 
     @RequestMapping("/make_distant_call")

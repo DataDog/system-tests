@@ -1,8 +1,21 @@
-from collections.abc import Generator
+from collections.abc import Generator, Iterable
 
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
+from utils.dd_types import DataDogLibrarySpan
+
+
+def assert_all_spans_have_apm_disabled_marker(spans: Iterable[DataDogLibrarySpan]) -> None:
+    span_list = list(spans)
+    assert span_list, "No spans were sent for the request"
+
+    for span in span_list:
+        apm_enabled = span["metrics"].get("_dd.apm.enabled")
+        error_message = f"Span is missing numeric _dd.apm.enabled:0: {span.raw_span}"
+        assert isinstance(apm_enabled, (int, float)), error_message
+        assert not isinstance(apm_enabled, bool), error_message
+        assert apm_enabled == 0, error_message
 
 
 def find_series(namespace: str, metrics: list[str]) -> list:

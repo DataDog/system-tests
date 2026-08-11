@@ -86,9 +86,7 @@ jobs:
       _build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       _build_lambda_proxy_image: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.rebuild_lambda_proxy) }}
       _build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
-      _build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
-      _build_php_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-php-base-images') }}
-      _build_nodejs_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-nodejs-base-images') }}
+      _build_weblog_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') && matrix.library == 'python' || contains(github.event.pull_request.labels.*.name, 'build-php-base-images') && matrix.library == 'php' || contains(github.event.pull_request.labels.*.name, 'build-nodejs-base-images') && matrix.library == 'nodejs' }}
       _enable_replay_scenarios: true
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch_map: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch-map }}
@@ -118,11 +116,13 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
-        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
+        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection),
+        # system_tests_run_pipeline_[0-2], *DOC (docker ssi), or *DO5A
+        # (docker ssi crashtracking).
         # https://regex101.com/r/Bo5Kpn/1
         # Also ignore the job that waits for the tests to succeed before adding
         # to the merge queue.
 
         ignored-name-patterns: |
-          dd-gitlab/(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
+          dd-gitlab/(?!(?:K8S_LIB|system_tests_run_pipeline_[0-2]$)).*$(?<!DOC)(?<!DO5A)
           devflow/merge

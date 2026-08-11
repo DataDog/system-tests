@@ -9,6 +9,39 @@ class SystemTestController < ApplicationController
     render plain: "Hello world!\n"
   end
 
+  def spawn_child
+    sleep_sec = params[:sleep]&.to_i
+    crash = params[:crash].to_s.downcase
+    fork_param = (params[:fork] || '').to_s.downcase
+    if sleep_sec.nil? || sleep_sec.negative?
+      render plain: 'sleep required', status: 400
+      return
+    end
+    unless %w[true false].include?(crash)
+      render plain: 'crash required (boolean)', status: 400
+      return
+    end
+    unless %w[true false].include?(fork_param)
+      render plain: 'fork required (boolean)', status: 400
+      return
+    end
+    do_crash = crash == 'true'
+    use_fork = fork_param == 'true'
+
+    if use_fork
+      pid = Process.fork do
+        sleep(sleep_sec)
+        do_crash ? Process.kill('SEGV', Process.pid) : exit(0)
+      end
+      Process.wait(pid)
+      render plain: "Child process #{pid} exited"
+    else
+      pid = Process.spawn('ruby', '-e', "sleep(#{sleep_sec}); #{do_crash ? "Process.kill('SEGV', Process.pid)" : 'exit(0)'}")
+      Process.wait(pid)
+      render plain: "Child process #{pid} exited"
+    end
+  end
+
   def waf
     render plain: "Hello, world!"
   end
@@ -62,6 +95,33 @@ class SystemTestController < ApplicationController
 
   def read_file
     render plain: File.read(params[:file])
+  end
+
+  def trace_manual_keep_drop
+    decision = params[:decision]
+    return render plain: 'decision must be keep or drop', status: 400 unless %w[keep drop].include?(decision)
+
+    trace = Datadog::Tracing.active_trace
+    decision == 'keep' ? trace.keep! : trace.reject!
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = 'http://localhost:7777/'
+    uri = URI(url)
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    render json: {
+      "url": url,
+      "status_code": response.code.to_i,
+      "request_headers": request.each_header.to_h,
+      "response_headers": response.each_header.to_h,
+    }
   end
 
   def make_distant_call

@@ -1,4 +1,4 @@
-FROM datadog/system-tests:express4-typescript.base-v2
+FROM datadog/system-tests:express4-typescript.base-v3
 
 EXPOSE 7777
 
@@ -9,6 +9,11 @@ ENV PGHOST=postgres
 ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
+
+# Refresh the application code and dependencies baked into the base image.
+COPY utils/build/docker/nodejs/express4-typescript/package.json utils/build/docker/nodejs/express4-typescript/bun.lock ./
+COPY utils/build/docker/nodejs/express4-typescript/app.ts app.ts
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun

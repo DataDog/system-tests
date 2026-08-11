@@ -1,3 +1,4 @@
+---
 name: Nightly
 
 on:
@@ -6,8 +7,7 @@ on:
     branches:
       - "main"
   schedule:
-    - cron:  '00 03 * * *'
-
+    - cron: '00 03 * * *'
 
 jobs:
   nightly:
@@ -68,11 +68,11 @@ jobs:
           pattern: logs_*
       - name: Uncompress logs
         run: |
-            for d in logs_*; do
-              if [ -f "$d/artifact.tar.gz" ]; then
-                tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/report.json' || true
-              fi
-            done
+          for d in logs_*; do
+            if [ -f "$d/artifact.tar.gz" ]; then
+              tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/report.json' || true
+            fi
+          done
       - name: Upload test report
         uses: ./.github/actions/upload_artifact
         with:
@@ -146,6 +146,7 @@ jobs:
       contents: read
       actions: read
       id-token: write
+      pull-requests: write
     needs:
       - create_test_report
     env:
@@ -199,7 +200,7 @@ jobs:
           BRANCHES=$(git branch --list 'easy-win/*/${{ matrix.library }}' --format='%(refname:short)' | tr '\n' ' ')
           echo "branches=$BRANCHES" >> "$GITHUB_OUTPUT"
 
-      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80  # v1.0.3
         id: octo-sts
         if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         with:
@@ -217,11 +218,15 @@ jobs:
         if: steps.activation_script.outputs.activation_exit_code == '0' && steps.activation_script.outputs.branches != ''
         env:
           GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+          PR_REVIEW_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           gh auth setup-git
           chmod +x .commit-headless/dist/commit-headless-linux-amd64
           COMMIT_HEADLESS=".commit-headless/dist/commit-headless-linux-amd64"
+          REVIEW_BODY="This automated easy-win activation PR intentionally starts with requested changes "
+          REVIEW_BODY+="to block automatic merge. If you approve this activation, please merge it manually "
+          REVIEW_BODY+="or dismiss this review according to repository rules."
 
           for BRANCH_NAME in ${{ steps.activation_script.outputs.branches }}; do
             echo "============ Processing $BRANCH_NAME ============"
@@ -233,9 +238,9 @@ jobs:
             PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)
 
             if [[ -n "$PR_NUMBER" ]]; then
-              # Skip if the PR has any activity (comments, reviews, or extra commits)
-              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq '[.[] | select(.user.login | endswith("[bot]") | not)] | length')
-              REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq 'length')
+              # Skip if the PR has any human activity (comments, reviews, or extra commits)
+              COMMENTS=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq '[.[] | select(.user.type != "Bot")] | length')
+              REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews" --jq '[.[] | select(.user.type != "Bot")] | length')
               COMMITS=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}/commits" --jq 'length')
 
               if [[ "$COMMENTS" -gt 0 || "$REVIEWS" -gt 0 || "$COMMITS" -gt 1 ]]; then
@@ -267,16 +272,23 @@ jobs:
                 --title "Auto-activate ${{ matrix.library }} easy wins for $OWNER" \
                 --body "Automated activation of easy-win tests for \`${{ matrix.library }}\` owned by \`$OWNER\`
           [View nightly workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          - If you approve this PR please also merge it.
+          - This PR is created ready for review and can be merged according to repository rules.
           - If the tests are failing it might be due to a change made since the last nightly system-tests run. You can close the PR, an updated one will be available tomorrow.
           - If you close the PR please also delete the branch" \
                 --head "$BRANCH_NAME" \
                 --base main
               PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+
+              # This block can be activated to add a change request on new PRs to block auto merge (you also need to add --draft to gh pr create)
+              # echo "Requesting changes on newly created PR #$PR_NUMBER to block automatic merge..."
+              # GH_TOKEN="$PR_REVIEW_TOKEN" gh pr review "$PR_NUMBER" --request-changes --body "$REVIEW_BODY"
+              #
+              # echo "Marking PR #$PR_NUMBER as ready for review..."
+              # gh pr ready "$PR_NUMBER"
             fi
 
-            # Enable auto-merge on the PR
-            echo "Enabling auto-merge on PR #$PR_NUMBER..."
-            gh pr merge "$PR_NUMBER" --auto --squash
+            # # Enable auto-merge on the PR
+            # echo "Enabling auto-merge on PR #$PR_NUMBER..."
+            # gh pr merge "$PR_NUMBER" --auto --squash
 
           done

@@ -1015,6 +1015,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=154, owner=_Owner.asm)
 
     @staticmethod
+    def appsec_agentic_onboarding(test_object):
+        """Agentic Onboarding Runtime Detection
+
+        https://feature-parity.us1.prod.dog/#/?feature=563
+        """
+        return _mark_test_object(test_object, feature_id=563, owner=_Owner.asm)
+
+    @staticmethod
     def changing_rules_using_rc(test_object):
         """Changing rules using RC
 
@@ -2402,14 +2410,6 @@ class _Features:
         return _mark_test_object(test_object, feature_id=369, owner=_Owner.debugger)
 
     @staticmethod
-    def datastreams_monitoring_protobuf_schema_tracking(test_object):
-        """Dynamically enable debugger products
-
-        https://feature-parity.us1.prod.dog/#/?feature=371
-        """
-        return _mark_test_object(test_object, feature_id=371, owner=_Owner.dsm)  # apm/dsm
-
-    @staticmethod
     def trace_enablement(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
@@ -2688,6 +2688,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=538
         """
         return _mark_test_object(test_object, feature_id=538, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_agentless(test_object):
+        """Feature Flags Agentless
+
+        https://feature-parity.us1.prod.dog/#/?feature=561
+        """
+        return _mark_test_object(test_object, feature_id=561, owner=_Owner.ffe)
 
     @staticmethod
     def feature_flags_exposures(test_object):
@@ -3009,6 +3017,25 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=557
         """
         return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
+
+    @staticmethod
+    def auth_schemas(test_object):
+        """API Security - authentication token schema extraction: the extract-auth
+        processor reports schemas of JSON Web Tokens (`_dd.appsec.s.req.jwt`) and
+        cookies (`_dd.appsec.s.req.cookies`) when API Security is enabled.
+
+        https://feature-parity.us1.prod.dog/#/?feature=560
+        """
+        return _mark_test_object(test_object, feature_id=560, owner=_Owner.asm)
+
+    @staticmethod
+    def appsec_raw_response_body(test_object):
+        """AppSec sends the raw HTTP response body to the WAF for inspection
+        (server.response.body.raw address), enabled via DD_APPSEC_RAW_RESPONSE_BODY_ENABLED.
+
+        https://feature-parity.us1.prod.dog/#/?feature=565
+        """
+        return _mark_test_object(test_object, feature_id=565, owner=_Owner.asm)
 
 
 features = _Features()

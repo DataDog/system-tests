@@ -15,5 +15,5 @@ RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
  && node nft-prune.mjs --keep-types app.ts node_modules/typescript/bin/tsc \
  && rm -rf /root/.bun
 
-# docker build --progress=plain -f utils/build/docker/nodejs/express4-typescript.base.Dockerfile -t datadog/system-tests:express4-typescript.base-v2 .
-# docker push datadog/system-tests:express4-typescript.base-v2
+# docker build --progress=plain -f utils/build/docker/nodejs/express4-typescript.base.Dockerfile -t datadog/system-tests:express4-typescript.base-v3 .
+# docker push datadog/system-tests:express4-typescript.base-v3

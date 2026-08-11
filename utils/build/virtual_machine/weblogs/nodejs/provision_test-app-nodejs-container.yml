@@ -1,6 +1,6 @@
 weblog:
     name: test-app-nodejs-container
-    runtime_version: 18
+    runtime_version: 22
     install: 
       - os_type: linux
         copy_files:

@@ -22,7 +22,7 @@ if [ -e /binaries/nodejs-load-from-local ]; then
     echo "using local version that will be mounted at runtime"
 else
     if [ -e /binaries/nodejs-load-from-npm ]; then
-        target=$(</binaries/nodejs-load-from-npm)
+        target=$(xargs < /binaries/nodejs-load-from-npm)
         echo "install from: $target"
         install_custom_target "$target"
 

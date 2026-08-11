@@ -522,9 +522,6 @@ class ClientConfig:
         }
 
     def __repr__(self) -> str:
-        if self.config_file_version == ClientConfig.config_file_version:
-            return f"""({self.path!r}, {self.raw_deserialized!r})"""
-
         return f"""({self.path!r}, {self.raw_deserialized!r}, {self.config_file_version})"""
 
 

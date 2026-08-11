@@ -24,5 +24,5 @@ RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
       node_modules/next/dist/compiled/terser \
  && rm -rf .next/cache /root/.bun
 
-# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v2 .
-# docker push datadog/system-tests:nextjs.base-v2
+# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v3 .
+# docker push datadog/system-tests:nextjs.base-v3
