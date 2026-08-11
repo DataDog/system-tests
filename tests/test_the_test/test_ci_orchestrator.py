@@ -7,8 +7,10 @@ from utils._context.weblog_metadata import WeblogMetaData
 from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
     Job,
+    _JobDuplication,
     _duplicate_jobs,
     _get_endtoend_weblogs,
+    _split_jobs_for_parallel_execution,
     get_endtoend_definitions,
 )
 
@@ -176,6 +178,59 @@ def test_duplicate_jobs_for_selected_weblogs():
     assert v1_jobs["spring-boot-jetty 2_v1"].scenarios == ("JETTY_SCENARIO_2",)
     assert v1_jobs["spring-boot-jetty 3_v1"].scenarios == ("JETTY_SCENARIO_3",)
     assert all(job.weblog_env == {"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"} for job in v1_jobs.values())
+
+
+@scenarios.test_the_test
+def test_split_jobs_reserves_capacity_for_duplicates():
+    weblog = get_weblog("java", "spring-boot-jetty")
+    other_weblog = get_weblog("java", "spring-boot")
+    jobs = [
+        Job(
+            "java",
+            weblog,
+            1,
+            {"JETTY_SCENARIO_1": 1.0, "JETTY_SCENARIO_2": 1.0, "JETTY_SCENARIO_3": 1.0},
+            0.0,
+            build_base_images=False,
+        ),
+        Job(
+            "java",
+            other_weblog,
+            1,
+            {"OTHER_SCENARIO_1": 1.0, "OTHER_SCENARIO_2": 1.0},
+            0.0,
+            build_base_images=False,
+        ),
+    ]
+    duplication = _JobDuplication(
+        weblog_names=("spring-boot-jetty",),
+        name_suffix="_v1",
+        weblog_env={"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"},
+    )
+
+    split_jobs = _split_jobs_for_parallel_execution(
+        jobs,
+        desired_execution_time=1.0,
+        maximum_parallel_jobs=6,
+        job_duplications=(duplication,),
+    )
+    duplicated_jobs = _duplicate_jobs(
+        split_jobs,
+        weblog_names=duplication.weblog_names,
+        name_suffix=duplication.name_suffix,
+        weblog_env=duplication.weblog_env,
+    )
+
+    assert len(split_jobs) + len(duplicated_jobs) == 6
+    assert {scenario for job in split_jobs if job.weblog == weblog for scenario in job.scenarios} == {
+        "JETTY_SCENARIO_1",
+        "JETTY_SCENARIO_2",
+        "JETTY_SCENARIO_3",
+    }
+    assert {scenario for job in split_jobs if job.weblog == other_weblog for scenario in job.scenarios} == {
+        "OTHER_SCENARIO_1",
+        "OTHER_SCENARIO_2",
+    }
 
 
 @scenarios.test_the_test

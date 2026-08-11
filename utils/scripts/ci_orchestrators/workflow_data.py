@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import json
 from utils._context._scenarios import Scenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog
@@ -201,6 +202,13 @@ def get_docker_ssi_matrix(
 # End-to-end corner
 
 
+@dataclass(frozen=True)
+class _JobDuplication:
+    weblog_names: tuple[str, ...]
+    name_suffix: str
+    weblog_env: dict[str, str]
+
+
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
@@ -399,21 +407,37 @@ def get_endtoend_definitions(
                 )
             )
 
-    # split those jobs into smaller jobs if needed
-
-    if desired_execution_time > 0:  # 0 or less means that user doesn't want to split jobs
-        jobs = _split_jobs_for_parallel_execution(jobs, desired_execution_time, maximum_parallel_jobs)
-
     # Duplicate selected test jobs to exercise an alternative protocol without changing the original jobs.
     # This can force v1 while the originals use v0.x, or test a legacy protocol while they use the current one.
     # Add, remove, or adjust library-specific selections here as protocol coverage evolves.
+    job_duplications: tuple[_JobDuplication, ...] = ()
     if library == "java" and ci_environment == "prod":
-        jobs.extend(
-            _duplicate_jobs(
-                jobs,
+        job_duplications = (
+            _JobDuplication(
                 weblog_names=("spring-boot-jetty",),
                 name_suffix="_v1",
                 weblog_env={"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"},
+            ),
+        )
+
+    # split those jobs into smaller jobs if needed
+
+    if desired_execution_time > 0:  # 0 or less means that user doesn't want to split jobs
+        jobs = _split_jobs_for_parallel_execution(
+            jobs,
+            desired_execution_time,
+            maximum_parallel_jobs,
+            job_duplications=job_duplications,
+        )
+
+    base_jobs = jobs.copy()
+    for duplication in job_duplications:
+        jobs.extend(
+            _duplicate_jobs(
+                base_jobs,
+                weblog_names=duplication.weblog_names,
+                name_suffix=duplication.name_suffix,
+                weblog_env=duplication.weblog_env,
             )
         )
 
@@ -445,14 +469,21 @@ def _get_weblog_build_job(weblog: Weblog, *, build_base_images: bool) -> dict:
 
 
 def _split_jobs_for_parallel_execution(
-    jobs: list[Job], desired_execution_time: float, maximum_parallel_jobs: int
+    jobs: list[Job],
+    desired_execution_time: float,
+    maximum_parallel_jobs: int,
+    *,
+    job_duplications: tuple[_JobDuplication, ...] = (),
 ) -> list[Job]:
+    minimum_parallel_jobs = _get_parallel_job_count(jobs, job_duplications)
+    assert maximum_parallel_jobs >= minimum_parallel_jobs, "There are more weblog variants than maximum_parallel_jobs"
+
     result: list[Job] = []
 
     for job in jobs:
         result.extend(job.split_for_parallel_execution(desired_execution_time))
 
-    while len(result) > maximum_parallel_jobs:
+    while _get_parallel_job_count(result, job_duplications) > maximum_parallel_jobs:
         # sort jobs by their weblog_instance
         # this way, we'll go through each weblog
         for job_to_delete in sorted(result, key=lambda job: job.weblog_instance, reverse=True):
@@ -467,10 +498,14 @@ def _split_jobs_for_parallel_execution(
                 fastest_job = min(weblog_jobs, key=lambda x: x.expected_job_time)
                 fastest_job.append_scenario(scenario, job_to_delete.get_scenario_time(scenario))
 
-            if len(result) <= maximum_parallel_jobs:
+            if _get_parallel_job_count(result, job_duplications) <= maximum_parallel_jobs:
                 break
 
     return result
+
+
+def _get_parallel_job_count(jobs: list[Job], job_duplications: tuple[_JobDuplication, ...]) -> int:
+    return sum(1 + sum(job.weblog.name in duplication.weblog_names for duplication in job_duplications) for job in jobs)
 
 
 def _duplicate_jobs(
