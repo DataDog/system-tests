@@ -18,7 +18,7 @@ from .endtoend import DdTraceEndToEndScenario
 class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     """End-to-end scenario without a Datadog Agent, using agentless delivery mechanisms."""
 
-    _default_scenario_groups:tuple[ScenarioGroup,...] = ()  # exclude those scenario from tracer_release
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()  # exclude those scenario from tracer_release
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
     _mock_backend: MockFFEAgentlessBackendServer | None = None
