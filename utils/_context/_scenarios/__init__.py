@@ -7,10 +7,10 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
+from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from .endtoend import (
     DockerScenario,
     DdTraceEndToEndScenario,
-    FeatureFlaggingAgentlessEndToEndScenario,
     GraphQlEndToEndScenario,
 )
 from .integrations import (

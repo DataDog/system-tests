@@ -222,9 +222,10 @@ patterns:
         scenario_groups: docker_fixtures
     utils/_context/_scenarios/appsec_rasp.py:
         scenario_groups: appsec_rasp_scenario
+    utils/_context/_scenarios/agentless_endtoend.py:
+        scenario_groups: agentless
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
-        scenarios: FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
     utils/_context/_scenarios/integration_frameworks.py:
         scenarios: INTEGRATION_FRAMEWORKS
     utils/_context/_scenarios/integrations.py:
