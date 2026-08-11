@@ -100,6 +100,7 @@ def render_library(
         for scenario in job.get("scenarios", [])
     ]
     binaries_artifact = params["miscs"]["binaries_artifact"]
+    ci_environment = params["miscs"].get("ci_environment", "prod")
     parametric = params["parametric"]
     # Build the full list of artifact jobs for cross-pipeline downloads.
     # If binaries_artifacts is provided, use it; otherwise fall back to the single job.
@@ -110,9 +111,10 @@ def render_library(
     else:
         binaries_artifacts_list = []
 
+    is_default_branch = ci_commit_branch in {"main", "master", ci_default_branch}
     render_build = _generate_build_renderer(
-        push_main=True,
-        push_lib_main=(ci_project_name != "system-tests" and ci_commit_branch in {"main", "master", ci_default_branch}),
+        push_main=(ci_project_name == "system-tests" and is_default_branch),
+        push_lib_main=(ci_project_name != "system-tests" and is_default_branch),
     )
 
     return _template.render(
@@ -123,6 +125,7 @@ def render_library(
         binaries_artifact=binaries_artifact,
         binaries_artifacts_list=binaries_artifacts_list,
         binaries_artifact_path=binaries_artifact_path,
+        ci_environment=ci_environment,
         parametric=parametric,
         ci_image=ci_image,
         ref=ref,

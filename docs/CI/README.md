@@ -19,6 +19,12 @@ For the system-tests own CI, see also:
 
 * [CI test selection](./ci-test-selection.md): how the CI decides which libraries and scenarios to run based on modified files
 
+### Target artifact staging in generated GitLab jobs
+
+Generated GitLab child-pipeline jobs run target artifact staging directly where the artifact entries are consumed. Build jobs stage before building a weblog when no upstream binaries bundle takes precedence. Parametric jobs stage before `./run.sh PARAMETRIC` when no build artifact bundle exists. Custom jobs that receive an upstream binaries bundle skip staging because that bundle is the selected source of truth.
+
+GitHub workflows keep their existing compatibility path during the migration. The `load-binary.sh` command remains available for local and workflow compatibility, but test target selection is routed through the Python staging model.
+
 ### GitLab CI secrets setup
 
 1. Install aws-cli

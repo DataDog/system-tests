@@ -31,9 +31,12 @@ fail() {
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
 
-    echo "Clone $REPO_URL -b $rev_or_branch into /binaries/dd-trace-rs"
-    if ! git clone -b "$rev_or_branch" "$REPO_URL" /binaries/dd-trace-rs >/dev/null 2>&1; then
+    echo "Clone $REPO_URL at $rev_or_branch into /binaries/dd-trace-rs"
+    if ! git clone "$REPO_URL" /binaries/dd-trace-rs >/dev/null 2>&1; then
         fail "could not clone dd-trace-rs ref '$rev_or_branch'. Check that the ref exists and is accessible."
+    fi
+    if ! git -C /binaries/dd-trace-rs checkout "$rev_or_branch" >/dev/null 2>&1; then
+        fail "could not checkout dd-trace-rs ref '$rev_or_branch'. Check that the ref exists and is accessible."
     fi
 fi
 
@@ -74,7 +77,13 @@ else
 
     # remove previous dependency on datadog-opentelemetry and add the new one from crates.io
     cargo remove datadog-opentelemetry >/dev/null 2>&1 || true
-    if ! cargo add datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc >/dev/null 2>&1; then
+    if [ -e /binaries/rust-load-from-crates ]; then
+        crate_version=$(</binaries/rust-load-from-crates)
+        crate_spec="datadog-opentelemetry@${crate_version}"
+    else
+        crate_spec="datadog-opentelemetry"
+    fi
+    if ! cargo add "$crate_spec" --features metrics-http,metrics-grpc,logs-http,logs-grpc >/dev/null 2>&1; then
         fail "could not install datadog-opentelemetry from crates.io. Check network access and the selected package version."
     fi
 fi

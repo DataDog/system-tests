@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import subprocess
 
 from utils import scenarios
+from utils.target_artifacts.orchestrator import MANIFEST_FILENAME
 
 
 SCRIPT = Path("utils/scripts/load-binary.sh")
-C_LIBRARY_PROD_IMAGE = "install.datadoghq.com/apm-library-c-package:latest"
-C_INJECTOR_PROD_IMAGE = "install.datadoghq.com/apm-inject-package:latest"
+C_LIBRARY_DIGEST = "sha256:" + ("a" * 64)
+C_INJECTOR_DIGEST = "sha256:" + ("b" * 64)
+C_LIBRARY_PROD_IMAGE = f"install.datadoghq.com/apm-library-c-package@{C_LIBRARY_DIGEST}"
+C_INJECTOR_PROD_IMAGE = f"install.datadoghq.com/apm-inject-package@{C_INJECTOR_DIGEST}"
 C_LIBRARY_SHA = "1" * 40
 C_INJECTOR_SHA = "2" * 40
 
@@ -23,6 +27,7 @@ def _run_loader(
     tmp_path: Path,
     version: str,
     *,
+    target: str = "c",
     extra_env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     bin_dir = tmp_path / "bin"
@@ -31,29 +36,33 @@ def _run_loader(
     binaries_dir.mkdir()
 
     _write_executable(
-        bin_dir / "curl",
+        bin_dir / "docker",
         f"""#!/usr/bin/env bash
 set -eu
-url="${{!#}}"
-printf '%s\\n' "$url" >> "$CURL_CALLS"
-if [[ "${{MISSING_BRANCH:-}}" != "" && "$url" == *"${{MISSING_BRANCH}}"* ]]; then
-    exit 22
+printf '%s\\n' "$*" >> "$DOCKER_CALLS"
+if [[ "${{FAIL_IMAGE:-}}" != "" && "$*" == *"$FAIL_IMAGE"* ]]; then
+    exit 1
 fi
-if [[ "$url" == *"DataDog/dd-trace-c"* ]]; then
-    printf '%s\\n' '{{"commit":{{"sha":"{C_LIBRARY_SHA}"}}}}'
+if [[ "$*" == *"apm-library-c-package"* ]]; then
+    printf 'Name: apm-library-c-package\\nDigest: {C_LIBRARY_DIGEST}\\n'
 else
-    printf '%s\\n' '{{"commit":{{"sha":"{C_INJECTOR_SHA}"}}}}'
+    printf 'Name: apm-inject-package\\nDigest: {C_INJECTOR_DIGEST}\\n'
 fi
 """,
     )
     _write_executable(
-        bin_dir / "docker",
+        bin_dir / "curl",
         """#!/usr/bin/env bash
 set -eu
-printf '%s\\n' "$*" >> "$DOCKER_CALLS"
-if [[ "${FAIL_IMAGE:-}" != "" && "$*" == *"$FAIL_IMAGE"* ]]; then
-    exit 1
-fi
+output=""
+while [ "$#" -gt 0 ]; do
+    if [ "$1" = "--output" ]; then
+        shift
+        output="$1"
+    fi
+    shift
+done
+printf '{"rules":[]}\\n' > "$output"
 """,
     )
 
@@ -61,14 +70,13 @@ fi
         **os.environ,
         "PATH": f"{bin_dir}:{os.environ['PATH']}",
         "BINARIES_DIR": str(binaries_dir),
-        "CURL_CALLS": str(tmp_path / "curl-calls"),
         "DOCKER_CALLS": str(tmp_path / "docker-calls"),
     }
     env.pop("LIBRARY_TARGET_BRANCH", None)
     env.pop("AUTO_INJECT_TARGET_BRANCH", None)
     env.update(extra_env or {})
     return subprocess.run(
-        ["bash", str(SCRIPT), "c", version],
+        ["bash", str(SCRIPT), target, version],
         check=False,
         capture_output=True,
         text=True,
@@ -78,6 +86,21 @@ fi
 
 @scenarios.test_the_test
 class Test_LoadBinaryC:
+    def test_stage_target_artifacts_entrypoint_imports_without_pythonpath(self) -> None:
+        env = dict(os.environ)
+        env.pop("PYTHONPATH", None)
+
+        result = subprocess.run(
+            ["python3", "utils/scripts/stage-target-artifacts.py", "--help"],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert "usage: stage-target-artifacts" in result.stdout
+
     def test_native_library_is_loaded_by_auto_inject(self) -> None:
         dockerfile = Path("utils/build/docker/c/perl-mojolicious.Dockerfile").read_text(encoding="utf-8")
         launcher = Path("utils/build/docker/c/perl-mojolicious/app.sh").read_text(encoding="utf-8")
@@ -94,22 +117,21 @@ class Test_LoadBinaryC:
         assert (tmp_path / "binaries/c-library-image").read_text(encoding="utf-8").strip() == C_LIBRARY_PROD_IMAGE
         assert (tmp_path / "binaries/c-injector-image").read_text(encoding="utf-8").strip() == C_INJECTOR_PROD_IMAGE
         docker_calls = (tmp_path / "docker-calls").read_text(encoding="utf-8")
-        assert C_LIBRARY_PROD_IMAGE in docker_calls
-        assert C_INJECTOR_PROD_IMAGE in docker_calls
+        assert "install.datadoghq.com/apm-library-c-package:latest" in docker_calls
+        assert "install.datadoghq.com/apm-inject-package:latest" in docker_calls
 
     def test_development_package_defaults_to_production_without_overrides(self, tmp_path: Path) -> None:
         result = _run_loader(tmp_path, "dev")
 
         assert result.returncode == 0, result.stderr
-        assert not (tmp_path / "curl-calls").exists()
         assert (tmp_path / "binaries/c-library-image").read_text(encoding="utf-8").strip() == C_LIBRARY_PROD_IMAGE
         assert (tmp_path / "binaries/c-injector-image").read_text(encoding="utf-8").strip() == C_INJECTOR_PROD_IMAGE
         docker_calls = (tmp_path / "docker-calls").read_text(encoding="utf-8")
-        assert C_LIBRARY_PROD_IMAGE in docker_calls
-        assert C_INJECTOR_PROD_IMAGE in docker_calls
+        assert "install.datadoghq.com/apm-library-c-package:latest" in docker_calls
+        assert "install.datadoghq.com/apm-inject-package:latest" in docker_calls
 
     def test_single_branch_override_keeps_other_component_on_production(self, tmp_path: Path) -> None:
-        result = _run_loader(tmp_path, "dev", extra_env={"LIBRARY_TARGET_BRANCH": "feature/c-client"})
+        result = _run_loader(tmp_path, "dev", extra_env={"LIBRARY_TARGET_BRANCH": C_LIBRARY_SHA})
 
         assert result.returncode == 0, result.stderr
         assert (tmp_path / "binaries/c-library-image").read_text(encoding="utf-8").strip() == (
@@ -122,15 +144,13 @@ class Test_LoadBinaryC:
             tmp_path,
             "dev",
             extra_env={
-                "LIBRARY_TARGET_BRANCH": "feature/c-client",
-                "AUTO_INJECT_TARGET_BRANCH": "feature/injector",
+                "LIBRARY_TARGET_BRANCH": C_LIBRARY_SHA,
+                "AUTO_INJECT_TARGET_BRANCH": C_INJECTOR_SHA,
             },
         )
 
         assert result.returncode == 0, result.stderr
-        curl_calls = (tmp_path / "curl-calls").read_text(encoding="utf-8")
-        assert "feature%2Fc-client" in curl_calls
-        assert "feature%2Finjector" in curl_calls
+        assert not (tmp_path / "docker-calls").exists()
         assert (tmp_path / "binaries/c-library-image").read_text(encoding="utf-8").strip() == (
             f"installtesting.datad0g.com/apm-library-c-package:{C_LIBRARY_SHA}"
         )
@@ -138,15 +158,15 @@ class Test_LoadBinaryC:
             f"installtesting.datad0g.com/apm-inject-package:{C_INJECTOR_SHA}"
         )
 
-    def test_missing_branch_fails_before_package_validation(self, tmp_path: Path) -> None:
+    def test_production_rejects_branch_overrides_before_package_validation(self, tmp_path: Path) -> None:
         result = _run_loader(
             tmp_path,
-            "dev",
-            extra_env={"LIBRARY_TARGET_BRANCH": "missing", "MISSING_BRANCH": "missing"},
+            "prod",
+            extra_env={"LIBRARY_TARGET_BRANCH": C_LIBRARY_SHA},
         )
 
         assert result.returncode != 0
-        assert "Unable to resolve branch 'missing' in DataDog/dd-trace-c" in result.stderr
+        assert "Target branches can only be used with the development c packages" in result.stderr
         assert not (tmp_path / "docker-calls").exists()
 
     def test_missing_package_fails_with_clear_error(self, tmp_path: Path) -> None:
@@ -157,4 +177,29 @@ class Test_LoadBinaryC:
         )
 
         assert result.returncode != 0
-        assert "OCI package does not exist or is not accessible" in result.stderr
+        assert "Unable to resolve OCI digest" in result.stderr
+
+    def test_agent_dependency_uses_explicit_compatibility_path(self, tmp_path: Path) -> None:
+        result = _run_loader(
+            tmp_path,
+            "dev",
+            target="agent",
+            extra_env={"AGENT_TARGET_BRANCH": "feature-agent"},
+        )
+
+        assert result.returncode == 0, result.stderr
+        binaries_dir = tmp_path / "binaries"
+        assert (binaries_dir / "agent-image").read_text(encoding="utf-8").strip() == ("datadog/agent-dev:feature-agent")
+        manifest = json.loads((binaries_dir / MANIFEST_FILENAME).read_text(encoding="utf-8"))
+        assert manifest["entries"]["agent-image"]["owner"] == {
+            "target": "agent",
+            "environment": "dependency",
+        }
+
+    def test_waf_rule_set_overlay_stays_outside_target_manifest(self, tmp_path: Path) -> None:
+        result = _run_loader(tmp_path, "dev", target="waf_rule_set")
+
+        assert result.returncode == 0, result.stderr
+        binaries_dir = tmp_path / "binaries"
+        assert json.loads((binaries_dir / "waf_rule_set.json").read_text(encoding="utf-8")) == {"rules": []}
+        assert not (binaries_dir / MANIFEST_FILENAME).exists()

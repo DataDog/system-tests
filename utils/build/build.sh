@@ -143,6 +143,63 @@ run_build_command() {
     return "${exit_code}"
 }
 
+copy_staged_package_files() {
+    local source_dir=$1
+    local package_pattern=$2
+    local setup_pattern=${3:-}
+    local package_count
+    local setup_count=1
+
+    package_count=$(find "$source_dir" -type f -name "$package_pattern" | wc -l)
+    if [[ "$package_count" -eq 0 ]]; then
+        echo "ERROR: extracted staged package image did not contain $package_pattern" >&2
+        exit 1
+    fi
+
+    if [[ -n "$setup_pattern" ]]; then
+        setup_count=$(find "$source_dir" -type f -name "$setup_pattern" | wc -l)
+        if [[ "$setup_count" -eq 0 ]]; then
+            echo "ERROR: extracted staged package image did not contain $setup_pattern" >&2
+            exit 1
+        fi
+        find "$source_dir" -type f -name "$setup_pattern" -exec cp {} binaries/ \;
+    fi
+
+    find "$source_dir" -type f -name "$package_pattern" -exec cp {} binaries/ \;
+}
+
+materialize_staged_package_image() {
+    local selector_file=$1
+    local package_pattern=$2
+    local setup_pattern=${3:-}
+    local temp_dir
+    local image
+
+    image=$(<"$selector_file")
+    temp_dir=$(mktemp -d "${TMPDIR:-/tmp}/system-tests-staged-package.XXXXXX")
+    run_build_command utils/scripts/docker_base_image.sh "$image" "$temp_dir"
+    copy_staged_package_files "$temp_dir" "$package_pattern" "$setup_pattern"
+    rm -rf "$temp_dir"
+}
+
+materialize_staged_provider_artifacts() {
+    if [[ $TEST_LIBRARY == dotnet ]] && [[ -f binaries/dotnet-package-image ]]; then
+        if [[ "$(find binaries -maxdepth 1 \( -name 'datadog-dotnet-apm*.tar.gz' -o -name 'Datadog.Trace.ClrProfiler.Native.so' \) | wc -l)" -gt 0 ]]; then
+            echo "Skipping staged .NET package image because local .NET artifacts already exist in binaries/"
+        else
+            materialize_staged_package_image binaries/dotnet-package-image 'datadog-dotnet-apm*.tar.gz'
+        fi
+    fi
+
+    if [[ $TEST_LIBRARY == php ]] && [[ -f binaries/php-package-image ]]; then
+        if [[ "$(find binaries -maxdepth 1 \( -name 'dd-library-php-*-linux-gnu.tar.gz' -o -name 'datadog-setup.php' \) | wc -l)" -gt 0 ]]; then
+            echo "Skipping staged PHP package image because local PHP artifacts already exist in binaries/"
+        else
+            materialize_staged_package_image binaries/php-package-image 'dd-library-php-*-linux-gnu.tar.gz' 'datadog-setup.php'
+        fi
+    fi
+}
+
 build() {
 
     echo "=================================="
@@ -301,6 +358,8 @@ build() {
                     echo "Using Python version: $PYTHON_VERSION"
                     run_build_command docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
+
+                materialize_staged_provider_artifacts
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 

@@ -26,10 +26,20 @@ Each library in the CI matrix will use its own specified branch. Libraries witho
 
 As a security measure, the "Fail if target branch is specified" job always fails if a target branch is selected.
 
+### Target artifact staging
+
+GitLab generated jobs stage target artifacts at the point where the generated `binaries/` entries are needed:
+
+- Build jobs run `python3 utils/scripts/stage-target-artifacts.py <library> <environment>` before building a weblog when no upstream binaries bundle takes precedence.
+- Parametric jobs run the same command before `./run.sh PARAMETRIC` when no build artifact bundle exists.
+- Run jobs that consume a build job's artifact bundle do not repeat staging.
+- Custom jobs with upstream binaries bundles skip staging because the upstream bundle is the selected artifact source of truth.
+
+The command accepts `custom` as a no-op, so generated templates can use one command shape safely. GitHub workflows keep using existing compatibility behavior until they choose to consume the new production artifact entries directly.
+
 ### Scenario detection in CI
 
 When a modification is made in system tests, the CI tries to detect which scenario to run:
 
 1. based on modified files in `tests/`, by extracting scenarios targeted by those files
 2. based on any modification in a `tests/**/utils.py`, and applying the logic 1. on any sub file in `tests/**`
-

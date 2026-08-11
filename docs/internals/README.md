@@ -11,6 +11,7 @@ All about system-tests deep internals. For those of you who are not afraid of ge
 
 - [MITM certificate](recreating_MITM_certificate.md) -- how to recreate the proxy certificate
 - [Core dump generation](generate-core-dump.md) -- generating core dumps for debugging
+- [Target artifact staging](target-artifact-staging-spec.md) -- target-owned artifact selection model, manifest behavior, and maintainer contract
 
 ### Recreating protobuf schemas
 
