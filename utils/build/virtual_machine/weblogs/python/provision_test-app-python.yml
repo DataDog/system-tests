@@ -6,6 +6,12 @@ lang_variant:
       - os_type: linux
         os_distro: deb
         remote-command: |
+          # Ubuntu 23.04 (Lunar) is EOL since January 2024, use archive repositories
+          if grep -q "lunar" /etc/os-release 2>/dev/null; then
+            echo "Ubuntu 23.04 (Lunar) detected - Configuring archive sources"
+            sudo sed -i -e 's|http://[^/]*/ubuntu|http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+            sudo sed -i -e 's|https://[^/]*/ubuntu|http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list
+          fi
           sudo apt-get update
           sudo apt install -y python-is-python3
           sudo apt install -y python3-pip
