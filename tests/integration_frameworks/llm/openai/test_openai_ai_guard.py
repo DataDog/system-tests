@@ -32,7 +32,7 @@ import pytest
 from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
-from tests.integration_frameworks.llm.ai_guard_utils import (
+from tests.integration_frameworks.llm.utils import (
     guard_messages,
     wait_for_ai_guard_event_root_spans,
     wait_for_ai_guard_spans,
