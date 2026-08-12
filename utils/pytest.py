@@ -15,6 +15,7 @@ Item = _pytest.Item
 Mark = _pytest.Mark
 MarkDecorator = _pytest.MarkDecorator
 MonkeyPatch = _pytest.MonkeyPatch
+CaptureFixture = _pytest.CaptureFixture
 Session = _pytest.Session
 
 approx = _pytest.approx
