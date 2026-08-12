@@ -91,7 +91,7 @@ service_test(
     size = "enormous",
     timeout = "long",
     services = [":test_agent"],
-    shard_count = 16,
+    shard_count = 32,
     target_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",

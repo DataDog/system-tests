@@ -94,7 +94,7 @@ Tests can be aborted using CTRL-C but note that containers maybe still be runnin
 
 #### Running Go tests on Buildbarn without Docker
 
-The Go parametric suite has a hermetic Bazel target that runs on 16 Buildbarn shards:
+The Go parametric suite has a hermetic Bazel target that runs on 32 Buildbarn shards:
 
 ```sh
 bazel test --config=buildbarn //bazel/parametric:go
