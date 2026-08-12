@@ -546,8 +546,10 @@ def _assert_redacted_tag(span: DataDogLibrarySpan, *, expected: bool) -> None:
     raw = _span_tag(span, REDACTED_TAG)
     assert raw is not None, f"'{REDACTED_TAG}' not set on the ai_guard span"
     if isinstance(raw, (int, float)) and not isinstance(raw, bool):
-        # A tracer reporting the tag as a metric uses 1/0 rather than true/false.
-        actual: bool | str = bool(raw)
+        # A tracer reporting the tag as a metric uses exactly 1 or 0: the tag is a boolean, so
+        # any other number is a bug rather than a truthy value to be coerced.
+        assert raw in (0, 1), f"'{REDACTED_TAG}' reported as a metric should be 1 or 0, got '{raw}'"
+        actual: bool | str = raw == 1
     else:
         assert isinstance(raw, (bool, str)), f"'{REDACTED_TAG}' should be a boolean or a string, got '{raw}'"
         actual = raw
@@ -580,6 +582,12 @@ def _assert_redaction_scenario(scenario: dict):
         for sensitive_value in scenario["sensitive_values"]:
             assert sensitive_value not in serialized, (
                 f"Sensitive value '{sensitive_value}' still present in redacted messages: {serialized}"
+            )
+        # The mirror image: only a path the backend sent a usable replacement for may change, so a
+        # sensitive value on a skipped path is expected to still be there, not merely unchecked.
+        for retained_value in scenario["retained_values"]:
+            assert retained_value in serialized, (
+                f"Value '{retained_value}' was redacted although no usable replacement targeted it: {serialized}"
             )
 
         # sds_findings are independent detection metadata: reported whether or not anything was
@@ -1029,7 +1037,13 @@ class Test_RedactionInSDKResponse:
         by_path = {entry["path"]: entry for entry in replacements}
         for redaction in expected:
             entry = _assert_key(by_path, redaction["path"])
-            _assert_key(entry, "replacement", redaction["replacement"])
+            # Compared explicitly rather than through _assert_key, which skips the comparison for a
+            # falsy expected value: an empty replacement is the customer's remove strategy, a value
+            # the corpus deliberately carries, not a missing expectation.
+            replacement = _assert_key(entry, "replacement")
+            assert replacement == redaction["replacement"], (
+                f"Wrong replacement for '{redaction['path']}': '{replacement}' != '{redaction['replacement']}'"
+            )
 
         # sds_findings are independent detection metadata and must still be present.
         sds = _assert_key(body, "sds")
@@ -1137,20 +1151,11 @@ class Test_AIGuardEvent_Tag:
         interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
 
 
-# The dedicated namespace AI Guard telemetry is migrating to, see _find_telemetry_series.
 TELEMETRY_NAMESPACE = "ai_guard"
 
 
-def _find_telemetry_series(metric: str) -> list[dict]:
-    """Extract the telemetry series of one AI Guard metric, under either accepted identity.
-
-    AI Guard metrics currently live in the appsec namespace as `ai_guard.<metric>`, and the
-    telemetry design moves them to a dedicated `ai_guard` namespace where they are named
-    `<metric>` (see the AI Guard telemetry metrics doc). The metric is unambiguous either way, so
-    both are accepted: this keeps the tests passing across the migration rather than pinning them
-    to a namespace no tracer emits yet.
-    """
-    accepted = {("appsec", f"ai_guard.{metric}"), (TELEMETRY_NAMESPACE, metric)}
+def _find_telemetry_series(namespace: str, metric: str) -> list[dict]:
+    """Extract telemetry metric series matching the given namespace and metric name."""
     series = []
     for data in interfaces.library.get_telemetry_data():
         content = data["request"]["content"]
@@ -1160,7 +1165,7 @@ def _find_telemetry_series(metric: str) -> list[dict]:
         for serie in content["payload"]["series"]:
             computed_namespace = serie.get("namespace", fallback_namespace)
             serie["_computed_namespace"] = computed_namespace
-            if (computed_namespace, serie["metric"]) in accepted:
+            if computed_namespace == namespace and serie["metric"] == metric:
                 series.append(serie)
     return series
 
@@ -1172,6 +1177,16 @@ def _sum_points(series_list: list[dict]) -> int:
         for p in s["points"]:
             total += p[1]
     return total
+
+
+def _series_with_tag(series_list: list[dict], tag: str) -> list[dict]:
+    """Keep the series carrying one `key:value` tag, matched case-insensitively.
+
+    Case matters for the action tag: tracers report the evaluation action either as they received
+    it (DENY) or lower-cased.
+    """
+    wanted = tag.lower()
+    return [s for s in series_list if wanted in {t.lower() for t in s["tags"]}]
 
 
 @features.ai_guard_standalone
@@ -1239,7 +1254,7 @@ class Test_AIGuardTelemetryRequests:
         weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: "false"}, json=MESSAGES["DENY"])
 
     def test_telemetry_requests(self):
-        series = _find_telemetry_series("requests")
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
         assert len(series) > 0, "No ai_guard.requests telemetry metric found"
 
         self._requests_metric_has_required_tags(series)
@@ -1296,7 +1311,7 @@ class Test_AIGuardTelemetryTruncated:
         weblog.post("/ai_guard/evaluate", json=self.MESSAGES_LONG_CONTENT)
 
     def test_truncated(self):
-        series = _find_telemetry_series("truncated")
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "truncated")
         assert len(series) > 0, "No ai_guard.truncated telemetry metric found"
         self._truncated_messages(series)
         self._truncated_content(series)
@@ -1330,13 +1345,22 @@ class Test_AIGuardTelemetryTruncated:
 
 @rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
 @features.ai_guard
-@scenarios.ai_guard_telemetry
+@scenarios.ai_guard_redaction_telemetry
 class Test_AIGuardTelemetryRedacted:
     """The ai_guard.requests telemetry metric reports whether an evaluation redacted anything.
 
     The redacted tag sits alongside the existing action, block and error tags. It is true when at
     least one replacement was applied and false when the response carried no replacements or
     every entry was skipped fail-safe, which makes redaction measurable without meta struct.
+
+    This class is the only one in the AI_GUARD_REDACTION_TELEMETRY scenario, which is what makes
+    the exact counts below possible: the metric is not request-scoped. See the scenario definition
+    for why it cannot share AI_GUARD_TELEMETRY.
+
+    Every count is still scoped to the action its own setup sends, never to the redacted tag alone:
+    all setup methods in a class run before any of its tests, but a test that is skipped or
+    deselected contributes no traffic, so counting a sibling's evaluations would make each test
+    depend on the other being enabled.
     """
 
     def setup_telemetry_redacted(self):
@@ -1346,32 +1370,47 @@ class Test_AIGuardTelemetryRedacted:
         _post_redaction_scenario("SKIP_CONFLICTING_REPLACEMENTS")
 
     def test_telemetry_redacted(self):
-        series = _find_telemetry_series("requests")
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
         assert len(series) > 0, "No ai_guard.requests telemetry metric found"
 
         all_tags = [s["tags"] for s in series]
-        redacted_series = [s for s in series if "redacted:true" in s["tags"]]
-        assert len(redacted_series) > 0, f"No requests series with redacted:true found. All series tags: {all_tags}"
-        assert _sum_points(redacted_series) >= 1, "Expected at least one redacted evaluation to be counted"
+        # All three evaluations of this setup are ALLOW, which is what keeps the counts clear of the
+        # DENY evaluation the other test sends.
+        allowed = _series_with_tag(series, "action:allow")
+        assert allowed, f"No requests series with action:ALLOW found. All series tags: {all_tags}"
 
-        not_redacted_series = [s for s in series if "redacted:false" in s["tags"]]
-        assert len(not_redacted_series) > 0, (
-            f"No requests series with redacted:false found. All series tags: {all_tags}"
+        redacted_series = _series_with_tag(allowed, "redacted:true")
+        assert redacted_series, f"No allowed requests series with redacted:true found. All series tags: {all_tags}"
+        # REDACT_ONE_MSG_ONE_FINDING, the only allowed evaluation here that redacts.
+        assert _sum_points(redacted_series) == 1, (
+            f"Expected exactly 1 redacted allowed evaluation to be counted, got {_sum_points(redacted_series)}"
         )
-        # The benign evaluation and the one whose entries were all skipped both count as not redacted.
-        assert _sum_points(not_redacted_series) >= 2, (
-            f"Expected at least 2 non-redacted evaluations to be counted, got {_sum_points(not_redacted_series)}"
+
+        not_redacted_series = _series_with_tag(allowed, "redacted:false")
+        assert not_redacted_series, f"No requests series with redacted:false found. All series tags: {all_tags}"
+        # The benign evaluation and the one whose entries were all skipped, and nothing else.
+        assert _sum_points(not_redacted_series) == 2, (
+            f"Expected exactly 2 non-redacted evaluations to be counted, got {_sum_points(not_redacted_series)}"
         )
 
     def setup_telemetry_redacted_alongside_action(self):
         _post_redaction_scenario("REDACT_ON_DENY")
 
     def test_telemetry_redacted_alongside_action(self):
-        """The redacted tag does not replace the existing tags: action, block and error stay."""
-        series = _find_telemetry_series("requests")
-        redacted_series = [s for s in series if "redacted:true" in s["tags"]]
-        assert len(redacted_series) > 0, (
-            f"No requests series with redacted:true found. All series tags: {[s['tags'] for s in series]}"
+        """The redacted tag does not replace the existing tags: action, block and error stay.
+
+        Asserted on the DENY evaluation specifically. A filter on redacted:true alone would be
+        satisfied by the ALLOW evaluation the other setup sends, leaving the tag combination that
+        matters most, a denied evaluation that also redacted, unverified.
+        """
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
+        redacted_series = _series_with_tag(_series_with_tag(series, "redacted:true"), "action:deny")
+        assert redacted_series, (
+            f"No requests series with both redacted:true and action:DENY found. "
+            f"All series tags: {[s['tags'] for s in series]}"
+        )
+        assert _sum_points(redacted_series) == 1, (
+            f"Expected exactly 1 denied evaluation to be counted as redacted, got {_sum_points(redacted_series)}"
         )
         for s in redacted_series:
             tag_prefixes = {t.split(":")[0] for t in s["tags"]}
@@ -1433,6 +1472,14 @@ class Test_RedactionDisabled:
         assert len(sds) == len(self.scenario["sds_findings"]), (
             f"Expected {len(self.scenario['sds_findings'])} sds findings with redaction disabled, got {sds}"
         )
+        # Asserted on the response as well as on meta struct: a tracer that recorded the originals
+        # in the span but still handed the redacted list back to the caller would have applied the
+        # transformation the kill-switch is meant to suppress.
+        messages = _assert_key(body, "messages")
+        assert messages == self.scenario["messages"], (
+            f"SDK response messages must be untouched when redaction is disabled: "
+            f"{messages} != {self.scenario['messages']}"
+        )
         interfaces.library.validate_one_span(
             self.r, validator=self._assert_unredacted_span(self.scenario), full_trace=True
         )
@@ -1453,7 +1500,7 @@ class Test_RedactionDisabledTelemetry:
         _post_redaction_scenario("NO_REDACT_ONE_MSG")
 
     def test_no_redacted_tag(self):
-        series = _find_telemetry_series("requests")
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
         assert len(series) > 0, "No ai_guard.requests telemetry metric found"
         for s in series:
             tagged = [t for t in s["tags"] if t.split(":")[0] == "redacted"]

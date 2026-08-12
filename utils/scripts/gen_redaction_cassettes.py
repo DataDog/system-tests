@@ -18,13 +18,18 @@ fully redacted) alongside the informative `sds_findings` detection metadata.
 
 Besides the cassettes, this writes tests/ai_guard/redaction_scenarios.json, which
 carries the expected outcome of every scenario: the messages after redaction, the
-sensitive values that must be gone, and whether the tracer must report the
-evaluation as redacted (the ai_guard.redacted span tag and the redacted telemetry
-tag). Those expectations come from apply_replacements below, a reference
-implementation of the RFC algorithm, cross-checked against the intent each
-scenario declares in expect_redacted.
+sensitive values that must be gone, the ones that must survive, and whether the
+tracer must report the evaluation as redacted (the ai_guard.redacted span tag and
+the redacted telemetry tag).
+
+Every one of those expectations is authored in SCENARIOS below (expect_redacted and
+expect_removed) and cross-checked against apply_replacements, a reference
+implementation of the RFC algorithm. The two are kept independent on purpose: a
+corpus that only ever reported what the reference implementation happened to do
+would assert tracer == generator instead of tracer == RFC.
 
 Run from the repo root:  python3 utils/scripts/gen_redaction_cassettes.py
+Pass --check to report drift without writing anything (used by format.sh --check).
 """
 
 from __future__ import annotations
@@ -33,6 +38,7 @@ import copy
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 
 CASSETTES_DIR = Path("utils/build/docker/vcr/cassettes/aiguard")
@@ -53,8 +59,9 @@ RULES = {
 # ---------------------------------------------------------------------------
 
 # One segment of a location path: a field name plus an optional non-negative list index.
-# The whole segment must match, a partial match is rejected.
-SEGMENT_RE = re.compile(r"^(?P<name>[A-Za-z0-9_]+)(?:\[(?P<index>[0-9]+)\])?$")
+# Always matched with fullmatch, never search: a partial match is rejected, and unlike $ that
+# also rejects a trailing newline. The test-side resolver anchors with \Z for the same reason.
+SEGMENT_RE = re.compile(r"(?P<name>[A-Za-z0-9_]+)(?:\[(?P<index>[0-9]+)\])?")
 
 # The only terminal field names a replacement may be written to, per the RFC "Redactable
 # targets" section: message content, content-part text and tool call arguments. Anything
@@ -70,7 +77,7 @@ def _split_segments(path: str) -> list[tuple[str, int | None]] | None:
     """Split a location path into (name, index) segments, or None if any segment is malformed."""
     segments = []
     for raw in path.split("."):
-        match = SEGMENT_RE.match(raw)
+        match = SEGMENT_RE.fullmatch(raw)
         if match is None:
             return None
         index = match.group("index")
@@ -194,36 +201,51 @@ def _cassette_name(request_body: str) -> str:
 
 
 def _findings_for(path: str, sensitive: list[tuple[str, str]], text: str) -> list[dict]:
-    """Build sds_findings for the (value, rule_key) pairs found in `text` at `path`."""
+    """Build sds_findings for the (value, rule_key) pairs found in `text` at `path`.
+
+    One finding per occurrence, because _redact replaces them all: reporting only the first would
+    make the cassette contradict itself, with a replacement that removed a span no finding covers.
+    """
     findings = []
     for value, rule_key in sensitive:
         display, tag, category = RULES[rule_key]
-        start = text.index(value)
-        findings.append(
-            {
-                "rule_display_name": display,
-                "rule_tag": tag,
-                "category": category,
-                "location": {
-                    "path": path,
-                    "start_index": start,
-                    "end_index_exclusive": start + len(value),
-                },
-            }
-        )
+        start = text.find(value)
+        assert start >= 0, f"{value!r} does not appear at {path}"
+        while start >= 0:
+            findings.append(
+                {
+                    "rule_display_name": display,
+                    "rule_tag": tag,
+                    "category": category,
+                    "location": {
+                        "path": path,
+                        "start_index": start,
+                        "end_index_exclusive": start + len(value),
+                    },
+                }
+            )
+            start = text.find(value, start + len(value))
     return findings
 
 
 def _redact(text: str, sensitive: list[tuple[str, str]], placeholder: str) -> str:
+    # Order-independent only while no value contains another: redacting the shorter one first would
+    # otherwise leave a mangled fragment of the longer one behind.
+    values = [value for value, _ in sensitive]
+    for value in values:
+        others = [other for other in values if other != value]
+        assert not any(value in other for other in others), f"{value!r} is a substring of another declared value"
+
     redacted = text
-    for value, _ in sensitive:
+    for value in values:
         redacted = redacted.replace(value, placeholder)
     return redacted
 
 
-# Benign tag probabilities: redaction scenarios are ALLOW with no attack category matched.
-# tag_probs is part of the real evaluation response, so we keep it for deserializer parity.
-_BENIGN_TAG_PROBS = {
+# The attack categories an evaluation scores, all at zero: redaction is orthogonal to attack
+# detection, so a scenario matches no category unless it declares one in `tags`. tag_probs is part
+# of the real evaluation response, so we keep it for deserializer parity.
+_TAG_PROBS = {
     "authority-override": 0.0,
     "data-exfiltration": 0.0,
     "denial-of-service-tool-call": 0.0,
@@ -236,6 +258,21 @@ _BENIGN_TAG_PROBS = {
     "security-exploit": 0.0,
     "system-prompt-extraction": 0.0,
 }
+
+# The probability the backend reports for a category it did return. A returned tag can never keep
+# its 0.0: Test_Tag_Probabilities requires every tag in `tags` to carry a positive probability, and
+# an evaluation that matched a category by definition scored it above zero.
+MATCHED_TAG_PROBABILITY = 0.97
+
+
+def _tag_probs_for(tags: list[str]) -> dict[str, float]:
+    """Build the tag_probs map, scoring every returned tag above zero."""
+    probs = dict(_TAG_PROBS)
+    for tag in tags:
+        assert tag in probs, f"unknown attack category {tag!r}"
+        probs[tag] = MATCHED_TAG_PROBABILITY
+    assert all(probs[tag] > 0 for tag in tags), f"a returned tag has no positive probability: {tags}"
+    return probs
 
 
 def _response_body(
@@ -266,7 +303,7 @@ def _string_at_path(messages: list, path: str) -> str:
     """Minimal resolver for the paths used in the fixtures (mirrors the RFC path grammar)."""
     obj: object = {"messages": messages}
     for segment in path.split("."):
-        m = SEGMENT_RE.match(segment)
+        m = SEGMENT_RE.fullmatch(segment)
         assert m, f"bad segment {segment!r}"
         obj = obj[m.group("name")]  # type: ignore[index]
         if m.group("index") is not None:
@@ -275,8 +312,8 @@ def _string_at_path(messages: list, path: str) -> str:
     return obj
 
 
-def write_cassette(request_body: str, response_body: str) -> str:
-    name = _cassette_name(request_body)
+def render_cassette(request_body: str, response_body: str) -> str:
+    """Render the cassette file content for one request/response pair."""
     cassette = {
         "request": {
             "method": "POST",
@@ -296,9 +333,7 @@ def write_cassette(request_body: str, response_body: str) -> str:
             "body": response_body,
         },
     }
-    path = CASSETTES_DIR / name
-    path.write_text(json.dumps(cassette, indent=1) + "\n")
-    return name
+    return json.dumps(cassette, indent=1) + "\n"
 
 
 REDACTION_REASON = "Sensitive data detected; configured categories will be redacted."
@@ -321,6 +356,10 @@ _IMAGE_DATA_URL = (
 #   action          evaluation action, ALLOW unless stated
 #   expect_redacted the outcome this scenario is written to prove, cross-checked against the
 #                   reference implementation above
+#   expect_removed  the sensitive values redaction must make disappear, authored per scenario and
+#                   cross-checked against the reference implementation. Absent means "none of
+#                   them", which is checked too: every declared value the scenario does not list
+#                   here must still be present once redaction has run
 SCENARIOS: dict[str, dict] = {
     # ---------------------------------------------------------------- nothing to redact
     "NO_REDACT_ONE_MSG": {
@@ -363,6 +402,7 @@ SCENARIOS: dict[str, dict] = {
         "description": "RFC baseline: one message with a single sensitive value.",
         "messages": [{"role": "user", "content": "My SSN is 123-45-6789"}],
         "targets": [("messages[0].content", [("123-45-6789", "ssn")])],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_MULTI_ONE_FINDING": {
@@ -374,6 +414,7 @@ SCENARIOS: dict[str, dict] = {
             {"role": "user", "content": "It is john.smith@acmebank.com"},
         ],
         "targets": [("messages[3].content", [("john.smith@acmebank.com", "email")])],
+        "expect_removed": ["john.smith@acmebank.com"],
         "expect_redacted": True,
     },
     "REDACT_ONE_MSG_MULTI_FINDINGS": {
@@ -383,6 +424,7 @@ SCENARIOS: dict[str, dict] = {
             {"role": "user", "content": "My SSN is 123-45-6789 and my email is paco@gmail.com"},
         ],
         "targets": [("messages[1].content", [("123-45-6789", "ssn"), ("paco@gmail.com", "email")])],
+        "expect_removed": ["123-45-6789", "paco@gmail.com"],
         "expect_redacted": True,
     },
     "REDACT_MIXED": {
@@ -396,6 +438,7 @@ SCENARIOS: dict[str, dict] = {
             ("messages[0].content", [("123-45-6789", "ssn"), ("paco@gmail.com", "email")]),
             ("messages[2].content", [("415-555-0132", "phone")]),
         ],
+        "expect_removed": ["123-45-6789", "paco@gmail.com", "415-555-0132"],
         "expect_redacted": True,
     },
     "REDACT_SYSTEM_PROMPT": {
@@ -408,6 +451,7 @@ SCENARIOS: dict[str, dict] = {
             {"role": "user", "content": "Hello"},
         ],
         "targets": [("messages[0].content", [("ops@acme.io", "email"), ("123-45-6789", "ssn")])],
+        "expect_removed": ["ops@acme.io", "123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_ASSISTANT_RESPONSE": {
@@ -417,6 +461,7 @@ SCENARIOS: dict[str, dict] = {
             {"role": "assistant", "content": "Your card on file is 4111-1111-1111-1111."},
         ],
         "targets": [("messages[1].content", [("4111-1111-1111-1111", "credit_card")])],
+        "expect_removed": ["4111-1111-1111-1111"],
         "expect_redacted": True,
     },
     "REDACT_TOOL_RESULT": {
@@ -432,6 +477,7 @@ SCENARIOS: dict[str, dict] = {
             {"role": "tool", "tool_call_id": "call_1", "content": "Account 000123456789 SSN 123-45-6789 balance 100"},
         ],
         "targets": [("messages[2].content", [("000123456789", "bank"), ("123-45-6789", "ssn")])],
+        "expect_removed": ["000123456789", "123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_TOOL_ARGS": {
@@ -457,6 +503,7 @@ SCENARIOS: dict[str, dict] = {
                 [("john@acme.io", "email"), ("123-45-6789", "ssn")],
             )
         ],
+        "expect_removed": ["john@acme.io", "123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_CONTENT_PART_TEXT": {
@@ -471,6 +518,7 @@ SCENARIOS: dict[str, dict] = {
             }
         ],
         "targets": [("messages[0].content[0].text", [("4111-1111-1111-1111", "credit_card")])],
+        "expect_removed": ["4111-1111-1111-1111"],
         "expect_redacted": True,
     },
     "REDACT_EMPTY_REPLACEMENT": {
@@ -478,6 +526,7 @@ SCENARIOS: dict[str, dict] = {
         "messages": [{"role": "user", "content": "Store this for later: SSN 123-45-6789"}],
         "targets": [("messages[0].content", [("123-45-6789", "ssn")])],
         "replacements": [{"path": "messages[0].content", "replacement": ""}],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_HASHED_REPLACEMENT": {
@@ -490,12 +539,14 @@ SCENARIOS: dict[str, dict] = {
                 "replacement": "Hash my SSN 5c2f1a4b8d3e6f7091a2b3c4d5e6f708 before storing it",
             }
         ],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_NON_ASCII": {
         "description": "Emoji and astral-plane characters survive the copy: the tracer never indexes the string.",
         "messages": [{"role": "user", "content": "Hola 👋🏽 mi SSN es 123-45-6789 — ¿lo guardas? 🔐"}],
         "targets": [("messages[0].content", [("123-45-6789", "ssn")])],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     "REDACT_ON_DENY": {
@@ -506,6 +557,7 @@ SCENARIOS: dict[str, dict] = {
         "targets": [("messages[0].content", [("123-45-6789", "ssn")])],
         "action": "DENY",
         "tags": ["data-exfiltration"],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     # ---------------------------------------------------------------- fail-safe skips
@@ -580,6 +632,7 @@ SCENARIOS: dict[str, dict] = {
             {"path": "messages[7].content", "replacement": f"My email is {PLACEHOLDER}"},
             {"path": "messages[1].content", "replacement": None},
         ],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     # ------------------------------------------------- structural fields are never writable
@@ -655,19 +708,29 @@ def build_scenario(name: str, scenario: dict) -> tuple[str, str, dict]:
         f"but the reference implementation computed {redacted}"
     )
 
-    # Only the values redaction actually removed can be asserted absent: a skipped path
-    # deliberately leaves its sensitive value in place.
+    # Split the sensitive values the scenario declares into the ones redaction removed and the
+    # ones it left behind, and hold both against what the scenario says must happen. A skipped
+    # path deliberately keeps its sensitive value, so "still there" is an expectation in its own
+    # right, not a value that merely escaped the check.
     serialized = json.dumps(expected_messages)
-    removed = [value for _, sensitive in targets for value, _ in sensitive if value not in serialized]
+    declared = [value for _, sensitive in targets for value, _ in sensitive]
+    removed = [value for value in declared if value not in serialized]
+    retained = [value for value in declared if value in serialized]
+    expect_removed = scenario.get("expect_removed", [])
+    assert sorted(removed) == sorted(expect_removed), (
+        f"{name}: scenario declares expect_removed={sorted(expect_removed)} but the reference "
+        f"implementation removed {sorted(removed)}"
+    )
 
+    tags = scenario.get("tags", [])
     request_body = _wrap_request_body(messages)
     response_body = _response_body(
         action=action,
         reason=reason,
         redaction_replacements=replacements,
         sds_findings=sds_findings,
-        tags=scenario.get("tags", []),
-        tag_probs=dict(_BENIGN_TAG_PROBS),
+        tags=tags,
+        tag_probs=_tag_probs_for(tags),
     )
 
     entry = {
@@ -679,7 +742,9 @@ def build_scenario(name: str, scenario: dict) -> tuple[str, str, dict]:
         "expected_messages": expected_messages,
         # Expected value of the ai_guard.redacted span tag and of the redacted telemetry tag.
         "redacted": redacted,
+        # Declared sensitive values that must be gone, and the ones that must still be there.
         "sensitive_values": removed,
+        "retained_values": retained,
         "sds_findings": sds_findings,
         "cassette": _cassette_name(request_body),
     }
@@ -700,34 +765,98 @@ FOREIGN_CASSETTES = {
 }
 
 
-def main() -> None:
-    assert CASSETTES_DIR.is_dir(), f"missing {CASSETTES_DIR}; run from repo root"
+def _previously_generated() -> set[str]:
+    """Cassette names the last run of this script claimed, read before the sidecar is rewritten."""
+    if not SIDECAR.is_file():
+        return set()
+    previous = json.loads(SIDECAR.read_text())
+    return {entry["cassette"] for entry in previous.values() if isinstance(entry, dict) and "cassette" in entry}
+
+
+def build_corpus(previously_generated: set[str]) -> tuple[dict[str, str], dict[str, dict], list[str]]:
+    """Build the whole corpus in memory: (cassette name -> content, sidecar, cassettes to delete).
+
+    Nothing is written here, so the caller can either apply the result or compare it with what is
+    on disk. Every collision that would corrupt another test's cassette raises instead.
+    """
     sidecar: dict[str, dict] = {}
-    cassettes: dict[str, str] = {}
+    contents: dict[str, str] = {}
+    owners: dict[str, str] = {}
     for name, scenario in SCENARIOS.items():
         request_body, response_body, entry = build_scenario(name, scenario)
         cassette = entry["cassette"]
         # Two scenarios sending the same messages would silently share (and overwrite) a cassette.
-        assert cassette not in cassettes, f"{name} and {cassettes[cassette]} collide on {cassette}"
+        assert cassette not in owners, f"{name} and {owners[cassette]} collide on {cassette}"
         assert cassette not in FOREIGN_CASSETTES, (
             f"{name} sends the same messages as {FOREIGN_CASSETTES[cassette]} and would overwrite "
             f"{cassette}: give {name} its own messages"
         )
-        write_cassette(request_body, response_body)
-        cassettes[cassette] = name
+        # The catch-all behind FOREIGN_CASSETTES, which is hand-maintained and so goes stale: any
+        # cassette already on disk that this script did not generate belongs to another test, and
+        # overwriting it would break that test's replay. Skipped when ownership is unknown, which
+        # only happens if the sidecar is missing entirely.
+        path = CASSETTES_DIR / cassette
+        assert not (previously_generated and path.is_file() and cassette not in previously_generated), (
+            f"{name} would overwrite {cassette}, which this script did not generate: give {name} its own messages"
+        )
+        contents[cassette] = render_cassette(request_body, response_body)
+        owners[cassette] = name
         sidecar[name] = entry
-        print(f"{name:32s} {'redacted' if entry['redacted'] else '        '} -> {cassette}")
 
-    # A renamed or reworded scenario leaves its old cassette behind, which then never matches
-    # a request again. Drop anything in the directory that no test claims.
-    for existing in sorted(CASSETTES_DIR.glob("*.json")):
-        if existing.name not in cassettes and existing.name not in FOREIGN_CASSETTES:
-            existing.unlink()
-            print(f"removed orphan cassette {existing.name}")
+    # A renamed or reworded scenario leaves its old cassette behind, which then never matches a
+    # request again. Only cassettes this script generated on a previous run are dropped: the
+    # directory is shared with every other AI Guard test, and sweeping it would silently delete
+    # a cassette added by an unrelated test whenever someone regenerates the corpus.
+    orphans = [name for name in sorted(previously_generated - set(contents)) if (CASSETTES_DIR / name).is_file()]
+    return contents, sidecar, orphans
 
-    SIDECAR.write_text(json.dumps(sidecar, indent=2) + "\n")
+
+def _drift(contents: dict[str, str], sidecar: dict[str, dict], orphans: list[str]) -> list[str]:
+    """Describe every difference between the corpus and what is on disk, empty when in sync."""
+    differences = [f"{name} (would be deleted)" for name in orphans]
+    for name, content in sorted(contents.items()):
+        path = CASSETTES_DIR / name
+        if not path.is_file():
+            differences.append(f"{name} (missing)")
+        elif path.read_text() != content:
+            differences.append(f"{name} (outdated)")
+    if not SIDECAR.is_file() or SIDECAR.read_text() != _render_sidecar(sidecar):
+        differences.append(f"{SIDECAR} (outdated)")
+    return differences
+
+
+def _render_sidecar(sidecar: dict[str, dict]) -> str:
+    return json.dumps(sidecar, indent=2) + "\n"
+
+
+def main(argv: list[str]) -> int:
+    check = "--check" in argv[1:]
+    assert CASSETTES_DIR.is_dir(), f"missing {CASSETTES_DIR}; run from repo root"
+    # Read before anything is written: this is the only record of which cassettes this script owns.
+    contents, sidecar, orphans = build_corpus(_previously_generated())
+
+    if check:
+        differences = _drift(contents, sidecar, orphans)
+        if differences:
+            print("AI Guard redaction fixtures are out of date:")
+            for difference in differences:
+                print(f"  {difference}")
+            return 1
+        print(f"{len(sidecar)} scenarios in sync with {SIDECAR}")
+        return 0
+
+    for name, content in contents.items():
+        (CASSETTES_DIR / name).write_text(content)
+    for orphan in orphans:
+        (CASSETTES_DIR / orphan).unlink()
+        print(f"removed orphan cassette {orphan}")
+    SIDECAR.write_text(_render_sidecar(sidecar))
+
+    for name, entry in sidecar.items():
+        print(f"{name:32s} {'redacted' if entry['redacted'] else '        '} -> {entry['cassette']}")
     print(f"\nwrote {len(sidecar)} scenarios -> {SIDECAR}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(sys.argv))

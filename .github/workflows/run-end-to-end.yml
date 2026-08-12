@@ -554,6 +554,9 @@ jobs:
     - name: Run AI_GUARD_REDACTION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_DISABLED"')
       run: ./run.sh AI_GUARD_REDACTION_DISABLED
+    - name: Run AI_GUARD_REDACTION_TELEMETRY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_TELEMETRY"')
+      run: ./run.sh AI_GUARD_REDACTION_TELEMETRY
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

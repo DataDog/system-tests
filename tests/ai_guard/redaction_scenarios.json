@@ -17,6 +17,7 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [],
     "sds_findings": [],
     "cassette": "aiguard_evaluate_post_f548d24a.json"
   },
@@ -72,6 +73,7 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [],
     "sds_findings": [],
     "cassette": "aiguard_evaluate_post_13cd8690.json"
   },
@@ -93,6 +95,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -125,6 +130,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "paco@gmail.com"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "Standard Email Address Scanner",
@@ -164,6 +172,7 @@
     "sensitive_values": [
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -227,6 +236,7 @@
     "sensitive_values": [
       "john.smith@acmebank.com"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "Standard Email Address Scanner",
@@ -275,6 +285,7 @@
       "123-45-6789",
       "paco@gmail.com"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -346,6 +357,7 @@
       "paco@gmail.com",
       "415-555-0132"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -414,6 +426,7 @@
       "ops@acme.io",
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "Standard Email Address Scanner",
@@ -471,6 +484,7 @@
     "sensitive_values": [
       "4111-1111-1111-1111"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "Credit Card Scanner",
@@ -545,6 +559,7 @@
       "000123456789",
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "Bank Account Number Scanner",
@@ -619,6 +634,7 @@
       "john@acme.io",
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "Standard Email Address Scanner",
@@ -690,6 +706,7 @@
     "sensitive_values": [
       "4111-1111-1111-1111"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "Credit Card Scanner",
@@ -729,6 +746,7 @@
     "sensitive_values": [
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -768,6 +786,7 @@
     "sensitive_values": [
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -807,6 +826,7 @@
     "sensitive_values": [
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -846,6 +866,7 @@
     "sensitive_values": [
       "123-45-6789"
     ],
+    "retained_values": [],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -883,6 +904,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -942,6 +966,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -987,6 +1014,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -1028,6 +1058,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -1079,6 +1112,9 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
     "sds_findings": [
       {
         "rule_display_name": "US Social Security Number Scanner",
@@ -1133,6 +1169,9 @@
     "redacted": true,
     "sensitive_values": [
       "123-45-6789"
+    ],
+    "retained_values": [
+      "paco@gmail.com"
     ],
     "sds_findings": [
       {
@@ -1227,6 +1266,7 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [],
     "sds_findings": [],
     "cassette": "aiguard_evaluate_post_44aefe7d.json"
   },
@@ -1275,6 +1315,7 @@
     ],
     "redacted": false,
     "sensitive_values": [],
+    "retained_values": [],
     "sds_findings": [],
     "cassette": "aiguard_evaluate_post_2a2bc7c5.json"
   }
