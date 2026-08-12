@@ -1,27 +1,29 @@
-"""AI Guard <-> OpenAI integration tests, run under the INTEGRATION_FRAMEWORKS scenario.
+"""AI Guard <-> Anthropic integration tests, run under the INTEGRATION_FRAMEWORKS scenario.
 
 Investigation task: https://datadoghq.atlassian.net/browse/APPSEC-68977
 
-Unlike ``tests/ai_guard/test_ai_guard_sdk.py`` (which drives the AI Guard SDK directly via
-``/ai_guard/evaluate``), this suite exercises the *integration* between AI Guard and the
-OpenAI client, the same way the LLM Observability suite does: it calls the OpenAI SDK
-directly through the existing weblog endpoints (``/chat/completions``). When
-``DD_AI_GUARD_ENABLED=true``, ``ai_guard_listen()`` auto-wires into the OpenAI SDK, so AI
-Guard evaluates the call at three points with no manual ``evaluate()`` call:
+Companion of ``tests/integration_frameworks/llm/openai/test_openai_ai_guard.py``, for the
+Anthropic Messages API. Unlike ``tests/ai_guard/test_ai_guard_sdk.py`` (which drives the AI
+Guard SDK directly via ``/ai_guard/evaluate``), this suite exercises the *integration*
+between AI Guard and the Anthropic client, the same way the LLM Observability suite does: it
+calls the Anthropic SDK through the existing weblog endpoint (``/create``). When
+``DD_AI_GUARD_ENABLED=true``, ``ai_guard_listen()`` auto-wires into the Anthropic SDK, so AI
+Guard evaluates the call with no manual ``evaluate()`` call at the two points covered here:
 
-- **before-model**: the request/prompt is evaluated before the model is called;
-- **tool-call**: tool calls produced by the model are evaluated.
+- **before-model**: the request (top-level ``system`` prompt + ``messages``) is evaluated
+  before the model is called;
+- **tool-call**: the ``tool_use`` blocks the model produced are evaluated once the response
+  comes back, as an assistant turn carrying ``tool_calls``.
 
-The after-model evaluation is intentionally not covered here: exercising it end-to-end needs
-the streamed-response path (``DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED``), which is not
-implemented across the other tracer libraries yet, so we keep this suite at cross-language
-parity.
+The streamed-response path (``DD_AI_GUARD_ANALYZE_STREAM_RESPONSES_ENABLED``) is
+intentionally not covered: it is not implemented across the other tracer libraries yet, so
+we keep this suite at cross-language parity.
 
 We assert that the integration wires each evaluation point: that it emits an ``ai_guard``
 span for the specific evaluation being exercised (identified by ``ai_guard.target`` and by
 the messages captured in ``meta_struct.ai_guard``) and tags the local root span with
-``ai_guard.event:true``. We do not assert trace *linkage* to the ``openai.request`` span:
-the tracer does not deterministically nest the ``ai_guard`` span in the OpenAI trace (it
+``ai_guard.event:true``. We do not assert trace *linkage* to the ``anthropic.request`` span:
+the tracer does not deterministically nest the ``ai_guard`` span in the Anthropic trace (it
 may be emitted as its own trace), so a shared ``trace_id`` is not guaranteed. The
 evaluation *outcome* (ALLOW / DENY / ABORT) is already covered by the ``AI_GUARD`` scenario
 and is intentionally not re-asserted here.
@@ -37,7 +39,7 @@ from tests.integration_frameworks.llm.ai_guard_utils import (
     wait_for_ai_guard_event_root_spans,
     wait_for_ai_guard_spans,
 )
-from .utils import TOOLS, BaseOpenaiTest
+from .utils import TOOLS, BaseAnthropicTest
 
 
 @pytest.fixture
@@ -53,19 +55,19 @@ def library_env() -> dict[str, str]:
 
 @features.ai_guard
 @scenarios.integration_frameworks
-class TestOpenAiAiGuard(BaseOpenaiTest):
-    """AI Guard evaluation triggered through the auto-instrumented OpenAI integration."""
+class TestAnthropicAiGuard(BaseAnthropicTest):
+    """AI Guard evaluation triggered through the auto-instrumented Anthropic integration."""
 
     def test_before_model_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        """The prompt is evaluated by AI Guard before the OpenAI model is called."""
+        """The prompt is evaluated by AI Guard before the Anthropic model is called."""
         with test_agent.vcr_context():
             test_client.request(
                 "POST",
-                "/chat/completions",
+                "/create",
                 dict(
-                    model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": "What is the weather like today?"}],
-                    parameters=dict(max_tokens=35),
+                    model="claude-sonnet-4-5-20250929",
+                    messages=[{"role": "user", "content": "What is 2+2?"}],
+                    parameters=dict(max_tokens=100, temperature=0.5, stream=False),
                 ),
             )
 
@@ -80,16 +82,11 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
         with test_agent.vcr_context():
             test_client.request(
                 "POST",
-                "/chat/completions",
+                "/create",
                 dict(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "Bob is a student at Stanford University. He is studying computer science.",
-                        }
-                    ],
-                    parameters=dict(tool_choice="auto", tools=TOOLS),
+                    model="claude-sonnet-4-5-20250929",
+                    messages=[{"role": "user", "content": "What is the weather in New York City?"}],
+                    parameters=dict(max_tokens=100, temperature=0.5, stream=False, tools=TOOLS),
                 ),
             )
 
@@ -97,7 +94,8 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
         assert guard_spans, "expected a tool-call ai_guard span with target 'tool'"
         # ``target == "tool"`` alone can also come from an ordinary after-model eval of an
         # assistant response, so require the assistant tool_calls entry to actually be in the
-        # payload sent to AI Guard - that is what proves the tool-call path was forwarded.
+        # payload sent to AI Guard - that is what proves the Anthropic ``tool_use`` blocks
+        # were converted and forwarded.
         assert any(
             msg.get("role") == "assistant" and msg.get("tool_calls")
             for span in guard_spans

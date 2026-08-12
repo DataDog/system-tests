@@ -1777,6 +1777,7 @@ manifest:
   : bug (FFL-2313)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Reason_Split::test_ffe_eval_reason_split: bug (FFL-2313)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Targeting_Key_Optional: bug (FFL-1730)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py::TestAnthropicAiGuard: missing_feature (APPSEC-69630, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create:  # ephemeral cache TTL metrics not yet released
