@@ -64,7 +64,11 @@ When adding a new weblog, verify the name is unique across all languages. Search
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted
 - Entries should be sorted alphabetically within each manifest file
 
-## 11. New decorators
+## 11. Deactivating scenarios in weblog_metadata files
+
+Deactivating scenarios in weblog_metadata files is rare and should only be done when it aims at deactivating a test or group of tests that runs on multiple scenarios for only one scenario.
+
+## 12. New decorators
 
 PRs should not typically create new decorators. If a PR centered around creating, editing, activating or deactivating tests creates new decorators, it is most likely an error and you should comment with the correct approach.
 One exception to that would be creating a new scenario.

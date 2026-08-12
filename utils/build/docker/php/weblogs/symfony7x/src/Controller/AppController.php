@@ -75,6 +75,39 @@ class AppController extends AbstractController
         return new Response('', $code);
     }
 
+    #[Route('/trace/manual_keep_drop', name: 'trace_manual_keep_drop', methods: ['GET'])]
+    public function traceManualKeepDrop(Request $request): Response
+    {
+        $decision = $request->query->get('decision', '');
+        if ($decision !== 'keep' && $decision !== 'drop') {
+            return new Response('decision must be keep or drop', 400);
+        }
+
+        // set_priority_sampling is what \DDTrace\Span::setTag does for the manual.keep / manual.drop tags,
+        // and unlike writing the tag into the root span's meta it also overrides a decision propagated upstream.
+        \DDTrace\set_priority_sampling(
+            $decision === 'keep' ? DD_TRACE_PRIORITY_SAMPLING_USER_KEEP : DD_TRACE_PRIORITY_SAMPLING_USER_REJECT
+        );
+
+        // Call downstream so that tests can assert on the sampling decision that gets propagated
+        $url             = 'http://localhost:7777/';
+        $client          = HttpClient::create();
+        $response        = $client->request('GET', $url);
+        $statusCode      = $response->getStatusCode();
+        $responseHeaders = [];
+        foreach ($response->getHeaders(false) as $name => $values) {
+            $responseHeaders[$name] = implode(', ', $values);
+        }
+        $requestHeaders = $this->parseRequestHeadersFromDebug($response->getInfo('debug') ?? '');
+
+        return new JsonResponse([
+            'url'              => $url,
+            'status_code'      => $statusCode,
+            'request_headers'  => $requestHeaders,
+            'response_headers' => $responseHeaders,
+        ]);
+    }
+
     #[Route('/make_distant_call', name: 'make_distant_call', methods: ['GET'])]
     public function makeDistantCall(Request $request): JsonResponse
     {

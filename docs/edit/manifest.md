@@ -288,16 +288,89 @@ manifest:
 
 ### Directory-Level Rules
 
-Apply rules to entire directories. More specific rules override directory rules:
+An entry is matched against a node ID by path prefix, so an entry on a directory applies to
+every test underneath it:
 
 ```yaml
 manifest:
   # All tests in the sink subdirectory
   tests/appsec/iast/sink: "missing_feature"
+```
 
-  # More specific rules override directory rules
+### How Entries Combine
+
+**Declarations from every matching level accumulate.** Directory, file, class and method
+entries are all collected, and none of them overrides another. A more specific entry can
+only *add* a restriction — it can never remove or relax one coming from a broader entry.
+
+The reason is that no entry ever states "this test is enabled". A version entry such as
+`v2.0.0` is shorthand for "disabled with `missing_feature` below 2.0.0", and a test is
+[enabled](../glossary.md) only when *no* matching entry produces a declaration. A version
+entry whose constraint is satisfied therefore contributes nothing — it has no declaration to
+override a broader one with:
+
+```yaml
+manifest:
+  # Every test in this subdirectory is disabled, at every version
+  tests/appsec/iast/sink: "missing_feature"
+
+  # This does NOT re-enable the file. Both entries match the tests it contains, so they
+  # stay disabled at 2.0.0 and above, inheriting missing_feature from the entry above.
   tests/appsec/iast/sink/test_specific.py: "v2.0.0"
 ```
+
+To enable a test that a broader entry disables, narrow the broader entry itself, with
+`component_version`, `excluded_weblog`/`weblog`, or `weblog_declaration`.
+
+Narrowing by version — the directory entry stops applying at 2.0.0, so the file entry
+governs from there on:
+
+```yaml
+manifest:
+  tests/appsec/iast/sink:
+    - declaration: missing_feature
+      component_version: "<2.0.0"
+
+  # This file needs a later version than the rest of the directory
+  tests/appsec/iast/sink/test_specific.py: "v2.5.0"
+```
+
+Narrowing by weblog — `rack` is carved out of the directory entry, so only for `rack` does
+the file entry decide:
+
+```yaml
+manifest:
+  tests/appsec/iast/sink:
+    - declaration: missing_feature
+      excluded_weblog: [rack]
+
+  # Applies to rack; every other weblog stays disabled by the entry above
+  tests/appsec/iast/sink/test_specific.py: "v2.0.0"
+```
+
+If no such narrowing expresses what you need, restructure the broader entry — for instance
+replace the directory entry with one entry per sibling file or class.
+
+#### Weblog lists don't need to be mirrored
+
+When a broader entry already gates unlisted weblogs through `weblog_declaration` and `'*'`,
+a bare version entry below it is safe:
+
+```yaml
+manifest:
+  tests/appsec/test_feature.py:
+    - weblog_declaration:
+        '*': missing_feature   # every unlisted weblog stays disabled
+        django-poc: v1.0.0
+        flask-poc: v1.0.0
+
+  # Only raises the required version for django-poc and flask-poc, the weblogs the entry
+  # above lets through. fastapi, express4... remain disabled by '*'.
+  tests/appsec/test_feature.py::Test_A: "v2.0.0"
+```
+
+Because the `'*'` declaration still accumulates for the weblogs it covers, there is no need
+to repeat the weblog list on the class entry.
 
 ### Agent Manifest
 

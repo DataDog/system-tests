@@ -7,7 +7,12 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, DdTraceEndToEndScenario, GraphQlEndToEndScenario
+from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from .endtoend import (
+    DockerScenario,
+    DdTraceEndToEndScenario,
+    GraphQlEndToEndScenario,
+)
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
@@ -235,6 +240,48 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    # Fixed-rate scenarios for OTel ot.th/ot.rv golden-vector testing (see tests/test_otel_tracestate_sampling.py).
+    # One scenario per rate, since DD_TRACE_SAMPLE_RATE is baked into the weblog container at startup.
+    otel_sampling_rate_0_01 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_01",
+        tracer_sampling_rate=0.01,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.01 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_05 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_05",
+        tracer_sampling_rate=0.05,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.05 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_1 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_1",
+        tracer_sampling_rate=0.1,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.1 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_2 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_2",
+        tracer_sampling_rate=0.2,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.2 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
+    otel_sampling_rate_0_99 = DdTraceEndToEndScenario(
+        "OTEL_SAMPLING_RATE_0_99",
+        tracer_sampling_rate=0.99,
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+        doc="Test ot.th/ot.rv tracestate golden vectors at a fixed 0.99 sample rate",
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     trace_propagation_style_w3c = DdTraceEndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={
@@ -324,7 +371,10 @@ class _Scenarios:
     )
     appsec_custom_rules = DdTraceEndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_custom_rules.json",
+            "DD_APPSEC_RAW_RESPONSE_BODY_ENABLED": "1",
+        },
         weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
         doc="Test custom appsec rules file",
         scenario_groups=[scenario_groups.appsec],
@@ -553,7 +603,10 @@ class _Scenarios:
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="Appsec standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -619,7 +672,10 @@ class _Scenarios:
             "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
-        doc="Source code vulnerability standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -633,7 +689,10 @@ class _Scenarios:
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="SCA standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -728,6 +787,10 @@ class _Scenarios:
         },
         doc="",
         scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
@@ -1397,7 +1460,10 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="AI Guard standalone mode",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="AI Guard standalone mode, with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

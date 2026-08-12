@@ -25,6 +25,12 @@
     "tracer_time": {
       "type": "integer",
       "format": "uint64"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "debug": {
+      "type": "boolean"
     }
   },
   "required": [

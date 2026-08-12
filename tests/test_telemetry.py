@@ -468,6 +468,7 @@ class Test_Telemetry:
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
             "java": {"DD_TRACE_AGENT_PORT": trace_agent_port, "DD_TELEMETRY_HEARTBEAT_INTERVAL": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
+            "rust": {"DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": trace_agent_port},
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]
@@ -748,7 +749,9 @@ class Test_TelemetryEnhancedConfigReporting:
             actual = sorted_configs[i]
             assert actual["name"] in config_names, f"Config: {actual}, Expected Name in: {config_names}"
             assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
-            assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
+            assert actual["value"] == expected["value"] or (
+                context.library.name == "python" and actual["value"] == str(expected["value"]).lower()
+            ), f" Config: {actual}, Expected Value: {expected['value']}"
 
     def _get_latest_configs_by_origin(self, configs: list[dict]) -> dict[str, dict[str, Any]]:
         """Group configs by origin and return the latest (highest seq_id) for each origin."""

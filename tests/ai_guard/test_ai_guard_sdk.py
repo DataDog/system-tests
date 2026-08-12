@@ -1,6 +1,7 @@
 import json
 import math
 
+from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
 from utils import context, interfaces, scenarios, weblog, features, rfc
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SamplingMechanism, SamplingPriority, TraceSource
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
@@ -656,6 +657,22 @@ class Test_AIGuardStandalone:
                 f"Trace source tag ({TRACE_SOURCE_PROPAGATION_KEY}) must be "
                 f"'{TraceSource.AI_GUARD.as_tag_value()}' (AI Guard) when AI Guard originates the trace"
             )
+
+
+@features.ai_guard_standalone
+@scenarios.ai_guard_standalone
+class Test_AIGuardStandalone_APMDisabledMarker:
+    """Every span sent in AI Guard standalone mode carries the APM-disabled billing marker."""
+
+    def setup_all_spans_have_apm_disabled_marker(self) -> None:
+        self.r = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: "false"}, json=MESSAGES["DENY"])
+
+    def test_all_spans_have_apm_disabled_marker(self) -> None:
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+        assert_all_spans_have_apm_disabled_marker(spans)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/x/54JqiQE")
