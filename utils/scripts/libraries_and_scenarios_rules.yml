@@ -345,6 +345,12 @@ patterns:
     utils/build/docker/vcr/cassettes/aiguard/*:
       scenario_groups: ai_guard
 
+    utils/ci/github/nightly.py:
+      scenario_groups: null
+      libraries: null
+    utils/ci/github/*:
+      scenarios: DEFAULT
+
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
 # template below for each language:
