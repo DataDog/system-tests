@@ -14,25 +14,20 @@ google_genai-py:
   categories: [dd_trace_frameworks]
 tornado:
   categories: [dd_trace]
-  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 django-poc:
   categories: [dd_trace]
-  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 django-py3.13:
   categories: [dd_trace]
-  excluded_scenarios: [CROSSED_TRACING_LIBRARIES, DEBUGGER_CAPTURE_TIMEOUT]  # APMAPI-1096
+  excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # APMAPI-1096
 python3.12:
   categories: [dd_trace]
-  excluded_scenarios: [CROSSED_TRACING_LIBRARIES, DEBUGGER_CAPTURE_TIMEOUT]  # APMAPI-1096
+  excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # APMAPI-1096
 uwsgi-poc:
   categories: [dd_trace]
-  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 uds-flask:
   categories: [dd_trace]
-  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT, IPV6]
+  excluded_scenarios: [IPV6]
 flask-poc:
   categories: [dd_trace]
-  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]
 fastapi:
   categories: [dd_trace]
-  excluded_scenarios: [DEBUGGER_CAPTURE_TIMEOUT]

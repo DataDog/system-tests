@@ -5,4 +5,3 @@ nginx:
   excluded_scenarios:
     - APPSEC_MISSING_RULES  # C++ 1.2.0 freezes when the rules file is missing
     - APPSEC_CORRUPTED_RULES  # C++ 1.2.0 freezes when the rules file is corrupt
-    - DEBUGGER_CAPTURE_TIMEOUT
