@@ -92,6 +92,26 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
+#### Running Go tests on Buildbarn without Docker
+
+The Go parametric suite has a hermetic Bazel target that runs on 16 Buildbarn shards:
+
+```sh
+bazel test --config=buildbarn //bazel/parametric:go
+```
+
+This target uses the pinned Go 1.25.0 toolchain and dd-trace-go v2.4.0. Bazel uploads the Go server, Python test runner, `ddapm-test-agent==1.64.1`, PRoot 5.4.0, manifests, and test data to CAS. The remote workers do not need Docker, a Docker socket, internet access, or repository-installed tools. `rules_itest` owns the pooled test agent, while each test starts its Go client in a fresh rootless PRoot filesystem.
+
+Reports, the selected node IDs for each `pytest-split` shard, and process logs are available in Bazel's undeclared test outputs. The separate sandbox check can be run with:
+
+```sh
+bazel test --config=buildbarn //bazel/parametric:proot_smoke
+```
+
+The smoke test verifies PRoot ptrace execution, stable configuration reads, trace-log writes, and `/proc` access. A failure is a Buildbarn worker capability issue and must not be skipped; ask for help in `#ci-infra-support`. For system-tests behavior and manifest questions, use `#apm-shared-testing`.
+
+The existing `./run.sh PARAMETRIC` workflow continues to use Docker by default. The process runtime is selected only by the Bazel runner (or explicitly with `--parametric-runtime=process` and all required Bazel-provided executable and port environment variables).
+
 ### Running the tests for a custom tracer
 To run tests against custom tracer builds, refer to the [Binaries Documentation](../../execute/binaries.md)
 

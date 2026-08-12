@@ -154,6 +154,10 @@ class TestAgentFactory:
                 self.host_log_folder,
                 pytest_request=request,
                 otlp_http_host_port=otlp_http_host_port,
+                otlp_grpc_host_port=otlp_grpc_host_port,
+                tracer_host=container_name,
+                tracer_otlp_http_port=container_otlp_http_port,
+                tracer_otlp_grpc_port=container_otlp_grpc_port,
                 host_port=host_port,
                 network=docker_network,
             )
@@ -228,8 +232,12 @@ class TestAgentAPI:
         host_log_folder: str,
         host_port: int,
         otlp_http_host_port: int,
+        otlp_grpc_host_port: int,
         pytest_request: pytest.FixtureRequest,
         network: str,
+        tracer_host: str | None = None,
+        tracer_otlp_http_port: int | None = None,
+        tracer_otlp_grpc_port: int | None = None,
     ):
         self.container_name = container_name
         self.container_port = container_port
@@ -239,12 +247,31 @@ class TestAgentAPI:
         self.host = "localhost"
         self.host_port = host_port
         self.otlp_http_host_port = otlp_http_host_port
+        self.otlp_grpc_host_port = otlp_grpc_host_port
+        self._tracer_host = tracer_host or self.host
+        self._tracer_otlp_http_port = tracer_otlp_http_port or otlp_http_host_port
+        self._tracer_otlp_grpc_port = tracer_otlp_grpc_port or otlp_grpc_host_port
 
         self._session = requests.Session()
         self._pytest_request = pytest_request
         cls_name = pytest_request.cls.__name__ if pytest_request.cls else "NoClass"
         self.log_path = f"{host_log_folder}/outputs/{cls_name}/{pytest_request.node.name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
+
+    @property
+    def apm_url(self) -> str:
+        """Topology-neutral APM intake URL reachable by the tracer."""
+        return f"http://{self._tracer_host}:{self.container_port}"
+
+    @property
+    def otlp_http_url(self) -> str:
+        """Topology-neutral OTLP/HTTP base URL reachable by the tracer."""
+        return f"http://{self._tracer_host}:{self._tracer_otlp_http_port}"
+
+    @property
+    def otlp_grpc_endpoint(self) -> str:
+        """Topology-neutral OTLP/gRPC endpoint reachable by the tracer."""
+        return f"{self._tracer_host}:{self._tracer_otlp_grpc_port}"
 
     def rebind_request(self, pytest_request: "pytest.FixtureRequest") -> None:
         """Re-point per-test API logging at the current test (used on reuse)."""

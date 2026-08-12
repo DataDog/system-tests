@@ -1,0 +1,135 @@
+module(
+    name = "system_tests",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "gazelle", version = "0.52.2")
+bazel_dep(name = "llvm", version = "0.8.4")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_go", version = "0.62.0")
+bazel_dep(name = "rules_itest", version = "0.0.59")
+bazel_dep(name = "rules_python", version = "2.2.0")
+
+register_toolchains("@llvm//toolchain:all")
+
+# 0.0.59 was released before its BCR entry became available. Keep the module
+# version pin while sourcing the maintainer's checksummed release archive.
+archive_override(
+    module_name = "rules_itest",
+    integrity = "sha256-BBUaRnE4FwMuR8lS8XMkObqyGY8MTtr6kfRZT3MFOVg=",
+    strip_prefix = "rules_itest-0.0.59",
+    urls = ["https://github.com/hermeticbuild/rules_itest/releases/download/v0.0.59/rules_itest-v0.0.59.tar.gz"],
+)
+
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(version = "1.25.0")
+
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_mod = "//utils/build/docker/golang/parametric:go.mod")
+go_deps.gazelle_override(
+    directives = [
+        "gazelle:resolve go github.com/DataDog/sketches-go/ddsketch/pb/sketchpb //ddsketch/pb/sketchpb:sketchpb",
+    ],
+    path = "github.com/DataDog/sketches-go",
+)
+go_deps.gazelle_override(
+    directives = ["gazelle:build_tags appsec"],
+    path = "github.com/DataDog/go-libddwaf/v4",
+)
+
+# The checked-in module is also used by the Docker workflow, whose install
+# script moves it to the latest tracer. Declare v2.4.0's test-only transitive
+# dependencies that are absent from that latest-oriented indirect dependency list.
+go_deps.module(
+    indirect = True,
+    path = "github.com/davecgh/go-spew",
+    sum = "h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=",
+    version = "v1.1.2-0.20180830191138-d8f796af33cc",
+)
+go_deps.module(
+    indirect = True,
+    path = "github.com/felixge/httpsnoop",
+    sum = "h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=",
+    version = "v1.0.4",
+)
+go_deps.module(
+    indirect = True,
+    path = "github.com/gogo/protobuf",
+    sum = "h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=",
+    version = "v1.3.2",
+)
+go_deps.module(
+    indirect = True,
+    path = "github.com/pmezard/go-difflib",
+    sum = "h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=",
+    version = "v1.0.1-0.20181226105442-5d4384ee4fb2",
+)
+go_deps.module(
+    indirect = True,
+    path = "github.com/quasilyte/go-ruleguard/dsl",
+    sum = "h1:wd8zkOhSNr+I+8Qeciml08ivDt1pSXe60+5DqOpCjPE=",
+    version = "v0.3.22",
+)
+go_deps.module(
+    indirect = True,
+    path = "github.com/stretchr/objx",
+    sum = "h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=",
+    version = "v0.5.2",
+)
+go_deps.module(
+    indirect = True,
+    path = "github.com/stretchr/testify",
+    sum = "h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=",
+    version = "v1.11.1",
+)
+go_deps.module(
+    indirect = True,
+    path = "golang.org/x/sync",
+    sum = "h1:l60nONMj9l5drqw6jlhIELNv9I0A4OFgRsG9k2oT9Ug=",
+    version = "v0.17.0",
+)
+go_deps.module(
+    indirect = True,
+    path = "golang.org/x/tools",
+    sum = "h1:kWS0uv/zsvHEle1LbV5LE8QujrxB3wfQyxHfhOk0Qkg=",
+    version = "v0.36.0",
+)
+use_repo(
+    go_deps,
+    "com_github_datadog_dd_trace_go_v2",
+    "com_github_open_feature_go_sdk",
+    "com_github_sirupsen_logrus",
+    "io_opentelemetry_go_otel",
+    "io_opentelemetry_go_otel_metric",
+    "io_opentelemetry_go_otel_trace",
+)
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = "3.12")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "runner_pip",
+    python_version = "3.12",
+    requirements_lock = "//bazel/requirements:runner.txt",
+    target_platforms = ["linux_x86_64"],
+)
+pip.parse(
+    hub_name = "test_agent_pip",
+    python_version = "3.12",
+    requirements_lock = "//bazel/requirements:test_agent.txt",
+    target_platforms = ["linux_x86_64"],
+)
+use_repo(pip, "runner_pip", "test_agent_pip")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "proot_static",
+    build_file_content = """
+exports_files(["usr/bin/proot.static"])
+""",
+    sha256 = "30b8d9653ccdd2c73f2e24dac0f85b7e0f0779d85133cb3cc1061e552065e30a",
+    type = "tar.gz",
+    urls = ["https://dl-cdn.alpinelinux.org/alpine/edge/community/x86_64/proot-static-5.4.0-r2.apk"],
+)

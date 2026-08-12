@@ -1,0 +1,100 @@
+load("@rules_go//go:def.bzl", "go_binary")
+load("@rules_itest//:itest.bzl", "itest_service", "service_test")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@runner_pip//:requirements.bzl", "all_requirements")
+load("@test_agent_pip//:requirements.bzl", test_agent_requirement = "requirement")
+
+package(default_visibility = ["//visibility:public"])
+
+py_binary(
+    name = "test_agent_bin",
+    srcs = [
+        "__init__.py",
+        "test_agent.py",
+    ],
+    legacy_create_init = 0,
+    main = "test_agent.py",
+    deps = [test_agent_requirement("ddapm-test-agent")],
+)
+
+itest_service(
+    name = "test_agent",
+    args = [
+        "--port=$${@@//bazel/parametric:test_agent:apm}",
+        "--otlp-http-port=$${@@//bazel/parametric:test_agent:otlp_http}",
+        "--otlp-grpc-port=$${@@//bazel/parametric:test_agent:otlp_grpc}",
+    ],
+    data = ["//:parametric_python_inputs"],
+    env = {
+        "ENABLED_CHECKS": "trace_count_header",
+        "VCR_CASSETTES_DIRECTORY": "tests/integration_frameworks/utils/vcr-cassettes",
+        "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+    },
+    exe = ":test_agent_bin",
+    expected_start_duration = "2s",
+    http_health_check_address = "http://127.0.0.1:$${@@//bazel/parametric:test_agent:apm}/info",
+    named_ports = [
+        "apm",
+        "otlp_http",
+        "otlp_grpc",
+    ],
+)
+
+py_test(
+    name = "_go_runner",
+    srcs = [
+        "__init__.py",
+        "runner.py",
+        "sharding.py",
+    ],
+    data = [
+        ":test_agent_bin",
+        "//:parametric_python_inputs",
+        "//utils/build/docker/golang/parametric:go_parametric_server",
+        "@proot_static//:usr/bin/proot.static",
+    ],
+    imports = ["../.."],
+    legacy_create_init = 0,
+    main = "runner.py",
+    tags = ["manual"],
+    deps = all_requirements + ["@rules_python//python/runfiles"],
+)
+
+go_binary(
+    name = "proot_smoke_bin",
+    srcs = ["proot_smoke.go"],
+    pure = "on",
+    static = "on",
+)
+
+py_test(
+    name = "proot_smoke",
+    srcs = [
+        "__init__.py",
+        "proot_smoke.py",
+    ],
+    data = [
+        ":proot_smoke_bin",
+        "@proot_static//:usr/bin/proot.static",
+    ],
+    legacy_create_init = 0,
+    main = "proot_smoke.py",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    deps = ["@rules_python//python/runfiles"],
+)
+
+service_test(
+    name = "go",
+    size = "enormous",
+    timeout = "long",
+    services = [":test_agent"],
+    shard_count = 16,
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    test = ":_go_runner",
+)
