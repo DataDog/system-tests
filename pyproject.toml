@@ -239,40 +239,6 @@ ignore = [
     "PTH208",   # os-listdir: TODO
     "T201",     # print: allow print statements in scripts folder
 ]
-"utils/virtual_machine/krunvm_provider.py" = [
-    "A002",    # builtin-argument-shadowing: TODO
-    "ANN002",  # missing-type-args: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ARG002",  # unused-method-argument: TODO
-    "E501",    # line-too-long: TODO
-    "F811",    # redefined-while-unused: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-    "N803",    # invalid-argument-name: TODO
-    "PLW1510", # subprocess-run-without-check: TODO
-    "PTH101",  # os-chmod: TODO
-    "PTH102",  # os-mkdir: TODO
-    "PTH109",  # os-getcwd: TODO
-    "PTH116",  # os-stat: TODO
-    "S103",    # bad-file-permissions: TODO
-    "S602",    # subprocess-popen-with-shell-equals-true: TODO
-    "SIM103",  # needless-bool: TODO
-    "SLF001",  # private-member-access: TODO
-]
-"utils/virtual_machine/vagrant_provider.py" = [
-    "A002",    # builtin-argument-shadowing: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ARG002",  # unused-method-argument: TODO
-    "E501",    # line-too-long: TODO
-    "F541",    # f-string-missing-placeholders: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-    "PLW1510", # subprocess-run-without-check: TODO
-    "PTH113",  # os-path-isfile: TODO
-    "PTH208",   # os-listdir: TODO
-    "RUF059",   # unused-unpacked-variable: TODO
-    "UP008",   # super-call-with-parameters: TODO
-    "UP024",   # os-error-alias: TODO
-    "UP031",   # printf-string-formatting: TODO
-]
 "utils/virtual_machine/virtual_machine_provider.py" = [
     "PLC0415", # import-outside-top-level: lazy imports avoid circular dependencies between providers
 ]
