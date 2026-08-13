@@ -27,6 +27,13 @@ def _git(*args: str) -> None:
     subprocess.run(["git", *args], check=True)
 
 
+def _has_staged_changes() -> bool:
+    result = subprocess.run(["git", "diff", "--cached", "--quiet"], check=False)
+    if result.returncode not in (0, 1):
+        raise subprocess.CalledProcessError(result.returncode, result.args)
+    return result.returncode == 1
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Activate easy wins from test artifacts")
     parser.add_argument(
@@ -97,7 +104,8 @@ def main() -> None:
             created_rules_count = len(manifest_editor.added_rules)
             activations_per_owner[owner] = logger.total_tests_activated
             owner_has_changes = logger.total_modified_rules > 0 or created_rules_count > 0
-            has_updates = has_updates or owner_has_changes
+            if args.dry_run:
+                has_updates = has_updates or owner_has_changes
 
             if not args.dry_run and owner_has_changes:
                 branch = _owner_to_branch(owner, args.components)
@@ -110,7 +118,12 @@ def main() -> None:
                 except (FileNotFoundError, subprocess.CalledProcessError) as _:
                     subprocess.run(["./format.sh"], check=True)
                 _git("add", str(MANIFESTS_DIR))
+                if not _has_staged_changes():
+                    _git("checkout", base_branch)
+                    _git("branch", "-D", branch)
+                    continue
                 _git("commit", "-m", f"chore: activate easy wins for {owner or 'no code owner'}")
+                has_updates = True
                 _git("checkout", base_branch)
         ActivationLogger.print_split_co_report(activations_per_owner)
     else:
