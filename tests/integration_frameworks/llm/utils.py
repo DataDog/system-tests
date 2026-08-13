@@ -6,6 +6,7 @@ import requests
 from utils import context
 from utils.docker_fixtures import TestAgentAPI
 
+from collections.abc import Callable
 from typing import TypedDict
 
 
@@ -223,36 +224,50 @@ def assert_prompt_tracking(
     )
 
 
-# ---------------------------------------------------------------------------
-# AI Guard
-#
-# Helpers shared by the AI Guard <-> LLM-SDK integration suites (OpenAI, Anthropic, ...).
-# Every one of those suites asserts the same two things: that an ai_guard span was
-# emitted for the evaluation point being exercised, and that the local root span carries
-# the ai_guard.event:true marker. The polling helpers live here so each provider suite
-# only holds the requests that are specific to its SDK.
-# ---------------------------------------------------------------------------
+# AI Guard helpers shared by the provider integration suites (OpenAI, Anthropic, ...). DD_API_KEY /
+# DD_APP_KEY come from the scenario env, not library_env, which is copied into the JSON report.
+AI_GUARD_LIBRARY_ENV: dict[str, str] = {"DD_AI_GUARD_ENABLED": "true"}
 
 
-def ai_guard_spans(traces: list[list[dict]]) -> list[dict]:
-    return [span for trace in traces for span in trace if span.get("resource") == "ai_guard"]
+def assert_ai_guard_evaluated(test_agent: TestAgentAPI, *, target: str) -> list[dict]:
+    """Assert an ai_guard span for target was emitted and the local root span is tagged ai_guard.event:true.
+
+    The spans may land nested in the SDK trace or in their own, so poll rather than wait on a trace count.
+    """
+    spans = _wait_for(test_agent, lambda traces: _ai_guard_spans(traces, target))
+    assert spans, f"expected an ai_guard span with target '{target}'"
+
+    assert _wait_for(test_agent, _ai_guard_event_root_spans), "expected a local root span tagged ai_guard.event:true"
+
+    return spans
 
 
-def guard_messages(span: dict) -> list[dict]:
-    """The messages AI Guard evaluated, as captured in meta_struct.ai_guard.messages."""
-    return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
+def assert_assistant_tool_calls_forwarded(guard_spans: list[dict]) -> None:
+    """Assert the SDK tool-call blocks were converted and sent to AI Guard.
+
+    A target "tool" span alone is not enough: it can also come from an after-model eval.
+    """
+    assert any(
+        message.get("role") == "assistant" and message.get("tool_calls")
+        for span in guard_spans
+        for message in _guard_messages(span)
+    ), "expected the assistant tool_calls entry in the ai_guard evaluation payload"
 
 
-def ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
-    """Local root (service-entry) spans tagged ai_guard.event:true.
+def _ai_guard_spans(traces: list[list[dict]], target: str | None = None) -> list[dict]:
+    return [
+        span
+        for trace in traces
+        for span in trace
+        if span.get("resource") == "ai_guard"
+        and (target is None or span.get("meta", {}).get("ai_guard.target") == target)
+    ]
 
-    When AI Guard evaluates a call it tags the trace's local root span with
-    ai_guard.event:true (dd-trace-py aiguard/_api_client.py). This is a tracer-emitted
-    marker that AI Guard ran on the trace, and is what we assert on here.
 
-    Note: the _dd.ai_guard.enabled:1 facet that is searchable in the Datadog UI is NOT
-    present in the raw payloads captured by the test agent (it is not emitted by the tracer;
-    it is produced somewhere in intake), so it cannot be asserted on directly.
+def _ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
+    """Local root spans tagged ai_guard.event:true, the tracer's marker that AI Guard ran on the trace.
+
+    The _dd.ai_guard.enabled:1 facet from the Datadog UI comes from intake, so it is not in these payloads.
     """
     return [
         span
@@ -262,16 +277,15 @@ def ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
     ]
 
 
-def wait_for_ai_guard_spans(test_agent: TestAgentAPI, *, target: str | None = None, wait_loops: int = 30) -> list[dict]:
-    """Poll the test agent until at least one matching ai_guard span is received.
+def _guard_messages(span: dict) -> list[dict]:
+    """The messages AI Guard evaluated, as captured in meta_struct.ai_guard.messages."""
+    return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
 
-    We assert on the presence of the ai_guard span rather than on a fixed number of traces:
-    the tracer does not deterministically group the ai_guard span with the LLM SDK span. The
-    ai_guard span may be emitted either nested in the SDK trace (1 trace) or as its own trace
-    (2 traces), so wait_for_num_traces with a hard-coded count is inherently racy. When target
-    is given, only spans whose ai_guard.target matches are considered (so we keep polling until
-    the specific evaluation point we care about has arrived).
-    """
+
+def _wait_for(
+    test_agent: TestAgentAPI, select: Callable[[list[list[dict]]], list[dict]], wait_loops: int = 30
+) -> list[dict]:
+    """Poll the test agent until select() matches at least one span, or give up and return []."""
     spans: list[dict] = []
     for _ in range(wait_loops):
         try:
@@ -279,29 +293,7 @@ def wait_for_ai_guard_spans(test_agent: TestAgentAPI, *, target: str | None = No
         except requests.exceptions.RequestException:
             pass
         else:
-            spans = ai_guard_spans(traces)
-            if target is not None:
-                spans = [span for span in spans if span["meta"].get("ai_guard.target") == target]
-            if spans:
-                return spans
-        time.sleep(0.1)
-    return spans
-
-
-def wait_for_ai_guard_event_root_spans(test_agent: TestAgentAPI, *, wait_loops: int = 30) -> list[dict]:
-    """Poll the test agent until at least one root span tagged ai_guard.event:true arrives.
-
-    Like the ai_guard span itself, the tagged local root span may land in a later trace chunk
-    than the evaluation span, so we poll rather than reading a single snapshot.
-    """
-    spans: list[dict] = []
-    for _ in range(wait_loops):
-        try:
-            traces = test_agent.traces(clear=False)
-        except requests.exceptions.RequestException:
-            pass
-        else:
-            spans = ai_guard_event_root_spans(traces)
+            spans = select(traces)
             if spans:
                 return spans
         time.sleep(0.1)
