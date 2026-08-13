@@ -258,21 +258,6 @@ ignore = [
     "SIM103",  # needless-bool: TODO
     "SLF001",  # private-member-access: TODO
 ]
-"utils/virtual_machine/vagrant_provider.py" = [
-    "A002",    # builtin-argument-shadowing: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ARG002",  # unused-method-argument: TODO
-    "E501",    # line-too-long: TODO
-    "F541",    # f-string-missing-placeholders: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-    "PLW1510", # subprocess-run-without-check: TODO
-    "PTH113",  # os-path-isfile: TODO
-    "PTH208",   # os-listdir: TODO
-    "RUF059",   # unused-unpacked-variable: TODO
-    "UP008",   # super-call-with-parameters: TODO
-    "UP024",   # os-error-alias: TODO
-    "UP031",   # printf-string-formatting: TODO
-]
 "utils/virtual_machine/virtual_machine_provider.py" = [
     "PLC0415", # import-outside-top-level: lazy imports avoid circular dependencies between providers
 ]
