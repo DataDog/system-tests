@@ -112,10 +112,10 @@ func testHappyFourCallFixture(t *testing.T) {
 		t.Errorf("upstream calls = %d, want 1", got)
 	}
 	assertLogLines(t, logs.String(), []string{
-		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" outcome=ok`,
-		`apim-gateway callout phase=<RequestBody> request-id="request-123" outcome=ok`,
-		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" outcome=ok`,
-		`apim-gateway callout phase=<ResponseBody> request-id="request-123" outcome=ok`,
+		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<RequestBody> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<ResponseBody> request-id="request-123" path="/resource?x=1" outcome=ok`,
 	})
 }
 
@@ -266,8 +266,8 @@ func TestInlineBodyModeUsesTwoCallouts(t *testing.T) {
 		t.Fatalf("status = %d, want %d", got, http.StatusOK)
 	}
 	assertLogLines(t, logs.String(), []string{
-		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" outcome=ok`,
-		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" outcome=ok`,
+		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
 	})
 }
 
@@ -298,8 +298,8 @@ func TestFailClosedWhenCalloutPortIsClosed(t *testing.T) {
 	if got := upstreamCalls.Load(); got != 0 {
 		t.Errorf("upstream calls = %d, want 0", got)
 	}
-	if got := logs.String(); !strings.Contains(got, `apim-gateway callout phase=<RequestHeaders> request-id="" outcome=error`) {
-		t.Errorf("failure log = %q, want phase, empty request-id, and error outcome", got)
+	if got := logs.String(); !strings.Contains(got, `apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=error`) {
+		t.Errorf("failure log = %q, want phase, empty request-id, path, and error outcome", got)
 	}
 }
 

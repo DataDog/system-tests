@@ -104,6 +104,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
+	requestPath := r.URL.RequestURI()
 	inline := r.Header.Get(bodyModeHeader) == "inline"
 	r.Header.Del(bodyModeHeader)
 
@@ -111,7 +112,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Method:     r.Method,
 		Scheme:     requestScheme(r),
 		Authority:  r.Host,
-		Path:       r.URL.RequestURI(),
+		Path:       requestPath,
 		RemoteAddr: r.RemoteAddr,
 		Headers:    map[string][]string(r.Header.Clone()),
 	}
@@ -123,7 +124,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	phase1, err := g.callout(phaseRequestHeaders, "", requestAddresses)
+	phase1, err := g.callout(phaseRequestHeaders, "", requestPath, requestAddresses)
 	if err != nil {
 		g.failClosed(w)
 		return
@@ -143,7 +144,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			g.failClosed(w)
 			return
 		}
-		phase2, err := g.callout(phaseRequestBody, requestID, addressesBody{Body: body})
+		phase2, err := g.callout(phaseRequestBody, requestID, requestPath, addressesBody{Body: body})
 		if err != nil {
 			g.failClosed(w)
 			return
@@ -181,7 +182,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	phase3, err := g.callout(phaseResponseHeaders, requestID, responseAddresses)
+	phase3, err := g.callout(phaseResponseHeaders, requestID, requestPath, responseAddresses)
 	if err != nil {
 		g.failClosed(w)
 		return
@@ -198,7 +199,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			g.failClosed(w)
 			return
 		}
-		phase4, err := g.callout(phaseResponseBody, requestID, addressesBody{Body: body})
+		phase4, err := g.callout(phaseResponseBody, requestID, requestPath, addressesBody{Body: body})
 		if err != nil {
 			g.failClosed(w)
 			return
@@ -221,10 +222,10 @@ func requestScheme(r *http.Request) string {
 	return "http"
 }
 
-func (g *gateway) callout(phase, requestID string, addresses any) (calloutResult, error) {
+func (g *gateway) callout(phase, requestID, requestPath string, addresses any) (calloutResult, error) {
 	addressesJSON, err := json.Marshal(addresses)
 	if err != nil {
-		g.logCallout(phase, requestID, err)
+		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
 	payload, err := json.Marshal(calloutMessage{
@@ -233,37 +234,37 @@ func (g *gateway) callout(phase, requestID string, addresses any) (calloutResult
 		Phase:     phase,
 	})
 	if err != nil {
-		g.logCallout(phase, requestID, err)
+		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
 
 	request, err := http.NewRequest(http.MethodPost, g.calloutURL, bytes.NewReader(payload))
 	if err != nil {
-		g.logCallout(phase, requestID, err)
+		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
 	request.Header.Set("Content-Type", "application/json")
 
 	response, err := g.calloutClient.Do(request)
 	if err != nil {
-		g.logCallout(phase, requestID, err)
+		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		err := fmt.Errorf("callout returned %s", response.Status)
-		g.logCallout(phase, requestID, err)
+		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
 
 	var result calloutResult
 	if err := decodeJSON(response.Body, &result); err != nil {
-		g.logCallout(phase, requestID, err)
+		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
 	if phase == phaseRequestHeaders && result.Block == nil && result.RequestID == "" {
 		err := fmt.Errorf("phase 1 callout response has no request-id")
-		g.logCallout(phase, result.RequestID, err)
+		g.logCallout(phase, result.RequestID, requestPath, err)
 		return calloutResult{}, err
 	}
 
@@ -271,7 +272,7 @@ func (g *gateway) callout(phase, requestID string, addresses any) (calloutResult
 	if phase == phaseRequestHeaders {
 		logRequestID = result.RequestID
 	}
-	g.logCallout(phase, logRequestID, nil)
+	g.logCallout(phase, logRequestID, requestPath, nil)
 	return result, nil
 }
 
@@ -342,12 +343,12 @@ func writeUpstreamResponse(w http.ResponseWriter, response *http.Response, body 
 	_, _ = w.Write(body)
 }
 
-func (g *gateway) logCallout(phase, requestID string, err error) {
+func (g *gateway) logCallout(phase, requestID, requestPath string, err error) {
 	if err != nil {
-		_, _ = fmt.Fprintf(g.stderr, "apim-gateway callout phase=%s request-id=%q outcome=error error=%q\n", phase, requestID, err.Error())
+		_, _ = fmt.Fprintf(g.stderr, "apim-gateway callout phase=%s request-id=%q path=%q outcome=error error=%q\n", phase, requestID, requestPath, err.Error())
 		return
 	}
-	_, _ = fmt.Fprintf(g.stderr, "apim-gateway callout phase=%s request-id=%q outcome=ok\n", phase, requestID)
+	_, _ = fmt.Fprintf(g.stderr, "apim-gateway callout phase=%s request-id=%q path=%q outcome=ok\n", phase, requestID, requestPath)
 }
 
 // The APIM policy uses ignore-error="true", but this shim deliberately fails closed on
