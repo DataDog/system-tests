@@ -5,8 +5,8 @@ import pytest
 from utils.docker_fixtures import (
     FrameworkTestClientApi,
     TestAgentAPI,
+    new_test_id,
 )
-from utils.docker_fixtures._core import new_test_id
 from utils import context, scenarios, logger
 
 

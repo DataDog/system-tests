@@ -9,8 +9,7 @@ import pytest
 import yaml
 
 from utils import scenarios, logger
-from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
-from utils.docker_fixtures._core import new_test_id
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, new_test_id
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
 

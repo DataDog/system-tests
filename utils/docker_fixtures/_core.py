@@ -1,6 +1,8 @@
 import contextlib
 from collections.abc import Generator, Mapping
 from pathlib import Path
+import secrets
+import sys
 from typing import TextIO
 from urllib.parse import urlparse
 import uuid
@@ -18,12 +20,11 @@ HOST_GATEWAY_EXTRA_HOSTS = {HOST_DOCKER_INTERNAL: "host-gateway"}
 
 INVOCATION_LABEL = "system-tests.invocation-id"
 
-# 64 bits, and short enough to keep the longest generated name inside the 63-char DNS label limit
-_TEST_ID_HEX_CHARS = 16
+_TEST_ID_BYTES = 8
 
 
 def new_test_id() -> str:
-    return uuid.uuid4().hex[:_TEST_ID_HEX_CHARS]
+    return secrets.token_hex(_TEST_ID_BYTES)
 
 
 def get_host_port(worker_id: str, base_port: int) -> int:
@@ -103,13 +104,26 @@ def docker_run(
         )
         logger.debug(f"Container {name} successfully started")
     except Exception as e:
-        # only containers this call created: a name match may be another xdist worker's live one
-        for created in get_docker_client().containers.list(
-            filters={"label": f"{INVOCATION_LABEL}={invocation_id}"}, all=True
-        ):
-            created.remove(force=True)
+        cleanup_errors = []
+        try:
+            created_containers = get_docker_client().containers.list(
+                filters={"label": f"{INVOCATION_LABEL}={invocation_id}"}, all=True
+            )
+        except Exception as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+        else:
+            for created in created_containers:
+                try:
+                    created.remove(force=True)
+                except NotFound:
+                    pass
+                except Exception as cleanup_error:
+                    cleanup_errors.append(cleanup_error)
 
-        pytest.fail(f"Failed to run container {name}: {e}")
+        cleanup_details = ""
+        if cleanup_errors:
+            cleanup_details = "; cleanup also failed: " + "; ".join(str(error) for error in cleanup_errors)
+        pytest.fail(f"Failed to run container {name}: {e}{cleanup_details}")
 
     try:
         yield container
@@ -120,5 +134,12 @@ def docker_run(
             log_file.write(container.logs().decode("utf-8"))
             log_file.flush()
         finally:
-            with contextlib.suppress(NotFound):
+            active_error = sys.exception()
+            try:
                 container.remove(force=True)
+            except NotFound:
+                pass
+            except Exception as remove_error:
+                if active_error is None:
+                    raise
+                active_error.add_note(f"Container removal also failed: {remove_error}")
