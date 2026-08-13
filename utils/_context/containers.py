@@ -1801,13 +1801,11 @@ class ApimGatewayContainer(TestedContainer):
                 # golang:1.25-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
                 # healthcheck used by EnvoyContainer and HAProxyContainer is not usable here
                 "test": "wget -qO- http://localhost:80/",
-                # PROVISIONAL budget, to be tightened once a real cold start is measured:
-                # `go run .` compiles the shim from an empty build cache on every start, which is
-                # far slower than booting a prebuilt binary. interval and start_period are in
-                # NANOSECONDS (execute_command divides both by 1e9), so this is
-                # 15s + 46 * 3s ~= 153s ceiling, with a 3s readiness granularity.
-                "retries": 45,
-                "interval": 3_000_000_000,
+                # AC1 measured ~11.93s from container start to first successful health probe.
+                # `go run .` still compiles on every start, so keep a small cushion: ~21s
+                # ceiling (15s + 6 * 1s).
+                "retries": 5,
+                "interval": 1_000_000_000,
                 "start_period": 15_000_000_000,
             },
         )
