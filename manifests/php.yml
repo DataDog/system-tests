@@ -641,6 +641,11 @@ manifest:
         "*": v1.19.0
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:
+    - weblog_declaration:
+        "*": v1.19.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: irrelevant (HTTP entry spans in PHP-FPM/Apache are C-level; execute stack is empty at span close time so no user frames are captured)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - weblog_declaration:
