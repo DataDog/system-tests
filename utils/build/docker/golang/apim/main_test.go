@@ -184,18 +184,21 @@ func testRequestBodyBlockFixture(t *testing.T) {
 
 func TestResponsePhaseBlocksDiscardUpstreamResponse(t *testing.T) {
 	for _, fixture := range []struct {
-		name  string
-		steps []calloutStep
+		name       string
+		wantStatus int
+		steps      []calloutStep
 	}{
 		{
-			name: "response-headers",
+			name:       "response-headers",
+			wantStatus: 451,
 			steps: []calloutStep{
 				{phase: "<RequestHeaders>", response: `{"request-id":"request-123"}`},
 				{phase: "<ResponseHeaders>", requestID: fixtureRequestID, response: `{"block":{"status":451,"headers":{"X-Block":["response-headers"]},"content":"YmxvY2tlZA=="}}`},
 			},
 		},
 		{
-			name: "response-body",
+			name:       "response-body",
+			wantStatus: 452,
 			steps: []calloutStep{
 				{phase: "<RequestHeaders>", response: `{"request-id":"request-123"}`},
 				{phase: "<ResponseHeaders>", requestID: fixtureRequestID, response: `{"allowed-body-size":1024}`},
@@ -217,7 +220,7 @@ func TestResponsePhaseBlocksDiscardUpstreamResponse(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
 
-			assertBlockResponse(t, recorder, fixture.steps[len(fixture.steps)-1].responseStatus(), fixture.name, "blocked")
+			assertBlockResponse(t, recorder, fixture.wantStatus, fixture.name, "blocked")
 			if got := upstreamCalls.Load(); got != 1 {
 				t.Errorf("upstream calls = %d, want 1", got)
 			}
@@ -272,15 +275,6 @@ func TestInlineBodyModeUsesTwoCallouts(t *testing.T) {
 }
 
 func TestFailClosedWhenCalloutPortIsClosed(t *testing.T) {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	closedURL := "http://" + listener.Addr().String()
-	if err := listener.Close(); err != nil {
-		t.Fatal(err)
-	}
-
 	var upstreamCalls atomic.Int32
 	upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
 		upstreamCalls.Add(1)
@@ -288,7 +282,7 @@ func TestFailClosedWhenCalloutPortIsClosed(t *testing.T) {
 	t.Cleanup(upstream.Close)
 
 	var logs bytes.Buffer
-	gateway := newTestGateway(closedURL, upstream.URL, &logs)
+	gateway := newTestGateway(closedListenerAddress(t), upstream.URL, &logs)
 	recorder := httptest.NewRecorder()
 	gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
 
@@ -298,9 +292,98 @@ func TestFailClosedWhenCalloutPortIsClosed(t *testing.T) {
 	if got := upstreamCalls.Load(); got != 0 {
 		t.Errorf("upstream calls = %d, want 0", got)
 	}
-	if got := logs.String(); !strings.Contains(got, `apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=error`) {
-		t.Errorf("failure log = %q, want phase, empty request-id, path, and error outcome", got)
+	// Exactly one line: logCallout reports the callout failure, and failing closed must not
+	// duplicate it.
+	assertLogPrefixes(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=error`,
+	})
+}
+
+func TestFailClosedWhenUpstreamPortIsClosed(t *testing.T) {
+	callout := newScriptedCallout(t, []calloutStep{{
+		phase:     "<RequestHeaders>",
+		requestID: "",
+		response:  `{"request-id":"request-123"}`,
+	}})
+
+	var logs bytes.Buffer
+	gateway := newTestGateway(callout.URL, closedListenerAddress(t), &logs)
+	recorder := httptest.NewRecorder()
+	gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
+
+	if got := recorder.Code; got != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", got, http.StatusBadGateway)
 	}
+	// The callout succeeded, so the upstream stage was reached and is what failed.
+	assertLogPrefixes(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" path="/" outcome=ok`,
+		`apim-gateway fail-closed stage=call-upstream error="`,
+	})
+}
+
+func TestFailClosedOnMalformedBlock(t *testing.T) {
+	for _, fixture := range []struct {
+		name       string
+		response   string
+		wantLogged string
+	}{
+		{
+			name:       "undecodable-content",
+			response:   `{"block":{"status":403,"headers":{"X-Block":["headers"]},"content":"!!!"}}`,
+			wantLogged: `apim-gateway fail-closed stage=write-block-request-headers error="illegal base64 data`,
+		},
+		{
+			name:       "out-of-range-status",
+			response:   `{"block":{"status":42,"headers":{"X-Block":["headers"]},"content":"YmxvY2tlZA=="}}`,
+			wantLogged: `apim-gateway fail-closed stage=write-block-request-headers error="invalid block status 42"`,
+		},
+	} {
+		t.Run(fixture.name, func(t *testing.T) {
+			callout := newScriptedCallout(t, []calloutStep{{
+				phase:     "<RequestHeaders>",
+				requestID: "",
+				response:  fixture.response,
+			}})
+
+			var upstreamCalls atomic.Int32
+			upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+				upstreamCalls.Add(1)
+			}))
+			t.Cleanup(upstream.Close)
+
+			var logs bytes.Buffer
+			gateway := newTestGateway(callout.URL, upstream.URL, &logs)
+			recorder := httptest.NewRecorder()
+			gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
+
+			if got := recorder.Code; got != http.StatusBadGateway {
+				t.Fatalf("status = %d, want %d", got, http.StatusBadGateway)
+			}
+			if got := recorder.Header().Get("X-Block"); got != "" {
+				t.Errorf("X-Block = %q, want no block header on a fail-closed response", got)
+			}
+			if got := upstreamCalls.Load(); got != 0 {
+				t.Errorf("upstream calls = %d, want 0", got)
+			}
+			assertLogPrefixes(t, logs.String(), []string{
+				`apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=ok`,
+				fixture.wantLogged,
+			})
+		})
+	}
+}
+
+func closedListenerAddress(t *testing.T) string {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	address := "http://" + listener.Addr().String()
+	if err := listener.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return address
 }
 
 func newTestGateway(calloutURL, upstreamURL string, stderr io.Writer) *gateway {
@@ -364,18 +447,6 @@ func newScriptedCallout(t *testing.T, steps []calloutStep) *httptest.Server {
 		}
 	})
 	return server
-}
-
-func (step calloutStep) responseStatus() int {
-	var response struct {
-		Block struct {
-			Status int `json:"status"`
-		} `json:"block"`
-	}
-	if err := json.Unmarshal([]byte(step.response), &response); err != nil {
-		panic(err)
-	}
-	return response.Block.Status
 }
 
 func assertGatewayOmitted(t *testing.T, message map[string]json.RawMessage) {
@@ -491,7 +562,7 @@ func assertBlockResponse(t *testing.T, recorder *httptest.ResponseRecorder, want
 
 func assertLogLines(t *testing.T, logs string, want []string) {
 	t.Helper()
-	got := strings.FieldsFunc(strings.TrimSpace(logs), func(r rune) bool { return r == '\n' })
+	got := splitLogLines(logs)
 	if len(got) != len(want) {
 		t.Fatalf("log lines = %q, want %q", got, want)
 	}
@@ -500,4 +571,23 @@ func assertLogLines(t *testing.T, logs string, want []string) {
 			t.Errorf("log line %d = %q, want %q", i, got[i], want[i])
 		}
 	}
+}
+
+// assertLogPrefixes is assertLogLines for records whose tail carries a platform-dependent
+// error string. The line count is still exact.
+func assertLogPrefixes(t *testing.T, logs string, want []string) {
+	t.Helper()
+	got := splitLogLines(logs)
+	if len(got) != len(want) {
+		t.Fatalf("log lines = %q, want %d lines starting with %q", got, len(want), want)
+	}
+	for i := range want {
+		if !strings.HasPrefix(got[i], want[i]) {
+			t.Errorf("log line %d = %q, want prefix %q", i, got[i], want[i])
+		}
+	}
+}
+
+func splitLogLines(logs string) []string {
+	return strings.FieldsFunc(strings.TrimSpace(logs), func(r rune) bool { return r == '\n' })
 }

@@ -29,7 +29,6 @@ const (
 // The Addresses field is phase-dependent and decoded separately.
 type calloutMessage struct {
 	Addresses json.RawMessage `json:"addresses"`
-	Gateway   string          `json:"gateway,omitempty"`
 	RequestID string          `json:"request-id,omitempty"`
 	Phase     string          `json:"phase,omitempty"`
 }
@@ -83,6 +82,7 @@ type gateway struct {
 func main() {
 	if err := http.ListenAndServe(":80", newGateway()); err != nil {
 		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
 
@@ -99,7 +99,7 @@ func newGateway() *gateway {
 func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		g.failClosed(w)
+		g.failClosed(w, "read-request-body", err)
 		return
 	}
 	defer r.Body.Close()
@@ -119,19 +119,19 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if inline {
 		requestAddresses.Body, err = encodedBody(requestBody, nil)
 		if err != nil {
-			g.failClosed(w)
+			g.failClosed(w, "encode-inline-request-body", err)
 			return
 		}
 	}
 
 	phase1, err := g.callout(phaseRequestHeaders, "", requestPath, requestAddresses)
 	if err != nil {
-		g.failClosed(w)
+		g.writeFailClosed(w)
 		return
 	}
 	if phase1.Block != nil {
 		if err := writeBlock(w, phase1.Block); err != nil {
-			g.failClosed(w)
+			g.failClosed(w, "write-block-request-headers", err)
 		}
 		return
 	}
@@ -141,17 +141,17 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if phase1.AllowedBodySize != nil {
 		body, err := encodedBody(requestBody, phase1.AllowedBodySize)
 		if err != nil {
-			g.failClosed(w)
+			g.failClosed(w, "encode-request-body", err)
 			return
 		}
 		phase2, err := g.callout(phaseRequestBody, requestID, requestPath, addressesBody{Body: body})
 		if err != nil {
-			g.failClosed(w)
+			g.writeFailClosed(w)
 			return
 		}
 		if phase2.Block != nil {
 			if err := writeBlock(w, phase2.Block); err != nil {
-				g.failClosed(w)
+				g.failClosed(w, "write-block-request-body", err)
 			}
 			return
 		}
@@ -159,14 +159,14 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	upstreamResponse, err := g.callUpstream(r, requestBody)
 	if err != nil {
-		g.failClosed(w)
+		g.failClosed(w, "call-upstream", err)
 		return
 	}
 	defer upstreamResponse.Body.Close()
 
 	responseBody, err := io.ReadAll(upstreamResponse.Body)
 	if err != nil {
-		g.failClosed(w)
+		g.failClosed(w, "read-upstream-body", err)
 		return
 	}
 
@@ -177,36 +177,36 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if inline {
 		responseAddresses.Body, err = encodedBody(responseBody, nil)
 		if err != nil {
-			g.failClosed(w)
+			g.failClosed(w, "encode-inline-response-body", err)
 			return
 		}
 	}
 
 	phase3, err := g.callout(phaseResponseHeaders, requestID, requestPath, responseAddresses)
 	if err != nil {
-		g.failClosed(w)
+		g.writeFailClosed(w)
 		return
 	}
 	if phase3.Block != nil {
 		if err := writeBlock(w, phase3.Block); err != nil {
-			g.failClosed(w)
+			g.failClosed(w, "write-block-response-headers", err)
 		}
 		return
 	}
 	if phase3.AllowedBodySize != nil {
 		body, err := encodedBody(responseBody, phase3.AllowedBodySize)
 		if err != nil {
-			g.failClosed(w)
+			g.failClosed(w, "encode-response-body", err)
 			return
 		}
 		phase4, err := g.callout(phaseResponseBody, requestID, requestPath, addressesBody{Body: body})
 		if err != nil {
-			g.failClosed(w)
+			g.writeFailClosed(w)
 			return
 		}
 		if phase4.Block != nil {
 			if err := writeBlock(w, phase4.Block); err != nil {
-				g.failClosed(w)
+				g.failClosed(w, "write-block-response-body", err)
 			}
 			return
 		}
@@ -258,7 +258,7 @@ func (g *gateway) callout(phase, requestID, requestPath string, addresses any) (
 	}
 
 	var result calloutResult
-	if err := decodeJSON(response.Body, &result); err != nil {
+	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
 		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
@@ -274,21 +274,6 @@ func (g *gateway) callout(phase, requestID, requestPath string, addresses any) (
 	}
 	g.logCallout(phase, logRequestID, requestPath, nil)
 	return result, nil
-}
-
-func decodeJSON(body io.Reader, result *calloutResult) error {
-	decoder := json.NewDecoder(body)
-	if err := decoder.Decode(result); err != nil {
-		return err
-	}
-	var trailing any
-	if err := decoder.Decode(&trailing); err != io.EOF {
-		if err == nil {
-			return fmt.Errorf("callout response contains multiple JSON values")
-		}
-		return err
-	}
-	return nil
 }
 
 func (g *gateway) callUpstream(r *http.Request, body []byte) (*http.Response, error) {
@@ -353,6 +338,15 @@ func (g *gateway) logCallout(phase, requestID, requestPath string, err error) {
 
 // The APIM policy uses ignore-error="true", but this shim deliberately fails closed on
 // detectable callout failures so system-tests can exercise the mandatory D3 behavior.
-func (g *gateway) failClosed(w http.ResponseWriter) {
+// failClosed reports the causing error on stderr, tagged with the stage that failed, then
+// returns the fail-closed status.
+func (g *gateway) failClosed(w http.ResponseWriter, stage string, err error) {
+	_, _ = fmt.Fprintf(g.stderr, "apim-gateway fail-closed stage=%s error=%q\n", stage, err.Error())
+	g.writeFailClosed(w)
+}
+
+// writeFailClosed returns the fail-closed status for a failure that logCallout has already
+// reported, so a callout failure is diagnosed exactly once.
+func (g *gateway) writeFailClosed(w http.ResponseWriter) {
 	http.Error(w, http.StatusText(http.StatusBadGateway), http.StatusBadGateway)
 }

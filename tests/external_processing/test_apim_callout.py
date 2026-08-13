@@ -42,8 +42,14 @@ def _assert_probe_phases(probe_path: str, expected_phases: tuple[str, ...]) -> N
         for (request_id, path), phases in _callout_phases_by_request_id_and_path().items()
         if path == probe_path
     }
-    assert len(matching_groups) == 1
-    assert next(iter(matching_groups.values())) == list(expected_phases)
+    assert len(matching_groups) == 1, (
+        f"expected exactly one callout request-id group for probe {probe_path}, "
+        f"got {len(matching_groups)}: {sorted(matching_groups)}"
+    )
+    request_id, phases = next(iter(matching_groups.items()))
+    assert phases == list(expected_phases), (
+        f"probe {probe_path} (request-id {request_id}) hit callout phases {phases}, expected {list(expected_phases)}"
+    )
 
 
 def _span_structure(span: DataDogLibrarySpan) -> tuple[str, str, str]:
@@ -64,21 +70,21 @@ def _trace_structure(request: HttpResponse) -> list[tuple[str, str, str]]:
 @irrelevant(context.weblog_variant != "apim")
 @features.go_proxies
 class Test_ApimCallout:
-    def setup_default_body_mode_uses_four_callouts(self):
+    def setup_default_body_mode_uses_four_callouts(self) -> None:
         self.r = weblog.post(DEFAULT_PROBE_PATH, json={"body": "default"})
 
-    def test_default_body_mode_uses_four_callouts(self):
-        assert self.r.status_code == 200
+    def test_default_body_mode_uses_four_callouts(self) -> None:
+        assert self.r.status_code == 200, f"deferred probe returned {self.r.status_code}, expected 200"
         _assert_probe_phases(DEFAULT_PROBE_PATH, DEFERRED_PHASES)
 
-    def setup_inline_body_mode_uses_two_callouts(self):
+    def setup_inline_body_mode_uses_two_callouts(self) -> None:
         self.r = weblog.post(INLINE_PROBE_PATH, json={"body": "inline"}, headers={"X-Datadog-Apim-Body-Mode": "inline"})
 
-    def test_inline_body_mode_uses_two_callouts(self):
-        assert self.r.status_code == 200
+    def test_inline_body_mode_uses_two_callouts(self) -> None:
+        assert self.r.status_code == 200, f"inline probe returned {self.r.status_code}, expected 200"
         _assert_probe_phases(INLINE_PROBE_PATH, INLINE_PHASES)
 
-    def setup_inline_body_mode_preserves_trace_structure(self):
+    def setup_inline_body_mode_preserves_trace_structure(self) -> None:
         self.default_response = weblog.post(TRACE_DEFAULT_PROBE_PATH, json={"body": "default trace"})
         self.inline_response = weblog.post(
             TRACE_INLINE_PROBE_PATH,
@@ -86,14 +92,22 @@ class Test_ApimCallout:
             headers={"X-Datadog-Apim-Body-Mode": "inline"},
         )
 
-    def test_inline_body_mode_preserves_trace_structure(self):
-        assert self.default_response.status_code == 200
-        assert self.inline_response.status_code == 200
+    def test_inline_body_mode_preserves_trace_structure(self) -> None:
+        assert self.default_response.status_code == 200, (
+            f"deferred probe returned {self.default_response.status_code}, expected 200"
+        )
+        assert self.inline_response.status_code == 200, (
+            f"inline probe returned {self.inline_response.status_code}, expected 200"
+        )
         _assert_probe_phases(TRACE_DEFAULT_PROBE_PATH, DEFERRED_PHASES)
         _assert_probe_phases(TRACE_INLINE_PROBE_PATH, INLINE_PHASES)
-        assert _trace_structure(self.default_response) == _trace_structure(self.inline_response)
+        default_spans = _trace_structure(self.default_response)
+        inline_spans = _trace_structure(self.inline_response)
+        assert default_spans == inline_spans, (
+            f"inline body delivery changed the trace: deferred spans {default_spans}, inline spans {inline_spans}"
+        )
 
-    def setup_inline_body_mode_closes_request_state(self):
+    def setup_inline_body_mode_closes_request_state(self) -> None:
         self.r = weblog.post(
             STATE_CLOSURE_PROBE_PATH,
             json={"body": "inline state"},
@@ -101,7 +115,9 @@ class Test_ApimCallout:
         )
         time.sleep(31)
 
-    def test_inline_body_mode_closes_request_state(self):
-        assert self.r.status_code == 200
+    def test_inline_body_mode_closes_request_state(self) -> None:
+        assert self.r.status_code == 200, f"inline probe returned {self.r.status_code}, expected 200"
         _assert_probe_phases(STATE_CLOSURE_PROBE_PATH, INLINE_PHASES)
-        assert "closing orphaned span" not in _container_stderr("apim-callout")
+        assert "closing orphaned span" not in _container_stderr("apim-callout"), (
+            "apim-callout logged an orphaned span, so inline mode did not close the cached request state"
+        )
