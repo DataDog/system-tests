@@ -274,6 +274,88 @@ func TestInlineBodyModeUsesTwoCallouts(t *testing.T) {
 	})
 }
 
+// TestZeroAllowedBodySizeStillSendsBodyPhases pins the pointer semantics of allowed-body-size:
+// a returned 0 is a limit, not an absence, so both body phases must still fire with a fully
+// truncated body. Every other fixture returns a positive size, so a regression from
+// `!= nil` to a positive-value test would leave them all green.
+func TestZeroAllowedBodySizeStillSendsBodyPhases(t *testing.T) {
+	const requestBody = "request-payload"
+	const responseBody = "response-payload"
+
+	callout := newScriptedCallout(t, []calloutStep{
+		{
+			phase:     "<RequestHeaders>",
+			requestID: "",
+			response:  `{"request-id":"request-123","allowed-body-size":0}`,
+			assert: func(t *testing.T, message map[string]json.RawMessage) {
+				assertRequestHeaderAddresses(t, message, nil)
+			},
+		},
+		{
+			phase:     "<RequestBody>",
+			requestID: fixtureRequestID,
+			response:  `{}`,
+			assert: func(t *testing.T, message map[string]json.RawMessage) {
+				assertBodyAddresses(t, message, "")
+			},
+		},
+		{
+			phase:     "<ResponseHeaders>",
+			requestID: fixtureRequestID,
+			response:  `{"allowed-body-size":0}`,
+			assert: func(t *testing.T, message map[string]json.RawMessage) {
+				assertResponseHeaderAddresses(t, message, nil)
+			},
+		},
+		{
+			phase:     "<ResponseBody>",
+			requestID: fixtureRequestID,
+			response:  `{}`,
+			assert: func(t *testing.T, message map[string]json.RawMessage) {
+				assertBodyAddresses(t, message, "")
+			},
+		},
+	})
+
+	var upstreamCalls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upstreamCalls.Add(1)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("read upstream request body: %v", err)
+		}
+		// Truncation applies to the callout copy only; the proxied request keeps the original.
+		if got := string(body); got != requestBody {
+			t.Errorf("upstream request body = %q, want %q", got, requestBody)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, responseBody)
+	}))
+	t.Cleanup(upstream.Close)
+
+	var logs bytes.Buffer
+	gateway := newTestGateway(callout.URL, upstream.URL, &logs)
+	recorder := httptest.NewRecorder()
+	gateway.ServeHTTP(recorder, newFixtureRequest(http.MethodPost, strings.NewReader(requestBody)))
+
+	if got := recorder.Code; got != http.StatusOK {
+		t.Fatalf("status = %d, want %d", got, http.StatusOK)
+	}
+	// Same asymmetry on the response side: the client still receives the whole payload.
+	if got := recorder.Body.String(); got != responseBody {
+		t.Errorf("response body = %q, want %q", got, responseBody)
+	}
+	if got := upstreamCalls.Load(); got != 1 {
+		t.Errorf("upstream calls = %d, want 1", got)
+	}
+	assertLogLines(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<RequestBody> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway callout phase=<ResponseBody> request-id="request-123" path="/resource?x=1" outcome=ok`,
+	})
+}
+
 func TestFailClosedWhenCalloutPortIsClosed(t *testing.T) {
 	var upstreamCalls atomic.Int32
 	upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
@@ -371,6 +453,40 @@ func TestFailClosedOnMalformedBlock(t *testing.T) {
 			})
 		})
 	}
+}
+
+// TestFailClosedOnNegativeAllowedBodySize covers the guard that keeps a hostile or buggy
+// allowed-body-size from reaching the body[:*limit] slice expression. Failing closed is the
+// contract; panicking would take the whole gateway down.
+func TestFailClosedOnNegativeAllowedBodySize(t *testing.T) {
+	callout := newScriptedCallout(t, []calloutStep{{
+		phase:     "<RequestHeaders>",
+		requestID: "",
+		response:  `{"request-id":"request-123","allowed-body-size":-1}`,
+	}})
+
+	var upstreamCalls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		upstreamCalls.Add(1)
+	}))
+	t.Cleanup(upstream.Close)
+
+	var logs bytes.Buffer
+	gateway := newTestGateway(callout.URL, upstream.URL, &logs)
+	recorder := httptest.NewRecorder()
+	gateway.ServeHTTP(recorder, newFixtureRequest(http.MethodPost, strings.NewReader("payload")))
+
+	if got := recorder.Code; got != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", got, http.StatusBadGateway)
+	}
+	if got := upstreamCalls.Load(); got != 0 {
+		t.Errorf("upstream calls = %d, want 0", got)
+	}
+	// The diagnostic text is ours, so the whole line is pinned.
+	assertLogLines(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
+		`apim-gateway fail-closed stage=encode-request-body error="negative allowed-body-size"`,
+	})
 }
 
 func closedListenerAddress(t *testing.T) string {
