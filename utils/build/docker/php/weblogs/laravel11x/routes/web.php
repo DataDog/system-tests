@@ -37,6 +37,14 @@ Route::get('/healthcheck', function () {
     ]);
 });
 
+Route::post('/ffe', function () {
+    ob_start();
+    require base_path('ffe.php');
+    $body = ob_get_clean();
+
+    return response($body, http_response_code(), ['Content-Type' => 'application/json']);
+});
+
 Route::get('/status', function (Request $request) {
     $code = intval($request->query('code', 200));
 
