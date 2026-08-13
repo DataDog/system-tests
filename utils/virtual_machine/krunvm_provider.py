@@ -1,10 +1,10 @@
 from collections.abc import Callable
 import os
+from pathlib import Path
 import subprocess
 import shutil
 import time
 import pexpect
-import shutil
 
 import pulumi_aws
 import pulumi_command
@@ -26,28 +26,30 @@ class KrunVmProvider(VmProvider):
         super().__init__()
         self.commander = KrunVmCommander()
         self.shared_volume = None
-        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
+        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self._microvm_processes = []
 
-    def _get_container_name(self, microVM_desc: str) -> str | None:
+    def _get_container_name(self, microvm_desc: str) -> str | None:
         """Discover the container name from the microVM description"""
-        lines = microVM_desc.split("\n")
+        lines = microvm_desc.split("\n")
         for line in lines:
             if "Buildah" in line:
                 return line.replace("Buildah container: ", "")
         return None
 
     def _image_exists(self, image_name: str) -> bool:
-        cmd = f" buildah images  --root /Volumes/krunvm/root --runroot /Volumes/krunvm/runroot -f=reference={image_name} | grep {image_name}"
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        cmd = (
+            f" buildah images  --root /Volumes/krunvm/root --runroot /Volumes/krunvm/runroot "
+            f"-f=reference={image_name} | grep {image_name}"
+        )
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)  # noqa: S602
         stdout, _ = p.communicate()
-        if stdout == b"":
-            return False
-        return True
+        return stdout != b""
 
-    def _get_cached_image(self, vm: _VirtualMachine):
-        """Check if there is an image for one test. Also check if we are using the env var to force the iamge creation"""
-        image_id = None
+    def _get_cached_image(self, vm: _VirtualMachine) -> str:
+        """Check if there is an image for one test.
+        Also check if we are using the env var to force the iamge creation.
+        """
         # Configure name
         image_name = vm.get_cache_name()
         image_name = image_name.lower()
@@ -70,38 +72,43 @@ class KrunVmProvider(VmProvider):
             image_id = None
         return image_id
 
-    def stack_up(self):
+    def stack_up(self) -> None:
         logger.stdout(f"--------- Starting Krun VM MicroVM: {self.vm.name} -----------")
         image_id = self._get_cached_image(self.vm)
         # Create the MicroVM
-        cmd_create_microvm = f"krunvm create --name {self.vm.name} {self.vm.krunvm_config.oci_image_name if image_id is None else image_id}"
+        oci_image = self.vm.krunvm_config.oci_image_name if image_id is None else image_id
+        cmd_create_microvm = f"krunvm create --name {self.vm.name} {oci_image}"
         logger.debug(cmd_create_microvm)
         vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_create_microvm)
-        output_create_microvm = subprocess.run(cmd_create_microvm.split(), capture_output=True, text=True).stdout
+        output_create_microvm = subprocess.run(
+            cmd_create_microvm.split(), capture_output=True, text=True, check=False
+        ).stdout
         logger.info(f"[KrumVm] MicroVM created: {output_create_microvm}")
 
         # Attach volume. Volume is located on the log folder
         path = os.path.join(context.scenario.host_log_folder, self.vm.name)
-        os.mkdir(path)
+        Path(path).mkdir()
         self.shared_volume = os.path.join(path, "shared_volume")
-        os.mkdir(self.shared_volume)
+        Path(self.shared_volume).mkdir()
         cmd_krunvm_mount_volume = (
             f"krunvm changevm {self.vm.name} --volume {self.host_project_dir}/{self.shared_volume}:/shared_volume"
         )
         logger.debug(cmd_krunvm_mount_volume)
         vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_krunvm_mount_volume)
-        output_mount_volume = subprocess.run(cmd_krunvm_mount_volume.split(), capture_output=True, text=True).stdout
+        output_mount_volume = subprocess.run(
+            cmd_krunvm_mount_volume.split(), capture_output=True, text=True, check=False
+        ).stdout
         logger.info(f"[KrumVm] MicroVM Share volume mounted: {output_mount_volume}")
 
         # Copy the init script to the shared volume
         shutil.copyfile("utils/build/virtual_machine/microvm/krunvm_init.sh", f"{self.shared_volume}/krunvm_init.sh")
-        os.chmod(f"{self.shared_volume}/krunvm_init.sh", 0o777)
+        Path(f"{self.shared_volume}/krunvm_init.sh").chmod(0o777)
 
         # Set the shared volume as working directory
         cmd_krunvm_workdir = f"krunvm changevm {self.vm.name} --workdir /shared_volume"
         logger.debug(cmd_krunvm_workdir)
         vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_krunvm_workdir)
-        output_workdir = subprocess.run(cmd_krunvm_workdir.split(), capture_output=True, text=True).stdout
+        output_workdir = subprocess.run(cmd_krunvm_workdir.split(), capture_output=True, text=True, check=False).stdout
         logger.info(f"[KrumVm] MicroVM workdir: {output_workdir}")
 
         # Calculate cache container
@@ -121,16 +128,18 @@ class KrunVmProvider(VmProvider):
         self.install_provision(self.vm, container_name, None)
         # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
         # Instead of use a network, we can use stdin to lauch commands on the microVM
-        self.vm.krunvm_config.stdin = self.commander._get_stdin_path(self.vm)
+        self.vm.krunvm_config.stdin = self.commander._get_stdin_path(self.vm)  # noqa: SLF001
 
         self.commander.wait_until_commands_processed(self.vm, timeout=600)
 
-    def stack_destroy(self):
+    def stack_destroy(self) -> None:
         logger.info(f"Destroying VM: {self.vm}")
 
         cmd_krunvm_destroy_vm = f"krunvm delete {self.vm.name}"
         logger.debug(cmd_krunvm_destroy_vm)
-        output_krunvm_destroy_vm = subprocess.run(cmd_krunvm_destroy_vm.split(), capture_output=True, text=True).stdout
+        output_krunvm_destroy_vm = subprocess.run(
+            cmd_krunvm_destroy_vm.split(), capture_output=True, text=True, check=False
+        ).stdout
         logger.info(f"[KrumVm] MicroVM [{self.vm.name}] destroyed: {output_krunvm_destroy_vm}")
 
         for microvm_process in self._microvm_processes:
@@ -149,8 +158,11 @@ class KrunVmCommander(Commander):
         return os.path.join(self._get_shared_folder_path(vm), "std.in")
 
     def create_cache(
-        self, vm: _VirtualMachine, server: pulumi_aws.ec2.Instance, last_task: pulumi_command.remote.Command
-    ):
+        self,
+        vm: _VirtualMachine,
+        server: pulumi_aws.ec2.Instance,
+        last_task: pulumi_command.remote.Command,  # noqa: ARG002
+    ) -> None:
         """Create a cache : We execute buildah commit to store currebt state of the microVM as an image"""
 
         # First we need to wait for cacheable commands to be processed
@@ -164,7 +176,9 @@ class KrunVmCommander(Commander):
             f"buildah commit --root /Volumes/krunvm/root --runroot /Volumes/krunvm/runroot {server} {cache_image_name}"
         )
         logger.debug(cache_command)
-        output_cache_creation = subprocess.run(cache_command.split(), capture_output=True, text=True).stdout
+        output_cache_creation = subprocess.run(
+            cache_command.split(), capture_output=True, text=True, check=False
+        ).stdout
         logger.debug(output_cache_creation)
 
     def execute_local_command(
@@ -174,21 +188,21 @@ class KrunVmCommander(Commander):
         env: dict[str, str],
         last_task: pulumi_command.remote.Command,
         logger_name: str,
-    ):
+    ) -> pulumi_command.remote.Command:
         logger.info(f"KrunVM: Execute local command id: {local_command_id}")
-        result = subprocess.run(local_command.split(" "), stdout=subprocess.PIPE, env=env)
+        result = subprocess.run(local_command.split(" "), stdout=subprocess.PIPE, env=env, check=False)
         vm_logger(context.scenario.host_log_folder, logger_name).info(result.stdout)
         return last_task
 
     def copy_file(
         self,
-        id: str,
+        copy_id: str,  # noqa: ARG002
         local_path: str,
         remote_path: str,
-        connection: pulumi_command.remote.ConnectionArgs,
-        last_task: pulumi_command.remote.Command,
+        connection: pulumi_command.remote.ConnectionArgs,  # noqa: ARG002
+        last_task: pulumi_command.remote.Command,  # noqa: ARG002
         vm: _VirtualMachine | None = None,
-    ):
+    ) -> None:
         logger.info(f"KrunVM: copy file from: {local_path} to {remote_path}")
         shutil.copyfile(local_path, os.path.join(self._get_shared_folder_path(vm), remote_path))
 
@@ -198,13 +212,13 @@ class KrunVmCommander(Commander):
         installation_id: str,
         remote_command: str,
         env: dict[str, str],
-        connection: pulumi_command.remote.ConnectionArgs,
-        last_task: pulumi_command.remote.Command,
-        logger_name: str | None = None,
-        output_callback: Callable | None = None,
+        connection: pulumi_command.remote.ConnectionArgs,  # noqa: ARG002
+        last_task: pulumi_command.remote.Command,  # noqa: ARG002
+        logger_name: str | None = None,  # noqa: ARG002
+        output_callback: Callable | None = None,  # noqa: ARG002
         *,
-        populate_env: bool = True,
-    ):
+        populate_env: bool = True,  # noqa: ARG002
+    ) -> None:
         # Workaround with env variables  :-(
         export_command = ""
         for key, value in env.items():
@@ -220,14 +234,14 @@ class KrunVmCommander(Commander):
         with open(self._get_stdin_path(vm), "a") as stdin:
             stdin.write(f"bash /shared_volume/{installation_id}.sh\n")
 
-    def wait_until_commands_processed(self, vm: _VirtualMachine, interval: float = 0.1, timeout: int = 1, *args):
+    def wait_until_commands_processed(self, vm: _VirtualMachine, interval: float = 0.1, timeout: int = 1) -> None:
         start = time.time()
         time.sleep(1)
 
-        while os.stat(self._get_stdin_path(vm)).st_size != 0 and time.time() - start < timeout:
+        while Path(self._get_stdin_path(vm)).stat().st_size != 0 and time.time() - start < timeout:
             time.sleep(interval)
 
-        if os.stat(self._get_stdin_path(vm)).st_size != 0:
+        if Path(self._get_stdin_path(vm)).stat().st_size != 0:
             raise TimeoutError("Timed out waiting for condition")
 
         logger.debug(f"All commands executed on {vm.name}")
@@ -236,13 +250,13 @@ class KrunVmCommander(Commander):
         self,
         source_folder: str,
         destination_folder: str,
-        command_id: str,
-        connection: pulumi_command.remote.ConnectionArgs,
-        depends_on: pulumi_command.remote.Command,
+        command_id: str,  # noqa: ARG002
+        connection: pulumi_command.remote.ConnectionArgs,  # noqa: ARG002
+        depends_on: pulumi_command.remote.Command,  # noqa: ARG002
         *,
-        relative_path: bool = False,
+        relative_path: bool = False,  # noqa: ARG002
         vm: _VirtualMachine | None = None,
-    ):
+    ) -> None:
         if not source_folder.endswith("/"):
             source_folder = source_folder + "/"
 
