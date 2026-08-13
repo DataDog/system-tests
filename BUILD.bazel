@@ -10,6 +10,7 @@ filegroup(
             "*.toml",
             "manifests/agent.yml",
             "manifests/golang.yml",
+            "manifests/python.yml",
             "tests/**/*.json",
             "tests/**/*.py",
             "tests/**/*.yml",

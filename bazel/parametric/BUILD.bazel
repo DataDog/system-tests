@@ -1,6 +1,8 @@
+load("@python_parametric_pip//:requirements.bzl", python_parametric_requirements = "all_requirements")
 load("@rules_go//go:def.bzl", "go_binary")
 load("@rules_itest//:itest.bzl", "itest_service", "service_test")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@rules_python//python/zipapp:py_zipapp_binary.bzl", "py_zipapp_binary")
 load("@runner_pip//:requirements.bzl", "all_requirements")
 load("@test_agent_pip//:requirements.bzl", test_agent_requirement = "requirement")
 
@@ -12,6 +14,7 @@ py_binary(
         "__init__.py",
         "test_agent.py",
     ],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
     legacy_create_init = 0,
     main = "test_agent.py",
     deps = [test_agent_requirement("ddapm-test-agent")],
@@ -40,23 +43,114 @@ itest_service(
     ],
 )
 
+py_binary(
+    name = "python_server_bin",
+    srcs = ["python_server.py"],
+    config_settings = {
+        "@rules_python//python/config_settings:bootstrap_impl": "script",
+        "@rules_python//python/config_settings:venvs_site_packages": "yes",
+    },
+    imports = ["../.."],
+    legacy_create_init = 0,
+    main = "python_server.py",
+    deps = python_parametric_requirements + ["//utils/build/docker/python/parametric:apm_test_client"],
+)
+
+py_zipapp_binary(
+    name = "python_server_archive",
+    binary = ":python_server_bin",
+    compression = "4",
+    executable = False,
+)
+
 py_test(
     name = "_go_runner",
     srcs = [
         "__init__.py",
+        "configuration.py",
         "runner.py",
         "sharding.py",
     ],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
     data = [
+        "go_test_durations.json",
         ":test_agent_bin",
         "//:parametric_python_inputs",
         "//utils/build/docker/golang/parametric:go_parametric_server",
         "@proot_static//:usr/bin/proot.static",
     ],
+    env = {"SYSTEM_TESTS_BAZEL_PARAMETRIC_LANGUAGE": "golang"},
     imports = ["../.."],
     legacy_create_init = 0,
     main = "runner.py",
     tags = ["manual"],
+    deps = all_requirements + ["@rules_python//python/runfiles"],
+)
+
+py_binary(
+    name = "update_durations",
+    srcs = ["update_durations.py"],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
+    legacy_create_init = 0,
+    main = "update_durations.py",
+)
+
+py_test(
+    name = "sharding_test",
+    srcs = [
+        "__init__.py",
+        "configuration.py",
+        "sharding.py",
+        "sharding_test.py",
+        "update_durations.py",
+    ],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
+    imports = ["../.."],
+    legacy_create_init = 0,
+    main = "sharding_test.py",
+    deps = all_requirements,
+)
+
+py_test(
+    name = "_python_runner",
+    srcs = [
+        "__init__.py",
+        "configuration.py",
+        "runner.py",
+        "sharding.py",
+    ],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
+    data = [
+        "python_test_durations.json",
+        ":python_server_archive",
+        ":test_agent_bin",
+        "//:parametric_python_inputs",
+        "@proot_static//:usr/bin/proot.static",
+    ],
+    env = {"SYSTEM_TESTS_BAZEL_PARAMETRIC_LANGUAGE": "python"},
+    imports = ["../.."],
+    legacy_create_init = 0,
+    main = "runner.py",
+    tags = ["manual"],
+    deps = all_requirements + ["@rules_python//python/runfiles"],
+)
+
+py_test(
+    name = "python_archive_smoke",
+    srcs = ["python_archive_smoke.py"],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
+    data = [
+        ":python_server_archive",
+        "//:parametric_python_inputs",
+        "@proot_static//:usr/bin/proot.static",
+    ],
+    imports = ["../.."],
+    legacy_create_init = 0,
+    main = "python_archive_smoke.py",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
     deps = all_requirements + ["@rules_python//python/runfiles"],
 )
 
@@ -73,6 +167,7 @@ py_test(
         "__init__.py",
         "proot_smoke.py",
     ],
+    config_settings = {"@rules_python//python/config_settings:bootstrap_impl": "script"},
     data = [
         ":proot_smoke_bin",
         "@proot_static//:usr/bin/proot.static",
@@ -97,4 +192,17 @@ service_test(
         "@platforms//os:linux",
     ],
     test = ":_go_runner",
+)
+
+service_test(
+    name = "python",
+    size = "enormous",
+    timeout = "long",
+    services = [":test_agent"],
+    shard_count = 32,
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    test = ":_python_runner",
 )

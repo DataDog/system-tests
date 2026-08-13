@@ -92,25 +92,39 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
-#### Running Go tests on Buildbarn without Docker
+#### Running Go and Python tests on Buildbarn without Docker
 
-The Go parametric suite has a hermetic Bazel target that runs on 32 Buildbarn shards:
+The Go and Python parametric suites have hermetic Bazel targets:
 
 ```sh
 bazel test --config=buildbarn //bazel/parametric:go
+bazel test --config=buildbarn //bazel/parametric:python
 ```
 
-This target uses the pinned Go 1.25.0 toolchain and dd-trace-go v2.4.0. Bazel uploads the Go server, Python test runner, `ddapm-test-agent==1.64.1`, PRoot 5.4.0, manifests, and test data to CAS. The remote workers do not need Docker, a Docker socket, internet access, or repository-installed tools. `rules_itest` owns the pooled test agent, while each test starts its Go client in a fresh rootless PRoot filesystem.
+The Go target uses the pinned Go 1.25.0 toolchain and dd-trace-go v2.4.0. The Python target uses a hermetic Python 3.12 runtime and `ddtrace==4.13.1`. Its FastAPI server, interpreter, and pinned Linux x86-64 wheels are packaged as a Bazel zipapp. Each shard safely extracts and seals that archive once, then binds the read-only tree into every fresh rootless PRoot filesystem. Bazel uploads the servers, Python test runner, `ddapm-test-agent==1.64.1`, PRoot 5.4.0, manifests, and test data to CAS. Remote workers do not need Docker, a Docker socket, internet access, or repository-installed tools. `rules_itest` owns the pooled test agent.
 
-Reports, the selected node IDs for each `pytest-split` shard, and process logs are available in Bazel's undeclared test outputs. The separate sandbox check can be run with:
+Reports and the selected node IDs for each `pytest-split` shard are available in Bazel's undeclared test outputs. Per-test process logs are retained for failures, errors, unexpected xpasses, and interrupted tests; successful, skipped, and expected-xfail logs are removed after teardown. Set `SYSTEM_TESTS_PARAMETRIC_KEEP_SUCCESS_OUTPUTS=1` to retain every process log for output-size comparisons. The separate sandbox check can be run with:
 
 ```sh
 bazel test --config=buildbarn //bazel/parametric:proot_smoke
 ```
 
+Each target uses its checked-in `bazel/parametric/<target>_test_durations.json` manifest with the `least_duration` splitting algorithm. Every shard emits `collected-nodes.txt` and `shard-metadata.json`; the metadata contains the duration-manifest hash, shard membership hash, shard number, and selected node IDs. Compact JSON, JUnit, feature-parity, metadata, and process-log outputs remain available in Bazel's undeclared test outputs.
+
+To refresh a manifest from downloaded or local Bazel test outputs, select the corresponding target:
+
+```sh
+bazel run //bazel/parametric:update_durations -- \
+  --target python \
+  --testlogs /path/to/bazel-testlogs \
+  --output bazel/parametric/python_test_durations.json
+```
+
+`--target` is optional for a tree containing only one target and required when both Go and Python results are present. The refresh command sums each test's setup, call, and teardown durations, then records the rounded median across all matching reports. Commit the resulting sorted manifest so remote shards use the same membership. The package-wide `bazel test --config=buildbarn //bazel/parametric:all` invocation includes both language targets.
+
 The smoke test verifies PRoot ptrace execution, stable configuration reads, trace-log writes, and `/proc` access. A failure is a Buildbarn worker capability issue and must not be skipped; ask for help in `#ci-infra-support`. For system-tests behavior and manifest questions, use `#apm-shared-testing`.
 
-The existing `./run.sh PARAMETRIC` workflow continues to use Docker by default. The process runtime is selected only by the Bazel runner (or explicitly with `--parametric-runtime=process` and all required Bazel-provided executable and port environment variables).
+The existing `./run.sh PARAMETRIC` workflow continues to use Docker by default. The process runtime is selected only by the Bazel runner (or explicitly with `--parametric-runtime=process` and all required Bazel-provided artifact, version, and port environment variables).
 
 ### Running the tests for a custom tracer
 To run tests against custom tracer builds, refer to the [Binaries Documentation](../../execute/binaries.md)

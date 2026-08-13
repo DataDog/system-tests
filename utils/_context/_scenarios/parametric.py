@@ -1,5 +1,6 @@
 from collections.abc import Generator
 import contextlib
+from dataclasses import dataclass
 import glob
 import json
 import os
@@ -20,7 +21,7 @@ from utils.docker_fixtures import (
 )
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_GRPC_PORT, DEFAULT_OTLP_HTTP_PORT
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
-from utils.parametric.process import ProcessParametricTestClientFactory, ProcessTestAgentFactory
+from utils.parametric.process import ProcessLaunchSpec, ProcessParametricTestClientFactory, ProcessTestAgentFactory
 
 from ._docker_fixtures import DockerFixturesScenario
 
@@ -29,7 +30,43 @@ from ._docker_fixtures import DockerFixturesScenario
 default_subprocess_run_timeout = 300
 
 
+@dataclass(frozen=True)
+class ProcessLibraryConfiguration:
+    artifact_environment_variable: str
+    archive_entrypoint: str | None
+    default_version: str
+    environment: tuple[tuple[str, str], ...]
+    version_environment_variable: str
+
+
+_PROCESS_LIBRARY_CONFIGURATIONS = {
+    "golang": ProcessLibraryConfiguration(
+        artifact_environment_variable="SYSTEM_TESTS_GO_PARAMETRIC_SERVER",
+        archive_entrypoint=None,
+        default_version="v2.4.0",
+        environment=(),
+        version_environment_variable="SYSTEM_TESTS_GO_LIBRARY_VERSION",
+    ),
+    "python": ProcessLibraryConfiguration(
+        artifact_environment_variable="SYSTEM_TESTS_PYTHON_PARAMETRIC_ARCHIVE",
+        archive_entrypoint="bazel/parametric/python_server.py",
+        default_version="4.13.1",
+        environment=(("DD_PATCH_MODULES", "fastapi:false,startlette:false"),),
+        version_environment_variable="SYSTEM_TESTS_PYTHON_LIBRARY_VERSION",
+    ),
+}
+
+
+def process_library_configuration(library: str) -> ProcessLibraryConfiguration:
+    try:
+        return _PROCESS_LIBRARY_CONFIGURATIONS[library]
+    except KeyError as error:
+        supported = ", ".join(sorted(_PROCESS_LIBRARY_CONFIGURATIONS))
+        raise ValueError(f"The process parametric runtime supports only: {supported}") from error
+
+
 class ParametricScenario(DockerFixturesScenario):
+    _agent_pool: WorkerAgentPool | None
     _test_client_factory: Any
     _test_agent_factory: Any
 
@@ -95,7 +132,7 @@ class ParametricScenario(DockerFixturesScenario):
         library: str = config.option.library
 
         if self._runtime == "process":
-            self._configure_process(library)
+            self._configure_process(library, config)
             return
 
         volumes = {
@@ -175,20 +212,23 @@ class ParametricScenario(DockerFixturesScenario):
             self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
         self.warmups.append(self._set_components)
 
-    def _configure_process(self, library: str) -> None:
-        if library != "golang":
-            pytest.exit("The process parametric runtime currently supports only golang", 1)
+    def _configure_process(self, library: str, config: pytest.Config) -> None:
+        try:
+            library_configuration = process_library_configuration(library)
+        except ValueError as error:
+            pytest.exit(str(error), 1)
 
-        server = os.environ.get("SYSTEM_TESTS_GO_PARAMETRIC_SERVER")
+        artifact = os.environ.get(library_configuration.artifact_environment_variable)
         proot = os.environ.get("SYSTEM_TESTS_PROOT")
         test_agent = os.environ.get("SYSTEM_TESTS_TEST_AGENT_BIN")
-        if not server or not proot or not test_agent:
+        if not artifact or not proot or not test_agent:
             pytest.exit(
-                "The process runtime requires SYSTEM_TESTS_GO_PARAMETRIC_SERVER, SYSTEM_TESTS_PROOT, "
+                "The process runtime requires "
+                f"{library_configuration.artifact_environment_variable}, SYSTEM_TESTS_PROOT, "
                 "and SYSTEM_TESTS_TEST_AGENT_BIN",
                 1,
             )
-        assert server is not None
+        assert artifact is not None
         assert proot is not None
         assert test_agent is not None
 
@@ -201,18 +241,30 @@ class ParametricScenario(DockerFixturesScenario):
         except (KeyError, ValueError):
             pytest.exit("rules_itest did not provide the default test-agent port mapping", 1)
 
+        if library_configuration.archive_entrypoint is None:
+            launch = ProcessLaunchSpec.executable(Path(artifact))
+        else:
+            launch = ProcessLaunchSpec.archive(
+                Path(artifact),
+                entrypoint=library_configuration.archive_entrypoint,
+            )
         self._test_client_factory = ProcessParametricTestClientFactory(
-            executable=Path(server),
+            launch=launch,
             proot=Path(proot),
             library=library,
+            server_environment=dict(library_configuration.environment),
         )
         self._test_agent_factory = ProcessTestAgentFactory(
             executable=Path(test_agent),
             default_ports=default_ports,
         )
-        self._test_client_factory.configure(self.host_log_folder)
+        self._test_client_factory.configure(self.host_log_folder, config)
         self._test_agent_factory.configure(self.host_log_folder)
-        self._library = ComponentVersion(library, os.environ.get("SYSTEM_TESTS_GO_LIBRARY_VERSION", "v2.4.0"))
+        version = os.environ.get(
+            library_configuration.version_environment_variable,
+            library_configuration.default_version,
+        )
+        self._library = ComponentVersion(library, version)
         if self.is_main_worker:
             self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
         self.warmups.append(self._set_components)

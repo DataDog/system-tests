@@ -120,7 +120,13 @@ pip.parse(
     requirements_lock = "//bazel/requirements:test_agent.txt",
     target_platforms = ["linux_x86_64"],
 )
-use_repo(pip, "runner_pip", "test_agent_pip")
+pip.parse(
+    hub_name = "python_parametric_pip",
+    python_version = "3.12",
+    requirements_lock = "//bazel/requirements:python_parametric.txt",
+    target_platforms = ["linux_x86_64"],
+)
+use_repo(pip, "python_parametric_pip", "runner_pip", "test_agent_pip")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

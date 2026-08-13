@@ -1,5 +1,8 @@
+import logging
+
 from ddapm_test_agent.agent import main
 
 
 if __name__ == "__main__":
+    logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
     main()
