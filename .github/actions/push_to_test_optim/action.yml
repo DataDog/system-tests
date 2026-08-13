@@ -1,3 +1,4 @@
+---
 name: "Push to TestOptim"
 description: "Push test runs to DataDog Test Optimization"
 inputs:
@@ -26,12 +27,13 @@ runs:
       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         path: repo
+        ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
     - name: Get Datadog credentials
       id: dd-sts
       if: github.event.pull_request.user.login != 'dependabot[bot]'
       continue-on-error: true
-      uses: DataDog/dd-sts-action@639d841c72f15e4e77747bd726ef8105ce971da2 # v1.0.5
+      uses: DataDog/dd-sts-action@639d841c72f15e4e77747bd726ef8105ce971da2  # v1.0.5
       with:
         policy: system-tests
         retries: 16
@@ -42,6 +44,9 @@ runs:
       shell: bash
       run: |
         cd repo
+        if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+          export DD_GIT_COMMIT_SHA="$SYSTEM_TESTS_PR_HEAD_SHA"
+        fi
         datadog-ci junit upload \
           ../logs*/reportJunit.xml \
           --service system-tests \
@@ -50,5 +55,6 @@ runs:
           --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
-        DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}
+        DATADOG_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
+        SYSTEM_TESTS_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
