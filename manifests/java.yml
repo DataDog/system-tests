@@ -307,9 +307,19 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: missing_feature
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: missing_feature
-  tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
+  tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
+    - weblog_declaration:
+        "*": v1.66.0-SNAPSHOT
+        play: incomplete_test_app (endpoint not implemented)
+        ratpack: incomplete_test_app (endpoint not implemented)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
-  tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace:
+    - weblog_declaration:
+        "*": v1.66.0-SNAPSHOT
+        play: incomplete_test_app (endpoint not implemented)
+        ratpack: incomplete_test_app (endpoint not implemented)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection:
     - weblog_declaration:
         "*": v1.1.0

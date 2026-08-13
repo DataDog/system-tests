@@ -1,7 +1,5 @@
-import json
 import os
-from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 
 import pytest
 
@@ -23,15 +21,8 @@ from utils._context.containers import (
     ProxyContainer,
     BuddyContainer,
     TestedContainer,
-    ServerlessInitContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
-from utils.docker_fixtures._core import extra_hosts_for_environment
-from utils.mocked_backend.ffe import (
-    EXPECTED_API_KEY,
-    MockFFEAgentlessBackendServer,
-    MockFFEAgentlessBackendStatus,
-)
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
@@ -613,168 +604,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             weblog_env=weblog_env,
             weblog_volumes=weblog_volumes,
         )
-
-
-class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
-    """FFE end-to-end scenario with UFC available before the weblog starts."""
-
-    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
-    _mock_backend_status_filename = "mock_ffe_agentless_backend_status.json"
-
-    _mock_backend: MockFFEAgentlessBackendServer | None = None
-    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
-
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
-        exposure_egress: Literal["sidecar", "direct"] | None = None,
-        weblog_env: dict[str, str | None] | None = None,
-    ) -> None:
-        self.exposure_egress = exposure_egress
-        environment: dict[str, str | None] = {
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "1",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
-        }
-        environment.update(weblog_env or {})
-
-        other_weblog_containers: tuple[type[TestedContainer], ...] = ()
-        if exposure_egress is not None:
-            environment |= {
-                "DD_SITE": "datad0g.com",
-                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",
-                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.datadog_direct}",
-            }
-
-        if exposure_egress == "sidecar":
-            environment |= {
-                "DD_AGENT_HOST": "ffe-serverless-init",
-                "DD_TRACE_AGENT_PORT": "8126",
-                "DD_TRACE_AGENT_URL": "http://ffe-serverless-init:8126",
-            }
-            other_weblog_containers = (ServerlessInitContainer,)
-
-        super().__init__(
-            name,
-            doc=doc,
-            include_agent=False,
-            library_interface_timeout=0,
-            other_weblog_containers=other_weblog_containers,
-            scenario_groups=[all_scenario_groups.ffe],
-            use_proxy_for_agent=False,
-            use_proxy_for_weblog=exposure_egress is not None,
-            weblog_env=environment,
-        )
-
-    def configure(self, config: pytest.Config) -> None:
-        try:
-            if self.replay:
-                self._load_mock_backend_status()
-            else:
-                self._last_mock_backend_status = None
-                self._start_mock_backend()
-
-            super().configure(config)
-            if self.exposure_egress is not None:
-                interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
-                interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
-        except BaseException:
-            self._stop_mock_backend(persist_status=False)
-            raise
-
-    @property
-    def serverless_init_container(self) -> ServerlessInitContainer:
-        for container in self.weblog_infra.get_containers():
-            if isinstance(container, ServerlessInitContainer):
-                return container
-        raise ValueError("This scenario has no serverless-init container")
-
-    def _set_containers_dependancies(self) -> None:
-        super()._set_containers_dependancies()
-        if self.exposure_egress == "sidecar":
-            self.serverless_init_container.depends_on.append(self.proxy_container)
-
-    def _start_interfaces_watchdog(self) -> None:
-        super()._start_interfaces_watchdog()
-        if self.exposure_egress is not None:
-            self.start_interfaces_watchdog([interfaces.datadog_sidecar, interfaces.datadog_direct])
-
-    def _wait_for_app_readiness(self) -> None:
-        if self.exposure_egress is not None:
-            return
-        super()._wait_for_app_readiness()
-
-    def _set_components(self) -> None:
-        super()._set_components()
-        if self.exposure_egress == "sidecar":
-            self.components["serverless-init"] = self.serverless_init_container.serverless_init_version
-
-    def _wait_and_stop_containers(self, *, is_empty_test_run: bool) -> None:
-        super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
-        if self.exposure_egress is None:
-            return
-
-        if self.replay:
-            interfaces.datadog_sidecar.load_data_from_logs()
-            interfaces.datadog_direct.load_data_from_logs()
-        elif self.exposure_egress == "sidecar":
-            self.serverless_init_container.stop()
-
-        interfaces.datadog_sidecar.check_deserialization_errors()
-        interfaces.datadog_direct.check_deserialization_errors()
-
-    def _start_mock_backend(self) -> None:
-        assert self._mock_backend is None, "mock FFE agentless backend is already running"
-
-        self._mock_backend = MockFFEAgentlessBackendServer()
-        self._mock_backend.reset()
-
-        environment = self.weblog_infra.library_container.environment
-        environment |= {
-            "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
-        }
-        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
-
-    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
-        if self._mock_backend is not None:
-            return self._mock_backend.status()
-        return self._last_mock_backend_status
-
-    @property
-    def _mock_backend_status_path(self) -> Path:
-        return Path(self.host_log_folder) / self._mock_backend_status_filename
-
-    def _load_mock_backend_status(self) -> None:
-        self._last_mock_backend_status = cast(
-            "MockFFEAgentlessBackendStatus",
-            json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
-        )
-
-    def _stop_mock_backend(self, *, persist_status: bool = True) -> None:
-        backend = self._mock_backend
-        if backend is None:
-            return
-
-        self._mock_backend = None
-        try:
-            if persist_status:
-                self._last_mock_backend_status = backend.status()
-                self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
-                self._mock_backend_status_path.write_text(
-                    json.dumps(self._last_mock_backend_status, indent=2) + "\n",
-                    encoding="utf-8",
-                )
-        finally:
-            backend.close()
-
-    def close_targets(self) -> None:
-        try:
-            super().close_targets()
-        finally:
-            self._stop_mock_backend()
 
 
 class GraphQlEndToEndScenario(EndToEndScenario):

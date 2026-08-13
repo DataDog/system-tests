@@ -9,6 +9,7 @@ import pytest
 
 from utils import features, scenarios
 from utils._context.containers import ServerlessInitContainer
+from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
 from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
 from utils.mocked_backend.ffe import (
@@ -18,7 +19,7 @@ from utils.mocked_backend.ffe import (
     MockFFEAgentlessBackendServer,
     UFC_RESPONSE_TYPE,
 )
-from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from utils.proxy.ports import ProxyPorts
 
 
@@ -143,6 +144,7 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.get_libraries() is None
+    assert environment["DD_SITE"] == "datad0g.com"
     assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
     assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
 
@@ -172,7 +174,7 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     def create_backend() -> MagicMock:
         return backend
 
-    monkeypatch.setattr(endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
+    monkeypatch.setattr(agentless_endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
 
     with pytest.raises(RuntimeError, match="reset failed"):
         scenario.configure(MagicMock(spec=pytest.Config))

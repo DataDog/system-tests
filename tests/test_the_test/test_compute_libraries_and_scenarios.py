@@ -517,10 +517,8 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS,PARAMETRIC",
-            "",
+            "DEFAULT,PARAMETRIC",
+            "agentless",
         )
 
     def test_end_to_end_scenario_framework_file(self):
@@ -531,10 +529,20 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
-            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            "DEFAULT",
             "end_to_end",
+        )
+
+    def test_end_to_end_agentless_scenario_framework_file(self):
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/agentless_endtoend.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "agentless",
         )
 
     def test_json_modification(self):

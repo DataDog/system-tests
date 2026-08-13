@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exposure_events_from_data
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
-from utils._context._scenarios.endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from utils._context.component_version import Version
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
