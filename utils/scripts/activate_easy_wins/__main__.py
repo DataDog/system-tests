@@ -140,7 +140,7 @@ def main() -> None:
 
     # Exit with status 1 if no updates were made
     if not has_updates:
-        sys.exit(1)
+        print("No update were made")
 
 
 if __name__ == "__main__":
