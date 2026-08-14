@@ -24,6 +24,7 @@ from utils.scripts.build_base_images import (
     _files_under,
     _write_lock,
     alias_for_base_tag,
+    build_and_push,
     compute_hash,
     image_exists,
     lock_images,
@@ -688,6 +689,48 @@ class Test_ComputeHash:
         group_writable_hash = compute_hash(tmp_path, {"tags": ["x"]})
 
         assert owner_writable_hash == group_writable_hash
+
+
+@scenarios.test_the_test
+class Test_BuildAndPush:
+    def test_build_and_push_streams_output(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        calls: list[tuple[list[str], dict[str, object]]] = []
+
+        def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess:
+            calls.append((cmd, kwargs))
+            return subprocess.CompletedProcess(cmd, 0)
+
+        monkeypatch.setattr(build_base_images.subprocess, "run", fake_run)
+
+        build_and_push(
+            tmp_path / "docker-bake.hcl",
+            "target",
+            "datadog/system-tests:test.base-123456789abc",
+            tmp_path / "build",
+            "Dockerfile",
+        )
+
+        assert calls == [
+            (
+                [
+                    "docker",
+                    "buildx",
+                    "bake",
+                    "--push",
+                    "--progress=plain",
+                    "--set",
+                    "target.tags=datadog/system-tests:test.base-123456789abc",
+                    "--set",
+                    f"target.context={tmp_path / 'build'}",
+                    "--set",
+                    "target.dockerfile=Dockerfile",
+                    "-f",
+                    str(tmp_path / "docker-bake.hcl"),
+                    "target",
+                ],
+                {"cwd": build_base_images.REPO_ROOT, "check": False},
+            )
+        ]
 
 
 @scenarios.test_the_test

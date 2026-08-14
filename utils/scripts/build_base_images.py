@@ -80,6 +80,15 @@ def _run(cmd: list[str], *, cwd: Path = REPO_ROOT) -> subprocess.CompletedProces
     return result
 
 
+def _run_streaming(cmd: list[str], *, cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess:
+    """Run a command while streaming its output to the parent process."""
+    result = subprocess.run(cmd, cwd=cwd, check=False)
+    if result.returncode != 0:
+        print(f"Error: command failed: {' '.join(cmd)}")
+        result.check_returncode()
+    return result
+
+
 def _all_bake_configs(bake_file: Path) -> dict[str, dict]:
     """Return the resolved config for each default bake target."""
     result = _run(["docker", "buildx", "bake", "--print", "--progress", "quiet", "-f", str(bake_file), "default"])
@@ -349,7 +358,7 @@ def image_exists(
 
 def build_and_push(bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile_name: str) -> None:
     print(f"Building and pushing {tag}")
-    _run(
+    _run_streaming(
         [
             "docker",
             "buildx",
