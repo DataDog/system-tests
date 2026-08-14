@@ -18,8 +18,9 @@ manifest:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: bug (APPSEC-69627)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -40,6 +41,39 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.1.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": missing_feature (the evaluation exposes the redacted messages but not the redaction_replacements that produced them)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

@@ -1363,9 +1363,36 @@ Successful evaluation:
   "tags": [],
   "tag_probs": {
     "jailbreak": 0.0
-  }
+  },
+  "sds": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "My SSN is <REDACTED>"
+    }
+  ],
+  "redaction_replacements": [
+    {
+      "path": "messages[0].content",
+      "replacement": "My SSN is <REDACTED>"
+    }
+  ]
 }
 ```
+
+The response must expose every field the SDK evaluation carries. A weblog that builds the JSON
+field by field instead of serializing the evaluation has to include, on top of `action`, `reason`,
+`tags` and `tag_probs`:
+
+- `sds`: the sensitive data detection metadata (`sds_findings`), reported whether or not anything
+  was redacted
+- `messages`: the message list the SDK hands back to the caller, which is the redacted list
+  whenever the backend asked for a redaction and the original one otherwise
+- `redaction_replacements`: the `{path, replacement}` pairs the backend returned
+
+The last two are omitted when the tracer's SDK does not expose them yet. The 403 response
+deliberately carries none of them: the abort error reports the outcome, and the messages surface
+on the span only (see `tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock`).
 
 ### POST /stripe/create_checkout_session
 
