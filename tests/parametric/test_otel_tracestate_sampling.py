@@ -6,24 +6,179 @@ import pytest
 from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
-from tests.test_otel_tracestate_sampling import (
-    FORWARD_RV,
-    FORWARD_TH,
-    FORWARD_TRACE_ID,
-    SAMPLING_RATE_0_01,
-    SAMPLING_RATE_0_1,
-    SAMPLING_RATE_0_2,
-    SAMPLING_RATE_0_5,
-    SAMPLING_RATE_0_99,
-    TH_BY_RATE,
-    _parse_ot,
-    _traceparent,
-)
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
-from utils.docker_fixtures.spec.tracecontext import get_tracecontext
+from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracecontext
 
 from .conftest import APMLibrary
+
+
+TH_BY_RATE = {
+    0.01: "fd70a3d70a3d7",
+    0.1: "e6666666666668",
+    0.2: "ccccccccccccd",
+    0.5: "8",
+    0.99: "028f5c28f5c29",
+}
+
+SAMPLING_RATE_0_01 = [
+    (1, "f0948a54d43b8e", False),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", False),
+    (1000, "c43c5b5d08a38e", False),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", False),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", False),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", False),
+    (1882305164521835798, "9d38be3d27241d", False),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", False),
+    (8696342848850656916, "ca47c7b1ab2e46", False),
+    (10197320802478874805, "d29c6d21f144ee", False),
+    (10350218024687037124, "d6dc160c1c68fd", False),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", False),
+    (14629469446186818297, "295fd564326a5f", False),
+    (83, "0028d980cf4f1c", False),
+]
+
+SAMPLING_RATE_0_1 = [
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", False),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", False),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", False),
+    (1882305164521835798, "9d38be3d27241d", False),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", False),
+    (8696342848850656916, "ca47c7b1ab2e46", False),
+    (10197320802478874805, "d29c6d21f144ee", False),
+    (10350218024687037124, "d6dc160c1c68fd", False),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", False),
+    (14629469446186818297, "295fd564326a5f", False),
+    (83, "0028d980cf4f1c", False),
+]
+
+SAMPLING_RATE_0_2 = [
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", False),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", False),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", False),
+    (1882305164521835798, "9d38be3d27241d", False),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", False),
+    (8696342848850656916, "ca47c7b1ab2e46", False),
+    (10197320802478874805, "d29c6d21f144ee", True),
+    (10350218024687037124, "d6dc160c1c68fd", True),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", False),
+    (14629469446186818297, "295fd564326a5f", False),
+    (83, "0028d980cf4f1c", False),
+]
+
+SAMPLING_RATE_0_5 = [
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", False),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", True),
+    (18444899399302180860, "1d6aabcffddf37", False),
+    (18444899399302180861, "0dff3624d21ac5", False),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", False),
+    (9223372036854775809, "70948a54d43b8e", False),
+    (9223372036854775807, "8f6b75ab2bc471", True),
+    (4611686018427387905, "30948a54d43b8e", False),
+    (4611686018427387903, "4f6b75ab2bc471", False),
+    (646771306295669658, "899fbcfd433be9", True),
+    (1882305164521835798, "9d38be3d27241d", True),
+    (5198373796167680436, "7188fdce730439", False),
+    (6272545487220484606, "bea00261cb73bd", True),
+    (8696342848850656916, "ca47c7b1ab2e46", True),
+    (10197320802478874805, "d29c6d21f144ee", True),
+    (10350218024687037124, "d6dc160c1c68fd", True),
+    (12078589664685934330, "3a7d76f3c5a379", False),
+    (13794769880582338323, "a6c17470cee7cd", True),
+    (14629469446186818297, "295fd564326a5f", False),
+    (83, "0028d980cf4f1c", False),
+]
+
+SAMPLING_RATE_0_99 = [
+    (1, "f0948a54d43b8e", True),
+    (10, "65cd67504a538e", True),
+    (100, "fa060922e7438e", True),
+    (1000, "c43c5b5d08a38e", True),
+    (18444899399302180860, "1d6aabcffddf37", True),
+    (18444899399302180861, "0dff3624d21ac5", True),
+    (18444899399302180862, "fe93c079a65653", True),
+    (18444899399302180863, "ef284ace7a91e1", True),
+    (18446744073709551615, "0f6b75ab2bc471", True),
+    (9223372036854775809, "70948a54d43b8e", True),
+    (9223372036854775807, "8f6b75ab2bc471", True),
+    (4611686018427387905, "30948a54d43b8e", True),
+    (4611686018427387903, "4f6b75ab2bc471", True),
+    (646771306295669658, "899fbcfd433be9", True),
+    (1882305164521835798, "9d38be3d27241d", True),
+    (5198373796167680436, "7188fdce730439", True),
+    (6272545487220484606, "bea00261cb73bd", True),
+    (8696342848850656916, "ca47c7b1ab2e46", True),
+    (10197320802478874805, "d29c6d21f144ee", True),
+    (10350218024687037124, "d6dc160c1c68fd", True),
+    (12078589664685934330, "3a7d76f3c5a379", True),
+    (13794769880582338323, "a6c17470cee7cd", True),
+    (14629469446186818297, "295fd564326a5f", True),
+    (83, "0028d980cf4f1c", False),
+]
+
+FORWARD_TRACE_ID = 18444899399302180863
+FORWARD_RV = "ef284ace7a91e1"
+FORWARD_TH = "e6666666666668"
+
+
+def _traceparent(trace_id: int, *, sampled: bool) -> str:
+    return f"00-{trace_id:032x}-0000000000000001-{'01' if sampled else '00'}"
+
+
+def _parse_ot(tracestate: Tracestate | str) -> dict[str, str]:
+    if isinstance(tracestate, str):
+        tracestate = Tracestate(tracestate)
+
+    if "ot" not in tracestate:
+        return {}
+
+    parsed = {}
+    for item in tracestate["ot"].split(";"):
+        if ":" not in item:
+            continue
+        key, _, value = item.partition(":")
+        parsed[key] = value
+    return parsed
 
 
 def _library_env(rate: float) -> dict[str, str]:
