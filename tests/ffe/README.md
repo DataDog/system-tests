@@ -17,6 +17,23 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## Canonical parametric fixtures
+
+The parametric evaluation suite reads the checked-in snapshot under
+`tests/parametric/test_ffe/ffe-system-test-data`. The canonical source is
+[`DataDog/ffe-system-test-data`](https://github.com/DataDog/ffe-system-test-data).
+
+Make shared evaluator fixture changes in the canonical repository first. A weekly workflow applies
+a client-owned disallow list, copies the fixture contents into `system-tests`, and opens a signed
+draft PR when the snapshot changes. Refresh a branch manually with:
+
+```bash
+python3 utils/scripts/update_ffe_fixtures.py --ref <branch-tag-or-commit>
+```
+
+The files are checked in intentionally, so local and CI tests work from an ordinary clone without
+submodule initialization or network access.
+
 ---
 
 # Eval Metrics Implementation Guide
