@@ -312,9 +312,9 @@ func writeBlock(w http.ResponseWriter, block *blockResult) error {
 	if block.Status < http.StatusContinue || block.Status > 999 {
 		return fmt.Errorf("invalid block status %d", block.Status)
 	}
-	for name, values := range block.Headers {
-		w.Header()[name] = append([]string(nil), values...)
-	}
+	// canonicalize: a lowercase name from the callout would not be found by Go's internal
+	// Header.get, so the server would content-sniff and emit a second Content-Type
+	applyHeaders(w.Header(), block.Headers)
 	w.WriteHeader(block.Status)
 	_, err = w.Write(content)
 	return err

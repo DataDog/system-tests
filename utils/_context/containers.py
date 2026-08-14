@@ -1801,12 +1801,18 @@ class ApimGatewayContainer(TestedContainer):
                 # golang:1.25-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
                 # healthcheck used by EnvoyContainer and HAProxyContainer is not usable here
                 "test": "wget -qO- http://localhost:80/",
-                # AC1 measured ~11.93s from container start to first successful health probe.
-                # `go run .` still compiles on every start, so keep a small cushion: ~21s
-                # ceiling (15s + 6 * 1s).
-                "retries": 5,
+                # `go run .` compiles the shim on every container start, and since Go 1.20 ships
+                # no prebuilt std it rebuilds net/http and crypto/tls from source into an empty
+                # GOCACHE. That measured ~12s wall locally but ~13s of CPU, so a contended
+                # 2-vCPU runner can take substantially longer.
+                #
+                # execute_command retries until the first success and stops, so a high retry
+                # count costs nothing on a fast start but keeps a slow runner from failing the
+                # whole scenario. start_period is an unconditional sleep here, not a Docker
+                # grace period, so it is omitted: probing immediately detects a fast start
+                # sooner than any blind wait would.
+                "retries": 60,
                 "interval": 1_000_000_000,
-                "start_period": 15_000_000_000,
             },
         )
 
