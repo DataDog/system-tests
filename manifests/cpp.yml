@@ -252,7 +252,7 @@ manifest:
   ? tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_3_stats_computed_resource_attr_on_otlp_traces
   : missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: ">2.1.2"
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: ">=2.2.0"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)  # The expected error status is not set
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Metric:  # TODO: a lower version might be supported
     - declaration: missing_feature (Tracer does not provide a public method for directly setting a span metric)
@@ -309,7 +309,7 @@ manifest:
     - declaration: bug (APMAPI-737)
       component_version: <2.0.0
   tests/parametric/test_span_events.py: missing_feature
-  tests/parametric/test_span_links.py: ">2.1.2"
+  tests/parametric/test_span_links.py: ">=2.2.0"
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (auto.drop not supported)
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature (v0.5 not implemented)
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
