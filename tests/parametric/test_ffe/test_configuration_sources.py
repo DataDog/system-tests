@@ -13,15 +13,17 @@ agentless base URL option; it does not introduce a separate custom source mode.
 """
 
 from collections.abc import Callable
-import json
-from pathlib import Path
 import time
 from typing import Any
 
 import pytest
 
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc, _ffe_evaluate_with_rc_retry
+from tests.parametric.test_ffe.test_dynamic_evaluation import (
+    _ffe_evaluate_with_rc_retry,
+    _load_ufc_fixture,
+    _set_and_wait_ffe_rc,
+)
 from utils import features, scenarios
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
@@ -34,7 +36,6 @@ from utils.mocked_backend.ffe import (
 parametrize = pytest.mark.parametrize
 pytest_plugins = ["utils.mocked_backend.ffe"]
 
-UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
 RC_PRODUCT = "FFE_FLAGS"
 TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
@@ -67,12 +68,10 @@ EVALUATION_CASE: dict[str, Any] = {
 }
 
 
-def _load_valid_ufc_fixture() -> dict[str, Any]:
-    with UFC_VALID_FIXTURE.open() as f:
-        return json.load(f)
-
-
-UFC_VALID_DATA = _load_valid_ufc_fixture()
+@pytest.fixture
+def ufc_valid_data() -> dict[str, Any]:
+    """Load the canonical UFC fixture only when this parametric module runs."""
+    return _load_ufc_fixture()
 
 
 @pytest.fixture
@@ -222,6 +221,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
     @parametrize("library_env", [{"configuration_source": "remote_config", "response": "valid"}], indirect=True)
     def test_remote_config_positive_ignores_agentless_env(
         self,
+        ufc_valid_data: dict[str, Any],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
@@ -230,7 +230,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # library_env supplies by default, distinguishing source selection from CDN availability.
         # The RC ACK, product/capability, and evaluation prove RC supplied the UFC data; zero mock
         # requests proves the configured agentless endpoint was not used.
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        apply_state = _set_and_wait_ffe_rc(test_agent, ufc_valid_data)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
         _assert_ffe_remote_config_activation(test_agent)
@@ -354,6 +354,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
     )
     def test_legacy_true_preserves_remote_config(
         self,
+        ufc_valid_data: dict[str, Any],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
@@ -362,7 +363,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # represents an existing customer whose historical opt-in selected Remote Configuration;
         # valid CDN inputs make accidental migration observable. RC ACK/capability and evaluation
         # prove grandfathering, while zero mock requests proves CDN was never selected.
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        apply_state = _set_and_wait_ffe_rc(test_agent, ufc_valid_data)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
         _assert_ffe_remote_config_activation(test_agent)
@@ -454,6 +455,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
     )
     def test_explicit_remote_config_wins_over_legacy_false(
         self,
+        ufc_valid_data: dict[str, Any],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
         mock_ffe_agentless_backend: MockFFEAgentlessBackendServer,
@@ -462,7 +464,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
         # false, proving explicit stable source selection takes precedence over compatibility state.
         # RC ACK/capability and the expected evaluation prove RC is active, while zero mock requests
         # proves the available agentless endpoint is not consulted.
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_VALID_DATA)
+        apply_state = _set_and_wait_ffe_rc(test_agent, ufc_valid_data)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
         _assert_ffe_remote_config_activation(test_agent)
