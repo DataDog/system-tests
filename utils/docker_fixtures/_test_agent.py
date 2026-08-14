@@ -822,10 +822,9 @@ class TestAgentAPI:
         return config.get("value") if return_value_only else config
 
     def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 100):
-        """Get the telemetry metrics from the test agent."""
-        metrics = []
-
+        """Wait for matching telemetry metrics and return the first non-empty poll."""
         for _ in range(wait_loops):
+            metrics = []
             for event in self.telemetry(clear=False):
                 telemetry_event = self._get_telemetry_event(event, "generate-metrics")
                 logger.debug("Found telemetry event: %s", telemetry_event)
@@ -835,12 +834,16 @@ class TestAgentAPI:
                     if metric_name is None or series["metric"] == metric_name:
                         metrics.append(series)
                         break
-            metrics.sort(key=lambda x: (x["metric"], x["tags"]))
+            if metrics:
+                metrics.sort(key=lambda x: (x["metric"], x["tags"]))
+                if clear:
+                    self.clear()
+                return metrics
             time.sleep(0.01)
 
         if clear:
             self.clear()
-        return metrics
+        return []
 
     def _get_telemetry_event(self, event: dict, request_type: str):
         """Extracts telemetry events from a message batch or returns the telemetry event if it

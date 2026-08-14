@@ -324,6 +324,41 @@ def test_test_agent_endpoint_mapping(tmp_path: Path) -> None:
 
 
 @scenarios.test_the_test
+def test_wait_for_telemetry_metrics_returns_after_first_matching_poll(monkeypatch: pytest.MonkeyPatch) -> None:
+    api = cast("TestAgentAPI", object.__new__(TestAgentAPI))
+    metric = {"metric": "otel.log_records", "tags": ["protocol:http"]}
+    responses = [
+        [],
+        [
+            {
+                "request_type": "generate-metrics",
+                "payload": {"series": [{"metric": "other", "tags": []}, metric]},
+            }
+        ],
+        pytest.fail,
+    ]
+    clear_calls = 0
+
+    def telemetry(*, clear: bool = False) -> list[dict[str, Any]]:
+        assert not clear
+        response = responses.pop(0)
+        assert isinstance(response, list), "telemetry was polled after a matching metric was found"
+        return response
+
+    def clear() -> None:
+        nonlocal clear_calls
+        clear_calls += 1
+
+    monkeypatch.setattr(api, "telemetry", telemetry)
+    monkeypatch.setattr(api, "clear", clear)
+    monkeypatch.setattr("utils.docker_fixtures._test_agent.time.sleep", lambda _seconds: None)
+
+    assert api.wait_for_telemetry_metrics("otel.log_records", clear=True) == [metric]
+    assert clear_calls == 1
+    assert responses == [pytest.fail]
+
+
+@scenarios.test_the_test
 def test_runtime_neutral_api_keeps_docker_restart_and_wait() -> None:
     container = _DockerContainer()
     client = cast("ParametricTestClientApi", object.__new__(ParametricTestClientApi))
