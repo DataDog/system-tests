@@ -131,9 +131,7 @@ class AWSPulumiProvider(VmProvider):
             except pulumi.automation.errors.CommandError as pulumi_command_exception:
                 if "IdempotentParameterMismatch" not in str(pulumi_command_exception) or attempt == attempts:
                     raise
-                logger.stdout(
-                    f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️"
-                )
+                logger.stdout(f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️")
                 self.stack_destroy()
 
     def get_windows_user_data(self) -> str:
