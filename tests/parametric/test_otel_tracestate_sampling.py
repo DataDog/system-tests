@@ -7,7 +7,9 @@ from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
 from utils import features, scenarios
+from utils.dd_constants import SamplingPriority
 from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, find_trace
 from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracecontext
 
 from .conftest import APMLibrary
@@ -266,7 +268,11 @@ SAMPLE_RATE_VECTORS = [
 class Test_OtelTracestateSampling:
     @pytest.mark.parametrize(("library_env", "rate", "vectors"), SAMPLE_RATE_VECTORS)
     def test_emits_probability_sampling_vectors(
-        self, test_library: APMLibrary, rate: float, vectors: list[tuple[int, str, bool]]
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        rate: float,
+        vectors: list[tuple[int, str, bool]],
     ) -> None:
         with test_library:
             for trace_id, expected_rv, expected_sampled in vectors:
@@ -281,6 +287,13 @@ class Test_OtelTracestateSampling:
 
                 assert ot == {"rv": expected_rv, "th": TH_BY_RATE[rate]}
                 assert (traceparent.trace_flags == "01") is expected_sampled
+
+        traces = test_agent.wait_for_num_traces(len(vectors))
+        for trace_id, _, expected_sampled in vectors:
+            (span,) = find_trace(traces, trace_id)
+            sampling_priority = span["metrics"].get(SAMPLING_PRIORITY_KEY)
+            assert sampling_priority is not None
+            assert (sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP)) is expected_sampled
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_forwards_and_sanitizes_inbound_ot(self, test_library: APMLibrary) -> None:
@@ -383,7 +396,7 @@ class Test_OtelTracestateSampling:
         assert _parse_ot(tracestate) == {"th": FORWARD_TH}
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
-    def test_force_keep_clears_th(self, test_library: APMLibrary) -> None:
+    def test_force_keep_clears_th(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library:
             no_ot_headers = _make_root_manual_keep_headers(test_library)
             rv_only_headers = _make_manual_keep_headers(
@@ -412,6 +425,11 @@ class Test_OtelTracestateSampling:
         dropped_traceparent, dropped_tracestate = get_tracecontext(dropped_headers)
         assert dropped_traceparent.trace_flags == "01"
         assert _parse_ot(dropped_tracestate) == {"rv": "65cd67504a538e"}
+
+        traces = test_agent.wait_for_num_traces(3)
+        for trace in traces:
+            (span,) = trace
+            assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == SamplingPriority.USER_KEEP
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_sampled_without_ot_does_not_fabricate_it(self, test_library: APMLibrary) -> None:
