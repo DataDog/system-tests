@@ -1,5 +1,4 @@
 import re
-import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -84,13 +83,17 @@ def _assert_deferred_probe_phases(probe_path: str) -> None:
     )
 
 
-def _assert_inline_probe_phases(probe_path: str) -> None:
-    """Assert `probe_path` was served in inline body mode: header phases only, no body phase."""
+def _assert_inline_probe_phases(probe_path: str) -> str:
+    """Assert `probe_path` was served in inline body mode: header phases only, no body phase.
+
+    Returns the request-id, so a caller can scope further assertions to this exchange.
+    """
     request_id, phases = _probe_phase_group(probe_path)
     assert phases == list(INLINE_PHASES), (
         f"inline probe {probe_path} (request-id {request_id}) hit callout phases {phases}, "
         f"expected {list(INLINE_PHASES)}"
     )
+    return request_id
 
 
 def _span_structure(span: DataDogLibrarySpan) -> tuple[str, str, str]:
@@ -156,11 +159,24 @@ class Test_ApimCallout:
             json={"body": "inline state"},
             headers={"X-Datadog-Apim-Body-Mode": "inline"},
         )
-        time.sleep(31)
 
     def test_inline_body_mode_closes_request_state(self) -> None:
         assert self.r.status_code == 200, f"inline probe returned {self.r.status_code}, expected 200"
-        _assert_inline_probe_phases(STATE_CLOSURE_PROBE_PATH)
-        assert "closing orphaned span" not in _container_stderr("apim-callout"), (
-            "apim-callout logged an orphaned span, so inline mode did not close the cached request state"
+        request_id = _assert_inline_probe_phases(STATE_CLOSURE_PROBE_PATH)
+        # The callout evicts cached request state after a 30s TTL and logs one warning naming the
+        # request-id. Inline mode deletes the state on the response-headers call, so that warning
+        # must never appear for this exchange. No wait is needed here: every setup_ runs before any
+        # test_, and the containers are stopped and their logs collected in between, so far more
+        # than the TTL has elapsed by the time this assertion reads the log.
+        #
+        # Scoped to this request-id on purpose. Matching the bare warning text would also fail on
+        # an unrelated request that legitimately orphaned state, and attribute it to inline mode.
+        orphaned = [
+            line
+            for line in _container_stderr("apim-callout").splitlines()
+            if "closing orphaned span" in line and request_id in line
+        ]
+        assert not orphaned, (
+            f"apim-callout orphaned the cached state for inline request-id {request_id}, "
+            f"so inline mode did not close it: {orphaned}"
         )
