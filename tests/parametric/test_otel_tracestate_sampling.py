@@ -198,8 +198,6 @@ def _parse_ot(tracestate: Tracestate | str) -> dict[str, str]:
 
 def _library_env(rate: float) -> dict[str, str]:
     return {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
         "DD_TRACE_RATE_LIMIT": "10000000",
         "DD_TRACE_SAMPLE_RATE": str(rate),
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
@@ -461,6 +459,7 @@ class Test_OtelTracestateSampling:
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_sampled_without_ot_does_not_fabricate_it(self, test_library: APMLibrary) -> None:
         """A5: A sampled inbound trace without `ot` does not fabricate `rv` or `th`."""
+        # A parent-based child with an unknown upstream probability cannot create `th` or `rv`.
         with test_library:
             headers = _make_child_headers(
                 test_library,
