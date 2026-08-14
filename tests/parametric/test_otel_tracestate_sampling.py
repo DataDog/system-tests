@@ -1,4 +1,4 @@
-"""Cross-tracer conformance for OpenTelemetry probability sampling on the wire."""
+"""Cross-tracer conformance for OpenTelemetry consistent probability sampling (ot.th / ot.rv) on the wire."""
 
 import base64
 import json
@@ -17,14 +17,20 @@ from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracecontext
 from .conftest import APMLibrary
 
 
-# Expected `ot.rv` / `ot.th` values for known trace IDs and sample rates.
+# ---------------------------------------------------------------------------
+# Expected ot.rv / ot.th values for known trace IDs and known sample rates
 #
-# The sampling decision is derived from a 64-bit hash of the trace ID. `rv` is
-# the corresponding 56-bit value and depends only on the trace ID; `th` is the
-# 56-bit threshold and depends only on the configured sample rate.
+# DD's sampling decision is h = (trace_id_low64 * 1111111111111111111) mod 2**64, keep if h <= rate * (2**64 - 1)
+# (dd-trace-go/ddtrace/tracer/sampler.go:114-122). The OTel-compatible pair is:
+#   rv = (~h & (2**64 - 1)) >> 8      (56-bit, 14 hex digits) -- depends only on trace_id, not on rate
+#   th = round((1 - rate) * (2**56)) (56-bit, trailing zero nibbles trimmed when formatted) -- depends only on rate
+#   These fixtures use the maximum available 14 hexadecimal digits of precision, rather than the 4 digits
+#   recommended by the OTel specification: https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/
 #
-# These fixtures use the maximum 14 hexadecimal digits of precision. Their
-# trace IDs are cross-checked against the existing sampling-rate fixtures.
+# Trace IDs are the ones already used (and verified) in tests/fixtures/sampling_rates.csv, crossed with
+# 5 rates. Expected values below were computed with the formula above and cross-checked: at rate 0.5 they
+# reproduce the exact same keep/drop decisions as that CSV for all 23 trace IDs.
+# ---------------------------------------------------------------------------
 TH_BY_RATE = {
     0.01: "fd70a3d70a3d7",
     0.1: "e6666666666668",
@@ -34,6 +40,7 @@ TH_BY_RATE = {
 }
 
 SAMPLING_RATE_0_01 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", False),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", False),
@@ -61,6 +68,7 @@ SAMPLING_RATE_0_01 = [
 ]
 
 SAMPLING_RATE_0_1 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", True),
@@ -88,6 +96,7 @@ SAMPLING_RATE_0_1 = [
 ]
 
 SAMPLING_RATE_0_2 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", True),
@@ -115,6 +124,7 @@ SAMPLING_RATE_0_2 = [
 ]
 
 SAMPLING_RATE_0_5 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", True),
@@ -142,6 +152,7 @@ SAMPLING_RATE_0_5 = [
 ]
 
 SAMPLING_RATE_0_99 = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", True),
     (100, "fa060922e7438e", True),
@@ -168,8 +179,7 @@ SAMPLING_RATE_0_99 = [
     (83, "0028d980cf4f1c", False),
 ]
 
-# This trace ID and its `rv`/`th` values match the verified OpenTelemetry
-# sampling example at rate 0.1.
+# Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
 FORWARD_TRACE_ID = 18444899399302180863
 FORWARD_RV = "ef284ace7a91e1"
 FORWARD_TH = "e6666666666668"
@@ -180,7 +190,7 @@ def _traceparent(trace_id: int, *, sampled: bool) -> str:
 
 
 def _parse_ot(tracestate: Tracestate | str) -> dict[str, str]:
-    """Split the `ot` tracestate member into subkeys without assuming their order."""
+    """Split the ot= list-member into its rv/th sub-keys. Sub-key order isn't guaranteed by spec."""
     if isinstance(tracestate, str):
         tracestate = Tracestate(tracestate)
 
@@ -285,7 +295,7 @@ class Test_OtelTracestateSampling:
         rate: float,
         vectors: list[tuple[int, str, bool]],
     ) -> None:
-        """A1: A probability decision emits an `ot` member consistent with its sampling priority."""
+        """A1: a probability sampling decision produces ot=rv:...;th:... consistent with the decision."""
         with test_library:
             for trace_id, expected_rv, expected_sampled in vectors:
                 headers = test_library.dd_make_child_span_and_get_headers(
@@ -309,11 +319,15 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_forwards_and_sanitizes_inbound_ot(self, test_library: APMLibrary) -> None:
-        """A2/A3/A6: Preserve inherited decisions and other vendors while clearing malformed `ot` data."""
+        """A2: DD honors an already-decided upstream trace; ot=rv:...;th:... is forwarded unchanged, never re-derived."""
         inherited = f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH};foo:bar,congo=t61rcWkgMzE"
-        # `dd=s:1` is the sampling decision here, so the traceparent flag must agree.
+        # A6: a malformed ot.th/ot.rv field is cleared, never re-derived; the actual sampling decision is already
+        # settled by traceparent/dd=, so DD must not fabricate a fresh probability decision to replace it.
+        # dd= and other vendors survive, and the trace is never rejected.
+        # dd=s:1 (AUTO_KEEP) is the actual decision here, so the traceparent flag must agree (sampled=True).
         malformed = "dd=s:1,ot=rv:not-hex;th:not-hex,congo=xyz123"
-        # A `th` without an `rv` is a valid default-sampling decision.
+        # A2b: th alone is a valid OTel default-sampling decision (rv is only carried when the decision deviates
+        # from that default); DD must forward th unchanged and never fabricate a matching rv.
         th_only = f"ot=th:{FORWARD_TH}"
 
         with test_library:
@@ -343,7 +357,8 @@ class Test_OtelTracestateSampling:
             "foo": "bar",
         }
         assert "s:2" in inherited_tracestate["dd"].split(";")
-        # An unrelated vendor member is opaque and must be forwarded byte-for-byte.
+        # A3: ot= handling must not disturb dd= or an unrelated vendor tracestate member.
+        # an unrelated vendor member is opaque to DD: it must be forwarded byte-for-byte
         assert inherited_tracestate["congo"] == "t61rcWkgMzE"
 
         _, malformed_tracestate = get_tracecontext(malformed_headers)
@@ -356,10 +371,11 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_forwards_unknown_inbound_ot_subkeys(self, test_library: APMLibrary) -> None:
-        """Unknown `ot` subkeys are forwarded transparently without fabricating a sampling decision."""
-        # `ot` currently defines `rv` and `th`, but reserved subkeys must also survive propagation.
+        # OTEP 235 defines only rv/th today but reserves room for more ot= sub-keys. An unknown sub-key
+        # inherited from upstream must be forwarded verbatim, never dropped from an inherited decision.
         inherited = f"ot=rv:{FORWARD_RV};th:{FORWARD_TH};foo:bar"
-        # An unknown-only `ot` member carries no sampling decision.
+        # Unknown-only variant: an ot= with no rv/th carries no sampling decision, so its sub-key must
+        # still be forwarded verbatim and DD must not mistake it for a decision by fabricating rv/th.
         unknown_only = "ot=foo:bar"
 
         with test_library:
@@ -386,7 +402,7 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_forwards_dropped_inbound_ot(self, test_library: APMLibrary) -> None:
-        """A2c: An inherited dropped decision is forwarded unchanged."""
+        """A2c: A2's forward-unchanged rule holds for a dropped decision too, not just a kept one."""
         with test_library:
             headers = _make_child_headers(
                 test_library,
@@ -402,7 +418,7 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_dropped_th_only_does_not_fabricate_rv(self, test_library: APMLibrary) -> None:
-        """A2d: A dropped `th`-only decision is forwarded without fabricating an `rv`."""
+        """A2d: A2b's no-fabrication rule holds for a dropped decision too, not just a kept one."""
         with test_library:
             headers = _make_child_headers(
                 test_library,
@@ -418,11 +434,11 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_force_keep_clears_th(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """A4: A manual keep clears `th` while preserving an inherited `rv`."""
+        """A4: a non-probability (force-keep) decision erases th but still forwards an inherited rv."""
         with test_library:
-            # Nothing was inherited, so a manual keep must not fabricate an `ot` member.
+            # Nothing was inherited to forward: a local force-keep must not fabricate an ot= from nothing.
             no_ot_headers = _make_root_manual_keep_headers(test_library)
-            # An inherited `rv` remains meaningful even without an inherited `th` decision.
+            # An inherited rv (no th, so no upstream probability decision) is still forwarded on a local force-keep.
             rv_only_headers = _make_manual_keep_headers(
                 test_library,
                 [
@@ -430,7 +446,10 @@ class Test_OtelTracestateSampling:
                     ("tracestate", "ot=rv:1234567890abcd"),
                 ],
             )
-            # Override a complete inherited drop decision, not merely an inherited `rv`.
+            # a full upstream probability decision that dropped the trace (SAMPLING_RATE_0_1's row for trace_id=10, at
+            # rate 0.1: sampled=False), so DD's local force-keep has a real inherited decision to override, not just rv.
+            # Upstream already decided to drop (a full th/rv pair); the local force-keep still clears th but forwards
+            # the inherited rv unchanged.
             dropped_headers = _make_manual_keep_headers(
                 test_library,
                 [
@@ -458,7 +477,7 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_sampled_without_ot_does_not_fabricate_it(self, test_library: APMLibrary) -> None:
-        """A5: A sampled inbound trace without `ot` does not fabricate `rv` or `th`."""
+        """A5: an inbound trace already sampled (W3C flag) but with no ot= is honored; th/rv are never fabricated."""
         # A parent-based child with an unknown upstream probability cannot create `th` or `rv`.
         with test_library:
             headers = _make_child_headers(
@@ -475,7 +494,7 @@ class Test_OtelTracestateSampling:
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_malformed_th_preserves_rv(self, test_library: APMLibrary) -> None:
-        """A6: A malformed `th` is removed while a well-formed inherited `rv` is retained."""
+        """Th malformed, rv otherwise well-formed: th is cleared, but the well-formed rv is still forwarded."""
         with test_library:
             headers = _make_child_headers(
                 test_library,
@@ -491,7 +510,7 @@ class Test_OtelTracestateSampling:
     @pytest.mark.parametrize(
         ("library_env", "trace_id", "expected_th", "expected_rv", "expected_sampled"),
         [
-            # Keep: the 56-bit `rv` is raised to `th` to match the 64-bit decision.
+            # DD keeps (h below threshold) but the naive 56-bit rv falls just short of th; rv is bumped up to th.
             pytest.param(
                 _library_env(0.1),
                 0x03A93EE8B1999F00,
@@ -500,7 +519,7 @@ class Test_OtelTracestateSampling:
                 True,
                 id="rate-0.1-kept",
             ),
-            # Drop: the 56-bit `rv` is lowered to `th - 1` to match the 64-bit decision.
+            # DD drops (h above threshold) but the naive 56-bit rv would read as kept; rv is bumped down to th - 1.
             pytest.param(
                 _library_env(0.05),
                 5401449561355763072,
@@ -520,7 +539,12 @@ class Test_OtelTracestateSampling:
         *,
         expected_sampled: bool,
     ) -> None:
-        """A7: At precision boundaries, the `rv`/`th` pair reproduces the 64-bit decision."""
+        """A7: on a boundary trace ID, the 64-bit hash decision and the naive 56-bit (rv, th) pair disagree; DD must
+        adjust rv (never th) so that (rv >= th) reproduces its own keep/drop exactly.
+
+        See the RFC's "64-bit to 56-bit precision" section: DD keeps but rv < th -> rv = th;
+        DD drops but rv >= th -> rv = th - 1.
+        """
         with test_library:
             headers = _make_child_headers(
                 test_library,
@@ -545,7 +569,10 @@ class Test_OtlpTracestateSampling:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        """B1: A probability decision is carried in the exported OTLP span's `ot` member."""
+        """B1: a probability sampling decision is carried on the exported OTLP span's tracestate as ot=rv:...;th:...
+
+        See APMAPI-2172.
+        """
         with test_library as library:
             with library.dd_extract_headers_and_make_child_span(
                 "name",
@@ -570,7 +597,10 @@ class Test_OtlpTracestateSampling:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        """B2: An inherited `ot` decision is forwarded unchanged onto the exported OTLP span."""
+        """B2: an inherited ot=rv:...;th:... is forwarded unchanged onto the exported OTLP span's tracestate.
+
+        See APMAPI-2172.
+        """
         with test_library as library:
             with library.dd_extract_headers_and_make_child_span(
                 "name",
