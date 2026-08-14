@@ -2955,6 +2955,20 @@ manifest:
         uds-spring-boot: v1.38.0
     - declaration: missing_feature (Not yet implemented)
       component_version: '<=1.54.0'
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+    - declaration: missing_feature (Method capture expressions are not implemented)
+      component_version: '<=1.54.0'
+  ? tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error::test_filter_rejected_no_error_spam
+  : bug (IDEAI-714)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature

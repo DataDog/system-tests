@@ -660,6 +660,28 @@ class BaseDebuggerTest:
 
         return False
 
+    def wait_for_snapshot_count(self, count: int, timeout: int = 5) -> bool:
+        """Wait until `count` snapshots have been received for the expected probes.
+
+        Tests that assert an upper bound on the number of emitted snapshots use this instead of
+        sleeping: it returns as soon as `count` snapshots are on disk, and otherwise waits out the
+        timeout, which is the expected outcome for a tracer respecting the bound.
+        """
+        logger.debug(f"Waiting for {count} snapshots from probes: {self.probe_ids}")
+        seen: set[tuple[str, int]] = set()
+        return interfaces.agent.wait_for(lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout)
+
+    def _count_snapshots(self, data: dict, seen: set[tuple[str, int]]) -> int:
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+            contents = data["request"].get("content", []) or []
+
+            for index, content in enumerate(_iter_snapshot_content_items(contents)):
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") in self.probe_ids:
+                    seen.add((data["log_filename"], index))
+
+        return len(seen)
+
     _no_capture_reason_span_found = False
 
     def wait_for_no_capture_reason_span(self, error_message: str, timeout: int) -> bool:
