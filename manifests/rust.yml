@@ -267,6 +267,8 @@ manifest:
   : missing_feature (Not implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v0.0.1
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: missing_feature (APMAPI-2171)
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtlpTracestateSampling: missing_feature (APMAPI-2172)
   tests/parametric/test_otlp_trace_metrics.py: '>=0.5.1-dev+8efc582'  # TODO: a lower version might be supported
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
