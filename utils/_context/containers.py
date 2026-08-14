@@ -1822,14 +1822,16 @@ class ApimCalloutContainer(GoProcessorContainer):
         try:
             with open("binaries/golang-apim-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
-            logger.stdout(f"apim-callout image: {image} (from binaries/golang-apim-callout-image)")
+            # never logger.stdout() from a container constructor: containers are also built by
+            # utils/scripts/get-image-list.py, whose stdout IS the compose document consumed by
+            # `docker compose` in .github/actions/pull_images. The resolved tag still reaches
+            # stdout on a real run, via GoProcessorContainer.post_start().
+            logger.info(f"apim-callout image: {image} (from binaries/golang-apim-callout-image)")
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/apim-callout:latest"
-            # make the downgrade loud: without the pointer file we test released code instead of
-            # the commit under test
-            logger.stdout(
-                f"WARNING: binaries/golang-apim-callout-image not found, falling back to released image {image}"
-            )
+            # the downgrade is significant: without the pointer file we test released code instead
+            # of the commit under test
+            logger.warning(f"binaries/golang-apim-callout-image not found, falling back to released image {image}")
 
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",
