@@ -187,8 +187,11 @@ def _outbound_tracestate(request: HttpResponse) -> Tracestate:
     return get_tracestate(data["request_headers"])
 
 
-def _parse_ot(tracestate: Tracestate) -> dict[str, str]:
+def _parse_ot(tracestate: Tracestate | str) -> dict[str, str]:
     """Split the ot= list-member into its rv/th sub-keys. Sub-key order isn't guaranteed by spec."""
+    if isinstance(tracestate, str):
+        tracestate = Tracestate(tracestate)
+
     if "ot" not in tracestate:
         return {}
 
