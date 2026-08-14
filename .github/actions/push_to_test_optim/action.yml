@@ -45,7 +45,7 @@ runs:
       run: |
         cd repo
         if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-          export DD_GIT_COMMIT_SHA="$SYSTEM_TESTS_PR_HEAD_SHA"
+          export DD_GIT_COMMIT_SHA="$PR_HEAD_SHA"
         fi
         datadog-ci junit upload \
           ../logs*/reportJunit.xml \
@@ -57,4 +57,4 @@ runs:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
-        SYSTEM_TESTS_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
