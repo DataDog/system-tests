@@ -4,6 +4,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags: missing_feature
@@ -11,6 +12,15 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDS_Findings_In_SDK_Response: missing_feature
@@ -247,8 +257,14 @@ manifest:
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags: missing_feature
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: missing_feature
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=1.23.3'
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=1.23.3'
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: missing_feature
@@ -268,15 +284,50 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: v1.7.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: v1.7.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v1.6.2
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v1.6.2
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Capability: missing_feature
-  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags: missing_feature
-  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags: missing_feature
+  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=1.23.3'
+  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        laravel11x: '>=1.23.3'
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: v1.6.2
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry: missing_feature
@@ -299,9 +350,18 @@ manifest:
         laravel11x: v1.6.2
         symfony7x: v1.6.2
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v1.6.2
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: missing_feature
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: missing_feature
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: missing_feature
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        symfony7x: '>=1.23.3'
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        symfony7x: '>=1.23.3'
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        symfony7x: '>=1.23.3'
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v1.6.2
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v1.7.0
@@ -313,23 +373,95 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v1.7.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v1.7.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v1.7.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v1.7.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v1.7.0
   tests/appsec/smoke_tests/test_apm_standalone.py: v1.18.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: missing_feature
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke: missing_feature
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Telemetry::test_telemetry_smoke: bug (APPSEC-69429)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_sqli_smoke:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        symfony7x: '>=1.23.3'
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Telemetry::test_telemetry_smoke:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69429)
+      component_version: <1.23.3
+      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+    - declaration: bug (APPSEC-69429)
+      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke: missing_feature
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry::test_telemetry_smoke: bug (APPSEC-69429)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        symfony7x: '>=1.23.3'
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry::test_telemetry_smoke:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69429)
+      component_version: <1.23.3
+      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+    - declaration: bug (APPSEC-69429)
+      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
-        laravel11x: missing_feature
-        symfony7x: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
+        laravel11x: v1.23.3  # TODO: a lower version might be supported
+        symfony7x: v1.23.3  # TODO: a lower version might be supported
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -452,7 +584,36 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.6.2
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
@@ -495,10 +656,213 @@ manifest:
   ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata
   : irrelevant (dd-trace-php only accepts string metadata values)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
+    - weblog_declaration:
+        apache-mod-7.0: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.3: missing_feature
+        php-fpm-7.4: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-7.1: missing_feature
+        php-fpm-7.3: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-8.0: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        symfony7x: missing_feature
+        php-fpm-8.5: missing_feature
+        php-fpm-8.0: missing_feature
+        laravel11x: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        php-fpm-8.2: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  : - weblog_declaration:
+        apache-mod-7.0: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.3: missing_feature
+        php-fpm-7.4: missing_feature
+        apache-mod-7.1: missing_feature
+        php-fpm-7.1: missing_feature
+        php-fpm-7.3: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-8.0: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        symfony7x: missing_feature
+        php-fpm-8.5: missing_feature
+        php-fpm-8.0: missing_feature
+        laravel11x: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        php-fpm-8.2: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_no_extended_request_body_collection_without_event
   : v1.17.0
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc:
+    - weblog_declaration:
+        apache-mod-7.0: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.3: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-7.1: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-8.0: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        symfony7x: missing_feature
+        php-fpm-8.5: missing_feature
+        php-fpm-8.0: missing_feature
+        laravel11x: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        php-fpm-8.2: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers
+  : - weblog_declaration:
+        apache-mod-7.0: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.3: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-7.1: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-8.0: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        symfony7x: missing_feature
+        php-fpm-8.5: missing_feature
+        php-fpm-8.0: missing_feature
+        laravel11x: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        php-fpm-8.2: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit
+  : - weblog_declaration:
+        apache-mod-7.0: missing_feature
+        apache-mod-8.2-zts: missing_feature
+        apache-mod-7.1-zts: missing_feature
+        apache-mod-7.3: missing_feature
+        php-fpm-7.4: missing_feature
+        php-fpm-7.3: missing_feature
+        php-fpm-7.1: missing_feature
+        apache-mod-7.1: missing_feature
+        apache-mod-7.4: missing_feature
+        apache-mod-8.1: missing_feature
+        apache-mod-8.0: missing_feature
+        apache-mod-7.0-zts: missing_feature
+        php-fpm-7.0: missing_feature
+        symfony7x: missing_feature
+        php-fpm-8.5: missing_feature
+        php-fpm-8.0: missing_feature
+        laravel11x: missing_feature
+        apache-mod-7.2: missing_feature
+        apache-mod-8.0-zts: missing_feature
+        php-fpm-7.2: missing_feature
+        apache-mod-7.4-zts: missing_feature
+        php-fpm-8.1: missing_feature
+        apache-mod-7.2-zts: missing_feature
+        apache-mod-8.1-zts: missing_feature
+        php-fpm-8.2: missing_feature
+        apache-mod-8.2: missing_feature
+        apache-mod-7.3-zts: missing_feature
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_no_extended_data_collection_without_event
   : v1.17.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
@@ -528,11 +892,40 @@ manifest:
   tests/appsec/test_rate_limiter.py::Test_Main: v1.11.0
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v1.12.0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v1.6.2
-  tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405:
+  tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405:  # Easy win for apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-8.0, apache-mod-8.0-zts, apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, laravel11x, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, symfony7x and version 1.23.3
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
+  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v1.6.2
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: v1.6.2
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v1.6.2
@@ -556,7 +949,7 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_1st_argument: bug (APPSEC-55673)
   tests/appsec/test_span_tags_headers.py: v1.17.0-dev
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-  tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker:
+  tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker:  # Easy win for apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-8.0, apache-mod-8.0-zts, apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, laravel11x, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, symfony7x and version 1.23.3
     - component_version: ">=1.19.0"
       declaration: bug (APPSEC-62534)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
@@ -627,6 +1020,32 @@ manifest:
         php-fpm-8.5: v1.20.0
         apache-mod-8.4: v1.20.0
         apache-mod-8.5: v1.20.0
+        apache-mod-8.1-zts: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.4-zts: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.2-zts: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-8.1: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-8.2-zts: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-8.2: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-7.0: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.0: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-8.0: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.2: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.1-zts: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.3-zts: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.1: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-7.3: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-8.1: v1.23.3  # TODO: a lower version might be supported
+        symfony7x: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.4: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.3: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-7.1: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-8.0: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-8.2: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-8.0-zts: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-7.4: v1.23.3  # TODO: a lower version might be supported
+        apache-mod-7.0-zts: v1.23.3  # TODO: a lower version might be supported
+        laravel11x: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-7.2: v1.23.3  # TODO: a lower version might be supported
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: '>=1.20.0'
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
@@ -637,6 +1056,11 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
+    - weblog_declaration:
+        "*": v1.19.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:
     - weblog_declaration:
         "*": v1.19.0
         laravel11x: incomplete_test_app
@@ -729,6 +1153,10 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : '>=1.16.0'
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: incomplete_test_app (No /debugger/snapshot/capture-timeout endpoint)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature (code origin entry spans not captured in PHP-FPM; RC toggle works but no spans to verify)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
@@ -1493,7 +1921,36 @@ manifest:
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_resource_renaming.py: v1.14.0
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        apache-mod-8.1-zts: '>=1.23.3'
+        apache-mod-7.4-zts: '>=1.23.3'
+        apache-mod-7.2-zts: '>=1.23.3'
+        php-fpm-8.1: '>=1.23.3'
+        apache-mod-8.2-zts: '>=1.23.3'
+        apache-mod-8.2: '>=1.23.3'
+        php-fpm-7.0: '>=1.23.3'
+        apache-mod-7.0: '>=1.23.3'
+        php-fpm-8.0: '>=1.23.3'
+        apache-mod-7.2: '>=1.23.3'
+        apache-mod-7.1-zts: '>=1.23.3'
+        apache-mod-7.3-zts: '>=1.23.3'
+        apache-mod-7.1: '>=1.23.3'
+        php-fpm-7.3: '>=1.23.3'
+        apache-mod-8.1: '>=1.23.3'
+        symfony7x: '>=1.23.3'
+        apache-mod-7.4: '>=1.23.3'
+        apache-mod-7.3: '>=1.23.3'
+        php-fpm-7.1: '>=1.23.3'
+        apache-mod-8.0: '>=1.23.3'
+        php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.2: '>=1.23.3'
+        apache-mod-8.0-zts: '>=1.23.3'
+        php-fpm-7.4: '>=1.23.3'
+        apache-mod-7.0-zts: '>=1.23.3'
+        laravel11x: '>=1.23.3'
+        php-fpm-7.2: '>=1.23.3'
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_manual.py::Test_Manual_Sampling: v0.68.0  # \DDTrace\set_priority_sampling was introduced in 0.68.0
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
@@ -1523,7 +1980,10 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace: irrelevant (Trace method does not reach php-land)
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62222)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v1.9.0
-  tests/test_standard_tags.py::Test_StandardTagsRoute: missing_feature
+  tests/test_standard_tags.py::Test_StandardTagsRoute:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        symfony7x: '>=1.23.3'
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.75.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.76.0
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:

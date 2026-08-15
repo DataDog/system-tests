@@ -49,6 +49,18 @@ from utils._context.containers import (
 
 update_environ_with_local_env()
 
+# Shared by every AI Guard scenario: the SDK on, AppSec and IAST off so nothing else drives the
+# spans under test, and the endpoint pointed at the VCR container with keys the mock backend
+# ignores. Each scenario adds only what it is there to exercise.
+_AI_GUARD_WEBLOG_ENV = {
+    "DD_APPSEC_ENABLED": "false",
+    "DD_IAST_ENABLED": "false",
+    "DD_AI_GUARD_ENABLED": "true",
+    "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+    "DD_API_KEY": "mock_api_key",
+    "DD_APP_KEY": "mock_app_key",
+}
+
 
 class _Scenarios:
     todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
@@ -976,6 +988,17 @@ class _Scenarios:
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
 
+    debugger_capture_timeout = DebuggerScenario(
+        "DEBUGGER_CAPTURE_TIMEOUT",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+    )
+
     debugger_probes_snapshot_with_scm = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
         weblog_env={
@@ -1446,14 +1469,7 @@ class _Scenarios:
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
         appsec_enabled=False,
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
-        },
+        weblog_env=_AI_GUARD_WEBLOG_ENV,
         doc="AI Guard SDK tests",
         scenario_groups=[scenario_groups.ai_guard],
     )
@@ -1463,12 +1479,7 @@ class _Scenarios:
         other_weblog_containers=(VCRCassettesContainer,),
         appsec_enabled=False,
         weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
+            **_AI_GUARD_WEBLOG_ENV,
             "DD_APM_TRACING_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
@@ -1484,16 +1495,38 @@ class _Scenarios:
         other_weblog_containers=(VCRCassettesContainer,),
         appsec_enabled=False,
         weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
+            **_AI_GUARD_WEBLOG_ENV,
             "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
             "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
         },
         doc="AI Guard telemetry tests with low truncation thresholds",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_redaction_telemetry = AIGuardScenario(
+        "AI_GUARD_REDACTION_TELEMETRY",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        # Deliberately without the truncation thresholds AI_GUARD_TELEMETRY sets: the redaction
+        # corpus is replayed from cassettes addressed by a hash of the request body, so a truncated
+        # payload matches no cassette and never comes back with any replacement. The telemetry
+        # flush intervals need no override, WeblogContainer already puts both at 2s.
+        weblog_env=_AI_GUARD_WEBLOG_ENV,
+        doc="AI Guard redaction telemetry tests, with untruncated payloads and exact metric counts",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_redaction_disabled = AIGuardScenario(
+        "AI_GUARD_REDACTION_DISABLED",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            **_AI_GUARD_WEBLOG_ENV,
+            # Global kill-switch: evaluations still run and findings are still reported, but the
+            # redaction_replacements returned by the backend are never applied.
+            "DD_AI_GUARD_REDACTION_ENABLED": "false",
+        },
+        doc="AI Guard with the sensitive data redaction kill-switch turned off",
         scenario_groups=[scenario_groups.ai_guard],
     )
 
